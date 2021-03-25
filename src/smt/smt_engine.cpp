@@ -1137,11 +1137,11 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declareTermPool(const Node& p, const std::vector<Node>& initValue)
+void SmtEngine::declareTermPool(const Node& p,
+                                const std::vector<Node>& initValue)
 {
   finishInit();
-  QuantifiersEngine* qe =
-      getAvailableQuantifiersEngine("declareTermPool");
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
   qe->declareTermPool(p, initValue);
 }
 

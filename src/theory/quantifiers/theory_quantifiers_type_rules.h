@@ -38,10 +38,14 @@ struct QuantifierForallTypeRule {
       if( n[ 1 ].getType(check)!=nodeManager->booleanType() ){
         throw TypeCheckingExceptionPrivate(n, "body of universal quantifier is not boolean");
       }
-      if( n.getNumChildren()==3 ){
-        if (n[2].getType(check)!=nodeManager->instPatternListType())
+      if (n.getNumChildren() == 3)
+      {
+        if (n[2].getType(check) != nodeManager->instPatternListType())
         {
-          throw TypeCheckingExceptionPrivate(n, "third argument of universal quantifier is not instantiation pattern list");
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "third argument of universal quantifier is not instantiation "
+              "pattern list");
         }
       }
     }

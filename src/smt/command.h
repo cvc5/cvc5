@@ -412,8 +412,12 @@ class CVC4_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
   api::Term d_func;
   api::Sort d_sort;
   api::Term d_initValue;
+
  public:
-  DeclarePoolCommand(const std::string& id, api::Term func, api::Sort sort, api::Term initValue);
+  DeclarePoolCommand(const std::string& id,
+                     api::Term func,
+                     api::Sort sort,
+                     api::Term initValue);
   api::Term getFunction() const;
   api::Sort getSort() const;
 

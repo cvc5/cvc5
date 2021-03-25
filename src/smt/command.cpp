@@ -1131,15 +1131,13 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
       out, d_func.toString(), d_sort.getTypeNode());
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class DeclareFunctionCommand                                               */
 /* -------------------------------------------------------------------------- */
 
 DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
-                                               api::Term func,
-                                               api::Sort sort
-                                      api::Term initValue)
+                                       api::Term func,
+                                       api::Sort sort api::Term initValue)
     : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort)
 {
 }
@@ -1166,9 +1164,9 @@ std::string DeclarePoolCommand::getCommandName() const
 }
 
 void DeclarePoolCommand::toStream(std::ostream& out,
-                                      int toDepth,
-                                      size_t dag,
-                                      OutputLanguage language) const
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclarePool(
       out, d_func.toString(), d_sort.getTypeNode(), d_initValue.getNode());

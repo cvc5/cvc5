@@ -198,12 +198,11 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
-                                          const std::string& id,
-                                          TypeNode type) const
+                                     const std::string& id,
+                                     TypeNode type) const
 {
   printUnknownCommand(out, "declare-pool");
 }
-
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,
                                      TypeNode type) const

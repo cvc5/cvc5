@@ -68,7 +68,7 @@ class TermRegistry
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
-  /** 
+  /**
    * Declare pool p with initial value initValue.
    */
   void declarePool(Node p, const std::vector<Node>& initValue);
