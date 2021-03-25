@@ -246,7 +246,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   if (quant_e != QEFFORT_STANDARD) return;
 
   FirstOrderModel* model = d_quantEngine->getModel();
-  Instantiate* inst = d_quantEngine->getInstantiate();
+  Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
   SygusExplain syexplain(db);
   NodeManager* nm = NodeManager::currentNM();

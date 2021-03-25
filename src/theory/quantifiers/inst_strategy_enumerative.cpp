@@ -22,15 +22,12 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
+using namespace CVC4::kind;
+using namespace CVC4::context;
+
 namespace CVC4 {
-
-using namespace kind;
-using namespace context;
-
 namespace theory {
 namespace quantifiers {
-
-using namespace inst;
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
@@ -194,7 +191,7 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
       mkTermTupleEnumerator(quantifier, &ttec));
   std::vector<Node> terms;
   std::vector<bool> failMask;
-  Instantiate* ie = d_quantEngine->getInstantiate();
+  Instantiate* ie = d_qim.getInstantiate();
   for (enumerator->init(); enumerator->hasNext();)
   {
     if (d_qstate.isInConflict())

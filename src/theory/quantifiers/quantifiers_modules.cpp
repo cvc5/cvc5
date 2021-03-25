@@ -68,7 +68,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   {
     d_i_cbqi.reset(new InstStrategyCegqi(qe, qs, qim, qr));
     modules.push_back(d_i_cbqi.get());
-    qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
+    qim.getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
   }
   if (options::sygus())
   {
@@ -91,16 +91,14 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     if (tr.useFmcModel())
     {
       Trace("quant-init-debug") << "...make fmc builder." << std::endl;
-      d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
+      d_builder.reset(new fmcheck::FullModelChecker(qs, qr, qim));
     }
     else
     {
       Trace("quant-init-debug")
           << "...make default model builder." << std::endl;
-      d_builder.reset(new QModelBuilder(qs, qr));
+      d_builder.reset(new QModelBuilder(qs, qr, qim));
     }
-    // !!!!!!!!!!!!! temporary (project #15)
-    d_builder->finishInit(qe);
   }
   if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
   {
