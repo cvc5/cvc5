@@ -2782,6 +2782,9 @@ enum CVC4_EXPORT Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INST_NO_PATTERN,
+  INST_POOL,
+  INST_ADD_TO_POOL,
+  SKOLEM_ADD_TO_POOL,
   /*
    * An instantiation attribute
    * Specifies a custom property for a quantified formula given by a

@@ -1751,8 +1751,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr]
 }
   : KEYWORD ( simpleSymbolicExprNoKeyword[s] { hasValue = true; } )?
   {
-    attr = AntlrInput::tokenText($KEYWORD);
-    PARSER_STATE->attributeNotSupported(attr);
+    PARSER_STATE->attributeNotSupported(AntlrInput::tokenText($KEYWORD));
   }
   | ( ATTRIBUTE_PATTERN_TOK { k = api::INST_PATTERN; } |
       ATTRIBUTE_POOL_TOK { k = api::INST_POOL; }  |

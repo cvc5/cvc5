@@ -934,22 +934,32 @@ void Smt2Printer::toStream(std::ostream& out,
     // do not letify the bound variable list
     toStream(out, n[0], toDepth, nullptr);
     out << " ";
+    std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
-      out << "(! ";
+      for (const Node& nc : n[2])
+      {
+        if (nc.getKind() == kind::INST_PATTERN)
+        {
+          out << "(! ";
+          annot << ":pattern " << nc;
+          toStream(annot, nc, toDepth, nullptr);
+          annot << ") ";
+        }
+        else if (nc.getKind() == kind::INST_NO_PATTERN)
+        {
+          out << "(! ";
+          annot << ":no-pattern ";
+          toStream(annot, nc, toDepth, nullptr);
+          annot << ") ";
+        }
+      }
     }
     // Use a fresh let binder, since using existing let symbols may violate
     // scoping issues for let-bound variables, see explanation in let_binding.h.
     size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
     toStream(out, n[1], toDepth - 1, dag);
-    if (n.getNumChildren() == 3)
-    {
-      out << " ";
-      // do not letify the annotation
-      toStream(out, n[2], toDepth, nullptr);
-      out << ")";
-    }
-    out << ")";
+    out << annot.str() << ")";
     return;
     break;
   }
