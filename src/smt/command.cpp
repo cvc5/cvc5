@@ -865,11 +865,9 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    NodeManager* nm = solver->d_nodeMgr.release();
     Options opts;
     opts.copyValues(*solver->d_originalOptions);
     solver->~Solver();
-    delete nm;
     ::new (solver) api::Solver(&opts);
     d_commandStatus = CommandSuccess::instance();
   }

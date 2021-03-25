@@ -2327,10 +2327,9 @@ class CVC4_EXPORT Solver
   /**
    * Constructor.
    * @param opts an optional pointer to a solver options object
-   * @param nm an optional pointer to a node manager object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr, NodeManager* nm = nullptr);
+  Solver(Options* opts = nullptr);
 
   /**
    * Destructor.

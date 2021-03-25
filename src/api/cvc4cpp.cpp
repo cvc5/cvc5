@@ -4031,9 +4031,9 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(Options* opts, NodeManager* nm)
+Solver::Solver(Options* opts)
 {
-  d_nodeMgr.reset(nm == nullptr ? new NodeManager() : nm);
+  d_nodeMgr.reset(new NodeManager());
   d_originalOptions.reset(new Options());
   if (opts != nullptr)
   {
