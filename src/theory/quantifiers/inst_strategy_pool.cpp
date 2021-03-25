@@ -17,8 +17,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -110,12 +110,12 @@ std::string InstStrategyPool::identify() const
 {
   return std::string("InstStrategyPool");
 }
-  
+
 void InstStrategyPool::process(Node q, Node p)
 {
-  TermPools * tp = d_quantEngine->getTermRegistry().getTermPools();
-  std::shared_ptr<TermTupleEnumeratorInterface> ttei = mkTermTupleEnumeratorPool(
-    q, context, tp, p);
+  TermPools* tp = d_quantEngine->getTermRegistry().getTermPools();
+  std::shared_ptr<TermTupleEnumeratorInterface> ttei =
+      mkTermTupleEnumeratorPool(q, context, tp, p);
   // TODO
 }
 

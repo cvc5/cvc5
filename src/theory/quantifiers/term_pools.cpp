@@ -21,8 +21,9 @@ namespace theory {
 namespace quantifiers {
 
 void TermPoolDomain::initialize() { d_terms.clear(); }
-void TermPoolDomain::add(Node n) { 
-  if (std::find(d_terms.begin(), d_terms.end(), n)==d_terms.end())
+void TermPoolDomain::add(Node n)
+{
+  if (std::find(d_terms.begin(), d_terms.end(), n) == d_terms.end())
   {
     d_terms.push_back(n);
   }
@@ -33,7 +34,6 @@ void TermPoolQuantInfo::initialize()
   d_instAddToPool.clear();
   d_skolemAddToPool.clear();
 }
-
 
 TermPools::TermPools(QuantifiersState& qs) : d_qs(qs) {}
 

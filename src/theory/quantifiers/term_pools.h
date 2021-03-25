@@ -28,7 +28,7 @@ namespace theory {
 namespace quantifiers {
 
 class QuantifiersState;
-  
+
 class TermPoolDomain
 {
  public:
