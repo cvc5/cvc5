@@ -318,6 +318,12 @@ class FloatingPointLiteral
    */
   static FloatingPointLiteral makeZero(const FloatingPointSize& size,
                                        bool sign);
+// clang-format off
+#if !@CVC4_USE_SYMFPU@
+  // clang-format on
+  /** Catch-all for unimplemented functions. */
+  static void unimplemented(void);
+#endif
 
   /** Constructors. */
 
@@ -478,8 +484,6 @@ class FloatingPointLiteral
   /** Return wrapped floating-point literal. */
   const SymFPUUnpackedFloatLiteral& getSymUF() const { return d_symuf; }
 #else
-  /** Catch-all for unimplemented functions. */
-  static void unimplemented(void);
   /** Dummy hash function. */
   size_t hash(void) const;
 #endif
