@@ -26,17 +26,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-struct QuantifierForallTypeRule {
+struct QuantifierTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Debug("typecheck-q") << "type check for fa " << n << std::endl;
-    Assert(n.getKind() == kind::FORALL && n.getNumChildren() > 0);
+    Assert((n.getKind() == kind::FORALL || n.getKind()==kind::EXISTS) && n.getNumChildren() > 0);
     if( check ){
       if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
-        throw TypeCheckingExceptionPrivate(n, "first argument of universal quantifier is not bound var list");
+        throw TypeCheckingExceptionPrivate(n, "first argument of quantifier is not bound var list");
       }
       if( n[ 1 ].getType(check)!=nodeManager->booleanType() ){
-        throw TypeCheckingExceptionPrivate(n, "body of universal quantifier is not boolean");
+        throw TypeCheckingExceptionPrivate(n, "body of quantifier is not boolean");
       }
       if (n.getNumChildren() == 3)
       {
@@ -44,34 +44,21 @@ struct QuantifierForallTypeRule {
         {
           throw TypeCheckingExceptionPrivate(
               n,
-              "third argument of universal quantifier is not instantiation "
+              "third argument of quantifier is not instantiation "
               "pattern list");
+        }
+        for (const Node& p : n[2])
+        {
+          if (p.getKind()==kind::INST_POOL && p.getNumChildren()!=n[0].getNumChildren())
+          {
+        throw TypeCheckingExceptionPrivate(n, "expected number of arguments to pool to be the same as the number of bound variables of the quantified formula");
+          }
         }
       }
     }
     return nodeManager->booleanType();
   }
-};/* struct QuantifierForallTypeRule */
-
-struct QuantifierExistsTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Debug("typecheck-q") << "type check for ex " << n << std::endl;
-    Assert(n.getKind() == kind::EXISTS && n.getNumChildren() > 0);
-    if( check ){
-      if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
-        throw TypeCheckingExceptionPrivate(n, "first argument of existential quantifier is not bound var list");
-      }
-      if( n[ 1 ].getType(check)!=nodeManager->booleanType() ){
-        throw TypeCheckingExceptionPrivate(n, "body of existential quantifier is not boolean");
-      }
-      if( n.getNumChildren()==3 && n[2].getType(check)!=nodeManager->instPatternListType() ){
-        throw TypeCheckingExceptionPrivate(n, "third argument of existential quantifier is not instantiation pattern list");
-      }
-    }
-    return nodeManager->booleanType();
-  }
-};/* struct QuantifierExistsTypeRule */
+};/* struct QuantifierTypeRule */
 
 struct QuantifierBoundVarListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
