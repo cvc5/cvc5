@@ -101,7 +101,14 @@ class InstMatchGenerator;
 class Trigger {
   friend class IMGenerator;
 
- public:
+ public:  
+   /** trigger constructor */
+  Trigger(QuantifiersState& qs,
+          QuantifiersInferenceManager& qim,
+          QuantifiersRegistry& qr,
+          TermRegistry& tr,
+          Node q,
+          std::vector<Node>& nodes);
   virtual ~Trigger();
   /** get the generator associated with this trigger */
   IMGenerator* getGenerator() { return d_mg; }
@@ -146,13 +153,6 @@ class Trigger {
   void debugPrint(const char* c) const;
 
  protected:
-  /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
-  Trigger(QuantifiersState& qs,
-          QuantifiersInferenceManager& qim,
-          QuantifiersRegistry& qr,
-          TermRegistry& tr,
-          Node q,
-          std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
    *
    * This calls Instantiate::addInstantiation(...) for instantiations

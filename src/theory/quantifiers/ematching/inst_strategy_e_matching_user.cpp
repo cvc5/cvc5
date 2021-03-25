@@ -26,7 +26,7 @@ namespace theory {
 namespace quantifiers {
 
 InstStrategyUserPatterns::InstStrategyUserPatterns(
-    TriggerDatabase& td,
+    inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,

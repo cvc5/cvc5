@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/quantifiers_statistics.h"
 
+#include "smt/smt_statistics_registry.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {

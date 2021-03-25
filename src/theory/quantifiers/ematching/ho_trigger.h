@@ -90,9 +90,7 @@ class Trigger;
  */
 class HigherOrderTrigger : public Trigger
 {
-  friend class Trigger;
-
- private:
+ public:
   HigherOrderTrigger(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
@@ -102,7 +100,6 @@ class HigherOrderTrigger : public Trigger
                      std::map<Node, std::vector<Node> >& ho_apps);
   virtual ~HigherOrderTrigger();
 
- public:
   /** Collect higher order var apply terms
    *
    * Collect all top-level HO_APPLY terms in n whose head is a variable x in

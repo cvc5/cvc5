@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategy::InstStrategy(TriggerDatabase& td,
+InstStrategy::InstStrategy(inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,

@@ -156,7 +156,7 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c) const
 
 const LogicInfo& QuantifiersState::getLogicInfo() const { return d_logicInfo; }
 
-QuantifiersStatistics& QuantifiersState::getStats() { return d_stats; }
+QuantifiersStatistics& QuantifiersState::getStats() { return d_statistics; }
 
 }  // namespace quantifiers
 }  // namespace theory

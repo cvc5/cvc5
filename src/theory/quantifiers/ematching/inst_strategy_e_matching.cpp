@@ -62,7 +62,7 @@ struct sortTriggers {
 };
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
-    TriggerDatabase& td,
+    inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
