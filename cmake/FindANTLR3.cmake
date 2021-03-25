@@ -79,6 +79,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static ${64bit} --host=${TOOLCHAIN_PREFIX}
     )
 
+    find_package(Java REQUIRED)
     set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE} -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(ANTLR3_RUNTIME "${DEPS_BASE}/lib/libantlr3c.a")
