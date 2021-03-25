@@ -63,9 +63,6 @@ class TheoryProxy : public Registrar
   /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
 
-  /** Notify (preprocessed) assertions. */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
-
   /** Notify a lemma, possibly corresponding to a skolem definition */
   void notifyAssertion(Node lem, TNode skolem = TNode::null());
 

@@ -61,7 +61,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       Assert(d_stack.size() >= d_stackSizeValid.get());
       ji = d_stack[d_stackSizeValid.get() - 1].get();
       // get the next child to process from the current justification info
-      // based on the fact that its last child process had value lastChildVal.
+      // based on the fact that its last child processed had value lastChildVal.
       next = getNextJustifyNode(ji, lastChildVal);
       // if the current node is finished, we pop the stack
       if (next.first.isNull())
@@ -77,10 +77,10 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     }
     else
     {
-      // must have requested a child to justify
+      // must have requested a next child to justify
       Assert(!next.first.isNull());
       Assert(next.second != SAT_VALUE_UNKNOWN);
-      // Look up whether next.first already has a value
+      // Look up whether the next child already has a value
       lastChildVal = lookupValue(next.first);
       if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
@@ -100,7 +100,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         {
           // (2) unprocessed non-atom, push to the stack
           pushToStack(next.first, next.second);
-          // we have yet to process children for the new node, so lastChildVal
+          // we have yet to process children for the next node, so lastChildVal
           // remains set to SAT_VALUE_UNKNOWN.
         }
       }
@@ -109,6 +109,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     }
   }
   // we exhausted all assertions
+  stopSearch = true;
   return undefSatLiteral;
 }
 
@@ -129,136 +130,144 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Assert(ck != NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
-  if (lastChildVal != SAT_VALUE_UNKNOWN)
+  // if i=0, we shouldn't have a last child value
+  Assert (i==0 || lastChildVal!=SAT_VALUE_UNKNOWN);
+  // if i>0, we just computed the value of the (i-1)^th child
+  Assert (i>0 || lastChildVal==SAT_VALUE_UNKNOWN);  
+  // In the following, we determine if we have a value and set value if so.
+  // If not, we set desiredValue for the value of the next value to justify.
+  // One of these two values should always be set below.
+  SatValue value = SAT_VALUE_UNKNOWN;
+  SatValue desiredVal = SAT_VALUE_UNKNOWN;
+  // we are trying to make the value of curr equal to currDesiredVal
+  SatValue currDesiredVal = currPol ? jc.second : invertValue(jc.second);
+  if (ck == AND || ck == OR)
   {
-    Assert(i != 0);
-    // we just computed the value of the (i-1)^th child, now compute if the
-    // current node has a value now
-    SatValue value = SAT_VALUE_UNKNOWN;
-    if (ck == AND || ck == OR)
+    if (i==0)
     {
-      if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE))
+      // Maybe expensive, so only do this for i==0?
+      if ((ck == AND) == (currDesiredVal == SAT_VALUE_FALSE))
       {
-        // forcing case
-        value = lastChildVal;
-      }
-      else if (i == curr.getNumChildren())
-      {
-        // exhausted case
-        value = lastChildVal;
-      }
-      // otherwise, no forced value
-    }
-    else if (ck == IMPLIES)
-    {
-      if (lastChildVal == (i == 1 ? SAT_VALUE_FALSE : SAT_VALUE_TRUE))
-      {
-        // forcing case
-        value = SAT_VALUE_TRUE;
-      }
-      else if (i == curr.getNumChildren())
-      {
-        // exhausted case
-        value = SAT_VALUE_FALSE;
-      }
-    }
-    else if (ck == ITE)
-    {
-      if (i == 1)
-      {
-        // take the else branch if the condition was false
-        if (lastChildVal == SAT_VALUE_FALSE)
+        // lookahead to determine if already satisfied
+        for (const Node& c : curr)
         {
-          // this increments to the else branch
-          i = ji->getNextChildIndex();
+          if (lookupValue(c)==currDesiredVal)
+          {
+            value = currDesiredVal;
+            break;
+          }
         }
       }
-      else
-      {
-        // return the branch value
-        value = lastChildVal;
-      }
+      desiredVal = currDesiredVal;
+    }
+    else if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE))
+    {
+      // forcing case
+      value = lastChildVal;
+    }
+    else if (i == curr.getNumChildren())
+    {
+      // exhausted case
+      value = lastChildVal;
     }
     else
     {
-      Assert(ck == XOR || ck == EQUAL);
-      if (i == 2)
-      {
-        // recompute the value of the first child
-        SatValue val0 = lookupValue(curr[0]);
-        Assert(val0 != SAT_VALUE_UNKNOWN);
-        value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
-                                                          : SAT_VALUE_FALSE;
-      }
-      // no value yet
+      // otherwise, no forced value, value of child should match the parent
+      desiredVal = currDesiredVal;
     }
-    // we return null if we are done with the current node
-    if (value != SAT_VALUE_UNKNOWN)
-    {
-      // add to justify if so
-      d_justified.insert(curr, value);
-      // update the last child value, which will be used by the parent of this,
-      // if it exists
-      lastChildVal = value;
-      // return null, indicating there is nothing left to do for current
-      return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
-    }
-  }
-  else
-  {
-    Assert(i == 0);
-  }
-  // The next child should be in the range of curr. Otherwise, we did not
-  // recognize when its value could be inferred above.
-  Assert(i < curr.getNumChildren());
-  // determine the value of the next child request
-  SatValue pDesiredVal = currPol ? jc.second : invertValue(jc.second);
-  SatValue desiredVal;
-  // TODO: lookahead to check already justified?
-
-  // determine if already justified
-  if (ck == AND || ck == OR)
-  {
-    if ((ck == AND) == (pDesiredVal == SAT_VALUE_FALSE))
-    {
-      // TODO: lookahead to determine if already satisfied?
-    }
-    desiredVal = pDesiredVal;
   }
   else if (ck == IMPLIES)
   {
     if (i == 0)
     {
-      // TODO: lookahead to determine if already satisfied?
-      desiredVal = invertValue(pDesiredVal);
+      // lookahead to second child to determine if already satisfied
+      if (lookupValue(curr[1])==SAT_VALUE_TRUE)
+      {
+        value = SAT_VALUE_TRUE;
+      }
+      else
+      {
+        // otherwise, we request the opposite of what parent wants
+        desiredVal = invertValue(currDesiredVal);
+      }
+    }
+    else if (lastChildVal == ((i == 1) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE))
+    {
+      // forcing case
+      value = SAT_VALUE_TRUE;
+    }
+    else if (i == 2)
+    {
+      // exhausted case
+      value = SAT_VALUE_FALSE;
     }
     else
     {
-      desiredVal = pDesiredVal;
+      desiredVal = currDesiredVal;
     }
+    
   }
   else if (ck == ITE)
   {
     if (i == 0)
     {
-      // TODO: lookahead on branches
-      desiredVal = SAT_VALUE_TRUE;
+      // lookahead on branches
+      SatValue val1 = lookupValue(curr[1]);
+      SatValue val2 = lookupValue(curr[2]);
+      if (val1==val2)
+      {
+        // branches have no difference, value is that of branches, which may
+        // be unknown
+        value = val1;
+      }
+      // if first branch is already wrong or second branch is already right, try to make condition false
+      desiredVal = (val1==invertValue(currDesiredVal) || val2==currDesiredVal) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+    }
+    else if (i == 1)
+    {
+      // take the else branch if the condition was false
+      if (lastChildVal == SAT_VALUE_FALSE)
+      {
+        // this increments to the else branch
+        i = ji->getNextChildIndex();
+      }
+      // make the branch equal to the desired value
+      desiredVal = currDesiredVal;
     }
     else
     {
-      desiredVal = pDesiredVal;
+      // return the branch value
+      value = lastChildVal;
     }
   }
   else if (ck == XOR || ck == EQUAL)
   {
+    Assert (curr[0].getType().isBoolean());
     if (i == 0)
     {
-      // TODO: lookahead on rhs
-      desiredVal = SAT_VALUE_TRUE;
+      // check if the rhs requires current to have opposite value
+      SatValue val1 = lookupValue(curr[1]);
+      if (val1==SAT_VALUE_UNKNOWN)
+      {
+        desiredVal = SAT_VALUE_TRUE;
+      }
+      else
+      {
+        desiredVal = ((ck==EQUAL) == (currDesiredVal == SAT_VALUE_TRUE)) ? val1 : invertValue(val1);
+      }
+    }
+    else if (i==1)
+    {
+      desiredVal = ((ck == EQUAL)==(currDesiredVal == SAT_VALUE_TRUE)) ? lastChildVal : invertValue(lastChildVal);
     }
     else
     {
-      desiredVal = ck == XOR ? invertValue(lastChildVal) : lastChildVal;
+      // recompute the value of the first child
+      SatValue val0 = lookupValue(curr[0]);
+      Assert(val0 != SAT_VALUE_UNKNOWN);
+      // compute the value
+      value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
+                                                        : SAT_VALUE_FALSE;
     }
   }
   else
@@ -266,6 +275,22 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     // curr should not be an atom
     Assert(false);
   }
+  // we return null if we have determined the value of the current node
+  if (value != SAT_VALUE_UNKNOWN)
+  {
+    // add to justify if so
+    d_justified.insert(curr, value);
+    // update the last child value, which will be used by the parent of the
+    // current node, if it exists.
+    lastChildVal = currPol ? value : invertValue(value);
+    // return null, indicating there is nothing left to do for current
+    return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
+  }
+  // The next child should be a valid argument in curr. Otherwise, we did not
+  // recognize when its value could be inferred above.
+  Assert(i < curr.getNumChildren());
+  // should set a desired value
+  Assert (desiredVal!=SAT_VALUE_UNKNOWN);
   // return the justify node
   return JustifyNode(curr[i], desiredVal);
 }
@@ -285,7 +310,9 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
     return pol ? jit->second : invertValue(jit->second);
   }
   // TODO: for simplicity, should we just lookup values for non-theory atoms
-  // too?
+  // too? Notice that looking up values for non-theory atoms may lead to
+  // an incomplete strategy where a formula is asserted but not justified
+  // via its theory literal subterms?
   if (isTheoryAtom(atom))
   {
     SatLiteral nsl = d_cnfStream->getLiteral(atom);
