@@ -150,11 +150,11 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   // collect all active quantified formulas belonging to this
   bool quantActive = false;
   d_quants.clear();
-  FirstOrderModel* m = d_treg.getModel();
+  FirstOrderModel* m = d_quantEngine->getModel();
   size_t nquant = m->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
   {
-    Node q = d_treg.getModel()->getAssertedQuantifier(i, true);
+    Node q = m->getAssertedQuantifier(i, true);
     if (shouldProcess(q) && m->isQuantifierActive(q))
     {
       quantActive = true;

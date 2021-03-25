@@ -693,6 +693,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/pattern_term_selector.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
+  theory/quantifiers/ematching/trigger_database.cpp
+  theory/quantifiers/ematching/trigger_database.h
   theory/quantifiers/ematching/trigger_term_info.cpp
   theory/quantifiers/ematching/trigger_term_info.h
   theory/quantifiers/ematching/trigger_trie.cpp
@@ -763,6 +765,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
   theory/quantifiers/quantifiers_state.h
+  theory/quantifiers/quantifiers_statistics.cpp
+  theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp

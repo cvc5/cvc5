@@ -185,25 +185,6 @@ public:
 
  //----------end user interface for instantiations
 
- /** statistics class */
- class Statistics
- {
-  public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_red_alpha_equiv;
-    Statistics();
-    ~Statistics();
-  };/* class QuantifiersEngine::Statistics */
-  Statistics d_statistics;
-
  private:
   /** The quantifiers state object */
   quantifiers::QuantifiersState& d_qstate;

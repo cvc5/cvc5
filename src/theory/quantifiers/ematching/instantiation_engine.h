@@ -22,7 +22,7 @@
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
-#include "
+#include "theory/quantifiers/ematching/trigger_database.h"
 
 namespace CVC4 {
 namespace theory {
@@ -73,7 +73,7 @@ class InstantiationEngine : public QuantifiersModule {
   /** Return true if this module should process quantified formula q */
   bool shouldProcess(Node q);
   /** all triggers will be stored in this database */
-  TriggerDatabase d_trdb;
+  inst::TriggerDatabase d_trdb;
   /** for computing relevance of quantifiers */
   std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */

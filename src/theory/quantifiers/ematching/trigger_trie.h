@@ -25,7 +25,8 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
+namespace inst {
+  
 /** A trie of triggers.
  *
  * This class is used to cache all Trigger objects that are generated in the
@@ -54,6 +55,7 @@ class TriggerTrie
   std::map<TNode, TriggerTrie> d_children;
 }; /* class inst::Trigger::TriggerTrie */
 
+}
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

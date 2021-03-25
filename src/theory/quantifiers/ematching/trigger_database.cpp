@@ -21,6 +21,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+  namespace inst {
 
 TriggerDatabase::TriggerDatabase(QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
@@ -62,10 +63,7 @@ Trigger* TriggerDatabase::mkTrigger(Node f,
         // just return old trigger
         return t;
       }
-      else
-      {
-        return nullptr;
-      }
+      return nullptr;
     }
   }
 
@@ -85,7 +83,6 @@ Trigger* TriggerDatabase::mkTrigger(Node f,
   {
     t = new Trigger(qs, qim, qr, tr, f, trNodes);
   }
-
   d_trie.addTrigger(trNodes, t);
   return t;
 }
@@ -104,17 +101,15 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
                                      std::vector<Node>& trNodes)
 {
   // only take nodes that contribute variables to the trigger when added
-  std::vector<Node> temp;
-  temp.insert(temp.begin(), nodes.begin(), nodes.end());
   std::map<Node, bool> vars;
   std::map<Node, std::vector<Node> > patterns;
   size_t varCount = 0;
   std::map<Node, std::vector<Node> > varContains;
-  for (const Node& pat : temp)
+  for (const Node& pat : nodes)
   {
     TermUtil::computeInstConstContainsForQuant(q, pat, varContains[pat]);
   }
-  for (const Node& t : temp)
+  for (const Node& t : nodes)
   {
     const std::vector<Node>& vct = varContains[t];
     bool foundVar = false;
@@ -187,8 +182,7 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
   return true;
 }
 
+  }
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
-
-#endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_DATABASE_H */

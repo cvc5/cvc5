@@ -20,7 +20,6 @@
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
@@ -180,7 +179,8 @@ void QuantifiersEngine::ppNotifyAssertions(
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
-  CodeTimer codeTimer(d_statistics.d_time);
+  QuantifiersStats& stats = d_qstate.getStats();
+  CodeTimer codeTimer(stats.d_time);
   Assert(d_qstate.getEqualityEngine() != nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())
   {
@@ -326,9 +326,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     if( e==Theory::EFFORT_LAST_CALL ){
-      ++(d_statistics.d_instantiation_rounds_lc);
+      ++(stats.d_instantiation_rounds_lc);
     }else if( e==Theory::EFFORT_FULL ){
-      ++(d_statistics.d_instantiation_rounds);
+      ++(stats.d_instantiation_rounds);
     }
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
     for (unsigned qef = QuantifiersModule::QEFFORT_CONFLICT;
@@ -505,7 +505,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
         id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
-          ++(d_statistics.d_red_alpha_equiv);
+          ++(d_qstate.getStats().d_red_alpha_equiv);
         }
       }
       d_quants_red_lem[q] = lem;
@@ -529,7 +529,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
     Trace("quant") << " : " << f << std::endl;
     size_t prev_lemma_waiting = d_qim.numPendingLemmas();
-    ++(d_statistics.d_num_quant);
+    ++(d_qstate.getStats().d_num_quant);
     Assert(f.getKind() == FORALL);
     // register with utilities
     for (unsigned i = 0; i < d_util.size(); i++)
@@ -658,44 +658,6 @@ void QuantifiersEngine::getSkolemTermVectors(
     std::map<Node, std::vector<Node> >& sks) const
 {
   d_qim.getSkolemize()->getSkolemTermVectors(sks);
-}
-
-QuantifiersEngine::Statistics::Statistics()
-    : d_time("theory::QuantifiersEngine::time"),
-      d_qcf_time("theory::QuantifiersEngine::time_qcf"),
-      d_ematching_time("theory::QuantifiersEngine::time_ematching"),
-      d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
-      d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
-      d_instantiation_rounds_lc(
-          "QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
-      d_triggers("QuantifiersEngine::Triggers", 0),
-      d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
-      d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_time);
-  smtStatisticsRegistry()->registerStat(&d_qcf_time);
-  smtStatisticsRegistry()->registerStat(&d_ematching_time);
-  smtStatisticsRegistry()->registerStat(&d_num_quant);
-  smtStatisticsRegistry()->registerStat(&d_instantiation_rounds);
-  smtStatisticsRegistry()->registerStat(&d_instantiation_rounds_lc);
-  smtStatisticsRegistry()->registerStat(&d_triggers);
-  smtStatisticsRegistry()->registerStat(&d_simple_triggers);
-  smtStatisticsRegistry()->registerStat(&d_multi_triggers);
-  smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
-}
-
-QuantifiersEngine::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_time);
-  smtStatisticsRegistry()->unregisterStat(&d_qcf_time);
-  smtStatisticsRegistry()->unregisterStat(&d_ematching_time);
-  smtStatisticsRegistry()->unregisterStat(&d_num_quant);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds_lc);
-  smtStatisticsRegistry()->unregisterStat(&d_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
 }
 
 Node QuantifiersEngine::getNameForQuant(Node q) const

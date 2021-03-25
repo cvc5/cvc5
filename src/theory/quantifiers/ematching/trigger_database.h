@@ -31,7 +31,10 @@ class QuantifiersState;
 class QuantifiersRegistry;
 class TermRegistry;
 
-/** A database of triggers.
+namespace inst {
+
+/**
+ * A database of triggers, which manages how triggers are constructed.
  */
 class TriggerDatabase
 {
@@ -87,10 +90,10 @@ class TriggerDatabase
                              std::vector<Node>& trNodes);
 
  private:
-  /** The trigger trie */
+  /** The trigger trie, containing the triggers */
   TriggerTrie d_trie;
   /** Reference to the quantifiers state */
-  QuantifiersState& d_qstate;
+  QuantifiersState& d_qs;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
@@ -99,6 +102,7 @@ class TriggerDatabase
   TermRegistry& d_treg;
 };
 
+}
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
