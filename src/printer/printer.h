@@ -92,7 +92,7 @@ class Printer
   virtual void toStreamCmdDeclarePool(std::ostream& out,
                                       const std::string& id,
                                       TypeNode type,
-                                      Node initValue) const;
+                                      const std::vector<Node>& initValue) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,

@@ -1138,7 +1138,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
 DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
                                        api::Term func,
                                        api::Sort sort,
-                                       api::Term initValue)
+                                       const std::vector<api::Term>& initValue)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_sort(sort),
@@ -1148,11 +1148,11 @@ DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
 
 api::Term DeclarePoolCommand::getFunction() const { return d_func; }
 api::Sort DeclarePoolCommand::getSort() const { return d_sort; }
-api::Term DeclarePoolCommand::getInitialValue() const { return d_initValue; }
+const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const { return d_initValue; }
 
 void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declarePool(d_func, d_initValue);
+  solver->declareTermPool(d_func, d_initValue);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1174,7 +1174,7 @@ void DeclarePoolCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclarePool(
-      out, d_func.toString(), d_sort.getTypeNode(), d_initValue.getNode());
+      out, d_func.toString(), d_sort.getTypeNode(), api::Term::termVectorToNodes(d_initValue));
 }
 
 /* -------------------------------------------------------------------------- */

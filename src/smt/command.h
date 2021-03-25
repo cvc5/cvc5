@@ -411,16 +411,16 @@ class CVC4_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
  protected:
   api::Term d_func;
   api::Sort d_sort;
-  api::Term d_initValue;
+  std::vector<api::Term> d_initValue;
 
  public:
   DeclarePoolCommand(const std::string& id,
                      api::Term func,
                      api::Sort sort,
-                     api::Term initValue);
+                     const std::vector<api::Term>& initValue);
   api::Term getFunction() const;
   api::Sort getSort() const;
-  api::Term getInitialValue() const;
+  const std::vector<api::Term>& getInitialValue() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
