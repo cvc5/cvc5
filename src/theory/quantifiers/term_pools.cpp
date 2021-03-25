@@ -107,7 +107,8 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
         dom.d_currTerms.push_back(t);
       }
     }
-    Trace("pool-terms") << "* Domain for pool " << p << " is " << dom.d_currTerms << std::endl;
+    Trace("pool-terms") << "* Domain for pool " << p << " is "
+                        << dom.d_currTerms << std::endl;
   }
   terms.insert(terms.end(), dom.d_currTerms.begin(), dom.d_currTerms.end());
 }
@@ -126,7 +127,7 @@ void TermPools::processInternal(Node q,
                                 const std::vector<Node>& ts,
                                 bool isInst)
 {
-  Assert (q.getKind()==kind::FORALL);
+  Assert(q.getKind() == kind::FORALL);
   std::map<Node, TermPoolQuantInfo>::iterator it = d_qinfo.find(q);
   if (it == d_qinfo.end())
   {
@@ -139,12 +140,14 @@ void TermPools::processInternal(Node q,
       isInst ? it->second.d_instAddToPool : it->second.d_skolemAddToPool;
   for (const Node& c : cmds)
   {
-    Assert (c.getNumChildren()==2);
+    Assert(c.getNumChildren() == 2);
     Node t = c[0];
     // substitute the term
     Node st = t.substitute(vars.begin(), vars.end(), ts.begin(), ts.end());
     // add to pool
-    Trace("pool-terms") << "Due to " << (isInst ? "instantiation" : "skolemization") << ", add " << st << " to pool " << c[1] << std::endl;
+    Trace("pool-terms") << "Due to "
+                        << (isInst ? "instantiation" : "skolemization")
+                        << ", add " << st << " to pool " << c[1] << std::endl;
     TermPoolDomain& dom = d_pools[c[1]];
     dom.d_terms.push_back(st);
   }

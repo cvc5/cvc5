@@ -111,7 +111,8 @@ struct QuantifierInstPatternListTypeRule {
   {
     Assert(n.getKind() == kind::INST_PATTERN_LIST);
     if( check ){
-      for (const Node& nc : n){
+      for (const Node& nc : n)
+      {
         Kind k = nc.getKind();
         if (k != kind::INST_PATTERN && k != kind::INST_NO_PATTERN
             && k != kind::INST_ATTRIBUTE && k != kind::INST_POOL
