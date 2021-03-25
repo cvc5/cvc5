@@ -25,11 +25,7 @@
 
 #include <optional>
 
-#ifdef CVC4_STATISTICS_ON
-#  define CVC4_USE_STATISTICS true
-#else
-#  define CVC4_USE_STATISTICS false
-#endif
+#include "base/configuration.h"
 
 namespace CVC4 {
 
@@ -87,7 +83,7 @@ class HistogramStat
   /** Add the value `val` to the histogram */
   HistogramStat& operator<<(Integral val)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->add(val);
     }
@@ -123,7 +119,7 @@ class ReferenceStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
     }
@@ -131,7 +127,7 @@ class ReferenceStat
   /** Copy the current value of the referenced object. */
   ~ReferenceStat()
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->commit();
     }
@@ -160,7 +156,7 @@ class SizeStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
     }
@@ -168,7 +164,7 @@ class SizeStat
   /** Copy the current size of the referenced container. */
   ~SizeStat()
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->commit();
     }
@@ -260,7 +256,7 @@ class ValueStat
   /** Set to `t` */
   void set(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = t;
     }
@@ -268,7 +264,7 @@ class ValueStat
   /** Set to `t` */
   ValueStat<T>& operator=(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       set(t);
     }
@@ -276,7 +272,7 @@ class ValueStat
   }
   T get() const
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       return d_data->d_value;
     }

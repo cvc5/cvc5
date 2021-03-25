@@ -23,7 +23,7 @@ namespace CVC4 {
 
 AverageStat& AverageStat::operator<<(double v)
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     d_data->d_sum += v;
     d_data->d_count++;
@@ -33,7 +33,7 @@ AverageStat& AverageStat::operator<<(double v)
 
 IntStats& IntStats::operator=(int64_t val)
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     d_data->d_value = val;
   }
@@ -41,7 +41,7 @@ IntStats& IntStats::operator=(int64_t val)
 }
 IntStats& IntStats::operator++()
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     d_data->d_value++;
   }
@@ -49,7 +49,7 @@ IntStats& IntStats::operator++()
 }
 IntStats& IntStats::operator++(int)
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     d_data->d_value++;
   }
@@ -57,7 +57,7 @@ IntStats& IntStats::operator++(int)
 }
 IntStats& IntStats::operator+=(int64_t val)
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     d_data->d_value += val;
   }
@@ -80,7 +80,7 @@ void IntStats::minAssign(int64_t val)
 
 void TimerStat::start()
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     PrettyCheckArgument(!d_data->d_running, *this, "timer already running");
     d_data->d_start = StatisticTimerValue::clock::now();
@@ -89,7 +89,7 @@ void TimerStat::start()
 }
 void TimerStat::stop()
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     AlwaysAssert(d_data->d_running) << "timer not running";
     d_data->d_duration += StatisticTimerValue::clock::now() - d_data->d_start;
@@ -98,7 +98,7 @@ void TimerStat::stop()
 }
 bool TimerStat::running() const
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     return d_data->d_running;
   }
@@ -111,7 +111,7 @@ bool TimerStat::running() const
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
     : d_timer(timer), d_reentrant(false)
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     if (!allow_reentrant || !(d_reentrant = d_timer.running()))
     {
@@ -121,7 +121,7 @@ CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
 }
 CodeTimer::~CodeTimer()
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     if (!d_reentrant)
     {
