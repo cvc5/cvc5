@@ -18,6 +18,7 @@
 #include "decision/decision_engine_old.h"
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
+#include "options/decision_options.h"
 
 namespace CVC4 {
 

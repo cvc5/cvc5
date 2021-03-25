@@ -72,6 +72,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 
     if (d_stackSizeValid.get() == 0)
     {
+      // assertion should be true?
+      Assert (lastChildVal==SAT_VALUE_TRUE);
       // we did not find a next node for current, refresh current assertion
       refreshCurrentAssertion();
     }
@@ -223,7 +225,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     }
     else if (i == 1)
     {
-      // take the else branch if the condition was false
+      // we just computed the value of the condition, check if the condition
+      // was false
       if (lastChildVal == SAT_VALUE_FALSE)
       {
         // this increments to the else branch
