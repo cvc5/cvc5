@@ -38,11 +38,11 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, qe),
-      d_trdb(qs, qim, qr, tr),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
       d_quants(),
+      d_trdb(qs, qim, qr, tr),
       d_quant_rel(nullptr)
 {
   if (options::relevantTriggers())

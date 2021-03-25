@@ -19,7 +19,6 @@
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
@@ -31,13 +30,11 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/relevant_domain.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/quantifiers_statistics.h"
 #include "theory/quantifiers/term_registry.h"
-#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/relevant_domain.h"
 #include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -179,7 +176,7 @@ void QuantifiersEngine::ppNotifyAssertions(
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
-  QuantifiersStats& stats = d_qstate.getStats();
+  quantifiers::QuantifiersStatistics& stats = d_qstate.getStats();
   CodeTimer codeTimer(stats.d_time);
   Assert(d_qstate.getEqualityEngine() != nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())
