@@ -59,6 +59,12 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../config.guess <INSTALL_DIR>/share/config.guess
     )
 
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*64$")
+        set(64bit "--enable-64bit")
+    else()
+        unset(64bit)
+    endif()
+
     # Download, build and install antlr3 runtime
     ExternalProject_Add(
         ANTLR3-EP-runtime
@@ -70,7 +76,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND sed "s/avr32 \\\\/avr32 | aarch64 \\\\/" <SOURCE_DIR>/config.sub > <SOURCE_DIR>/config.sub.new
         COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
         COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
-        COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static --host=${TOOLCHAIN_PREFIX}
+        COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static ${64bit} --host=${TOOLCHAIN_PREFIX}
     )
 
     set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE} -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
