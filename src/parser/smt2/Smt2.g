@@ -1060,6 +1060,20 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[s, CHECK_DECLARED]
     { cmd->reset(new DeclareHeapCommand(t, s)); }
     RPAREN_TOK
+  | DECLARE_POOL { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_NONE,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    LPAREN_TOK
+    ( term[e, e2]
+      { terms.push_back( e ); }
+    )+ RPAREN_TOK
+    { Debug("parser") << "declare pool: '" << name << "'" << std::endl;
+      api::Term setType = SOLVER->mkSetSort( t );
+      api::Term func =
+          PARSER_STATE->bindVar(name, setType, false, true);
+      cmd->reset(new DeclarePoolCommand(name, func, t, terms));
+    }
   | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new BlockModelCommand()); }
 
@@ -2232,6 +2246,7 @@ GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
 GET_INTERPOL_TOK : 'get-interpol';
 DECLARE_HEAP : 'declare-heap';
+DECLARE_POOL : 'declare-pool';
 
 // SyGuS commands
 SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';

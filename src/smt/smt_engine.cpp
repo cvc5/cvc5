@@ -1137,7 +1137,7 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declareTermPool(const Node& p,
+void SmtEngine::declarePool(const Node& p,
                                 const std::vector<Node>& initValue)
 {
   finishInit();
