@@ -134,6 +134,7 @@ class OptimizationSolver
  */
 class OMTOptimizer
 {
+public:
   virtual ~OMTOptimizer() = default;
   /** Given a target node, retrieve an optimizer specific for the node's type
    * the second field isSigned specifies whether we should use signed comparison
