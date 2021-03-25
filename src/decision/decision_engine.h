@@ -69,8 +69,9 @@ class DecisionEngine
   std::unique_ptr<JustificationStrategy> d_jstrat;
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;
-
-};/* DecisionEngine class */
+  /** using old implementation? */
+  bool d_useOld;
+};
 
 }/* CVC4 namespace */
 

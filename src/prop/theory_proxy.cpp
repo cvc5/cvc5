@@ -44,7 +44,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_queue(context),
       d_tpp(*theoryEngine, userContext, pnm),
       d_skdm(new SkolemDefManager(context, userContext)),
-      d_trackSkolemDefs(false)
+      d_trackSkolemDefs(options::jhNew())
 {
 }
 

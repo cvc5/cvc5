@@ -19,10 +19,6 @@
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
 
-using namespace std;
-
-#define USING_OLD
-
 namespace CVC4 {
 
 DecisionEngine::DecisionEngine(context::Context* c,
@@ -30,60 +26,67 @@ DecisionEngine::DecisionEngine(context::Context* c,
                                ResourceManager* rm)
     : d_decEngineOld(new DecisionEngineOld(c, u)),
       d_jstrat(new JustificationStrategy(c, u)),
-      d_resourceManager(rm)
+      d_resourceManager(rm),
+      d_useOld(!options::jhNew())
 {
 }
 
 void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
                                 prop::CnfStream* cs)
 {
-#ifdef USING_OLD
-  d_decEngineOld->setSatSolver(ss);
-  d_decEngineOld->setCnfStream(cs);
-  return;
-#endif
+  if (d_useOld)
+  {
+    d_decEngineOld->setSatSolver(ss);
+    d_decEngineOld->setCnfStream(cs);
+    return;
+  }
   d_jstrat->finishInit(ss, cs);
 }
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
-#ifdef USING_OLD
-  return d_decEngineOld->getNext(stopSearch);
-#endif
+  if (d_useOld)
+  {
+    return d_decEngineOld->getNext(stopSearch);
+  }
   return d_jstrat->getNext(stopSearch);
 }
 
 bool DecisionEngine::isDone()
 {
-#ifdef USING_OLD
-  return d_decEngineOld->isDone();
-#endif
+  if (d_useOld)
+  {
+    return d_decEngineOld->isDone();
+  }
   return d_jstrat->isDone();
 }
 
 void DecisionEngine::addAssertion(TNode assertion)
 {
-#ifdef USING_OLD
-  d_decEngineOld->addAssertion(assertion);
-  return;
-#endif
+  if (d_useOld)
+  {
+    d_decEngineOld->addAssertion(assertion);
+    return;
+  }
   d_jstrat->addAssertion(assertion);
 }
 
 void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
 {
-#ifdef USING_OLD
-  d_decEngineOld->addSkolemDefinition(lem, skolem);
-#endif
+  if (d_useOld)
+  {
+    d_decEngineOld->addSkolemDefinition(lem, skolem);
+  }
   // justification strategy does not use this
 }
 
 void DecisionEngine::notifyRelevantSkolemAssertion(TNode lem)
 {
-#ifdef USING_OLD
-  return;
-#endif
+  if (d_useOld)
+  {
+    return;
+  }
   // old implementation does not use this
   d_jstrat->notifyRelevantSkolemAssertion(lem);
 }
