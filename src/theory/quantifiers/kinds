@@ -35,6 +35,10 @@ sort INST_PATTERN_TYPE \
 operator INST_PATTERN 1: "instantiation pattern"
 operator INST_NO_PATTERN 1 "instantiation no-pattern"
 operator INST_ATTRIBUTE 1 "instantiation attribute"
+operator INST_POOL 1: "instantiation pool"
+operator INST_ADD_TO_POOL 1: "instantiation add to pool"
+operator SKOLEM_ADD_TO_POOL 1: "skolemization add to pool"
+
 
 sort INST_PATTERN_LIST_TYPE \
     Cardinality::INTEGERS \
@@ -51,5 +55,8 @@ typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule
 typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierInstNoPatternTypeRule 
 typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierInstAttributeTypeRule 
 typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule
+typerule INST_POOL "SimpleTypeRule<RBuiltinOperator>"
+typerule INST_ADD_TO_POOL "SimpleTypeRule<RBuiltinOperator>"
+typerule SKOLEM_ADD_TO_POOL "SimpleTypeRule<RBuiltinOperator>"
 
 endtheory
