@@ -289,14 +289,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     disableProofs = true;
   }
 
-  if (options::unsatCores()
-      && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
-  {
-    Notice() << "Proof production and assumption-based unsat cores are "
-             << "not compatible. Disabling proof production." << std::endl;
-    disableProofs = true;
-  }
-
   if (options::arraysExp())
   {
     if (!logic.isQuantified())
@@ -357,6 +349,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::proofReq.set(false);
     options::checkProofs.set(false);
     options::proofEagerChecking.set(false);
+  }
+
+  if (options::produceProofs() && options::unsatCores()
+      && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  {
+    Warning() << "Proof production and assumption-based unsat cores are "
+              << "not compatible. Proofs cannot be generated."
+              << std::endl;
   }
 
   // sygus core connective requires unsat cores
