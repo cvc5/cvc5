@@ -1,4 +1,3 @@
-; REQUIRES: proof
 ; COMMAND-LINE:
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'
