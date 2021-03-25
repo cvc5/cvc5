@@ -101,8 +101,8 @@ class InstMatchGenerator;
 class Trigger {
   friend class IMGenerator;
 
- public:  
-   /** trigger constructor */
+ public:
+  /** trigger constructor */
   Trigger(QuantifiersState& qs,
           QuantifiersInferenceManager& qim,
           QuantifiersRegistry& qr,
