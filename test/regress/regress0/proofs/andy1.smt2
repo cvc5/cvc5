@@ -2,7 +2,6 @@
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*' 
 (set-logic QF_UF)
-(set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
 
 (declare-sort U 0)
