@@ -129,10 +129,7 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
   return d_termEnum.get();
 }
 
-TermPools* TermRegistry::getTermPools() const
-{
-  return d_termPools.get();
-}
+TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }
 

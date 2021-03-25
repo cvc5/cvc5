@@ -186,12 +186,19 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Kind k = q[2][i].getKind();
-      Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << k << std::endl;
-      if( k==INST_PATTERN || k==INST_NO_PATTERN ){
+      Trace("quant-attr-debug")
+          << "Check : " << q[2][i] << " " << k << std::endl;
+      if (k == INST_PATTERN || k == INST_NO_PATTERN)
+      {
         qa.d_hasPattern = true;
-      }else if (k == INST_POOL || k == INST_ADD_TO_POOL || k == SKOLEM_ADD_TO_POOL){
+      }
+      else if (k == INST_POOL || k == INST_ADD_TO_POOL
+               || k == SKOLEM_ADD_TO_POOL)
+      {
         qa.d_hasPool = true;
-      }else if( k==INST_ATTRIBUTE ){
+      }
+      else if (k == INST_ATTRIBUTE)
+      {
         Node avar = q[2][i][0];
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;

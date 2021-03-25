@@ -120,7 +120,7 @@ struct QAttributes
  public:
   QAttributes()
       : d_hasPattern(false),
-      d_hasPool(false),
+        d_hasPool(false),
         d_sygus(false),
         d_qinstLevel(-1),
         d_quant_elim(false),
