@@ -16,6 +16,7 @@
 #include "theory/quantifiers/query_generator.h"
 
 #include <fstream>
+#include <sstream>
 
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
