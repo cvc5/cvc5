@@ -43,8 +43,12 @@ void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
 
 SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 {
-  // ensure we have an assertion, this could perhaps be an Assert?
-  refreshCurrentAssertion();
+  // ensure we have an assertion
+  if (!refreshCurrentAssertion())
+  {
+    stopSearch = true;
+    return undefSatLiteral;
+  }
   // temporary information in the loop below
   JustifyInfo* ji;
   JustifyNode next;
@@ -53,11 +57,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // while we are trying to satisfy assertions
   while (!d_current.get().isNull())
   {
+    Assert(d_stackSizeValid.get() > 0);
     // We get the next justify node, if it can be found.
     do
     {
       // get the current justify info, which should be ready
-      Assert(d_stackSizeValid.get() > 0);
       Assert(d_stack.size() >= d_stackSizeValid.get());
       ji = d_stack[d_stackSizeValid.get() - 1].get();
       // get the next child to process from the current justification info
@@ -75,6 +79,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // assertion should be true?
       Assert(lastChildVal == SAT_VALUE_TRUE);
       // we did not find a next node for current, refresh current assertion
+      d_current = Node::null();
       refreshCurrentAssertion();
     }
     else
@@ -101,6 +106,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         }
         else
         {
+          // TODO: if the internal node has been assigned, what do we do?
           // (2) unprocessed non-atom, push to the stack
           pushToStack(next.first, next.second);
           // we have yet to process children for the next node, so lastChildVal
