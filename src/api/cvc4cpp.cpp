@@ -4063,6 +4063,10 @@ bool Stat::isExpert() const
 {
   return d_expert;
 }
+bool Stat::hasValue() const
+{
+  return !std::holds_alternative<std::monostate>(d_data->data);
+}
 
 bool Stat::isInt() const
 {
@@ -4199,7 +4203,7 @@ Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
 }
 bool Statistics::iterator::isVisible() const
     {
-      return d_showExpert || d_it == d_base->end() || !d_it->second.isExpert();
+      return d_showExpert || d_it == d_base->end() || (!d_it->second.isExpert() && d_it->second.hasValue());
     }
 
 const Stat& Statistics::get(const std::string& name)
@@ -4213,7 +4217,11 @@ Statistics::Statistics(const StatisticsRegistry& reg)
 {
   for (const auto& svp : reg)
   {
-    d_stats.emplace(svp.first, Stat(svp.second->d_expert, svp.second->getViewer()));
+    if (svp.second->hasValue()) {
+      d_stats.emplace(svp.first, Stat(svp.second->d_expert, svp.second->getViewer()));
+    } else {
+      d_stats.emplace(svp.first, Stat(svp.second->d_expert));
+    }
   }
 }
 

@@ -2330,6 +2330,8 @@ class Stat
 
   /** Is this value intended for experts only? */
   bool isExpert() const;
+  /** Does this value hold a non-default value? */
+  bool hasValue() const;
 
   /** Is this value an integer? */
   bool isInt() const;
