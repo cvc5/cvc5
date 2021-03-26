@@ -58,7 +58,7 @@ namespace signal_handlers {
 
 void print_statistics()
 {
-  if (pOptions != nullptr && pOptions->getStatistics() && pExecutor != nullptr)
+  if (pExecutor != nullptr)
   {
     pExecutor->printStatisticsSafe(STDERR_FILENO);
   }

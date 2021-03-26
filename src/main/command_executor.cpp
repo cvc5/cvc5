@@ -61,12 +61,18 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
-  getSmtEngine()->printStatistics(out);
+  if (d_options.getStatistics())
+  {
+    getSmtEngine()->printStatistics(out);
+  }
 }
 
 void CommandExecutor::printStatisticsSafe(int fd) const
 {
-  getSmtEngine()->printStatisticsSafe(fd);
+  if (d_options.getStatistics())
+  {
+    getSmtEngine()->printStatisticsSafe(fd);
+  }
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -99,10 +105,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  if (d_options.getStatistics())
-  {
-    printStatistics(*d_options.getErr());
-  }
+  printStatistics(*d_options.getErr());
   /* We have to keep options passed via CL on reset. These options are stored
    * in CommandExecutor::d_options (populated and created in the driver), and
    * CommandExecutor::d_options only contains *these* options since the
@@ -216,10 +219,7 @@ bool solverInvoke(api::Solver* solver,
 }
 
 void CommandExecutor::flushOutputStreams() {
-  if (d_options.getStatistics())
-  {
-    printStatistics(*(d_options.getErr()));
-  }
+  printStatistics(*(d_options.getErr()));
 
   // make sure out and err streams are flushed too
   d_options.flushOut();
