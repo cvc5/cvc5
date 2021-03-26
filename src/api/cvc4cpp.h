@@ -2319,11 +2319,7 @@ class Stat
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   using HistogramData = std::map<std::string, uint64_t>;
   /** Create from the given value. */
-  Stat(bool expert);
-  Stat(bool expert, int64_t val);
-  Stat(bool expert, double val);
-  Stat(bool expert, const std::string& val);
-  Stat(bool expert, const HistogramData& val);
+  Stat() = delete;
   Stat(const Stat& s);
   ~Stat();
   Stat& operator=(const Stat& s);
@@ -2351,6 +2347,7 @@ class Stat
   const HistogramData& getHistogram() const;
 
  private:
+  Stat(bool expert);
   Stat(bool expert, StatData&& sd);
   /** Whether this statistic is only meant for experts */
   bool d_expert;

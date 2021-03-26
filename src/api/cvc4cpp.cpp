@@ -4036,11 +4036,6 @@ struct Stat::StatData {
   StatData(): data() {}
 }; 
 
-Stat::Stat(bool expert) : d_expert(expert), d_data(std::make_unique<StatData>()) {}
-Stat::Stat(bool expert, int64_t val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
-Stat::Stat(bool expert, double val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
-Stat::Stat(bool expert, const std::string& val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
-Stat::Stat(bool expert, const HistogramData& val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
 Stat::~Stat() {}
 Stat::Stat(const Stat& s): d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data)) {}
 Stat& Stat::operator=(const Stat& s) {
@@ -4103,6 +4098,7 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC4_API_TRY_CATCH_END;
 }
 
+Stat::Stat(bool expert) : d_expert(expert), d_data(std::make_unique<StatData>()) {}
 Stat::Stat(bool expert, StatData&& sd): d_expert(expert), d_data(std::make_unique<StatData>(std::move(sd))) {}
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
