@@ -31,8 +31,10 @@ else()
         URL_HASH SHA1=9e00045130b93e3c2a46ce73a1b5b6451340dc46
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/core <INSTALL_DIR>/include/symfpu/core
-        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/utils <INSTALL_DIR>/include/symfpu/utils
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+            <SOURCE_DIR>/core <INSTALL_DIR>/include/symfpu/core
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            <SOURCE_DIR>/utils <INSTALL_DIR>/include/symfpu/utils
     )
 
     set(SymFPU_INCLUDE_DIR "${DEPS_BASE}/include/")
@@ -41,7 +43,8 @@ endif()
 set(SymFPU_FOUND TRUE)
 
 add_library(SymFPU INTERFACE IMPORTED GLOBAL)
-set_target_properties(SymFPU PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${SymFPU_INCLUDE_DIR}")
+set_target_properties(SymFPU PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${SymFPU_INCLUDE_DIR}")
 
 mark_as_advanced(SymFPU_FOUND)
 mark_as_advanced(SymFPU_FOUND_SYSTEM)
