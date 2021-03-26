@@ -34,8 +34,9 @@ namespace quantifiers {
 ModelEngine::ModelEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                         QuantifiersRegistry& qr,
+                  TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_incomplete_check(true),
       d_addedLemmas(0),
       d_triedLemmas(0),

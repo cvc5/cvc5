@@ -34,7 +34,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr, qe),
-      d_tds(qe->getTermDatabaseSygus()),
+      d_tds(tr.getTermDatabaseSygus()),
       d_conj(nullptr),
       d_sqp(qe)
 {

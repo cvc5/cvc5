@@ -46,7 +46,8 @@ public:
  ModelEngine(QuantifiersEngine* qe,
              QuantifiersState& qs,
              QuantifiersInferenceManager& qim,
-             QuantifiersRegistry& qr);
+             QuantifiersRegistry& qr,
+                  TermRegistry& tr);
  virtual ~ModelEngine();
 
 public:
