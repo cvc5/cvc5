@@ -86,39 +86,43 @@ header = "options/base_options.h"
 [[option]]
   name       = "statistics"
   smt_name   = "statistics"
-  category   = "common"
   long       = "stats"
+  category   = "common"
   type       = "bool"
   predicates = ["statsEnabledBuild"]
   read_only  = true
   help       = "give statistics on exit"
 
 [[option]]
-  name       = "allStatistics"
-  smt_name   = "allStatistics"
-  category   = "common"
-  long       = "all-stats"
+  name       = "statisticsExpert"
+  smt_name   = "stats-expert"
+  long       = "stats-expert"
+  category   = "expert"
   type       = "bool"
+  predicates = ["statsEnabledBuild"]
   read_only  = true
-  help       = "also print expert statistics on exit"
+  help       = "print expert (non-public) statistics as well"
 
 [[option]]
-  name       = "statsEveryQuery"
-  category   = "regular"
-  long       = "stats-every-query"
+  name       = "statisticsUnset"
+  smt_name   = "stats-unset"
+  long       = "stats-unset"
+  category   = "expert"
   type       = "bool"
+  predicates = ["statsEnabledBuild"]
+  read_only  = true
+  help       = "print unset statistics as well"
+
+[[option]]
+  name       = "statisticsEveryQuery"
+  smt_name   = "stats-every-query"
+  long       = "stats-every-query"
+  category   = "regular"
+  type       = "bool"
+  predicates = ["statsEnabledBuild"]
   default    = "false"
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
-
-[[option]]
-  name       = "statsHideZeros"
-  category   = "regular"
-  long       = "stats-hide-zeros"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "hide statistics which are zero"
 
 [[option]]
   name       = "parseOnly"
