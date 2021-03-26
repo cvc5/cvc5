@@ -21,7 +21,6 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -89,8 +88,9 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
 ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
-                                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                                         QuantifiersRegistry& qr,
+                                         TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_notify(*this),
       d_uequalityEngine(
           d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
@@ -318,7 +318,7 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
-  return d_quantEngine->getTermDatabase()->isTermActive(n)
+  return getTermDatabase()->isTermActive(n)
          && inst::TriggerTermInfo::isAtomicTrigger(n)
          && (n.getKind() != APPLY_UF || n.getOperator().getKind() != SKOLEM);
 }
@@ -537,7 +537,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_ue_canon.clear();
       d_thm_index.clear();
       std::vector< Node > provenConj;
-      quantifiers::FirstOrderModel* m = d_quantEngine->getModel();
+      quantifiers::FirstOrderModel* m = d_treg.getModel();
       for( unsigned i=0; i<m->getNumAssertedQuantifiers(); i++ ){
         Node q = m->getAssertedQuantifier( i );
         Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
@@ -570,7 +570,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                   {
                     isSubsume = true;
                     //set inactive (will be ignored by other modules)
-                    d_quantEngine->getModel()->setQuantifierActive( q, false );
+                    m->setQuantifierActive(q, false);
                   }
                   else
                   {
@@ -1103,7 +1103,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
   if( n.getNumChildren()>0 ){
     Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
                               << ")" << std::endl;
-    TermEnumeration* te = d_quantEngine->getTermRegistry().getTermEnumeration();
+    TermEnumeration* te = d_treg.getTermEnumeration();
     // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
     std::vector< int > vec;
