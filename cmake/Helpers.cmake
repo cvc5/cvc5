@@ -124,15 +124,21 @@ function(list_prepend in_list prepand_value out_list)
   set(${out_list} ${${out_list}} PARENT_SCOPE)
 endfunction()
 
+macro(print_info msg)
+  message("${Blue}${msg}${ResetColor}")
+endmacro()
+
 # Helper to print the configuration of a 2-valued or 3-valued option 'var'
 # with prefix 'str'.
 macro(print_config str var)
   if(${var} STREQUAL "ON")
     set(OPT_VAL_STR "on")
-  else()
+  elseif(${var} STREQUAL "OFF")
     set(OPT_VAL_STR "off")
+  else()
+    set(OPT_VAL_STR ${var})
   endif()
-  message("${str} ${OPT_VAL_STR}")
+  message("${Blue}${str}: ${Green}${OPT_VAL_STR}${ResetColor}")
 endmacro()
 
 
