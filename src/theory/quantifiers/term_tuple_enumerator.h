@@ -83,8 +83,11 @@ struct TermTupleEnumeratorContext
  * Further, the returned enumerator draws ground terms from the term database.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node q, const TermTupleEnumeratorEnv* context, QuantifiersState& qs, TermDb * td);
-/** 
+    Node q,
+    const TermTupleEnumeratorEnv* context,
+    QuantifiersState& qs,
+    TermDb* td);
+/**
  * Same as above, but draws terms from the relevant domain.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(

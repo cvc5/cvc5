@@ -165,7 +165,9 @@ class TermTupleEnumeratorBasic : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorBasic(Node quantifier,
-                           const TermTupleEnumeratorContext* context, QuantifiersState& qs, TermDb * td)
+                           const TermTupleEnumeratorContext* context,
+                           QuantifiersState& qs,
+                           TermDb* td)
       : TermTupleEnumeratorBase(quantifier, context), d_qs(qs), d_tdb(td)
   {
   }
@@ -190,7 +192,8 @@ class TermTupleEnumeratorRD : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorRD(Node quantifier,
-                        const TermTupleEnumeratorContext* context, RelevantDomain* rd)
+                        const TermTupleEnumeratorContext* context,
+                        RelevantDomain* rd)
       : TermTupleEnumeratorBase(quantifier, context), d_rd(rd)
   {
   }
@@ -199,13 +202,11 @@ class TermTupleEnumeratorRD : public TermTupleEnumeratorBase
  protected:
   virtual size_t prepareTerms(size_t variableIx) override
   {
-    return d_rd->getRDomain(d_quantifier, variableIx)
-        ->d_terms.size();
+    return d_rd->getRDomain(d_quantifier, variableIx)->d_terms.size();
   }
   virtual Node getTerm(size_t variableIx, size_t term_index) override
   {
-    return d_rd->getRDomain(d_quantifier, variableIx)
-        ->d_terms[term_index];
+    return d_rd->getRDomain(d_quantifier, variableIx)->d_terms[term_index];
   }
   /** The relevant domain */
   RelevantDomain* d_rd;
@@ -492,18 +493,21 @@ Node TermTupleEnumeratorBasic::getTerm(size_t variableIx, size_t term_index)
 }
 
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node quantifier, const TermTupleEnumeratorContext* context, QuantifiersState& qs, TermDb * td)
-{
-  return 
-                         static_cast<TermTupleEnumeratorInterface*>(
-                             new TermTupleEnumeratorBasic(quantifier, context, qs, td));
-}
-TermTupleEnumeratorInterface* mkTermTupleEnumeratorRD(
-    Node quantifier, const TermTupleEnumeratorContext* context, RelevantDomain* rd)
+    Node quantifier,
+    const TermTupleEnumeratorContext* context,
+    QuantifiersState& qs,
+    TermDb* td)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-             new TermTupleEnumeratorRD(quantifier, context, rd));
-  
+      new TermTupleEnumeratorBasic(quantifier, context, qs, td));
+}
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorRD(
+    Node quantifier,
+    const TermTupleEnumeratorContext* context,
+    RelevantDomain* rd)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorRD(quantifier, context, rd));
 }
 
 }  // namespace quantifiers
