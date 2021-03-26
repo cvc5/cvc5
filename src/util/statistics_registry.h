@@ -67,6 +67,9 @@ class StatisticsRegistry
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const StatisticsRegistry& sr);
+
+  using Snapshot = std::map<std::string, StatExportData>;
+
   /**
    * If `registerPublic` is true, all statistics that are public are
    * pre-registered as such. This argument mostly exists so that unit tests
@@ -151,6 +154,11 @@ class StatisticsRegistry
   auto end() const { return d_stats.end(); }
 
   /**
+   * Obtain the current state of all statistics.
+   */
+  void storeSnapshot();
+
+  /**
    * Obtain a single statistic by name. Returns nullptr if no statistic has
    * been registered for this name.
    */
@@ -166,6 +174,11 @@ class StatisticsRegistry
    * @param expert whether to also print private statistics
    */
   void print_safe(int fd, bool expert = false) const;
+
+  /**
+   * Print all statistics as a diff to the last stored snapshot.
+   */
+  void printDiff(std::ostream& os) const;
 
  private:
   /**
@@ -201,6 +214,8 @@ class StatisticsRegistry
    * registered for.
    */
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
+
+  std::unique_ptr<Snapshot> d_lastSnapshot;
 };
 
 /** Calls `sr.print(os)`. */
