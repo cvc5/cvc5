@@ -32,7 +32,8 @@ StatisticBaseValue::~StatisticBaseValue() {}
 
 std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
 {
-  sbv.print(out);
+  if (sbv.hasValue()) sbv.print(out);
+  else out << "<undef>";
   return out;
 }
 

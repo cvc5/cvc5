@@ -50,12 +50,13 @@ using StatExportData = std::variant<std::monostate,
 /**
  * Base class for all statistic values.
  * Requires four methods:
- * - `getViewer` converts to the API representation `Stat`
  * - `hasValue` checks whether the data holds a non-default value
+ * - `getViewer` converts to the API representation `Stat`
  * - `print` writes the data to a regular `std::ostream`
  * - `print_safe` safely writes the data to a file descriptor
- * `getViewer` should only be called if `hasValue` returned true. Otherwise,
- * the return value of `getViewer` is assumed to be `std::monostate`.
+ * The remaining three methods are only safe to call if `hasValue` returns
+ * true. Otherwise, the return value of `getViewer` is assumed to be
+ * `std::monostate` and the value should be printed as "<undef>".
  */
 struct StatisticBaseValue
 {
@@ -248,10 +249,7 @@ struct StatisticReferenceValue : StatisticBaseValue
         return *d_value;
       }
     }
-    else
-    {
-      return {};
-    }
+    return {};
   }
   bool hasValue() const override { return d_committed || d_value != nullptr; }
   void print(std::ostream& out) const override
@@ -264,10 +262,6 @@ struct StatisticReferenceValue : StatisticBaseValue
     {
       out << *d_value;
     }
-    else
-    {
-      out << "<undefined>";
-    }
   }
   void print_safe(int fd) const override
   {
@@ -278,10 +272,6 @@ struct StatisticReferenceValue : StatisticBaseValue
     else if (d_value != nullptr)
     {
       safe_print<T>(fd, *d_value);
-    }
-    else
-    {
-      safe_print(fd, "<undefined>");
     }
   }
   void commit()
@@ -316,10 +306,7 @@ struct StatisticSizeValue : StatisticBaseValue
     {
       return static_cast<int64_t>(d_value->size());
     }
-    else
-    {
-      return {};
-    }
+    return {};
   }
   bool hasValue() const override { return d_committed || d_value != nullptr; }
   void print(std::ostream& out) const override
@@ -332,10 +319,6 @@ struct StatisticSizeValue : StatisticBaseValue
     {
       out << d_value->size();
     }
-    else
-    {
-      out << "<undefined>";
-    }
   }
   void print_safe(int fd) const override
   {
@@ -346,10 +329,6 @@ struct StatisticSizeValue : StatisticBaseValue
     else if (d_value != nullptr)
     {
       safe_print(fd, d_value->size());
-    }
-    else
-    {
-      safe_print(fd, "<undefined>");
     }
   }
   void commit()
