@@ -25,8 +25,6 @@
 
 #include "main/main.h"
 #include "smt/command.h"
-#include "util/statistics_registry.h"
-#include "util/statistics_value.h"
 
 namespace CVC4 {
 namespace main {
