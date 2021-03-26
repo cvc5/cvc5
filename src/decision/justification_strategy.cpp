@@ -114,16 +114,15 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // get the SAT literal
           SatLiteral nsl = d_cnfStream->getLiteral(nextAtom);
           // flip if the atom was negated
-          next.second = nextPol ? next.second : invertValue(next.second);
           // store the last decision value here, which will be used at the
           // starting value on the next call to this method
-          d_lastDecisionValue = next.second;
+          d_lastDecisionValue = nextPol ? next.second : invertValue(next.second);
           d_lastDecisionAtom = nextAtom;
           // (1) atom with unassigned value, return it as the decision, possibly
           // inverted
           Trace("jh-stack")
-              << "...return " << nextAtom << " " << next.second << std::endl;
-          return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
+              << "...return " << nextAtom << " " << d_lastDecisionValue << std::endl;
+          return d_lastDecisionValue == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
         {
