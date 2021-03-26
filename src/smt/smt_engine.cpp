@@ -1877,14 +1877,20 @@ SExpr SmtEngine::getStatistic(std::string name) const
   return SExpr({SExpr(name), SExpr(ss.str())});
 }
 
-void SmtEngine::flushStatistics(std::ostream& out) const
+void SmtEngine::printStatistics(std::ostream& out) const
 {
-  d_env->getStatisticsRegistry().print(out, options::allStatistics());
+  d_env->getStatisticsRegistry().print(out);
 }
 
-void SmtEngine::safeFlushStatistics(int fd) const
+void SmtEngine::printStatisticsSafe(int fd) const
 {
-  d_env->getStatisticsRegistry().print_safe(fd, options::allStatistics());
+  d_env->getStatisticsRegistry().printSafe(fd);
+}
+
+void SmtEngine::printStatisticsDiff(std::ostream& out) const
+{
+  d_env->getStatisticsRegistry().printDiff(out);
+  d_env->getStatisticsRegistry().storeSnapshot();
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,

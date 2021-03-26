@@ -45,8 +45,6 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
-
 CommandExecutor::CommandExecutor(Options& options)
     : d_solver(new api::Solver(&options)),
       d_symman(new SymbolManager(d_solver.get())),
@@ -143,11 +141,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
-    std::ostringstream ossCurStats;
-    flushStatistics(ossCurStats);
-    std::ostream& err = *d_options.getErr();
-    printStatsIncremental(err, d_lastStatistics, ossCurStats.str());
-    d_lastStatistics = ossCurStats.str();
+    getSmtEngine()->printStatisticsDiff(*d_options.getErr());
   }
 
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
@@ -223,108 +217,8 @@ bool solverInvoke(api::Solver* solver,
   return !cmd->fail();
 }
 
-void printStatsIncremental(std::ostream& out,
-                           const std::string& prvsStatsString,
-                           const std::string& curStatsString)
-{
-  if(prvsStatsString == "") {
-    out << curStatsString;
-    return;
-  }
-
-  // read each line
-  // if a number, subtract and add that to parentheses
-  std::istringstream issPrvs(prvsStatsString);
-  std::istringstream issCur(curStatsString);
-
-  std::string prvsStatName, prvsStatValue, curStatName, curStatValue;
-
-  std::getline(issPrvs, prvsStatName, ',');
-  std::getline(issCur, curStatName, ',');
-
-  /**
-   * Stat are assumed to one-per line: "<statName>, <statValue>"
-   *   e.g. "sat::decisions, 100"
-   * Output is of the form: "<statName>, <statValue> (<statDiffFromPrvs>)"
-   *   e.g. "sat::decisions, 100 (20)"
-   * If the value is not numeric, no change is made.
-   */
-  while( !issCur.eof() ) {
-
-    std::getline(issCur, curStatValue, '\n');
-
-    if(curStatName == prvsStatName) {
-      std::getline(issPrvs, prvsStatValue, '\n');
-
-      double prvsFloat, curFloat;
-      bool isFloat =
-        (std::istringstream(prvsStatValue) >> prvsFloat) &&
-        (std::istringstream(curStatValue) >> curFloat);
-
-      if(isFloat) {
-        const std::streamsize old_precision = out.precision();
-        out << curStatName << ", " << curStatValue << " "
-            << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
-            << std::endl;
-        out.precision(old_precision);
-      } else {
-        out << curStatName << ", " << curStatValue << std::endl;
-      }
-
-      std::getline(issPrvs, prvsStatName, ',');
-    } else {
-      out << curStatName << ", " << curStatValue << std::endl;
-    }
-
-    std::getline(issCur, curStatName, ',');
-  }
-}
-
-void CommandExecutor::printStatsFilterZeros(std::ostream& out,
-                                            const std::string& statsString) {
-  // read each line, if a number, check zero and skip if so
-  // Stat are assumed to one-per line: "<statName>, <statValue>"
-
-  std::istringstream iss(statsString);
-  std::string statName, statValue;
-
-  std::getline(iss, statName, ',');
-
-  while (!iss.eof())
-  {
-    std::getline(iss, statValue, '\n');
-
-    bool skip = false;
-    try
-    {
-      double dval = std::stod(statValue);
-      skip = (dval == 0.0);
-    }
-    // Value can not be converted, don't skip
-    catch (const std::invalid_argument&) {}
-    catch (const std::out_of_range&) {}
-
-    skip = skip || (statValue == " \"0\"" || statValue == " \"[]\"");
-
-    if (!skip)
-    {
-      out << statName << "," << statValue << std::endl;
-    }
-
-    std::getline(iss, statName, ',');
-  }
-}
-
 void CommandExecutor::flushOutputStreams() {
-  if(d_options.getStatistics()) {
-    if(d_options.getStatsHideZeros() == false) {
-      flushStatistics(*(d_options.getErr()));
-    } else {
-      std::ostringstream ossStats;
-      flushStatistics(ossStats);
-      printStatsFilterZeros(*(d_options.getErr()), ossStats.str());
-    }
-  }
+  printStatistics(*(d_options.getErr()));
 
   // make sure out and err streams are flushed too
   d_options.flushOut();
