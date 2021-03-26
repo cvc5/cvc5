@@ -10,63 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief A translation utility from bit-vectors to integers.
- **
- ** Converts bit-vector formulas to integer formulas.
- ** The conversion is implemented using a translation function Tr,
- ** roughly described as follows:
- **
- ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
- **         integer variable.
- ** Tr(c) = the integer value of c, for any bit-vector constant c.
- ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
- **         s and t.
- ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
- **         bvnot, bvconcat, bvextract
- ** Tr((_ zero_extend m) x) = Tr(x)
- ** Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
- ** explanation: if the msb is 0, this is the same as zero_extend,
- ** which does not change the integer value.
- ** If the msb is 1, then the result should correspond to
- ** concat(1...1, x), with m 1's.
- ** m 1's is 2^m-1, and multiplying it by x's width (k) moves it
- ** to the front.
- **
- ** Tr((bvand s t)) depends on the granularity, which is provided via an option.
- ** We divide s and t to blocks.
- ** The size of each block is the granularity, and so the number of
- ** blocks is:
- ** bit width/granularity (rounded down).
- ** We create an ITE that represents an arbitrary block,
- ** and then create a sum by mutiplying each block by the
- ** appropriate power of two.
- ** More formally:
- ** Let g denote the granularity.
- ** Let k denote the bit width of s and t.
- ** Let b denote floor(k/g) if k >= g, or just k otherwise.
- ** Tr((bvand s t)) =
- ** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
- **
- ** bvor, bvxor, bvxnor, bvnand, bvnor -- are eliminated and so bvand is the
- *only bit-wise operator that is directly handled.
- **
- ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
- **         a and b, and ITE represents exponentiation up to k, that is:
- ** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
- ** Similar transformations are done for bvlshr.
- **
- ** Tr(a=b) = Tr(a)=Tr(b)
- ** Tr((bvult a b)) = Tr(a) < Tr(b)
- ** Similar transformations are done for bvule, bvugt, and bvuge.
- **
- ** Bit-vector operators that are not listed above are either eliminated using
- ** the function eliminationPass, or go through the following default
- *translation, that also works for non-bit-vector operators
- ** with result type BV:
- ** Tr((op t1 ... tn)) = (bv2nat (op (cast t1) ... (cast tn)))
- ** where (cast x) is ((_ nat2bv k) x) or just x,
- ** depending on the type of the corresponding argument of
- ** op.
- **
  **/
 
 #include "cvc4_private.h"
@@ -83,10 +26,68 @@
 
 namespace CVC4 {
 
-using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
-
+/*
+** Converts bit-vector formulas to integer formulas.
+** The conversion is implemented using a translation function Tr,
+** roughly described as follows:
+**
+** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
+**         integer variable.
+** Tr(c) = the integer value of c, for any bit-vector constant c.
+** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
+**         s and t.
+** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
+**         bvnot, bvconcat, bvextract
+** Tr((_ zero_extend m) x) = Tr(x)
+** Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
+** explanation: if the msb is 0, this is the same as zero_extend,
+** which does not change the integer value.
+** If the msb is 1, then the result should correspond to
+** concat(1...1, x), with m 1's.
+** m 1's is 2^m-1, and multiplying it by x's width (k) moves it
+** to the front.
+**
+** Tr((bvand s t)) depends on the granularity, which is provided via an option.
+** We divide s and t to blocks.
+** The size of each block is the granularity, and so the number of
+** blocks is:
+** bit width/granularity (rounded down).
+** We create an ITE that represents an arbitrary block,
+** and then create a sum by mutiplying each block by the
+** appropriate power of two.
+** More formally:
+** Let g denote the granularity.
+** Let k denote the bit width of s and t.
+** Let b denote floor(k/g) if k >= g, or just k otherwise.
+** Tr((bvand s t)) =
+** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
+**
+** bvor, bvxor, bvxnor, bvnand, bvnor -- are eliminated and so bvand is the
+*only bit-wise operator that is directly handled.
+**
+** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
+**         a and b, and ITE represents exponentiation up to k, that is:
+** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
+** Similar transformations are done for bvlshr.
+**
+** Tr(a=b) = Tr(a)=Tr(b)
+** Tr((bvult a b)) = Tr(a) < Tr(b)
+** Similar transformations are done for bvule, bvugt, and bvuge.
+**
+** Bit-vector operators that are not listed above are either eliminated using
+** the function eliminationPass, or go through the following default
+*translation, that also works for non-bit-vector operators
+** with result type BV:
+** Tr((op t1 ... tn)) = (bv2nat (op (cast t1) ... (cast tn)))
+** where (cast x) is ((_ nat2bv k) x) or just x,
+** depending on the type of the corresponding argument of
+** op.
+**
+**/
 class IntBlaster
 {
+  using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+
  public:
   /**
    * Constructor.
@@ -106,7 +107,7 @@ class IntBlaster
    * The result is an integer term and is computed
    * according to the translation specified above.
    * @param n is a bit-vector term or formula to be translated.
-   * @param lemmas additional lemmas that are needd for the translation
+   * @param lemmas additional lemmas that are needed for the translation
    * to be sound. These are range constraints on introduced variables.
    * @param skolems a map in which the following information will be stored
    * during the run of intBlast: for each BV variable n, skolems[n] is its new
@@ -143,19 +144,13 @@ class IntBlaster
                        uint64_t bvsize,
                        bool isLeftShift);
 
-  /**
-   * Adds the constraint 0 <= node < 2^size to lemmas
-   */
+  /** Adds the constraint 0 <= node < 2^size to lemmas */
   void addRangeConstraint(Node node, uint64_t size, std::vector<Node>& lemmas);
 
-  /**
-   * Adds a constraint that encodes bitwise and
-   */
+  /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
 
-  /**
-   * Returns a node that represents the bitwise negation of n.
-   */
+  /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint64_t bvsize);
 
   /**
@@ -310,17 +305,13 @@ class IntBlaster
                            std::vector<Node>& lemmas,
                            std::map<Node, Node>& skolems);
 
-  /**
-   * Caches for the different functions
-   */
+  /** Caches for the different functions */
   CDNodeMap d_binarizeCache;
   CDNodeMap d_eliminationCache;
   CDNodeMap d_rebuildCache;
   CDNodeMap d_intblastCache;
 
-  /**
-   * Node manager that is used throughout the pass
-   */
+  /** Node manager that is used throughout the pass */
   NodeManager* d_nm;
 
   /**
@@ -335,9 +326,7 @@ class IntBlaster
    */
   context::CDHashSet<Node, NodeHashFunction> d_bitwiseAssertions;
 
-  /**
-   * Useful constants
-   */
+  /** Useful constants */
   Node d_zero;
   Node d_one;
 
