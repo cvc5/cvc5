@@ -53,7 +53,7 @@ class TermTupleEnumeratorInterface
 };
 
 /** A struct bundling up parameters for term tuple enumerator.*/
-struct TermTupleEnumeratorContext
+struct TermTupleEnumeratorEnv
 {
   /**
    * Whether we should put full effort into finding an instantiation. If this
@@ -67,7 +67,7 @@ struct TermTupleEnumeratorContext
 
 /**  A function to construct a tuple enumerator.
  *
- * Currently we support the enumerators based on the following idea.
+ * In the methods below, we support the enumerators based on the following idea.
  * The tuples are represented as tuples of
  * indices of  terms, where the tuple has as many elements as there are
  * quantified variables in the considered quantifier q.
@@ -75,23 +75,25 @@ struct TermTupleEnumeratorContext
  * Like so, we see a tuple as a number, where the digits may have different
  * ranges. The most significant digits are stored first.
  *
- * Tuples are enumerated  in a lexicographic order in stages. There are 2
- * possible strategies, either  all tuples in a given stage have the same sum of
- * digits, or, the maximum  over these digits is the same (controlled by
- * d_increaseSum).
+ * Tuples are enumerated in a lexicographic order in stages. There are 2
+ * possible strategies, either all tuples in a given stage have the same sum of
+ * digits, or, the maximum over these digits is the same (controlled by
+ * TermTupleEnumeratorEnv::d_increaseSum).
  *
- * Further, the returned enumerator draws ground terms from the term database.
+ * In this method, the returned enumerator draws ground terms from the term
+ * database (provided by td). The quantifiers state (qs) is used to eliminate
+ * duplicates modulo equality.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
     Node q,
-    const TermTupleEnumeratorEnv* context,
+    const TermTupleEnumeratorEnv* env,
     QuantifiersState& qs,
     TermDb* td);
 /**
  * Same as above, but draws terms from the relevant domain.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
-    Node q, const TermTupleEnumeratorEnv* context, RelevantDomain* rd);
+    Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd);
 
 }  // namespace quantifiers
 }  // namespace theory

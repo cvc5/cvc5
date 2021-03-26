@@ -181,7 +181,7 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
     return false;
   }
 
-  TermTupleEnumeratorContext ttec;
+  TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = fullEffort;
   ttec.d_increaseSum = options::fullSaturateSum();
   // make the enumerator, which is either relevant domain or term database
