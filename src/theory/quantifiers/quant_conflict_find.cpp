@@ -37,7 +37,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo() : d_unassigned_nvar(0), d_una_index(0), d_mg(nullptr) {}
+QuantInfo::QuantInfo()
+    : d_unassigned_nvar(0), d_una_index(0), d_parent(nullptr), d_mg(nullptr)
+{
+}
 
 QuantInfo::~QuantInfo() {
   delete d_mg;
@@ -49,8 +52,14 @@ QuantInfo::~QuantInfo() {
   d_var_mg.clear();
 }
 
+QuantifiersInferenceManager& QuantInfo::getInferenceManager()
+{
+  Assert(d_parent != nullptr);
+  return d_parent->getInferenceManager();
+}
 
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
+  d_parent = p;
   d_q = q;
   d_extra_var.clear();
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
@@ -588,7 +597,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       }
     }else{
       Node inst =
-          p->d_quantEngine->getInstantiate()->getInstantiation(d_q, terms);
+          getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
       Node inst_eval = p->getTermDatabase()->evaluateTerm(
           inst, options::qcfTConstraint(), true);
@@ -1979,7 +1988,7 @@ inline QuantConflictFind::Effort QcfEffortEnd() {
 /** check */
 void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
 {
-  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
+  CodeTimer codeTimer(d_qstate.getStats().d_qcf_time);
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;
@@ -2107,7 +2116,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
   }
   // try to make a matches making the body false or propagating
   Trace("qcf-check-debug") << "Get next match..." << std::endl;
-  Instantiate* qinst = d_quantEngine->getInstantiate();
+  Instantiate* qinst = d_qim.getInstantiate();
   while (qi->getNextMatch(this))
   {
     if (d_qstate.isInConflict())

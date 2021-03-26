@@ -16,7 +16,6 @@
 
 #include "smt/smt_engine.h"
 
-#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
@@ -151,9 +150,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // d_proofManager must be created before Options has been finished
   // being parsed from the input file. Because of this, we cannot trust
   // that options::unsatCores() is set correctly yet.
-#ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
-#endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
 }
@@ -332,9 +329,7 @@ SmtEngine::~SmtEngine()
     // Note: the proof manager must be destroyed before the theory engine.
     // Because the destruction of the proofs depends on contexts owned be the
     // theory solvers.
-#ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
-#endif
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
 
@@ -1407,7 +1402,6 @@ StatisticsRegistry* SmtEngine::getStatisticsRegistry()
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
-#if IS_PROOFS_BUILD
   if (!options::unsatCores())
   {
     throw ModalException(
@@ -1434,11 +1428,6 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   return UnsatCore(core);
-#else  /* IS_PROOFS_BUILD */
-  throw ModalException(
-      "This build of CVC4 doesn't have proof support (required for unsat "
-      "cores).");
-#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::checkUnsatCore() {
@@ -1540,7 +1529,6 @@ std::string SmtEngine::getProof()
   {
     getPrinter().toStreamCmdGetProof(getOutputManager().getDumpOut());
   }
-#if IS_PROOFS_BUILD
   if (!options::produceProofs())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
@@ -1559,9 +1547,6 @@ std::string SmtEngine::getProof()
   std::ostringstream ss;
   d_pfManager->printProof(ss, pe->getProof(), *d_asserts, *d_definedFunctions);
   return ss.str();
-#else  /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support.");
-#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

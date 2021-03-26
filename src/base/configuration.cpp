@@ -62,10 +62,6 @@ bool Configuration::isAssertionBuild() {
   return IS_ASSERTIONS_BUILD;
 }
 
-bool Configuration::isProofBuild() {
-  return IS_PROOFS_BUILD;
-}
-
 bool Configuration::isCoverageBuild() {
   return IS_COVERAGE_BUILD;
 }
@@ -140,8 +136,7 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
-      || Configuration::isBuiltWithCadical()
+  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithSymFPU()
@@ -152,11 +147,6 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithAbc()) {
       ss << "  ABC - A System for Sequential Synthesis and Verification\n"
          << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
-         << "  licensing information.\n\n";
-    }
-    if (Configuration::isBuiltWithLfsc()) {
-      ss << "  LFSC Proof Checker\n"
-         << "  See http://github.com/CVC4/LFSC for copyright and\n"
          << "  licensing information.\n\n";
     }
     if (Configuration::isBuiltWithCadical())
@@ -278,13 +268,7 @@ bool Configuration::isBuiltWithCryptominisat() {
 
 bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
-bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
-
 bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
-
-bool Configuration::isBuiltWithLfsc() {
-  return IS_LFSC_BUILD;
-}
 
 bool Configuration::isBuiltWithPoly()
 {

@@ -86,8 +86,6 @@ public:
    * initialization.
    */
   void setProduceAssertions(std::string option, bool value);
-  void proofEnabledBuild(std::string option, bool value);
-  void LFSCEnabledBuild(std::string option, bool value);
 
   void statsEnabledBuild(std::string option, bool value);
 

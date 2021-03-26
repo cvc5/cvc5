@@ -24,7 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -36,10 +35,8 @@ class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
-namespace inst {
-class TriggerTrie;
-}
 namespace quantifiers {
+
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -58,8 +55,6 @@ class TermRegistry;
 class QuantifiersEngine {
   friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -67,7 +62,6 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
-                    quantifiers::FirstOrderModel* qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
@@ -79,24 +73,18 @@ class QuantifiersEngine {
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
+  /** The term registry */
+  quantifiers::TermRegistry& getTermRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
   quantifiers::TermDb* getTermDatabase() const;
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
-  /** get instantiate utility */
-  quantifiers::Instantiate* getInstantiate() const;
-  /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() const;
-  /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -194,25 +182,6 @@ public:
 
  //----------end user interface for instantiations
 
- /** statistics class */
- class Statistics
- {
-  public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_red_alpha_equiv;
-    Statistics();
-    ~Statistics();
-  };/* class QuantifiersEngine::Statistics */
-  Statistics d_statistics;
-
  private:
   /** The quantifiers state object */
   quantifiers::QuantifiersState& d_qstate;
@@ -233,8 +202,6 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities
