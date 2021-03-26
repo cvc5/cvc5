@@ -370,7 +370,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.plus(rm, arg2)));
   }
@@ -383,7 +383,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.mult(rm, arg2)));
   }
@@ -397,8 +397,8 @@ namespace constantFold {
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
     FloatingPoint arg3(node[3].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
-    Assert(arg1.d_fp_size == arg3.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
+    Assert(arg1.getSize() == arg3.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.fma(rm, arg2, arg3)));
   }
@@ -411,7 +411,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.div(rm, arg2)));
   }
@@ -443,7 +443,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.rem(arg2)));
   }
@@ -455,7 +455,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     FloatingPoint::PartialFloatingPoint res(arg1.min(arg2));
 
@@ -475,7 +475,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     FloatingPoint::PartialFloatingPoint res(arg1.max(arg2));
 
@@ -495,7 +495,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
@@ -525,7 +525,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
@@ -559,7 +559,7 @@ namespace constantFold {
       FloatingPoint arg1(node[0].getConst<FloatingPoint>());
       FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-      Assert(arg1.d_fp_size == arg2.d_fp_size);
+      Assert(arg1.getSize() == arg2.getSize());
 
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
@@ -581,7 +581,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 <= arg2));
   }
@@ -594,7 +594,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 < arg2));
   }
@@ -657,8 +657,8 @@ namespace constantFold {
     const BitVector &bv = node[0].getConst<BitVector>();
 
     Node lit = NodeManager::currentNM()->mkConst(
-        FloatingPoint(param.d_fp_size.exponentWidth(),
-                      param.d_fp_size.significandWidth(),
+        FloatingPoint(param.getSize().exponentWidth(),
+                      param.getSize().significandWidth(),
                       bv));
 
     return RewriteResponse(REWRITE_DONE, lit);
@@ -674,7 +674,7 @@ namespace constantFold {
 
     return RewriteResponse(
         REWRITE_DONE,
-        NodeManager::currentNM()->mkConst(arg1.convert(info.d_fp_size, rm)));
+        NodeManager::currentNM()->mkConst(arg1.convert(info.getSize(), rm)));
   }
 
   RewriteResponse convertFromRealLiteral (TNode node, bool) {
@@ -686,7 +686,7 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     Rational arg(node[1].getConst<Rational>());
 
-    FloatingPoint res(param.d_fp_size, rm, arg);
+    FloatingPoint res(param.getSize(), rm, arg);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
     
@@ -702,7 +702,7 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.d_fp_size, rm, arg, true);
+    FloatingPoint res(param.getSize(), rm, arg, true);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
     
@@ -718,7 +718,7 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.d_fp_size, rm, arg, false);
+    FloatingPoint res(param.getSize(), rm, arg, false);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
     
