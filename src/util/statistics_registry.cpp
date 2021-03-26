@@ -58,21 +58,25 @@ void StatisticsRegistry::print(std::ostream& os, bool expert) const
 {
   for (const auto& s : d_stats)
   {
-    if (!expert && s.second->d_expert) continue;
-    os << s.first << " = ";
-    s.second->print(os);
-    os << std::endl;
+    if (expert || (!s.second->d_expert && s.second->hasValue()))
+    {
+      os << s.first << " = ";
+      s.second->print(os);
+      os << std::endl;
+    }
   }
 }
 void StatisticsRegistry::print_safe(int fd, bool expert) const
 {
   for (const auto& s : d_stats)
   {
-    if (!expert && s.second->d_expert) continue;
-    safe_print(fd, s.first);
-    safe_print(fd, " = ");
-    s.second->print_safe(fd);
-    safe_print(fd, '\n');
+    if (expert || (!s.second->d_expert && s.second->hasValue()))
+    {
+      safe_print(fd, s.first);
+      safe_print(fd, " = ");
+      s.second->print_safe(fd);
+      safe_print(fd, '\n');
+    }
   }
 }
 

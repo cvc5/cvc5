@@ -41,18 +41,26 @@ namespace CVC4 {
 
 class StatisticsRegistry;
 
-using StatExportData = std::variant<std::monostate, int64_t, double, std::string, std::map<std::string, uint64_t>>;
+using StatExportData = std::variant<std::monostate,
+                                    int64_t,
+                                    double,
+                                    std::string,
+                                    std::map<std::string, uint64_t>>;
 
 /**
  * Base class for all statistic values.
- * Requires three methods:
+ * Requires four methods:
  * - `getViewer` converts to the API representation `Stat`
+ * - `hasValue` checks whether the data holds a non-default value
  * - `print` writes the data to a regular `std::ostream`
  * - `print_safe` safely writes the data to a file descriptor
+ * `getViewer` should only be called if `hasValue` returned true. Otherwise,
+ * the return value of `getViewer` is assumed to be `std::monostate`.
  */
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue();
+  virtual bool hasValue() const = 0;
   virtual StatExportData getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;
@@ -66,6 +74,7 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv);
 struct StatisticAverageValue : StatisticBaseValue
 {
   StatExportData getViewer() const override;
+  bool hasValue() const override;
   void print(std::ostream& out) const override;
   void print_safe(int fd) const override;
   double get() const;
@@ -87,6 +96,7 @@ template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
   StatExportData getViewer() const override { return d_value; }
+  bool hasValue() const override { return d_value != T(); }
   void print(std::ostream& out) const override { out << d_value; }
   void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
 
@@ -127,6 +137,7 @@ struct StatisticHistogramValue : StatisticBaseValue
     }
     return res;
   }
+  bool hasValue() const override { return d_hist.size() > 0; }
   void print(std::ostream& out) const override
   {
     out << "[";
@@ -242,6 +253,7 @@ struct StatisticReferenceValue : StatisticBaseValue
       return {};
     }
   }
+  bool hasValue() const override { return d_committed || d_value != nullptr; }
   void print(std::ostream& out) const override
   {
     if (d_committed)
@@ -309,6 +321,7 @@ struct StatisticSizeValue : StatisticBaseValue
       return {};
     }
   }
+  bool hasValue() const override { return d_committed || d_value != nullptr; }
   void print(std::ostream& out) const override
   {
     if (d_committed)
@@ -366,6 +379,7 @@ struct StatisticTimerValue : StatisticBaseValue
   };
   /** Returns the number of milliseconds */
   StatExportData getViewer() const override;
+  bool hasValue() const override;
   /** Prints seconds in fixed-point format */
   void print(std::ostream& out) const override;
   /** Prints seconds in fixed-point format */
