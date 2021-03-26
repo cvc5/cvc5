@@ -35,7 +35,7 @@ ModelEngine::ModelEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
-                  TermRegistry& tr)
+                         TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr, qe),
       d_incomplete_check(true),
       d_addedLemmas(0),

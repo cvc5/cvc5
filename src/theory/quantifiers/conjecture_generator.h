@@ -440,8 +440,7 @@ private:  //information about ground equivalence classes
                       QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
                       QuantifiersRegistry& qr,
-                      TermRegistry& tr
-                     );
+                      TermRegistry& tr);
   ~ConjectureGenerator();
 
   /* needs check */

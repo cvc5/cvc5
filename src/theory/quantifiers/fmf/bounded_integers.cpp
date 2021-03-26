@@ -573,10 +573,10 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   getBounds( f, v, rsi, l, u );
   Trace("bound-int-rsi") << "Get value in model for..." << l << " and " << u << std::endl;
   if( !l.isNull() ){
-    l = d_treg.getModel()->getValue( l );
+    l = d_treg.getModel()->getValue(l);
   }
   if( !u.isNull() ){
-    u = d_treg.getModel()->getValue( u );
+    u = d_treg.getModel()->getValue(u);
   }
   Trace("bound-int-rsi") << "Value is " << l << " ... " << u << std::endl;
   return;

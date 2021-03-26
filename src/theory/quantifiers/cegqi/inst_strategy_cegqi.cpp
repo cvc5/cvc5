@@ -24,10 +24,10 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
-#include "theory/quantifiers/term_registry.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -89,7 +89,7 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
   size_t nquant = d_treg.getModel()->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
   {
-    Node q = d_treg.getModel()->getAssertedQuantifier( i );
+    Node q = d_treg.getModel()->getAssertedQuantifier(i);
     if (doCbqi(q))
     {
       return QEFFORT_STANDARD;
@@ -195,13 +195,15 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
   d_incomplete_check = false;
   d_active_quant.clear();
   //check if any cbqi lemma has not been added yet
-  FirstOrderModel * fm = d_treg.getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   size_t nquant = fm->getNumAssertedQuantifiers();
-  for( size_t i=0; i<nquant; i++ ){
-    Node q = fm->getAssertedQuantifier( i );
+  for (size_t i = 0; i < nquant; i++)
+  {
+    Node q = fm->getAssertedQuantifier(i);
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      if( fm->isQuantifierActive( q ) ){
+      if (fm->isQuantifierActive(q))
+      {
         d_active_quant[q] = true;
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
@@ -215,7 +217,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
               Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
               Trace("cegqi") << "Inactive : " << q << std::endl;
-              fm->setQuantifierActive( q, false );
+              fm->setQuantifierActive(q, false);
               d_cbqi_set_quant_inactive = true;
               d_active_quant.erase( q );
             }

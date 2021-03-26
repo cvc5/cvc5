@@ -47,7 +47,7 @@ public:
              QuantifiersState& qs,
              QuantifiersInferenceManager& qim,
              QuantifiersRegistry& qr,
-                  TermRegistry& tr);
+             TermRegistry& tr);
  virtual ~ModelEngine();
 
 public:

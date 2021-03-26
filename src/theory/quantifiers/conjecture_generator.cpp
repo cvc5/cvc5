@@ -89,7 +89,7 @@ ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
-                      TermRegistry& tr)
+                                         TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr, qe),
       d_notify(*this),
       d_uequalityEngine(
@@ -570,7 +570,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                   {
                     isSubsume = true;
                     //set inactive (will be ignored by other modules)
-                    m->setQuantifierActive( q, false );
+                    m->setQuantifierActive(q, false);
                   }
                   else
                   {
