@@ -276,10 +276,7 @@ class ValueStat
     {
       return d_data->d_value;
     }
-    else
-    {
-      return T();
-    }
+    return T();
   }
 
  private:
