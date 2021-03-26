@@ -187,7 +187,7 @@ class StatisticsRegistry
   template <typename Stat>
   Stat registerStat(const std::string& name, bool expert)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       auto it = d_stats.find(name);
       if (it == d_stats.end())

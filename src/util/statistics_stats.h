@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file statistics_base.h
+/*! \file statistics_stats.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer
@@ -12,7 +12,7 @@
  ** \brief Statistic proxy objects
  **
  ** Conceptually, every statistic consists of a data object and a proxy
- ** object. The proxy object are issued by the `StatisticsRegistry` and
+ ** object. The proxy objects are issued by the `StatisticsRegistry` and
  ** maintained by the user. They only hold a pointer to a matching data
  ** object. The purpose of proxy objects is to implement methods to easily
  ** change the statistic data, but shield the regular user from the internals.
@@ -25,11 +25,7 @@
 
 #include <optional>
 
-#ifdef CVC4_STATISTICS_ON
-#  define CVC4_USE_STATISTICS true
-#else
-#  define CVC4_USE_STATISTICS false
-#endif
+#include "base/configuration.h"
 
 namespace CVC4 {
 
@@ -87,7 +83,7 @@ class HistogramStat
   /** Add the value `val` to the histogram */
   HistogramStat& operator<<(Integral val)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->add(val);
     }
@@ -123,7 +119,7 @@ class ReferenceStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
     }
@@ -131,7 +127,7 @@ class ReferenceStat
   /** Copy the current value of the referenced object. */
   ~ReferenceStat()
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->commit();
     }
@@ -160,7 +156,7 @@ class SizeStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
     }
@@ -168,7 +164,7 @@ class SizeStat
   /** Copy the current size of the referenced container. */
   ~SizeStat()
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->commit();
     }
@@ -185,7 +181,8 @@ class CodeTimer;
  * arbitrarily like a stopwatch. The value of the statistic is the
  * accumulated time over all (start,stop) pairs.
  * While the runtimes are stored in nanosecond precision internally,
- * the API exports the number of milliseconds.
+ * the API exports runtimes as integral numbers in millisecond
+ * precision.
  *
  * Note that it is recommended to use it in an RAII fashion using the
  * `CodeTimer` class.
@@ -259,7 +256,7 @@ class ValueStat
   /** Set to `t` */
   void set(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = t;
     }
@@ -267,7 +264,7 @@ class ValueStat
   /** Set to `t` */
   ValueStat<T>& operator=(const T& t)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       set(t);
     }
@@ -275,7 +272,7 @@ class ValueStat
   }
   T get() const
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       return d_data->d_value;
     }
