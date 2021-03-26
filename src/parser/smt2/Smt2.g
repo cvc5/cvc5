@@ -1067,7 +1067,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK
     ( term[e, e2]
       { terms.push_back( e ); }
-    )+ RPAREN_TOK
+    )* RPAREN_TOK
     { Debug("parser") << "declare pool: '" << name << "'" << std::endl;
       api::Sort setType = SOLVER->mkSetSort( t );
       api::Term func =
