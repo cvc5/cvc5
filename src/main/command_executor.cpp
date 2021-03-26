@@ -216,7 +216,10 @@ bool solverInvoke(api::Solver* solver,
 }
 
 void CommandExecutor::flushOutputStreams() {
-  printStatistics(*(d_options.getErr()));
+  if (d_options.getStatistics())
+  {
+    printStatistics(*(d_options.getErr()));
+  }
 
   // make sure out and err streams are flushed too
   d_options.flushOut();
