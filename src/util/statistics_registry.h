@@ -182,7 +182,7 @@ class StatisticsRegistry
       Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
           << "Statistic value " << name
           << " was registered again with a different type.";
-      it->second->d_expert = it->second->d_expert || expert;
+      it->second->d_expert = it->second->d_expert && expert;
       return Stat(static_cast<typename Stat::stat_type*>(ptr));
     }
     return Stat(nullptr);
