@@ -45,6 +45,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../antlr-3.4-complete.jar <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
+        BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
     )
 
     # Download config guess
@@ -57,6 +58,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../config.guess <INSTALL_DIR>/share/config.guess
+        BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.guess
     )
 
     if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*64$")
@@ -77,6 +79,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
         COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
         COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static ${64bit} --host=${TOOLCHAIN_PREFIX}
+        BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libantlr3c.a
     )
 
     find_package(Java REQUIRED)
