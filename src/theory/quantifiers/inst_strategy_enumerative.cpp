@@ -183,13 +183,11 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
   }
 
   TermTupleEnumeratorContext ttec;
-  ttec.d_quantEngine = d_quantEngine;
-  ttec.d_rd = d_rd;
   ttec.d_fullEffort = fullEffort;
   ttec.d_increaseSum = options::fullSaturateSum();
-  ttec.d_isRd = isRd;
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(
-      mkTermTupleEnumerator(quantifier, &ttec));
+    isRd ? mkTermTupleEnumeratorRd(quantifier, &ttec, d_rd) :
+      mkTermTupleEnumerator(quantifier, &ttec, d_qstate, d_treg.getTermDatabase()));
   std::vector<Node> terms;
   std::vector<bool> failMask;
   Instantiate* ie = d_qim.getInstantiate();

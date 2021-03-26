@@ -55,11 +55,14 @@ class TermTupleEnumeratorInterface
 /** A struct bundling up parameters for term tuple enumerator.*/
 struct TermTupleEnumeratorContext
 {
-  QuantifiersEngine* d_quantEngine;
-  RelevantDomain* d_rd;
+  /**
+   * Whether we should put full effort into finding an instantiation. If this
+   * is false, then we allow for incompleteness, e.g. the tuple enumerator
+   * may heuristically give up before it has generated all tuples.
+   */
   bool d_fullEffort;
+  /** Whether we increase tuples based on sum instead of max (see below) */
   bool d_increaseSum;
-  bool d_isRd;
 };
 
 /**  A function to construct a tuple enumerator.
@@ -67,7 +70,7 @@ struct TermTupleEnumeratorContext
  * Currently we support the enumerators based on the following idea.
  * The tuples are represented as tuples of
  * indices of  terms, where the tuple has as many elements as there are
- * quantified variables in the considered quantifier.
+ * quantified variables in the considered quantifier q.
  *
  * Like so, we see a tuple as a number, where the digits may have different
  * ranges. The most significant digits are stored first.
@@ -77,11 +80,15 @@ struct TermTupleEnumeratorContext
  * digits, or, the maximum  over these digits is the same (controlled by
  * d_increaseSum).
  *
- * Further, an enumerator  either draws ground terms from the term database or
- * using the relevant domain class  (controlled by d_isRd).
+ * Further, the returned enumerator draws ground terms from the term database.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node quantifier, const TermTupleEnumeratorContext* context);
+    Node q, const TermTupleEnumeratorEnv* context, QuantifiersState& qs, TermDb * td);
+/** 
+ * Same as above, but draws terms from the relevant domain.
+ */
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
+    Node q, const TermTupleEnumeratorEnv* context, RelevantDomain* rd);
 
 }  // namespace quantifiers
 }  // namespace theory
