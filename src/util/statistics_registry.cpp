@@ -16,6 +16,7 @@
 
 #include "util/statistics_registry.h"
 
+#include "options/base_options.h"
 #include "util/statistics_public.h"
 
 namespace CVC4 {
@@ -70,27 +71,32 @@ StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
   return nullptr;
 }
 
-void StatisticsRegistry::print(std::ostream& os, bool expert) const
+void StatisticsRegistry::print(std::ostream& os) const
 {
-  for (const auto& s : d_stats)
-  {
-    if (expert || (!s.second->d_expert && s.second->hasValue()))
+  if constexpr (CVC4_USE_STATISTICS) {
+    for (const auto& s : d_stats)
     {
-      os << s.first << " = ";
-      s.second->print(os);
-      os << std::endl;
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      os << s.first << " = " << *s.second << std::endl;
     }
   }
 }
-void StatisticsRegistry::print_safe(int fd, bool expert) const
+
+void StatisticsRegistry::printSafe(int fd) const
 {
-  for (const auto& s : d_stats)
-  {
-    if (expert || (!s.second->d_expert && s.second->hasValue()))
+  if constexpr (CVC4_USE_STATISTICS) {
+    for (const auto& s : d_stats)
     {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+
       safe_print(fd, s.first);
       safe_print(fd, " = ");
-      s.second->print_safe(fd);
+      if (s.second->hasValue())
+        s.second->printSafe(fd);
+      else
+        safe_print(fd, "<unset>");
       safe_print(fd, '\n');
     }
   }

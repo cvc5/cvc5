@@ -56,7 +56,7 @@ namespace detail {
  * - `hasValue` checks whether the data holds a non-default value
  * - `getViewer` converts to the API representation `Stat`
  * - `print` writes the data to a regular `std::ostream`
- * - `print_safe` safely writes the data to a file descriptor
+ * - `printSafe` safely writes the data to a file descriptor
  * The remaining three methods are only safe to call if `hasValue` returns
  * true. Otherwise, the return value of `getViewer` is assumed to be
  * `std::monostate` and the value should be printed as "<undef>".
@@ -67,7 +67,7 @@ struct StatisticBaseValue
   virtual bool hasValue() const = 0;
   virtual StatExportData getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
-  virtual void print_safe(int fd) const = 0;
+  virtual void printSafe(int fd) const = 0;
 
   bool d_expert = true;
 };
@@ -80,7 +80,7 @@ struct StatisticAverageValue : StatisticBaseValue
   StatExportData getViewer() const override;
   bool hasValue() const override;
   void print(std::ostream& out) const override;
-  void print_safe(int fd) const override;
+  void printSafe(int fd) const override;
   double get() const;
 
   /** Sum of added values */
@@ -102,7 +102,7 @@ struct StatisticBackedValue : StatisticBaseValue
   StatExportData getViewer() const override { return d_value; }
   bool hasValue() const override { return d_value != T(); }
   void print(std::ostream& out) const override { out << d_value; }
-  void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
+  void printSafe(int fd) const override { safe_print<T>(fd, d_value); }
 
   T d_value;
 };
@@ -164,7 +164,7 @@ struct StatisticHistogramValue : StatisticBaseValue
     }
     out << "]";
   }
-  void print_safe(int fd) const override
+  void printSafe(int fd) const override
   {
     safe_print(fd, "[");
     bool first = true;
@@ -266,7 +266,7 @@ struct StatisticReferenceValue : StatisticBaseValue
       out << *d_value;
     }
   }
-  void print_safe(int fd) const override
+  void printSafe(int fd) const override
   {
     if (d_committed)
     {
@@ -323,7 +323,7 @@ struct StatisticSizeValue : StatisticBaseValue
       out << d_value->size();
     }
   }
-  void print_safe(int fd) const override
+  void printSafe(int fd) const override
   {
     if (d_committed)
     {
@@ -365,7 +365,7 @@ struct StatisticTimerValue : StatisticBaseValue
   /** Prints seconds in fixed-point format */
   void print(std::ostream& out) const override;
   /** Prints seconds in fixed-point format */
-  void print_safe(int fd) const override;
+  void printSafe(int fd) const override;
   /** Make sure that we include the time of a currently running timer */
   duration get() const;
 

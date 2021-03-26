@@ -166,14 +166,12 @@ class StatisticsRegistry
 
   /**
    * Print all statistics to the given output stream.
-   * @param expert whether to also print private statistics
    */
-  void print(std::ostream& os, bool expert = false) const;
+  void print(std::ostream& os) const;
   /**
    * Print all statistics in a safe manner to the given file descriptor.
-   * @param expert whether to also print private statistics
    */
-  void print_safe(int fd, bool expert = false) const;
+  void printSafe(int fd) const;
 
   /**
    * Print all statistics as a diff to the last stored snapshot.
