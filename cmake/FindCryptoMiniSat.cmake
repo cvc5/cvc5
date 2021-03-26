@@ -50,12 +50,21 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+          -DENABLE_ASSERTIONS=OFF
           -DENABLE_PYTHON_INTERFACE=OFF
-          -DSTATICCOMPILE=ON
           -DNOBREAKID=ON
           -DNOM4RI=ON
           -DNOSQLITE=ON
+          -DNOZLIB=ON
           -DONLY_SIMPLE=ON
+          -DSTATICCOMPILE=ON
+    )
+    ExternalProject_Add_Step(
+        CryptoMiniSat-EP
+        cleanup
+        DEPENDEES install
+        COMMAND ${CMAKE_COMMAND} -E remove <BINARY_DIR>/cryptominisat5_simple
+        COMMAND ${CMAKE_COMMAND} -E remove <INSTALL_DIR>/bin/cryptominisat5_simple
     )
 
     set(CryptoMiniSat_INCLUDE_DIR "${DEPS_BASE}/include/")
