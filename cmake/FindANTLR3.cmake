@@ -82,7 +82,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             <SOURCE_DIR>/config.sub > <SOURCE_DIR>/config.sub.new
         COMMAND ${CMAKE_COMMAND} -E copy
             <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
-        COMMAND ${CMAKE_COMMAND} -E copy_directory<SOURCE_DIR>/include include/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
         COMMAND <SOURCE_DIR>/configure
             --with-pic
             --disable-antlrdebug
