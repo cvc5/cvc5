@@ -67,7 +67,7 @@ class SygusInst : public QuantifiersModule
             QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
             QuantifiersRegistry& qr,
-                      TermRegistry& tr);
+            TermRegistry& tr);
   ~SygusInst() = default;
 
   bool needsCheck(Theory::Effort e) override;

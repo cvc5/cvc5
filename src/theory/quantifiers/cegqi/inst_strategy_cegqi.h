@@ -72,7 +72,7 @@ class InstStrategyCegqi : public QuantifiersModule
                     QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
                     QuantifiersRegistry& qr,
-                      TermRegistry& tr);
+                    TermRegistry& tr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */

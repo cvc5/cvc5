@@ -33,7 +33,7 @@ InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
-                      TermRegistry& tr,
+                                   TermRegistry& tr,
                                    RelevantDomain* rd)
     : QuantifiersModule(qs, qim, qr, tr, qe), d_rd(rd), d_fullSaturateLimit(-1)
 {

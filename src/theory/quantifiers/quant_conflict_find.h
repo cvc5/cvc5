@@ -240,7 +240,7 @@ private:  //for equivalence classes
                     QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
                     QuantifiersRegistry& qr,
-                      TermRegistry& tr);
+                    TermRegistry& tr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;

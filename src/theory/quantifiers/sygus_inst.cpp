@@ -187,7 +187,7 @@ SygusInst::SygusInst(QuantifiersEngine* qe,
                      QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
-                      TermRegistry& tr)
+                     TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr, qe),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),

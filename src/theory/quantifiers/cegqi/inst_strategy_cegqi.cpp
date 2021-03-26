@@ -53,7 +53,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
-                      TermRegistry& tr)
+                                     TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),

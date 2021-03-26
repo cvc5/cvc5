@@ -1858,7 +1858,7 @@ QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
-                      TermRegistry& tr)
+                                     TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, tr, qe),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),

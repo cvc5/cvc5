@@ -37,7 +37,7 @@ class SynthEngine : public QuantifiersModule
               QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
-                      TermRegistry& tr);
+              TermRegistry& tr);
   ~SynthEngine();
   /** presolve
    *
