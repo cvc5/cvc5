@@ -3680,7 +3680,8 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-  for (size_t i = 0, n = i < rules.size(); i < n; ++i) {
+  for (size_t i = 0, n = rules.size(); i < n; ++i)
+  {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !containsFreeVariables(rules[i]), rules[i], rules, i)
         << "a constant term or a term containing synthFun/synthInv parameters "
@@ -4002,12 +4003,12 @@ bool Grammar::containsFreeVariables(const Term& rule) const
 {
   std::unordered_set<TNode, TNodeHashFunction> scope;
 
-  for (Term sygusVar : d_sygusVars)
+  for (const Term& sygusVar : d_sygusVars)
   {
     scope.emplace(*sygusVar.d_node);
   }
 
-  for (Term ntsymbol : d_ntSyms)
+  for (const Term& ntsymbol : d_ntSyms)
   {
     scope.emplace(*ntsymbol.d_node);
   }
