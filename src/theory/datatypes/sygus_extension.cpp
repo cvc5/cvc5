@@ -32,6 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
