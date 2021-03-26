@@ -42,7 +42,6 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
 
     fail_if_include_missing("sys/resource.h" "CaDiCaL")
 
-    # TODO(mpreiner): Use a more recent version?
     set(CaDiCaL_VERSION "1.2.1")
 
     # avoid configure script and instantiate the makefile manually
@@ -63,8 +62,12 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
         URL_HASH SHA1=9de1176737b74440921ba86395fe5edbb3b131eb
         CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
         # avoid configure script, prepare the makefile manually
-        COMMAND sed -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,-j1," <SOURCE_DIR>/makefile.in > <SOURCE_DIR>/build/makefile
-        BUILD_COMMAND make -C <SOURCE_DIR>/build libcadical.a
+        COMMAND sed
+          -e "s,@CXX@,${CMAKE_CXX_COMPILER},"
+          -e "s,@CXXFLAGS@,${CXXFLAGS},"
+          -e "s,@MAKEFLAGS@,,"
+          <SOURCE_DIR>/makefile.in > <SOURCE_DIR>/build/makefile
+        BUILD_COMMAND $(MAKE) -C <SOURCE_DIR>/build libcadical.a
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a <INSTALL_DIR>/lib/libcadical.a
         COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp <INSTALL_DIR>/include/cadical.hpp
     )
