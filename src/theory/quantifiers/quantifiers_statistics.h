@@ -17,8 +17,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,7 +31,6 @@ class QuantifiersStatistics
 {
  public:
   QuantifiersStatistics();
-  ~QuantifiersStatistics();
   TimerStat d_time;
   TimerStat d_qcf_time;
   TimerStat d_ematching_time;
