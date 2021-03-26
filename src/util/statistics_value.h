@@ -217,7 +217,7 @@ struct StatisticHistogramValue : StatisticBaseValue
 
 /**
  * Holds the data for a `ReferenceStat`.
- * When the `ReferenceStat` is destroyed the current values is copied into
+ * When the `ReferenceStat` is destroyed the current value is copied into
  * `d_committed`. Once `d_committed` is set, this value is returned, even if
  * the reference is still valid.
  */
