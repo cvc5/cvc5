@@ -28,12 +28,48 @@
 
 namespace CVC4 {
 
+// standard helper, see https://en.cppreference.com/w/cpp/utility/variant/visit
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+namespace detail {
+std::ostream& print(std::ostream& out, const StatExportData& sed)
+{
+  std::visit(overloaded{
+                 [&out](std::monostate v) { out << "<unset>"; },
+                 [&out](int64_t v) { out << v; },
+                 [&out](uint64_t v) { out << v; },
+                 [&out](double v) { out << v; },
+                 [&out](const std::string& v) { out << v; },
+                 [&out](const std::map<std::string, uint64_t>& v) {
+                   out << "{ ";
+                   bool first = true;
+                   for (const auto& e : v)
+                   {
+                     if (!first)
+                       out << ", ";
+                     else
+                       first = false;
+                     out << e.first << ": " << e.second;
+                   }
+                   out << " }";
+                 },
+             },
+             sed);
+  return out;
+}
+}
+
 StatisticBaseValue::~StatisticBaseValue() {}
 
 std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
 {
-  sbv.print(out);
-  return out;
+  return detail::print(out, sbv.hasValue() ? sbv.getViewer() : StatExportData{});
 }
 
 StatExportData StatisticAverageValue::getViewer() const { return get(); }

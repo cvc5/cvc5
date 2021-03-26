@@ -46,6 +46,9 @@ using StatExportData = std::variant<std::monostate,
                                     double,
                                     std::string,
                                     std::map<std::string, uint64_t>>;
+namespace detail {
+  std::ostream& print(std::ostream& out, const StatExportData& sed);
+}
 
 /**
  * Base class for all statistic values.
