@@ -30,7 +30,7 @@ class RelevantDomain;
 /**  Interface for enumeration of tuples of terms.
  *
  * The interface should be used as follows. Firstly, init is called, then,
- * repeatedly,  verify if there are any combinations left by calling hasNext
+ * repeatedly, verify if there are any combinations left by calling hasNext
  * and obtaining the next combination by calling next.
  *
  *  Optionally, if the  most recent combination is determined to be undesirable
@@ -89,9 +89,7 @@ TermTupleEnumeratorInterface* mkTermTupleEnumerator(
     const TermTupleEnumeratorEnv* env,
     QuantifiersState& qs,
     TermDb* td);
-/**
- * Same as above, but draws terms from the relevant domain.
- */
+/** Same as above, but draws terms from the relevant domain utility (rd). */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
     Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd);
 

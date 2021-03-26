@@ -492,19 +492,19 @@ Node TermTupleEnumeratorBasic::getTerm(size_t variableIx, size_t term_index)
 }
 
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node quantifier,
+    Node q,
     const TermTupleEnumeratorEnv* env,
     QuantifiersState& qs,
     TermDb* td)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-      new TermTupleEnumeratorBasic(quantifier, env, qs, td));
+      new TermTupleEnumeratorBasic(q, env, qs, td));
 }
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRD(
-    Node quantifier, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
+    Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-      new TermTupleEnumeratorRD(quantifier, env, rd));
+      new TermTupleEnumeratorRD(q, env, rd));
 }
 
 }  // namespace quantifiers
