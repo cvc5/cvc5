@@ -31,7 +31,7 @@ AverageStat& AverageStat::operator<<(double v)
   return *this;
 }
 
-IntStats& IntStats::operator=(int64_t val)
+IntStat& IntStat::operator=(int64_t val)
 {
   if constexpr (Configuration::isStatisticsBuild())
   {
@@ -39,7 +39,7 @@ IntStats& IntStats::operator=(int64_t val)
   }
   return *this;
 }
-IntStats& IntStats::operator++()
+IntStat& IntStat::operator++()
 {
   if constexpr (Configuration::isStatisticsBuild())
   {
@@ -47,7 +47,7 @@ IntStats& IntStats::operator++()
   }
   return *this;
 }
-IntStats& IntStats::operator++(int)
+IntStat& IntStat::operator++(int)
 {
   if constexpr (Configuration::isStatisticsBuild())
   {
@@ -55,7 +55,7 @@ IntStats& IntStats::operator++(int)
   }
   return *this;
 }
-IntStats& IntStats::operator+=(int64_t val)
+IntStat& IntStat::operator+=(int64_t val)
 {
   if constexpr (Configuration::isStatisticsBuild())
   {
@@ -63,14 +63,14 @@ IntStats& IntStats::operator+=(int64_t val)
   }
   return *this;
 }
-void IntStats::maxAssign(int64_t val)
+void IntStat::maxAssign(int64_t val)
 {
   if (d_data->d_value < val)
   {
     d_data->d_value = val;
   }
 }
-void IntStats::minAssign(int64_t val)
+void IntStat::minAssign(int64_t val)
 {
   if (d_data->d_value > val)
   {
