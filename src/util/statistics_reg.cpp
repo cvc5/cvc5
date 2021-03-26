@@ -16,6 +16,7 @@
 
 #include "util/statistics_reg.h"
 
+#include "options/base_options.h"
 #include "util/statistics_public.h"
 
 namespace CVC4 {
@@ -43,9 +44,25 @@ TimerStat StatisticsRegistry::registerTimer(const std::string& name,
   return registerStat<TimerStat>(name, expert);
 }
 
+void StatisticsRegistry::storeSnapshot()
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_lastSnapshot = std::make_unique<Snapshot>();
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      d_lastSnapshot->emplace(
+          s.first,
+          s.second->hasValue() ? s.second->getViewer() : StatExportData{});
+    }
+  }
+}
+
 StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 {
-  if constexpr (CVC4_USE_STATISTICS)
+  if constexpr (Configuration::isStatisticsBuild())
   {
     auto it = d_stats.find(name);
     if (it == d_stats.end()) return nullptr;
@@ -54,25 +71,58 @@ StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
   return nullptr;
 }
 
-void StatisticsRegistry::print(std::ostream& os, bool expert) const
+void StatisticsRegistry::print(std::ostream& os) const
 {
-  for (const auto& s : d_stats)
-  {
-    if (!expert && s.second->d_expert) continue;
-    os << s.first << " = ";
-    s.second->print(os);
-    os << std::endl;
+  if constexpr (Configuration::isStatisticsBuild()) {
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      os << s.first << " = " << *s.second << std::endl;
+    }
   }
 }
-void StatisticsRegistry::print_safe(int fd, bool expert) const
+
+void StatisticsRegistry::printSafe(int fd) const
 {
-  for (const auto& s : d_stats)
-  {
-    if (!expert && s.second->d_expert) continue;
-    safe_print(fd, s.first);
-    safe_print(fd, " = ");
-    s.second->print_safe(fd);
-    safe_print(fd, '\n');
+  if constexpr (Configuration::isStatisticsBuild()) {
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+
+      safe_print(fd, s.first);
+      safe_print(fd, " = ");
+      if (s.second->hasValue())
+        s.second->printSafe(fd);
+      else
+        safe_print(fd, "<unset>");
+      safe_print(fd, '\n');
+    }
+  }
+}
+void StatisticsRegistry::printDiff(std::ostream& os) const {
+  if constexpr (Configuration::isStatisticsBuild()) {
+    if (!d_lastSnapshot) {
+      // we have no snapshot, print as usual
+      print(os);
+      return;
+    }
+    for (const auto& s : d_stats)
+    {
+      if (!options::statisticsExpert() && s.second->d_expert) continue;
+      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      auto oldit = d_lastSnapshot->find(s.first);
+      if (oldit == d_lastSnapshot->end()) {
+        // not present in the snapshot
+        os << s.first << " = " << *s.second << " (was <unset>)" << std::endl;
+      } else if (oldit->second != s.second->getViewer()) {
+        // present in the snapshow, print old value
+        os << s.first << " = " << *s.second << " (was ";
+        detail::print(os, oldit->second);
+        os << ")" << std::endl;
+      }
+    }
   }
 }
 

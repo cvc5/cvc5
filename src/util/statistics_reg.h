@@ -67,6 +67,9 @@ class StatisticsRegistry
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const StatisticsRegistry& sr);
+
+  using Snapshot = std::map<std::string, StatExportData>;
+
   /**
    * If `registerPublic` is true, all statistics that are public are
    * pre-registered as such. This argument mostly exists so that unit tests
@@ -126,6 +129,14 @@ class StatisticsRegistry
   /** Register a new timer statistic for `name` */
   TimerStat registerTimer(const std::string& name, bool expert = true);
 
+  /** Register a new value statistic for `name`. */
+  template <typename T>
+  ValueStat<T> registerValue(const std::string& name,
+                             bool expert = true)
+  {
+    return registerStat<ValueStat<T>>(name, expert);
+  }
+
   /** Register a new value statistic for `name` and set it to `init`. */
   template <typename T>
   ValueStat<T> registerValue(const std::string& name,
@@ -143,6 +154,11 @@ class StatisticsRegistry
   auto end() const { return d_stats.end(); }
 
   /**
+   * Obtain the current state of all statistics.
+   */
+  void storeSnapshot();
+
+  /**
    * Obtain a single statistic by name. Returns nullptr if no statistic has
    * been registered for this name.
    */
@@ -150,14 +166,16 @@ class StatisticsRegistry
 
   /**
    * Print all statistics to the given output stream.
-   * @param expert whether to also print private statistics
    */
-  void print(std::ostream& os, bool expert = false) const;
+  void print(std::ostream& os) const;
   /**
    * Print all statistics in a safe manner to the given file descriptor.
-   * @param expert whether to also print private statistics
    */
-  void print_safe(int fd, bool expert = false) const;
+  void printSafe(int fd) const;
+  /**
+   * Print all statistics as a diff to the last stored snapshot.
+   */
+  void printDiff(std::ostream& os) const;
 
  private:
   /**
@@ -169,7 +187,7 @@ class StatisticsRegistry
   template <typename Stat>
   Stat registerStat(const std::string& name, bool expert)
   {
-    if constexpr (CVC4_USE_STATISTICS)
+    if constexpr (Configuration::isStatisticsBuild())
     {
       auto it = d_stats.find(name);
       if (it == d_stats.end())
@@ -182,7 +200,7 @@ class StatisticsRegistry
       Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
           << "Statistic value " << name
           << " was registered again with a different type.";
-      it->second->d_expert = it->second->d_expert || expert;
+      it->second->d_expert = it->second->d_expert && expert;
       return Stat(static_cast<typename Stat::stat_type*>(ptr));
     }
     return Stat(nullptr);
@@ -193,6 +211,8 @@ class StatisticsRegistry
    * registered for.
    */
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
+
+  std::unique_ptr<Snapshot> d_lastSnapshot;
 };
 
 /** Calls `sr.print(os)`. */
