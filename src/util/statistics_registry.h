@@ -126,6 +126,14 @@ class StatisticsRegistry
   /** Register a new timer statistic for `name` */
   TimerStat registerTimer(const std::string& name, bool expert = true);
 
+  /** Register a new value statistic for `name`. */
+  template <typename T>
+  ValueStat<T> registerValue(const std::string& name,
+                             bool expert = true)
+  {
+    return registerStat<ValueStat<T>>(name, expert);
+  }
+
   /** Register a new value statistic for `name` and set it to `init`. */
   template <typename T>
   ValueStat<T> registerValue(const std::string& name,

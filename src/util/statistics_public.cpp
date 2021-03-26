@@ -16,13 +16,41 @@
 
 #include "util/statistics_public.h"
 
+#include "api/cvc4cppkind.h"
+#include "expr/kind.h"
+#include "theory/inference_id.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 void registerPublicStatistics(StatisticsRegistry& reg)
 {
+  reg.registerHistogram<TypeConstant>("api::CONSTANT", false);
+  reg.registerHistogram<TypeConstant>("api::VARIABLE", false);
+  reg.registerHistogram<api::Kind>("api::TERM", false);
 
+  reg.registerValue<std::string>("driver::filename", false);
+  reg.registerValue<std::string>("driver::sat/unsat", false);
+  reg.registerValue<double>("driver::totalTime", false);
+
+  for (const std::string& theory : {"arith",
+                                    "arrays",
+                                    "bags",
+                                    "bv",
+                                    "datatypes",
+                                    "fp",
+                                    "sep",
+                                    "sets",
+                                    "strings",
+                                    "uf"})
+  {
+    reg.registerHistogram<theory::InferenceId>(
+        "theory::" + theory + "::inferencesConflict", false);
+    reg.registerHistogram<theory::InferenceId>(
+        "theory::" + theory + "::inferencesFact", false);
+    reg.registerHistogram<theory::InferenceId>(
+        "theory::" + theory + "::inferencesLemma", false);
+  }
 }
 
 }  // namespace CVC4
