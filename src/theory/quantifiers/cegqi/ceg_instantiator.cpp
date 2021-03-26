@@ -32,7 +32,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_state.h"
 
 using namespace std;
 using namespace CVC4::kind;
