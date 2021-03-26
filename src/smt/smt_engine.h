@@ -829,13 +829,15 @@ class CVC4_EXPORT SmtEngine
   SExpr getStatistic(std::string name) const;
 
   /** Flush statistics from this SmtEngine and the NodeManager it uses. */
-  void flushStatistics(std::ostream& out) const;
+  void printStatistics(std::ostream& out) const;
 
   /**
    * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
    * use in a signal handler.
    */
-  void safeFlushStatistics(int fd) const;
+  void printStatisticsSafe(int fd) const;
+
+  void printStatisticsDiff(std::ostream& ) const;
 
   /**
    * Set user attribute.

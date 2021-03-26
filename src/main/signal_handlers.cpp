@@ -60,7 +60,7 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
-    pExecutor->safeFlushStatistics(STDERR_FILENO);
+    pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }
 

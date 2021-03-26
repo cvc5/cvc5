@@ -61,16 +61,16 @@ CommandExecutor::~CommandExecutor()
   d_solver.reset(nullptr);
 }
 
-void CommandExecutor::flushStatistics(std::ostream& out) const
+void CommandExecutor::printStatistics(std::ostream& out) const
 {
   // SmtEngine + node manager flush statistics is part of the call below
-  getSmtEngine()->flushStatistics(out);
+  getSmtEngine()->printStatistics(out);
 }
 
-void CommandExecutor::safeFlushStatistics(int fd) const
+void CommandExecutor::printStatisticsSafe(int fd) const
 {
   // SmtEngine + node manager flush statistics is part of the call below
-  getSmtEngine()->safeFlushStatistics(fd);
+  getSmtEngine()->printStatisticsSafe(fd);
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -105,7 +105,7 @@ void CommandExecutor::reset()
 {
   if (d_options.getStatistics())
   {
-    flushStatistics(*d_options.getErr());
+    printStatistics(*d_options.getErr());
   }
   /* We have to keep options passed via CL on reset. These options are stored
    * in CommandExecutor::d_options (populated and created in the driver), and

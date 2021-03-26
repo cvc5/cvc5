@@ -23,6 +23,7 @@
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_value.h"
 
 namespace CVC4 {
 
@@ -32,9 +33,6 @@ namespace main {
 
 class CommandExecutor
 {
- private:
-  std::string d_lastStatistics;
-
  protected:
   /**
    * The solver object, which is allocated by this class and is used for
@@ -85,16 +83,13 @@ class CommandExecutor
   /**
    * Flushes statistics to a file descriptor.
    */
-  virtual void flushStatistics(std::ostream& out) const;
+  virtual void printStatistics(std::ostream& out) const;
 
   /**
    * Flushes statistics to a file descriptor.
    * Safe to use in a signal handler.
    */
-  void safeFlushStatistics(int fd) const;
-
-  static void printStatsFilterZeros(std::ostream& out,
-                                    const std::string& statsString);
+  void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
 
