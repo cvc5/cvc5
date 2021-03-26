@@ -2402,7 +2402,14 @@ class Statistics
 
   /** Retrieve the statistic with the given name. */
   const Stat& get(const std::string& name);
-  /** begin iteration */
+  /**
+   * Begin iteration over the statistics values.
+   * By default, only entries that are public (non-expert) and have been set
+   * are visible while the others are skipped.
+   * With `expert` set to true, expert statistics are shown as well.
+   * With `unset` set to true, unset statistics are shown as well. They should
+   * never hold a value (i.e. `hasValue() == false`).
+  */
   iterator begin(bool expert = false, bool unset = false) const;
   /** end iteration */
   iterator end() const;
