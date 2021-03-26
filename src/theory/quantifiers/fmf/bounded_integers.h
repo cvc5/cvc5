@@ -168,6 +168,7 @@ private:
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   DecisionManager* dm);
   virtual ~BoundedIntegers();
 

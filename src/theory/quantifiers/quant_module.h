@@ -23,6 +23,10 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,10 +35,6 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 class TermDb;
-class QuantifiersState;
-class QuantifiersInferenceManager;
-class QuantifiersRegistry;
-class TermRegistry;
 }  // namespace quantifiers
 
 /** QuantifiersModule class
@@ -171,12 +171,14 @@ class QuantifiersModule
  protected:
   /** pointer to the quantifiers engine that owns this module */
   QuantifiersEngine* d_quantEngine;
-  /** The state of the quantifiers engine */
+  /** Reference to the state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
-  /** The quantifiers inference manager */
+  /** Reference to the quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& d_qim;
-  /** The quantifiers registry */
+  /** Reference to the quantifiers registry */
   quantifiers::QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  quantifiers::TermRegistry& d_treg;
 }; /* class QuantifiersModule */
 
 }  // namespace theory
