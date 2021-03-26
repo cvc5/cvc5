@@ -4029,16 +4029,6 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Statistics                                                                     */
 /* -------------------------------------------------------------------------- */
 
-
-// standard helper, see https://en.cppreference.com/w/cpp/utility/variant/visit
-template <class... Ts>
-struct overloaded : Ts...
-{
-  using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
 struct Stat::StatData {
   CVC4::StatExportData data;
   template<typename T>
@@ -4117,28 +4107,7 @@ Stat::Stat(bool expert, StatData&& sd): d_expert(expert), d_data(std::make_uniqu
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
-  std::visit(overloaded{
-                 [&os](std::monostate v) { os << "<undefined>"; },
-                 [&os](int64_t v) { os << v; },
-                 [&os](uint64_t v) { os << v; },
-                 [&os](double v) { os << v; },
-                 [&os](const std::string& v) { os << v; },
-                 [&os](const Stat::HistogramData& v) {
-                   os << "{ ";
-                   bool first = true;
-                   for (const auto& e : v)
-                   {
-                     if (!first)
-                       os << ", ";
-                     else
-                       first = false;
-                     os << e.first << ": " << e.second;
-                   }
-                   os << " }";
-                 },
-             },
-             sv.d_data->data);
-  return os;
+  return CVC4::detail::print(os, sv.d_data->data);
 }
 
 Statistics::BaseType::const_reference Statistics::iterator::operator*() const
