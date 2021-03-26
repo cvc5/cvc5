@@ -21,9 +21,6 @@
 #include <map>
 #include <vector>
 
-#include "theory/quantifiers/quantifiers_inference_manager.h"
-#include "theory/quantifiers/quantifiers_registry.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -34,6 +31,10 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 class TermDb;
+class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
+class TermRegistry;
 }  // namespace quantifiers
 
 /** QuantifiersModule class
@@ -63,6 +64,7 @@ class QuantifiersModule
   QuantifiersModule(quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
+                    quantifiers::TermRegistry& tr,
                     QuantifiersEngine* qe);
   virtual ~QuantifiersModule() {}
   /** Presolve.
