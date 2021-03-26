@@ -73,22 +73,28 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
 }
 
 StatExportData StatisticAverageValue::getViewer() const { return get(); }
+
 bool StatisticAverageValue::hasValue() const { return d_count > 0; }
+
 void StatisticAverageValue::print(std::ostream& out) const { out << get(); }
+
 void StatisticAverageValue::printSafe(int fd) const
 {
   safe_print<double>(fd, get());
 }
+
 double StatisticAverageValue::get() const { return d_sum / d_count; }
 
 StatExportData StatisticTimerValue::getViewer() const
 {
   return static_cast<int64_t>(get() / std::chrono::milliseconds(1));
 }
+
 bool StatisticTimerValue::hasValue() const
 {
   return d_running || d_duration.count() > 0;
 }
+
 void StatisticTimerValue::print(std::ostream& out) const
 {
   StreamFormatScope format_scope(out);
@@ -97,6 +103,7 @@ void StatisticTimerValue::print(std::ostream& out) const
   out << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
       << std::setw(9) << std::right << (dur % std::chrono::seconds(1)).count();
 }
+
 void StatisticTimerValue::printSafe(int fd) const
 {
   duration dur = get();
@@ -104,6 +111,7 @@ void StatisticTimerValue::printSafe(int fd) const
   safe_print(fd, ".");
   safe_print_right_aligned(fd, (dur % std::chrono::seconds(1)).count(), 9);
 }
+
 /** Make sure that we include the time of a currently running timer */
 StatisticTimerValue::duration StatisticTimerValue::get() const
 {

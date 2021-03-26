@@ -87,7 +87,7 @@ void TimerStat::start()
 {
   if constexpr (Configuration::isStatisticsBuild())
   {
-    PrettyCheckArgument(!d_data->d_running, *this, "timer already running");
+    Assert(!d_data->d_running) << "timer is already running";
     d_data->d_start = StatisticTimerValue::clock::now();
     d_data->d_running = true;
   }
@@ -96,7 +96,7 @@ void TimerStat::stop()
 {
   if constexpr (Configuration::isStatisticsBuild())
   {
-    AlwaysAssert(d_data->d_running) << "timer not running";
+    Assert(d_data->d_running) << "timer is not running";
     d_data->d_duration += StatisticTimerValue::clock::now() - d_data->d_start;
     d_data->d_running = false;
   }
