@@ -25,6 +25,8 @@
 
 #include "main/main.h"
 #include "smt/command.h"
+#include "util/statistics_registry.h"
+#include "util/statistics_value.h"
 
 namespace CVC4 {
 namespace main {
@@ -61,13 +63,11 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
-  // SmtEngine + node manager flush statistics is part of the call below
   getSmtEngine()->printStatistics(out);
 }
 
 void CommandExecutor::printStatisticsSafe(int fd) const
 {
-  // SmtEngine + node manager flush statistics is part of the call below
   getSmtEngine()->printStatisticsSafe(fd);
 }
 

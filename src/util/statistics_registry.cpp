@@ -104,6 +104,7 @@ void StatisticsRegistry::printSafe(int fd) const
 void StatisticsRegistry::printDiff(std::ostream& os) const {
   if constexpr (CVC4_USE_STATISTICS) {
     if (!d_lastSnapshot) {
+      // we have no snapshot, print as usual
       print(os);
       return;
     }
@@ -113,8 +114,10 @@ void StatisticsRegistry::printDiff(std::ostream& os) const {
       if (!options::statisticsUnset() && !s.second->hasValue()) continue;
       auto oldit = d_lastSnapshot->find(s.first);
       if (oldit == d_lastSnapshot->end()) {
+        // not present in the snapshot
         os << s.first << " = " << *s.second << " (was <unset>)" << std::endl;
       } else if (oldit->second != s.second->getViewer()) {
+        // present in the snapshow, print old value
         os << s.first << " = " << *s.second << " (was ";
         detail::print(os, oldit->second);
         os << ")" << std::endl;

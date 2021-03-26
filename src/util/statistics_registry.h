@@ -172,7 +172,6 @@ class StatisticsRegistry
    * Print all statistics in a safe manner to the given file descriptor.
    */
   void printSafe(int fd) const;
-
   /**
    * Print all statistics as a diff to the last stored snapshot.
    */
