@@ -186,8 +186,9 @@ void addSpecialValues(
 SygusInst::SygusInst(QuantifiersEngine* qe,
                      QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
-                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                     QuantifiersRegistry& qr,
+                      TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),
       d_notified_assertions(qs.getUserContext())

@@ -1857,8 +1857,9 @@ bool MatchGen::isHandled( TNode n ) {
 QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
-                                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                                     QuantifiersRegistry& qr,
+                      TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),

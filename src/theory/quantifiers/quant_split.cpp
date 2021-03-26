@@ -31,8 +31,9 @@ using namespace CVC4::theory::quantifiers;
 QuantDSplit::QuantDSplit(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe), d_added_split(qs.getUserContext())
+                         QuantifiersRegistry& qr,
+                      TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe), d_added_split(qs.getUserContext())
 {
 }
 

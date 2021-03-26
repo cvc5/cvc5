@@ -65,6 +65,7 @@ class InstStrategyEnum : public QuantifiersModule
                    QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
+                      TermRegistry& tr,
                    RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Presolve */
