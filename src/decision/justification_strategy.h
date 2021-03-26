@@ -64,13 +64,20 @@ class JustificationStrategy
   /** Pop from stack */
   void popStack();
   /**
-   * Get next justify node.
+   * Let n be the node referenced by ji.
+   * 
+   * This method is called either when we have yet to process any children of n,
+   * or we just determined that the last child we processed of n had value
+   * lastChildVal.
    *
-   * Either:
-   * (1) Returns the justify node corresponding to the next node to consider
-   * adding to the stack
+   * Note that knowing which child of n we processed last is the value of
+   * ji->d_childIndex.
+   *
+   * This method either:
+   * (1) Returns the justify node corresponding to the next child of n to
+   * consider adding to the stack, and its desired polarity.
    * (2) Returns a null justify node and updates lastChildVal to the value
-   * of the current node referenced by ji.
+   * of n.
    */
   JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
   /**
@@ -106,6 +113,8 @@ class JustificationStrategy
   context::CDO<size_t> d_stackSizeValid;
   /** The last decision value */
   context::CDO<prop::SatValue> d_lastDecisionValue;
+  /** The last decision value */
+  context::CDO<TNode> d_lastDecisionAtom;
 };
 
 }  // namespace CVC4

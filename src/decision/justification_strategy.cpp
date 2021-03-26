@@ -30,7 +30,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_justified(c),
       d_stack(c),
       d_stackSizeValid(c, 0),
-      d_lastDecisionValue(c, SAT_VALUE_UNKNOWN)
+      d_lastDecisionValue(c, SAT_VALUE_UNKNOWN),
+      d_lastDecisionAtom(c)
 {
 }
 
@@ -46,16 +47,25 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
+    Trace("jh-stack") << "getNext, already finished" << std::endl;
     stopSearch = true;
     return undefSatLiteral;
   }
+  Assert (!d_current.get().isNull());
+  Trace("jh-stack") << "getNext, current = " << d_current.get() << std::endl;
   // temporary information in the loop below
   JustifyInfo* ji;
   JustifyNode next;
   // we start with the value implied by the last decision, if it exists
   SatValue lastChildVal = d_lastDecisionValue.get();
+  // if we had just sent a decision, record it here
+  if (!d_lastDecisionAtom.get().isNull())
+  {
+    d_justified.insert(d_lastDecisionAtom.get(), lastChildVal);
+  }
+  d_lastDecisionAtom = TNode::null();
   // while we are trying to satisfy assertions
-  while (!d_current.get().isNull())
+  do
   {
     Assert(d_stackSizeValid.get() > 0);
     // We get the next justify node, if it can be found.
@@ -77,10 +87,12 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     if (d_stackSizeValid.get() == 0)
     {
       // assertion should be true?
-      Assert(lastChildVal == SAT_VALUE_TRUE);
+      //AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion " << d_current.get() << " had value " << lastChildVal;
       // we did not find a next node for current, refresh current assertion
       d_current = Node::null();
       refreshCurrentAssertion();
+      lastChildVal = SAT_VALUE_UNKNOWN;
+      Trace("jh-stack") << "...exhausted assertion, now " << d_current.get() << std::endl;
     }
     else
     {
@@ -91,17 +103,23 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       lastChildVal = lookupValue(next.first);
       if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
-        if (isTheoryLiteral(next.first))
+        bool nextPol = next.first.getKind() != kind::NOT;
+        TNode nextAtom = nextPol ? next.first : next.first[0];
+        if (isTheoryAtom(nextAtom))
         {
           // should be assigned a literal
-          Assert(d_cnfStream->hasLiteral(next.first));
+          Assert(d_cnfStream->hasLiteral(nextAtom));
           // get the SAT literal
-          SatLiteral nsl = d_cnfStream->getLiteral(next.first);
+          SatLiteral nsl = d_cnfStream->getLiteral(nextAtom);
+          // flip if the atom was negated
+          next.second = nextPol ? next.second : invertValue(next.second);
           // store the last decision value here, which will be used at the
           // starting value on the next call to this method
           d_lastDecisionValue = next.second;
+          d_lastDecisionAtom = nextAtom;
           // (1) atom with unassigned value, return it as the decision, possibly
           // inverted
+          Trace("jh-stack") << "...return " << nextAtom << " " << next.second << std::endl;
           return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -113,11 +131,17 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // remains set to SAT_VALUE_UNKNOWN.
         }
       }
+      else
+      {
+        Trace("jh-debug") << "in main loop, " << next.first << " has value " << lastChildVal << std::endl;
+      }
       // (3) otherwise, next already has a value lastChildVal which will be
       // processed in the next iteration of the loop.
     }
   }
+  while (!d_current.get().isNull());
   // we exhausted all assertions
+  Trace("jh-stack") << "...exhausted all assertions" << std::endl;
   stopSearch = true;
   return undefSatLiteral;
 }
@@ -139,9 +163,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Assert(ck != NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
-  // if i=0, we shouldn't have a last child value
-  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN);
   // if i>0, we just computed the value of the (i-1)^th child
+  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN);
+  // if i=0, we shouldn't have a last child value
   Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN);
   // In the following, we determine if we have a value and set value if so.
   // If not, we set desiredValue for the value of the next value to justify.
@@ -162,6 +186,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         {
           if (lookupValue(c) == currDesiredVal)
           {
+            Trace("jh-debug") << "forcing child " << c << " for " << curr << std::endl;
             value = currDesiredVal;
             break;
           }
@@ -199,9 +224,14 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     else if (i == 1)
     {
       // forcing case
-      value =
-          lastChildVal == SAT_VALUE_FALSE ? SAT_VALUE_TRUE : SAT_VALUE_UNKNOWN;
-      desiredVal = currDesiredVal;
+      if (lastChildVal == SAT_VALUE_FALSE)
+      {
+        value = SAT_VALUE_TRUE;
+      }
+      else
+      {
+        desiredVal = currDesiredVal;
+      }
     }
     else
     {
@@ -290,6 +320,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
   {
+    Trace("jh-debug") << curr << " has value " << value << std::endl;
     // add to justify if so
     d_justified.insert(curr, value);
     // update the last child value, which will be used by the parent of the
@@ -298,6 +329,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     // return null, indicating there is nothing left to do for current
     return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
   }
+  Trace("jh-debug") << curr[i] << " has desired value " << desiredVal << std::endl;
   // The next child should be a valid argument in curr. Otherwise, we did not
   // recognize when its value could be inferred above.
   Assert(i < curr.getNumChildren());
@@ -345,6 +377,7 @@ void JustificationStrategy::addAssertion(TNode assertion)
   // we skip (top-level) theory literals, since these will always be propagated
   if (!isTheoryLiteral(assertion))
   {
+    Trace("jh-debug") << "addAssertion: " << assertion << std::endl;
     d_assertions.addAssertion(assertion);
   }
 }
@@ -354,6 +387,7 @@ void JustificationStrategy::notifyRelevantSkolemAssertion(TNode lem)
   // similar to above, we skip theory literals
   if (!isTheoryLiteral(lem))
   {
+    Trace("jh-debug") << "add skolem definition: " << lem << std::endl;
     d_skolemAssertions.addAssertion(lem);
   }
 }
@@ -403,6 +437,14 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
 
 void JustificationStrategy::pushToStack(TNode n, SatValue desiredVal)
 {
+  if (Trace.isOn("jh-stack"))
+  {
+    for (size_t i=0, ssize = d_stackSizeValid.get(); i<ssize; i++)
+    {
+      Trace("jh-stack") << " ";
+    }
+    Trace("jh-stack") << "- " << n << " " << desiredVal << std::endl;
+  }
   // note that n is possibly negated here
   JustifyInfo* ji = getOrAllocJustifyInfo(d_stackSizeValid.get());
   ji->set(n, desiredVal);
