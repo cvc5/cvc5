@@ -83,8 +83,7 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
 {
  public:
   /** Initialize the class with the quantifier to be instantiated. */
-  TermTupleEnumeratorBase(Node quantifier,
-                          const TermTupleEnumeratorEnv* env)
+  TermTupleEnumeratorBase(Node quantifier, const TermTupleEnumeratorEnv* env)
       : d_quantifier(quantifier),
         d_variableCount(d_quantifier[0].getNumChildren()),
         d_env(env),
@@ -502,9 +501,7 @@ TermTupleEnumeratorInterface* mkTermTupleEnumerator(
       new TermTupleEnumeratorBasic(quantifier, env, qs, td));
 }
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRD(
-    Node quantifier,
-    const TermTupleEnumeratorEnv* env,
-    RelevantDomain* rd)
+    Node quantifier, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
       new TermTupleEnumeratorRD(quantifier, env, rd));
