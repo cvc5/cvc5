@@ -53,7 +53,7 @@ struct StatisticBaseValue;
  * We generally distinguish between public (non-expert) and private (expert)
  * statistics. By default, `--stats` only shows public statistics. Private
  * ones are printed as well if `--all-statistics` is set.
- * All registration method have a trailing argument `expert`, defaulting to
+ * All registration methods have a trailing argument `expert`, defaulting to
  * true.
  * 
  * If statistics are disabled entirely (i.e. the cmake option
