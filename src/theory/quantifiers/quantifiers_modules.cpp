@@ -119,7 +119,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (options::poolInst())
   {
-    d_ipool.reset(new InstStrategyPool(qe, qs, qim, qr));
+    d_ipool.reset(new InstStrategyPool(qe, qs, qim, qr, tr));
     modules.push_back(d_ipool.get());
   }
   if (options::sygusInst())

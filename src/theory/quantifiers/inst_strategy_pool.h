@@ -34,7 +34,8 @@ class InstStrategyPool : public QuantifiersModule
   InstStrategyPool(QuantifiersEngine* qe,
                    QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
-                   QuantifiersRegistry& qr);
+                   QuantifiersRegistry& qr,
+                   TermRegistry& tr);
   ~InstStrategyPool() {}
   /** Presolve */
   void presolve() override;

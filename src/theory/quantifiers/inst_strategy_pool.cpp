@@ -33,8 +33,9 @@ namespace quantifiers {
 InstStrategyPool::InstStrategyPool(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
-                                   QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe)
+                                   QuantifiersRegistry& qr,
+                   TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe)
 {
 }
 
