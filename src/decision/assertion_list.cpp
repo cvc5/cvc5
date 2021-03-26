@@ -26,7 +26,7 @@ void AssertionList::addAssertion(TNode n) { d_assertions.push_back(n); }
 TNode AssertionList::getNextAssertion()
 {
   size_t i = d_assertionIndex.get();
-  Assert (i<=d_assertions.size());
+  Assert(i <= d_assertions.size());
   if (i == d_assertions.size())
   {
     return Node::null();

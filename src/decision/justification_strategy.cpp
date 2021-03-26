@@ -51,7 +51,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     stopSearch = true;
     return undefSatLiteral;
   }
-  Assert (!d_current.get().isNull());
+  Assert(!d_current.get().isNull());
   Trace("jh-stack") << "getNext, current = " << d_current.get() << std::endl;
   // temporary information in the loop below
   JustifyInfo* ji;
@@ -87,12 +87,14 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     if (d_stackSizeValid.get() == 0)
     {
       // assertion should be true?
-      //AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion " << d_current.get() << " had value " << lastChildVal;
+      // AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion "
+      // << d_current.get() << " had value " << lastChildVal;
       // we did not find a next node for current, refresh current assertion
       d_current = Node::null();
       refreshCurrentAssertion();
       lastChildVal = SAT_VALUE_UNKNOWN;
-      Trace("jh-stack") << "...exhausted assertion, now " << d_current.get() << std::endl;
+      Trace("jh-stack") << "...exhausted assertion, now " << d_current.get()
+                        << std::endl;
     }
     else
     {
@@ -119,7 +121,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           d_lastDecisionAtom = nextAtom;
           // (1) atom with unassigned value, return it as the decision, possibly
           // inverted
-          Trace("jh-stack") << "...return " << nextAtom << " " << next.second << std::endl;
+          Trace("jh-stack")
+              << "...return " << nextAtom << " " << next.second << std::endl;
           return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -133,13 +136,13 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       }
       else
       {
-        Trace("jh-debug") << "in main loop, " << next.first << " has value " << lastChildVal << std::endl;
+        Trace("jh-debug") << "in main loop, " << next.first << " has value "
+                          << lastChildVal << std::endl;
       }
       // (3) otherwise, next already has a value lastChildVal which will be
       // processed in the next iteration of the loop.
     }
-  }
-  while (!d_current.get().isNull());
+  } while (!d_current.get().isNull());
   // we exhausted all assertions
   Trace("jh-stack") << "...exhausted all assertions" << std::endl;
   stopSearch = true;
@@ -186,7 +189,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         {
           if (lookupValue(c) == currDesiredVal)
           {
-            Trace("jh-debug") << "forcing child " << c << " for " << curr << std::endl;
+            Trace("jh-debug")
+                << "forcing child " << c << " for " << curr << std::endl;
             value = currDesiredVal;
             break;
           }
@@ -329,7 +333,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     // return null, indicating there is nothing left to do for current
     return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
   }
-  Trace("jh-debug") << curr[i] << " has desired value " << desiredVal << std::endl;
+  Trace("jh-debug") << curr[i] << " has desired value " << desiredVal
+                    << std::endl;
   // The next child should be a valid argument in curr. Otherwise, we did not
   // recognize when its value could be inferred above.
   Assert(i < curr.getNumChildren());
@@ -439,7 +444,7 @@ void JustificationStrategy::pushToStack(TNode n, SatValue desiredVal)
 {
   if (Trace.isOn("jh-stack"))
   {
-    for (size_t i=0, ssize = d_stackSizeValid.get(); i<ssize; i++)
+    for (size_t i = 0, ssize = d_stackSizeValid.get(); i < ssize; i++)
     {
       Trace("jh-stack") << " ";
     }

@@ -65,7 +65,7 @@ class JustificationStrategy
   void popStack();
   /**
    * Let n be the node referenced by ji.
-   * 
+   *
    * This method is called either when we have yet to process any children of n,
    * or we just determined that the last child we processed of n had value
    * lastChildVal.
