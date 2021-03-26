@@ -492,10 +492,7 @@ Node TermTupleEnumeratorBasic::getTerm(size_t variableIx, size_t term_index)
 }
 
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node q,
-    const TermTupleEnumeratorEnv* env,
-    QuantifiersState& qs,
-    TermDb* td)
+    Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs, TermDb* td)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
       new TermTupleEnumeratorBasic(q, env, qs, td));
