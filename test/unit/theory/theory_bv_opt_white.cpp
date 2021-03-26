@@ -1,3 +1,16 @@
+/*********************                                                        */
+/*! \file theory_bv_opt_white.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Yancheng Ou
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief White-box testing for optimization module for BitVectors.
+ **/
 #include <iostream>
 
 #include "smt/optimization_solver.h"
@@ -40,16 +53,17 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
 
-  const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
+  const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MINIMIZE;
   d_optslv->activateObj(x, obj_type, false);
 
   OptResult r = d_optslv->checkOpt();
+
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   ASSERT_EQ(d_optslv->objectiveGetValue(),
             d_nodeManager->mkConst(BitVector(32u, (unsigned)0x3FFFFFA1)));
 
   std::cout << "Passed!" << std::endl;
-  std::cout << "Result is :" << r << std::endl;
   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
             << std::endl;
 }
@@ -64,10 +78,12 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
-  const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
+  const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MINIMIZE;
   d_optslv->activateObj(x, obj_type, true);
 
   OptResult r = d_optslv->checkOpt();
+
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   BitVector val = d_optslv->objectiveGetValue().getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
@@ -76,7 +92,6 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   ASSERT_EQ(d_optslv->objectiveGetValue(),
             d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000)));
   std::cout << "Passed!" << std::endl;
-  std::cout << "Result is :" << r << std::endl;
   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
             << std::endl;
 }
@@ -94,17 +109,18 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
 
-  const ObjectiveType obj_type = OBJECTIVE_MAXIMIZE;
+  const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
   d_optslv->activateObj(x, obj_type, false);
 
   OptResult r = d_optslv->checkOpt();
+
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   BitVector val = d_optslv->objectiveGetValue().getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
 
   ASSERT_EQ(d_optslv->objectiveGetValue(),
             d_nodeManager->mkConst(BitVector(32u, (unsigned)2)));
-  std::cout << "Result is :" << r << std::endl;
   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
             << std::endl;
 }
@@ -120,23 +136,19 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
-  const ObjectiveType obj_type = OBJECTIVE_MAXIMIZE;
+  const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
   d_optslv->activateObj(x, obj_type, true);
 
   OptResult r = d_optslv->checkOpt();
 
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+
   // expect the maxmum x =
   ASSERT_EQ(d_optslv->objectiveGetValue(),
             d_nodeManager->mkConst(BitVector(32u, 10u)));
-  std::cout << "Result is :" << r << std::endl;
   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
             << std::endl;
 }
-
-
-
-
-
 
 }  // namespace test
 }  // namespace CVC4

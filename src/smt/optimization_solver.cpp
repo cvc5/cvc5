@@ -33,7 +33,7 @@ namespace smt {
 
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
     : d_parent(parent),
-      d_activatedObjective(Node(), OBJECTIVE_UNDEFINED),
+      d_activatedObjective(Node(), ObjectiveType::OBJECTIVE_UNDEFINED),
       d_savedValue()
 {
 }
@@ -43,7 +43,7 @@ OptimizationSolver::~OptimizationSolver() {}
 OptResult OptimizationSolver::checkOpt()
 {
   // Make sure that the objective is not the default one
-  Assert(d_activatedObjective.getType() != OBJECTIVE_UNDEFINED);
+  Assert(d_activatedObjective.getType() != ObjectiveType::OBJECTIVE_UNDEFINED);
   Assert(!d_activatedObjective.getNode().isNull());
 
   std::unique_ptr<OMTOptimizer> optimizer = OMTOptimizer::getOptimizerForNode(
@@ -52,12 +52,12 @@ OptResult OptimizationSolver::checkOpt()
   Assert(optimizer != nullptr);
 
   std::pair<OptResult, Node> optResult;
-  if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
+  if (d_activatedObjective.getType() == ObjectiveType::OBJECTIVE_MAXIMIZE)
   {
     optResult = optimizer->maximize(this->d_parent,
                                     this->d_activatedObjective.getNode());
   }
-  else if (d_activatedObjective.getType() == OBJECTIVE_MINIMIZE)
+  else if (d_activatedObjective.getType() == ObjectiveType::OBJECTIVE_MINIMIZE)
   {
     optResult = optimizer->minimize(this->d_parent,
                                     this->d_activatedObjective.getNode());
@@ -68,10 +68,10 @@ OptResult OptimizationSolver::checkOpt()
 }
 
 void OptimizationSolver::activateObj(const Node& obj,
-                                     const int& type,
+                                     const ObjectiveType type,
                                      bool bvSigned)
 {
-  d_activatedObjective = Objective(obj, (ObjectiveType)type, bvSigned);
+  d_activatedObjective = Objective(obj, type, bvSigned);
 }
 
 Node OptimizationSolver::objectiveGetValue()
@@ -90,6 +90,42 @@ ObjectiveType Objective::getType() { return d_type; }
 Node Objective::getNode() { return d_node; }
 
 bool Objective::getSigned() { return d_bvSigned; }
+
+/**
+ * Initialize an SMT subsolver for offline optimization purpose
+ * @param parentSMTSolver the parental solver containing the assertions
+ * @param needsTimeout specifies whether it needs timeout for each single query
+ * @param timeout the timeout value, given in milliseconds (ms)
+ * @return a unique_pointer of SMT subsolver
+ **/
+std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
+    SmtEngine* parentSMTSolver,
+    bool needsTimeout = false,
+    unsigned long timeout = 0)
+{
+  std::unique_ptr<SmtEngine> optChecker;
+  // initializeSubSolver will copy the options and theories enabled
+  // from the current solver to optChecker and adds timeout
+  CVC4::theory::initializeSubsolver(optChecker, needsTimeout, timeout);
+  // we need to be in incremental mode for multiple objectives since we need to
+  // push pop we need to produce models to inrement on our objective
+  optChecker->setOption("incremental", "true");
+  optChecker->setOption("produce-models", "true");
+  // Move assertions from the parent solver to the subsolver
+  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
+  for (const Node& e : p_assertions)
+  {
+    optChecker->assertFormula(e);
+  }
+  return optChecker;
+}
+
+std::unique_ptr<SmtEngine> OMTOptimizerInteger::createOptChecker(
+    SmtEngine* parentSMTSolver)
+{
+  // currently set to no timeout 
+  return createOptCheckerWithTimeout(parentSMTSolver, false);
+}
 
 std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
     SmtEngine* parentSMTSolver, Node target, ObjectiveType objType)
@@ -193,22 +229,11 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   }
 }
 
-std::unique_ptr<SmtEngine> OMTOptimizerBitVector::initOptChecker(
+std::unique_ptr<SmtEngine> OMTOptimizerBitVector::createOptChecker(
     SmtEngine* parentSMTSolver)
 {
-  std::unique_ptr<SmtEngine> optChecker;
-  CVC4::theory::initializeSubsolver(optChecker);
-  // we need to be in incremental mode for multiple objectives since we need to
-  // push pop we need to produce models to inrement on our objective
-  optChecker->setOption("incremental", "true");
-  optChecker->setOption("produce-models", "true");
-  // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
-  for (const Node& e : p_assertions)
-  {
-    optChecker->assertFormula(e);
-  }
-  return optChecker;
+  // currently set to no timeout 
+  return createOptCheckerWithTimeout(parentSMTSolver, false);
 }
 
 std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
@@ -216,7 +241,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
-  std::unique_ptr<SmtEngine> optChecker = initOptChecker(parentSMTSolver);
+  std::unique_ptr<SmtEngine> optChecker = createOptChecker(parentSMTSolver);
   NodeManager* nm = optChecker->getNodeManager();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
@@ -249,8 +274,8 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
   Kind GEOperator =
       ((d_isSigned) ? (kind::BITVECTOR_SGE) : (kind::BITVECTOR_UGE));
 
-  // the pivot value for binary search, 
-  // pivot = (lowerBound + upperBound) / 2 
+  // the pivot value for binary search,
+  // pivot = (lowerBound + upperBound) / 2
   // rounded towards -infinity
   BitVector pivot;
   while (true)
@@ -308,7 +333,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
-  std::unique_ptr<SmtEngine> optChecker = initOptChecker(parentSMTSolver);
+  std::unique_ptr<SmtEngine> optChecker = createOptChecker(parentSMTSolver);
   NodeManager* nm = optChecker->getNodeManager();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
@@ -343,8 +368,8 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   Kind GTOperator =
       ((d_isSigned) ? (kind::BITVECTOR_SGT) : (kind::BITVECTOR_UGT));
 
-  // the pivot value for binary search, 
-  // pivot = (lowerBound + upperBound) / 2 
+  // the pivot value for binary search,
+  // pivot = (lowerBound + upperBound) / 2
   // rounded towards -infinity
   BitVector pivot;
   while (true)
