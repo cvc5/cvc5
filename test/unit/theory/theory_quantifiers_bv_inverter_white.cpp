@@ -39,7 +39,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     d_smtEngine->setOption("produce-models", "true");
     // don't insist on proofs here !!!! will not be necessary on master, since
     // proof is not default true
-    d_smtEngine->setOption("proof", "false");
+    d_smtEngine->setOption("produce-proofs", "false");
     d_smtEngine->finishInit();
 
     d_s = d_nodeManager->mkVar("s", d_nodeManager->mkBitVectorType(4));
