@@ -1152,8 +1152,7 @@ if(USE_POLY)
   target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
 endif()
 if(USE_SYMFPU)
-  target_include_directories(cvc4
-    PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 SymFPU)
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN

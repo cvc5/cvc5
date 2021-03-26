@@ -120,7 +120,6 @@ jobs:
       run: |
         ./contrib/get-antlr-3.4
         ./contrib/get-poly
-        ./contrib/get-symfpu
         ./contrib/get-cadical
         ./contrib/get-cryptominisat
         ./contrib/get-lfsc-checker
