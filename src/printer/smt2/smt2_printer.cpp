@@ -344,51 +344,59 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPIEEEBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPFloatingPoint>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPReal>().d_fp_size.exponentWidth()
+          << n.getConst<FloatingPointToFPReal>().getSize().exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPReal>().d_fp_size.significandWidth()
+          << n.getConst<FloatingPointToFPReal>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPSignedBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
       out << "(_ to_fp_unsigned "
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.exponentWidth()
+          << n.getConst<FloatingPointToFPGeneric>().getSize().exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.significandWidth()
+          << n.getConst<FloatingPointToFPGeneric>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:

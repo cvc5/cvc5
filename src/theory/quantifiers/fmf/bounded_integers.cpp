@@ -26,7 +26,6 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -90,8 +89,9 @@ BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
+                                 TermRegistry& tr,
                                  DecisionManager* dm)
-    : QuantifiersModule(qs, qim, qr, qe), d_dm(dm)
+    : QuantifiersModule(qs, qim, qr, tr, qe), d_dm(dm)
 {
 }
 
@@ -573,10 +573,10 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   getBounds( f, v, rsi, l, u );
   Trace("bound-int-rsi") << "Get value in model for..." << l << " and " << u << std::endl;
   if( !l.isNull() ){
-    l = d_quantEngine->getModel()->getValue( l );
+    l = d_treg.getModel()->getValue(l);
   }
   if( !u.isNull() ){
-    u = d_quantEngine->getModel()->getValue( u );
+    u = d_treg.getModel()->getValue(u);
   }
   Trace("bound-int-rsi") << "Value is " << l << " ... " << u << std::endl;
   return;
@@ -631,7 +631,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
   Assert(!expr::hasFreeVar(sr));
   Node sro = sr;
-  sr = d_quantEngine->getModel()->getValue(sr);
+  sr = d_treg.getModel()->getValue(sr);
   // if non-constant, then sr does not occur in the model, we fail
   if (!sr.isConst())
   {

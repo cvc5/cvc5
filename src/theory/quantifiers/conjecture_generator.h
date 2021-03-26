@@ -439,7 +439,8 @@ private:  //information about ground equivalence classes
   ConjectureGenerator(QuantifiersEngine* qe,
                       QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
-                      QuantifiersRegistry& qr);
+                      QuantifiersRegistry& qr,
+                      TermRegistry& tr);
   ~ConjectureGenerator();
 
   /* needs check */

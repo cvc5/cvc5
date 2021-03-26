@@ -1926,42 +1926,42 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   {
     CVC4::FloatingPointToFPIEEEBitVector ext =
         d_node->getConst<FloatingPointToFPIEEEBitVector>();
-    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
-                             ext.d_fp_size.significandWidth());
+    indices = std::make_pair(ext.getSize().exponentWidth(),
+                             ext.getSize().significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
   {
     CVC4::FloatingPointToFPFloatingPoint ext =
         d_node->getConst<FloatingPointToFPFloatingPoint>();
-    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
-                             ext.d_fp_size.significandWidth());
+    indices = std::make_pair(ext.getSize().exponentWidth(),
+                             ext.getSize().significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_REAL)
   {
     CVC4::FloatingPointToFPReal ext = d_node->getConst<FloatingPointToFPReal>();
-    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
-                             ext.d_fp_size.significandWidth());
+    indices = std::make_pair(ext.getSize().exponentWidth(),
+                             ext.getSize().significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPSignedBitVector ext =
         d_node->getConst<FloatingPointToFPSignedBitVector>();
-    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
-                             ext.d_fp_size.significandWidth());
+    indices = std::make_pair(ext.getSize().exponentWidth(),
+                             ext.getSize().significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPUnsignedBitVector ext =
         d_node->getConst<FloatingPointToFPUnsignedBitVector>();
-    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
-                             ext.d_fp_size.significandWidth());
+    indices = std::make_pair(ext.getSize().exponentWidth(),
+                             ext.getSize().significandWidth());
   }
   else if (k == FLOATINGPOINT_TO_FP_GENERIC)
   {
     CVC4::FloatingPointToFPGeneric ext =
         d_node->getConst<FloatingPointToFPGeneric>();
-    indices = std::make_pair(ext.d_fp_size.exponentWidth(),
-                             ext.d_fp_size.significandWidth());
+    indices = std::make_pair(ext.getSize().exponentWidth(),
+                             ext.getSize().significandWidth());
   }
   else if (k == REGEXP_LOOP)
   {
