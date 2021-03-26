@@ -44,7 +44,9 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         DOWNLOAD_NO_EXTRACT ON
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../antlr-3.4-complete.jar <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+            <SOURCE_DIR>/../antlr-3.4-complete.jar
+            <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/antlr-3.4-complete.jar
     )
 
@@ -74,16 +76,28 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         PREFIX ${DEPS_PREFIX}
         URL https://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz
         URL_HASH SHA1=faa9ab43ab4d3774f015471c3f011cc247df6a18
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/../config.guess <SOURCE_DIR>/config.guess
-        COMMAND sed "s/avr32 \\\\/avr32 | aarch64 \\\\/" <SOURCE_DIR>/config.sub > <SOURCE_DIR>/config.sub.new
-        COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
-        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
-        COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static ${64bit} --host=${TOOLCHAIN_PREFIX}
+        CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy 
+            <SOURCE_DIR>/../config.guess <SOURCE_DIR>/config.guess
+        COMMAND sed "s/avr32 \\\\/avr32 | aarch64 \\\\/"
+            <SOURCE_DIR>/config.sub > <SOURCE_DIR>/config.sub.new
+        COMMAND ${CMAKE_COMMAND} -E copy
+            <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
+        COMMAND ${CMAKE_COMMAND} -E copy_directory<SOURCE_DIR>/include include/
+        COMMAND <SOURCE_DIR>/configure
+            --with-pic
+            --disable-antlrdebug
+            --prefix=<INSTALL_DIR>
+            --srcdir=<SOURCE_DIR>
+            --disable-shared
+            --enable-static
+            ${64bit}
+            --host=${TOOLCHAIN_PREFIX}
         BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libantlr3c.a
     )
 
     find_package(Java REQUIRED)
-    set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE} -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
+    set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE}
+        -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(ANTLR3_RUNTIME "${DEPS_BASE}/lib/libantlr3c.a")
 endif()

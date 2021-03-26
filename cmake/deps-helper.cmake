@@ -2,7 +2,8 @@
 set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")
 # base path to installed dependencies
 set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
-# cmake wants include dirs to exist when a target is created
+# CMake wants directories specified via INTERFACE_INCLUDE_DIRECTORIES
+# (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")
 
 macro(check_system_version name)
@@ -11,7 +12,8 @@ macro(check_system_version name)
     # we ignore the EXACT option and version ranges here
     if (${name}_FIND_VERSION)
         if(${name}_VERSION VERSION_LESS ${name}_FIND_VERSION)
-            message(VERBOSE "System version for ${name} has incompatible version: required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
+            message(VERBOSE "System version for ${name} has incompatible \
+version: required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
             set(${name}_FOUND_SYSTEM FALSE)
         endif()
     endif()
@@ -39,7 +41,9 @@ function(fail_if_cross_compiling name processor target error)
     endif()
     if(FAIL)
         message(SEND_ERROR
-            "We are cross compiling from ${CMAKE_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR} to ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}.\n"
+            "We are cross compiling from \
+${CMAKE_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR} to \
+${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}.\n"
             "This is not supported by ${target}:\n"
             "${error}")
     endif()
