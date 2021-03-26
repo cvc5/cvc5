@@ -4193,8 +4193,9 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 }
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
-                               bool expert)
-    : d_it(it), d_base(&base), d_showExpert(expert)
+                               bool expert,
+                               bool unset)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showUnset(unset)
 {
   while (!isVisible())
   {
@@ -4202,15 +4203,27 @@ Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
   }
 }
 bool Statistics::iterator::isVisible() const
-    {
-      return d_showExpert || d_it == d_base->end() || (!d_it->second.isExpert() && d_it->second.hasValue());
-    }
+{
+  if (d_it == d_base->end()) return true;
+  if (!d_showExpert && d_it->second.isExpert()) return false;
+  if (!d_showUnset && !d_it->second.hasValue()) return false;
+  return true;
+}
 
 const Stat& Statistics::get(const std::string& name)
 {
   auto it = d_stats.find(name);
   Assert(it != d_stats.end());
   return it->second;
+}
+
+Statistics::iterator Statistics::begin(bool expert, bool unset) const
+{
+  return iterator(d_stats.begin(), d_stats, expert, unset);
+}
+Statistics::iterator Statistics::end() const
+{
+  return iterator(d_stats.end(), d_stats, false, false);
 }
 
 Statistics::Statistics(const StatisticsRegistry& reg)

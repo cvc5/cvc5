@@ -2392,23 +2392,20 @@ class Statistics
     bool operator!=(const iterator& rhs) const;
 
    private:
-    iterator(BaseType::const_iterator it, const BaseType& base, bool expert);
+    iterator(BaseType::const_iterator it, const BaseType& base, bool expert, bool unset);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
     bool d_showExpert = false;
+    bool d_showUnset = false;
   };
 
   /** Retrieve the statistic with the given name. */
   const Stat& get(const std::string& name);
   /** begin iteration */
-  iterator begin() const { return iterator(d_stats.begin(), d_stats, false); }
+  iterator begin(bool expert = false, bool unset = false) const;
   /** end iteration */
-  iterator end() const { return iterator(d_stats.end(), d_stats, false); }
-  /** begin iteration */
-  iterator begin_all() const { return iterator(d_stats.begin(), d_stats, true); }
-  /** end iteration */
-  iterator end_all() const { return iterator(d_stats.end(), d_stats, true); }
+  iterator end() const;
 
   // TODO: make this private
   Statistics() = default;
