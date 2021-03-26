@@ -67,9 +67,12 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
           -e "s,@CXXFLAGS@,${CXXFLAGS},"
           -e "s,@MAKEFLAGS@,,"
           <SOURCE_DIR>/makefile.in > <SOURCE_DIR>/build/makefile
+        # use $(MAKE) instead of "make" to allow for parallel builds
         BUILD_COMMAND $(MAKE) -C <SOURCE_DIR>/build libcadical.a
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a <INSTALL_DIR>/lib/libcadical.a
-        COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp <INSTALL_DIR>/include/cadical.hpp
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+          <SOURCE_DIR>/build/libcadical.a <INSTALL_DIR>/lib/libcadical.a
+        COMMAND ${CMAKE_COMMAND} -E copy
+          <SOURCE_DIR>/src/cadical.hpp <INSTALL_DIR>/include/cadical.hpp
     )
 
     set(CaDiCaL_INCLUDE_DIR "${DEPS_BASE}/include/")
@@ -79,8 +82,10 @@ endif()
 set(CaDiCaL_FOUND TRUE)
 
 add_library(CaDiCaL STATIC IMPORTED GLOBAL)
-set_target_properties(CaDiCaL PROPERTIES IMPORTED_LOCATION "${CaDiCaL_LIBRARIES}")
-set_target_properties(CaDiCaL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CaDiCaL_INCLUDE_DIR}")
+set_target_properties(CaDiCaL PROPERTIES IMPORTED_LOCATION
+  "${CaDiCaL_LIBRARIES}")
+set_target_properties(CaDiCaL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+  "${CaDiCaL_INCLUDE_DIR}")
 
 mark_as_advanced(CaDiCaL_FOUND)
 mark_as_advanced(CaDiCaL_FOUND_SYSTEM)
