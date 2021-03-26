@@ -114,8 +114,6 @@ protected:
  QuantifiersState& d_qstate;
  /** Reference to the term registry */
  TermRegistry& d_treg;
- // !!!!!!!!! temporarily available (project #15)
- QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
 
 }  // namespace inst

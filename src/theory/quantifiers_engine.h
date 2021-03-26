@@ -24,9 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_registry.h"
-#include "theory/quantifiers/term_registry.h"
-#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
@@ -39,10 +36,6 @@ class QuantifiersModule;
 class RepSetIterator;
 
 namespace quantifiers {
-
-namespace inst {
-class TriggerTrie;
-}
 
 class FirstOrderModel;
 class Instantiate;
@@ -62,8 +55,6 @@ class TermRegistry;
 class QuantifiersEngine {
   friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -94,8 +85,6 @@ class QuantifiersEngine {
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get trigger database */
-  quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -193,24 +182,6 @@ public:
 
  //----------end user interface for instantiations
 
- /** statistics class */
- class Statistics
- {
-  public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_red_alpha_equiv;
-    Statistics();
-  };/* class QuantifiersEngine::Statistics */
-  Statistics d_statistics;
-
  private:
   /** The quantifiers state object */
   quantifiers::QuantifiersState& d_qstate;
@@ -231,8 +202,6 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<quantifiers::inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities

@@ -42,18 +42,18 @@ class FloatingPointConstantTypeRule {
 
     if (check)
     {
-      if (!(validExponentSize(f.d_fp_size.exponentWidth())))
+      if (!(validExponentSize(f.getSize().exponentWidth())))
       {
         throw TypeCheckingExceptionPrivate(
             n, "constant with invalid exponent size");
       }
-      if (!(validSignificandSize(f.d_fp_size.significandWidth())))
+      if (!(validSignificandSize(f.getSize().significandWidth())))
       {
         throw TypeCheckingExceptionPrivate(
             n, "constant with invalid significand size");
       }
     }
-    return nodeManager->mkFloatingPointType(f.d_fp_size);
+    return nodeManager->mkFloatingPointType(f.getSize());
   }
 };
 
@@ -243,7 +243,8 @@ class FloatingPointParametricOpTypeRule {
   }
 };
 
-class FloatingPointToFPIEEEBitVectorTypeRule {
+class FloatingPointToFPIEEEBitVectorTypeRule
+{
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -264,8 +265,8 @@ class FloatingPointToFPIEEEBitVectorTypeRule {
                                            "than bit vector");
       }
       else if (!(operandType.getBitVectorSize()
-                 == info.d_fp_size.exponentWidth()
-                        + info.d_fp_size.significandWidth()))
+                 == info.getSize().exponentWidth()
+                        + info.getSize().significandWidth()))
       {
         throw TypeCheckingExceptionPrivate(
             n,
@@ -274,11 +275,12 @@ class FloatingPointToFPIEEEBitVectorTypeRule {
       }
     }
 
-    return nodeManager->mkFloatingPointType(info.d_fp_size);
+    return nodeManager->mkFloatingPointType(info.getSize());
   }
 };
 
-class FloatingPointToFPFloatingPointTypeRule {
+class FloatingPointToFPFloatingPointTypeRule
+{
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -306,11 +308,12 @@ class FloatingPointToFPFloatingPointTypeRule {
       }
     }
 
-    return nodeManager->mkFloatingPointType(info.d_fp_size);
+    return nodeManager->mkFloatingPointType(info.getSize());
   }
 };
 
-class FloatingPointToFPRealTypeRule {
+class FloatingPointToFPRealTypeRule
+{
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -338,11 +341,12 @@ class FloatingPointToFPRealTypeRule {
       }
     }
 
-    return nodeManager->mkFloatingPointType(info.d_fp_size);
+    return nodeManager->mkFloatingPointType(info.getSize());
   }
 };
 
-class FloatingPointToFPSignedBitVectorTypeRule {
+class FloatingPointToFPSignedBitVectorTypeRule
+{
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -370,11 +374,12 @@ class FloatingPointToFPSignedBitVectorTypeRule {
       }
     }
 
-    return nodeManager->mkFloatingPointType(info.d_fp_size);
+    return nodeManager->mkFloatingPointType(info.getSize());
   }
 };
 
-class FloatingPointToFPUnsignedBitVectorTypeRule {
+class FloatingPointToFPUnsignedBitVectorTypeRule
+{
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -402,11 +407,12 @@ class FloatingPointToFPUnsignedBitVectorTypeRule {
       }
     }
 
-    return nodeManager->mkFloatingPointType(info.d_fp_size);
+    return nodeManager->mkFloatingPointType(info.getSize());
   }
 };
 
-class FloatingPointToFPGenericTypeRule {
+class FloatingPointToFPGenericTypeRule
+{
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -427,7 +433,7 @@ class FloatingPointToFPGenericTypeRule {
       }
     }
 
-    return nodeManager->mkFloatingPointType(info.d_fp_size);
+    return nodeManager->mkFloatingPointType(info.getSize());
   }
 };
 
