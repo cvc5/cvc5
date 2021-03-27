@@ -42,6 +42,7 @@ class JustifyInfo
   size_t getNextChildIndex();
   /** revert child index */
   void revertChildIndex();
+
  private:
   /** The node we are considering */
   context::CDO<TNode> d_node;

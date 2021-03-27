@@ -36,7 +36,7 @@ size_t JustifyInfo::getNextChildIndex()
 }
 void JustifyInfo::revertChildIndex()
 {
-  Assert (d_childIndex.get()>0);
+  Assert(d_childIndex.get() > 0);
   d_childIndex = d_childIndex - 1;
 }
 void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
