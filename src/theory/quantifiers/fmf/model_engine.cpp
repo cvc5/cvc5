@@ -34,8 +34,9 @@ namespace quantifiers {
 ModelEngine::ModelEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_incomplete_check(true),
       d_addedLemmas(0),
       d_triedLemmas(0),
@@ -279,7 +280,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
-        Instantiate* inst = d_quantEngine->getInstantiate();
+        Instantiate* inst = d_qim.getInstantiate();
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );

@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 
+#include <sstream>
 #include <stack>
 
 #include "options/quantifiers_options.h"

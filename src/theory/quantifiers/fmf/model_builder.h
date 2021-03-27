@@ -28,6 +28,7 @@ namespace quantifiers {
 class FirstOrderModel;
 class QuantifiersState;
 class QuantifiersRegistry;
+class QuantifiersInferenceManager;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
@@ -40,9 +41,9 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr);
-  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-  void finishInit(QuantifiersEngine* qe) { d_qe = qe; }
+  QModelBuilder(QuantifiersState& qs,
+                QuantifiersRegistry& qr,
+                QuantifiersInferenceManager& qim);
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
@@ -66,6 +67,8 @@ class QModelBuilder : public TheoryEngineModelBuilder
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };
 
 }/* CVC4::theory::quantifiers namespace */

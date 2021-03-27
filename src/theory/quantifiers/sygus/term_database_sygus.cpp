@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
+#include <sstream>
+
 #include "base/check.h"
 #include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"

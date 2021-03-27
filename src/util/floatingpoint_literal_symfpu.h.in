@@ -19,6 +19,7 @@
 #define CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
 
 #include "util/bitvector.h"
+#include "util/floatingpoint_size.h"
 #include "util/roundingmode.h"
 
 // clang-format off
@@ -32,7 +33,7 @@
 namespace CVC4 {
 
 class FloatingPointSize;
-class FloatingPoint;
+class FloatingPointLiteral;
 
 /* -------------------------------------------------------------------------- */
 
@@ -277,23 +278,183 @@ class wrappedBitVector : public BitVector
 // clang-format off
 #if @CVC4_USE_SYMFPU@
 // clang-format on
-using SymFPUUnpackedFloatLiteral = ::symfpu::unpackedFloat<symfpuLiteral::traits>;
+using SymFPUUnpackedFloatLiteral =
+    ::symfpu::unpackedFloat<symfpuLiteral::traits>;
 #endif
 
 class FloatingPointLiteral
 {
   friend class FloatingPoint;
+
  public:
+  /**
+   * Get the number of exponent bits in the unpacked format corresponding to a
+   * given packed format.  This is the unpacked counter-part of
+   * FloatingPointSize::exponentWidth().
+   */
+  static uint32_t getUnpackedExponentWidth(FloatingPointSize& size);
+  /**
+   * Get the number of exponent bits in the unpacked format corresponding to a
+   * given packed format.  This is the unpacked counter-part of
+   * FloatingPointSize::significandWidth().
+   */
+  static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
+
+  /**
+   * Create a FP NaN literal of given size.
+   * size: The FP size (format).
+   */
+  static FloatingPointLiteral makeNaN(const FloatingPointSize& size);
+  /**
+   * Create a FP infinity literal of given size.
+   * size: The FP size (format).
+   * sign: True for -oo, false otherwise.
+   */
+  static FloatingPointLiteral makeInf(const FloatingPointSize& size, bool sign);
+  /**
+   * Create a FP zero literal of given size.
+   * size: The FP size (format).
+   * sign: True for -zero, false otherwise.
+   */
+  static FloatingPointLiteral makeZero(const FloatingPointSize& size,
+                                       bool sign);
+// clang-format off
+#if !@CVC4_USE_SYMFPU@
+  // clang-format on
+  /** Catch-all for unimplemented functions. */
+  static void unimplemented(void);
+#endif
+
   /** Constructors. */
 
-  /** Create an FP literal from a FloatingPoint. */
-  FloatingPointLiteral(FloatingPoint& other);
+  /** Create a FP literal from its IEEE bit-vector representation. */
+  FloatingPointLiteral(uint32_t d_exp_size,
+                       uint32_t d_sig_size,
+                       const BitVector& bv);
+  FloatingPointLiteral(const FloatingPointSize& size, const BitVector& bv);
+
+  /**
+   * Create a FP literal from a signed or unsigned bit-vector value with
+   * respect to given rounding mode.
+   */
+  FloatingPointLiteral(const FloatingPointSize& size,
+                       const RoundingMode& rm,
+                       const BitVector& bv,
+                       bool signedBV);
+
+  ~FloatingPointLiteral() {}
+
+  /** Return the size of this FP literal. */
+  const FloatingPointSize& getSize() const { return d_fp_size; };
+
+  /** Return the packed (IEEE-754) representation of this literal. */
+  BitVector pack(void) const;
+
+  /** Floating-point absolute value literal. */
+  FloatingPointLiteral absolute(void) const;
+  /** Floating-point negation literal. */
+  FloatingPointLiteral negate(void) const;
+  /** Floating-point addition literal. */
+  FloatingPointLiteral add(const RoundingMode& rm,
+                           const FloatingPointLiteral& arg) const;
+  /** Floating-point subtraction literal. */
+  FloatingPointLiteral sub(const RoundingMode& rm,
+                           const FloatingPointLiteral& arg) const;
+  /** Floating-point multiplication literal. */
+  FloatingPointLiteral mult(const RoundingMode& rm,
+                            const FloatingPointLiteral& arg) const;
+  /** Floating-point division literal. */
+  FloatingPointLiteral div(const RoundingMode& rm,
+                           const FloatingPointLiteral& arg) const;
+  /** Floating-point fused multiplication and addition literal. */
+  FloatingPointLiteral fma(const RoundingMode& rm,
+                           const FloatingPointLiteral& arg1,
+                           const FloatingPointLiteral& arg2) const;
+  /** Floating-point square root literal. */
+  FloatingPointLiteral sqrt(const RoundingMode& rm) const;
+  /** Floating-point round to integral literal. */
+  FloatingPointLiteral rti(const RoundingMode& rm) const;
+  /** Floating-point remainder literal. */
+  FloatingPointLiteral rem(const FloatingPointLiteral& arg) const;
+
+  /**
+   * Floating-point max literal (total version).
+   * zeroCase: true to return the left (rather than the right operand) in case
+   *           of max(-0,+0) or max(+0,-0).
+   */
+  FloatingPointLiteral maxTotal(const FloatingPointLiteral& arg,
+                                bool zeroCaseLeft) const;
+  /**
+   * Floating-point min literal (total version).
+   * zeroCase: true to return the left (rather than the right operand) in case
+   *           of min(-0,+0) or min(+0,-0).
+   */
+  FloatingPointLiteral minTotal(const FloatingPointLiteral& arg,
+                                bool zeroCaseLeft) const;
+
+  /** Equality literal (NOT: fp.eq but =) over floating-point values. */
+  bool operator==(const FloatingPointLiteral& fp) const;
+  /** Floating-point less or equal than literal. */
+  bool operator<=(const FloatingPointLiteral& arg) const;
+  /** Floating-point less than literal. */
+  bool operator<(const FloatingPointLiteral& arg) const;
+
+  /** Get the exponent of this floating-point value. */
+  BitVector getExponent() const;
+  /** Get the significand of this floating-point value. */
+  BitVector getSignificand() const;
+  /** True if this value is a negative value. */
+  bool getSign() const;
+
+  /** Return true if this literal represents a normal value. */
+  bool isNormal(void) const;
+  /** Return true if this  literal represents a subnormal value. */
+  bool isSubnormal(void) const;
+  /** Return true if this literal represents a zero value. */
+  bool isZero(void) const;
+  /** Return true if this literal represents an infinite value. */
+  bool isInfinite(void) const;
+  /** Return true if this literal represents a NaN value. */
+  bool isNaN(void) const;
+  /** Return true if this literal represents a negative value. */
+  bool isNegative(void) const;
+  /** Return true if this literal represents a positive value. */
+  bool isPositive(void) const;
+
+  /**
+   * Convert this floating-point literal to a literal of given size, with
+   * respect to given rounding mode.
+   */
+  FloatingPointLiteral convert(const FloatingPointSize& target,
+                               const RoundingMode& rm) const;
+
+  /**
+   * Convert this floating-point literal to a signed bit-vector of given size,
+   * with respect to given rounding mode (total version).
+   * Returns given bit-vector 'undefinedCase' in the undefined case.
+   */
+  BitVector convertToSBVTotal(BitVectorSize width,
+                              const RoundingMode& rm,
+                              BitVector undefinedCase) const;
+  /**
+   * Convert this floating-point literal to an unsigned bit-vector of given
+   * size, with respect to given rounding mode (total version).
+   * Returns given bit-vector 'undefinedCase' in the undefined case.
+   */
+  BitVector convertToUBVTotal(BitVectorSize width,
+                              const RoundingMode& rm,
+                              BitVector undefinedCase) const;
 // clang-format off
 #if @CVC4_USE_SYMFPU@
-// clang-format on
+  // clang-format on
+  /** Return wrapped floating-point literal. */
+  const SymFPUUnpackedFloatLiteral& getSymUF() const { return d_symuf; }
+#else
+  /** Dummy hash function. */
+  size_t hash(void) const;
+#endif
 
-  /** Create an FP literal from a symFPU unpacked float. */
-  FloatingPointLiteral(SymFPUUnpackedFloatLiteral symuf) : d_symuf(symuf){};
+ private:
 
   /**
    * Create a FP literal from unpacked representation.
@@ -305,43 +466,42 @@ class FloatingPointLiteral
    * representation -- for this, the above constructor is to be used while
    * creating a SymFPUUnpackedFloatLiteral via symfpu::unpack.
    */
-  FloatingPointLiteral(const bool sign,
+  FloatingPointLiteral(const FloatingPointSize& size,
+                       const bool sign,
                        const BitVector& exp,
                        const BitVector& sig)
-      : d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
+      : d_fp_size(size)
+// clang-format off
+#if @CVC4_USE_SYMFPU@
+        // clang-format on
+        ,
+        d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
+#endif
   {
   }
-#else
-  FloatingPointLiteral(uint32_t, uint32_t, double) { unfinished(); };
-#endif
-  ~FloatingPointLiteral() {}
 
 // clang-format off
 #if @CVC4_USE_SYMFPU@
-// clang-format on
-  /** Return wrapped floating-point literal. */
-  const SymFPUUnpackedFloatLiteral& getSymUF() const { return d_symuf; }
-#else
-  /** Catch-all for unimplemented functions. */
-  void unfinished(void) const;
-  /** Dummy hash function. */
-  size_t hash(void) const;
-  /** Dummy comparison operator overload. */
-  bool operator==(const FloatingPointLiteral& other) const;
+  // clang-format on
+
+  /** Create a FP literal from a symFPU unpacked float. */
+  FloatingPointLiteral(const FloatingPointSize& size,
+                       SymFPUUnpackedFloatLiteral symuf)
+      : d_fp_size(size), d_symuf(symuf){};
 #endif
 
- private:
+  /** The floating-point size of this floating-point literal. */
+  FloatingPointSize d_fp_size;
 // clang-format off
 #if @CVC4_USE_SYMFPU@
-// clang-format on
+  // clang-format on
   /** The actual floating-point value, a SymFPU unpackedFloat. */
   SymFPUUnpackedFloatLiteral d_symuf;
 #endif
 };
 
-
 /* -------------------------------------------------------------------------- */
 
-}
+}  // namespace CVC4
 
 #endif
