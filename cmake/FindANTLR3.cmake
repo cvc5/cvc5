@@ -95,7 +95,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libantlr3c.a
     )
 
-    find_package(Java REQUIRED)
+    find_package(Java COMPONENTS Runtime REQUIRED)
     set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE}
         -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
