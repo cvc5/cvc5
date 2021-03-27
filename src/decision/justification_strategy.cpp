@@ -57,7 +57,13 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // we start with the value implied by the last decision, if it exists
   SatValue lastChildVal = SAT_VALUE_UNKNOWN;//d_lastDecisionValue.get();
   Trace("jh-stack") << "getNext, current = " << d_current.get() << std::endl;
-  // if we had just sent a decision, record it here
+  // If we had just sent a decision, then we lookup its value here. This may
+  // correspond to a context where the decision was carried out, or
+  // alternatively it may correspond to a case where we have backtracked and
+  // propagated that literal with opposite polarity. Thus, we do not assume we
+  // know the value of d_lastDecisionLit and look it up again here. The value
+  // of lastChildVal will be used to update the justify info in the current
+  // stack below.
   if (!d_lastDecisionLit.get().isNull())
   {
     Trace("jh-stack") << "last decision = " << d_lastDecisionLit.get() << std::endl;
@@ -118,11 +124,18 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // store the last decision value here, which will be used at the
           // starting value on the next call to this method
           lastChildVal = nextPol ? next.second : invertValue(next.second);
-          d_lastDecisionLit = next.first;
           // (1) atom with unassigned value, return it as the decision, possibly
           // inverted
           Trace("jh-stack")
               << "...return " << nextAtom << " " << lastChildVal << std::endl;
+          // Note that the last child of the current node we looked at does
+          // *not* yet have a value. Although we are returning it as a decision,
+          // we cannot set its value in d_justified, because we have yet to
+          // push a decision level. Thus, we remember the literal we decided
+          // on, and decrement the child index in ji. The value of
+          // d_lastDecisionLit will be processed at the beginning of the next
+          // call to getNext above.
+          d_lastDecisionLit = next.first;
           ji->revertChildIndex();
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
