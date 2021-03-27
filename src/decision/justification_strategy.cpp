@@ -69,7 +69,13 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     Trace("jh-stack") << "last decision = " << d_lastDecisionLit.get()
                       << std::endl;
     lastChildVal = lookupValue(d_lastDecisionLit.get());
-    Assert(lastChildVal != SAT_VALUE_UNKNOWN);
+    if(lastChildVal == SAT_VALUE_UNKNOWN)
+    {
+      // if the value is now unknown, we must reprocess the child
+      Assert(d_stack.size() >= d_stackSizeValid.get());
+      ji = d_stack[d_stackSizeValid.get() - 1].get();
+      ji->revertChildIndex();
+    }
   }
   d_lastDecisionLit = TNode::null();
   // while we are trying to satisfy assertions
@@ -133,11 +139,9 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // *not* yet have a value. Although we are returning it as a decision,
           // we cannot set its value in d_justified, because we have yet to
           // push a decision level. Thus, we remember the literal we decided
-          // on, and decrement the child index in ji. The value of
-          // d_lastDecisionLit will be processed at the beginning of the next
-          // call to getNext above.
+          // on. The value of d_lastDecisionLit will be processed at the
+          // beginning of the next call to getNext above.
           d_lastDecisionLit = next.first;
-          ji->revertChildIndex();
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -185,9 +189,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
                     << ", index = " << i
                     << ", last child value = " << lastChildVal << std::endl;
   // if i>0, we just computed the value of the (i-1)^th child
-  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN);
+  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN) << "in getNextJustifyNode, last child has no value";
   // if i=0, we shouldn't have a last child value
-  Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN);
+  Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN) << "in getNextJustifyNode, value given for non-existent last child";
   // In the following, we determine if we have a value and set value if so.
   // If not, we set desiredValue for the value of the next value to justify.
   // One of these two values should always be set below.
