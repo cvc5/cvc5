@@ -48,7 +48,7 @@ add_custom_target(copy-java-api-files
   COMMAND
     # copy java test files
     ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/test/api/java/cvc" "${CMAKE_CURRENT_BINARY_DIR}/src/test/java/cvc"
+    "${CMAKE_SOURCE_DIR}/test/unit/api/java/cvc" "${CMAKE_CURRENT_BINARY_DIR}/src/test/java/cvc"
   COMMAND
     # copy build.gradle
     ${CMAKE_COMMAND} -E copy
@@ -79,8 +79,8 @@ add_custom_target(
   gradle-build
   ALL
   COMMAND
-    # run gradlew on build/src/api/java/build.gradle
-    ${PROJECT_SOURCE_DIR}/src/api/java/gradlew -p ${CMAKE_CURRENT_BINARY_DIR} build
+    # run gradlew build without running the test task
+    ${PROJECT_SOURCE_DIR}/src/api/java/gradlew -p ${CMAKE_CURRENT_BINARY_DIR} build -x test
   COMMENT "Run gradlew build"
   VERBATIM
 )
