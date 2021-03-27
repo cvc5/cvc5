@@ -111,10 +111,8 @@ class JustificationStrategy
   context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
   /** Current number of entries in the stack that are valid */
   context::CDO<size_t> d_stackSizeValid;
-  /** The last decision value */
-  context::CDO<prop::SatValue> d_lastDecisionValue;
-  /** The last decision value */
-  context::CDO<TNode> d_lastDecisionAtom;
+  /** The last decision literal */
+  context::CDO<TNode> d_lastDecisionLit;
 };
 
 }  // namespace CVC4

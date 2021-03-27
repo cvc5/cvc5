@@ -30,8 +30,7 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_justified(c),
       d_stack(c),
       d_stackSizeValid(c, 0),
-      d_lastDecisionValue(c, SAT_VALUE_UNKNOWN),
-      d_lastDecisionAtom(c)
+      d_lastDecisionLit(c)
 {
 }
 
@@ -52,18 +51,20 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     return undefSatLiteral;
   }
   Assert(!d_current.get().isNull());
-  Trace("jh-stack") << "getNext, current = " << d_current.get() << std::endl;
   // temporary information in the loop below
   JustifyInfo* ji;
   JustifyNode next;
   // we start with the value implied by the last decision, if it exists
-  SatValue lastChildVal = d_lastDecisionValue.get();
+  SatValue lastChildVal = SAT_VALUE_UNKNOWN;//d_lastDecisionValue.get();
+  Trace("jh-stack") << "getNext, current = " << d_current.get() << std::endl;
   // if we had just sent a decision, record it here
-  if (!d_lastDecisionAtom.get().isNull())
+  if (!d_lastDecisionLit.get().isNull())
   {
-    d_justified.insert(d_lastDecisionAtom.get(), lastChildVal);
+    Trace("jh-stack") << "last decision = " << d_lastDecisionLit.get() << std::endl;
+    lastChildVal = lookupValue(d_lastDecisionLit.get());
+    Assert (lastChildVal!=SAT_VALUE_UNKNOWN);
   }
-  d_lastDecisionAtom = TNode::null();
+  d_lastDecisionLit = TNode::null();
   // while we are trying to satisfy assertions
   do
   {
@@ -116,13 +117,14 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // flip if the atom was negated
           // store the last decision value here, which will be used at the
           // starting value on the next call to this method
-          d_lastDecisionValue = nextPol ? next.second : invertValue(next.second);
-          d_lastDecisionAtom = nextAtom;
+          lastChildVal = nextPol ? next.second : invertValue(next.second);
+          d_lastDecisionLit = next.first;
           // (1) atom with unassigned value, return it as the decision, possibly
           // inverted
           Trace("jh-stack")
-              << "...return " << nextAtom << " " << d_lastDecisionValue << std::endl;
-          return d_lastDecisionValue == SAT_VALUE_FALSE ? ~nsl : nsl;
+              << "...return " << nextAtom << " " << lastChildVal << std::endl;
+          ji->revertChildIndex();
+          return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
         {
@@ -165,6 +167,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Assert(ck != NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
+            Trace("jh-debug")
+                << "getNextJustifyNode " << curr << " / " << currPol << ", index = " << i << ", last child value = " << lastChildVal << std::endl;
   // if i>0, we just computed the value of the (i-1)^th child
   Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN);
   // if i=0, we shouldn't have a last child value
@@ -189,7 +193,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
           if (lookupValue(c) == currDesiredVal)
           {
             Trace("jh-debug")
-                << "forcing child " << c << " for " << curr << std::endl;
+                << "already forcing child " << c << std::endl;
             value = currDesiredVal;
             break;
           }
@@ -200,6 +204,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     else if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE)
              || i == curr.getNumChildren())
     {
+      Trace("jh-debug")
+          << "current is forcing child" << std::endl;
       // forcing or exhausted case
       value = lastChildVal;
     }
@@ -323,16 +329,16 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
   {
-    Trace("jh-debug") << curr << " has value " << value << std::endl;
     // add to justify if so
     d_justified.insert(curr, value);
     // update the last child value, which will be used by the parent of the
     // current node, if it exists.
     lastChildVal = currPol ? value : invertValue(value);
+    Trace("jh-debug") << "getJustifyNode: return null with value " << lastChildVal << std::endl;
     // return null, indicating there is nothing left to do for current
     return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
   }
-  Trace("jh-debug") << curr[i] << " has desired value " << desiredVal
+  Trace("jh-debug") << "getJustifyNode: return " << curr[i] << " with desired value " << desiredVal
                     << std::endl;
   // The next child should be a valid argument in curr. Otherwise, we did not
   // recognize when its value could be inferred above.
@@ -428,7 +434,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
       d_current = curr;
       d_stackSizeValid = 0;
       pushToStack(curr, SAT_VALUE_TRUE);
-      d_lastDecisionValue = SAT_VALUE_UNKNOWN;
+      d_lastDecisionLit = TNode::null();
       return true;
     }
     // assertions should all be satisfied, otherwise we are in conflict
