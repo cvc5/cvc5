@@ -131,9 +131,9 @@ endmacro()
 # Helper to print the configuration of a 2-valued or 3-valued option 'var'
 # with prefix 'str'.
 macro(print_config str var)
-  if(${var} STREQUAL "ON")
+  if("${var}" STREQUAL "ON")
     set(OPT_VAL_STR "on")
-  elseif(${var} STREQUAL "OFF")
+  elseif("${var}" STREQUAL "OFF")
     set(OPT_VAL_STR "off")
   else()
     set(OPT_VAL_STR ${var})
