@@ -96,7 +96,7 @@ class TheoryInferenceManager
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  /** 
+  /**
   /**
    * Are proofs enabled in this inference manager? Returns true if the proof
    * node manager pnm provided to the constructor of this class was non-null.
@@ -347,7 +347,7 @@ class TheoryInferenceManager
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
   /**  Get the decision manager, which manages decision strategies. */
-  DecisionManager * getDecisionManager();
+  DecisionManager* getDecisionManager();
   /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
@@ -421,7 +421,7 @@ class TheoryInferenceManager
   /** Reference to the output channel of the theory */
   OutputChannel& d_out;
   /** Pointer to the decision manager */
-  DecisionManager * d_decManager;
+  DecisionManager* d_decManager;
   /** Pointer to equality engine of the theory. */
   eq::EqualityEngine* d_ee;
   /** A proof equality engine */

@@ -63,7 +63,8 @@ TheoryInferenceManager::~TheoryInferenceManager()
   smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
-void TheoryInferenceManager::finishInit(eq::EqualityEngine* ee, DecisionManager * dm)
+void TheoryInferenceManager::finishInit(eq::EqualityEngine* ee,
+                                        DecisionManager* dm)
 {
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
@@ -490,7 +491,7 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   return true;
 }
 
-DecisionManager * TheoryInferenceManager::getDecisionManager()
+DecisionManager* TheoryInferenceManager::getDecisionManager()
 {
   return d_decManager;
 }
