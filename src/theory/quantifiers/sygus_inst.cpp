@@ -527,7 +527,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
       "CeLiteral", lit, d_qstate.getSatContext(), d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
-  d_quantEngine->getDecisionManager()->registerStrategy(
+  d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, ds);
 
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
