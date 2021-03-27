@@ -481,9 +481,6 @@ class Theory {
     return d_quantEngine;
   }
 
-  /** Get the decision manager associated to this theory. */
-  DecisionManager* getDecisionManager() { return d_decManager; }
-
   /**
    * @return The theory state associated with this theory.
    */

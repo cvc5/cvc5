@@ -36,6 +36,7 @@ namespace theory {
 
 class Theory;
 class TheoryState;
+class DecisionManager;
 namespace eq {
 class EqualityEngine;
 class ProofEqEngine;
@@ -95,6 +96,7 @@ class TheoryInferenceManager
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
+  /** 
   /**
    * Are proofs enabled in this inference manager? Returns true if the proof
    * node manager pnm provided to the constructor of this class was non-null.
@@ -344,6 +346,8 @@ class TheoryInferenceManager
   /** Have we added a internal fact since the last call to reset? */
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
+  /**  Get the decision manager, which manages decision strategies. */
+  DecisionManager * getDecisionManager();
   /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
@@ -416,6 +420,8 @@ class TheoryInferenceManager
   TheoryState& d_theoryState;
   /** Reference to the output channel of the theory */
   OutputChannel& d_out;
+  /** Pointer to the decision manager */
+  DecisionManager * d_decManager;
   /** Pointer to equality engine of the theory. */
   eq::EqualityEngine* d_ee;
   /** A proof equality engine */

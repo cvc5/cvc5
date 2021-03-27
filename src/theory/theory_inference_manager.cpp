@@ -36,6 +36,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_theoryState(state),
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
+      d_decManager(nullptr),
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(t.getSatContext()),
@@ -62,7 +63,7 @@ TheoryInferenceManager::~TheoryInferenceManager()
   smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
-void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
+void TheoryInferenceManager::finishInit(eq::EqualityEngine* ee, DecisionManager * dm)
 {
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
@@ -74,6 +75,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
                                        *d_ee,
                                        d_pnm));
   }
+  d_decManager = dm;
 }
 
 bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
@@ -486,6 +488,11 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   }
   d_lemmasSent.insert(rewritten);
   return true;
+}
+
+DecisionManager * TheoryInferenceManager::getDecisionManager()
+{
+  return d_decManager;
 }
 
 void TheoryInferenceManager::requirePhase(TNode n, bool pol)
