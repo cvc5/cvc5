@@ -9,19 +9,53 @@
 ## directory for licensing information.
 ##
 
-# copy cvc libraries to the resource directory
-set(libFile "$<TARGET_FILE:cvc4>")
-message("libFile: ${libFile}")
-file(GLOB CVC_LIBS "${CMAKE_INSTALL_PREFIX}/lib/*.so*")
-file(COPY ${CVC_LIBS} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
-file(COPY "${CMAKE_CURRENT_LIST_DIR}/cvc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/java")
-file(COPY "${CMAKE_SOURCE_DIR}/test/api/java/cvc"
-  DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/test/java")
+# create directories
+file(MAKE_DIRECTORY
+  "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/main/java"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/test/java"
+  )
 
-# copy gradle files
-file(COPY "${CMAKE_CURRENT_LIST_DIR}/gradle" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY "${CMAKE_CURRENT_LIST_DIR}/gradlew" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY "${CMAKE_CURRENT_LIST_DIR}/build.gradle" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+# find jni package
+find_package(JNI REQUIRED)
+
+# specify the output destination of cvcjni library
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
+
+add_library(cvcjni SHARED jni/cvc_Solver.cpp)
+
+target_include_directories(cvcjni PUBLIC ${JNI_INCLUDE_DIRS})
+target_include_directories(cvcjni PUBLIC "${CMAKE_INSTALL_PREFIX}/include")
+target_link_libraries(cvcjni ${JNI_LIBRARIES})
+target_link_libraries(cvcjni cvc4)
+
+
+# copy libraries and java files
+add_custom_target(copy-java-api-files
+  COMMAND
+    # copy library file: libcvc4.so.7
+    ${CMAKE_COMMAND} -E  copy
+      $<TARGET_FILE:cvc4> "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources"
+  COMMAND
+    # copy library file: libcvcjni.so
+    ${CMAKE_COMMAND} -E  copy
+      $<TARGET_FILE:cvcjni> "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources"
+  COMMAND
+    # copy java source files
+    ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_LIST_DIR}/cvc" "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc"
+  COMMAND
+    # copy java test files
+    ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/test/api/java/cvc" "${CMAKE_CURRENT_BINARY_DIR}/src/test/java/cvc"
+  COMMAND
+    # copy build.gradle
+    ${CMAKE_COMMAND} -E copy
+    "${CMAKE_CURRENT_LIST_DIR}/build.gradle" ${CMAKE_CURRENT_BINARY_DIR}
+  )
+
+add_dependencies(copy-java-api-files cvc4 cvcjni)
 
 # Generate cvc/Kind.java
 add_custom_target(
@@ -33,34 +67,22 @@ add_custom_target(
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
     --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
   DEPENDS
-    genkinds.py
+  genkinds.py
   COMMENT
-    "Generate Kind.java"
+  "Generate Kind.java"
 )
 
-
-find_package(Java)
-include(UseJava)
-find_package(JNI REQUIRED)
-
-# specify the output destination of cvcJavaApi library
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
-
-add_library(cvcJavaApi SHARED jni/cvc_Solver.cpp)
-
-target_include_directories(cvcJavaApi PUBLIC ${JNI_INCLUDE_DIRS})
-target_include_directories(cvcJavaApi PUBLIC "${CMAKE_INSTALL_PREFIX}/include")
-target_link_libraries(cvcJavaApi ${JNI_LIBRARIES})
-target_link_libraries(cvcJavaApi cvc4)
+add_dependencies(gen-java-kinds copy-java-api-files)
 
 # run gradle
 add_custom_target(
-  gradleBuild
+  gradle-build
   ALL
   COMMAND
-    "./gradlew build"
-  COMMENT "Build jar file for cvc Java API"
+    # run gradlew on build/src/api/java/build.gradle
+    ${PROJECT_SOURCE_DIR}/src/api/java/gradlew -p ${CMAKE_CURRENT_BINARY_DIR} build
+  COMMENT "Run gradlew build"
   VERBATIM
 )
 
-add_dependencies(gradleBuild cvc4)
+add_dependencies(gradle-build cvcjni gen-java-kinds)

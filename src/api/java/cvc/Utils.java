@@ -27,12 +27,12 @@ class Utils
     List<String> names = new ArrayList<>();
     if (osName.startsWith("Linux"))
     {
-      names.add("libcvcJavaApi.so");
+      names.add("libcvcjni.so");
       names.add("libcvc4.so.7");
     }
     else if (osName.startsWith("Mac"))
     {
-      names.add("libcvcJavaApi.dylib");
+      names.add("libcvcjni.dylib");
       names.add("libcvc4.dylib");
     }
     else if (osName.startsWith("Windows"))
