@@ -281,7 +281,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         value = val1;
       }
       // if first branch is already wrong or second branch is already right, try
-      // to make condition false
+      // to make condition false. Note that we arbitrarily choose true here
+      // if both children are unknown.
       desiredVal =
           (val1 == invertValue(currDesiredVal) || val2 == currDesiredVal)
               ? SAT_VALUE_FALSE
