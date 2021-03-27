@@ -69,7 +69,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     Trace("jh-stack") << "last decision = " << d_lastDecisionLit.get()
                       << std::endl;
     lastChildVal = lookupValue(d_lastDecisionLit.get());
-    if(lastChildVal == SAT_VALUE_UNKNOWN)
+    if (lastChildVal == SAT_VALUE_UNKNOWN)
     {
       // if the value is now unknown, we must reprocess the child
       Assert(d_stack.size() >= d_stackSizeValid.get());
@@ -189,9 +189,11 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
                     << ", index = " << i
                     << ", last child value = " << lastChildVal << std::endl;
   // if i>0, we just computed the value of the (i-1)^th child
-  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN) << "in getNextJustifyNode, last child has no value";
+  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN)
+      << "in getNextJustifyNode, last child has no value";
   // if i=0, we shouldn't have a last child value
-  Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN) << "in getNextJustifyNode, value given for non-existent last child";
+  Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN)
+      << "in getNextJustifyNode, value given for non-existent last child";
   // In the following, we determine if we have a value and set value if so.
   // If not, we set desiredValue for the value of the next value to justify.
   // One of these two values should always be set below.
