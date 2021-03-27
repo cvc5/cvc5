@@ -237,6 +237,7 @@ do
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
+    --no-ninja) ninja=OFF;;
 
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
@@ -376,7 +377,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
-[ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
+[ $ninja != "OFF" ] \
+  && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $shared != default ] \
