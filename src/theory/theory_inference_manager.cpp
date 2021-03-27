@@ -63,8 +63,7 @@ TheoryInferenceManager::~TheoryInferenceManager()
   smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
-void TheoryInferenceManager::finishInit(eq::EqualityEngine* ee,
-                                        DecisionManager* dm)
+void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
@@ -76,6 +75,10 @@ void TheoryInferenceManager::finishInit(eq::EqualityEngine* ee,
                                        *d_ee,
                                        d_pnm));
   }
+}
+
+void TheoryInferenceManager::setDecisionManager(DecisionManager * dm)
+{
   d_decManager = dm;
 }
 

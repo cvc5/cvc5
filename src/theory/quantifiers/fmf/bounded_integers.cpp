@@ -89,9 +89,8 @@ BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
-                                 TermRegistry& tr,
-                                 DecisionManager* dm)
-    : QuantifiersModule(qs, qim, qr, tr, qe), d_dm(dm)
+                                 TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe)
 {
 }
 
@@ -475,6 +474,7 @@ void BoundedIntegers::checkOwnership(Node f)
   
   if( bound_success ){
     d_bound_quants.push_back( f );
+    DecisionManager * dm = d_qim.getDecisionManager();
     for( unsigned i=0; i<d_set[f].size(); i++) {
       Node v = d_set[f][i];
       std::map< Node, Node >::iterator itr = d_range[f].find( v );
@@ -503,7 +503,7 @@ void BoundedIntegers::checkOwnership(Node f)
                                               d_qstate.getUserContext(),
                                               d_qstate.getValuation(),
                                               isProxy));
-            d_dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
+            dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
                                    d_rms[r].get());
           }
         }
