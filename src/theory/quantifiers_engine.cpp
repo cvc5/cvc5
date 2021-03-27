@@ -51,7 +51,6 @@ QuantifiersEngine::QuantifiersEngine(
     : d_qstate(qstate),
       d_qim(qim),
       d_te(nullptr),
-      d_decManager(nullptr),
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
@@ -69,13 +68,12 @@ QuantifiersEngine::QuantifiersEngine(
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
+void QuantifiersEngine::finishInit(TheoryEngine* te)
 {
   d_te = te;
-  d_decManager = dm;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, dm, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -86,11 +84,6 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   // quantifiers bound inference needs to be informed of the bounded integers
   // module, which has information about which quantifiers have finite bounds
   d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
-}
-
-DecisionManager* QuantifiersEngine::getDecisionManager()
-{
-  return d_decManager;
 }
 
 quantifiers::QuantifiersState& QuantifiersEngine::getState()

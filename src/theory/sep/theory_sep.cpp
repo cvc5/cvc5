@@ -468,7 +468,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
         "sep_neg_guard", g, getSatContext(), getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
-    getDecisionManager()->registerStrategy(DecisionManager::STRAT_SEP_NEG_GUARD,
+    d_im.getDecisionManager()->registerStrategy(DecisionManager::STRAT_SEP_NEG_GUARD,
                                            ds);
     Node lit = ds->getLiteral(0);
     d_neg_guard[slbl][satom] = lit;
