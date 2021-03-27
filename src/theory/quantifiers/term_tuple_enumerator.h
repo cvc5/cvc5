@@ -20,11 +20,10 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
+class QuantifiersState;
+class TermDb;
 class RelevantDomain;
 
 /**  Interface for enumeration of tuples of terms.
