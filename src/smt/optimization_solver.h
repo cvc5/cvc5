@@ -66,11 +66,10 @@ enum class OptResult
 };
 
 /**
- * The optimization objective,
- * which contains
- * the optimization target node,
- * whether it's maximize/minimize
- * and whether it's signed for BitVectors
+ * The optimization objective, which contains:
+ * - the optimization target node,
+ * - whether it's maximize/minimize
+ * - and whether it's signed for BitVectors
  **/
 class Objective
 {

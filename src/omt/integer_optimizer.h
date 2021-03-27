@@ -27,15 +27,12 @@ class OMTOptimizerInteger : public OMTOptimizer
  public:
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
-  virtual std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                              Node target) override;
-  virtual std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                              Node target) override;
+  std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                      Node target) override;
+  std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                      Node target) override;
 
  private:
-  /** Creates an SMT subsolver for offline optimization purpose **/
-  std::unique_ptr<SmtEngine> createOptChecker(SmtEngine* parentSMTSolver);
-
   /**
    * Handles the optimization query specified by objType
    * (objType = OBJECTIVE_MINIMIZE / OBJECTIVE_MAXIMIZE)
@@ -45,6 +42,6 @@ class OMTOptimizerInteger : public OMTOptimizer
                                       ObjectiveType objType);
 };
 
-} // namespace CVC4::smt
+}  // namespace CVC4::smt
 
 #endif /* CVC4__OMT__INTEGER_OPTIMIZER_H */

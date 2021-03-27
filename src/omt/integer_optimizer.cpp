@@ -23,32 +23,15 @@ using namespace CVC4::theory;
 
 namespace CVC4::smt {
 
-std::unique_ptr<SmtEngine> OMTOptimizerInteger::createOptChecker(
-    SmtEngine* parentSMTSolver)
-{
-  // currently set to no timeout
-  return createOptCheckerWithTimeout(parentSMTSolver, false);
-}
-
 std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
     SmtEngine* parentSMTSolver, Node target, ObjectiveType objType)
 {
   // linear search for integer goal
   // the smt engine to which we send intermediate queries
   // for the linear search.
-  std::unique_ptr<SmtEngine> optChecker;
-  CVC4::theory::initializeSubsolver(optChecker);
+  std::unique_ptr<SmtEngine> optChecker =
+      OMTOptimizer::createOptCheckerWithTimeout(parentSMTSolver, false);
   NodeManager* nm = optChecker->getNodeManager();
-  // we need to be in incremental mode for multiple objectives since we need to
-  // push pop we need to produce models to inrement on our objective
-  optChecker->setOption("incremental", "true");
-  optChecker->setOption("produce-models", "true");
-  // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
-  for (const Node& e : p_assertions)
-  {
-    optChecker->assertFormula(e);
-  }
 
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)

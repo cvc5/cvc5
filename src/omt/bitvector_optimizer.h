@@ -27,10 +27,10 @@ class OMTOptimizerBitVector : public OMTOptimizer
  public:
   OMTOptimizerBitVector(bool isSigned);
   virtual ~OMTOptimizerBitVector() = default;
-  virtual std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                              Node target) override;
-  virtual std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                              Node target) override;
+  std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                      Node target) override;
+  std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                      Node target) override;
 
  private:
   /**
@@ -41,8 +41,6 @@ class OMTOptimizerBitVector : public OMTOptimizer
   BitVector computeAverage(const BitVector& a,
                            const BitVector& b,
                            bool isSigned);
-  /** Creates an SMT subsolver for offline optimization purpose **/
-  std::unique_ptr<SmtEngine> createOptChecker(SmtEngine* parentSMTSolver);
   /** Is the BitVector doing signed comparison? **/
   bool d_isSigned;
 };
