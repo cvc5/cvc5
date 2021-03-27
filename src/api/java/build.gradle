@@ -2,6 +2,10 @@ plugins {
     id 'java-library'
 }
 
+compileJava {
+    options.release = 8
+}
+
 repositories {
     mavenCentral()
 }

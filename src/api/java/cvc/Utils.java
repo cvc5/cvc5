@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -49,7 +48,8 @@ class Utils
     for (String name : names)
     {
       String path = System.getProperty("java.io.tmpdir") + File.separatorChar + name;
-      if (Files.exists(Path.of(path)))
+      File file = new File(path);
+      if (file.exists())
       {
         // return if the library exists in the temp directory
         // return cvcApiLibFile; // TODO (wishue  #83): this is disabled for development.
