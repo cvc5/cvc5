@@ -693,6 +693,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/pattern_term_selector.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
+  theory/quantifiers/ematching/trigger_database.cpp
+  theory/quantifiers/ematching/trigger_database.h
   theory/quantifiers/ematching/trigger_term_info.cpp
   theory/quantifiers/ematching/trigger_term_info.h
   theory/quantifiers/ematching/trigger_trie.cpp
@@ -763,6 +765,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
   theory/quantifiers/quantifiers_state.h
+  theory/quantifiers/quantifiers_statistics.cpp
+  theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
@@ -1139,17 +1143,9 @@ if(USE_KISSAT)
   target_link_libraries(cvc4 ${Kissat_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
 endif()
-if(USE_DRAT2ER)
-  target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
-endif()
 if(USE_GLPK)
   target_link_libraries(cvc4 ${GLPK_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
-endif()
-if(USE_LFSC)
-  target_link_libraries(cvc4 ${LFSC_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
 if(USE_POLY)
   target_link_libraries(cvc4 ${POLY_LIBRARIES})

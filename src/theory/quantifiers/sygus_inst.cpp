@@ -186,8 +186,9 @@ void addSpecialValues(
 SygusInst::SygusInst(QuantifiersEngine* qe,
                      QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
-                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                     QuantifiersRegistry& qr,
+                     TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),
       d_notified_assertions(qs.getUserContext())
@@ -209,7 +210,7 @@ void SygusInst::reset_round(Theory::Effort e)
   d_active_quant.clear();
   d_inactive_quant.clear();
 
-  FirstOrderModel* model = d_quantEngine->getModel();
+  FirstOrderModel* model = d_treg.getModel();
   uint32_t nasserted = model->getNumAssertedQuantifiers();
 
   for (uint32_t i = 0; i < nasserted; ++i)
@@ -245,9 +246,9 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
   if (quant_e != QEFFORT_STANDARD) return;
 
-  FirstOrderModel* model = d_quantEngine->getModel();
-  Instantiate* inst = d_quantEngine->getInstantiate();
-  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
+  FirstOrderModel* model = d_treg.getModel();
+  Instantiate* inst = d_qim.getInstantiate();
+  TermDbSygus* db = d_treg.getTermDatabaseSygus();
   SygusExplain syexplain(db);
   NodeManager* nm = NodeManager::currentNM();
   options::SygusInstMode mode = options::sygusInstMode();
@@ -480,7 +481,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
-  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
+  TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
   /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
    * instantiation constant ic_i with type types[i] and wrap each ic_i in

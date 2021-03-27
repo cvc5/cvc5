@@ -24,6 +24,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -52,8 +53,9 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
-                                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                                     QuantifiersRegistry& qr,
+                                     TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
@@ -84,10 +86,10 @@ bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 
 QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 {
-  size_t nquant = d_quantEngine->getModel()->getNumAssertedQuantifiers();
+  size_t nquant = d_treg.getModel()->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
   {
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+    Node q = d_treg.getModel()->getAssertedQuantifier(i);
     if (doCbqi(q))
     {
       return QEFFORT_STANDARD;
@@ -193,11 +195,15 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
   d_incomplete_check = false;
   d_active_quant.clear();
   //check if any cbqi lemma has not been added yet
-  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+  FirstOrderModel* fm = d_treg.getModel();
+  size_t nquant = fm->getNumAssertedQuantifiers();
+  for (size_t i = 0; i < nquant; i++)
+  {
+    Node q = fm->getAssertedQuantifier(i);
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+      if (fm->isQuantifierActive(q))
+      {
         d_active_quant[q] = true;
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
@@ -211,7 +217,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
               Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
               Trace("cegqi") << "Inactive : " << q << std::endl;
-              d_quantEngine->getModel()->setQuantifierActive( q, false );
+              fm->setQuantifierActive(q, false);
               d_cbqi_set_quant_inactive = true;
               d_active_quant.erase( q );
             }
@@ -471,32 +477,29 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
+  Instantiate* inst = d_qim.getInstantiate();
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    d_quantEngine->getInstantiate()->recordInstantiation(
-        d_curr_quant, subs, false, false);
+    inst->recordInstantiation(d_curr_quant, subs, false, false);
     return true;
-  }else{
-    //check if we need virtual term substitution (if used delta or infinity)
-    bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
-    if (d_quantEngine->getInstantiate()->addInstantiation(
-            d_curr_quant,
-            subs,
-            InferenceId::QUANTIFIERS_INST_CEGQI,
-            false,
-            false,
-            used_vts))
-    {
-      return true;
-    }else{
-      //this should never happen for monotonic selection strategies
-      Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
-      return false;
-    }
   }
+  // check if we need virtual term substitution (if used delta or infinity)
+  bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
+  if (inst->addInstantiation(d_curr_quant,
+                             subs,
+                             InferenceId::QUANTIFIERS_INST_CEGQI,
+                             false,
+                             false,
+                             used_vts))
+  {
+    return true;
+  }
+  // this should never happen for monotonic selection strategies
+  Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
+  return false;
 }
 
 bool InstStrategyCegqi::addPendingLemma(Node lem) const

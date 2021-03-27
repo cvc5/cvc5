@@ -14,6 +14,8 @@
 
 #include "theory/arith/operator_elim.h"
 
+#include <sstream>
+
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"

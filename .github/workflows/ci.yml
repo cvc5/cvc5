@@ -23,7 +23,7 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --lfsc --editline --poly --symfpu
+            config: production --all-bindings --editline --poly --symfpu
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -40,7 +40,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: production-dbg
-            config: production --assertions --tracing --unit-testing --symfpu --lfsc --editline
+            config: production --assertions --tracing --unit-testing --symfpu --editline
             cache-key: dbg
             os: ubuntu-latest
             exclude_regress: 3-4
@@ -118,7 +118,6 @@ jobs:
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
-        ./contrib/get-antlr-3.4
         ./contrib/get-poly
         ./contrib/get-symfpu
         ./contrib/get-cadical
@@ -128,7 +127,6 @@ jobs:
     - name: List dependencies
       run: |
         find deps/install -type f
-        cat deps/install/bin/antlr3
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
@@ -198,4 +196,3 @@ jobs:
         make -j2
         ctest -j2 --output-on-failure
       working-directory: examples
-

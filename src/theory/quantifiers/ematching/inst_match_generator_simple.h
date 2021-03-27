@@ -41,10 +41,6 @@ namespace inst {
  * The implementation traverses the term indices in TermDatabase for adding
  * instantiations, which is more efficient than the techniques required for
  * handling non-simple single triggers.
- *
- * In contrast to other instantiation generators, it does not call
- * IMGenerator::sendInstantiation and for performance reasons instead calls
- * qe->getInstantiate()->addInstantiation(...) directly.
  */
 class InstMatchGeneratorSimple : public IMGenerator
 {
@@ -88,12 +84,12 @@ class InstMatchGeneratorSimple : public IMGenerator
   std::map<size_t, int> d_var_num;
   /** add instantiations, helper function.
    *
-   * m is the current match we are building,
-   * addedLemmas is the number of lemmas we have added via calls to
-   *                qe->getInstantiate()->aaddInstantiation(...),
-   * argIndex is the argument index in d_match_pattern we are currently
-   *              matching,
-   * tat is the term index we are currently traversing.
+   * @param m the current match we are building,
+   * @param addedLemmas the number of lemmas we have added via calls to
+   * Instantiate::addInstantiation(...),
+   * @param argIndex the argument index in d_match_pattern we are currently
+   * matching,
+   * @param tat the term index we are currently traversing.
    */
   void addInstantiations(InstMatch& m,
                          uint64_t& addedLemmas,
