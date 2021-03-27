@@ -26,7 +26,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resourc
 add_library(cvcjni SHARED jni/cvc_Solver.cpp)
 
 target_include_directories(cvcjni PUBLIC ${JNI_INCLUDE_DIRS})
-target_include_directories(cvcjni PUBLIC "${CMAKE_INSTALL_PREFIX}/include")
+target_include_directories(cvcjni PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(cvcjni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_link_libraries(cvcjni ${JNI_LIBRARIES})
 target_link_libraries(cvcjni cvc4)
 

@@ -1,6 +1,6 @@
 #include "cvc_Solver.h"
 
-#include "cvc4/api/cvc4cpp.h"
+#include "api/cvc4cpp.h"
 #include "cvcJavaApi.h"
 
 using namespace CVC4::api;
