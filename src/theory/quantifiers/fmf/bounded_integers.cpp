@@ -474,7 +474,7 @@ void BoundedIntegers::checkOwnership(Node f)
   
   if( bound_success ){
     d_bound_quants.push_back( f );
-    DecisionManager * dm = d_qim.getDecisionManager();
+    DecisionManager* dm = d_qim.getDecisionManager();
     for( unsigned i=0; i<d_set[f].size(); i++) {
       Node v = d_set[f][i];
       std::map< Node, Node >::iterator itr = d_range[f].find( v );
@@ -504,7 +504,7 @@ void BoundedIntegers::checkOwnership(Node f)
                                               d_qstate.getValuation(),
                                               isProxy));
             dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
-                                   d_rms[r].get());
+                                 d_rms[r].get());
           }
         }
       }

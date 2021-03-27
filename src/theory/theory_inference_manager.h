@@ -98,7 +98,7 @@ class TheoryInferenceManager
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
   /** Set the decision manager */
-  void setDecisionManager(DecisionManager * dm);
+  void setDecisionManager(DecisionManager* dm);
   //--------------------------------------- end initialization
   /**
    * Are proofs enabled in this inference manager? Returns true if the proof

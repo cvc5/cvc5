@@ -77,7 +77,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   }
 }
 
-void TheoryInferenceManager::setDecisionManager(DecisionManager * dm)
+void TheoryInferenceManager::setDecisionManager(DecisionManager* dm)
 {
   d_decManager = dm;
 }
