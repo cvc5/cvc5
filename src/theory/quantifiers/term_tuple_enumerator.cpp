@@ -497,7 +497,7 @@ TermTupleEnumeratorInterface* mkTermTupleEnumerator(
   return static_cast<TermTupleEnumeratorInterface*>(
       new TermTupleEnumeratorBasic(q, env, qs, td));
 }
-TermTupleEnumeratorInterface* mkTermTupleEnumeratorRD(
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
     Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
