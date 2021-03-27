@@ -32,7 +32,7 @@ class Utils
     else if (osName.startsWith("Mac"))
     {
       names.add("libcvcjni.dylib");
-      names.add("libcvc4.dylib");
+      names.add("libcvc4.7.dylib");
     }
     else if (osName.startsWith("Windows"))
     {
