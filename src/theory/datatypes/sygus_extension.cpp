@@ -1330,8 +1330,9 @@ void SygusExtension::registerSizeTerm(Node e)
                                         d_state.getSatContext(),
                                         d_state.getValuation()));
     }
-    d_im.getDecisionManager()->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
-                           d_anchor_to_ag_strategy[e].get());
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
+        d_anchor_to_ag_strategy[e].get());
   }
   Node m;
   if (!ag.isNull())
@@ -1411,8 +1412,8 @@ void SygusExtension::registerMeasureTerm( Node m ) {
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
     d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_im, m, d_state));
     // register this as a decision strategy
-    d_im.getDecisionManager()->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE,
-                           d_szinfo[m].get());
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
   }
 }
 

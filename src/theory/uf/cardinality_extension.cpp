@@ -507,8 +507,8 @@ void SortModel::initialize()
     d_initialized = true;
     // Strategy is user-context-dependent, since it is in sync with
     // user-context-dependent flag d_initialized.
-    d_im.getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_UF_CARD, d_c_dec_strat.get());
+    d_im.getDecisionManager()->registerStrategy(DecisionManager::STRAT_UF_CARD,
+                                                d_c_dec_strat.get());
   }
 }
 
