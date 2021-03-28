@@ -16,7 +16,8 @@ file(MAKE_DIRECTORY
   "${CMAKE_CURRENT_BINARY_DIR}/src/test/java"
   )
 
-
+# find java
+find_package(Java)
 # find jni package
 find_package(JNI REQUIRED)
 
