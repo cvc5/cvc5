@@ -30,7 +30,9 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_justified(c),
       d_stack(c),
       d_stackSizeValid(c, 0),
-      d_lastDecisionLit(c)
+      d_lastDecisionLit(c),
+      d_useRlvOrder(options::jhNewRlvOrder()),
+      d_jhSkMode(options::jhNewSkolemMode())
 {
 }
 
@@ -280,9 +282,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // be unknown
         value = val1;
       }
-      // if first branch is already wrong or second branch is already right, try
-      // to make condition false. Note that we arbitrarily choose true here
-      // if both children are unknown.
+      // if first branch is already wrong or second branch is already correct,
+      // try to make condition false. Note that we arbitrarily choose true here
+      // if both children are unknown
       desiredVal =
           (val1 == invertValue(currDesiredVal) || val2 == currDesiredVal)
               ? SAT_VALUE_FALSE
@@ -430,14 +432,15 @@ bool JustificationStrategy::refreshCurrentAssertion()
   {
     return true;
   }
+  bool skFirst = (d_jhSkMode != options::JutificationSkolemMode::LAST);
   // use main assertions first
-  if (refreshCurrentAssertionFromList(d_assertions))
+  if (refreshCurrentAssertionFromList(skFirst ? d_skolemAssertions : d_assertions))
   {
     return true;
   }
   // if satisfied all main assertions, use the skolem assertions, which may
   // fail
-  return refreshCurrentAssertionFromList(d_skolemAssertions);
+  return refreshCurrentAssertionFromList(skFirst ? d_assertions : d_skolemAssertions);
 }
 
 bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)

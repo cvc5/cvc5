@@ -81,3 +81,27 @@ header = "options/decision_options.h"
   type       = "bool"
   default    = "false"
   help       = "(temporary) new implementation of decision justification heuristic"
+
+[[option]]
+  name       = "jhNewSkolemMode"
+  category   = "expert"
+  long       = "jh-skolem=MODE"
+  type       = "JutificationSkolemMode"
+  default    = "FIRST"
+  help       = "policy for skolem definitions in justification heuristic"
+  help_mode  = "Policy for skolem definitions in justification heuristic"
+[[option.mode.FIRST]]
+  name = "first"
+[[option.mode.LAST]]
+  name = "last"
+[[option.mode.FIRST_AGG]]
+  name = "first-agg"
+
+[[option]]
+  name       = "jhNewRlvOrder"
+  category   = "regular"
+  long       = "jh-new-rlv-order"
+  type       = "bool"
+  default    = "false"
+  help       = "maintain relevancy ordering for decision justification heuristic"
+

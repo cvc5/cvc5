@@ -20,6 +20,7 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
+#include "options/decision_options.h"
 #include "decision/justify_info.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
@@ -113,6 +114,10 @@ class JustificationStrategy
   context::CDO<size_t> d_stackSizeValid;
   /** The last decision literal */
   context::CDO<TNode> d_lastDecisionLit;
+  /** using relevancy order */
+  bool d_useRlvOrder;
+  /** skolem mode */
+  options::JutificationSkolemMode d_jhSkMode;
 };
 
 }  // namespace CVC4
