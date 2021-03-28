@@ -434,13 +434,15 @@ bool JustificationStrategy::refreshCurrentAssertion()
   }
   bool skFirst = (d_jhSkMode != options::JutificationSkolemMode::LAST);
   // use main assertions first
-  if (refreshCurrentAssertionFromList(skFirst ? d_skolemAssertions : d_assertions))
+  if (refreshCurrentAssertionFromList(skFirst ? d_skolemAssertions
+                                              : d_assertions))
   {
     return true;
   }
   // if satisfied all main assertions, use the skolem assertions, which may
   // fail
-  return refreshCurrentAssertionFromList(skFirst ? d_assertions : d_skolemAssertions);
+  return refreshCurrentAssertionFromList(skFirst ? d_assertions
+                                                 : d_skolemAssertions);
 }
 
 bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
