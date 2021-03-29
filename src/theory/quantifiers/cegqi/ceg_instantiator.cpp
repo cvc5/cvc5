@@ -322,8 +322,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn)
 }
 
 CegHandledStatus CegInstantiator::isCbqiSort(
-    TypeNode tn,
-    std::map<TypeNode, CegHandledStatus>& visited)
+    TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited)
 {
   std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
   if (itv != visited.end())

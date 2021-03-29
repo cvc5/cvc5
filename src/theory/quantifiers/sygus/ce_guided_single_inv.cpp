@@ -40,7 +40,7 @@ namespace quantifiers {
 
 CegSingleInv::CegSingleInv(TermRegistry& tr, SygusStatistics& s)
     : d_treg(tr),
-       d_sip(new SingleInvocationPartition),
+      d_sip(new SingleInvocationPartition),
       d_srcons(new SygusReconstruct(d_treg.getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false)

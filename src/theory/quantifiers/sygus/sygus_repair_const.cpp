@@ -35,7 +35,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(TermDbSygus * tds)
+SygusRepairConst::SygusRepairConst(TermDbSygus* tds)
     : d_tds(tds), d_allow_constant_grammar(false)
 {
 }
