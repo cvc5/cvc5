@@ -43,7 +43,7 @@ macro(cvc4_add_unit_test is_white name output_dir)
 
 
   if(USE_CLN)
-    target_link_libraries(${name} PRIVATE ${CLN_LIBRARIES})
+    target_link_libraries(${name} ${CLN_LIBRARIES})
     target_include_directories(${name} PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
   endif()
   if(USE_POLY)
