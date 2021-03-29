@@ -41,9 +41,7 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe,
-        QuantifiersInferenceManager& qim,
-        SynthConjecture* p);
+  Cegis(QuantifiersInferenceManager& qim, TermDbSygus* tds, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node conj,

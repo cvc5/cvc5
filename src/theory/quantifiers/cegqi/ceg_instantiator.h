@@ -323,20 +323,14 @@ class CegInstantiator {
    * This method returns whether the type tn is handled by cegqi techniques.
    * If the result is CEG_HANDLED_UNCONDITIONAL, then this indicates that a
    * variable of this type is handled regardless of the formula it appears in.
-   *
-   * The argument qe is used if handling sort tn is conditional on the
-   * strategies initialized in qe. For example, uninterpreted sorts are
-   * handled if dedicated support for EPR is enabled.
    */
-  static CegHandledStatus isCbqiSort(TypeNode tn,
-                                     QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiSort(TypeNode tn);
   /** is cbqi quantifier prefix
    *
    * This returns the minimum value of the above method for a bound variable
    * in the prefix of quantified formula q.
    */
-  static CegHandledStatus isCbqiQuantPrefix(Node q,
-                                            QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiQuantPrefix(Node q);
   /** is cbqi quantified formula
    *
    * This returns whether quantified formula q can and should be handled by
@@ -348,7 +342,7 @@ class CegInstantiator {
    * quantified formula using cegqi, however other strategies should also be
    * tried.
    */
-  static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiQuant(Node q);
   //------------------------------------ end static queries
  private:
   /** The quantified formula of this instantiator */
@@ -572,9 +566,7 @@ class CegInstantiator {
    * of the type tn, where visited stores the types we have visited.
    */
   static CegHandledStatus isCbqiSort(
-      TypeNode tn,
-      std::map<TypeNode, CegHandledStatus>& visited,
-      QuantifiersEngine* qe);
+      TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
 };
 

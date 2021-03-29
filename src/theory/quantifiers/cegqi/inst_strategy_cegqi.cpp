@@ -410,7 +410,7 @@ bool InstStrategyCegqi::doCbqi(Node q)
 {
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
-    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q, d_quantEngine);
+    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q);
     Trace("cegqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret != CEG_UNHANDLED;
