@@ -40,6 +40,7 @@ extern const std::string* progName;
 /** A reference for use by the signal handlers to print statistics */
 extern std::unique_ptr<CVC4::main::CommandExecutor> pExecutor;
 
+/** Manages a custom timer for the total runtime in RAII-style. */
 class TotalTimer
 {
     public:
