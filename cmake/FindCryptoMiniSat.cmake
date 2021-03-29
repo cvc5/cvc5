@@ -40,11 +40,13 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
         PATCH_COMMAND patch <SOURCE_DIR>/src/packedmatrix.h ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CryptoMiniSat-patch-ba6f76e3.patch
         CMAKE_ARGS
           -DCMAKE_BUILD_TYPE=Release
+        # make sure not to register with cmake
           -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
           -DENABLE_ASSERTIONS=OFF
           -DENABLE_PYTHON_INTERFACE=OFF
+        # disable what is not needed
           -DNOBREAKID=ON
           -DNOM4RI=ON
           -DNOSQLITE=ON
@@ -53,6 +55,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
           -DSTATICCOMPILE=ON
         BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcryptominisat5.a
     )
+    # remove unused stuff to keep folder small
     ExternalProject_Add_Step(
         CryptoMiniSat-EP
         cleanup
