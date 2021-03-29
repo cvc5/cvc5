@@ -323,10 +323,6 @@ class CegInstantiator {
    * This method returns whether the type tn is handled by cegqi techniques.
    * If the result is CEG_HANDLED_UNCONDITIONAL, then this indicates that a
    * variable of this type is handled regardless of the formula it appears in.
-   *
-   * The argument qe is used if handling sort tn is conditional on the
-   * strategies initialized in qe. For example, uninterpreted sorts are
-   * handled if dedicated support for EPR is enabled.
    */
   static CegHandledStatus isCbqiSort(TypeNode tn);
   /** is cbqi quantifier prefix
@@ -571,8 +567,7 @@ class CegInstantiator {
    */
   static CegHandledStatus isCbqiSort(
       TypeNode tn,
-      std::map<TypeNode, CegHandledStatus>& visited,
-      QuantifiersEngine* qe);
+      std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
 };
 

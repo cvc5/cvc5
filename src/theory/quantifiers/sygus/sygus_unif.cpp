@@ -38,7 +38,7 @@ void SygusUnif::initializeCandidate(
   d_tds = tds;
   d_candidates.push_back(f);
   // initialize the strategy
-  d_strategy[f].initialize(qe, f, enums);
+  d_strategy[f].initialize(tds, f, enums);
 }
 
 Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
