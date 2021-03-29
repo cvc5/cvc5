@@ -315,16 +315,14 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
   return ret;
 }
 
-CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn)
 {
   std::map<TypeNode, CegHandledStatus> visited;
-  return isCbqiSort(tn, visited, qe);
+  return isCbqiSort(tn, visited);
 }
 
 CegHandledStatus CegInstantiator::isCbqiSort(
-    TypeNode tn,
-    std::map<TypeNode, CegHandledStatus>& visited,
-    QuantifiersEngine* qe)
+    TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited)
 {
   std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
   if (itv != visited.end())
@@ -360,7 +358,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       }
       for (const TypeNode& crange : consType)
       {
-        CegHandledStatus cret = isCbqiSort(crange, visited, qe);
+        CegHandledStatus cret = isCbqiSort(crange, visited);
         if (cret == CEG_UNHANDLED)
         {
           Trace("cegqi-debug2")
@@ -380,14 +378,13 @@ CegHandledStatus CegInstantiator::isCbqiSort(
   return ret;
 }
 
-CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
-                                                    QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q)
 {
   CegHandledStatus hmin = CEG_HANDLED_UNCONDITIONAL;
   for (const Node& v : q[0])
   {
     TypeNode tn = v.getType();
-    CegHandledStatus handled = isCbqiSort(tn, qe);
+    CegHandledStatus handled = isCbqiSort(tn);
     if (handled == CEG_UNHANDLED)
     {
       return CEG_UNHANDLED;
@@ -400,7 +397,7 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
   return hmin;
 }
 
-CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiQuant(Node q)
 {
   Assert(q.getKind() == FORALL);
   // compute attributes
@@ -428,8 +425,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   }
   CegHandledStatus ret = CEG_HANDLED;
   // if quantifier has a non-handled variable, then do not use cbqi
-  // if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-  CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q, qe);
+  CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q);
   Trace("cegqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
                             << std::endl;
   if (ncbqiv == CEG_UNHANDLED)
@@ -668,7 +664,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   TypeNode pvtn = pv.getType();
   TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
-  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   if (ee->hasTerm(pv))
   {
     pvr = ee->getRepresentative(pv);
@@ -1321,7 +1317,7 @@ void CegInstantiator::processAssertions() {
   d_curr_type_eqc.clear();
 
   // must use master equality engine to avoid value instantiations
-  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
   //for each variable
   for( unsigned i=0; i<d_vars.size(); i++ ){
