@@ -18,8 +18,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
@@ -72,7 +72,9 @@ void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
   }
 }
 
-RelevantDomain::RelevantDomain(QuantifiersState& qs, QuantifiersRegistry& qr, TermRegstry& tr)
+RelevantDomain::RelevantDomain(QuantifiersState& qs,
+                               QuantifiersRegistry& qr,
+                               TermRegistry& tr)
     : d_qs(qs), d_qreg(qr), d_treg(tr)
 {
   d_is_computed = false;
@@ -120,7 +122,7 @@ void RelevantDomain::compute(){
     }
 
     Trace("rel-dom-debug") << "account for ground terms" << std::endl;
-    TermDb * db = d_treg.getTermDatabase();
+    TermDb* db = d_treg.getTermDatabase();
     for (unsigned k = 0; k < db->getNumOperators(); k++)
     {
       Node op = db->getOperator(k);
@@ -160,7 +162,7 @@ void RelevantDomain::compute(){
 
 void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool pol ) {
   Trace("rel-dom-debug") << "Compute relevant domain " << n << "..." << std::endl;
-  Node op = d_treg.getTermDatabase()->getMatchOperator( n );
+  Node op = d_treg.getTermDatabase()->getMatchOperator(n);
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( !op.isNull() ){
       RDomain * rf = getRDomain( op, i );

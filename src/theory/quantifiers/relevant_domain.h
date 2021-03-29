@@ -44,7 +44,9 @@ class TermRegistry;
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersState& qs, QuantifiersRegistry& qr, TermRegstry& tr);
+  RelevantDomain(QuantifiersState& qs,
+                 QuantifiersRegistry& qr,
+                 TermRegistry& tr);
   virtual ~RelevantDomain();
   /** Reset. */
   bool reset(Theory::Effort e) override;
