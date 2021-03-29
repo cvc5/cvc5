@@ -16,13 +16,17 @@ file(MAKE_DIRECTORY
   "${CMAKE_CURRENT_BINARY_DIR}/src/test/java"
   )
 
-# find java
-find_package(Java)
 # find jni package
 find_package(JNI REQUIRED)
-
-# specify the output destination of cvcjni library
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
+message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
+message(STATUS "JNI_INCLUDE_DIRS     : ${JNI_INCLUDE_DIRS}")
+message(STATUS "JNI_LIBRARIES        : ${JNI_LIBRARIES} ")
+message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
+message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
+message(STATUS "JAVA_JVM_LIBRARY     : ${JAVA_JVM_LIBRARY}")
+message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
+message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
+message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvcjni SHARED jni/cvc_Solver.cpp)
 
