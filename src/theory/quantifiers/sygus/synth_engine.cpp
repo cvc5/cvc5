@@ -20,7 +20,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -32,9 +31,10 @@ namespace quantifiers {
 SynthEngine::SynthEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
-      d_tds(qe->getTermDatabaseSygus()),
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
+      d_tds(tr.getTermDatabaseSygus()),
       d_conj(nullptr),
       d_sqp(qe)
 {

@@ -24,6 +24,7 @@
 #include "context/context.h"
 #include "expr/attribute.h"
 #include "theory/decision_strategy.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 
 namespace CVC4 {
 namespace theory {
@@ -167,6 +168,7 @@ private:
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   DecisionManager* dm);
   virtual ~BoundedIntegers();
 
