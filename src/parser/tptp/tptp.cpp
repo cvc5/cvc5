@@ -380,10 +380,22 @@ api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t
   /* multiply it by 10 raised to the exponent reduced by the
     * number of decimal place in den (dec) */
   Rational r;
-  if(!posE) r = Rational(inum, Integer(10).pow(exp + dec));
-  else if(exp == dec) r = Rational(inum);
-  else if(exp > dec) r = Rational(inum * Integer(10).pow(exp - dec));
-  else r = Rational(inum, Integer(10).pow(dec - exp));
+  if(!posE)
+  {
+    r = Rational(inum, Integer(10).pow(exp + dec));
+  }
+  else if(exp == dec)
+  {
+    r = Rational(inum);
+  }
+  else if(exp > dec)
+  {
+    r = Rational(inum * Integer(10).pow(exp - dec));
+  }
+  else
+  {
+    r = Rational(inum, Integer(10).pow(dec - exp));
+  }
   std::stringstream ss;
   ss << r;
   return d_solver->mkReal(ss.str());
