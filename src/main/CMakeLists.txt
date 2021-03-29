@@ -58,6 +58,10 @@ set_target_properties(cvc4-bin
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin cvc4 cvc4parser)
+if(USE_CLN)
+  target_link_libraries(cvc4-bin ${CLN_LIBRARIES})
+  target_include_directories(cvc4-bin PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
