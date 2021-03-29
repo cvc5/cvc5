@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
@@ -60,6 +61,8 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
+    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }

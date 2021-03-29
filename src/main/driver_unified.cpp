@@ -59,6 +59,8 @@ namespace CVC4 {
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = nullptr;
 
+    /** The time point the binary started, accessible to signal handlers */
+    std::chrono::steady_clock::time_point totalTimeStart;
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
@@ -79,7 +81,7 @@ void printUsage(Options& opts, bool full) {
 
 int runCvc4(int argc, char* argv[], Options& opts) {
 
-  std::chrono::time_point totalTimeStart = std::chrono::steady_clock::now();
+  main::totalTimeStart = std::chrono::steady_clock::now();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -458,7 +460,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
     pExecutor->getSmtEngine()->setResultStatistic(result.toString());
-    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
+    std::chrono::duration totalTime = std::chrono::steady_clock::now() - main::totalTimeStart;
     pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
     pExecutor->flushOutputStreams();

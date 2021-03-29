@@ -67,6 +67,8 @@ int main(int argc, char* argv[]) {
       *opts.getErr() << "(error \"" << e << "\")" << endl;
     }
     if(opts.getStatistics() && pExecutor != NULL) {
+      std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
+      pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
       pExecutor->flushStatistics(*opts.getErr());
     }
   }

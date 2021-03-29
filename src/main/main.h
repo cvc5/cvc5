@@ -14,6 +14,7 @@
  ** Header for main CVC4 driver.
  **/
 
+#include <chrono>
 #include <exception>
 #include <string>
 
@@ -37,6 +38,9 @@ extern const std::string* progName;
 
 /** A reference for use by the signal handlers to print statistics */
 extern CVC4::main::CommandExecutor* pExecutor;
+
+/** The time point the binary started, accessible to signal handlers */
+extern std::chrono::steady_clock::time_point totalTimeStart;
 
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.
