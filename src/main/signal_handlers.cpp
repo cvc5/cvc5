@@ -61,8 +61,7 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
-    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
-    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
+    totalTimeStart.reset();
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }
