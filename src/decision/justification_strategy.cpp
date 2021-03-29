@@ -19,6 +19,24 @@ using namespace CVC4::prop;
 
 namespace CVC4 {
 
+const char* toString(DecisionStatus s)
+{
+  switch(s)
+  {
+  case DecisionStatus::INACTIVE: return "INACTIVE";
+  case DecisionStatus::NO_DECISION: return "NO_DECISION";
+  case DecisionStatus::DECISION: return "DECISION";
+  case DecisionStatus::BACKTRACK: return "BACKTRACK";
+  default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, DecisionStatus s)
+{
+  out << toString(s);
+  return out;
+}
+
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u)
     : d_context(c),
@@ -31,6 +49,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_stack(c),
       d_stackSizeValid(c, 0),
       d_lastDecisionLit(c),
+      d_currStatus(DecisionStatus::INACTIVE),
+      d_currUnderStatusIndex(0),
       d_useRlvOrder(options::jhNewRlvOrder()),
       d_jhSkMode(options::jhNewSkolemMode())
 {
@@ -105,6 +125,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // assertion should be true?
       // AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion "
       // << d_current.get() << " had value " << lastChildVal;
+      if (!d_currUnderStatus.isNull())
+      {
+        // notify status if we are watching it
+        notifyStatus(d_currUnderStatusIndex, d_currStatus);
+      }
       // we did not find a next node for current, refresh current assertion
       d_current = Node::null();
       refreshCurrentAssertion();
@@ -144,6 +169,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // on. The value of d_lastDecisionLit will be processed at the
           // beginning of the next call to getNext above.
           d_lastDecisionLit = next.first;
+          // update the decision
+          if (d_currStatus==DecisionStatus::NO_DECISION)
+          {
+            d_currStatus = DecisionStatus::DECISION;
+          }
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -407,22 +437,51 @@ bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
-  // we skip (top-level) theory literals, since these will always be propagated
-  if (!isTheoryLiteral(assertion))
-  {
-    Trace("jh-debug") << "addAssertion: " << assertion << std::endl;
-    d_assertions.addAssertion(assertion);
-  }
+  insertToAssertionList(assertion, false);
 }
 
 void JustificationStrategy::notifyRelevantSkolemAssertion(TNode lem)
 {
-  // similar to above, we skip theory literals
-  if (!isTheoryLiteral(lem))
+  insertToAssertionList(lem, true);
+}
+
+void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
+{
+  AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
+  // always miniscope AND immediately
+  std::vector<TNode> toProcess;
+  size_t index = 0;
+  toProcess.push_back(n);
+  do
   {
-    Trace("jh-debug") << "add skolem definition: " << lem << std::endl;
-    d_skolemAssertions.addAssertion(lem);
+    TNode curr = toProcess[index];
+    bool pol = curr.getKind()!=NOT;
+    TNode currAtom = pol ? curr : curr[0];
+    index++;
+    Kind k = currAtom.getKind();
+    if (k==AND && pol)
+    {
+      toProcess.insert(toProcess.begin() + index, curr.begin(), curr.end());
+    }
+    else if (k==OR && !pol)
+    {
+      std::vector<Node> negc;
+      for (TNode c : currAtom)
+      {
+        negc.push_back(c.negate());
+      }
+      toProcess.insert(toProcess.begin() + index, negc.begin(), negc.end());
+    }
+    else if (!isTheoryAtom(currAtom))
+    {
+      al.addAssertion(curr);
+    }
+    else
+    {
+      // we skip (top-level) theory literals, since these are always propagated
+    }
   }
+  while (index<toProcess.size());
 }
 
 bool JustificationStrategy::refreshCurrentAssertion()
@@ -430,24 +489,39 @@ bool JustificationStrategy::refreshCurrentAssertion()
   // if we already have a current assertion, nothing to be done
   if (!d_current.get().isNull())
   {
+    if (d_current.get()!=d_currUnderStatus && !d_currUnderStatus.isNull())
+    {
+      notifyStatus(d_currUnderStatusIndex, DecisionStatus::BACKTRACK);
+      // we've backtracked to another assertion which may be partially
+      // processed. don't track its status?
+      d_currUnderStatus = Node::null();
+      d_currStatus = DecisionStatus::INACTIVE;
+    }
     return true;
   }
   bool skFirst = (d_jhSkMode != options::JutificationSkolemMode::LAST);
   // use main assertions first
-  if (refreshCurrentAssertionFromList(skFirst ? d_skolemAssertions
-                                              : d_assertions))
+  if (refreshCurrentAssertionFromList(skFirst))
   {
     return true;
   }
   // if satisfied all main assertions, use the skolem assertions, which may
   // fail
-  return refreshCurrentAssertionFromList(skFirst ? d_assertions
-                                                 : d_skolemAssertions);
+  return refreshCurrentAssertionFromList(!skFirst);
 }
 
-bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
+bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
 {
-  TNode curr = al.getNextAssertion();
+  AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
+  bool doWatchStatus = true;
+  if (useSkolemList)
+  {
+    doWatchStatus = false;
+    d_currUnderStatus = Node::null();
+    d_currStatus = DecisionStatus::INACTIVE;
+  }
+  size_t fromIndex;
+  TNode curr = al.getNextAssertion(fromIndex);
   SatValue currValue;
   while (!curr.isNull())
   {
@@ -461,12 +535,25 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
       d_stackSizeValid = 0;
       pushToStack(curr, SAT_VALUE_TRUE);
       d_lastDecisionLit = TNode::null();
+      // for activity
+      if (doWatchStatus)
+      {
+        // initially, mark that we have not found a decision in this
+        d_currUnderStatus = d_current.get();
+        d_currUnderStatusIndex = fromIndex;
+        d_currStatus = DecisionStatus::NO_DECISION;
+      }
       return true;
     }
     // assertions should all be satisfied, otherwise we are in conflict
     Assert(currValue == SAT_VALUE_TRUE);
+    if (doWatchStatus)
+    {
+      // mark that we did not find a decision in it
+      notifyStatus(fromIndex, DecisionStatus::NO_DECISION);
+    }
     // already justified, immediately skip
-    curr = al.getNextAssertion();
+    curr = al.getNextAssertion(fromIndex);
   }
   return false;
 }
@@ -502,6 +589,12 @@ JustifyInfo* JustificationStrategy::getOrAllocJustifyInfo(size_t i)
     d_stack.push_back(std::make_shared<JustifyInfo>(d_context));
   }
   return d_stack[i].get();
+}
+
+void JustificationStrategy::notifyStatus(size_t i, DecisionStatus s)
+{
+  // TODO: update order
+  Trace("jh-status") << "Assertion #" << i << " had status " << s << std::endl;
 }
 
 bool JustificationStrategy::isTheoryLiteral(TNode n)

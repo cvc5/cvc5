@@ -17,6 +17,8 @@
 #ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
+#include <iosfwd>
+
 #include "context/cdinsert_hashmap.h"
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
@@ -28,6 +30,32 @@
 #include "prop/sat_solver_types.h"
 
 namespace CVC4 {
+
+/**
+ * For monitoring activity of assertions
+ */
+enum class DecisionStatus
+{
+  // not currently watching status of the current assertion
+  INACTIVE,
+  // no decision was made considering the assertion
+  NO_DECISION,
+  // a decision was made considering the assertion
+  DECISION,
+  // we backtracked while considering the assertion
+  BACKTRACK
+};
+const char* toString(DecisionStatus s);
+std::ostream& operator<<(std::ostream& out, DecisionStatus s);
+
+/**
+ * An implementation of justification SAT decision heuristic.
+ * 
+ * Its novel feature is to maintain a SAT-context-dependent stack corresponding
+ * to the current place in the input formula we trying to satisfy. This means
+ * that computing the next decision does not require traversing the current
+ * assertion.
+ */
 class JustificationStrategy
 {
  public:
@@ -56,10 +84,12 @@ class JustificationStrategy
   void notifyRelevantSkolemAssertion(TNode lem);
 
  private:
+  /** Insert to assertion list */
+  void insertToAssertionList(TNode n, bool useSkolemList);
   /** Refresh current */
   bool refreshCurrentAssertion();
   /** Reference current assertion from list */
-  bool refreshCurrentAssertionFromList(AssertionList& al);
+  bool refreshCurrentAssertionFromList(bool useSkolemList);
   /** Push to stack */
   void pushToStack(TNode n, prop::SatValue desiredVal);
   /** Pop from stack */
@@ -90,6 +120,8 @@ class JustificationStrategy
    * Lookup value, return value of n if one can be determined.
    */
   prop::SatValue lookupValue(TNode n);
+  /** Notify status */
+  void notifyStatus(size_t i, DecisionStatus s);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
   /** Is n a theory atom? */
@@ -114,6 +146,13 @@ class JustificationStrategy
   context::CDO<size_t> d_stackSizeValid;
   /** The last decision literal */
   context::CDO<TNode> d_lastDecisionLit;
+  //------------------------------------ activity
+  DecisionStatus d_currStatus;
+  /** Current assertion we are checking for status (context-independent) */
+  Node d_currUnderStatus;
+  /** The index of curr under status */
+  size_t d_currUnderStatusIndex;
+  //------------------------------------ options
   /** using relevancy order */
   bool d_useRlvOrder;
   /** skolem mode */

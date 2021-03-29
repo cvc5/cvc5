@@ -23,17 +23,17 @@ AssertionList::AssertionList(context::Context* ac, context::Context* ic)
 
 void AssertionList::addAssertion(TNode n) { d_assertions.push_back(n); }
 
-TNode AssertionList::getNextAssertion()
+TNode AssertionList::getNextAssertion(size_t& fromIndex)
 {
-  size_t i = d_assertionIndex.get();
-  Assert(i <= d_assertions.size());
-  if (i == d_assertions.size())
+  fromIndex = d_assertionIndex.get();
+  Assert(fromIndex <= d_assertions.size());
+  if (fromIndex == d_assertions.size())
   {
     return Node::null();
   }
   // increment for the next iteration
   d_assertionIndex = d_assertionIndex + 1;
-  return d_assertions[i];
+  return d_assertions[fromIndex];
 }
 
 }  // namespace CVC4

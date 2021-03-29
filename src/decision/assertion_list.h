@@ -29,9 +29,11 @@ class AssertionList
   AssertionList(context::Context* ac, context::Context* ic);
   /** Add the assertion */
   void addAssertion(TNode n);
-  /** Get the new assertion, increment d_assertionIndex. */
-  TNode getNextAssertion();
-
+  /** 
+   * Get the new assertion, increment d_assertionIndex, sets fromIndex to the
+   * index of the assertion.
+   */
+  TNode getNextAssertion(size_t& fromIndex);
  private:
   /** The list of assertions */
   context::CDList<Node> d_assertions;
