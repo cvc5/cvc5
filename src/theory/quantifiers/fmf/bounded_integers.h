@@ -168,8 +168,7 @@ private:
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
-                  TermRegistry& tr,
-                  DecisionManager* dm);
+                  TermRegistry& tr);
   virtual ~BoundedIntegers();
 
   void presolve() override;
@@ -236,8 +235,6 @@ private:
   Node matchBoundVar( Node v, Node t, Node e );
   
   bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
-  /** Pointer to the decision manager */
-  DecisionManager* d_dm;
 };
 
 }

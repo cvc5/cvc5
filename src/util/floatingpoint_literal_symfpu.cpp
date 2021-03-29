@@ -83,51 +83,43 @@ uint32_t FloatingPointLiteral::getUnpackedSignificandWidth(
 #endif
 }
 
-FloatingPointLiteral FloatingPointLiteral::makeNaN(
-    const FloatingPointSize& size)
-{
-#ifdef CVC4_USE_SYMFPU
-  return FloatingPointLiteral(size, SymFPUUnpackedFloatLiteral::makeNaN(size));
-#else
-  unimplemented();
-  return FloatingPointLiteral(size, BitVector(4u, 0u));
-#endif
-}
-
-FloatingPointLiteral FloatingPointLiteral::makeInf(
-    const FloatingPointSize& size, bool sign)
-{
-#ifdef CVC4_USE_SYMFPU
-  return FloatingPointLiteral(size,
-                              SymFPUUnpackedFloatLiteral::makeInf(size, sign));
-#else
-  unimplemented();
-  return FloatingPointLiteral(size, BitVector(4u, 0u));
-#endif
-}
-
-FloatingPointLiteral FloatingPointLiteral::makeZero(
-    const FloatingPointSize& size, bool sign)
-{
-#ifdef CVC4_USE_SYMFPU
-  return FloatingPointLiteral(size,
-                              SymFPUUnpackedFloatLiteral::makeZero(size, sign));
-#else
-  unimplemented();
-  return FloatingPointLiteral(size, BitVector(4u, 0u));
-#endif
-}
-
-FloatingPointLiteral::FloatingPointLiteral(uint32_t d_exp_size,
-                                           uint32_t d_sig_size,
+FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
+                                           uint32_t sig_size,
                                            const BitVector& bv)
-    : d_fp_size(d_exp_size, d_sig_size)
+    : d_fp_size(exp_size, sig_size)
 #ifdef CVC4_USE_SYMFPU
       ,
       d_symuf(symfpu::unpack<symfpuLiteral::traits>(
-          symfpuLiteral::CVC4FPSize(d_exp_size, d_sig_size), bv))
+          symfpuLiteral::CVC4FPSize(exp_size, sig_size), bv))
 #endif
 {
+}
+
+FloatingPointLiteral::FloatingPointLiteral(
+    const FloatingPointSize& size, FloatingPointLiteral::SpecialConstKind kind)
+    : d_fp_size(size)
+#ifdef CVC4_USE_SYMFPU
+      ,
+      d_symuf(SymFPUUnpackedFloatLiteral::makeNaN(size))
+#endif
+{
+  Assert(kind == FloatingPointLiteral::SpecialConstKind::FPNAN);
+}
+
+FloatingPointLiteral::FloatingPointLiteral(
+    const FloatingPointSize& size,
+    FloatingPointLiteral::SpecialConstKind kind,
+    bool sign)
+    : d_fp_size(size)
+#ifdef CVC4_USE_SYMFPU
+      ,
+      d_symuf(kind == FloatingPointLiteral::SpecialConstKind::FPINF
+                  ? SymFPUUnpackedFloatLiteral::makeInf(size, sign)
+                  : SymFPUUnpackedFloatLiteral::makeZero(size, sign))
+#endif
+{
+  Assert(kind == FloatingPointLiteral::SpecialConstKind::FPINF
+         || kind == FloatingPointLiteral::SpecialConstKind::FPZERO);
 }
 
 FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
