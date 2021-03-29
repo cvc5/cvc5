@@ -507,40 +507,10 @@ Node IntBlaster::translateWithChildren(
       }
       else
       {
-        Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
-        // Enforce semantics over individual bits with iextract and ites
-        Assert(translated_children.size() == 2);
-        uint64_t granularity = options::BVAndIntegerGranularity();
-
-        Node x = translated_children[0];
-        Node y = translated_children[1];
-        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-        Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
-        // get a skolem so the IAND solver knows not to do work
-        returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
-            iAnd,
-            "__intblast__iand",
-            "skolem for an IAND node in bitwise mode " + iAnd.toString());
-        addRangeConstraint(returnNode, bvsize, lemmas);
-
-        // eagerly add bitwise lemmas according to the provided granularity
-        uint64_t high_bit;
-        for (uint64_t j = 0; j < bvsize; j += granularity)
-        {
-          high_bit = j + granularity - 1;
-          // don't let high_bit pass bvsize
-          if (high_bit >= bvsize)
-          {
-            high_bit = bvsize - 1;
-          }
-          Node extractedReturnNode =
-              d_iandUtils.iextract(high_bit, j, returnNode);
-          addBitwiseConstraint(
-              extractedReturnNode.eqNode(
-                  d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
-              lemmas);
-        }
+        // no other modes are currently implemented
+        Unreachable();
       }
+
       break;
     }
     case kind::BITVECTOR_SHL:
@@ -765,11 +735,6 @@ Node IntBlaster::translateWithChildren(
     case kind::BOUND_VAR_LIST:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
-      if (d_mode == options::SolveBVAsIntMode::BITWISE)
-      {
-        throw OptionException(
-            "--solve-bv-as-int=bitwise does not support quantifiers");
-      }
       break;
     }
     case kind::FORALL:
