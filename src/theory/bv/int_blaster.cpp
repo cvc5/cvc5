@@ -58,19 +58,6 @@ void IntBlaster::addRangeConstraint(Node node,
   }
 }
 
-void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
-                                      std::vector<Node>& lemmas)
-{
-  if (d_bitwiseAssertions.find(bitwiseConstraint) == d_bitwiseAssertions.end())
-  {
-    Trace("int-blaster-debug")
-        << "bitwise constraint added to cache and lemmas: " << bitwiseConstraint
-        << std::endl;
-    d_bitwiseAssertions.insert(bitwiseConstraint);
-    lemmas.push_back(bitwiseConstraint);
-  }
-}
-
 Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
 {
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
@@ -1039,7 +1026,6 @@ IntBlaster::IntBlaster(context::Context* c,
       d_rebuildCache(c),
       d_intblastCache(c),
       d_rangeAssertions(c),
-      d_bitwiseAssertions(c),
       d_mode(mode),
       d_granularity(granularity),
       d_context(c),
