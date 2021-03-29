@@ -3661,8 +3661,8 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC4_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
       << "Expected ntSymbol and rule to have the same sort";
   CVC4_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
-      << "a constant term or a term containing synthFun/synthInv parameters "
-         "and non-terminal symbols of the grammar";
+      << "a term whose free variables are limited to synthFun/synthInv "
+         "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
   d_ntsToTerms[ntSymbol].push_back(rule);
   ////////
@@ -3684,8 +3684,8 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !containsFreeVariables(rules[i]), rules[i], rules, i)
-        << "a constant term or a term containing synthFun/synthInv parameters "
-           "and non-terminal symbols of the grammar";
+        << "a term whose free variables are limited to synthFun/synthInv "
+           "parameters and non-terminal symbols of the grammar";
   }
   //////// all checks before this line
   d_ntsToTerms[ntSymbol].insert(
