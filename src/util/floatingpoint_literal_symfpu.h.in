@@ -288,6 +288,18 @@ class FloatingPointLiteral
 
  public:
   /**
+   * The kind of floating-point special constants that can be created via the
+   * corresponding constructor.
+   * These are prefixed with FP because of name clashes with NAN.
+   */
+  enum SpecialConstKind
+  {
+    FPINF,   // +-oo
+    FPNAN,   // NaN
+    FPZERO,  // +-zero
+  };
+
+  /**
    * Get the number of exponent bits in the unpacked format corresponding to a
    * given packed format.  This is the unpacked counter-part of
    * FloatingPointSize::exponentWidth().
@@ -300,24 +312,6 @@ class FloatingPointLiteral
    */
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
-  /**
-   * Create a FP NaN literal of given size.
-   * size: The FP size (format).
-   */
-  static FloatingPointLiteral makeNaN(const FloatingPointSize& size);
-  /**
-   * Create a FP infinity literal of given size.
-   * size: The FP size (format).
-   * sign: True for -oo, false otherwise.
-   */
-  static FloatingPointLiteral makeInf(const FloatingPointSize& size, bool sign);
-  /**
-   * Create a FP zero literal of given size.
-   * size: The FP size (format).
-   * sign: True for -zero, false otherwise.
-   */
-  static FloatingPointLiteral makeZero(const FloatingPointSize& size,
-                                       bool sign);
 // clang-format off
 #if !@CVC4_USE_SYMFPU@
   // clang-format on
@@ -328,10 +322,16 @@ class FloatingPointLiteral
   /** Constructors. */
 
   /** Create a FP literal from its IEEE bit-vector representation. */
-  FloatingPointLiteral(uint32_t d_exp_size,
-                       uint32_t d_sig_size,
+  FloatingPointLiteral(uint32_t exp_size,
+                       uint32_t sig_size,
                        const BitVector& bv);
   FloatingPointLiteral(const FloatingPointSize& size, const BitVector& bv);
+
+  /** Create a FP literal that represents a special constants. */
+  FloatingPointLiteral(const FloatingPointSize& size, SpecialConstKind kind);
+  FloatingPointLiteral(const FloatingPointSize& size,
+                       SpecialConstKind kind,
+                       bool sign);
 
   /**
    * Create a FP literal from a signed or unsigned bit-vector value with
