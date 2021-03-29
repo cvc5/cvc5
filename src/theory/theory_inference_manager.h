@@ -423,10 +423,10 @@ class TheoryInferenceManager
   TheoryState& d_theoryState;
   /** Reference to the output channel of the theory */
   OutputChannel& d_out;
-  /** Pointer to the decision manager */
-  DecisionManager* d_decManager;
   /** Pointer to equality engine of the theory. */
   eq::EqualityEngine* d_ee;
+  /** Pointer to the decision manager */
+  DecisionManager* d_decManager;
   /** A proof equality engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** The proof node manager of the theory */
