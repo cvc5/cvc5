@@ -13,11 +13,12 @@
 
 include(deps-helper)
 
-find_package(GTest QUIET NO_PACKAGE_ROOT_PATH)
+find_path(GTest_INCLUDE_DIR NAMES gtest/gtest.h)
+find_library(GTest_LIBRARIES NAMES gtest)
+find_library(GTest_MAIN_LIBRARIES NAMES gtest_main)
 
 set(GTest_FOUND_SYSTEM FALSE)
-if(GTest_FOUND)
-    # the cmake version of FindGTest already defines appropriate targets
+if(GTest_INCLUDE_DIR AND GTest_LIBRARIES AND GTest_MAIN_LIBRARIES)
     set(GTest_FOUND_SYSTEM TRUE)
 endif()
 
@@ -47,26 +48,26 @@ if(NOT GTest_FOUND_SYSTEM)
     set(GTest_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(GTest_LIBRARIES "${DEPS_BASE}/lib/libgtest.a")
     set(GTest_MAIN_LIBRARIES "${DEPS_BASE}/lib/libgtest_main.a")
+endif()
 
-    set(GTest_FOUND TRUE)
+set(GTest_FOUND TRUE)
 
-    add_library(GTest::GTest STATIC IMPORTED GLOBAL)
+add_library(GTest::GTest STATIC IMPORTED GLOBAL)
+set_target_properties(GTest::GTest PROPERTIES
+    IMPORTED_LOCATION "${GTest_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}"
+)
+
+add_library(GTest::Main STATIC IMPORTED GLOBAL)
+set_target_properties(GTest::Main PROPERTIES
+    IMPORTED_LOCATION "${GTest_MAIN_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}"
+)
+
+find_package(Threads QUIET)
+if(TARGET Threads::Threads)
     set_target_properties(GTest::GTest PROPERTIES
-        IMPORTED_LOCATION "${GTest_LIBRARIES}"
-        INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}"
-    )
-
-    add_library(GTest::Main STATIC IMPORTED GLOBAL)
-    set_target_properties(GTest::Main PROPERTIES
-        IMPORTED_LOCATION "${GTest_MAIN_LIBRARIES}"
-        INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}"
-    )
-
-    find_package(Threads QUIET)
-    if(TARGET Threads::Threads)
-        set_target_properties(GTest::GTest PROPERTIES
-            INTERFACE_LINK_LIBRARIES Threads::Threads)
-    endif()
+        INTERFACE_LINK_LIBRARIES Threads::Threads)
 endif()
 
 mark_as_advanced(GTest_FOUND)
