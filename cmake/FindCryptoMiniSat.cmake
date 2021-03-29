@@ -15,24 +15,16 @@
 
 include(deps-helper)
 
-find_path(CryptoMiniSat_INCLUDE_DIR NAMES cryptominisat5/cryptominisat.h)
-find_library(CryptoMiniSat_LIBRARIES NAMES cryptominisat5)
+find_package(cryptominisat5 ${CryptoMiniSat_FIND_VERSION} QUIET)
 
 set(CryptoMiniSat_FOUND_SYSTEM FALSE)
-if(CryptoMiniSat_INCLUDE_DIR AND CryptoMiniSat_LIBRARIES)
+if(cryptominisat5_FOUND)
     set(CryptoMiniSat_FOUND_SYSTEM TRUE)
+    add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
+    # TODO(gereon): remove this when https://github.com/msoos/cryptominisat/pull/645 is merged
+    set_target_properties(CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CRYPTOMINISAT5_INCLUDE_DIRS}")
 
-    function(GetVersionPart OUTPUT FILENAME DESC)
-      file(STRINGS ${FILENAME} RES REGEX "^#define CRYPTOMINISAT_VERSION_${DESC}[ \\t]+.*")
-      string(REGEX MATCH "[0-9]+" RES "${RES}")
-      set(${OUTPUT} "${RES}" PARENT_SCOPE)
-    endfunction()
-    GetVersionPart(MAJOR "${CryptoMiniSat_INCLUDE_DIR}/cryptominisat5/cryptominisat.h" "MAJOR")
-    GetVersionPart(MINOR "${CryptoMiniSat_INCLUDE_DIR}/cryptominisat5/cryptominisat.h" "MINOR")
-    GetVersionPart(PATCH "${CryptoMiniSat_INCLUDE_DIR}/cryptominisat5/cryptominisat.h" "PATCH")
-    set(CryptoMiniSat_VERSION "${MAJOR}.${MINOR}.${PATCH}")
-
-    check_system_version("CryptoMiniSat")
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
@@ -48,6 +40,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
         PATCH_COMMAND patch <SOURCE_DIR>/src/packedmatrix.h ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CryptoMiniSat-patch-ba6f76e3.patch
         CMAKE_ARGS
           -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
           -DENABLE_ASSERTIONS=OFF
@@ -58,6 +51,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
           -DNOZLIB=ON
           -DONLY_SIMPLE=ON
           -DSTATICCOMPILE=ON
+        BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcryptominisat5.a
     )
     ExternalProject_Add_Step(
         CryptoMiniSat-EP
@@ -69,13 +63,13 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
 
     set(CryptoMiniSat_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/lib/libcryptominisat5.a")
+
+    add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
+    set_target_properties(CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}")
+    set_target_properties(CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CryptoMiniSat_INCLUDE_DIR}")
 endif()
 
 set(CryptoMiniSat_FOUND TRUE)
-
-add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
-set_target_properties(CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}")
-set_target_properties(CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CryptoMiniSat_INCLUDE_DIR}")
 
 mark_as_advanced(CryptoMiniSat_FOUND)
 mark_as_advanced(CryptoMiniSat_FOUND_SYSTEM)
