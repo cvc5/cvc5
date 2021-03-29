@@ -44,7 +44,6 @@ macro(cvc4_add_unit_test is_white name output_dir)
   target_link_libraries(${name} ${GMP_LIBRARIES})
   target_include_directories(${name} PRIVATE ${GMP_INCLUDE_DIR})
   if(USE_POLY)
-    # We don't link against libpoly, because CVC4 is already linked against it.
     target_link_libraries(${name} ${POLY_LIBRARIES})
     target_include_directories(${name} PRIVATE ${POLY_INCLUDE_DIR})
   endif()
