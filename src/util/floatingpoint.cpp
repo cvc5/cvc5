@@ -78,8 +78,8 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
   if (r.isZero())
   {
     // In keeping with the SMT-LIB standard
-    d_fpl.reset(
-        new FloatingPointLiteral(FloatingPointLiteral::makeZero(size, false)));
+    d_fpl.reset(new FloatingPointLiteral(
+        size, FloatingPointLiteral::SpecialConstKind::FPZERO, false));
   }
   else
   {
@@ -201,20 +201,20 @@ const FloatingPointSize& FloatingPoint::getSize() const
 
 FloatingPoint FloatingPoint::makeNaN(const FloatingPointSize& size)
 {
-  return FloatingPoint(
-      new FloatingPointLiteral(FloatingPointLiteral::makeNaN(size)));
+  return FloatingPoint(new FloatingPointLiteral(
+      size, FloatingPointLiteral::SpecialConstKind::FPNAN));
 }
 
 FloatingPoint FloatingPoint::makeInf(const FloatingPointSize& size, bool sign)
 {
-  return FloatingPoint(
-      new FloatingPointLiteral(FloatingPointLiteral::makeInf(size, sign)));
+  return FloatingPoint(new FloatingPointLiteral(
+      size, FloatingPointLiteral::SpecialConstKind::FPINF, sign));
 }
 
 FloatingPoint FloatingPoint::makeZero(const FloatingPointSize& size, bool sign)
 {
-  return FloatingPoint(
-      new FloatingPointLiteral(FloatingPointLiteral::makeZero(size, sign)));
+  return FloatingPoint(new FloatingPointLiteral(
+      size, FloatingPointLiteral::SpecialConstKind::FPZERO, sign));
 }
 
 FloatingPoint FloatingPoint::makeMinSubnormal(const FloatingPointSize& size,
