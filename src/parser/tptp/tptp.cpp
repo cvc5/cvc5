@@ -371,6 +371,38 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 
 api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
+  /*
+  // compute the numerator
+  api::Term inum = d_solver->mkInteger(snum + sden);
+  // The sign
+  if (!pos)
+  {
+    inum = d_solver->mkTerm(api::UMINUS, inum);
+  }
+  // Decimal part
+  size_t dec = sden.size();
+  // compute the value
+  api::Term r;
+  if(!posE)
+  {
+    r = Rational(inum, Integer(10).pow(exp + dec));
+  }
+  else if(exp == dec)
+  {
+    r = inum;
+  }
+  else if(exp > dec)
+  {
+    r = Rational(inum * Integer(10).pow(exp - dec));
+  }
+  else
+  {
+    r = Rational(inum, Integer(10).pow(dec - exp));
+  }
+  return r;
+  */
+  
+  
   /* compute the numerator */
   Integer inum(snum + sden);
   // The sign
