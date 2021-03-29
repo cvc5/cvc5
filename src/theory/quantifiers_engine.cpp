@@ -73,7 +73,8 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_te = te;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, d_pnm, d_modules);
+  d_qmodules->initialize(
+      this, d_qstate, d_qim, d_qreg, d_treg, d_pnm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -498,17 +499,11 @@ bool QuantifiersEngine::reduceQuantifier(Node q)
         // add equivalence with another quantified formula
         tlem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
         id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
-<<<<<<< HEAD
         if (!tlem.isNull())
         {
           Trace("quant-engine-red")
               << "...alpha equivalence success." << std::endl;
-          ++(d_statistics.d_red_alpha_equiv);
-=======
-        if( !lem.isNull() ){
-          Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_qstate.getStats().d_red_alpha_equiv);
->>>>>>> 96ac1d2a5d1f25eaa1b0b265bb21d1a8b3c3d872
         }
       }
       d_quantsRedTrustLem[q] = tlem;
