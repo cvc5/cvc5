@@ -206,7 +206,10 @@ class CegInstantiator {
    * The instantiator will be constructing instantiations for quantified formula
    * q, parent is the owner of this object.
    */
-  CegInstantiator(Node q, QuantifiersState& qs, TermRegistry& tr, InstStrategyCegqi* parent);
+  CegInstantiator(Node q,
+                  QuantifiersState& qs,
+                  TermRegistry& tr,
+                  InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context

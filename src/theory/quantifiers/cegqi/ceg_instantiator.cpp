@@ -1438,7 +1438,7 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_treg.getModel()->getValue( n );
+  return d_treg.getModel()->getValue(n);
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)
