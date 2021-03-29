@@ -24,7 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -32,15 +31,10 @@ class TheoryEngine;
 
 namespace theory {
 
-class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
 namespace quantifiers {
-
-namespace inst {
-class TriggerTrie;
-}
 
 class FirstOrderModel;
 class Instantiate;
@@ -60,8 +54,6 @@ class TermRegistry;
 class QuantifiersEngine {
   friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -72,8 +64,6 @@ class QuantifiersEngine {
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
-  /** Get the decision manager */
-  DecisionManager* getDecisionManager();
   /** The quantifiers state object */
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
@@ -92,8 +82,6 @@ class QuantifiersEngine {
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get trigger database */
-  quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -106,7 +94,7 @@ class QuantifiersEngine {
    * @param te The theory engine
    * @param dm The decision manager of the theory engine
    */
-  void finishInit(TheoryEngine* te, DecisionManager* dm);
+  void finishInit(TheoryEngine* te);
   //---------------------- end private initialization
 
  public:
@@ -191,25 +179,6 @@ public:
 
  //----------end user interface for instantiations
 
- /** statistics class */
- class Statistics
- {
-  public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_red_alpha_equiv;
-    Statistics();
-    ~Statistics();
-  };/* class QuantifiersEngine::Statistics */
-  Statistics d_statistics;
-
  private:
   /** The quantifiers state object */
   quantifiers::QuantifiersState& d_qstate;
@@ -217,8 +186,6 @@ public:
   quantifiers::QuantifiersInferenceManager& d_qim;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
-  /** Reference to the decision manager of the theory engine */
-  DecisionManager* d_decManager;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** vector of utilities for quantifiers */
@@ -230,8 +197,6 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<quantifiers::inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities

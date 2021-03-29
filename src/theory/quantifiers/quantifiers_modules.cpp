@@ -45,18 +45,17 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
                                     TermRegistry& tr,
-                                    DecisionManager* dm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
   if (options::quantConflictFind())
   {
-    d_qcf.reset(new QuantConflictFind(qe, qs, qim, qr));
+    d_qcf.reset(new QuantConflictFind(qe, qs, qim, qr, tr));
     modules.push_back(d_qcf.get());
   }
   if (options::conjectureGen())
   {
-    d_sg_gen.reset(new ConjectureGenerator(qe, qs, qim, qr));
+    d_sg_gen.reset(new ConjectureGenerator(qe, qs, qim, qr, tr));
     modules.push_back(d_sg_gen.get());
   }
   if (!options::finiteModelFind() || options::fmfInstEngine())
@@ -66,24 +65,24 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (options::cegqi())
   {
-    d_i_cbqi.reset(new InstStrategyCegqi(qe, qs, qim, qr));
+    d_i_cbqi.reset(new InstStrategyCegqi(qe, qs, qim, qr, tr));
     modules.push_back(d_i_cbqi.get());
     qim.getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
   }
   if (options::sygus())
   {
-    d_synth_e.reset(new SynthEngine(qe, qs, qim, qr));
+    d_synth_e.reset(new SynthEngine(qe, qs, qim, qr, tr));
     modules.push_back(d_synth_e.get());
   }
   // finite model finding
   if (options::fmfBound())
   {
-    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr, dm));
+    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr, tr));
     modules.push_back(d_bint.get());
   }
   if (options::finiteModelFind() || options::fmfBound())
   {
-    d_model_engine.reset(new ModelEngine(qe, qs, qim, qr));
+    d_model_engine.reset(new ModelEngine(qe, qs, qim, qr, tr));
     modules.push_back(d_model_engine.get());
     Trace("quant-init-debug")
         << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
@@ -102,7 +101,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
   {
-    d_qsplit.reset(new QuantDSplit(qe, qs, qim, qr));
+    d_qsplit.reset(new QuantDSplit(qe, qs, qim, qr, tr));
     modules.push_back(d_qsplit.get());
   }
   if (options::quantAlphaEquiv())
@@ -113,12 +112,12 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
     d_rel_dom.reset(new RelevantDomain(qe, qr));
-    d_fs.reset(new InstStrategyEnum(qe, qs, qim, qr, d_rel_dom.get()));
+    d_fs.reset(new InstStrategyEnum(qe, qs, qim, qr, tr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }
   if (options::sygusInst())
   {
-    d_sygus_inst.reset(new SygusInst(qe, qs, qim, qr));
+    d_sygus_inst.reset(new SygusInst(qe, qs, qim, qr, tr));
     modules.push_back(d_sygus_inst.get());
   }
 }
