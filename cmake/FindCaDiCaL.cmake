@@ -1,4 +1,4 @@
-######################
+#####################
 ## FindCaDiCaL.cmake
 ## Top contributors (to current version):
 ##   Mathias Preiner

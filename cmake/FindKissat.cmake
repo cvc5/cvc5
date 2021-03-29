@@ -1,4 +1,4 @@
-######################
+#####################
 ## FindKissat.cmake
 ## Top contributors (to current version):
 ##   Aina Niemetz
