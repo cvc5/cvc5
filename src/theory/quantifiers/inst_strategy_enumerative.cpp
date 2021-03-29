@@ -20,7 +20,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -110,7 +109,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   // at effort level r=0 but another quantified formula does). We prefer
   // this stratification since effort level r=1 may be highly expensive in the
   // case where we have a quantified formula with many entailed instances.
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::map<Node, bool> alreadyProc;
   for (unsigned r = rstart; r <= rend; r++)
@@ -183,14 +182,15 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
     return false;
   }
 
-  TermTupleEnumeratorContext ttec;
-  ttec.d_quantEngine = d_quantEngine;
-  ttec.d_rd = d_rd;
+  TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = fullEffort;
   ttec.d_increaseSum = options::fullSaturateSum();
-  ttec.d_isRd = isRd;
+  // make the enumerator, which is either relevant domain or term database
+  // based on the flag isRd.
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(
-      mkTermTupleEnumerator(quantifier, &ttec));
+      isRd ? mkTermTupleEnumeratorRd(quantifier, &ttec, d_rd)
+           : mkTermTupleEnumerator(
+                 quantifier, &ttec, d_qstate, d_treg.getTermDatabase()));
   std::vector<Node> terms;
   std::vector<bool> failMask;
   Instantiate* ie = d_qim.getInstantiate();

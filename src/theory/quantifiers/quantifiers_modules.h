@@ -60,7 +60,6 @@ class QuantifiersModules
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
-                  DecisionManager* dm,
                   std::vector<QuantifiersModule*>& modules);
 
  private:

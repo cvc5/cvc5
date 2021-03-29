@@ -84,11 +84,10 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
 {
  public:
   /** Initialize the class with the quantifier to be instantiated. */
-  TermTupleEnumeratorBase(Node quantifier,
-                          const TermTupleEnumeratorContext* context)
+  TermTupleEnumeratorBase(Node quantifier, const TermTupleEnumeratorEnv* env)
       : d_quantifier(quantifier),
         d_variableCount(d_quantifier[0].getNumChildren()),
-        d_context(context),
+        d_env(env),
         d_stepCounter(0),
         d_disabledCombinations(
             true)  // do not record combinations with no blanks
@@ -111,8 +110,8 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
   const Node d_quantifier;
   /** number of variables in the quantifier */
   const size_t d_variableCount;
-  /** context of structures with a longer lifespan */
-  const TermTupleEnumeratorContext* const d_context;
+  /** env of structures with a longer lifespan */
+  const TermTupleEnumeratorEnv* const d_env;
   /** type for each variable */
   std::vector<TypeNode> d_typeCache;
   /** number of candidate terms for each variable */
@@ -166,8 +165,10 @@ class TermTupleEnumeratorBasic : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorBasic(Node quantifier,
-                           const TermTupleEnumeratorContext* context)
-      : TermTupleEnumeratorBase(quantifier, context)
+                           const TermTupleEnumeratorEnv* env,
+                           QuantifiersState& qs,
+                           TermDb* td)
+      : TermTupleEnumeratorBase(quantifier, env), d_qs(qs), d_tdb(td)
   {
   }
 
@@ -178,6 +179,10 @@ class TermTupleEnumeratorBasic : public TermTupleEnumeratorBase
   std::map<TypeNode, std::vector<Node> > d_termDbList;
   virtual size_t prepareTerms(size_t variableIx) override;
   virtual Node getTerm(size_t variableIx, size_t term_index) override;
+  /** Reference to quantifiers state */
+  QuantifiersState& d_qs;
+  /** Pointer to term database */
+  TermDb* d_tdb;
 };
 
 /**
@@ -187,8 +192,9 @@ class TermTupleEnumeratorRD : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorRD(Node quantifier,
-                        const TermTupleEnumeratorContext* context)
-      : TermTupleEnumeratorBase(quantifier, context)
+                        const TermTupleEnumeratorEnv* env,
+                        RelevantDomain* rd)
+      : TermTupleEnumeratorBase(quantifier, env), d_rd(rd)
   {
   }
   virtual ~TermTupleEnumeratorRD() = default;
@@ -196,24 +202,15 @@ class TermTupleEnumeratorRD : public TermTupleEnumeratorBase
  protected:
   virtual size_t prepareTerms(size_t variableIx) override
   {
-    return d_context->d_rd->getRDomain(d_quantifier, variableIx)
-        ->d_terms.size();
+    return d_rd->getRDomain(d_quantifier, variableIx)->d_terms.size();
   }
   virtual Node getTerm(size_t variableIx, size_t term_index) override
   {
-    return d_context->d_rd->getRDomain(d_quantifier, variableIx)
-        ->d_terms[term_index];
+    return d_rd->getRDomain(d_quantifier, variableIx)->d_terms[term_index];
   }
+  /** The relevant domain */
+  RelevantDomain* d_rd;
 };
-
-TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node quantifier, const TermTupleEnumeratorContext* context)
-{
-  return context->d_isRd ? static_cast<TermTupleEnumeratorInterface*>(
-             new TermTupleEnumeratorRD(quantifier, context))
-                         : static_cast<TermTupleEnumeratorInterface*>(
-                             new TermTupleEnumeratorBasic(quantifier, context));
-}
 
 void TermTupleEnumeratorBase::init()
 {
@@ -237,7 +234,7 @@ void TermTupleEnumeratorBase::init()
     const size_t termsSize = prepareTerms(variableIx);
     Trace("inst-alg-rd") << "Variable " << variableIx << " has " << termsSize
                          << " in relevant domain." << std::endl;
-    if (termsSize == 0 && !d_context->d_fullEffort)
+    if (termsSize == 0 && !d_env->d_fullEffort)
     {
       d_hasNext = false;
       return;  // give up on an empty dommain
@@ -321,7 +318,7 @@ bool TermTupleEnumeratorBase::increaseStageSum()
 bool TermTupleEnumeratorBase::increaseStage()
 {
   d_changePrefix = d_variableCount;  // simply reset upon increase stage
-  return d_context->d_increaseSum ? increaseStageSum() : increaseStageMax();
+  return d_env->d_increaseSum ? increaseStageSum() : increaseStageMax();
 }
 
 bool TermTupleEnumeratorBase::increaseStageMax()
@@ -368,7 +365,7 @@ bool TermTupleEnumeratorBase::nextCombination()
 /** Move onto the next combination, depending on the strategy. */
 bool TermTupleEnumeratorBase::nextCombinationInternal()
 {
-  return d_context->d_increaseSum ? nextCombinationSum() : nextCombinationMax();
+  return d_env->d_increaseSum ? nextCombinationSum() : nextCombinationMax();
 }
 
 /** Find the next lexicographically smallest combination of terms that change
@@ -463,20 +460,17 @@ bool TermTupleEnumeratorBase::nextCombinationSum()
 
 size_t TermTupleEnumeratorBasic::prepareTerms(size_t variableIx)
 {
-  TermDb* const tdb = d_context->d_quantEngine->getTermDatabase();
-  QuantifiersState& qs = d_context->d_quantEngine->getState();
   const TypeNode type_node = d_typeCache[variableIx];
-
   if (!ContainsKey(d_termDbList, type_node))
   {
-    const size_t ground_terms_count = tdb->getNumTypeGroundTerms(type_node);
+    const size_t ground_terms_count = d_tdb->getNumTypeGroundTerms(type_node);
     std::map<Node, Node> repsFound;
     for (size_t j = 0; j < ground_terms_count; j++)
     {
-      Node gt = tdb->getTypeGroundTerm(type_node, j);
+      Node gt = d_tdb->getTypeGroundTerm(type_node, j);
       if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
       {
-        Node rep = qs.getRepresentative(gt);
+        Node rep = d_qs.getRepresentative(gt);
         if (repsFound.find(rep) == repsFound.end())
         {
           repsFound[rep] = gt;
@@ -539,6 +533,20 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
     return d_poolList[variableIx][term_index];
   }
 };
+
+TermTupleEnumeratorInterface* mkTermTupleEnumerator(
+    Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs, TermDb* td)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorBasic(q, env, qs, td));
+}
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
+    Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorRD(q, env, rd));
+}
+
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
     Node q, const TermTupleEnumeratorContext* context, TermPools* tp, Node pool)
 {

@@ -118,7 +118,6 @@ jobs:
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
-        ./contrib/get-antlr-3.4
         ./contrib/get-poly
         ./contrib/get-symfpu
         ./contrib/get-cadical
@@ -128,7 +127,6 @@ jobs:
     - name: List dependencies
       run: |
         find deps/install -type f
-        cat deps/install/bin/antlr3
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
