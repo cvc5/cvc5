@@ -30,6 +30,7 @@ class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
 class QuantifiersState;
+class TermRegistry;
 
 /**
  * Descriptions of the types of constraints that a term was solved for in.

@@ -16,9 +16,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -26,7 +23,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;

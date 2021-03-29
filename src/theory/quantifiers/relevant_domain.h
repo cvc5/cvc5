@@ -24,7 +24,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersState;
 class QuantifiersRegistry;
+class TermRegistry;
 
 /** Relevant Domain
  *
@@ -42,7 +44,7 @@ class QuantifiersRegistry;
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersEngine* qe, QuantifiersRegistry& qr);
+  RelevantDomain(QuantifiersState& qs, QuantifiersRegistry& qr, TermRegstry& tr);
   virtual ~RelevantDomain();
   /** Reset. */
   bool reset(Theory::Effort e) override;
@@ -117,10 +119,12 @@ class RelevantDomain : public QuantifiersUtil
    * each relevant domain object.
    */
   std::map< RDomain *, int > d_ri_map;
-  /** Quantifiers engine associated with this utility. */
-  QuantifiersEngine* d_qe;
-  /** The quantifiers registry */
+  /** Reference to the quantifiers state object */
+  QuantifiersState& d_qs;
+  /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** have we computed the relevant domain on this full effort check? */
   bool d_is_computed;
   /** relevant domain literal
