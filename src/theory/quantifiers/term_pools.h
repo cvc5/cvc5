@@ -35,13 +35,13 @@ class QuantifiersState;
 class TermPoolDomain
 {
  public:
-   /** initialize, which clears the data below */
+  /** initialize, which clears the data below */
   void initialize();
   /** add node to this pool */
   void add(Node n);
   /** The list in this pool */
   std::vector<Node> d_terms;
-  /** 
+  /**
    * The list of terms on this round. This is cleared at the beginning of an
    * instantiation round. The members are unique modulo equality.
    */
@@ -55,7 +55,7 @@ class TermPoolDomain
 class TermPoolQuantInfo
 {
  public:
-   /** initialize, which clears the data below */
+  /** initialize, which clears the data below */
   void initialize();
   /** Annotations of kind INST_ADD_TO_POOL */
   std::vector<Node> d_instAddToPool;
