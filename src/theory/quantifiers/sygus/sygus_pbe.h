@@ -86,7 +86,7 @@ class SygusPbe : public SygusModule
 {
  public:
   SygusPbe(QuantifiersInferenceManager& qim,
-                         TermDbSygus * tds,
+           TermDbSygus* tds,
            SynthConjecture* p);
   ~SygusPbe();
 

@@ -71,7 +71,7 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
 }
 
 CegisCoreConnective::CegisCoreConnective(QuantifiersInferenceManager& qim,
-                                         TermDbSygus * tds,
+                                         TermDbSygus* tds,
                                          SynthConjecture* p)
     : Cegis(qim, tds, p)
 {

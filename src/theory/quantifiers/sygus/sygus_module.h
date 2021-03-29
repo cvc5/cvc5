@@ -51,7 +51,7 @@ class SygusModule
 {
  public:
   SygusModule(QuantifiersInferenceManager& qim,
-                         TermDbSygus * tds,
+              TermDbSygus* tds,
               SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize

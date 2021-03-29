@@ -21,7 +21,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusModule::SygusModule(QuantifiersInferenceManager& qim,
-                         TermDbSygus * tds,
+                         TermDbSygus* tds,
                          SynthConjecture* p)
     : d_qim(qim), d_tds(tds), d_parent(p)
 {

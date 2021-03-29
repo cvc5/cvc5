@@ -30,7 +30,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusPbe::SygusPbe(QuantifiersInferenceManager& qim,
-                         TermDbSygus * tds,
+                   TermDbSygus* tds,
                    SynthConjecture* p)
     : SygusModule(qim, tds, p)
 {

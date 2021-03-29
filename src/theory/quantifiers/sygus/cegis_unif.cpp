@@ -31,7 +31,7 @@ namespace quantifiers {
 
 CegisUnif::CegisUnif(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
-                                TermDbSygus * tds,
+                     TermDbSygus* tds,
                      SynthConjecture* p)
     : Cegis(qim, tds, p), d_sygus_unif(p), d_u_enum_manager(qs, qim, tds, p)
 {
@@ -403,7 +403,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-    TermDbSygus * tds,
+    TermDbSygus* tds,
     SynthConjecture* parent)
     : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
       d_qim(qim),

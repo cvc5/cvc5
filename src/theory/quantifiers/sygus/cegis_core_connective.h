@@ -160,7 +160,7 @@ class CegisCoreConnective : public Cegis
 {
  public:
   CegisCoreConnective(QuantifiersInferenceManager& qim,
-                                         TermDbSygus * tds,
+                      TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}
   /**

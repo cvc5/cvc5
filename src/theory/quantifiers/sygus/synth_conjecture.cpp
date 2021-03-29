@@ -408,7 +408,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       Trace("sygus-engine") << "  * Value is : ";
       std::stringstream sygusEnumOut;
-      FirstOrderModel * m = d_treg.getModel();
+      FirstOrderModel* m = d_treg.getModel();
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         Node nv = enum_values[i];

@@ -32,9 +32,11 @@ namespace theory {
 namespace quantifiers {
 
 Cegis::Cegis(QuantifiersInferenceManager& qim,
-                         TermDbSygus * tds,
+             TermDbSygus* tds,
              SynthConjecture* p)
-    : SygusModule(qim, tds, p), d_eval_unfold(tds->getEvalUnfold()), d_usingSymCons(false)
+    : SygusModule(qim, tds, p),
+      d_eval_unfold(tds->getEvalUnfold()),
+      d_usingSymCons(false)
 {
 }
 

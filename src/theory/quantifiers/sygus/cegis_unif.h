@@ -50,7 +50,7 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
  public:
   CegisUnifEnumDecisionStrategy(QuantifiersState& qs,
                                 QuantifiersInferenceManager& qim,
-                                TermDbSygus * tds,
+                                TermDbSygus* tds,
                                 SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
@@ -208,7 +208,7 @@ class CegisUnif : public Cegis
  public:
   CegisUnif(QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
-                                TermDbSygus * tds,
+            TermDbSygus* tds,
             SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions

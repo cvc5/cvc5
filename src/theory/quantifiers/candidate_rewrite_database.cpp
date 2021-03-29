@@ -60,7 +60,7 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
 }
 
 void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
-                       TermDbSygus* tds,
+                                               TermDbSygus* tds,
                                                Node f,
                                                SygusSampler* ss)
 {
