@@ -78,15 +78,18 @@ class TermPools : public QuantifiersUtil
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override;
-  /** register pool */
+  /** Register pool p with initial value initValue. */
   void registerPool(Node p, const std::vector<Node>& initValue);
-  /** get terms for pool */
+  /** Get terms for pool p, adds them to the vector terms. */
   void getTermsForPool(Node p, std::vector<Node>& terms);
 
   /**
-   * Process instantiation
+   * Process instantiation, called at the moment we successfully instantiate
+   * q with terms. This adds terms to pools based on INST_ADD_TO_POOL
+   * annotations.
    */
   void processInstantiation(Node q, const std::vector<Node>& terms);
+  /** Same as above, for SKOLEM_ADD_TO_POOL. */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
 
  private:
