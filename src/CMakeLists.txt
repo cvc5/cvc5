@@ -1132,8 +1132,8 @@ if(USE_CADICAL)
   target_include_directories(cvc4 PRIVATE ${CaDiCaL_INCLUDE_DIR})
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 PUBLIC ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE ${CLN_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
 endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 PRIVATE ${CryptoMiniSat_LIBRARIES})
@@ -1148,7 +1148,7 @@ if(USE_GLPK)
   target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc4 PUBLIC ${POLY_LIBRARIES})
+  target_link_libraries(cvc4 PRIVATE ${POLY_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
 endif()
 if(USE_SYMFPU)
@@ -1157,8 +1157,8 @@ endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
-target_link_libraries(cvc4 PUBLIC ${GMP_LIBRARIES})
-target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+target_link_libraries(cvc4 PRIVATE ${GMP_LIBRARIES})
+target_include_directories(cvc4 PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
