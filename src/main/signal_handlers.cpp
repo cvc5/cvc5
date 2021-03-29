@@ -21,7 +21,6 @@
 #include <string.h>
 
 #include <cerrno>
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
