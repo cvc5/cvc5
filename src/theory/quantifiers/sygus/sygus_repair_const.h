@@ -107,8 +107,6 @@ class SygusRepairConst
   static bool mustRepair(Node n);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /**
