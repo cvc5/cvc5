@@ -13,12 +13,11 @@
 
 include(deps-helper)
 
-find_path(GTest_INCLUDE_DIR NAMES gtest/gtest.h)
-find_library(GTest_LIBRARIES NAMES gtest)
-find_library(GTest_MAIN_LIBRARIES NAMES gtest_main)
+find_package(GTest QUIET NO_PACKAGE_ROOT_PATH)
 
 set(GTest_FOUND_SYSTEM FALSE)
-if(GTest_INCLUDE_DIR AND GTest_LIBRARIES AND GTest_MAIN_LIBRARIES)
+if(GTest_FOUND)
+    # the cmake version of FindGTest already defines appropriate targets
     set(GTest_FOUND_SYSTEM TRUE)
 endif()
 
@@ -36,32 +35,38 @@ if(NOT GTest_FOUND_SYSTEM)
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-        BUILD_COMMAND cmake --build . --config ${CMAKE_BUILD_TYPE} --target gtest
-        COMMAND cmake --build . --config ${CMAKE_BUILD_TYPE} --target gtest_main
-        BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgtest.a <INSTALL_DIR>/lib/libgtest_main.a
+        BUILD_COMMAND ${CMAKE_COMMAND} --build .
+            --config ${CMAKE_BUILD_TYPE} --target gtest
+        COMMAND ${CMAKE_COMMAND} --build .
+            --config ${CMAKE_BUILD_TYPE} --target gtest_main
+        BUILD_BYPRODUCTS
+            <INSTALL_DIR>/lib/libgtest.a
+            <INSTALL_DIR>/lib/libgtest_main.a
     )
 
     set(GTest_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(GTest_LIBRARIES "${DEPS_BASE}/lib/libgtest.a")
     set(GTest_MAIN_LIBRARIES "${DEPS_BASE}/lib/libgtest_main.a")
-endif()
 
-set(GTest_FOUND TRUE)
+    set(GTest_FOUND TRUE)
 
-add_library(GTest::GTest STATIC IMPORTED GLOBAL)
-set_target_properties(GTest::GTest PROPERTIES IMPORTED_LOCATION "${GTest_LIBRARIES}")
-set_target_properties(GTest::GTest PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}")
-
-add_library(GTest::Main STATIC IMPORTED GLOBAL)
-set_target_properties(GTest::Main PROPERTIES IMPORTED_LOCATION "${GTest_MAIN_LIBRARIES}")
-set_target_properties(GTest::Main PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}")
-
-
-
-find_package(Threads QUIET)
-if(TARGET Threads::Threads)
+    add_library(GTest::GTest STATIC IMPORTED GLOBAL)
     set_target_properties(GTest::GTest PROPERTIES
-        INTERFACE_LINK_LIBRARIES Threads::Threads)
+        IMPORTED_LOCATION "${GTest_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}"
+    )
+
+    add_library(GTest::Main STATIC IMPORTED GLOBAL)
+    set_target_properties(GTest::Main PROPERTIES
+        IMPORTED_LOCATION "${GTest_MAIN_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${GTest_INCLUDE_DIR}"
+    )
+
+    find_package(Threads QUIET)
+    if(TARGET Threads::Threads)
+        set_target_properties(GTest::GTest PROPERTIES
+            INTERFACE_LINK_LIBRARIES Threads::Threads)
+    endif()
 endif()
 
 mark_as_advanced(GTest_FOUND)
