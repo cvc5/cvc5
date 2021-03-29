@@ -95,7 +95,7 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
 
 /** Make term pool enumerator */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
-    Node q, const TermTupleEnumeratorContext* context, TermPools* tp, Node p);
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node p);
 
 }  // namespace quantifiers
 }  // namespace theory

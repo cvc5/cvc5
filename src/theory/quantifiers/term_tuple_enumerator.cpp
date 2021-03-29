@@ -499,10 +499,10 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorPool(Node quantifier,
-                          const TermTupleEnumeratorContext* context,
+                          const TermTupleEnumeratorEnv* env,
                           TermPools* tp,
                           Node pool)
-      : TermTupleEnumeratorBase(quantifier, context), d_tp(tp), d_pool(pool)
+      : TermTupleEnumeratorBase(quantifier, env), d_tp(tp), d_pool(pool)
   {
     Assert(d_pool.getKind() == kind::INST_POOL);
   }
@@ -548,10 +548,10 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
 }
 
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
-    Node q, const TermTupleEnumeratorContext* context, TermPools* tp, Node pool)
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node pool)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-      new TermTupleEnumeratorPool(q, context, tp, pool));
+      new TermTupleEnumeratorPool(q, env, tp, pool));
 }
 
 }  // namespace quantifiers

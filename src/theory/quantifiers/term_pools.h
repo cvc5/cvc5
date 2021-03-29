@@ -29,28 +29,43 @@ namespace quantifiers {
 
 class QuantifiersState;
 
+/**
+ * Information concerning a pool variable.
+ */
 class TermPoolDomain
 {
  public:
-  /** initialize */
+   /** initialize, which clears the data below */
   void initialize();
-  /** add node to pool */
+  /** add node to this pool */
   void add(Node n);
   /** The list in this pool */
   std::vector<Node> d_terms;
-  /** the list of terms on this round */
+  /** 
+   * The list of terms on this round. This is cleared at the beginning of an
+   * instantiation round. The members are unique modulo equality.
+   */
   std::vector<Node> d_currTerms;
 };
 
+/**
+ * Contains all annotations that pertain to pools for a given quantified
+ * formula.
+ */
 class TermPoolQuantInfo
 {
  public:
+   /** initialize, which clears the data below */
   void initialize();
+  /** Annotations of kind INST_ADD_TO_POOL */
   std::vector<Node> d_instAddToPool;
+  /** Annotations of kind SKOLEM_ADD_TO_POOL */
   std::vector<Node> d_skolemAddToPool;
 };
 
-/** Term pools
+/**
+ * Term pools, which tracks the values of "pools", which are used for
+ * pool-based instantiation.
  */
 class TermPools : public QuantifiersUtil
 {
@@ -65,7 +80,6 @@ class TermPools : public QuantifiersUtil
   std::string identify() const override;
   /** register pool */
   void registerPool(Node p, const std::vector<Node>& initValue);
-
   /** get terms for pool */
   void getTermsForPool(Node p, std::vector<Node>& terms);
 

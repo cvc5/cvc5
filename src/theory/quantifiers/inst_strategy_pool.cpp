@@ -128,12 +128,9 @@ std::string InstStrategyPool::identify() const
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
-  TermTupleEnumeratorContext ttec;
-  ttec.d_quantEngine = d_quantEngine;
-  ttec.d_rd = nullptr;
-  ttec.d_fullEffort = false;  /// TODO: what is this?
+  TermTupleEnumeratorEnv ttec;
+  ttec.d_fullEffort = true;
   ttec.d_increaseSum = options::fullSaturateSum();
-  ttec.d_isRd = false;
   TermPools* tp = d_quantEngine->getTermRegistry().getTermPools();
   std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
       mkTermTupleEnumeratorPool(q, &ttec, tp, p));
