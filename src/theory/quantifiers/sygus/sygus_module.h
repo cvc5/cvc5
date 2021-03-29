@@ -53,8 +53,7 @@ class QuantifiersInferenceManager;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe,
-              QuantifiersInferenceManager& qim,
+  SygusModule(QuantifiersInferenceManager& qim,
               SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
@@ -150,8 +149,6 @@ class SygusModule
   virtual bool usingRepairConst() { return false; }
 
  protected:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
