@@ -1760,7 +1760,7 @@ NUMBER
         std::string snum = AntlrInput::tokenText($num);
         std::string sden = AntlrInput::tokenText($den);
         size_t exp = ($e == NULL ? 0 : AntlrInput::tokenToUnsigned($e));
-        PARSER_STATE->d_tmp_expr = PARSER_STATE->mkDecimal(snum, sden, exp, pos);
+        PARSER_STATE->d_tmp_expr = PARSER_STATE->mkDecimal(snum, sden, pos, exp, posE);
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;

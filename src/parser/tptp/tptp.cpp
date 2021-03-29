@@ -369,7 +369,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   return d_solver->mkTerm(kind, args);
 }
 
-api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, size_t exp, bool pos)
+api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
   /* compute the numerator */
   Integer inum(snum + sden);
