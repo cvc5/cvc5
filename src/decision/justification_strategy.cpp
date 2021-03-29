@@ -21,13 +21,13 @@ namespace CVC4 {
 
 const char* toString(DecisionStatus s)
 {
-  switch(s)
+  switch (s)
   {
-  case DecisionStatus::INACTIVE: return "INACTIVE";
-  case DecisionStatus::NO_DECISION: return "NO_DECISION";
-  case DecisionStatus::DECISION: return "DECISION";
-  case DecisionStatus::BACKTRACK: return "BACKTRACK";
-  default: return "?";
+    case DecisionStatus::INACTIVE: return "INACTIVE";
+    case DecisionStatus::NO_DECISION: return "NO_DECISION";
+    case DecisionStatus::DECISION: return "DECISION";
+    case DecisionStatus::BACKTRACK: return "BACKTRACK";
+    default: return "?";
   }
 }
 
@@ -170,7 +170,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // beginning of the next call to getNext above.
           d_lastDecisionLit = next.first;
           // update the decision
-          if (d_currStatus==DecisionStatus::NO_DECISION)
+          if (d_currStatus == DecisionStatus::NO_DECISION)
           {
             d_currStatus = DecisionStatus::DECISION;
           }
@@ -455,15 +455,15 @@ void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
   do
   {
     TNode curr = toProcess[index];
-    bool pol = curr.getKind()!=NOT;
+    bool pol = curr.getKind() != NOT;
     TNode currAtom = pol ? curr : curr[0];
     index++;
     Kind k = currAtom.getKind();
-    if (k==AND && pol)
+    if (k == AND && pol)
     {
       toProcess.insert(toProcess.begin() + index, curr.begin(), curr.end());
     }
-    else if (k==OR && !pol)
+    else if (k == OR && !pol)
     {
       std::vector<Node> negc;
       for (TNode c : currAtom)
@@ -480,8 +480,7 @@ void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
     {
       // we skip (top-level) theory literals, since these are always propagated
     }
-  }
-  while (index<toProcess.size());
+  } while (index < toProcess.size());
 }
 
 bool JustificationStrategy::refreshCurrentAssertion()
@@ -489,7 +488,7 @@ bool JustificationStrategy::refreshCurrentAssertion()
   // if we already have a current assertion, nothing to be done
   if (!d_current.get().isNull())
   {
-    if (d_current.get()!=d_currUnderStatus && !d_currUnderStatus.isNull())
+    if (d_current.get() != d_currUnderStatus && !d_currUnderStatus.isNull())
     {
       notifyStatus(d_currUnderStatusIndex, DecisionStatus::BACKTRACK);
       // we've backtracked to another assertion which may be partially

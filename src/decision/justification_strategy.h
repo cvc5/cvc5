@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& out, DecisionStatus s);
 
 /**
  * An implementation of justification SAT decision heuristic.
- * 
+ *
  * Its novel feature is to maintain a SAT-context-dependent stack corresponding
  * to the current place in the input formula we trying to satisfy. This means
  * that computing the next decision does not require traversing the current
