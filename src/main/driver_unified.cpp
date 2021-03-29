@@ -62,13 +62,14 @@ namespace CVC4 {
     /** The time point the binary started, accessible to signal handlers */
     std::unique_ptr<TotalTimer> totalTime;
 
-    TotalTimer::~TotalTimer() {
-        if (pExecutor != nullptr)
-        {
-          auto duration = std::chrono::steady_clock::now() - d_start;
-          pExecutor->getSmtEngine()->setTotalTimeStatistic(
-              std::chrono::duration<double>(duration).count());
-        }
+    TotalTimer::~TotalTimer()
+    {
+      if (pExecutor != nullptr)
+      {
+        auto duration = std::chrono::steady_clock::now() - d_start;
+        pExecutor->getSmtEngine()->setTotalTimeStatistic(
+            std::chrono::duration<double>(duration).count());
+      }
     }
 
   }/* CVC4::main namespace */
