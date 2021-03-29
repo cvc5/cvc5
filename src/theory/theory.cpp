@@ -127,7 +127,7 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 void Theory::setDecisionManager(DecisionManager* dm)
 {
   Assert(dm != nullptr);
-  if (d_inferManager!=nullptr)
+  if (d_inferManager != nullptr)
   {
     d_inferManager->setDecisionManager(dm);
   }
