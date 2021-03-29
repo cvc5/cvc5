@@ -276,7 +276,7 @@ struct SynthConjectureProcessFun
 class SynthConjectureProcess
 {
  public:
-  SynthConjectureProcess(QuantifiersEngine* qe);
+  SynthConjectureProcess();
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
    * Returns a formula that is equivalent to q.
