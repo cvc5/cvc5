@@ -176,7 +176,10 @@ class Tptp : public Parser {
    * what is necessary in parsing SMT-LIB.
    */
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
-
+  /**
+   * Make decimal
+   */
+  api::Term mkDecimal(std::string& snum, std::string& sden, size_t exp);
  private:
   void addArithmeticOperators();
 
