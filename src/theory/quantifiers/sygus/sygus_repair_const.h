@@ -47,7 +47,7 @@ class TermDbSygus;
 class SygusRepairConst
 {
  public:
-  SygusRepairConst(TermDbSygus * tds);
+  SygusRepairConst(TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *

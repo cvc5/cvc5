@@ -566,8 +566,7 @@ class CegInstantiator {
    * of the type tn, where visited stores the types we have visited.
    */
   static CegHandledStatus isCbqiSort(
-      TypeNode tn,
-      std::map<TypeNode, CegHandledStatus>& visited);
+      TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
 };
 
