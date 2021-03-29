@@ -23,9 +23,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class SynthConjecture;
@@ -54,6 +51,7 @@ class SygusModule
 {
  public:
   SygusModule(QuantifiersInferenceManager& qim,
+                         TermDbSygus * tds,
               SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize

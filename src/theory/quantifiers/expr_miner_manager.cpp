@@ -13,7 +13,6 @@
  **/
 
 #include "theory/quantifiers/expr_miner_manager.h"
-#include "theory/quantifiers_engine.h"
 
 #include "options/quantifiers_options.h"
 
@@ -26,7 +25,6 @@ ExpressionMinerManager::ExpressionMinerManager()
       d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
-      d_qe(nullptr),
       d_tds(nullptr),
       d_crd(options::sygusRewSynthCheck(), options::sygusRewSynthAccel(), false)
 {

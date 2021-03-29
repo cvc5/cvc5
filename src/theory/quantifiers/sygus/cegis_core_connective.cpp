@@ -70,10 +70,10 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
   return false;
 }
 
-CegisCoreConnective::CegisCoreConnective(QuantifiersEngine* qe,
-                                         QuantifiersInferenceManager& qim,
+CegisCoreConnective::CegisCoreConnective(QuantifiersInferenceManager& qim,
+                                         TermDbSygus * tds,
                                          SynthConjecture* p)
-    : Cegis(qe, qim, p)
+    : Cegis(qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
