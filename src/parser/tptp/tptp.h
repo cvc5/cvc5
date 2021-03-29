@@ -179,7 +179,7 @@ class Tptp : public Parser {
   /**
    * Make decimal
    */
-  api::Term mkDecimal(std::string& snum, std::string& sden, size_t exp);
+  api::Term mkDecimal(std::string& snum, std::string& sden, size_t exp, bool pos);
  private:
   void addArithmeticOperators();
 
