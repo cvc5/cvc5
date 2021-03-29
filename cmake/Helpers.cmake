@@ -130,7 +130,7 @@ endmacro()
 
 # Helper to print the configuration of a 2-valued or 3-valued option 'var'
 # with prefix 'str'.
-macro(print_config str var)
+function(print_config str var)
   if("${var}" STREQUAL "ON")
     set(OPT_VAL_STR "on")
   elseif("${var}" STREQUAL "OFF" OR "${var}" STREQUAL "IGNORE")
@@ -139,7 +139,7 @@ macro(print_config str var)
     set(OPT_VAL_STR "${var}")
   endif()
   message("${Blue}${str}: ${Green}${OPT_VAL_STR}${ResetColor}")
-endmacro()
+endfunction()
 
 
 # Collect all source files that are required to build libcvc4 in LIBCVC4_SRCS
