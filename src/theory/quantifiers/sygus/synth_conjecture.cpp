@@ -34,7 +34,6 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
@@ -45,28 +44,28 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
-                                 QuantifiersState& qs,
+SynthConjecture::SynthConjecture(QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
+                                 TermRegistry& tr,
                                  SygusStatistics& s)
-    : d_qe(qe),
-      d_qstate(qs),
+    : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
+      d_treg(tr),
       d_stats(s),
-      d_tds(qe->getTermDatabaseSygus()),
+      d_tds(tr.getTermDatabaseSygus()),
       d_hasSolution(false),
-      d_ceg_si(new CegSingleInv(qe, s)),
+      d_ceg_si(new CegSingleInv(tr, s)),
       d_templInfer(new SygusTemplateInfer),
-      d_ceg_proc(new SynthConjectureProcess(qe)),
+      d_ceg_proc(new SynthConjectureProcess),
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
-      d_sygus_rconst(new SygusRepairConst(qe)),
+      d_sygus_rconst(new SygusRepairConst(d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qe, qim, this)),
-      d_ceg_cegis(new Cegis(qe, qim, this)),
-      d_ceg_cegisUnif(new CegisUnif(qe, qs, qim, this)),
-      d_sygus_ccore(new CegisCoreConnective(qe, qim, this)),
+      d_ceg_pbe(new SygusPbe(qim, d_tds, this)),
+      d_ceg_cegis(new Cegis(qim, d_tds, this)),
+      d_ceg_cegisUnif(new CegisUnif(qs, qim, d_tds, this)),
+      d_sygus_ccore(new CegisCoreConnective(qim, d_tds, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -246,7 +245,7 @@ void SynthConjecture::assign(Node q)
                                     d_feasible_guard,
                                     d_qstate.getSatContext(),
                                     d_qstate.getValuation()));
-  d_qe->getDecisionManager()->registerStrategy(
+  d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
@@ -409,10 +408,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       Trace("sygus-engine") << "  * Value is : ";
       std::stringstream sygusEnumOut;
+      FirstOrderModel* m = d_treg.getModel();
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         Node nv = enum_values[i];
-        Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
+        Node onv = nv.isNull() ? m->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
         TermDbSygus::toStreamSygus(ss, onv);
@@ -969,7 +969,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
 Node SynthConjecture::getModelValue(Node n)
 {
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
-  return d_qe->getModel()->getValue(n);
+  return d_treg.getModel()->getValue(n);
 }
 
 void SynthConjecture::debugPrint(const char* c)
@@ -1071,7 +1071,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         if (its == d_exprm.end())
         {
           d_exprm[prog].initializeSygus(
-              d_qe, d_candidates[i], options::sygusSamples(), true);
+              d_tds, d_candidates[i], options::sygusSamples(), true);
           if (options::sygusRewSynth())
           {
             d_exprm[prog].enableRewriteRuleSynth();

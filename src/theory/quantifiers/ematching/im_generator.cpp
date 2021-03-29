@@ -33,11 +33,6 @@ bool IMGenerator::sendInstantiation(InstMatch& m, InferenceId id)
   return d_tparent->sendInstantiation(m, id);
 }
 
-QuantifiersEngine* IMGenerator::getQuantifiersEngine()
-{
-  return d_tparent->d_quantEngine;
-}
-
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory

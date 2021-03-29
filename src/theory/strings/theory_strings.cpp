@@ -187,7 +187,7 @@ void TheoryStrings::presolve() {
     d_stringsFmf.presolve();
     // This strategy is local to a check-sat call, since we refresh the strategy
     // on every call to presolve.
-    getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_STRINGS_SUM_LENGTHS,
         d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);

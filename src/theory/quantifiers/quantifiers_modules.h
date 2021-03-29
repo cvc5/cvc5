@@ -59,7 +59,6 @@ class QuantifiersModules
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
-                  DecisionManager* dm,
                   ProofNodeManager* pnm,
                   std::vector<QuantifiersModule*>& modules);
 
