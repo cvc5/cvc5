@@ -60,13 +60,14 @@ namespace CVC4 {
     std::unique_ptr<CVC4::main::CommandExecutor> pExecutor;
 
     /** The time point the binary started, accessible to signal handlers */
-    std::unique_ptr<TotalTimer> totalTimeStart;
+    std::unique_ptr<TotalTimer> totalTime;
 
     TotalTimer::~TotalTimer() {
         if (pExecutor != nullptr)
         {
-            auto totalTime = std::chrono::steady_clock::now() - d_start;
-            pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
+          auto duration = std::chrono::steady_clock::now() - d_start;
+          pExecutor->getSmtEngine()->setTotalTimeStatistic(
+              std::chrono::duration<double>(duration).count());
         }
     }
 
@@ -89,8 +90,7 @@ void printUsage(Options& opts, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& opts) {
-
-  main::totalTimeStart = std::make_unique<TotalTimer>();
+  main::totalTime = std::make_unique<TotalTimer>();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -187,7 +187,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the command executor to execute the parsed commands
-  pExecutor.reset(new CommandExecutor(opts));
+  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
@@ -469,7 +469,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    totalTimeStart.reset();
+    totalTime.reset();
     pExecutor->flushOutputStreams();
 
 #ifdef CVC4_DEBUG

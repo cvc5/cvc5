@@ -49,7 +49,7 @@ class TotalTimer
     std::chrono::steady_clock::time_point d_start;
 };
 /** The time point the binary started, accessible to signal handlers */
-extern std::unique_ptr<TotalTimer> totalTimeStart;
+extern std::unique_ptr<TotalTimer> totalTime;
 
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.

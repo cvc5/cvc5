@@ -61,7 +61,7 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
-    totalTimeStart.reset();
+    totalTime.reset();
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }
