@@ -44,10 +44,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_satSolver(nullptr),
       d_assertions(u, c),        // assertions are user-context dependent
       d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
-      d_current(c),
       d_justified(c),
       d_stack(c),
-      d_stackSizeValid(c, 0),
       d_lastDecisionLit(c),
       d_currStatus(DecisionStatus::INACTIVE),
       d_currUnderStatusIndex(0),
@@ -73,17 +71,17 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
-    Trace("jh-stack") << "getNext, already finished" << std::endl;
+    Trace("jh-process") << "getNext, already finished" << std::endl;
     stopSearch = true;
     return undefSatLiteral;
   }
-  Assert(!d_current.get().isNull());
+  Assert(d_stack.hasCurrentAssertion());
   // temporary information in the loop below
   JustifyInfo* ji;
   JustifyNode next;
   // we start with the value implied by the last decision, if it exists
   SatValue lastChildVal = SAT_VALUE_UNKNOWN;  // d_lastDecisionValue.get();
-  Trace("jh-stack") << "getNext, current = " << d_current.get() << std::endl;
+  Trace("jh-process") << "getNext" << std::endl;
   // If we had just sent a decision, then we lookup its value here. This may
   // correspond to a context where the decision was carried out, or
   // alternatively it may correspond to a case where we have backtracked and
@@ -93,14 +91,13 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // stack below.
   if (!d_lastDecisionLit.get().isNull())
   {
-    Trace("jh-stack") << "last decision = " << d_lastDecisionLit.get()
+    Trace("jh-process") << "last decision = " << d_lastDecisionLit.get()
                       << std::endl;
     lastChildVal = lookupValue(d_lastDecisionLit.get());
     if (lastChildVal == SAT_VALUE_UNKNOWN)
     {
       // if the value is now unknown, we must reprocess the child
-      Assert(d_stack.size() >= d_stackSizeValid.get());
-      ji = d_stack[d_stackSizeValid.get() - 1].get();
+      ji = d_stack.getCurrent();
       ji->revertChildIndex();
     }
   }
@@ -108,24 +105,27 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // while we are trying to satisfy assertions
   do
   {
-    Assert(d_stackSizeValid.get() > 0);
+    Assert(d_stack.getCurrent()!=nullptr);
     // We get the next justify node, if it can be found.
     do
     {
       // get the current justify info, which should be ready
-      Assert(d_stack.size() >= d_stackSizeValid.get());
-      ji = d_stack[d_stackSizeValid.get() - 1].get();
+      ji = d_stack.getCurrent();
+      if (ji==nullptr)
+      {
+        break;
+      }
       // get the next child to process from the current justification info
       // based on the fact that its last child processed had value lastChildVal.
       next = getNextJustifyNode(ji, lastChildVal);
       // if the current node is finished, we pop the stack
       if (next.first.isNull())
       {
-        popStack();
+        d_stack.popStack();
       }
-    } while (next.first.isNull() && d_stackSizeValid.get() > 0);
+    } while (next.first.isNull());
 
-    if (d_stackSizeValid.get() == 0)
+    if (ji==nullptr)
     {
       // assertion should be true?
       // AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion "
@@ -136,10 +136,10 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         notifyStatus(d_currUnderStatusIndex, d_currStatus);
       }
       // we did not find a next node for current, refresh current assertion
-      d_current = Node::null();
+      d_stack.clear();
       refreshCurrentAssertion();
       lastChildVal = SAT_VALUE_UNKNOWN;
-      Trace("jh-stack") << "...exhausted assertion, now " << d_current.get()
+      Trace("jh-process") << "...exhausted assertion, now " << d_stack.getCurrentAssertion()
                         << std::endl;
     }
     else
@@ -165,7 +165,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           lastChildVal = nextPol ? next.second : invertValue(next.second);
           // (1) atom with unassigned value, return it as the decision, possibly
           // inverted
-          Trace("jh-stack")
+          Trace("jh-process")
               << "...return " << nextAtom << " " << lastChildVal << std::endl;
           // Note that the last child of the current node we looked at does
           // *not* yet have a value. Although we are returning it as a decision,
@@ -185,7 +185,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         {
           // TODO: if the internal node has been assigned, what do we do?
           // (2) unprocessed non-atom, push to the stack
-          pushToStack(next.first, next.second);
+          d_stack.pushToStack(next.first, next.second);
           // we have yet to process children for the next node, so lastChildVal
           // remains set to SAT_VALUE_UNKNOWN.
         }
@@ -198,9 +198,9 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // (3) otherwise, next already has a value lastChildVal which will be
       // processed in the next iteration of the loop.
     }
-  } while (!d_current.get().isNull());
+  } while (d_stack.hasCurrentAssertion());
   // we exhausted all assertions
-  Trace("jh-stack") << "...exhausted all assertions" << std::endl;
+  Trace("jh-process") << "...exhausted all assertions" << std::endl;
   stopSearch = true;
   return undefSatLiteral;
 }
@@ -491,9 +491,10 @@ void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
 bool JustificationStrategy::refreshCurrentAssertion()
 {
   // if we already have a current assertion, nothing to be done
-  if (!d_current.get().isNull())
+  TNode curr = d_stack.getCurrentAssertion();
+  if (!curr.isNull())
   {
-    if (d_current.get() != d_currUnderStatus && !d_currUnderStatus.isNull())
+    if (curr != d_currUnderStatus && !d_currUnderStatus.isNull())
     {
       notifyStatus(d_currUnderStatusIndex, DecisionStatus::BACKTRACK);
       // we've backtracked to another assertion which may be partially
@@ -535,15 +536,13 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
     if (currValue == SAT_VALUE_UNKNOWN)
     {
       // if not already justified, we reset the stack and push to it
-      d_current = curr;
-      d_stackSizeValid = 0;
-      pushToStack(curr, SAT_VALUE_TRUE);
+      d_stack.reset(curr);
       d_lastDecisionLit = TNode::null();
       // for activity
       if (doWatchStatus)
       {
         // initially, mark that we have not found a decision in this
-        d_currUnderStatus = d_current.get();
+        d_currUnderStatus = d_stack.getCurrentAssertion();
         d_currUnderStatusIndex = fromIndex;
         d_currStatus = DecisionStatus::NO_DECISION;
       }
@@ -560,39 +559,6 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
     curr = al.getNextAssertion(fromIndex);
   }
   return false;
-}
-
-void JustificationStrategy::pushToStack(TNode n, SatValue desiredVal)
-{
-  if (Trace.isOn("jh-stack"))
-  {
-    for (size_t i = 0, ssize = d_stackSizeValid.get(); i < ssize; i++)
-    {
-      Trace("jh-stack") << " ";
-    }
-    Trace("jh-stack") << "- " << n << " " << desiredVal << std::endl;
-  }
-  // note that n is possibly negated here
-  JustifyInfo* ji = getOrAllocJustifyInfo(d_stackSizeValid.get());
-  ji->set(n, desiredVal);
-  d_stackSizeValid = d_stackSizeValid + 1;
-}
-
-void JustificationStrategy::popStack()
-{
-  Assert(d_stackSizeValid.get() > 0);
-  d_stackSizeValid = d_stackSizeValid - 1;
-}
-
-JustifyInfo* JustificationStrategy::getOrAllocJustifyInfo(size_t i)
-{
-  // don't request stack beyond the bound
-  Assert(i <= d_stack.size());
-  if (i == d_stack.size())
-  {
-    d_stack.push_back(std::make_shared<JustifyInfo>(d_context));
-  }
-  return d_stack[i].get();
 }
 
 void JustificationStrategy::notifyStatus(size_t i, DecisionStatus s)

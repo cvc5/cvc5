@@ -29,7 +29,11 @@ class JustifyStack
  public:
   JustifyStack(context::Context* c);
   ~JustifyStack();
-  /** Get current assertion */
+  /** reset the stack */
+  void reset(TNode curr);
+  /** clear */
+  void clear();
+  /** Get the current assertion */
   TNode getCurrentAssertion() const;
   /** Has current assertion */
   bool hasCurrentAssertion() const;

@@ -23,6 +23,7 @@
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
 #include "decision/justify_info.h"
+#include "decision/justify_stack.h"
 #include "expr/node.h"
 #include "options/decision_options.h"
 #include "prop/cnf_stream.h"
@@ -93,10 +94,6 @@ class JustificationStrategy
   bool refreshCurrentAssertion();
   /** Reference current assertion from list */
   bool refreshCurrentAssertionFromList(bool useSkolemList);
-  /** Push to stack */
-  void pushToStack(TNode n, prop::SatValue desiredVal);
-  /** Pop from stack */
-  void popStack();
   /**
    * Let n be the node referenced by ji.
    *
@@ -114,11 +111,6 @@ class JustificationStrategy
    * of n.
    */
   JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
-  /**
-   * Get or allocate justify info at position i. This does not impact
-   * d_stackSizeValid.
-   */
-  JustifyInfo* getOrAllocJustifyInfo(size_t i);
   /**
    * Lookup value, return value of n if one can be determined.
    */
@@ -139,14 +131,10 @@ class JustificationStrategy
   AssertionList d_assertions;
   /** The skolem assertions */
   AssertionList d_skolemAssertions;
-  /** The current assertion we are trying to satisfy */
-  context::CDO<TNode> d_current;
   /** Mapping from non-negated nodes to their SAT value */
   context::CDInsertHashMap<Node, prop::SatValue, NodeHashFunction> d_justified;
-  /** Stack of justify info, valid up to index d_stackSizeValid-1 */
-  context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
-  /** Current number of entries in the stack that are valid */
-  context::CDO<size_t> d_stackSizeValid;
+  /** A justify stack */
+  JustifyStack d_stack;
   /** The last decision literal */
   context::CDO<TNode> d_lastDecisionLit;
   //------------------------------------ activity

@@ -22,13 +22,31 @@ JustifyStack::JustifyStack(context::Context* c)
 }
 JustifyStack::~JustifyStack() {}
 
-TNode JustifyStack::getCurrentAssertion() const { return d_current.get(); }
+void JustifyStack::reset(TNode curr)
+{
+  d_current = curr;
+  d_stackSizeValid = 0;
+  pushToStack(curr, prop::SAT_VALUE_TRUE);
+}
+void JustifyStack::clear()
+{
+  d_current = TNode::null();
+  d_stackSizeValid = 0;
+}
+TNode JustifyStack::getCurrentAssertion() const
+{
+  return d_current.get();
+}
 bool JustifyStack::hasCurrentAssertion() const
 {
   return !d_current.get().isNull();
 }
 JustifyInfo* JustifyStack::getCurrent()
 {
+  if (d_stackSizeValid.get()==0)
+  {
+    return nullptr;
+  }
   Assert(d_stack.size() >= d_stackSizeValid.get());
   return d_stack[d_stackSizeValid.get() - 1].get();
 }
