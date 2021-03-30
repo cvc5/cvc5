@@ -947,7 +947,7 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
    * Similarly for the domains.
    */
   TypeNode intRange = bvRange.isBitVector() ? d_nm->integerType() : bvRange;
-  for (TypeNode d : bvDomain)
+  for (const TypeNode& d : bvDomain)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
