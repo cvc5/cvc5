@@ -481,21 +481,19 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    inst->recordInstantiation(
-        d_curr_quant, subs, usedVts);
+    inst->recordInstantiation(d_curr_quant, subs, usedVts);
     return true;
   }
-  else if (inst->addInstantiation(
-        d_curr_quant,
-        subs,
-        InferenceId::QUANTIFIERS_INST_CEGQI,
-        false,
-        false,
-        usedVts))
+  else if (inst->addInstantiation(d_curr_quant,
+                                  subs,
+                                  InferenceId::QUANTIFIERS_INST_CEGQI,
+                                  false,
+                                  false,
+                                  usedVts))
   {
     return true;
   }
-  //this should never happen for monotonic selection strategies
+  // this should never happen for monotonic selection strategies
   Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
   return false;
 }
