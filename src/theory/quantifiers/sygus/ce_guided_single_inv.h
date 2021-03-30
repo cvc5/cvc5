@@ -50,8 +50,6 @@ class CegSingleInv
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
   /** solution reconstruction */
@@ -92,7 +90,7 @@ class CegSingleInv
   Node d_single_inv;
   
  public:
-  CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s);
+  CegSingleInv(TermRegistry& tr, SygusStatistics& s);
   ~CegSingleInv();
 
   // get simplified conjecture
@@ -164,6 +162,8 @@ class CegSingleInv
    * calls to the above method getSolutionFromInst.
    */
   void setSolution();
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** The conjecture */
   Node d_quant;
   //-------------- decomposed conjecture
