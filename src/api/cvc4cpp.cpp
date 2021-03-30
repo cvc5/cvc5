@@ -45,6 +45,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
@@ -3665,6 +3666,9 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
          "predeclaration";
   CVC4_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
       << "Expected ntSymbol and rule to have the same sort";
+  CVC4_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
+      << "a term whose free variables are limited to synthFun/synthInv "
+         "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
   d_ntsToTerms[ntSymbol].push_back(rule);
   ////////
@@ -3682,6 +3686,13 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
+  for (size_t i = 0, n = rules.size(); i < n; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !containsFreeVariables(rules[i]), rules[i], rules, i)
+        << "a term whose free variables are limited to synthFun/synthInv "
+           "parameters and non-terminal symbols of the grammar";
+  }
   //////// all checks before this line
   d_ntsToTerms[ntSymbol].insert(
       d_ntsToTerms[ntSymbol].cend(), rules.cbegin(), rules.cend());
@@ -3992,6 +4003,24 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
   }
   ////////
   CVC4_API_TRY_CATCH_END;
+}
+
+bool Grammar::containsFreeVariables(const Term& rule) const
+{
+  std::unordered_set<TNode, TNodeHashFunction> scope;
+
+  for (const Term& sygusVar : d_sygusVars)
+  {
+    scope.emplace(*sygusVar.d_node);
+  }
+
+  for (const Term& ntsymbol : d_ntSyms)
+  {
+    scope.emplace(*ntsymbol.d_node);
+  }
+
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  return expr::getFreeVariablesScope(*rule.d_node, fvs, scope, false);
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
