@@ -29,6 +29,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
     case InferenceId::ARITH_CONF_TRICHOTOMY: return "ARITH_CONF_TRICHOTOMY";
     case InferenceId::ARITH_CONF_UPPER: return "ARITH_CONF_UPPER";
+    case InferenceId::ARITH_CONF_SIMPLEX: return "ARITH_CONF_SIMPLEX";
+    case InferenceId::ARITH_CONF_SOI_SIMPLEX: return "ARITH_CONF_SOI_SIMPLEX";
     case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
     case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
     case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
@@ -163,6 +165,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_INST_CEGQI: return "QUANTIFIERS_INST_CEGQI";
     case InferenceId::QUANTIFIERS_INST_SYQI: return "QUANTIFIERS_INST_SYQI";
     case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
+    case InferenceId::QUANTIFIERS_BINT_PROXY: return "QUANTIFIERS_BINT_PROXY";
+    case InferenceId::QUANTIFIERS_BINT_MIN_NG: return "QUANTIFIERS_BINT_MIN_NG";
     case InferenceId::QUANTIFIERS_CEGQI_CEX: return "QUANTIFIERS_CEGQI_CEX";
     case InferenceId::QUANTIFIERS_CEGQI_CEX_AUX:
       return "QUANTIFIERS_CEGQI_CEX_AUX";
@@ -193,6 +197,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
     case InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ:
       return "QUANTIFIERS_REDUCE_ALPHA_EQ";
+    case InferenceId::QUANTIFIERS_HO_MATCH_PRED: return "QUANTIFIERS_HO_MATCH_PRED";
+    case InferenceId::QUANTIFIERS_PARTIAL_TRIGGER_REDUCE: return "QUANTIFIERS_PARTIAL_TRIGGER_REDUCE";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
@@ -222,6 +228,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_UP_CLOSURE_2: return "SETS_UP_CLOSURE_2";
     case InferenceId::SETS_UP_UNIV: return "SETS_UP_UNIV";
     case InferenceId::SETS_UNIV_TYPE: return "SETS_UNIV_TYPE";
+    case InferenceId::SETS_CARD_SPLIT_EMPTY: return "SETS_CARD_SPLIT_EMPTY";
     case InferenceId::SETS_CARD_CYCLE: return "SETS_CARD_CYCLE";
     case InferenceId::SETS_CARD_EQUAL: return "SETS_CARD_EQUAL";
     case InferenceId::SETS_CARD_GRAPH_EMP: return "SETS_CARD_GRAPH_EMP";
