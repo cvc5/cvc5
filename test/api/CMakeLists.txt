@@ -36,6 +36,8 @@ macro(cvc4_add_api_test name)
     target_link_libraries(${name} ${CLN_LIBRARIES})
     target_include_directories(${name} PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
   endif()
+  target_link_libraries(${name} ${GMP_LIBRARIES})
+  target_include_directories(${name} PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
   add_test(api/${name} ${test_bin_dir}/${name})
