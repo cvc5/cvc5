@@ -25,8 +25,8 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/rewriter.h"
+#include "theory/uf/equality_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;

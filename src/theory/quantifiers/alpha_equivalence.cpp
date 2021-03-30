@@ -81,10 +81,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence()
-    : d_termCanon(), d_aedb(&d_termCanon)
-{
-}
+AlphaEquivalence::AlphaEquivalence() : d_termCanon(), d_aedb(&d_termCanon) {}
 
 Node AlphaEquivalence::reduceQuantifier(Node q)
 {
