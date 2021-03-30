@@ -72,9 +72,9 @@ class TermPools : public QuantifiersUtil
  public:
   TermPools(QuantifiersState& qs);
   ~TermPools() {}
-  /** reset */
+  /** reset, which resets the current values of pools */
   bool reset(Theory::Effort e) override;
-  /* Called for new quantifiers */
+  /** Called for new quantifiers, which computes TermPoolQuantInfo above */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override;
@@ -82,7 +82,6 @@ class TermPools : public QuantifiersUtil
   void registerPool(Node p, const std::vector<Node>& initValue);
   /** Get terms for pool p, adds them to the vector terms. */
   void getTermsForPool(Node p, std::vector<Node>& terms);
-
   /**
    * Process instantiation, called at the moment we successfully instantiate
    * q with terms. This adds terms to pools based on INST_ADD_TO_POOL
@@ -91,7 +90,6 @@ class TermPools : public QuantifiersUtil
   void processInstantiation(Node q, const std::vector<Node>& terms);
   /** Same as above, for SKOLEM_ADD_TO_POOL. */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
-
  private:
   void processInternal(Node q, const std::vector<Node>& ts, bool isInst);
   /** reference to the quantifiers state */
