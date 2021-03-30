@@ -632,7 +632,7 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
 
 void QuantifiersEngine::getInstantiations(Node q, std::vector<Node>& insts)
 {
-  d_instantiate->getInstantiations(q, insts);
+  d_qim.getInstantiate()->getInstantiations(q, insts);
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
