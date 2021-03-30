@@ -778,6 +778,8 @@ libcvc4_add_sources(
   theory/quantifiers/skolemize.h
   theory/quantifiers/solution_filter.cpp
   theory/quantifiers/solution_filter.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_tuple_enumerator.cpp
   theory/quantifiers/term_tuple_enumerator.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
