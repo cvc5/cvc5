@@ -64,8 +64,7 @@ class QuantifiersModule
   QuantifiersModule(quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
-                    quantifiers::TermRegistry& tr,
-                    QuantifiersEngine* qe);
+                    quantifiers::TermRegistry& tr);
   virtual ~QuantifiersModule() {}
   /** Presolve.
    *
@@ -157,8 +156,6 @@ class QuantifiersModule
   bool areDisequal(TNode n1, TNode n2) const;
   /** get the representative of n in the current used equality engine */
   TNode getRepresentative(TNode n) const;
-  /** get quantifiers engine that owns this module */
-  QuantifiersEngine* getQuantifiersEngine() const;
   /** get currently used term database */
   quantifiers::TermDb* getTermDatabase() const;
   /** get the quantifiers state */
@@ -169,8 +166,6 @@ class QuantifiersModule
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //----------------------------end general queries
  protected:
-  /** pointer to the quantifiers engine that owns this module */
-  QuantifiersEngine* d_quantEngine;
   /** Reference to the state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */

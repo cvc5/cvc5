@@ -21,18 +21,16 @@
 #include "theory/quantifiers/term_registry.h"
 
 using namespace CVC4::kind;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+SynthEngine::SynthEngine(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_conj(nullptr),
       d_sqp(qe)
 {

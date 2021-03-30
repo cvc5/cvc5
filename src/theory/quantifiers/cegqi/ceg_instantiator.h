@@ -24,9 +24,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class Instantiator;
@@ -233,8 +230,6 @@ class CegInstantiator {
                                    std::vector<Node>& ce_vars,
                                    std::vector<Node>& auxLems);
   //------------------------------interface for instantiators
-  /** get quantifiers engine */
-  QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
   /** push stack variable
    * This adds a new variable to solve for in the stack
    * of variables we are processing. This stack is only
@@ -251,7 +246,7 @@ class CegInstantiator {
    * instantiation, specified by sf.
    *
    * This function returns true if a call to
-   * QuantifiersEngine::addInstantiation(...)
+   * Instantiate::addInstantiation(...)
    * was successfully made in a recursive call.
    *
    * The solved form sf is reverted to its original state if
@@ -351,8 +346,6 @@ class CegInstantiator {
   QuantifiersState& d_qstate;
   /** The parent of this instantiator */
   InstStrategyCegqi* d_parent;
-  /** quantified formula associated with this instantiator */
-  QuantifiersEngine* d_qe;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains

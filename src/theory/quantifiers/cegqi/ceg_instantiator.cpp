@@ -29,9 +29,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -189,7 +187,6 @@ CegInstantiator::CegInstantiator(Node q,
     : d_quant(q),
       d_qstate(qs),
       d_parent(parent),
-      d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {

@@ -50,12 +50,11 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
-InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
-                                     QuantifiersState& qs,
+InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
