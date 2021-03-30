@@ -380,7 +380,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
     ce_vars.push_back(d_qreg.getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_qim.lemma(lem, InferenceId::UNKNOWN);
+  d_qim.lemma(lem, InferenceId::QUANTIFIERS_CEGQI_CEX);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;
@@ -394,11 +394,11 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   std::vector<Node> auxLems;
   CegInstantiator* cinst = getInstantiator(q);
   cinst->registerCounterexampleLemma(ppLem, ce_vars, auxLems);
-  for (unsigned i = 0, size = auxLems.size(); i < size; i++)
+  for (size_t i = 0, size = auxLems.size(); i < size; i++)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
                          << std::endl;
-    d_qim.addPendingLemma(auxLems[i], InferenceId::UNKNOWN);
+    d_qim.addPendingLemma(auxLems[i], InferenceId::QUANTIFIERS_CEGQI_CEX_AUX);
   }
 }
 
@@ -498,9 +498,9 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   return false;
 }
 
-bool InstStrategyCegqi::addPendingLemma(Node lem) const
+bool InstStrategyCegqi::addPendingLemma(Node lem, InferenceId id) const
 {
-  return d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+  return d_qim.addPendingLemma(lem, id);
 }
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
@@ -541,7 +541,7 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+        d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_CEGQI_NESTED_QE);
       }
       // don't need to process this, since it has been reduced
       return true;

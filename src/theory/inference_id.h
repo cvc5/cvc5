@@ -261,6 +261,12 @@ enum class InferenceId
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
   //-------------------- counterexample-guided instantiation
+  // a counterexample lemma
+  QUANTIFIERS_CEGQI_CEX,
+  // an auxiliary lemma from counterexample lemma
+  QUANTIFIERS_CEGQI_CEX_AUX,
+  // a reduction lemma for nested quantifier elimination
+  QUANTIFIERS_CEGQI_NESTED_QE,
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.
   QUANTIFIERS_CEGQI_CEX_DEP,
@@ -271,6 +277,8 @@ enum class InferenceId
   // infinity > c
   QUANTIFIERS_CEGQI_VTS_LB_INF,
   //-------------------- syntax-guided instantiation
+  // a counterexample lemma
+  QUANTIFIERS_SYQI_CEX,
   // evaluation unfolding for syntax-guided instantiation
   QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
@@ -285,6 +293,9 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  //-------------------- split
+  // a dynamic split from quantifiers
+  QUANTIFIERS_DSPLIT,
   //-------------------- reductions
   // skolemization
   QUANTIFIERS_SKOLEMIZE,

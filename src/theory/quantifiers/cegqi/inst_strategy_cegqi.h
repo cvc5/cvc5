@@ -124,7 +124,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
   /** Add pending lemma lem via the inference manager of this class. */
-  bool addPendingLemma(Node lem) const;
+  bool addPendingLemma(Node lem, InferenceId id) const;
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:

@@ -162,6 +162,9 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_INST_CEGQI: return "QUANTIFIERS_INST_CEGQI";
     case InferenceId::QUANTIFIERS_INST_SYQI: return "QUANTIFIERS_INST_SYQI";
     case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
+    case InferenceId::QUANTIFIERS_CEGQI_CEX: return "QUANTIFIERS_CEGQI_CEX";
+    case InferenceId::QUANTIFIERS_CEGQI_CEX_AUX: return "QUANTIFIERS_CEGQI_CEX_AUX";
+    case InferenceId::QUANTIFIERS_CEGQI_NESTED_QE: return "QUANTIFIERS_CEGQI_NESTED_QE";
     case InferenceId::QUANTIFIERS_CEGQI_CEX_DEP:
       return "QUANTIFIERS_CEGQI_CEX_DEP";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA:
@@ -170,6 +173,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_CEGQI_VTS_UB_DELTA";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF:
       return "QUANTIFIERS_CEGQI_VTS_LB_INF";
+    case InferenceId::QUANTIFIERS_SYQI_CEX:
+      return "QUANTIFIERS_SYQI_CEX";
     case InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD:
       return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
     case InferenceId::QUANTIFIERS_SYGUS_QE_PREPROC:
@@ -182,6 +187,7 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
+    case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
     case InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ:
       return "QUANTIFIERS_REDUCE_ALPHA_EQ";

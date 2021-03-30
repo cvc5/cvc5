@@ -125,8 +125,7 @@ class ArithInstantiator : public Instantiator
   bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                            SolvedForm& sf,
                                            Node pv,
-                                           CegInstEffort effort,
-                                           std::vector<Node>& lemmas) override;
+                                           CegInstEffort effort) override;
   std::string identify() const override { return "Arith"; }
 
  private:

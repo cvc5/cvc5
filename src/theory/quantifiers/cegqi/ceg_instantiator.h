@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "util/statistics_registry.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 namespace theory {
@@ -555,8 +556,7 @@ class CegInstantiator {
    * doAddInstantiation was made.
    */
   bool doAddInstantiation(std::vector<Node>& vars,
-                          std::vector<Node>& subs,
-                          std::vector<Node>& lemmas);
+                          std::vector<Node>& subs);
 
   //------------------------------------ static queries
   /** is cbqi sort
@@ -771,8 +771,7 @@ public:
   virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                                    SolvedForm& sf,
                                                    Node pv,
-                                                   CegInstEffort effort,
-                                                   std::vector<Node>& lemmas)
+                                                   CegInstEffort effort)
   {
     return true;
   }
