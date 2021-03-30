@@ -42,7 +42,6 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
 
-
 IntBlaster::IntBlaster(context::Context* c,
                        options::SolveBVAsIntMode mode,
                        uint64_t granularity,
