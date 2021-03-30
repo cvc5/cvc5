@@ -104,6 +104,13 @@ target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
 target_link_libraries(cvc4parser PUBLIC cvc4)
 target_link_libraries(cvc4parser PRIVATE ANTLR3)
 
+if(USE_CLN)
+  target_link_libraries(cvc4parser ${CLN_LIBRARIES})
+  target_include_directories(cvc4parser PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(cvc4parser PRIVATE ${GMP_LIBRARIES})
+target_include_directories(cvc4parser PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+
 install(TARGETS cvc4parser
   EXPORT cvc4-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
