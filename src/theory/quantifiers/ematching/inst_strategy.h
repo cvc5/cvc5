@@ -24,14 +24,16 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+namespace inst {
+class TriggerDatabase;
+}
 
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
+class TermRegistry;
 
 /** A status response to process */
 enum class InstStrategyStatus
@@ -48,10 +50,11 @@ enum class InstStrategyStatus
 class InstStrategy
 {
  public:
-  InstStrategy(QuantifiersEngine* qe,
+  InstStrategy(inst::TriggerDatabase& td,
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
-               QuantifiersRegistry& qr);
+               QuantifiersRegistry& qr,
+               TermRegistry& tr);
   virtual ~InstStrategy();
   /** presolve */
   virtual void presolve();
@@ -68,14 +71,16 @@ class InstStrategy
    * maintained by the quantifiers state.
    */
   options::UserPatMode getInstUserPatMode() const;
-  /** reference to the instantiation engine */
-  QuantifiersEngine* d_quantEngine;
+  /** reference to the trigger database */
+  inst::TriggerDatabase& d_td;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager object */
   QuantifiersInferenceManager& d_qim;
-  /** The quantifiers registry */
+  /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
 }; /* class InstStrategy */
 
 }  // namespace quantifiers

@@ -276,7 +276,7 @@ class SygusUnifIo : public SygusUnif
    * multiple functions can be separated.
    */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;

@@ -24,6 +24,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 PatternTermSelector::PatternTermSelector(Node q,
@@ -726,5 +727,6 @@ void PatternTermSelector::getTriggerVariables(Node n,
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

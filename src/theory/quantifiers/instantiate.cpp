@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -40,17 +41,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+Instantiate::Instantiate(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
+                         TermRegistry& tr,
                          ProofNodeManager* pnm)
-    : d_qe(qe),
-      d_qstate(qs),
+    : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
+      d_treg(tr),
       d_pnm(pnm),
-      d_term_db(nullptr),
       d_insts(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
@@ -59,7 +59,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe,
 
 Instantiate::~Instantiate()
 {
-  for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+  for (std::pair<const Node, CDInstMatchTrie*>& t : d_c_inst_match_trie)
   {
     delete t.second;
   }
@@ -71,7 +71,6 @@ bool Instantiate::reset(Theory::Effort e)
   Trace("inst-debug") << "Reset, effort " << e << std::endl;
   // clear explicitly recorded instantiations
   d_recordedInst.clear();
-  d_term_db = d_qe->getTermDatabase();
   return true;
 }
 
@@ -103,7 +102,6 @@ bool Instantiate::addInstantiation(Node q,
   d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
-  Assert(d_term_db != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -113,7 +111,7 @@ bool Instantiate::addInstantiation(Node q,
     TypeNode tn = q[0][i].getType();
     if (terms[i].isNull())
     {
-      terms[i] = getTermForType(tn);
+      terms[i] = d_treg.getTermForType(tn);
     }
     // Ensure the type is correct, this for instance ensures that real terms
     // are cast to integers for { x -> t } where x has type Int and t has
@@ -123,7 +121,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
-      terms[i] = d_qe->getInternalRepresentative(terms[i], q, i);
+      terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
@@ -180,6 +178,7 @@ bool Instantiate::addInstantiation(Node q,
 #endif
   }
 
+  TermDb* tdb = d_treg.getTermDatabase();
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
   // included automatically with recordInstantiationInternal, hence we prefer
@@ -202,7 +201,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       subs[q[0][i]] = terms[i];
     }
-    if (d_term_db->isEntailed(q[1], subs, false, true))
+    if (tdb->isEntailed(q[1], subs, false, true))
     {
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
       ++(d_statistics.d_inst_duplicate_ent);
@@ -215,7 +214,7 @@ bool Instantiate::addInstantiation(Node q,
   {
     for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(t, q))
+      if (!tdb->isTermEligibleForInstantiation(t, q))
       {
         return false;
       }
@@ -403,6 +402,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // will never succeed with 1 variable
     return false;
   }
+  TermDb* tdb = d_treg.getTermDatabase();
   Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
@@ -436,7 +436,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     if (options::instNoEntail())
     {
       Trace("inst-exp-fail") << "  check entailment" << std::endl;
-      success = d_term_db->isEntailed(q[1], subs, false, true);
+      success = tdb->isEntailed(q[1], subs, false, true);
       Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
     }
     // check whether the instantiation rewrites to the same thing
@@ -493,8 +493,7 @@ bool Instantiate::existsInstantiation(Node q,
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->existsInstMatch(d_qstate, q, terms, modEq);
@@ -502,8 +501,7 @@ bool Instantiate::existsInstantiation(Node q,
   }
   else
   {
-    std::map<Node, inst::InstMatchTrie>::iterator it =
-        d_inst_match_trie.find(q);
+    std::map<Node, InstMatchTrie>::iterator it = d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
       return it->second.existsInstMatch(d_qstate, q, terms, modEq);
@@ -570,16 +568,15 @@ bool Instantiate::recordInstantiationInternal(Node q,
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie, modEq = " << modEq
         << std::endl;
-    inst::CDInstMatchTrie* imt;
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    CDInstMatchTrie* imt;
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       imt = it->second;
     }
     else
     {
-      imt = new inst::CDInstMatchTrie(d_qstate.getUserContext());
+      imt = new CDInstMatchTrie(d_qstate.getUserContext());
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
@@ -593,8 +590,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->removeInstMatch(q, terms);
@@ -604,6 +600,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
   return d_inst_match_trie[q].removeInstMatch(q, terms);
 }
 
+<<<<<<< HEAD
 Node Instantiate::getTermForType(TypeNode tn)
 {
   if (tn.isClosedEnumerable())
@@ -614,12 +611,22 @@ Node Instantiate::getTermForType(TypeNode tn)
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
+=======
+void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+>>>>>>> c7a8c32825af7dceb6cee631523a480a5b2cc6ba
 {
   for (NodeInstListMap::const_iterator it = d_insts.begin();
        it != d_insts.end();
        ++it)
   {
+<<<<<<< HEAD
     qs.push_back(it->first);
+=======
+    for (std::pair<const Node, InstMatchTrie>& t : d_inst_match_trie)
+    {
+      qs.push_back(t.first);
+    }
+>>>>>>> c7a8c32825af7dceb6cee631523a480a5b2cc6ba
   }
 }
 
@@ -629,7 +636,7 @@ void Instantiate::getInstantiationTermVectors(
 
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::const_iterator it =
+    std::map<Node, CDInstMatchTrie*>::const_iterator it =
         d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
@@ -638,7 +645,7 @@ void Instantiate::getInstantiationTermVectors(
   }
   else
   {
-    std::map<Node, inst::InstMatchTrie>::const_iterator it =
+    std::map<Node, InstMatchTrie>::const_iterator it =
         d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
@@ -700,7 +707,7 @@ void Instantiate::debugPrint(std::ostream& out)
     for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Node name;
-      if (!d_qe->getNameForQuant(i.first, name, req))
+      if (!d_qreg.getNameForQuant(i.first, name, req))
       {
         continue;
       }

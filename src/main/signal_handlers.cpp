@@ -40,7 +40,6 @@
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/safe_print.h"
-#include "util/statistics.h"
 
 using CVC4::Exception;
 using namespace std;
@@ -61,10 +60,7 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
-    if (pTotalTime != NULL && pTotalTime->running())
-    {
-      pTotalTime->stop();
-    }
+    totalTime.reset();
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }

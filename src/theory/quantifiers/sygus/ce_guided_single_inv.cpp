@@ -23,11 +23,12 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_reconstruct.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
@@ -37,19 +38,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(QuantifiersEngine* qe)
-    : d_qe(qe),
-      d_sip(new SingleInvocationPartition),
-      d_sol(new CegSingleInvSol(qe)),
+CegSingleInv::CegSingleInv(TermRegistry& tr, SygusStatistics& s)
+    : d_sip(new SingleInvocationPartition),
+      d_srcons(new SygusReconstruct(tr.getTermDatabaseSygus(), s)),
       d_isSolved(false),
-      d_single_invocation(false)
+      d_single_invocation(false),
+      d_treg(tr)
 {
-
 }
 
 CegSingleInv::~CegSingleInv()
 {
-  delete d_sol;  // (new CegSingleInvSol(qe)),
   delete d_sip;  // d_sip(new SingleInvocationPartition),
 }
 
@@ -296,7 +295,7 @@ struct sortSiInstanceIndices {
 
 Node CegSingleInv::getSolution(size_t sol_index,
                                TypeNode stn,
-                               int& reconstructed,
+                               int8_t& reconstructed,
                                bool rconsSygus)
 {
   Assert(sol_index < d_quant[0].getNumChildren());
@@ -316,21 +315,18 @@ Node CegSingleInv::getSolution(size_t sol_index,
   // must substitute to be proper variables
   const DType& dt = stn.getDType();
   Node varList = dt.getSygusVarList();
-  d_sol->d_varList.clear();
   Assert(d_single_inv_arg_sk.size() == varList.getNumChildren());
-  std::vector< Node > vars;
+  std::vector<Node> vars;
+  std::vector<Node> sygusVars;
   for (size_t i = 0, nvars = d_single_inv_arg_sk.size(); i < nvars; i++)
   {
     Trace("csi-sol") << d_single_inv_arg_sk[i] << " ";
     vars.push_back(d_single_inv_arg_sk[i]);
-    d_sol->d_varList.push_back(varList[i]);
+    sygusVars.push_back(varList[i]);
   }
   Trace("csi-sol") << std::endl;
-  Assert(vars.size() == d_sol->d_varList.size());
-  sol = sol.substitute(vars.begin(),
-                       vars.end(),
-                       d_sol->d_varList.begin(),
-                       d_sol->d_varList.end());
+  sol = sol.substitute(
+      vars.begin(), vars.end(), sygusVars.begin(), sygusVars.end());
   sol = reconstructToSyntax(sol, stn, reconstructed, rconsSygus);
   return s.getKind() == LAMBDA
              ? NodeManager::currentNM()->mkNode(LAMBDA, s[0], sol)
@@ -339,7 +335,6 @@ Node CegSingleInv::getSolution(size_t sol_index,
 
 Node CegSingleInv::getSolutionFromInst(size_t index)
 {
-  Assert(d_sol != NULL);
   Node prog = d_quant[0][index];
   Node s;
   // If it is unconstrained: either the variable does not appear in the
@@ -353,7 +348,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
       ptn = ptn.getRangeType();
     }
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermEnumeration()->getEnumerateTerm(ptn, 0);
+    s = d_treg.getTermEnumeration()->getEnumerateTerm(ptn, 0);
   }
   else
   {
@@ -399,7 +394,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   }
   //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << s << std::endl;
-  s = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
+  s = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
   return SygusUtils::wrapSolutionForSynthFun(prog, s);
@@ -431,21 +426,20 @@ void CegSingleInv::setSolution()
 
 Node CegSingleInv::reconstructToSyntax(Node s,
                                        TypeNode stn,
-                                       int& reconstructed,
+                                       int8_t& reconstructed,
                                        bool rconsSygus)
 {
   // extract the lambda body
   Node sol = s;
   const DType& dt = stn.getDType();
 
-  //reconstruct the solution into sygus if necessary
+  // reconstruct the solution into sygus if necessary
   reconstructed = 0;
   if (options::cegqiSingleInvReconstruct()
           != options::CegqiSingleInvRconsMode::NONE
       && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
   {
-    d_sol->preregisterConjecture( d_orig_conjecture );
-    int enumLimit = -1;
+    int64_t enumLimit = -1;
     if (options::cegqiSingleInvReconstruct()
         == options::CegqiSingleInvRconsMode::TRY)
     {
@@ -456,15 +450,18 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     {
       enumLimit = options::cegqiSingleInvReconstructLimit();
     }
-    sol = d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
-    if( reconstructed==1 ){
+    sol = d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
+    if (reconstructed == 1)
+    {
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << sol
                        << std::endl;
     }
-  }else{
+  }
+  else
+  {
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = sol;
-    sol = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
+    sol = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
     if (prev != sol)
     {
       Trace("csi-sol") << "Solution (after post process) : " << sol

@@ -38,12 +38,8 @@ macro(cvc4_add_unit_test is_white name output_dir)
   target_compile_definitions(${name} PRIVATE ${CVC4_UNIT_TEST_FLAGS_BLACK})
   gtest_add_tests(TARGET ${name})
   target_link_libraries(${name} main-test)
-  target_link_libraries(${name} GTest::GTest)
   target_link_libraries(${name} GTest::Main)
-  if(USE_LFSC)
-    # We don't link against LFSC, because CVC4 is already linked against it.
-    target_include_directories(${name} PRIVATE ${LFSC_INCLUDE_DIR})
-  endif()
+  target_link_libraries(${name} GTest::GTest)
   if(USE_POLY)
     # We don't link against libpoly, because CVC4 is already linked against it.
     target_include_directories(${name} PRIVATE ${POLY_INCLUDE_DIR})

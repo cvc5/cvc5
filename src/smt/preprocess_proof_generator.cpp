@@ -15,6 +15,8 @@
 
 #include "smt/preprocess_proof_generator.h"
 
+#include <sstream>
+
 #include "expr/proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"

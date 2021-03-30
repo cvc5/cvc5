@@ -51,6 +51,7 @@ set(regress_0_tests
   regress0/arith/integers/arith-int-042.min.cvc
   regress0/arith/integers/arith-int-079.cvc
   regress0/arith/integers/arith-interval.cvc
+  regress0/arith/integers/issue6146-stale-vars.smt2
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2
   regress0/arith/issue3413.smt2
@@ -1152,9 +1153,7 @@ set(regress_0_tests
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
-  regress0/sygus/aig-si.sy
   regress0/sygus/array-grammar-select.sy
-  regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
   regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/cegqi-si-string-triv.sy
@@ -1176,7 +1175,6 @@ set(regress_0_tests
   regress0/sygus/no-logic.sy
   regress0/sygus/no-syntax-test-bool.sy
   regress0/sygus/no-syntax-test.sy
-  regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
   regress0/sygus/pbe-pred-contra.sy
   regress0/sygus/pLTL-sygus-syntax-err.sy
@@ -2039,6 +2037,7 @@ set(regress_1_tests
   regress1/strings/issue5940-2-skc-len-conc.smt2
   regress1/strings/issue6072-inc-no-const-reg.smt2
   regress1/strings/issue6075-repl-len-one-rr.smt2
+  regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
@@ -2207,6 +2206,12 @@ set(regress_1_tests
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
   regress1/sygus/multi-fun-polynomial2.sy
+  regress1/sygus/complex-no-rewrite.sy
+  regress1/sygus/complex-rewrite-in-db.sy
+  regress1/sygus/no-var-in-sol.sy
+  regress1/sygus/simple-no-rewrite.sy
+  regress1/sygus/simple-rewrite-in-db.sy
+  regress1/sygus/simple-rewrite-not-in-db.sy
   regress1/sygus/nflat-fwd-3.sy
   regress1/sygus/nflat-fwd.sy
   regress1/sygus/nia-max-square-ns.sy
@@ -2215,7 +2220,6 @@ set(regress_1_tests
   regress1/sygus/no-mention.sy
   regress1/sygus/once_2.sy
   regress1/sygus/only-const-grammar.sy
-  regress1/sygus/parity-si-rcons.sy
   regress1/sygus/pbe_multi.sy
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
@@ -2556,10 +2560,19 @@ set(regression_disabled_tests
   regress1/sygus/interpol_from_pono_3.smt2
   regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
-  # rely on heuristic solution reconstruction TODO #3146 revisit
+  # new reconstruct algorithm is slow at reconstructing random constants (see wishue #82)
+  regress0/sygus/c100.sy
+  # For the six regressions below, solution terms require rewrites not in
+  # database and are too big to enumerate
+  regress0/sygus/aig-si.sy
+  regress0/sygus/parity-AIG-d0.sy
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
+  regress1/sygus/parity-si-rcons.sy
+  # should print a better error message to indicate that a term is not in the
+  # provided grammar
+  regress1/sygus/simple-not-in-grammar.sy
   # previously sygus inference did not apply, now (correctly) times out
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2

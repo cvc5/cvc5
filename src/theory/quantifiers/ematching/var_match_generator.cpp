@@ -21,6 +21,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Trigger* tparent,
@@ -79,5 +80,6 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

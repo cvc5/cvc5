@@ -24,7 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -32,15 +31,11 @@ class TheoryEngine;
 
 namespace theory {
 
-class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
-namespace inst {
-class TriggerTrie;
-}
 namespace quantifiers {
-class EqualityQueryQuantifiersEngine;
+
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -59,8 +54,6 @@ class TermRegistry;
 class QuantifiersEngine {
   friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -68,36 +61,27 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
-                    quantifiers::FirstOrderModel* qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
-  /** Get the decision manager */
-  DecisionManager* getDecisionManager();
   /** The quantifiers state object */
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
+  /** The term registry */
+  quantifiers::TermRegistry& getTermRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
   quantifiers::TermDb* getTermDatabase() const;
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
-  /** get instantiate utility */
-  quantifiers::Instantiate* getInstantiate() const;
-  /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() const;
-  /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -110,7 +94,7 @@ class QuantifiersEngine {
    * @param te The theory engine
    * @param dm The decision manager of the theory engine
    */
-  void finishInit(TheoryEngine* te, DecisionManager* dm);
+  void finishInit(TheoryEngine* te);
   //---------------------- end private initialization
 
  public:
@@ -148,17 +132,6 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get internal representative
-  *
-  * Choose a term that is equivalent to a in the current context that is the
-  * best term for instantiating the index^th variable of quantified formula q.
-  * If no legal term can be found, we return null. This can occur if:
-  * - a's type is not a subtype of the type of the index^th variable of q,
-  * - a is in an equivalent class with all terms that are restricted not to
-  * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
-  * guided instantiation.
-  */
- Node getInternalRepresentative(Node a, Node q, int index);
  /**
   * Get quantifiers name, which returns a variable corresponding to the name of
   * quantified formula q if q has a name, or otherwise returns q itself.
@@ -211,25 +184,6 @@ public:
 
  //----------end user interface for instantiations
 
- /** statistics class */
- class Statistics
- {
-  public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_red_alpha_equiv;
-    Statistics();
-    ~Statistics();
-  };/* class QuantifiersEngine::Statistics */
-  Statistics d_statistics;
-
  private:
   /** The quantifiers state object */
   quantifiers::QuantifiersState& d_qstate;
@@ -237,8 +191,6 @@ public:
   quantifiers::QuantifiersInferenceManager& d_qim;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
-  /** Reference to the decision manager of the theory engine */
-  DecisionManager* d_decManager;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** vector of utilities for quantifiers */
@@ -250,16 +202,8 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** instantiate utility */
-  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
-  /** skolemize utility */
-  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.

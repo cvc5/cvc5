@@ -41,7 +41,6 @@ namespace api {
 class Solver;
 }
 
-class StatisticsRegistry;
 class ResourceManager;
 class SkolemManager;
 class BoundVarManager;
@@ -115,8 +114,6 @@ class NodeManager
                              expr::NodeValueIDEquality> NodeValueIDSet;
 
   static thread_local NodeManager* s_current;
-
-  StatisticsRegistry* d_statisticsRegistry;
 
   /** The skolem manager */
   std::unique_ptr<SkolemManager> d_skManager;
@@ -389,12 +386,6 @@ class NodeManager
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
-
-  /** Get this node manager's statistics registry */
-  StatisticsRegistry* getStatisticsRegistry() const
-  {
-    return d_statisticsRegistry;
-  }
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {

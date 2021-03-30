@@ -212,8 +212,10 @@ private:
     return d_partialModel.isAuxiliary(x);
   }
 
-  inline bool isIntegerInput(ArithVar x) const {
-    return d_partialModel.isIntegerInput(x);
+  inline bool isIntegerInput(ArithVar x) const
+  {
+    return d_partialModel.isIntegerInput(x)
+           && d_preregisteredNodes.contains(d_partialModel.asNode(x));
   }
 
   /**
@@ -266,6 +268,11 @@ private:
   std::deque<ConstraintP> d_currentPropagationList;
 
   context::CDQueue<ConstraintP> d_learnedBounds;
+
+  /**
+   * Contains all nodes that have been preregistered
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
 
 
   /**
@@ -417,9 +424,6 @@ private:
    */
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
-
-  Node axiomIteForTotalDivision(Node div_tot);
-  Node axiomIteForTotalIntDivision(Node int_div_like);
  public:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
@@ -547,7 +551,7 @@ private:
    *
    * If there is no such variable, returns ARITHVAR_SENTINEL;
    */
-  ArithVar nextIntegerViolatation(bool assumeBounds) const;
+  ArithVar nextIntegerViolation(bool assumeBounds) const;
 
   /**
    * Issues branches for non-auxiliary integer variables with non-integer assignments.

@@ -71,8 +71,7 @@ class SygusExtension
  public:
   SygusExtension(TheoryState& s,
                  InferenceManager& im,
-                 quantifiers::TermDbSygus* tds,
-                 DecisionManager* dm);
+                 quantifiers::TermDbSygus* tds);
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
@@ -113,8 +112,6 @@ class SygusExtension
   InferenceManager& d_im;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
-  /** Pointer to the decision manager */
-  DecisionManager* d_dm;
   /** the simple symmetry breaking utility */
   SygusSimpleSymBreak d_ssb;
   /**

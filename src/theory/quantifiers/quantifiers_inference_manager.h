@@ -24,6 +24,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class Instantiate;
+class Skolemize;
+class QuantifiersRegistry;
+class TermRegistry;
+class FirstOrderModel;
 /**
  * The quantifiers inference manager.
  */
@@ -32,12 +37,24 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
  public:
   QuantifiersInferenceManager(Theory& t,
                               QuantifiersState& state,
+                              QuantifiersRegistry& qr,
+                              TermRegistry& tr,
                               ProofNodeManager* pnm);
   ~QuantifiersInferenceManager();
+  /** get instantiate utility */
+  Instantiate* getInstantiate();
+  /** get skolemize utility */
+  Skolemize* getSkolemize();
   /**
    * Do all pending lemmas, then do all pending phase requirements.
    */
   void doPending();
+
+ private:
+  /** instantiate utility */
+  std::unique_ptr<Instantiate> d_instantiate;
+  /** skolemize utility */
+  std::unique_ptr<Skolemize> d_skolemize;
 };
 
 }  // namespace quantifiers
