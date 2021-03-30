@@ -51,7 +51,7 @@ class SygusUnifRl : public SygusUnif
 
   /** initialize */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;

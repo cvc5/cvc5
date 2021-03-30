@@ -20,10 +20,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusModule::SygusModule(QuantifiersEngine* qe,
-                         QuantifiersInferenceManager& qim,
+SygusModule::SygusModule(QuantifiersInferenceManager& qim,
+                         TermDbSygus* tds,
                          SynthConjecture* p)
-    : d_qe(qe), d_qim(qim), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
+    : d_qim(qim), d_tds(tds), d_parent(p)
 {
 }
 

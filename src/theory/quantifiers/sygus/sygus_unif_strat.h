@@ -22,10 +22,9 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** roles for enumerators
  *
@@ -279,7 +278,7 @@ struct StrategyRestrictions
 class SygusUnifStrategy
 {
  public:
-  SygusUnifStrategy() : d_qe(nullptr) {}
+  SygusUnifStrategy() : d_tds(nullptr) {}
   /** initialize
    *
    * This initializes this class with function-to-synthesize f. We also call
@@ -288,7 +287,7 @@ class SygusUnifStrategy
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums.
    */
-  void initialize(QuantifiersEngine* qe, Node f, std::vector<Node>& enums);
+  void initialize(TermDbSygus* tds, Node f, std::vector<Node>& enums);
   /** Get the root enumerator for this class */
   Node getRootEnumerator() const;
   /**
@@ -329,8 +328,8 @@ class SygusUnifStrategy
   void debugPrint(const char* c);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
+  /** pointer to the term database sygus */
+  TermDbSygus* d_tds;
   /** The candidate variable this strategy is for */
   Node d_candidate;
   /** maps enumerators to relevant information */
