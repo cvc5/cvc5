@@ -228,7 +228,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
                     << ", last child value = " << lastChildVal << std::endl;
   // if i>0, we just computed the value of the (i-1)^th child
   // doesn't hold for backtracking?
-  //Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN)
+  // Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN)
   //    << "in getNextJustifyNode, last child has no value";
   // if i=0, we shouldn't have a last child value
   Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN)
@@ -579,28 +579,26 @@ void JustificationStrategy::notifyStatus(size_t i, DecisionStatus s)
   switch (s)
   {
     case DecisionStatus::BACKTRACK:
-  {
+    {
       ++(d_stats.d_numStatusBacktrack);
-    // erase from backtrack queue if already there
-    // add to front of backtrack queue
-  }
-  break;
+      // erase from backtrack queue if already there
+      // add to front of backtrack queue
+    }
+    break;
     case DecisionStatus::DECISION:
-  {
+    {
       ++(d_stats.d_numStatusDecision);
-    // add to decision queue if not there already
-  }
-  break;
+      // add to decision queue if not there already
+    }
+    break;
     case DecisionStatus::NO_DECISION:
-  {
+    {
       ++(d_stats.d_numStatusNoDecision);
-    // erase from backtrack queue if already there
-    // erase from decision queue if already there
-  }
-  break;
-    default:
-      Unhandled();
-      break;
+      // erase from backtrack queue if already there
+      // erase from decision queue if already there
+    }
+    break;
+    default: Unhandled(); break;
   }
 }
 

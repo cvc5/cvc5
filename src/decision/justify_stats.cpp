@@ -21,8 +21,7 @@ namespace CVC4 {
 JustifyStatistics::JustifyStatistics()
     : d_numStatusNoDecision("JustifyStrategy::StatusNoDecision", 0),
       d_numStatusDecision("JustifyStrategy::StatusDecision", 0),
-      d_numStatusBacktrack(
-          "JustifyStrategy::StatusBacktrack", 0),
+      d_numStatusBacktrack("JustifyStrategy::StatusBacktrack", 0),
       d_maxStackSize("JustifyStrategy::MaxStackSize", 0),
       d_maxAssertionsSize("JustifyStrategy::MaxAssertionsSize", 0),
       d_maxSkolemDefsSize("JustifyStrategy::MaxSkolemDefsSize", 0)

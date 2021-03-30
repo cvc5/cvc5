@@ -36,6 +36,7 @@ class AssertionList
   TNode getNextAssertion(size_t& fromIndex);
   /** size */
   size_t size() const;
+
  private:
   /** The list of assertions */
   context::CDList<Node> d_assertions;

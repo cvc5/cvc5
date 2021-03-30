@@ -34,10 +34,7 @@ void JustifyStack::clear()
   d_stackSizeValid = 0;
 }
 
-size_t JustifyStack::size() const
-{
-  return d_stackSizeValid.get();
-}
+size_t JustifyStack::size() const { return d_stackSizeValid.get(); }
 
 TNode JustifyStack::getCurrentAssertion() const { return d_current.get(); }
 bool JustifyStack::hasCurrentAssertion() const
