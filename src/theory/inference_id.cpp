@@ -197,8 +197,10 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
     case InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ:
       return "QUANTIFIERS_REDUCE_ALPHA_EQ";
-    case InferenceId::QUANTIFIERS_HO_MATCH_PRED: return "QUANTIFIERS_HO_MATCH_PRED";
-    case InferenceId::QUANTIFIERS_PARTIAL_TRIGGER_REDUCE: return "QUANTIFIERS_PARTIAL_TRIGGER_REDUCE";
+    case InferenceId::QUANTIFIERS_HO_MATCH_PRED:
+      return "QUANTIFIERS_HO_MATCH_PRED";
+    case InferenceId::QUANTIFIERS_PARTIAL_TRIGGER_REDUCE:
+      return "QUANTIFIERS_PARTIAL_TRIGGER_REDUCE";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
