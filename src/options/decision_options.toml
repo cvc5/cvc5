@@ -88,8 +88,8 @@ header = "options/decision_options.h"
   long       = "jh-skolem=MODE"
   type       = "JutificationSkolemMode"
   default    = "FIRST"
-  help       = "policy for skolem definitions in justification heuristic"
-  help_mode  = "Policy for skolem definitions in justification heuristic"
+  help       = "policy for when to satisfy skolem definitions in justification heuristic"
+  help_mode  = "Policy for when to satisfy skolem definitions in justification heuristic"
 [[option.mode.FIRST]]
   name = "first"
 [[option.mode.LAST]]
@@ -105,3 +105,17 @@ header = "options/decision_options.h"
   default    = "false"
   help       = "maintain relevancy ordering for decision justification heuristic"
 
+[[option]]
+  name       = "jhNewSkolemRlvMode"
+  category   = "expert"
+  long       = "jh-skolem-rlv=MODE"
+  type       = "JutificationSkolemRlvMode"
+  default    = "ASSERT"
+  help       = "policy for when to consider skolem definitions relevant in justification heuristic"
+  help_mode  = "Policy for when to consider skolem definitions relevant in justification heuristic"
+[[option.mode.ASSERT]]
+  name = "assert"
+[[option.mode.JUSTIFY]]
+  name = "justify"
+[[option.mode.ALWAYS]]
+  name = "always"

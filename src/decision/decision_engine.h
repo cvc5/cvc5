@@ -27,6 +27,10 @@
 
 namespace CVC4 {
 
+namespace prop {
+  class SkolemDefManager;
+}
+  
 class DecisionEngineOld;
 
 class DecisionEngine
@@ -35,6 +39,7 @@ class DecisionEngine
   /** Constructor */
   DecisionEngine(context::Context* sc,
                  context::UserContext* uc,
+                 prop::SkolemDefManager * skdm,
                  ResourceManager* rm);
 
   /** Finish initialize */

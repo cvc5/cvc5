@@ -75,6 +75,7 @@ PropEngine::PropEngine(TheoryEngine* te,
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
+      d_skdm(new SkolemDefManager(satContext, userContext)),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
       d_pnm(pnm),
@@ -87,7 +88,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
 
-  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
+  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, d_skdm.get(), rm));
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
@@ -96,6 +97,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_theoryProxy = new TheoryProxy(this,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
+                                  d_skdm.get(),
                                   satContext,
                                   userContext,
                                   pnm);

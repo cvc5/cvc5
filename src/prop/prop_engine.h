@@ -26,6 +26,7 @@
 #include "theory/output_channel.h"
 #include "theory/trust_node.h"
 #include "util/result.h"
+#include "prop/skolem_def_manager.h"
 
 namespace CVC4 {
 
@@ -337,6 +338,9 @@ class PropEngine
   /** The context */
   context::Context* d_context;
 
+  /** The skolem definition manager */
+  std::unique_ptr<SkolemDefManager> d_skdm;
+  
   /** SAT solver's proxy back to theories; kept around for dtor cleanup */
   TheoryProxy* d_theoryProxy;
 

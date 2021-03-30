@@ -33,6 +33,10 @@
 
 namespace CVC4 {
 
+namespace prop {
+  class SkolemDefManager;
+}
+
 /**
  * For monitoring activity of assertions
  */
@@ -62,7 +66,8 @@ class JustificationStrategy
 {
  public:
   /** Constructor */
-  JustificationStrategy(context::Context* c, context::UserContext* u);
+  JustificationStrategy(context::Context* c, context::UserContext* u,
+                 prop::SkolemDefManager * skdm);
 
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
@@ -128,6 +133,8 @@ class JustificationStrategy
   prop::CnfStream* d_cnfStream;
   /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
+  /** Pointer to the skolem definition manager */
+  prop::SkolemDefManager * d_skdm;
   /** The assertions, which are user-context dependent. */
   AssertionList d_assertions;
   /** The skolem assertions */
@@ -150,6 +157,8 @@ class JustificationStrategy
   bool d_useRlvOrder;
   /** skolem mode */
   options::JutificationSkolemMode d_jhSkMode;
+  /** skolem relevancy mode */
+  options::JutificationSkolemRlvMode d_jhSkRlvMode;
   /** The statistics */
   JustifyStatistics d_stats;
 };

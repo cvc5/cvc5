@@ -38,10 +38,12 @@ std::ostream& operator<<(std::ostream& out, DecisionStatus s)
 }
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
-                                             context::UserContext* u)
+                                             context::UserContext* u,
+                 prop::SkolemDefManager * skdm)
     : d_context(c),
       d_cnfStream(nullptr),
       d_satSolver(nullptr),
+      d_skdm(skdm),
       d_assertions(u, c),        // assertions are user-context dependent
       d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
       d_justified(c),
@@ -50,7 +52,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_currStatus(DecisionStatus::INACTIVE),
       d_currUnderStatusIndex(0),
       d_useRlvOrder(options::jhNewRlvOrder()),
-      d_jhSkMode(options::jhNewSkolemMode())
+      d_jhSkMode(options::jhNewSkolemMode()),
+      d_jhSkRlvMode(options::jhNewSkolemRlvMode())
 {
 }
 
@@ -495,6 +498,8 @@ void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
     else
     {
       // we skip (top-level) theory literals, since these are always propagated
+      // TODO: skolem definitions that are always relevant should be added to
+      // assertions, for uniformity
     }
   } while (index < toProcess.size());
 }
