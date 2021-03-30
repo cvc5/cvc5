@@ -275,17 +275,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " ENDIF";
       return;
       break;
-    case kind::SEXPR_TYPE:
-      out << '[';
-      for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
-        if (i > 0) {
-          out << ", ";
-        }
-        toStreamNode(out, n[i], depth, false, lbind);
-      }
-      out << ']';
-      return;
-      break;
     case kind::SEXPR:
       // no-op
       break;

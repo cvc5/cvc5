@@ -16,9 +16,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -26,7 +23,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -477,23 +473,23 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
+  // check if we need virtual term substitution (if used delta or infinity)
+  bool usedVts = d_vtsCache->containsVtsTerm(subs, false);
   Instantiate* inst = d_qim.getInstantiate();
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    inst->recordInstantiation(d_curr_quant, subs, false, false);
+    inst->recordInstantiation(d_curr_quant, subs, usedVts);
     return true;
   }
-  // check if we need virtual term substitution (if used delta or infinity)
-  bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
-  if (inst->addInstantiation(d_curr_quant,
-                             subs,
-                             InferenceId::QUANTIFIERS_INST_CEGQI,
-                             false,
-                             false,
-                             used_vts))
+  else if (inst->addInstantiation(d_curr_quant,
+                                  subs,
+                                  InferenceId::QUANTIFIERS_INST_CEGQI,
+                                  false,
+                                  false,
+                                  usedVts))
   {
     return true;
   }
@@ -511,7 +507,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(q, d_qstate, this));
+    d_cinst[q].reset(new CegInstantiator(q, d_qstate, d_treg, this));
     return d_cinst[q].get();
   }
   return it->second.get();
