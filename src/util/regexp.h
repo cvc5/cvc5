@@ -21,7 +21,7 @@
 
 namespace CVC4 {
 
-struct CVC4_PUBLIC RegExpRepeat
+struct RegExpRepeat
 {
   RegExpRepeat(uint32_t repeatAmount);
 
@@ -30,7 +30,7 @@ struct CVC4_PUBLIC RegExpRepeat
   uint32_t d_repeatAmount;
 };
 
-struct CVC4_PUBLIC RegExpLoop
+struct RegExpLoop
 {
   RegExpLoop(uint32_t l, uint32_t h);
 
@@ -48,7 +48,7 @@ struct CVC4_PUBLIC RegExpLoop
 /*
  * Hash function for the RegExpRepeat constants.
  */
-struct CVC4_PUBLIC RegExpRepeatHashFunction
+struct RegExpRepeatHashFunction
 {
   size_t operator()(const RegExpRepeat& r) const;
 };
@@ -56,7 +56,7 @@ struct CVC4_PUBLIC RegExpRepeatHashFunction
 /**
  * Hash function for the RegExpLoop objects.
  */
-struct CVC4_PUBLIC RegExpLoopHashFunction
+struct RegExpLoopHashFunction
 {
   size_t operator()(const RegExpLoop& r) const;
 };
@@ -65,9 +65,9 @@ struct CVC4_PUBLIC RegExpLoopHashFunction
  ** Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv);
 
-std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
 }  // namespace CVC4
 

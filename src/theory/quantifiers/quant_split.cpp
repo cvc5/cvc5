@@ -31,8 +31,9 @@ using namespace CVC4::theory::quantifiers;
 QuantDSplit::QuantDSplit(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe), d_added_split(qs.getUserContext())
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe), d_added_split(qs.getUserContext())
 {
 }
 
@@ -48,6 +49,7 @@ void QuantDSplit::checkOwnership(Node q)
   }
   bool takeOwnership = false;
   bool doSplit = false;
+  QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
@@ -67,7 +69,7 @@ void QuantDSplit::checkOwnership(Node q)
         else if (options::quantDynamicSplit()
                  == options::QuantDSplitMode::DEFAULT)
         {
-          if (!d_quantEngine->isFiniteBound(q, q[0][i]))
+          if (!qbi.isFiniteBound(q, q[0][i]))
           {
             if (dt.isInterpretedFinite(tn))
             {

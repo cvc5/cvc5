@@ -128,19 +128,7 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
 
 bool TheorySep::propagateLit(TNode literal)
 {
-  Debug("sep") << "TheorySep::propagateLit(" << literal << ")" << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("sep") << "TheorySep::propagateLit(" << literal
-                 << "): already in conflict" << std::endl;
-    return false;
-  }
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    d_state.notifyInConflict();
-  }
-  return ok;
+  return d_im.propagateLit(literal);
 }
 
 TrustNode TheorySep::explain(TNode literal)
@@ -345,7 +333,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     }
     Trace("sep-lemma-debug")
         << "Sep::Lemma : base reduction : " << lem << std::endl;
-    d_out->lemma(lem);
+    d_im.lemma(lem, InferenceId::SEP_LABEL_INTRO);
     return;
   }
   Trace("sep-lemma-debug") << "Reducing assertion " << fact << std::endl;
@@ -414,13 +402,13 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         Trace("sep-lemma")
             << "Sep::Lemma: sep.nil not in wand antecedant heap : " << nrlem
             << std::endl;
-        d_out->lemma(nrlem);
+        d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
       }
       // send out definitional lemmas for introduced sets
       for (const Node& clem : c_lems)
       {
         Trace("sep-lemma") << "Sep::Lemma : definition : " << clem << std::endl;
-        d_out->lemma(clem);
+        d_im.lemma(clem, InferenceId::SEP_LABEL_DEF);
       }
       conc = nm->mkNode(AND, children);
     }
@@ -454,7 +442,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         lem = nm->mkNode(OR, fact.negate(), econc);
       }
       Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
-      d_out->lemma(lem);
+      d_im.lemma(lem, InferenceId::SEP_EMP);
     }
     else
     {
@@ -480,8 +468,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
         "sep_neg_guard", g, getSatContext(), getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
-    getDecisionManager()->registerStrategy(DecisionManager::STRAT_SEP_NEG_GUARD,
-                                           ds);
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_SEP_NEG_GUARD, ds);
     Node lit = ds->getLiteral(0);
     d_neg_guard[slbl][satom] = lit;
     Trace("sep-lemma-debug")
@@ -492,14 +480,14 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     // Node lem = nm->mkNode( EQUAL, lit, conc );
     Node lem = nm->mkNode(OR, lit.negate(), conc);
     Trace("sep-lemma") << "Sep::Lemma : (neg) reduction : " << lem << std::endl;
-    d_out->lemma(lem);
+    d_im.lemma(lem, InferenceId::SEP_NEG_REDUCTION);
   }
   else
   {
     // reduce based on implication
     Node lem = nm->mkNode(OR, fact.negate(), conc);
     Trace("sep-lemma") << "Sep::Lemma : reduction : " << lem << std::endl;
-    d_out->lemma(lem);
+    d_im.lemma(lem, InferenceId::SEP_POS_REDUCTION);
   }
 }
 
@@ -656,25 +644,7 @@ void TheorySep::postCheck(Effort level)
   }
   if (Trace.isOn("sep-eqc"))
   {
-    eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
-    Trace("sep-eqc") << "EQC:" << std::endl;
-    while (!eqcs2_i.isFinished())
-    {
-      Node eqc = (*eqcs2_i);
-      eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, d_equalityEngine);
-      Trace("sep-eqc") << "Eqc( " << eqc << " ) : { ";
-      while (!eqc2_i.isFinished())
-      {
-        if ((*eqc2_i) != eqc)
-        {
-          Trace("sep-eqc") << (*eqc2_i) << " ";
-        }
-        ++eqc2_i;
-      }
-      Trace("sep-eqc") << " } " << std::endl;
-      ++eqcs2_i;
-    }
-    Trace("sep-eqc") << std::endl;
+    Trace("sep-eqc") << d_equalityEngine->debugPrintEqc();
   }
 
   bool addedLemma = false;
@@ -817,7 +787,7 @@ void TheorySep::postCheck(Effort level)
                              << ") : " << lem << std::endl;
         Trace("sep-lemma") << "Sep::Lemma : negated star/wand refinement : "
                            << lem << std::endl;
-        d_out->lemma(lem);
+        d_im.lemma(lem, InferenceId::SEP_REFINEMENT);
         addedLemma = true;
       }
       else
@@ -886,7 +856,7 @@ void TheorySep::postCheck(Effort level)
             nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, ll, dsk), d_true));
         Trace("sep-lemma") << "Sep::Lemma : witness finite data-pto : " << lem
                            << std::endl;
-        d_out->lemma(lem);
+        d_im.lemma(lem, InferenceId::SEP_WITNESS_FINITE_DATA);
         addedLemma = true;
       }
       else
@@ -924,7 +894,7 @@ void TheorySep::postCheck(Effort level)
 
   if (needAddLemma)
   {
-    d_out->setIncomplete();
+    d_im.setIncomplete();
   }
   Trace("sep-check") << "Sep::check(): " << level
                      << " done, conflict=" << d_state.isInConflict()
@@ -1237,7 +1207,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
         //ensure that it is distinct from all other references so far
         for( unsigned j=0; j<d_type_references_all[tn].size(); j++ ){
           Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, e, d_type_references_all[tn][j] );
-          d_out->lemma( eq.negate() );
+          d_im.lemma(eq.negate(), InferenceId::SEP_DISTINCT_REF);
         }
         d_type_references_all[tn].push_back( e );
       }
@@ -1255,11 +1225,8 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
 
       Node slem = NodeManager::currentNM()->mkNode( kind::SUBSET, d_base_label[tn], d_reference_bound_max[tn] );
       Trace("sep-lemma") << "Sep::Lemma: reference bound for " << tn << " : " << slem << std::endl;
-      d_out->lemma( slem );
-      //slem = NodeManager::currentNM()->mkNode( kind::SUBSET, d_base_label[tn], d_reference_bound_max[tn] );
-      //Trace("sep-lemma") << "Sep::Lemma: base reference bound for " << tn << " : " << slem << std::endl;
-      //d_out->lemma( slem );
-      
+      d_im.lemma(slem, InferenceId::SEP_REF_BOUND);
+
       //symmetry breaking
       if( d_type_references_card[tn].size()>1 ){
         std::map< unsigned, Node > lit_mem_map;
@@ -1275,7 +1242,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
             Node sym_lem = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children );
             sym_lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, lit_mem_map[i].negate(), sym_lem );
             Trace("sep-lemma") << "Sep::Lemma: symmetry breaking lemma : " << sym_lem << std::endl;
-            d_out->lemma( sym_lem );
+            d_im.lemma(sym_lem, InferenceId::SEP_SYM_BREAK);
           }
         }
       }
@@ -1285,8 +1252,8 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     Node nr = getNilRef( tn );
     Node nrlem = NodeManager::currentNM()->mkNode( kind::MEMBER, nr, n_lbl ).negate();
     Trace("sep-lemma") << "Sep::Lemma: sep.nil not in base label " << tn << " : " << nrlem << std::endl;
-    d_out->lemma( nrlem );
-    
+    d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
+
     return n_lbl;
   }else{
     return it->second;

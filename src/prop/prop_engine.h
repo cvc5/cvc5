@@ -63,7 +63,7 @@ class PropEngine
   /**
    * Destructor.
    */
-  CVC4_PUBLIC ~PropEngine();
+  ~PropEngine();
 
   /**
    * Finish initialize. Call this after construction just before we are
@@ -220,6 +220,10 @@ class PropEngine
    * another skolem introduced by term formula removal, then calling this
    * method on (P k1) will include both k1 and k2 in sks, and their definitions
    * in skAsserts.
+   *
+   * Notice that this method is not frequently used. It is used for algorithms
+   * that explicitly care about knowing which skolems occur in the preprocessed
+   * form of a term, recursively.
    */
   Node getPreprocessedTerm(TNode n,
                            std::vector<Node>& skAsserts,

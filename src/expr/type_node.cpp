@@ -20,9 +20,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
-#include "options/expr_options.h"
 #include "options/quantifiers_options.h"
-#include "options/uf_options.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;
@@ -285,13 +283,12 @@ bool TypeNode::isClosedEnumerable()
   return getAttribute(IsClosedEnumerableAttr());
 }
 
-bool TypeNode::isFirstClass() const {
-  return ( getKind() != kind::FUNCTION_TYPE || options::ufHo() ) && 
-         getKind() != kind::CONSTRUCTOR_TYPE &&
-         getKind() != kind::SELECTOR_TYPE &&
-         getKind() != kind::TESTER_TYPE &&
-         ( getKind() != kind::TYPE_CONSTANT ||
-           getConst<TypeConstant>() != REGEXP_TYPE );
+bool TypeNode::isFirstClass() const
+{
+  return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
+         && getKind() != kind::TESTER_TYPE && getKind() != kind::SEXPR_TYPE
+         && (getKind() != kind::TYPE_CONSTANT
+             || getConst<TypeConstant>() != REGEXP_TYPE);
 }
 
 bool TypeNode::isWellFounded() const {

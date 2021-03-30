@@ -27,8 +27,9 @@ namespace CVC4 {
  *
  * The interface provides a notify() function.
  */
-class CVC4_PUBLIC Listener {
-public:
+class Listener
+{
+ public:
   Listener();
   virtual ~Listener();
 

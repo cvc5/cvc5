@@ -14,6 +14,8 @@
 
 #include "smt/set_defaults.h"
 
+#include <sstream>
+
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
@@ -27,6 +29,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -72,10 +75,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  if (options::checkProofs() || options::checkUnsatCoresNew())
+  if (options::checkProofs() || options::checkUnsatCoresNew()
+      || options::dumpProofs())
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
-    options::proof.set(true);
+    options::produceProofs.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -88,7 +92,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::bitvectorAlgebraicSolver.set(true);
   }
 
-  bool is_sygus = language::isInputLangSygus(options::inputLanguage());
+  bool isSygus = language::isInputLangSygus(options::inputLanguage());
+  bool usesSygus = isSygus;
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -262,6 +267,20 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
+  // whether we must disable proofs
+  bool disableProofs = false;
+  if (options::globalNegate())
+  {
+    // When global negate answers "unsat", it is not due to showing a set of
+    // formulas is unsat. Thus, proofs do not apply.
+    disableProofs = true;
+  }
+  // !!! must disable proofs if using the old unsat core infrastructure
+  // TODO (#project 37) remove this
+  if (options::unsatCores() && !options::checkUnsatCoresNew())
+  {
+    disableProofs = true;
+  }
 
   if (options::arraysExp())
   {
@@ -284,21 +303,44 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::produceAbducts()
         || options::produceInterpols() != options::ProduceInterpols::NONE
-        || options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusInst())
+        || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      is_sygus = true;
+      isSygus = true;
+      usesSygus = true;
+    }
+    else if (options::sygusInst())
+    {
+      // sygus instantiation uses sygus, but it is not a sygus problem
+      usesSygus = true;
     }
   }
 
-  // We now know whether the input is sygus. Update the logic to incorporate
+  // We now know whether the input uses sygus. Update the logic to incorporate
   // the theories we need internally for handling sygus problems.
-  if (is_sygus)
+  if (usesSygus)
   {
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
+    if (isSygus)
+    {
+      // When sygus answers "unsat", it is not due to showing a set of
+      // formulas is unsat in the standard way. Thus, proofs do not apply.
+      disableProofs = true;
+    }
+  }
+
+  // if we requiring disabling proofs, disable them now
+  if (disableProofs && options::produceProofs())
+  {
+    if (options::produceProofs())
+    {
+      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+    }
+    options::produceProofs.set(false);
+    options::checkProofs.set(false);
+    options::proofEagerChecking.set(false);
   }
 
   // sygus core connective requires unsat cores
@@ -312,7 +354,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE
-       || options::proof())
+       || options::produceProofs())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -546,7 +588,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || is_sygus))
+          || usesSygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
     options::produceModels.set(true);
@@ -797,9 +839,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!options::decisionMode.wasSetByUser())
   {
     options::DecisionMode decMode =
-        // sygus uses internal
-        is_sygus ? options::DecisionMode::INTERNAL :
-                 // ALL
+        // anything that uses sygus uses internal
+        usesSygus ? options::DecisionMode::INTERNAL :
+                  // ALL
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -960,7 +1002,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (is_sygus)
+  if (usesSygus)
   {
     if (!options::sygus())
     {

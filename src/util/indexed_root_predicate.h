@@ -40,7 +40,7 @@ namespace CVC4 {
  *  IRP_1(x = 0, x*x-2)  <=>  x = -sqrt(2)
  *  IRP_1(x = 0, x*x-y), y=3  <=>  x = -sqrt(3)
  */
-struct CVC4_PUBLIC IndexedRootPredicate
+struct IndexedRootPredicate
 {
   /** The index of the root */
   std::uint64_t d_index;
@@ -54,14 +54,14 @@ struct CVC4_PUBLIC IndexedRootPredicate
 }; /* struct IndexedRootPredicate */
 
 inline std::ostream& operator<<(std::ostream& os,
-                                const IndexedRootPredicate& irp) CVC4_PUBLIC;
+                                const IndexedRootPredicate& irp);
 inline std::ostream& operator<<(std::ostream& os,
                                 const IndexedRootPredicate& irp)
 {
   return os << "k=" << irp.d_index;
 }
 
-struct CVC4_PUBLIC IndexedRootPredicateHashFunction
+struct IndexedRootPredicateHashFunction
 {
   std::size_t operator()(const IndexedRootPredicate& irp) const
   {

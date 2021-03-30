@@ -23,11 +23,12 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --lfsc --editline --poly --symfpu
+            config: production --all-bindings --editline --poly --symfpu
             cache-key: production
             python-bindings: true
             check-examples: true
             exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: production-clang
             config: production
@@ -35,20 +36,23 @@ jobs:
             check-examples: true
             env: CC=clang CXX=clang++
             os: ubuntu-latest
-            exclude_regress: 1-4
+            exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: production-dbg
-            config: production --assertions --tracing --unit-testing --symfpu --lfsc --editline
+            config: production --assertions --tracing --unit-testing --symfpu --editline
             cache-key: dbg
             os: ubuntu-latest
-            exclude_regress: 1-4
+            exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores
 
           - name: production-dbg-clang
-            config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --no-proofs --poly
+            config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --poly
             cache-key: dbgclang
             env: CC=clang CXX=clang++
             os: ubuntu-latest
-            exclude_regress: 1-4
+            exclude_regress: 3-4
+            run_regression_args: --no-check-proofs
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -114,7 +118,6 @@ jobs:
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
-        ./contrib/get-antlr-3.4
         ./contrib/get-poly
         ./contrib/get-symfpu
         ./contrib/get-cadical
@@ -124,7 +127,6 @@ jobs:
     - name: List dependencies
       run: |
         find deps/install -type f
-        cat deps/install/bin/antlr3
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
@@ -168,6 +170,7 @@ jobs:
       env:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC4_REGRESSION_ARGS: --no-early-exit
+        RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
       working-directory: build
 
     - name: Install Check
@@ -193,4 +196,3 @@ jobs:
         make -j2
         ctest -j2 --output-on-failure
       working-directory: examples
-

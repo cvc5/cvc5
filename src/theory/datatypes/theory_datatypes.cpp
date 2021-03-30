@@ -116,8 +116,7 @@ void TheoryDatatypes::finishInit()
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
-    d_sygusExtension.reset(
-        new SygusExtension(d_state, d_im, tds, getDecisionManager()));
+    d_sygusExtension.reset(new SygusExtension(d_state, d_im, tds));
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
@@ -327,7 +326,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     nb << test << test.notNode();
                     Node lemma = nb;
                     d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-                    d_out->requirePhase( test, true );
+                    d_im.requirePhase(test, true);
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);

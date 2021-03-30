@@ -26,7 +26,6 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -90,8 +89,8 @@ BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
-                                 DecisionManager* dm)
-    : QuantifiersModule(qs, qim, qr, qe), d_dm(dm)
+                                 TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe)
 {
 }
 
@@ -416,7 +415,7 @@ void BoundedIntegers::checkOwnership(Node f)
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
           if ((tn.isSort() && tn.isInterpretedFinite())
-              || d_quantEngine->getTermEnumeration()->mayComplete(tn))
+              || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );
@@ -475,6 +474,7 @@ void BoundedIntegers::checkOwnership(Node f)
   
   if( bound_success ){
     d_bound_quants.push_back( f );
+    DecisionManager* dm = d_qim.getDecisionManager();
     for( unsigned i=0; i<d_set[f].size(); i++) {
       Node v = d_set[f][i];
       std::map< Node, Node >::iterator itr = d_range[f].find( v );
@@ -503,8 +503,8 @@ void BoundedIntegers::checkOwnership(Node f)
                                               d_qstate.getUserContext(),
                                               d_qstate.getValuation(),
                                               isProxy));
-            d_dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
-                                   d_rms[r].get());
+            dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
+                                 d_rms[r].get());
           }
         }
       }
@@ -573,10 +573,10 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   getBounds( f, v, rsi, l, u );
   Trace("bound-int-rsi") << "Get value in model for..." << l << " and " << u << std::endl;
   if( !l.isNull() ){
-    l = d_quantEngine->getModel()->getValue( l );
+    l = d_treg.getModel()->getValue(l);
   }
   if( !u.isNull() ){
-    u = d_quantEngine->getModel()->getValue( u );
+    u = d_treg.getModel()->getValue(u);
   }
   Trace("bound-int-rsi") << "Value is " << l << " ... " << u << std::endl;
   return;
@@ -631,7 +631,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
   Assert(!expr::hasFreeVar(sr));
   Node sro = sr;
-  sr = d_quantEngine->getModel()->getValue(sr);
+  sr = d_treg.getModel()->getValue(sr);
   // if non-constant, then sr does not occur in the model, we fail
   if (!sr.isConst())
   {

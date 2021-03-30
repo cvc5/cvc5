@@ -14,15 +14,14 @@
  ** Header for main CVC4 driver.
  **/
 
+#include <chrono>
 #include <exception>
+#include <memory>
 #include <string>
 
 #include "base/exception.h"
 #include "cvc4autoconfig.h"
 #include "options/options.h"
-#include "util/statistics.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
 
 #ifndef CVC4__MAIN__MAIN_H
 #define CVC4__MAIN__MAIN_H
@@ -39,10 +38,20 @@ extern const char* progPath;
 extern const std::string* progName;
 
 /** A reference for use by the signal handlers to print statistics */
-extern CVC4::main::CommandExecutor* pExecutor;
+extern std::unique_ptr<CVC4::main::CommandExecutor> pExecutor;
 
-/** A reference for use by the signal handlers to print statistics */
-extern CVC4::TimerStat* pTotalTime;
+/** Manages a custom timer for the total runtime in RAII-style. */
+class TotalTimer
+{
+ public:
+  TotalTimer() : d_start(std::chrono::steady_clock::now()) {}
+  ~TotalTimer();
+
+ private:
+  std::chrono::steady_clock::time_point d_start;
+};
+/** The time point the binary started, accessible to signal handlers */
+extern std::unique_ptr<TotalTimer> totalTime;
 
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.

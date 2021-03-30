@@ -19,6 +19,7 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -37,11 +38,10 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
 TermRegistry::TermRegistry(SolverState& s,
-                           OutputChannel& out,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : d_state(s),
-      d_out(out),
+      d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
       d_functionsTerms(s.getSatContext()),
@@ -49,6 +49,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_preregisteredTerms(s.getSatContext()),
       d_registeredTerms(s.getUserContext()),
       d_registeredTypes(s.getUserContext()),
+      d_proxyVar(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
       d_epg(pnm ? new EagerProofGenerator(
                       pnm,
@@ -64,6 +65,8 @@ TermRegistry::TermRegistry(SolverState& s,
 }
 
 TermRegistry::~TermRegistry() {}
+
+void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
 {
@@ -162,7 +165,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (k == STRING_IN_REGEXP)
   {
-    d_out.requirePhase(n, true);
+    d_im->requirePhase(n, true);
     ee->addTriggerPredicate(n);
     ee->addTerm(n[0]);
     ee->addTerm(n[1]);
@@ -244,8 +247,15 @@ void TermRegistry::preRegisterTerm(TNode n)
 
 void TermRegistry::registerTerm(Node n, int effort)
 {
-  TypeNode tn = n.getType();
+  Trace("strings-register") << "TheoryStrings::registerTerm() " << n
+                            << ", effort = " << effort << std::endl;
+  if (d_registeredTerms.find(n) != d_registeredTerms.end())
+  {
+    Trace("strings-register") << "...already registered" << std::endl;
+    return;
+  }
   bool do_register = true;
+  TypeNode tn = n.getType();
   if (!tn.isStringLike())
   {
     if (options::stringEagerLen())
@@ -259,17 +269,13 @@ void TermRegistry::registerTerm(Node n, int effort)
   }
   if (!do_register)
   {
+    Trace("strings-register") << "...do not register" << std::endl;
     return;
   }
-  if (d_registeredTerms.find(n) != d_registeredTerms.end())
-  {
-    return;
-  }
+  Trace("strings-register") << "...register" << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
   registerType(tn);
-  Debug("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
   TrustNode regTermLem;
   if (tn.isStringLike())
   {
@@ -302,8 +308,7 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << regTermLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.trustedLemma(regTermLem);
+    d_im->trustedLemma(regTermLem, InferenceId::STRINGS_REGISTER_TERM);
   }
 }
 
@@ -416,12 +421,11 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << lenLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.trustedLemma(lenLem);
+    d_im->trustedLemma(lenLem, InferenceId::STRINGS_REGISTER_TERM_ATOMIC);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_out.requirePhase(rp.first, rp.second);
+    d_im->requirePhase(rp.first, rp.second);
   }
 }
 
@@ -555,7 +559,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 
 Node TermRegistry::getProxyVariableFor(Node n) const
 {
-  std::map<Node, Node>::const_iterator it = d_proxyVar.find(n);
+  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
   if (it != d_proxyVar.end())
   {
     return (*it).second;

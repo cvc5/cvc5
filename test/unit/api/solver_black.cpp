@@ -14,7 +14,6 @@
  ** Black box testing of the Solver class of the  C++ API.
  **/
 
-#include "base/configuration.h"
 #include "test_api.h"
 
 namespace CVC4 {
@@ -200,7 +199,11 @@ TEST_F(TestApiBlackSolver, mkFunctionSort)
                                           d_solver.getIntegerSort()));
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkFunctionSort(funSort, d_solver.getIntegerSort()),
+  // function arguments are allowed
+  ASSERT_NO_THROW(d_solver.mkFunctionSort(funSort, d_solver.getIntegerSort()));
+  // non-first-class arguments are not allowed
+  Sort reSort = d_solver.getRegExpSort();
+  ASSERT_THROW(d_solver.mkFunctionSort(reSort, d_solver.getIntegerSort()),
                CVC4ApiException);
   ASSERT_THROW(d_solver.mkFunctionSort(d_solver.getIntegerSort(), funSort),
                CVC4ApiException);
@@ -209,10 +212,10 @@ TEST_F(TestApiBlackSolver, mkFunctionSort)
       d_solver.getIntegerSort()));
   Sort funSort2 = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                           d_solver.getIntegerSort());
-  ASSERT_THROW(
+  // function arguments are allowed
+  ASSERT_NO_THROW(
       d_solver.mkFunctionSort({funSort2, d_solver.mkUninterpretedSort("u")},
-                              d_solver.getIntegerSort()),
-      CVC4ApiException);
+                              d_solver.getIntegerSort()));
   ASSERT_THROW(d_solver.mkFunctionSort({d_solver.getIntegerSort(),
                                         d_solver.mkUninterpretedSort("u")},
                                        funSort2),
@@ -248,8 +251,9 @@ TEST_F(TestApiBlackSolver, mkPredicateSort)
   ASSERT_THROW(d_solver.mkPredicateSort({}), CVC4ApiException);
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}),
-               CVC4ApiException);
+  // functions as arguments are allowed
+  ASSERT_NO_THROW(
+      d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}));
 
   Solver slv;
   ASSERT_THROW(slv.mkPredicateSort({d_solver.getIntegerSort()}),
@@ -374,7 +378,7 @@ TEST_F(TestApiBlackSolver, mkBoolean)
 
 TEST_F(TestApiBlackSolver, mkRoundingMode)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
   }
@@ -417,7 +421,7 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   Term t1 = d_solver.mkBitVector(8);
   Term t2 = d_solver.mkBitVector(4);
   Term t3 = d_solver.mkInteger(2);
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkFloatingPoint(3, 5, t1));
   }
@@ -431,7 +435,7 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC4ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC4ApiException);
 
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     Solver slv;
     ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC4ApiException);
@@ -477,7 +481,7 @@ TEST_F(TestApiBlackSolver, mkFalse)
 
 TEST_F(TestApiBlackSolver, mkNaN)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkNaN(3, 5));
   }
@@ -489,7 +493,7 @@ TEST_F(TestApiBlackSolver, mkNaN)
 
 TEST_F(TestApiBlackSolver, mkNegZero)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkNegZero(3, 5));
   }
@@ -501,7 +505,7 @@ TEST_F(TestApiBlackSolver, mkNegZero)
 
 TEST_F(TestApiBlackSolver, mkNegInf)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkNegInf(3, 5));
   }
@@ -513,7 +517,7 @@ TEST_F(TestApiBlackSolver, mkNegInf)
 
 TEST_F(TestApiBlackSolver, mkPosInf)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkPosInf(3, 5));
   }
@@ -525,7 +529,7 @@ TEST_F(TestApiBlackSolver, mkPosInf)
 
 TEST_F(TestApiBlackSolver, mkPosZero)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkPosZero(3, 5));
   }
@@ -954,8 +958,8 @@ TEST_F(TestApiBlackSolver, declareFun)
   ASSERT_NO_THROW(
       d_solver.declareFun("f3", {bvSort, d_solver.getIntegerSort()}, bvSort));
   ASSERT_THROW(d_solver.declareFun("f2", {}, funSort), CVC4ApiException);
-  ASSERT_THROW(d_solver.declareFun("f4", {bvSort, funSort}, bvSort),
-               CVC4ApiException);
+  // functions as arguments is allowed
+  ASSERT_NO_THROW(d_solver.declareFun("f4", {bvSort, funSort}, bvSort));
   ASSERT_THROW(d_solver.declareFun("f5", {bvSort, bvSort}, funSort),
                CVC4ApiException);
   Solver slv;
@@ -1007,8 +1011,8 @@ TEST_F(TestApiBlackSolver, defineFun)
   ASSERT_THROW(d_solver.defineFun("fff", {b1}, bvSort, v3), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFun("ffff", {b1}, funSort2, v3),
                CVC4ApiException);
-  ASSERT_THROW(d_solver.defineFun("fffff", {b1, b3}, bvSort, v1),
-               CVC4ApiException);
+  // b3 has function sort, which is allowed as an argument
+  ASSERT_NO_THROW(d_solver.defineFun("fffff", {b1, b3}, bvSort, v1));
   ASSERT_THROW(d_solver.defineFun(f1, {v1, b11}, v1), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFun(f1, {b1}, v1), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFun(f1, {b1, b11}, v2), CVC4ApiException);
@@ -1078,8 +1082,8 @@ TEST_F(TestApiBlackSolver, defineFunRec)
                CVC4ApiException);
   ASSERT_THROW(d_solver.defineFunRec("ffff", {b1}, funSort2, v3),
                CVC4ApiException);
-  ASSERT_THROW(d_solver.defineFunRec("fffff", {b1, b3}, bvSort, v1),
-               CVC4ApiException);
+  // b3 has function sort, which is allowed as an argument
+  ASSERT_NO_THROW(d_solver.defineFunRec("fffff", {b1, b3}, bvSort, v1));
   ASSERT_THROW(d_solver.defineFunRec(f1, {b1}, v1), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFunRec(f1, {b1, b11}, v2), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFunRec(f1, {b1, b11}, v3), CVC4ApiException);
@@ -1341,59 +1345,48 @@ TEST_F(TestApiBlackSolver, getOption)
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "false");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   ASSERT_THROW(d_solver.getUnsatAssumptions(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions2)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-assumptions", "false");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   ASSERT_THROW(d_solver.getUnsatAssumptions(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions3)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-assumptions", "true");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   ASSERT_NO_THROW(d_solver.getUnsatAssumptions());
   d_solver.checkSatAssuming(d_solver.mkTrue());
   ASSERT_THROW(d_solver.getUnsatAssumptions(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatCore1)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatCore2)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-unsat-cores", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatCore3)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-cores", "true");
 
@@ -1429,9 +1422,8 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   {
     d_solver.assertFormula(t);
   }
-  Result res = d_solver.checkSat();
+  CVC4::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getValue1)

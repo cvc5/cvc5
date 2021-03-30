@@ -32,6 +32,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+class InferenceManager;
 /**
  * This class manages all the (pre)registration tasks for terms. These tasks
  * include:
@@ -50,10 +51,11 @@ class TermRegistry
 
  public:
   TermRegistry(SolverState& s,
-               OutputChannel& out,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
+  /** Finish initialize, which sets the inference manager */
+  void finishInit(InferenceManager* im);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent
@@ -205,8 +207,8 @@ class TermRegistry
   uint32_t d_cardSize;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
-  /** Reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
+  /** Pointer to the inference manager of the theory of strings. */
+  InferenceManager* d_im;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
@@ -235,7 +237,7 @@ class TermRegistry
    * which rewrites to 3 = 3.
    * In the above example, we store "ABC" -> v_{"ABC"} in this map.
    */
-  std::map<Node, Node> d_proxyVar;
+  NodeNodeMap d_proxyVar;
   /**
    * Map from proxy variables to their normalized length. In the above example,
    * we store "ABC" -> 3.

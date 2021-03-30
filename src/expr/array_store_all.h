@@ -32,7 +32,8 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
-class CVC4_PUBLIC ArrayStoreAll {
+class ArrayStoreAll
+{
  public:
   /**
    * @throws IllegalArgumentException if `type` is not an array or if `expr` is
@@ -59,13 +60,13 @@ class CVC4_PUBLIC ArrayStoreAll {
   std::unique_ptr<Node> d_value;
 }; /* class ArrayStoreAll */
 
-std::ostream& operator<<(std::ostream& out,
-                         const ArrayStoreAll& asa) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa);
 
 /**
  * Hash function for the ArrayStoreAll constants.
  */
-struct CVC4_PUBLIC ArrayStoreAllHashFunction {
+struct ArrayStoreAllHashFunction
+{
   size_t operator()(const ArrayStoreAll& asa) const;
 }; /* struct ArrayStoreAllHashFunction */
 

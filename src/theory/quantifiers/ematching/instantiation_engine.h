@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
+#include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
 
@@ -31,27 +32,12 @@ class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
 
 class InstantiationEngine : public QuantifiersModule {
- private:
-  /** instantiation strategies */
-  std::vector<InstStrategy*> d_instStrategies;
-  /** user-pattern instantiation strategy */
-  std::unique_ptr<InstStrategyUserPatterns> d_isup;
-  /** auto gen triggers; only kept for destructor cleanup */
-  std::unique_ptr<InstStrategyAutoGenTriggers> d_i_ag;
-
-  /** current processing quantified formulas */
-  std::vector<Node> d_quants;
-
-  /** is the engine incomplete for this quantifier */
-  bool isIncomplete(Node q);
-  /** do instantiation round */
-  void doInstantiationRound(Theory::Effort effort);
-
  public:
   InstantiationEngine(QuantifiersEngine* qe,
                       QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
-                      QuantifiersRegistry& qr);
+                      QuantifiersRegistry& qr,
+                      TermRegistry& tr);
   ~InstantiationEngine();
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;
@@ -68,8 +54,22 @@ class InstantiationEngine : public QuantifiersModule {
   std::string identify() const override { return "InstEngine"; }
 
  private:
+  /** is the engine incomplete for this quantifier */
+  bool isIncomplete(Node q);
+  /** do instantiation round */
+  void doInstantiationRound(Theory::Effort effort);
   /** Return true if this module should process quantified formula q */
   bool shouldProcess(Node q);
+  /** instantiation strategies */
+  std::vector<InstStrategy*> d_instStrategies;
+  /** user-pattern instantiation strategy */
+  std::unique_ptr<InstStrategyUserPatterns> d_isup;
+  /** auto gen triggers; only kept for destructor cleanup */
+  std::unique_ptr<InstStrategyAutoGenTriggers> d_i_ag;
+  /** current processing quantified formulas */
+  std::vector<Node> d_quants;
+  /** all triggers will be stored in this database */
+  inst::TriggerDatabase d_trdb;
   /** for computing relevance of quantifiers */
   std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */

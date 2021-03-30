@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
+#include "cvc4_export.h"
 #include "options/options.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -122,7 +123,7 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-class CVC4_PUBLIC SmtEngine
+class CVC4_EXPORT SmtEngine
 {
   friend class ::CVC4::api::Solver;
   friend class ::CVC4::smt::SmtEngineState;
@@ -246,9 +247,18 @@ class CVC4_PUBLIC SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void notifyStartParsing(std::string filename);
+  void notifyStartParsing(const std::string& filename) CVC4_EXPORT;
   /** return the input name (if any) */
   const std::string& getFilename() const;
+
+  /**
+   * Helper method for the API to put the last check result into the statistics.
+   */
+  void setResultStatistic(const std::string& result) CVC4_EXPORT;
+  /**
+   * Helper method for the API to put the total runtime into the statistics.
+   */
+  void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
@@ -309,7 +319,7 @@ class CVC4_PUBLIC SmtEngine
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
-  CVC4::SExpr getOption(const std::string& key) const;
+  Node getOption(const std::string& key) const;
 
   /**
    * Define function func in the current context to be:
@@ -1052,12 +1062,6 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /**
-   * The statistics registry. Notice that this definition must be before the
-   * other members since it must be destroyed last if exceptions occur in the
-   * constructor of SmtEngine.
-   */
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The environment object, which contains all utilities that are globally
    * available to internal code.

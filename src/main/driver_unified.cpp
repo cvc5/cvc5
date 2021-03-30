@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -36,10 +37,8 @@
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "parser/parser_exception.h"
 #include "smt/command.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;
@@ -58,10 +57,20 @@ namespace CVC4 {
     const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = nullptr;
+    std::unique_ptr<CVC4::main::CommandExecutor> pExecutor;
 
-    /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = nullptr;
+    /** The time point the binary started, accessible to signal handlers */
+    std::unique_ptr<TotalTimer> totalTime;
+
+    TotalTimer::~TotalTimer()
+    {
+      if (pExecutor != nullptr)
+      {
+        auto duration = std::chrono::steady_clock::now() - d_start;
+        pExecutor->getSmtEngine()->setTotalTimeStatistic(
+            std::chrono::duration<double>(duration).count());
+      }
+    }
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -82,11 +91,7 @@ void printUsage(Options& opts, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& opts) {
-
-  // Timer statistic
-  pTotalTime = new TimerStat("driver::totalTime");
-  pTotalTime->start();
-
+  main::totalTime = std::make_unique<TotalTimer>();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -183,18 +188,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the command executor to execute the parsed commands
-  pExecutor = new CommandExecutor(opts);
+  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
-    // Timer statistic
-    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(),
-                                    pTotalTime);
-
-    // Filename statistics
-    ReferenceStat<std::string> s_statFilename("driver::filename", filenameStr);
-    RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
-                                      &s_statFilename);
     // notify SmtEngine that we are starting to parse
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
@@ -203,7 +200,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     bool status = true;
     if(opts.getInteractive() && inputFromStdin) {
       if(opts.getTearDownIncremental() > 0) {
-        throw OptionException(
+        throw Exception(
             "--tear-down-incremental doesn't work in interactive mode");
       }
       if(!opts.wasSetByUserIncrementalSolving()) {
@@ -253,7 +250,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         //     "--tear-down-incremental incompatible with --incremental");
         // }
 
-        // cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
+        // cmd.reset(new SetOptionCommand("incremental", "false"));
         // cmd->setMuted(true);
         // pExecutor->doCommand(cmd);
       }
@@ -473,15 +470,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat<api::Result> s_statSatResult("driver::sat/unsat", result);
-    RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
-                                       &s_statSatResult);
-
-    pTotalTime->stop();
-
-    // Tim: I think that following comment is out of date?
-    // Set the global executor pointer to nullptr first.  If we get a
-    // signal while dumping statistics, we don't want to try again.
+    totalTime.reset();
     pExecutor->flushOutputStreams();
 
 #ifdef CVC4_DEBUG
@@ -495,13 +484,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_DEBUG */
   }
 
-  // On exceptional exit, these are leaked, but that's okay... they
-  // need to be around in that case for main() to print statistics.
-  delete pTotalTime;
-  delete pExecutor;
-
-  pTotalTime = nullptr;
-  pExecutor = nullptr;
+  pExecutor.reset();
 
   signal_handlers::cleanup();
 
