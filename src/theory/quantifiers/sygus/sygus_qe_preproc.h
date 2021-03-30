@@ -19,9 +19,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /**
@@ -37,17 +34,13 @@ namespace quantifiers {
 class SygusQePreproc
 {
  public:
-  SygusQePreproc(QuantifiersEngine* qe);
+  SygusQePreproc();
   ~SygusQePreproc() {}
   /**
    * Preprocess. Returns a lemma of the form q = nq where nq is obtained
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
-
- private:
-  /** Pointer to quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
 };
 
 }  // namespace quantifiers
