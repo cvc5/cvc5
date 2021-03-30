@@ -23,20 +23,21 @@ const char* toString(InferenceId i)
 {
   switch (i)
   {
-  case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
-  case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
-  case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
-  case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
-  case InferenceId::ARITH_CONF_TRICHOTOMY: return "ARITH_CONF_TRICHOTOMY";
-  case InferenceId::ARITH_CONF_UPPER: return "ARITH_CONF_UPPER";
-  case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
-  case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
-  case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
-  case InferenceId::ARITH_APPROX_CUT: return "ARITH_APPROX_CUT";
-  case InferenceId::ARITH_BB_LEMMA: return "ARITH_BB_LEMMA";
-  case InferenceId::ARITH_DIO_CUT: return "ARITH_DIO_CUT";
-  case InferenceId::ARITH_DIO_DECOMPOSITION: return "ARITH_DIO_DECOMPOSITION";
-  case InferenceId::ARITH_SPLIT_FOR_NL_MODEL: return "ARITH_SPLIT_FOR_NL_MODEL";
+    case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
+    case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
+    case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
+    case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
+    case InferenceId::ARITH_CONF_TRICHOTOMY: return "ARITH_CONF_TRICHOTOMY";
+    case InferenceId::ARITH_CONF_UPPER: return "ARITH_CONF_UPPER";
+    case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
+    case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
+    case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
+    case InferenceId::ARITH_APPROX_CUT: return "ARITH_APPROX_CUT";
+    case InferenceId::ARITH_BB_LEMMA: return "ARITH_BB_LEMMA";
+    case InferenceId::ARITH_DIO_CUT: return "ARITH_DIO_CUT";
+    case InferenceId::ARITH_DIO_DECOMPOSITION: return "ARITH_DIO_DECOMPOSITION";
+    case InferenceId::ARITH_SPLIT_FOR_NL_MODEL:
+      return "ARITH_SPLIT_FOR_NL_MODEL";
     case InferenceId::ARITH_PP_ELIM_OPERATORS: return "ARITH_PP_ELIM_OPERATORS";
     case InferenceId::ARITH_PP_ELIM_OPERATORS_LEMMA:
       return "ARITH_PP_ELIM_OPERATORS_LEMMA";
@@ -163,8 +164,10 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_INST_SYQI: return "QUANTIFIERS_INST_SYQI";
     case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
     case InferenceId::QUANTIFIERS_CEGQI_CEX: return "QUANTIFIERS_CEGQI_CEX";
-    case InferenceId::QUANTIFIERS_CEGQI_CEX_AUX: return "QUANTIFIERS_CEGQI_CEX_AUX";
-    case InferenceId::QUANTIFIERS_CEGQI_NESTED_QE: return "QUANTIFIERS_CEGQI_NESTED_QE";
+    case InferenceId::QUANTIFIERS_CEGQI_CEX_AUX:
+      return "QUANTIFIERS_CEGQI_CEX_AUX";
+    case InferenceId::QUANTIFIERS_CEGQI_NESTED_QE:
+      return "QUANTIFIERS_CEGQI_NESTED_QE";
     case InferenceId::QUANTIFIERS_CEGQI_CEX_DEP:
       return "QUANTIFIERS_CEGQI_CEX_DEP";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA:
@@ -173,8 +176,7 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_CEGQI_VTS_UB_DELTA";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF:
       return "QUANTIFIERS_CEGQI_VTS_LB_INF";
-    case InferenceId::QUANTIFIERS_SYQI_CEX:
-      return "QUANTIFIERS_SYQI_CEX";
+    case InferenceId::QUANTIFIERS_SYQI_CEX: return "QUANTIFIERS_SYQI_CEX";
     case InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD:
       return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
     case InferenceId::QUANTIFIERS_SYGUS_QE_PREPROC:

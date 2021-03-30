@@ -562,7 +562,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         sf.d_vars.size() > d_input_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
-    std::vector< std::pair<Node, InferenceId> > lemmas;
+    std::vector<std::pair<Node, InferenceId> > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
       if (ita->second->needsPostProcessInstantiationForVariable(
               this, sf, ita->first, d_effort))
@@ -584,12 +584,12 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         }
       }
       if( postProcessSuccess ){
-        return doAddInstantiation( sf_tmp.d_vars, sf_tmp.d_subs );
+        return doAddInstantiation(sf_tmp.d_vars, sf_tmp.d_subs);
       }else{
         return false;
       }
     }else{
-      return doAddInstantiation( sf.d_vars, sf.d_subs );
+      return doAddInstantiation(sf.d_vars, sf.d_subs);
     }
   }else{
     bool is_sv = false;
@@ -1050,7 +1050,9 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   }
 }
 
-bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs ) {
+bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
+                                         std::vector<Node>& subs)
+{
   if (vars.size() > d_input_vars.size() || !d_var_order_index.empty())
   {
     Trace("cegqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
