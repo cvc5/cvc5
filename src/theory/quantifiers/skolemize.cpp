@@ -23,7 +23,6 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
-#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 
