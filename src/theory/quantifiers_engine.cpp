@@ -630,6 +630,11 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
   d_qim.getInstantiate()->getInstantiationTermVectors(insts);
 }
 
+void QuantifiersEngine::getInstantiations(Node q, std::vector<Node>& insts)
+{
+  d_qim.getInstantiate()->getInstantiations(q, insts);
+}
+
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   if (d_qmodules->d_synth_e)
   {
