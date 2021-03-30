@@ -9,6 +9,9 @@
 ## directory for licensing information.
 ##
 
+find_package(Java REQUIRED)
+include(UseJava)
+
 # run gradle check
 add_custom_target(
   gradle-test
@@ -20,5 +23,5 @@ add_custom_target(
   VERBATIM
 )
 
-add_dependencies(gradle-test gradle-build)
-add_dependencies(units gradle-test)
+
+add_dependencies(units cvcjar)
