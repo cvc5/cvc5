@@ -63,6 +63,11 @@ void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
   d_cnfStream = cs;
 }
 
+void JustificationStrategy::presolve()
+{
+  // TODO
+}
+
 SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 {
   // ensure we have an assertion

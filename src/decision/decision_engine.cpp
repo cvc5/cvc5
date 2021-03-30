@@ -44,6 +44,14 @@ void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
   d_jstrat->finishInit(ss, cs);
 }
 
+void DecisionEngine::presolve()
+{
+  if (!d_useOld)
+  {
+    d_jstrat->presolve();
+  }
+}
+
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);

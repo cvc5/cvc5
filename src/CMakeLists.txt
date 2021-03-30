@@ -48,6 +48,8 @@ libcvc4_add_sources(
   decision/justification_strategy.h
   decision/justify_info.cpp
   decision/justify_info.h
+  decision/justify_stack.cpp
+  decision/justify_stack.h
   lib/clock_gettime.c
   lib/clock_gettime.h
   lib/ffs.c

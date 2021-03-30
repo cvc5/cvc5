@@ -41,6 +41,12 @@ DynamicAssertionList::DynamicAssertionList(context::Context* ic) : d_assertionIn
   
 }
 
+void DynamicAssertionList::erase(TNode n)
+{
+}
+void DynamicAssertionList::addToFront(TNode n)
+{
+}
 TNode DynamicAssertionList::getNextAssertion()
 {
   return TNode::null();

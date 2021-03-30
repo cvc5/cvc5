@@ -65,6 +65,9 @@ class JustificationStrategy
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 
+  /** Presolve, called at the beginning of each check-sat call */
+  void presolve();
+  
   /** Gets the next decision based on strategies that are enabled */
   prop::SatLiteral getNext(bool& stopSearch);
 
@@ -147,6 +150,7 @@ class JustificationStrategy
   /** The last decision literal */
   context::CDO<TNode> d_lastDecisionLit;
   //------------------------------------ activity
+  /** The status of the last assertion */
   DecisionStatus d_currStatus;
   /** Current assertion we are checking for status (context-independent) */
   Node d_currUnderStatus;
