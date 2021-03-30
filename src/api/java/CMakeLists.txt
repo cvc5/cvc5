@@ -77,7 +77,7 @@ add_custom_command(
   TARGET cvcjar
   POST_BUILD
   COMMAND
-  ${Java_JAR_EXECUTABLE} --update --file
+  ${Java_JAR_EXECUTABLE} uf
   ${CVC_JAR}
   # add libcvc4.so
   -C $<TARGET_FILE_DIR:cvc4> $<TARGET_FILE_NAME:cvc4>
