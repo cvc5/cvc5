@@ -14,7 +14,6 @@
  ** Black box testing of the guards of the C++ API functions.
  **/
 
-#include "base/configuration.h"
 #include "test_api.h"
 
 namespace CVC4 {
@@ -95,8 +94,11 @@ TEST_F(TestApiBlackSort, isRegExp)
 
 TEST_F(TestApiBlackSort, isRoundingMode)
 {
-  ASSERT_TRUE(d_solver.getRoundingModeSort().isRoundingMode());
-  ASSERT_NO_THROW(Sort().isRoundingMode());
+  if (d_solver.supportsFloatingPoint())
+  {
+    ASSERT_TRUE(d_solver.getRoundingModeSort().isRoundingMode());
+    ASSERT_NO_THROW(Sort().isRoundingMode());
+  }
 }
 
 TEST_F(TestApiBlackSort, isBitVector)
@@ -107,8 +109,11 @@ TEST_F(TestApiBlackSort, isBitVector)
 
 TEST_F(TestApiBlackSort, isFloatingPoint)
 {
-  ASSERT_TRUE(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
-  ASSERT_NO_THROW(Sort().isFloatingPoint());
+  if (d_solver.supportsFloatingPoint())
+  {
+    ASSERT_TRUE(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
+    ASSERT_NO_THROW(Sort().isFloatingPoint());
+  }
 }
 
 TEST_F(TestApiBlackSort, isDatatype)
@@ -230,7 +235,9 @@ TEST_F(TestApiBlackSort, isFirstClass)
   Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(),
                                           d_solver.getIntegerSort());
   ASSERT_TRUE(d_solver.getIntegerSort().isFirstClass());
-  ASSERT_FALSE(fun_sort.isFirstClass());
+  ASSERT_TRUE(fun_sort.isFirstClass());
+  Sort reSort = d_solver.getRegExpSort();
+  ASSERT_FALSE(reSort.isFirstClass());
   ASSERT_NO_THROW(Sort().isFirstClass());
 }
 
@@ -469,7 +476,7 @@ TEST_F(TestApiBlackSort, getBVSize)
 
 TEST_F(TestApiBlackSort, getFPExponentSize)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
     ASSERT_NO_THROW(fpSort.getFPExponentSize());
@@ -480,7 +487,7 @@ TEST_F(TestApiBlackSort, getFPExponentSize)
 
 TEST_F(TestApiBlackSort, getFPSignificandSize)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
     ASSERT_NO_THROW(fpSort.getFPSignificandSize());

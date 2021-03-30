@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/extended_rewrite.h"
 
+#include <sstream>
+
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"

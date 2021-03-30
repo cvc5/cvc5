@@ -39,6 +39,7 @@
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
+#include "util/result.h"
 
 namespace CVC4 {
 namespace theory {
@@ -74,9 +75,9 @@ class NlLemma;
  * which is called by TheoryArithPrivate either:
  * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
- * In this method, this class calls d_out->lemma(...)
+ * In this method, this class calls d_im.lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
- * where d_out is the output channel of TheoryArith.
+ * where d_im is the inference manager of TheoryArith.
  */
 class NonlinearExtension
 {
@@ -94,8 +95,8 @@ class NonlinearExtension
   void preRegisterTerm(TNode n);
   /** Check at effort level e.
    *
-   * This call may result in (possibly multiple) calls to d_out->lemma(...)
-   * where d_out is the output channel of TheoryArith.
+   * This call may result in (possibly multiple) calls to d_im.lemma(...)
+   * where d_im is the inference manager of TheoryArith.
    *
    * If e is FULL, then we add lemmas based on context-depedent
    * simplification (see Reynolds et al FroCoS 2017).
@@ -154,12 +155,12 @@ class NonlinearExtension
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
    *
-   * This function returns true if a lemma was added to the inference manager.
-   * Otherwise, it returns false. In the latter case, the model object d_model
-   * may have information regarding how to construct a model, in the case that
-   * we determined the problem is satisfiable.
+   * This function returns whether we found a satisfying assignment
+   * (Result::Sat::SAT), or not (Result::Sat::UNSAT). Note that UNSAT does not
+   * necessarily means the whole query is UNSAT, but that the linear model was
+   * refuted by a lemma.
    */
-  bool modelBasedRefinement(const std::set<Node>& termSet);
+  Result::Sat modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *
@@ -290,8 +291,6 @@ class NonlinearExtension
    * NlModel::getModelValueRepair.
    */
   std::map<Node, Node> d_witnesses;
-  /** have we successfully built the model in this SAT context? */
-  context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */
 
 }  // namespace nl

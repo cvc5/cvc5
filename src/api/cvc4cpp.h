@@ -3695,12 +3695,12 @@ class CVC4_EXPORT Solver
 
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;
+  /** The statistics collected on the Api level. */
+  std::unique_ptr<Statistics> d_stats;
   /** The SMT engine of this solver. */
   std::unique_ptr<SmtEngine> d_smtEngine;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
-  /** The statistics collected on the Api level. */
-  std::unique_ptr<Statistics> d_stats;
 };
 
 }  // namespace api

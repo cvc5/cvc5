@@ -142,18 +142,16 @@ Integer Integer::multiplyByPow2(uint32_t pow) const
   return Integer(result);
 }
 
-Integer Integer::setBit(uint32_t i, bool value) const
+void Integer::setBit(uint32_t i, bool value)
 {
-  mpz_class res = d_value;
   if (value)
   {
-    mpz_setbit(res.get_mpz_t(), i);
+    mpz_setbit(d_value.get_mpz_t(), i);
   }
   else
   {
-    mpz_clrbit(res.get_mpz_t(), i);
+    mpz_clrbit(d_value.get_mpz_t(), i);
   }
-  return Integer(res);
 }
 
 bool Integer::isBitSet(uint32_t i) const

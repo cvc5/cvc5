@@ -27,10 +27,7 @@
 #include "theory/strings/word.h"
 #include "theory/rewriter.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory::inst;
 
 namespace CVC4 {
 namespace theory {

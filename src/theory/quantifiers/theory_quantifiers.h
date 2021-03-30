@@ -87,13 +87,13 @@ class TheoryQuantifiers : public Theory {
   /** The quantifiers state */
   QuantifiersState d_qstate;
   /** The quantifiers registry */
-  quantifiers::QuantifiersRegistry d_qreg;
+  QuantifiersRegistry d_qreg;
   /** The term registry */
-  quantifiers::TermRegistry d_treg;
+  TermRegistry d_treg;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
-  QuantifiersEngine d_qengine;
+  std::unique_ptr<QuantifiersEngine> d_qengine;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */
