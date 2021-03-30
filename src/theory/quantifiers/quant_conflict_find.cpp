@@ -2199,7 +2199,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // checked first on the next round. This is an optimization to
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
-        d_quantEngine->markRelevant(q);
+        d_treg.getModel()->markRelevant(q);
         if (options::qcfAllConflict())
         {
           isConflict = true;
@@ -2212,7 +2212,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       }
       else if (d_effort == EFFORT_PROP_EQ)
       {
-        d_quantEngine->markRelevant(q);
+        d_treg.getModel()->markRelevant(q);
       }
     }
     // clean up assigned
