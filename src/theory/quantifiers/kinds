@@ -35,6 +35,9 @@ sort INST_PATTERN_TYPE \
 operator INST_PATTERN 1: "instantiation pattern"
 operator INST_NO_PATTERN 1 "instantiation no-pattern"
 operator INST_ATTRIBUTE 1 "instantiation attribute"
+operator INST_POOL 1: "instantiation pool"
+operator INST_ADD_TO_POOL 2 "instantiation add to pool"
+operator SKOLEM_ADD_TO_POOL 2 "skolemization add to pool"
 
 sort INST_PATTERN_LIST_TYPE \
     Cardinality::INTEGERS \
@@ -44,12 +47,16 @@ sort INST_PATTERN_LIST_TYPE \
 # a list of instantiation patterns
 operator INST_PATTERN_LIST 1: "a list of instantiation patterns"
 
-typerule FORALL ::CVC4::theory::quantifiers::QuantifierForallTypeRule 
-typerule EXISTS ::CVC4::theory::quantifiers::QuantifierExistsTypeRule 
-typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeRule 
-typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
-typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierInstNoPatternTypeRule 
-typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierInstAttributeTypeRule 
+typerule FORALL ::CVC4::theory::quantifiers::QuantifierTypeRule
+typerule EXISTS ::CVC4::theory::quantifiers::QuantifierTypeRule
+typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeRule
 typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule
+
+typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule
+typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_POOL ::CVC4::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule INST_ADD_TO_POOL ::CVC4::theory::quantifiers::QuantifierAnnotationTypeRule
+typerule SKOLEM_ADD_TO_POOL ::CVC4::theory::quantifiers::QuantifierAnnotationTypeRule
 
 endtheory
