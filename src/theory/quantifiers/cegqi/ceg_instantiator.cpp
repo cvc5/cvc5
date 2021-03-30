@@ -562,7 +562,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         sf.d_vars.size() > d_input_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
-    std::vector<std::pair<Node, InferenceId> > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
       if (ita->second->needsPostProcessInstantiationForVariable(
               this, sf, ita->first, d_effort))
