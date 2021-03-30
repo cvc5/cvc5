@@ -162,8 +162,8 @@ class TheoryProxy : public Registrar
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
 
-  /** Whether we are tracking relevant skolem definitions */
-  bool d_trackSkolemDefs;
+  /** Whether we are tracking assertions */
+  bool d_trackAsserts;
 }; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */

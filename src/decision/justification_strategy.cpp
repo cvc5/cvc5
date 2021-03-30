@@ -68,7 +68,7 @@ void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
 
 void JustificationStrategy::presolve()
 {
-  // TODO
+  // TODO: reset the dynamic assertion list data
 }
 
 SatLiteral JustificationStrategy::getNext(bool& stopSearch)
@@ -449,10 +449,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
       {
         std::vector<TNode> defs;
         d_skdm->notifyAsserted(atom, defs, true);
-        if (!defs.empty())
-        {
-          notifyRelevantSkolemAssertions(defs);
-        }
+        insertToAssertionList(defs, true);
       }
       d_justified.insert(atom, val);
       return pol ? val : invertValue(val);
@@ -481,12 +478,17 @@ void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
   }
 }
 
-void JustificationStrategy::notifyRelevantSkolemAssertions(
-    std::vector<TNode>& lems)
+void JustificationStrategy::notifyAsserted(TNode n)
 {
-  // should not have dynamic notification of skolems if in ALWAYS mode
-  Assert(d_jhSkRlvMode != options::JutificationSkolemRlvMode::ALWAYS);
-  insertToAssertionList(lems, true);
+  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
+  {
+    // assertion processed makes all skolems in assertion active,
+    // which triggers their definitions to becoming relevant
+    std::vector<TNode> defs;
+    d_skdm->notifyAsserted(n, defs, true);
+    insertToAssertionList(defs, true);
+  }
+  // TODO: updates tracking triggers?
 }
 
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
@@ -496,7 +498,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
   // always miniscope AND immediately
   size_t index = 0;
-  do
+  while (index < toProcess.size())
   {
     TNode curr = toProcess[index];
     bool pol = curr.getKind() != NOT;
@@ -535,7 +537,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       // TODO: skolem definitions that are always relevant should be added to
       // assertions, for uniformity
     }
-  } while (index < toProcess.size());
+  }
 }
 
 bool JustificationStrategy::refreshCurrentAssertion()

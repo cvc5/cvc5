@@ -94,14 +94,14 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   }
 }
 
-void DecisionEngine::notifyRelevantSkolemAssertions(std::vector<TNode>& lem)
+void DecisionEngine::notifyAsserted(TNode n)
 {
   if (d_useOld)
   {
     return;
   }
   // old implementation does not use this
-  d_jstrat->notifyRelevantSkolemAssertions(lem);
+  d_jstrat->notifyAsserted(n);
 }
 
 }/* CVC4 namespace */

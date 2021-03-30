@@ -46,9 +46,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_queue(context),
       d_tpp(*theoryEngine, userContext, pnm),
       d_skdm(skdm),
-      d_trackSkolemDefs(options::jhNew()
-                        && options::jhNewSkolemRlvMode()
-                               == options::JutificationSkolemRlvMode::ASSERT)
+      d_trackAsserts(options::jhNew())
 {
 }
 
@@ -80,16 +78,9 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
-    if (d_trackSkolemDefs)
+    if (d_trackAsserts)
     {
-      // assertion processed makes all skolems in assertion active,
-      // which triggers their definitions to becoming relevant
-      std::vector<TNode> defs;
-      d_skdm->notifyAsserted(assertion, defs, true);
-      if (!defs.empty())
-      {
-        d_decisionEngine->notifyRelevantSkolemAssertions(defs);
-      }
+      d_decisionEngine->notifyAsserted(assertion);
     }
   }
   d_theoryEngine->check(effort);

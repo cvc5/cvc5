@@ -66,9 +66,10 @@ class DecisionEngine
    */
   void addSkolemDefinition(TNode lem, TNode skolem);
   /**
-   * Notify this class that lem is an active assertion in this SAT context
+   * Notify this class that the literal n has been asserted, possibly
+   * propagated by the SAT solver.
    */
-  void notifyRelevantSkolemAssertions(std::vector<TNode>& lem);
+  void notifyAsserted(TNode n);
 
  private:
   /** The old implementation */

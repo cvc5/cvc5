@@ -97,7 +97,7 @@ class JustificationStrategy
    * is triggered when lem is a skolem definition for skolem k, and k appears
    * in a newly asserted literal.
    */
-  void notifyRelevantSkolemAssertions(std::vector<TNode>& lems);
+  void notifyAsserted(TNode n);
 
  private:
   /** Insert to assertion list */
