@@ -15,8 +15,6 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
-#include "theory/quantifiers_engine.h"
-
 using namespace CVC4::kind;
 
 namespace CVC4 {

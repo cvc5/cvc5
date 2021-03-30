@@ -14,10 +14,7 @@
 
 #include "theory/quantifiers/inst_match.h"
 
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -93,7 +90,7 @@ void InstMatch::setValue(size_t i, TNode n)
   Assert(i < d_vals.size());
   d_vals[i] = n;
 }
-bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
+bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
 {
   Assert(i < d_vals.size());
   if( !d_vals[i].isNull() ){

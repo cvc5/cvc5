@@ -30,9 +30,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 class TermDb;
 }  // namespace quantifiers
@@ -84,7 +81,7 @@ class QuantifiersModule
    *
    * Whether this module needs a model built during a
    * call to QuantifiersEngine::check(e)
-   * It returns one of QEFFORT_* from quantifiers_engine.h,
+   * It returns one of QEFFORT_* from the enumeration above.
    * which specifies the quantifiers effort in which it requires the model to
    * be built.
    */

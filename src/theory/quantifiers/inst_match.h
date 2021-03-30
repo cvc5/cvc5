@@ -79,7 +79,7 @@ public:
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set(quantifiers::QuantifiersState& qs, size_t i, TNode n);
+  bool set(QuantifiersState& qs, size_t i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
