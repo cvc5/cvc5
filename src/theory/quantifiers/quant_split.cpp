@@ -205,6 +205,6 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

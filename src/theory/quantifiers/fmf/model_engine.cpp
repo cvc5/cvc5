@@ -35,7 +35,7 @@ ModelEngine::ModelEngine(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
-             QModelBuilder * builder)
+                         QModelBuilder* builder)
     : QuantifiersModule(qs, qim, qr, tr),
       d_incomplete_check(true),
       d_addedLemmas(0),
@@ -260,8 +260,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }else{
       Trace("fmf-exh-inst") << "-> Builder determined instantiation(s)." << std::endl;
     }
-    d_triedLemmas += d_builder->getNumTriedLemmas()-prev_tlem;
-    d_addedLemmas += d_builder->getNumAddedLemmas()-prev_alem;
+    d_triedLemmas += d_builder->getNumTriedLemmas() - prev_tlem;
+    d_addedLemmas += d_builder->getNumAddedLemmas() - prev_alem;
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
@@ -320,19 +320,23 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
 void ModelEngine::debugPrint( const char* c ){
   if (Trace.isOn(c))
   {
-    Trace( c ) << "Quantifiers: " << std::endl;
-    FirstOrderModel * m = d_treg.getModel();
-    for( size_t i=0, nquant = m->getNumAssertedQuantifiers(); i<nquant; i++ ){
-      Node q = m->getAssertedQuantifier( i );
+    Trace(c) << "Quantifiers: " << std::endl;
+    FirstOrderModel* m = d_treg.getModel();
+    for (size_t i = 0, nquant = m->getNumAssertedQuantifiers(); i < nquant; i++)
+    {
+      Node q = m->getAssertedQuantifier(i);
       if (d_qreg.hasOwnership(q, this))
       {
-        Trace( c ) << "   ";
-        if( !m->isQuantifierActive( q ) ){
-          Trace( c ) << "*Inactive* ";
-        }else{
-          Trace( c ) << "           ";
+        Trace(c) << "   ";
+        if (!m->isQuantifierActive(q))
+        {
+          Trace(c) << "*Inactive* ";
         }
-        Trace( c ) << q << std::endl;
+        else
+        {
+          Trace(c) << "           ";
+        }
+        Trace(c) << q << std::endl;
       }
     }
   }
