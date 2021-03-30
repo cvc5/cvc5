@@ -600,33 +600,13 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
   return d_inst_match_trie[q].removeInstMatch(q, terms);
 }
 
-<<<<<<< HEAD
-Node Instantiate::getTermForType(TypeNode tn)
-{
-  if (tn.isClosedEnumerable())
-  {
-    return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
-  }
-  return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
-}
-
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
-=======
-void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
->>>>>>> c7a8c32825af7dceb6cee631523a480a5b2cc6ba
 {
   for (NodeInstListMap::const_iterator it = d_insts.begin();
        it != d_insts.end();
        ++it)
   {
-<<<<<<< HEAD
     qs.push_back(it->first);
-=======
-    for (std::pair<const Node, InstMatchTrie>& t : d_inst_match_trie)
-    {
-      qs.push_back(t.first);
-    }
->>>>>>> c7a8c32825af7dceb6cee631523a480a5b2cc6ba
   }
 }
 
