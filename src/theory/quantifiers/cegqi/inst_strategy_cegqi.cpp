@@ -498,11 +498,6 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   return false;
 }
 
-bool InstStrategyCegqi::addPendingLemma(Node lem, InferenceId id) const
-{
-  return d_qim.addPendingLemma(lem, id);
-}
-
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
