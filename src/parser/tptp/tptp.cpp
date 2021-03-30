@@ -371,65 +371,54 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 
 api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
-  /*
-  // compute the numerator
-  api::Term inum = d_solver->mkInteger(snum + sden);
-  // The sign
-  if (!pos)
+  // the numerator and the denominator
+  std::stringstream ssn;
+  std::stringstream ssd;
+  if (exp!=0)
   {
-    inum = d_solver->mkTerm(api::UMINUS, inum);
-  }
-  // Decimal part
-  size_t dec = sden.size();
-  // compute the value
-  api::Term r;
-  if(!posE)
-  {
-    r = Rational(inum, Integer(10).pow(exp + dec));
-  }
-  else if(exp == dec)
-  {
-    r = inum;
-  }
-  else if(exp > dec)
-  {
-    r = Rational(inum * Integer(10).pow(exp - dec));
-  }
-  else
-  {
-    r = Rational(inum, Integer(10).pow(dec - exp));
-  }
-  return r;
-  */
-  
-  
-  /* compute the numerator */
-  Integer inum(snum + sden);
-  // The sign
-  inum = pos ? inum : -inum;
-  // Decimal part
-  size_t dec = sden.size();
-  /* multiply it by 10 raised to the exponent reduced by the
-    * number of decimal place in den (dec) */
-  Rational r;
-  if(!posE)
-  {
-    r = Rational(inum, Integer(10).pow(exp + dec));
-  }
-  else if(exp == dec)
-  {
-    r = Rational(inum);
-  }
-  else if(exp > dec)
-  {
-    r = Rational(inum * Integer(10).pow(exp - dec));
-  }
-  else
-  {
-    r = Rational(inum, Integer(10).pow(dec - exp));
+    if (posE)
+    {
+      // see if we need to pad zeros on the end, e.g. 1.2E5 ---> 120000
+      if (exp>=sden.size())
+      {
+        ssn << snum << sden;
+        for (size_t i=0, nzero = (exp-sden.size()); i<nzero; i++)
+        {
+          ssn << "0";
+        }
+        ssd << "0";
+      }
+      else
+      {
+        ssn << snum << sden.substr(0,exp);
+        ssd << sden.substr(exp);
+      }
+    }
+    else
+    {
+      // see if we need to pad zeros on the beginning, e.g. 1.2E-5 ---> 0.000012
+      if (exp>=snum.size())
+      {
+        ssn << "0";
+        for (size_t i=0, nzero = (exp-snum.size()); i<nzero; i++)
+        {
+          ssd << "0";
+        }
+        ssd << snum << sden;
+      }
+      else
+      {
+        ssn << snum.substr(0,exp);
+        ssd << snum.substr(exp) << sden;
+      }
+    }
   }
   std::stringstream ss;
-  ss << r;
+  if (!pos)
+  {
+    ss << "-";
+  }
+  ss << ssn.str() << "." << ssd.str();
   return d_solver->mkReal(ss.str());
 }
 
