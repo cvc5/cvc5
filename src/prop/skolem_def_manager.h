@@ -69,7 +69,9 @@ class SkolemDefManager
    * @param useDefs If this flag is true, we add the skolem definition for
    * skolems to activatedSkolems instead of the skolem itself.
    */
-  void notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems, bool useDefs = false);
+  void notifyAsserted(TNode literal,
+                      std::vector<TNode>& activatedSkolems,
+                      bool useDefs = false);
 
   /**
    * Get the set of skolems maintained by this class that occur in node n,

@@ -393,7 +393,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
   {
-    Assert (!isTheoryAtom(curr));
+    Assert(!isTheoryAtom(curr));
     // add to justify if so
     d_justified.insert(curr, value);
     // update the last child value, which will be used by the parent of the
@@ -441,7 +441,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
     {
       // this is the moment where we realize a skolem definition is relevant,
       // add now.
-      if (d_jhSkRlvMode==options::JutificationSkolemRlvMode::JUSTIFY)
+      if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::JUSTIFY)
       {
         std::vector<TNode> defs;
         d_skdm->notifyAsserted(atom, defs, true);
@@ -468,7 +468,7 @@ void JustificationStrategy::addAssertion(TNode assertion)
 
 void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
 {
-  if (d_jhSkRlvMode==options::JutificationSkolemRlvMode::ALWAYS)
+  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
   {
     // just add to main assertions list
     std::vector<TNode> toProcess;
@@ -477,16 +477,18 @@ void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
   }
 }
 
-void JustificationStrategy::notifyRelevantSkolemAssertions(std::vector<TNode>& lems)
+void JustificationStrategy::notifyRelevantSkolemAssertions(
+    std::vector<TNode>& lems)
 {
   // should not have dynamic notification of skolems if in ALWAYS mode
-  Assert (d_jhSkRlvMode!=options::JutificationSkolemRlvMode::ALWAYS);
+  Assert(d_jhSkRlvMode != options::JutificationSkolemRlvMode::ALWAYS);
   insertToAssertionList(lems, true);
 }
 
-void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList)
+void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
+                                                  bool useSkolemList)
 {
-  Assert (!toProcess.empty());
+  Assert(!toProcess.empty());
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
   // always miniscope AND immediately
   size_t index = 0;
