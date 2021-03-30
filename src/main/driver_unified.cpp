@@ -57,7 +57,20 @@ namespace CVC4 {
     const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = nullptr;
+    std::unique_ptr<CVC4::main::CommandExecutor> pExecutor;
+
+    /** The time point the binary started, accessible to signal handlers */
+    std::unique_ptr<TotalTimer> totalTime;
+
+    TotalTimer::~TotalTimer()
+    {
+      if (pExecutor != nullptr)
+      {
+        auto duration = std::chrono::steady_clock::now() - d_start;
+        pExecutor->getSmtEngine()->setTotalTimeStatistic(
+            std::chrono::duration<double>(duration).count());
+      }
+    }
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -78,8 +91,7 @@ void printUsage(Options& opts, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& opts) {
-
-  std::chrono::time_point totalTimeStart = std::chrono::steady_clock::now();
+  main::totalTime = std::make_unique<TotalTimer>();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -176,7 +188,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the command executor to execute the parsed commands
-  pExecutor = new CommandExecutor(opts);
+  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
@@ -457,10 +469,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // or other on_exit/atexit stuff.
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
-    pExecutor->getSmtEngine()->setResultStatistic(result.toString());
-    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
-    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
+    totalTime.reset();
     pExecutor->flushOutputStreams();
 
 #ifdef CVC4_DEBUG
@@ -474,9 +484,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_DEBUG */
   }
 
-  delete pExecutor;
-
-  pExecutor = nullptr;
+  pExecutor.reset();
 
   signal_handlers::cleanup();
 

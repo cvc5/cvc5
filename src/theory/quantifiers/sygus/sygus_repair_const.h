@@ -25,9 +25,6 @@ namespace CVC4 {
 class LogicInfo;
 
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class TermDbSygus;
@@ -50,7 +47,7 @@ class TermDbSygus;
 class SygusRepairConst
 {
  public:
-  SygusRepairConst(QuantifiersEngine* qe);
+  SygusRepairConst(TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *
@@ -107,8 +104,6 @@ class SygusRepairConst
   static bool mustRepair(Node n);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /**
