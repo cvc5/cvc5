@@ -47,6 +47,12 @@ target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC4DRIVER)
 target_link_libraries(main-test cvc4 cvc4parser)
+if(USE_CLN)
+  target_link_libraries(main-test ${CLN_LIBRARIES})
+  target_include_directories(main-test PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(main-test ${GMP_LIBRARIES})
+target_include_directories(main-test PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
 
 #-----------------------------------------------------------------------------#
 # cvc4 binary configuration
