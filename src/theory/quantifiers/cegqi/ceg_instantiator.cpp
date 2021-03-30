@@ -29,7 +29,6 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
@@ -185,11 +184,12 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
 
 CegInstantiator::CegInstantiator(Node q,
                                  QuantifiersState& qs,
+                                 TermRegistry& tr,
                                  InstStrategyCegqi* parent)
     : d_quant(q),
       d_qstate(qs),
+      d_treg(tr),
       d_parent(parent),
-      d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
@@ -1437,7 +1437,7 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_qe->getModel()->getValue( n );
+  return d_treg.getModel()->getValue(n);
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)
