@@ -40,7 +40,7 @@ std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
   {
     return std::make_pair(OptResult::OPT_UNKNOWN, value);
   }
-  if (!intermediateSatResult.isSat())
+  if (intermediateSatResult.isSat() == Result::UNSAT)
   {
     return std::make_pair(OptResult::OPT_UNSAT, value);
   }
@@ -63,7 +63,7 @@ std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
   // This loop will keep incrmenting/decrementing the objective until unsat
   // When unsat is hit,
   // the optimized value is the model value just before the unsat call
-  while (intermediateSatResult.isSat())
+  while (intermediateSatResult.isSat() == Result::SAT)
   {
     value = optChecker->getValue(target);
     Assert(!value.isNull());

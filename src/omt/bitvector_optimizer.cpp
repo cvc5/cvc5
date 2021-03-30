@@ -37,8 +37,7 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
   uint32_t aMod2 = static_cast<uint32_t>(a.isBitSet(0));
   uint32_t bMod2 = static_cast<uint32_t>(b.isBitSet(0));
-  BitVector aMod2PlusbMod2(a.getSize(),
-                           static_cast<uint32_t>((aMod2 + bMod2) / 2));
+  BitVector aMod2PlusbMod2(a.getSize(), (aMod2 + bMod2) / 2);
   BitVector bv1 = BitVector::mkOne(a.getSize());
   if (isSigned)
   {
@@ -67,7 +66,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
   {
     return std::make_pair(OptResult::OPT_UNKNOWN, value);
   }
-  if (!intermediateSatResult.isSat())
+  if (intermediateSatResult.isSat() == Result::UNSAT)
   {
     return std::make_pair(OptResult::OPT_UNSAT, value);
   }
@@ -160,7 +159,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   {
     return std::make_pair(OptResult::OPT_UNKNOWN, value);
   }
-  if (!intermediateSatResult.isSat())
+  if (intermediateSatResult.isSat() == Result::UNSAT)
   {
     return std::make_pair(OptResult::OPT_UNSAT, value);
   }
