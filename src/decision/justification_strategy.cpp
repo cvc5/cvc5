@@ -265,9 +265,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       desiredVal = currDesiredVal;
     }
-    else if ( 
-             (ck == AND && lastChildVal == SAT_VALUE_FALSE) ||
-             (ck == OR && lastChildVal == SAT_VALUE_TRUE)
+    else if ((ck == AND && lastChildVal == SAT_VALUE_FALSE)
+             || (ck == OR && lastChildVal == SAT_VALUE_TRUE)
              || i == curr.getNumChildren())
     {
       Trace("jh-debug") << "current is forcing child" << std::endl;
@@ -373,7 +372,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     }
     else if (i == 1)
     {
-      Assert (lastChildVal!=SAT_VALUE_UNKNOWN);
+      Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                        ? lastChildVal
                        : invertValue(lastChildVal);
@@ -383,7 +382,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       // recompute the value of the first child
       SatValue val0 = lookupValue(curr[0]);
       Assert(val0 != SAT_VALUE_UNKNOWN);
-      Assert (lastChildVal!=SAT_VALUE_UNKNOWN);
+      Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       // compute the value
       value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
                                                         : SAT_VALUE_FALSE;
@@ -414,7 +413,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // recognize when its value could be inferred above.
   Assert(i < curr.getNumChildren()) << curr.getKind() << " had no value";
   // should set a desired value
-  Assert(desiredVal != SAT_VALUE_UNKNOWN) << "Child " << i << " of " << curr.getKind() << " had no desired value";
+  Assert(desiredVal != SAT_VALUE_UNKNOWN)
+      << "Child " << i << " of " << curr.getKind() << " had no desired value";
   // return the justify node
   return JustifyNode(curr[i], desiredVal);
 }
