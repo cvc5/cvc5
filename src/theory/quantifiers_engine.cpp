@@ -86,32 +86,14 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
-quantifiers::QuantifiersState& QuantifiersEngine::getState()
-{
-  return d_qstate;
-}
-quantifiers::QuantifiersInferenceManager&
-QuantifiersEngine::getInferenceManager()
-{
-  return d_qim;
-}
-
 quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
-}
-quantifiers::TermRegistry& QuantifiersEngine::getTermRegistry()
-{
-  return d_treg;
 }
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_qmodules->d_builder.get();
-}
-quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
-{
-  return d_model;
 }
 
 /// !!!!!!!!!!!!!! temporary (project #15)
@@ -119,11 +101,6 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_treg.getTermDatabaseSygus();
-}
-
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
-{
-  return d_treg.getTermDatabase();
 }
 /// !!!!!!!!!!!!!!
 
