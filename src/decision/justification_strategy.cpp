@@ -494,7 +494,6 @@ void JustificationStrategy::notifyAsserted(TNode n)
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
                                                   bool useSkolemList)
 {
-  Assert(!toProcess.empty());
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
   // always miniscope AND immediately
   size_t index = 0;
