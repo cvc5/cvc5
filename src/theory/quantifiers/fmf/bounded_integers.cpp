@@ -26,6 +26,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4;
 using namespace std;
