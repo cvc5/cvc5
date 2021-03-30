@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bitvector_optimizer.h
+/*! \file bitvector_optimizer.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Yancheng Ou
