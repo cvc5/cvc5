@@ -30,6 +30,8 @@ class JustifyStatistics
   IntStat d_numStatusDecision;
   IntStat d_numStatusBacktrack;
   IntStat d_maxStackSize;
+  IntStat d_maxAssertionsSize;
+  IntStat d_maxSkolemDefsSize;
 };
 
 }  // namespace CVC4

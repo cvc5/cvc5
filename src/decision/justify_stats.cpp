@@ -17,8 +17,6 @@
 #include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
 
 JustifyStatistics::JustifyStatistics()
     : d_numStatusNoDecision("JustifyStrategy::StatusNoDecision", 0),
@@ -26,11 +24,15 @@ JustifyStatistics::JustifyStatistics()
       d_numStatusBacktrack(
           "JustifyStrategy::StatusBacktrack", 0),
       d_maxStackSize("JustifyStrategy::MaxStackSize", 0),
+      d_maxAssertionsSize("JustifyStrategy::MaxAssertionsSize", 0),
+      d_maxSkolemDefsSize("JustifyStrategy::MaxSkolemDefsSize", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numStatusNoDecision);
   smtStatisticsRegistry()->registerStat(&d_numStatusDecision);
   smtStatisticsRegistry()->registerStat(&d_numStatusBacktrack);
   smtStatisticsRegistry()->registerStat(&d_maxStackSize);
+  smtStatisticsRegistry()->registerStat(&d_maxAssertionsSize);
+  smtStatisticsRegistry()->registerStat(&d_maxSkolemDefsSize);
 }
 
 JustifyStatistics::~JustifyStatistics()
@@ -39,8 +41,8 @@ JustifyStatistics::~JustifyStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_numStatusDecision);
   smtStatisticsRegistry()->unregisterStat(&d_numStatusBacktrack);
   smtStatisticsRegistry()->unregisterStat(&d_maxStackSize);
+  smtStatisticsRegistry()->unregisterStat(&d_maxAssertionsSize);
+  smtStatisticsRegistry()->unregisterStat(&d_maxSkolemDefsSize);
 }
 
-}  // namespace quantifiers
-}  // namespace theory
 }  // namespace CVC4

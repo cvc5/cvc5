@@ -186,6 +186,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // TODO: if the internal node has been assigned, what do we do?
           // (2) unprocessed non-atom, push to the stack
           d_stack.pushToStack(next.first, next.second);
+          d_stats.d_maxStackSize.maxAssign(d_stack.size());
           // we have yet to process children for the next node, so lastChildVal
           // remains set to SAT_VALUE_UNKNOWN.
         }
@@ -226,8 +227,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
                     << ", index = " << i
                     << ", last child value = " << lastChildVal << std::endl;
   // if i>0, we just computed the value of the (i-1)^th child
-  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN)
-      << "in getNextJustifyNode, last child has no value";
+  // doesn't hold for backtracking?
+  //Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN)
+  //    << "in getNextJustifyNode, last child has no value";
   // if i=0, we shouldn't have a last child value
   Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN)
       << "in getNextJustifyNode, value given for non-existent last child";
@@ -480,6 +482,15 @@ void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
     else if (!isTheoryAtom(currAtom))
     {
       al.addAssertion(curr);
+      // take stats
+      if (useSkolemList)
+      {
+        d_stats.d_maxSkolemDefsSize.maxAssign(al.size());
+      }
+      else
+      {
+        d_stats.d_maxAssertionsSize.maxAssign(al.size());
+      }
     }
     else
     {
@@ -565,19 +576,31 @@ void JustificationStrategy::notifyStatus(size_t i, DecisionStatus s)
 {
   // TODO: update order
   Trace("jh-status") << "Assertion #" << i << " had status " << s << std::endl;
-  if (s == DecisionStatus::BACKTRACK)
+  switch (s)
   {
+    case DecisionStatus::BACKTRACK:
+  {
+      ++(d_stats.d_numStatusBacktrack);
     // erase from backtrack queue if already there
     // add to front of backtrack queue
   }
-  else if (s == DecisionStatus::DECISION)
+  break;
+    case DecisionStatus::DECISION:
   {
+      ++(d_stats.d_numStatusDecision);
     // add to decision queue if not there already
   }
-  else if (s == DecisionStatus::NO_DECISION)
+  break;
+    case DecisionStatus::NO_DECISION:
   {
+      ++(d_stats.d_numStatusNoDecision);
     // erase from backtrack queue if already there
     // erase from decision queue if already there
+  }
+  break;
+    default:
+      Unhandled();
+      break;
   }
 }
 

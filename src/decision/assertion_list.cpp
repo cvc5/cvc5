@@ -35,6 +35,10 @@ TNode AssertionList::getNextAssertion(size_t& fromIndex)
   d_assertionIndex = d_assertionIndex + 1;
   return d_assertions[fromIndex];
 }
+size_t AssertionList::size() const
+{
+  return d_assertions.size();
+}
 
 DynamicAssertionList::DynamicAssertionList(context::Context* ic)
     : d_assertionIndex(ic)

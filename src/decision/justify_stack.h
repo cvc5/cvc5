@@ -33,6 +33,8 @@ class JustifyStack
   void reset(TNode curr);
   /** clear */
   void clear();
+  /** size */
+  size_t size() const;
   /** Get the current assertion */
   TNode getCurrentAssertion() const;
   /** Has current assertion */
