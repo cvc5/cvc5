@@ -105,7 +105,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(qe));
+    d_alpha_equiv.reset(new AlphaEquivalence());
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())

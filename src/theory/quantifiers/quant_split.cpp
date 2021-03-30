@@ -132,7 +132,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  FirstOrderModel* m = d_quantEngine->getModel();
+  FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
   for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();

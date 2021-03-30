@@ -83,7 +83,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe)
+AlphaEquivalence::AlphaEquivalence()
     : d_termCanon(), d_aedb(&d_termCanon)
 {
 }
