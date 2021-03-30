@@ -288,7 +288,7 @@ bool TypeNode::isFirstClass() const
   return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
          && getKind() != kind::TESTER_TYPE
          && (getKind() != kind::TYPE_CONSTANT
-             || getConst<TypeConstant>() != REGEXP_TYPE);
+             || ( getConst<TypeConstant>() != REGEXP_TYPE && getConst<TypeConstant>() != SEXPR_TYPE));
 }
 
 bool TypeNode::isWellFounded() const {
