@@ -95,6 +95,10 @@ quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_qmodules->d_builder.get();
 }
+quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
+{
+  return d_model;
+}
 
 /// !!!!!!!!!!!!!! temporary (project #15)
 
