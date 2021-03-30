@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file integer_optimizer.h
+/*! \file integer_optimizer.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Yancheng Ou
