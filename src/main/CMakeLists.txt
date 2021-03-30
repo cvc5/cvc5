@@ -62,7 +62,7 @@ if(USE_CLN)
   target_link_libraries(cvc4-bin ${CLN_LIBRARIES})
   target_include_directories(cvc4-bin PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
 endif()
-target_link_libraries(cvc4-bin PRIVATE ${GMP_LIBRARIES})
+target_link_libraries(cvc4-bin ${GMP_LIBRARIES})
 target_include_directories(cvc4-bin PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
