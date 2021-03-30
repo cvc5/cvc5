@@ -24,6 +24,7 @@
 #include "decision/assertion_list.h"
 #include "decision/justify_info.h"
 #include "decision/justify_stack.h"
+#include "decision/justify_stats.h"
 #include "expr/node.h"
 #include "options/decision_options.h"
 #include "prop/cnf_stream.h"
@@ -149,6 +150,8 @@ class JustificationStrategy
   bool d_useRlvOrder;
   /** skolem mode */
   options::JutificationSkolemMode d_jhSkMode;
+  /** The statistics */
+  JustifyStatistics d_stats;
 };
 
 }  // namespace CVC4
