@@ -30,6 +30,7 @@ class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
 class QuantifiersState;
+class TermRegistry;
 
 /**
  * Descriptions of the types of constraints that a term was solved for in.
@@ -206,7 +207,10 @@ class CegInstantiator {
    * The instantiator will be constructing instantiations for quantified formula
    * q, parent is the owner of this object.
    */
-  CegInstantiator(Node q, QuantifiersState& qs, InstStrategyCegqi* parent);
+  CegInstantiator(Node q,
+                  QuantifiersState& qs,
+                  TermRegistry& tr,
+                  InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -344,6 +348,8 @@ class CegInstantiator {
   Node d_quant;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** The parent of this instantiator */
   InstStrategyCegqi* d_parent;
 
