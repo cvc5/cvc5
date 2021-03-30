@@ -88,15 +88,20 @@ class JustificationStrategy
    */
   void addAssertion(TNode assertion);
   /**
+   * Notify this class  that lem is the skolem definition for skolem, which is
+   * a part of the current assertions.
+   */
+  void addSkolemDefinition(TNode lem, TNode skolem);
+  /**
    * Notify this class that lem is an active assertion in this SAT context. This
    * is triggered when lem is a skolem definition for skolem k, and k appears
    * in a newly asserted literal.
    */
-  void notifyRelevantSkolemAssertion(TNode lem);
+  void notifyRelevantSkolemAssertions(std::vector<TNode>& lems);
 
  private:
   /** Insert to assertion list */
-  void insertToAssertionList(TNode n, bool useSkolemList);
+  void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
   /** Refresh current */
   bool refreshCurrentAssertion();
   /** Reference current assertion from list */

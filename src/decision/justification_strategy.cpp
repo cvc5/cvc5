@@ -14,6 +14,8 @@
 
 #include "decision/justification_strategy.h"
 
+#include "prop/skolem_def_manager.h"
+
 using namespace CVC4::kind;
 using namespace CVC4::prop;
 
@@ -391,6 +393,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
   {
+    Assert (!isTheoryAtom(curr));
     // add to justify if so
     d_justified.insert(curr, value);
     // update the last child value, which will be used by the parent of the
@@ -436,6 +439,17 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
     prop::SatValue val = d_satSolver->value(nsl);
     if (val != SAT_VALUE_UNKNOWN)
     {
+      // this is the moment where we realize a skolem definition is relevant,
+      // add now.
+      if (d_jhSkRlvMode==options::JutificationSkolemRlvMode::JUSTIFY)
+      {
+        std::vector<TNode> defs;
+        d_skdm->notifyAsserted(atom, defs, true);
+        if (!defs.empty())
+        {
+          notifyRelevantSkolemAssertions(defs);
+        }
+      }
       d_justified.insert(atom, val);
       return pol ? val : invertValue(val);
     }
@@ -447,21 +461,35 @@ bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
-  insertToAssertionList(assertion, false);
+  std::vector<TNode> toProcess;
+  toProcess.push_back(assertion);
+  insertToAssertionList(toProcess, false);
 }
 
-void JustificationStrategy::notifyRelevantSkolemAssertion(TNode lem)
+void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
 {
-  insertToAssertionList(lem, true);
+  if (d_jhSkRlvMode==options::JutificationSkolemRlvMode::ALWAYS)
+  {
+    // just add to main assertions list
+    std::vector<TNode> toProcess;
+    toProcess.push_back(lem);
+    insertToAssertionList(toProcess, false);
+  }
 }
 
-void JustificationStrategy::insertToAssertionList(TNode n, bool useSkolemList)
+void JustificationStrategy::notifyRelevantSkolemAssertions(std::vector<TNode>& lems)
 {
+  // should not have dynamic notification of skolems if in ALWAYS mode
+  Assert (d_jhSkRlvMode!=options::JutificationSkolemRlvMode::ALWAYS);
+  insertToAssertionList(lems, true);
+}
+
+void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList)
+{
+  Assert (!toProcess.empty());
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
   // always miniscope AND immediately
-  std::vector<TNode> toProcess;
   size_t index = 0;
-  toProcess.push_back(n);
   do
   {
     TNode curr = toProcess[index];

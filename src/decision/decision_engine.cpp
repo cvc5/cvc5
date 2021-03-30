@@ -88,17 +88,20 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   {
     d_decEngineOld->addSkolemDefinition(lem, skolem);
   }
-  // justification strategy does not use this
+  else
+  {
+    d_jstrat->addSkolemDefinition(lem, skolem);
+  }
 }
 
-void DecisionEngine::notifyRelevantSkolemAssertion(TNode lem)
+void DecisionEngine::notifyRelevantSkolemAssertions(std::vector<TNode>& lem)
 {
   if (d_useOld)
   {
     return;
   }
   // old implementation does not use this
-  d_jstrat->notifyRelevantSkolemAssertion(lem);
+  d_jstrat->notifyRelevantSkolemAssertions(lem);
 }
 
 }/* CVC4 namespace */

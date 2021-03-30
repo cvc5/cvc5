@@ -68,7 +68,7 @@ class DecisionEngine
   /**
    * Notify this class that lem is an active assertion in this SAT context
    */
-  void notifyRelevantSkolemAssertion(TNode lem);
+  void notifyRelevantSkolemAssertions(std::vector<TNode>& lem);
 
  private:
   /** The old implementation */

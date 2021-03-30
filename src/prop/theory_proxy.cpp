@@ -48,7 +48,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_skdm(skdm),
       d_trackSkolemDefs(options::jhNew()
                         && options::jhNewSkolemRlvMode()
-                               == JutificationSkolemRlvMode::ASSERT)
+                               == options::JutificationSkolemRlvMode::ASSERT)
 {
 }
 
@@ -84,12 +84,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     {
       // assertion processed makes all skolems in assertion active,
       // which triggers their definitions to becoming relevant
-      std::vector<TNode> activatedSkolems;
-      d_skdm->notifyAsserted(assertion, activatedSkolems);
-      for (const Node& k : activatedSkolems)
+      std::vector<TNode> defs;
+      d_skdm->notifyAsserted(assertion, defs, true);
+      if (!defs.empty())
       {
-        TNode def = d_skdm->getDefinitionForSkolem(k);
-        d_decisionEngine->notifyRelevantSkolemAssertion(def);
+        d_decisionEngine->notifyRelevantSkolemAssertions(defs);
       }
     }
   }
