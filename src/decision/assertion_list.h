@@ -54,6 +54,7 @@ class DynamicAssertionList
   void addToFront(TNode n);
   /** get next assertion */
   TNode getNextAssertion();
+
  private:
   /** The list of assertions */
   std::vector<TNode> d_dlist;

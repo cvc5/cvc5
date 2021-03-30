@@ -24,7 +24,7 @@ namespace CVC4 {
 
 DecisionEngine::DecisionEngine(context::Context* c,
                                context::UserContext* u,
-                               prop::SkolemDefManager * skdm,
+                               prop::SkolemDefManager* skdm,
                                ResourceManager* rm)
     : d_decEngineOld(new DecisionEngineOld(c, u)),
       d_jstrat(new JustificationStrategy(c, u, skdm)),

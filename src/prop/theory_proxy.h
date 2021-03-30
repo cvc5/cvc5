@@ -54,7 +54,7 @@ class TheoryProxy : public Registrar
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,
               DecisionEngine* decisionEngine,
-                         SkolemDefManager * skdm,
+              SkolemDefManager* skdm,
               context::Context* context,
               context::UserContext* userContext,
               ProofNodeManager* pnm);

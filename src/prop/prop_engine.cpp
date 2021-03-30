@@ -88,7 +88,8 @@ PropEngine::PropEngine(TheoryEngine* te,
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
 
-  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, d_skdm.get(), rm));
+  d_decisionEngine.reset(
+      new DecisionEngine(satContext, userContext, d_skdm.get(), rm));
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 

@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& out, DecisionStatus s)
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
-                 prop::SkolemDefManager * skdm)
+                                             prop::SkolemDefManager* skdm)
     : d_context(c),
       d_cnfStream(nullptr),
       d_satSolver(nullptr),

@@ -23,11 +23,11 @@
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "prop/skolem_def_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
-#include "prop/skolem_def_manager.h"
 
 namespace CVC4 {
 namespace prop {
@@ -35,7 +35,7 @@ namespace prop {
 TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
                          DecisionEngine* decisionEngine,
-                         SkolemDefManager * skdm,
+                         SkolemDefManager* skdm,
                          context::Context* context,
                          context::UserContext* userContext,
                          ProofNodeManager* pnm)
@@ -46,7 +46,9 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_queue(context),
       d_tpp(*theoryEngine, userContext, pnm),
       d_skdm(skdm),
-      d_trackSkolemDefs(options::jhNew() && options::jhNewSkolemRlvMode()==JutificationSkolemRlvMode::ASSERT)
+      d_trackSkolemDefs(options::jhNew()
+                        && options::jhNewSkolemRlvMode()
+                               == JutificationSkolemRlvMode::ASSERT)
 {
 }
 
