@@ -42,6 +42,26 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
 
+
+IntBlaster::IntBlaster(context::Context* c,
+                       options::SolveBVAsIntMode mode,
+                       uint64_t granularity,
+                       bool introduceFreshIntVars)
+    : d_binarizeCache(c),
+      d_eliminationCache(c),
+      d_rebuildCache(c),
+      d_intblastCache(c),
+      d_rangeAssertions(c),
+      d_mode(mode),
+      d_granularity(granularity),
+      d_context(c),
+      d_introduceFreshIntVars(introduceFreshIntVars)
+{
+  d_nm = NodeManager::currentNM();
+  d_zero = d_nm->mkConst<Rational>(0);
+  d_one = d_nm->mkConst<Rational>(1);
+};
+
 void IntBlaster::addRangeConstraint(Node node,
                                     uint64_t size,
                                     std::vector<Node>& lemmas)
@@ -380,13 +400,11 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
+  // Exists is eliminated using Forall
+  Assert(oldKind != kind::EXISTS);
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
-  // Assert that BITVECTOR_UDIV/UREM were replaced by their
-  // *_TOTAL versions
-  Assert(oldKind != kind::BITVECTOR_UDIV);
-  Assert(oldKind != kind::BITVECTOR_UREM);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
@@ -729,11 +747,6 @@ Node IntBlaster::translateWithChildren(
       returnNode = translateQuantifiedFormula(original);
       break;
     }
-    case kind::EXISTS:
-    {
-      // Exists is eliminated by the rewriter.
-      Assert(false);
-    }
     default:
     {
       // first, verify that we haven't missed
@@ -1017,24 +1030,6 @@ Node IntBlaster::reconstructNode(Node originalNode,
   return reconstruction;
 }
 
-IntBlaster::IntBlaster(context::Context* c,
-                       options::SolveBVAsIntMode mode,
-                       uint64_t granularity,
-                       bool introduceFreshIntVars)
-    : d_binarizeCache(c),
-      d_eliminationCache(c),
-      d_rebuildCache(c),
-      d_intblastCache(c),
-      d_rangeAssertions(c),
-      d_mode(mode),
-      d_granularity(granularity),
-      d_context(c),
-      d_introduceFreshIntVars(introduceFreshIntVars)
-{
-  d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst<Rational>(0);
-  d_one = d_nm->mkConst<Rational>(1);
-};
 
 Node IntBlaster::createShiftNode(std::vector<Node> children,
                                  uint64_t bvsize,
