@@ -15,9 +15,9 @@
 #ifndef CVC4__OMT__INTEGER_OPTIMIZER_H
 #define CVC4__OMT__INTEGER_OPTIMIZER_H
 
-#include "omt_optimizer.h"
+#include "omt/omt_optimizer.h"
 
-namespace CVC4::smt {
+namespace CVC4::omt {
 
 /**
  * Optimizer for Integer type
@@ -27,21 +27,21 @@ class OMTOptimizerInteger : public OMTOptimizer
  public:
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
-  std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                      Node target) override;
-  std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                      Node target) override;
+  std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                           Node target) override;
+  std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                           Node target) override;
 
  private:
   /**
    * Handles the optimization query specified by objType
    * (objType = OBJECTIVE_MINIMIZE / OBJECTIVE_MAXIMIZE)
    **/
-  std::pair<OptResult, Node> optimize(SmtEngine* parentSMTSolver,
-                                      Node target,
-                                      ObjectiveType objType);
+  std::pair<smt::OptResult, Node> optimize(SmtEngine* parentSMTSolver,
+                                           Node target,
+                                           smt::ObjectiveType objType);
 };
 
-}  // namespace CVC4::smt
+}  // namespace CVC4::omt
 
 #endif /* CVC4__OMT__INTEGER_OPTIMIZER_H */

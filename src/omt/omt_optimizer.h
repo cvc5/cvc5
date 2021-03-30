@@ -17,7 +17,7 @@
 
 #include "smt/optimization_solver.h"
 
-namespace CVC4::smt {
+namespace CVC4::omt {
 
 /**
  * The base class for optimizers of individual CVC4 type
@@ -63,8 +63,8 @@ class OMTOptimizer
    *   value, if OptResult is OPT_UNKNOWN, value returned could be empty node or
    *   something suboptimal.
    **/
-  virtual std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                              Node target) = 0;
+  virtual std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                                   Node target) = 0;
   /**
    * Maximize the target node with constraints encoded in parentSMTSolver
    *
@@ -75,10 +75,10 @@ class OMTOptimizer
    *   value, if OptResult is OPT_UNKNOWN, value returned could be empty node or
    *   something suboptimal.
    **/
-  virtual std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                              Node target) = 0;
+  virtual std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                                   Node target) = 0;
 };
 
-}  // namespace CVC4::smt
+}  // namespace CVC4::omt
 
 #endif /* CVC4__OMT__OMT_OPTIMIZER_H */

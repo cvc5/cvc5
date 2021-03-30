@@ -15,9 +15,9 @@
 #ifndef CVC4__OMT__BITVECTOR_OPTIMIZER_H
 #define CVC4__OMT__BITVECTOR_OPTIMIZER_H
 
-#include "omt_optimizer.h"
+#include "omt/omt_optimizer.h"
 
-namespace CVC4::smt {
+namespace CVC4::omt {
 
 /**
  * Optimizer for BitVector type
@@ -27,10 +27,10 @@ class OMTOptimizerBitVector : public OMTOptimizer
  public:
   OMTOptimizerBitVector(bool isSigned);
   virtual ~OMTOptimizerBitVector() = default;
-  std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                      Node target) override;
-  std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                      Node target) override;
+  std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                           Node target) override;
+  std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                           Node target) override;
 
  private:
   /**
@@ -45,6 +45,6 @@ class OMTOptimizerBitVector : public OMTOptimizer
   bool d_isSigned;
 };
 
-}  // namespace CVC4::smt
+}  // namespace CVC4::omt
 
 #endif /* CVC4__OMT__BITVECTOR_OPTIMIZER_H */

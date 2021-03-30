@@ -12,7 +12,7 @@
  ** \brief Optimizer for Integer type
  **/
 
-#include "integer_optimizer.h"
+#include "omt/integer_optimizer.h"
 
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
@@ -20,8 +20,8 @@
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
-
-namespace CVC4::smt {
+using namespace CVC4::smt;
+namespace CVC4::omt {
 
 std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
     SmtEngine* parentSMTSolver, Node target, ObjectiveType objType)
@@ -87,4 +87,4 @@ std::pair<OptResult, Node> OMTOptimizerInteger::maximize(
       parentSMTSolver, target, ObjectiveType::OBJECTIVE_MAXIMIZE);
 }
 
-}  // namespace CVC4::smt
+}  // namespace CVC4::omt

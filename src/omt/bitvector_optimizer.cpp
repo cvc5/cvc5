@@ -12,7 +12,7 @@
  ** \brief Optimizer for BitVector type
  **/
 
-#include "bitvector_optimizer.h"
+#include "omt/bitvector_optimizer.h"
 
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
@@ -20,8 +20,8 @@
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
-
-namespace CVC4::smt {
+using namespace CVC4::smt;
+namespace CVC4::omt {
 
 OMTOptimizerBitVector::OMTOptimizerBitVector(bool isSigned)
     : d_isSigned(isSigned)
@@ -35,10 +35,11 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // computes (a + b) / 2 without overflow
   // rounding towards -infinity: -1.5 --> -2,  1.5 --> 1
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
-  uint32_t aMod2 = (uint32_t)(a.isBitSet(0));
-  uint32_t bMod2 = (uint32_t)(b.isBitSet(0));
-  BitVector aMod2PlusbMod2(a.getSize(), uint32_t((aMod2 + bMod2) / 2));
-  BitVector bv1(a.getSize(), (uint32_t)1);
+  uint32_t aMod2 = static_cast<uint32_t>(a.isBitSet(0));
+  uint32_t bMod2 = static_cast<uint32_t>(b.isBitSet(0));
+  BitVector aMod2PlusbMod2(a.getSize(),
+                           static_cast<uint32_t>((aMod2 + bMod2) / 2));
+  BitVector bv1 = BitVector::mkOne(a.getSize());
   if (isSigned)
   {
     return (a.arithRightShift(bv1) + b.arithRightShift(bv1)
@@ -239,4 +240,4 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   return std::make_pair(OptResult::OPT_OPTIMAL, value);
 }
 
-}  // namespace CVC4::smt
+}  // namespace CVC4::omt

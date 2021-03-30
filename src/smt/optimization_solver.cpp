@@ -17,7 +17,7 @@
 #include "omt/omt_optimizer.h"
 
 using namespace CVC4::theory;
-
+using namespace CVC4::omt;
 namespace CVC4 {
 namespace smt {
 

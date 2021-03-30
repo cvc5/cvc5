@@ -62,8 +62,6 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->activateObj(max_cost, max_type);
 
-  std::cerr << "a" << std::endl;
-
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);

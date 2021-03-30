@@ -12,18 +12,18 @@
  ** \brief The base class for optimizers of individual CVC4 type
  **/
 
-#include "omt_optimizer.h"
+#include "omt/omt_optimizer.h"
 
-#include "bitvector_optimizer.h"
-#include "integer_optimizer.h"
+#include "omt/bitvector_optimizer.h"
+#include "omt/integer_optimizer.h"
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
-
-namespace CVC4::smt {
+using namespace CVC4::smt;
+namespace CVC4::omt {
 
 std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(Node targetNode,
                                                                 bool isSigned)
@@ -66,4 +66,4 @@ std::unique_ptr<SmtEngine> OMTOptimizer::createOptCheckerWithTimeout(
   return optChecker;
 }
 
-}  // namespace CVC4::smt
+}  // namespace CVC4::omt
