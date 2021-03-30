@@ -1759,24 +1759,8 @@ NUMBER
       {
         std::string snum = AntlrInput::tokenText($num);
         std::string sden = AntlrInput::tokenText($den);
-        /* compute the numerator */
-        Integer inum(snum + sden);
-        // The sign
-        inum = pos ? inum : -inum;
-        // The exponent
         size_t exp = ($e == NULL ? 0 : AntlrInput::tokenToUnsigned($e));
-        // Decimal part
-        size_t dec = sden.size();
-        /* multiply it by 10 raised to the exponent reduced by the
-         * number of decimal place in den (dec) */
-        Rational r;
-        if(!posE) r = Rational(inum, Integer(10).pow(exp + dec));
-        else if(exp == dec) r = Rational(inum);
-        else if(exp > dec) r = Rational(inum * Integer(10).pow(exp - dec));
-        else r = Rational(inum, Integer(10).pow(dec - exp));
-        std::stringstream ss;
-        ss << r;
-        PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
+        PARSER_STATE->d_tmp_expr = PARSER_STATE->mkDecimal(snum, sden, pos, exp, posE);
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;

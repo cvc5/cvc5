@@ -23,9 +23,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class TermDbSygus;
@@ -67,7 +64,7 @@ class SygusUnif
    * the respective function-to-synthesize.
    */
   virtual void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas);
@@ -92,10 +89,8 @@ class SygusUnif
                                  std::vector<Node>& lemmas) = 0;
 
  protected:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** sygus term database of d_qe */
-  quantifiers::TermDbSygus* d_tds;
+  /** Pointer to the term database sygus */
+  TermDbSygus* d_tds;
 
   //-----------------------debug printing
   /** print ind indentations on trace c */

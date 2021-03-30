@@ -111,7 +111,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new RelevantDomain(qe, qr));
+    d_rel_dom.reset(new RelevantDomain(qs, qr, tr));
     d_fs.reset(new InstStrategyEnum(qe, qs, qim, qr, tr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }

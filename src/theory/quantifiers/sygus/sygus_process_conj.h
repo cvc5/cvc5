@@ -28,9 +28,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /** This file contains techniques that compute
@@ -276,7 +273,7 @@ struct SynthConjectureProcessFun
 class SynthConjectureProcess
 {
  public:
-  SynthConjectureProcess(QuantifiersEngine* qe);
+  SynthConjectureProcess();
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
    * Returns a formula that is equivalent to q.
