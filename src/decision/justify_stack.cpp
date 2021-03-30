@@ -33,17 +33,14 @@ void JustifyStack::clear()
   d_current = TNode::null();
   d_stackSizeValid = 0;
 }
-TNode JustifyStack::getCurrentAssertion() const
-{
-  return d_current.get();
-}
+TNode JustifyStack::getCurrentAssertion() const { return d_current.get(); }
 bool JustifyStack::hasCurrentAssertion() const
 {
   return !d_current.get().isNull();
 }
 JustifyInfo* JustifyStack::getCurrent()
 {
-  if (d_stackSizeValid.get()==0)
+  if (d_stackSizeValid.get() == 0)
   {
     return nullptr;
   }

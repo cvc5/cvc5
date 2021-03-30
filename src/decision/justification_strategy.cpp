@@ -92,7 +92,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   if (!d_lastDecisionLit.get().isNull())
   {
     Trace("jh-process") << "last decision = " << d_lastDecisionLit.get()
-                      << std::endl;
+                        << std::endl;
     lastChildVal = lookupValue(d_lastDecisionLit.get());
     if (lastChildVal == SAT_VALUE_UNKNOWN)
     {
@@ -105,13 +105,13 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // while we are trying to satisfy assertions
   do
   {
-    Assert(d_stack.getCurrent()!=nullptr);
+    Assert(d_stack.getCurrent() != nullptr);
     // We get the next justify node, if it can be found.
     do
     {
       // get the current justify info, which should be ready
       ji = d_stack.getCurrent();
-      if (ji==nullptr)
+      if (ji == nullptr)
       {
         break;
       }
@@ -125,7 +125,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       }
     } while (next.first.isNull());
 
-    if (ji==nullptr)
+    if (ji == nullptr)
     {
       // assertion should be true?
       // AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion "
@@ -139,8 +139,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       d_stack.clear();
       refreshCurrentAssertion();
       lastChildVal = SAT_VALUE_UNKNOWN;
-      Trace("jh-process") << "...exhausted assertion, now " << d_stack.getCurrentAssertion()
-                        << std::endl;
+      Trace("jh-process") << "...exhausted assertion, now "
+                          << d_stack.getCurrentAssertion() << std::endl;
     }
     else
     {
