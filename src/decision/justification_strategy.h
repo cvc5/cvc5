@@ -67,7 +67,7 @@ class JustificationStrategy
 
   /** Presolve, called at the beginning of each check-sat call */
   void presolve();
-  
+
   /** Gets the next decision based on strategies that are enabled */
   prop::SatLiteral getNext(bool& stopSearch);
 

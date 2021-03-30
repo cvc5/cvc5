@@ -16,17 +16,13 @@
 
 namespace CVC4 {
 
-JustifyStack::JustifyStack(context::Context* c) : d_context(c),
-    d_current(c),
-    d_stack(c),
-    d_stackSizeValid(c, 0)
-{}
+JustifyStack::JustifyStack(context::Context* c)
+    : d_context(c), d_current(c), d_stack(c), d_stackSizeValid(c, 0)
+{
+}
 JustifyStack::~JustifyStack() {}
 
-TNode JustifyStack::getCurrentAssertion() const
-{
-  return d_current.get();
-}
+TNode JustifyStack::getCurrentAssertion() const { return d_current.get(); }
 bool JustifyStack::hasCurrentAssertion() const
 {
   return !d_current.get().isNull();

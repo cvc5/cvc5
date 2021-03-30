@@ -599,16 +599,16 @@ void JustificationStrategy::notifyStatus(size_t i, DecisionStatus s)
 {
   // TODO: update order
   Trace("jh-status") << "Assertion #" << i << " had status " << s << std::endl;
-  if (s==DecisionStatus::BACKTRACK)
+  if (s == DecisionStatus::BACKTRACK)
   {
     // erase from backtrack queue if already there
     // add to front of backtrack queue
   }
-  else if (s==DecisionStatus::DECISION)
+  else if (s == DecisionStatus::DECISION)
   {
     // add to decision queue if not there already
   }
-  else if (s==DecisionStatus::NO_DECISION)
+  else if (s == DecisionStatus::NO_DECISION)
   {
     // erase from backtrack queue if already there
     // erase from decision queue if already there

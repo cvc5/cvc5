@@ -17,10 +17,10 @@
 #ifndef CVC4__DECISION__JUSTIFY_STACK_H
 #define CVC4__DECISION__JUSTIFY_STACK_H
 
-#include "context/cdo.h"
 #include "context/cdlist.h"
-#include "expr/node.h"
+#include "context/cdo.h"
 #include "decision/justify_info.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 
@@ -39,7 +39,8 @@ class JustifyStack
   void pushToStack(TNode n, prop::SatValue desiredVal);
   /** Pop from stack */
   void popStack();
-private:
+
+ private:
   /**
    * Get or allocate justify info at position i. This does not impact
    * d_stackSizeValid.

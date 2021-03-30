@@ -42,10 +42,9 @@ class AssertionList
   context::CDO<size_t> d_assertionIndex;
 };
 
-
 class DynamicAssertionList
 {
-public:
+ public:
   DynamicAssertionList(context::Context* ic);
   /** erase */
   void erase(TNode n);
@@ -53,7 +52,8 @@ public:
   void addToFront(TNode n);
   /** get next assertion */
   TNode getNextAssertion();
-private:
+
+ private:
   /** The list of assertions */
   std::vector<TNode> d_dlist;
   /** The index of the next assertion to satify */
