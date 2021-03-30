@@ -33,7 +33,7 @@ JustifyInfo* JustifyStack::getCurrent()
   return d_stack[d_stackSizeValid.get() - 1].get();
 }
 
-void JustifyStack::pushToStack(TNode n, SatValue desiredVal)
+void JustifyStack::pushToStack(TNode n, prop::SatValue desiredVal)
 {
   if (Trace.isOn("jh-stack"))
   {
