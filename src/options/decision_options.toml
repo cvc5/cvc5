@@ -79,7 +79,7 @@ header = "options/decision_options.h"
   category   = "regular"
   long       = "jh-new"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "(temporary) new implementation of decision justification heuristic"
 
 [[option]]
