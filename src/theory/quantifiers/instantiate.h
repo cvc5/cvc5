@@ -199,8 +199,9 @@ class Instantiate : public QuantifiersUtil
                                bool expFull = true);
   /** record instantiation
    *
-   * Explicitly record that q has been instantiated with terms. This is the
-   * same as addInstantiation, but does not enqueue an instantiation lemma.
+   * Explicitly record that q has been instantiated with terms, with virtual
+   * term substitution if doVts is true. This is the same as addInstantiation,
+   * but does not enqueue an instantiation lemma.
    */
   void recordInstantiation(Node q,
                            std::vector<Node>& terms,
@@ -308,8 +309,6 @@ class Instantiate : public QuantifiersUtil
  private:
   /** record instantiation, return true if it was not a duplicate
    *
-   * addedLem : whether an instantiation lemma was added for the vector we are
-   *            recording. If this is false, we bookkeep the vector.
    * modEq : whether to check for duplication modulo equality in instantiation
    *         tries (for performance),
    */

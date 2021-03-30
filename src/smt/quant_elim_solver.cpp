@@ -102,7 +102,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       std::vector<Node> insts;
       qe->getInstantiations(topq, insts);
       // note we do not convert to witness form here, since we could be
-      // an internal subsolver
+      // an internal subsolver (SmtEngine::isInternalSubsolver).
       ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)
