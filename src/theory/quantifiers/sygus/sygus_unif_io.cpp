@@ -20,7 +20,6 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
 #include "util/random.h"
@@ -523,7 +522,7 @@ SygusUnifIo::SygusUnifIo(SynthConjecture* p)
 SygusUnifIo::~SygusUnifIo() {}
 
 void SygusUnifIo::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
@@ -546,7 +545,7 @@ void SygusUnifIo::initializeCandidate(
     }
   }
   d_ecache.clear();
-  SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(tds, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
 }
