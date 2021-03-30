@@ -2027,7 +2027,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     Trace("qcf-debug") << std::endl;
   }
   bool isConflict = false;
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
   for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e)
