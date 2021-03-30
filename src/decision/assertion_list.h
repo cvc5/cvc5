@@ -42,6 +42,24 @@ class AssertionList
   context::CDO<size_t> d_assertionIndex;
 };
 
+
+class DynamicAssertionList
+{
+public:
+  DynamicAssertionList(context::Context* ic);
+  /** erase */
+  void erase(TNode n);
+  /** add to front */
+  void addToFront(TNode n);
+  /** get next assertion */
+  TNode getNextAssertion();
+private:
+  /** The list of assertions */
+  std::vector<TNode> d_dlist;
+  /** The index of the next assertion to satify */
+  context::CDO<size_t> d_assertionIndex;
+};
+
 }  // namespace CVC4
 
 #endif /* CVC4__DECISION__ASSERTION_LIST_H */

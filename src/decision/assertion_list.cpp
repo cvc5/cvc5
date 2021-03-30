@@ -36,4 +36,14 @@ TNode AssertionList::getNextAssertion(size_t& fromIndex)
   return d_assertions[fromIndex];
 }
 
+DynamicAssertionList::DynamicAssertionList(context::Context* ic) : d_assertionIndex(ic)
+{
+  
+}
+
+TNode DynamicAssertionList::getNextAssertion()
+{
+  return TNode::null();
+}
+
 }  // namespace CVC4
