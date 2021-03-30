@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Definitions of TPTP constants.
- **
- ** Definitions of TPTP constants.
+ ** \brief Definition of TPTP parser.
  **/
 
 // Do not #include "parser/antlr_input.h" directly. Rely on the header.
@@ -369,20 +367,21 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   return d_solver->mkTerm(kind, args);
 }
 
-api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
+api::Term Tptp::mkDecimal(
+    std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
   // the numerator and the denominator
   std::stringstream ssn;
   std::stringstream ssd;
-  if (exp!=0)
+  if (exp != 0)
   {
     if (posE)
     {
       // see if we need to pad zeros on the end, e.g. 1.2E5 ---> 120000
-      if (exp>=sden.size())
+      if (exp >= sden.size())
       {
         ssn << snum << sden;
-        for (size_t i=0, nzero = (exp-sden.size()); i<nzero; i++)
+        for (size_t i = 0, nzero = (exp - sden.size()); i < nzero; i++)
         {
           ssn << "0";
         }
@@ -390,17 +389,17 @@ api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t
       }
       else
       {
-        ssn << snum << sden.substr(0,exp);
+        ssn << snum << sden.substr(0, exp);
         ssd << sden.substr(exp);
       }
     }
     else
     {
       // see if we need to pad zeros on the beginning, e.g. 1.2E-5 ---> 0.000012
-      if (exp>=snum.size())
+      if (exp >= snum.size())
       {
         ssn << "0";
-        for (size_t i=0, nzero = (exp-snum.size()); i<nzero; i++)
+        for (size_t i = 0, nzero = (exp - snum.size()); i < nzero; i++)
         {
           ssd << "0";
         }
@@ -408,10 +407,15 @@ api::Term Tptp::mkDecimal(std::string& snum, std::string& sden, bool pos, size_t
       }
       else
       {
-        ssn << snum.substr(0,exp);
+        ssn << snum.substr(0, exp);
         ssd << snum.substr(exp) << sden;
       }
     }
+  }
+  else
+  {
+    ssn << snum;
+    ssd << sden;
   }
   std::stringstream ss;
   if (!pos)
