@@ -15,15 +15,10 @@
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/node_algorithm.h"
-#include "options/base_options.h"
-#include "options/datatypes_options.h"
-#include "options/quantifiers_options.h"
-#include "options/uf_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/strings/word.h"
 #include "theory/rewriter.h"
 

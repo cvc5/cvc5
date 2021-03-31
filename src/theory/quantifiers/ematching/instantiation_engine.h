@@ -33,8 +33,7 @@ class InstStrategyAutoGenTriggers;
 
 class InstantiationEngine : public QuantifiersModule {
  public:
-  InstantiationEngine(QuantifiersEngine* qe,
-                      QuantifiersState& qs,
+  InstantiationEngine(QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
                       QuantifiersRegistry& qr,
                       TermRegistry& tr);
