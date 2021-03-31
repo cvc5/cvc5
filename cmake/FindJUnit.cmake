@@ -1,5 +1,5 @@
 #####################
-## FindJunit5.cmake
+## FindJUnit5.cmake
 ## Top contributors (to current version):
 ##   Mathias Preiner, Mudathir
 ## This file is part of the CVC4 project.
@@ -8,25 +8,25 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-# Find Junit5
-# Junit5_FOUND - should always be true for testing
-# Junit5_COMMAND - command line to run junit tests
+# Find JUnit5
+# JUnit5_FOUND - should be true for testing
+# JUnit5_JAR   - absolute path to JUnit5 jar file
 
 include(deps-helper)
 
-find_jar(Junit5_JAR junit-platform-console-standalone-1.7.1.jar)
+find_jar(JUnit5_JAR junit-platform-console-standalone-1.7.1.jar)
 
-set(Junit5_FOUND_SYSTEM FALSE)
-if(Junit5_JAR)
-  set(Junit5_FOUND_SYSTEM TRUE)
+set(JUnit5_FOUND_SYSTEM FALSE)
+if(JUnit5_JAR)
+  set(JUnit5_FOUND_SYSTEM TRUE)
 endif()
 
-if(NOT Junit5_FOUND_SYSTEM)
+if(NOT JUnit5_FOUND_SYSTEM)
   include(ExternalProject)
 
   # Download junit generator jar
   ExternalProject_Add(
-    Junit5
+    JUnit5
     PREFIX ${DEPS_PREFIX}
     URL https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.7.1/junit-platform-console-standalone-1.7.1.jar
     URL_HASH SHA1=99245bde65d028a8b8ff604be26e929ab6ff2e58
@@ -39,16 +39,16 @@ if(NOT Junit5_FOUND_SYSTEM)
     BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
   )
 
-  set(Junit5_JAR "${DEPS_BASE}/share/java/junit-platform-console-standalone-1.7.1.jar")
+  set(JUnit5_JAR "${DEPS_BASE}/share/java/junit-platform-console-standalone-1.7.1.jar")
 endif()
 
-set(Junit5_FOUND TRUE)
+set(JUnit5_FOUND TRUE)
 
-mark_as_advanced(Junit5_JAR)
-mark_as_advanced(Junit5_FOUND)
-mark_as_advanced(Junit5_FOUND_SYSTEM)
+mark_as_advanced(JUnit5_JAR)
+mark_as_advanced(JUnit5_FOUND)
 
-
-message(STATUS "Junit5_JAR: ${Junit5_JAR}")
-
-#  java -jar junit-platform-console-standalone-1.7.1.jar -cp /home/mudathir/Desktop/CVC4/mudathir/test/unit/api/java:/home/mudathir/Desktop/CVC4/mudathir/build/src/api/java/cvc-1.9.0.jar -select-package cvc
+if(JUnit5_FOUND_SYSTEM)
+  message(STATUS "Found JUnit5: ${JUnit5_INCLUDE_DIR}")
+else()
+  message(STATUS "Building JUnit5: ${JUnit5_INCLUDE_DIR}")
+endif()
