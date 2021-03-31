@@ -40,6 +40,11 @@ endif()
 add_dependencies(main cvc4 cvc4parser gen-tokens)
 get_target_property(LIBCVC4_INCLUDES cvc4 INCLUDE_DIRECTORIES)
 target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
+if(USE_CLN)
+  target_link_libraries(main ${CLN_LIBRARIES})
+  target_include_directories(main PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(main GMP)
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
@@ -47,6 +52,11 @@ target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC4DRIVER)
 target_link_libraries(main-test cvc4 cvc4parser)
+if(USE_CLN)
+  target_link_libraries(main-test ${CLN_LIBRARIES})
+  target_include_directories(main-test PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(main-test GMP)
 
 #-----------------------------------------------------------------------------#
 # cvc4 binary configuration
@@ -58,6 +68,11 @@ set_target_properties(cvc4-bin
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin cvc4 cvc4parser)
+if(USE_CLN)
+  target_link_libraries(cvc4-bin ${CLN_LIBRARIES})
+  target_include_directories(cvc4-bin PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(cvc4-bin GMP)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
