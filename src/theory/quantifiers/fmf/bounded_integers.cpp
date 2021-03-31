@@ -26,7 +26,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4;
 using namespace std;
@@ -85,12 +85,11 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   return lem;
 }
 
-BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
-                                 QuantifiersState& qs,
+BoundedIntegers::BoundedIntegers(QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe)
+    : QuantifiersModule(qs, qim, qr, tr)
 {
 }
 
@@ -296,7 +295,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_qim.addPendingLemma(prangeLem, InferenceId::UNKNOWN);
+      d_qim.addPendingLemma(prangeLem, InferenceId::QUANTIFIERS_BINT_PROXY);
       addedLemma = true;
     }
   }
@@ -727,7 +726,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_qim.lemma(lem, InferenceId::UNKNOWN);
+      d_qim.lemma(lem, InferenceId::QUANTIFIERS_BINT_MIN_NG);
     }
     return false;
   }else{
