@@ -49,51 +49,15 @@ if(NOT Poly_FOUND_SYSTEM)
         <SOURCE_DIR>/src/CMakeLists.txt
         ${CMAKE_CURRENT_LIST_DIR}/deps-utils/Poly-patch-cmake.patch
         # Avoid %z and %llu format specifiers
-        COMMAND
-        find
-        <SOURCE_DIR>/
-        -type
-        f
-        -exec
-        sed
-        -i.orig
-        "s/%z[diu]/%\" PRIu64 \"/g"
-        {}
-        +
-        COMMAND
-        find
-        <SOURCE_DIR>/
-        -type
-        f
-        -exec
-        sed
-        -i.orig
-        "s/%ll[du]/%\" PRIu64 \"/g"
-        {}
-        +
+        COMMAND find <SOURCE_DIR>/ -type f -exec
+                sed -i.orig "s/%z[diu]/%\" PRIu64 \"/g" {} +
+        COMMAND find <SOURCE_DIR>/ -type f -exec
+                sed -i.orig "s/%ll[du]/%\" PRIu64 \"/g" {} +
         # Make sure the new macros are available
-        COMMAND
-        find
-        <SOURCE_DIR>/
-        -type
-        f
-        -exec
-        sed
-        -i.orig
-        "s/#include <stdio.h>/#include <stdio.h>\\n#include <inttypes.h>/"
-        {}
-        +
-        COMMAND
-        find
-        <SOURCE_DIR>/
-        -type
-        f
-        -exec
-        sed
-        -i.orig
-        "s/#include <cstdio>/#include <cstdio>\\n#include <inttypes.h>/"
-        {}
-        +
+        COMMAND find <SOURCE_DIR>/ -type f -exec
+                sed -i.orig "s/#include <stdio.h>/#include <stdio.h>\\n#include <inttypes.h>/" {} +
+        COMMAND find <SOURCE_DIR>/ -type f -exec
+                sed -i.orig "s/#include <cstdio>/#include <cstdio>\\n#include <inttypes.h>/" {} +
     )
   else()
     unset(patchcmd)
