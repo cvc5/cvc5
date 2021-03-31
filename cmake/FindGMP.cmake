@@ -29,20 +29,13 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
         PARENT_SCOPE
     )
   endfunction()
-  function(getversion OUTPUT FILENAME)
-    getversionpart(MAJOR "${FILENAME}" "VERSION")
-    getversionpart(MINOR "${FILENAME}" "VERSION_MINOR")
-    getversionpart(PATCH "${FILENAME}" "VERSION_PATCHLEVEL")
-    set(${OUTPUT}
-        "${MAJOR}.${MINOR}.${PATCH}"
-        PARENT_SCOPE
-    )
-  endfunction()
-  if(EXISTS "${GMP_INCLUDE_DIR}/gmp-x86_64.h")
-    getversion(GMP_VERSION "${GMP_INCLUDE_DIR}/gmp-x86_64.h")
-  else()
-    getversion(GMP_VERSION "${GMP_INCLUDE_DIR}/gmp.h")
-  endif()
+  getversionpart(MAJOR "${GMP_INCLUDE_DIR}/gmp.h" "VERSION")
+  getversionpart(MINOR "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_MINOR")
+  getversionpart(PATCH "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_PATCHLEVEL")
+  set(GMP_VERSION
+      "${MAJOR}.${MINOR}.${PATCH}"
+      PARENT_SCOPE
+  )
 
   check_system_version("GMP")
 endif()
