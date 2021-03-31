@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& out, DecisionStatus s);
 class AssertionList
 {
  public:
-  AssertionList(context::Context* ac, context::Context* ic);
+  AssertionList(context::Context* ac, context::Context* ic, bool useDyn = false);
   virtual ~AssertionList() {}
   /** Add the assertion */
   void addAssertion(TNode n);
@@ -65,6 +65,8 @@ class AssertionList
   /** The index of the next assertion to satify */
   context::CDO<size_t> d_assertionIndex;
   // --------------------------- dynamic assertions
+  /** are we using dynamic assertions? */
+  bool d_usingDynamic;
   /** The list of assertions */
   std::vector<TNode> d_dlist;
   /** The index of the next assertion to satify */
