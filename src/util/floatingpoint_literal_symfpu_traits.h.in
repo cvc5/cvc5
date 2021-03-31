@@ -26,13 +26,13 @@
 #ifndef CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 #define CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 
-#include "util/bitvector.h"
-#include "util/floatingpoint_size.h"
-#include "util/roundingmode.h"
-
 // clang-format off
 #if @CVC4_USE_SYMFPU@
 // clang-format on
+
+#include "util/bitvector.h"
+#include "util/floatingpoint_size.h"
+#include "util/roundingmode.h"
 
 #include <symfpu/core/unpackedFloat.h>
 
