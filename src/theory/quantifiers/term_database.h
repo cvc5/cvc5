@@ -30,9 +30,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class QuantifiersState;
@@ -67,7 +64,6 @@ class DbList
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
-  friend class ::CVC4::theory::QuantifiersEngine;
   using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;

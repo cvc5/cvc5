@@ -81,8 +81,6 @@ class SynthEngine : public QuantifiersModule
   void preregisterAssertion(Node n);
 
  private:
-  /** term database sygus of d_qe */
-  TermDbSygus* d_tds;
   /** the conjecture formula(s) we are waiting to assign */
   std::vector<Node> d_waiting_conj;
   /** The synthesis conjectures that this class is managing. */

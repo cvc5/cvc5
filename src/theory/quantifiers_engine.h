@@ -31,7 +31,6 @@ class TheoryEngine;
 
 namespace theory {
 
-class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
@@ -65,8 +64,6 @@ class QuantifiersEngine {
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
-  /** Get the decision manager */
-  DecisionManager* getDecisionManager();
   /** The quantifiers state object */
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
@@ -97,7 +94,7 @@ class QuantifiersEngine {
    * @param te The theory engine
    * @param dm The decision manager of the theory engine
    */
-  void finishInit(TheoryEngine* te, DecisionManager* dm);
+  void finishInit(TheoryEngine* te);
   //---------------------- end private initialization
 
  public:
@@ -158,6 +155,11 @@ public:
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
  /**
+  * Get instantiations for quantified formula q. If q is (forall ((x T)) (P x)),
+  * this is a list of the form (P t1) ... (P tn) for ground terms ti.
+  */
+ void getInstantiations(Node q, std::vector<Node>& insts);
+ /**
   * Get skolemization vectors, where for each quantified formula that was
   * skolemized, this is the list of skolems that were used to witness the
   * negation of that quantified formula.
@@ -189,8 +191,6 @@ public:
   quantifiers::QuantifiersInferenceManager& d_qim;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
-  /** Reference to the decision manager of the theory engine */
-  DecisionManager* d_decManager;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** vector of utilities for quantifiers */
