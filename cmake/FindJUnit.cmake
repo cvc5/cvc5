@@ -8,7 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-# Find JUnit5
+# Find JUnit
 # JUnit5_FOUND - should be true for testing
 # JUnit5_JAR   - absolute path to JUnit5 jar file
 
