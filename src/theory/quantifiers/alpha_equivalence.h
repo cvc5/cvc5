@@ -21,9 +21,10 @@
 
 #include "expr/term_canonize.h"
 
+namespace CVC5 {
+
 class CDProof;
 
-namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
