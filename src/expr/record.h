@@ -25,13 +25,13 @@
 #include <utility>
 
 // Forward Declarations
-namespace CVC4 {
+namespace CVC5 {
 // This forward delcartion is required to resolve a cicular dependency with
 // Record which is a referenced in a Kind file.
 class TypeNode;
-} /* namespace CVC4 */
+} /* namespace CVC5 */
 
-namespace CVC4 {
+namespace CVC5 {
 
 // operators for record update
 class RecordUpdate
@@ -56,6 +56,6 @@ std::ostream& operator<<(std::ostream& out, const RecordUpdate& t);
 
 using Record = std::vector<std::pair<std::string, TypeNode>>;
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__RECORD_H */

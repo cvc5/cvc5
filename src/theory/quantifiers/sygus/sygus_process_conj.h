@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -356,8 +356,8 @@ class SynthConjectureProcess
   void getComponentVector(Kind k, Node n, std::vector<Node>& args);
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+} /* namespace CVC5 */
 
 #endif

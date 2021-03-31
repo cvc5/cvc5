@@ -16,9 +16,9 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
@@ -130,5 +130,5 @@ void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol,
   }
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+} /* namespace CVC5 */

@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -124,6 +124,6 @@ class TriggerTermInfo
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

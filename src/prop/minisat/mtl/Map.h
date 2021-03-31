@@ -24,7 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/Vec.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -191,6 +191,6 @@ class Map {
 
 //=================================================================================================
 }
-}
+}  // namespace CVC5
 
 #endif

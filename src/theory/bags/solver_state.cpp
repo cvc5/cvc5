@@ -20,9 +20,9 @@
 #include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace bags {
 
@@ -136,4 +136,4 @@ void SolverState::collectDisequalBagTerms()
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

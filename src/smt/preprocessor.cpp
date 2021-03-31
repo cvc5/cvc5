@@ -24,10 +24,10 @@
 #include "smt/smt_engine.h"
 
 using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace CVC5::theory;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace smt {
 
 Preprocessor::Preprocessor(SmtEngine& smt,
@@ -159,4 +159,4 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5

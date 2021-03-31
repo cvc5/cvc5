@@ -26,7 +26,7 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class DTypeConstructor;
 
@@ -155,8 +155,8 @@ class Skolemize
   std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H */
