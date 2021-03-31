@@ -9,9 +9,8 @@
 ## directory for licensing information.
 ##
 # Find GMP
-# GMP_FOUND - system has GMP lib
-# GMP_INCLUDE_DIR - the GMP include directory
-# GMP_LIBRARIES - Libraries needed to use GMP
+# GMP_FOUND - should always be true
+# GMP - target for the GMP library
 
 include(deps-helper)
 

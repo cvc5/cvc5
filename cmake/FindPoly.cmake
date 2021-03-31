@@ -9,9 +9,9 @@
 ## directory for licensing information.
 ##
 # Find LibPoly
-# Poly_FOUND - system has LibPoly
-# Poly_INCLUDE_DIR - the LibPoly include directory
-# Poly_LIBRARIES - Libraries needed to use LibPoly
+# Poly_FOUND - should always be true
+# Poly - target for the libpoly library
+# Polyxx - target for the C++ interface of libpoly, also links Poly
 
 include(deps-helper)
 
