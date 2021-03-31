@@ -22,10 +22,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC5::kind;
+using namespace CVC5::context;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 TheoryModel::TheoryModel(context::Context* c,
@@ -764,5 +764,5 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+} // namespace CVC5

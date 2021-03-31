@@ -22,9 +22,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
@@ -521,4 +521,4 @@ void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
 void TheoryInferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

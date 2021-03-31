@@ -23,7 +23,7 @@
 #include "theory/inference_id.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -820,8 +820,8 @@ class InstantiatorPreprocess
   }
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif

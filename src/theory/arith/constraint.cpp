@@ -32,9 +32,9 @@
 
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 
@@ -2426,6 +2426,6 @@ std::pair<int, int> Constraint::unateFarkasSigns(ConstraintCP ca, ConstraintCP c
   return make_pair(a_sgn, b_sgn);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC5

@@ -28,9 +28,9 @@
 #include <cvc4/options/set_language.h>
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::options;
+using namespace CVC5;
+using namespace CVC5::parser;
+using namespace CVC5::options;
 
 bool nonsense(char c) { return !isalnum(c); }
 

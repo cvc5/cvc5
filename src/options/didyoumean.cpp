@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-namespace CVC4 {
+namespace CVC5 {
 
 std::vector<std::string> DidYouMean::getMatch(std::string input) {
   /** Magic numbers */
@@ -158,4 +158,4 @@ std::string DidYouMean::getMatchAsString(std::string input, int prefixNewLines,
   return oss.str();
 }
 
-} /* CVC4 namespace */
+}  // namespace CVC5

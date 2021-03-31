@@ -32,9 +32,9 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -1636,6 +1636,6 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5

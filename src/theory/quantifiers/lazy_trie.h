@@ -17,7 +17,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -166,8 +166,8 @@ class LazyTrieMulti
   LazyTrie d_trie;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H */
