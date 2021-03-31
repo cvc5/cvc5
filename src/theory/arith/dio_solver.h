@@ -33,7 +33,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace context {
 class Context;
 }
@@ -421,8 +421,8 @@ public:
   Statistics d_statistics;
 };/* class DioSolver */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__ARITH__DIO_SOLVER_H */

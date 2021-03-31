@@ -34,11 +34,11 @@
 #include "parser/tptp/tptp_input.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::kind;
+using namespace CVC5;
+using namespace CVC5::parser;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace parser {
 
 // These functions exactly wrap the antlr3 source inconsistencies.
@@ -581,5 +581,5 @@ void AntlrInput::setAntlr3Parser(pANTLR3_PARSER pParser) {
       d_parser->rec->mismatch;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC5

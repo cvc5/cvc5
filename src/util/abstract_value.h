@@ -22,7 +22,7 @@
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class AbstractValue
 {
@@ -61,4 +61,4 @@ struct AbstractValueHashFunction
   }
 }; /* struct AbstractValueHashFunction */
 
-}/* CVC4 namespace */
+}  // namespace CVC5

@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -67,6 +67,6 @@ class TangentPlaneCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

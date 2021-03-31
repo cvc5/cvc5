@@ -24,7 +24,7 @@
 #include "expr/proof_node_updater.h"
 #include "proof/lean/lean_rules.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace proof {
 
@@ -98,6 +98,6 @@ class LeanProofPostprocess
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

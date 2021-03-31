@@ -22,11 +22,11 @@
 #include "theory/quantifiers/quantifiers_state.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace CVC5;
+using namespace CVC5::kind;
+using namespace CVC5::context;
+using namespace CVC5::theory;
+using namespace CVC5::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(QuantifiersState& qs,
                              QuantifiersRegistry& qr,

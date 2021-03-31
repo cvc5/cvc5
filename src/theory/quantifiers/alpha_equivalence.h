@@ -21,10 +21,9 @@
 
 #include "expr/term_canonize.h"
 
-namespace CVC4 {
-
 class CDProof;
 
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -117,6 +116,6 @@ class AlphaEquivalence
 
 }
 }
-}
+}  // namespace CVC5
 
 #endif

@@ -20,9 +20,9 @@
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
@@ -587,4 +587,4 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5

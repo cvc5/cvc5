@@ -27,7 +27,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace proof {
 
 class LfscPrintChannel;
@@ -122,6 +122,6 @@ class LfscPrinter
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

@@ -24,7 +24,7 @@
 #include "proof/lfsc/lfsc_term_process.h"
 #include "proof/lfsc/lfsc_util.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class ProofChecker;
 
@@ -97,6 +97,6 @@ class LfscProofPostprocess
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

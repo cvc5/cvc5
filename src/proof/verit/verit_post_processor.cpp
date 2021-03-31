@@ -24,7 +24,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace proof {
 
@@ -1372,4 +1372,4 @@ bool VeritProofPostprocess::runUpdate(std::shared_ptr<ProofNode> cur,
 
 }  // namespace proof
 
-}  // namespace CVC4
+}  // namespace CVC5

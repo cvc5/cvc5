@@ -23,7 +23,7 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 
@@ -369,4 +369,4 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

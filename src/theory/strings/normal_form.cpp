@@ -21,9 +21,9 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace strings {
 
@@ -185,4 +185,4 @@ void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

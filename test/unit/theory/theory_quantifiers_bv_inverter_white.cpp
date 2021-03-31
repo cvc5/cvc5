@@ -20,7 +20,7 @@
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 using namespace kind;
 using namespace theory;
@@ -1614,4 +1614,4 @@ TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_sext_sgt_false)
   runTestSext(false, BITVECTOR_SGT);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace CVC5

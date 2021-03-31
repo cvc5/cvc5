@@ -21,10 +21,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
+using namespace CVC5::kind;
+using namespace CVC5::theory;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace preprocessing {
 namespace passes {
 
@@ -124,4 +124,4 @@ PreprocessingPassResult GlobalNegate::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace CVC5

@@ -72,13 +72,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace CVC4::smt;
-using namespace CVC4::preprocessing;
-using namespace CVC4::prop;
-using namespace CVC4::context;
-using namespace CVC4::theory;
+using namespace CVC5::smt;
+using namespace CVC5::preprocessing;
+using namespace CVC5::prop;
+using namespace CVC5::context;
+using namespace CVC5::theory;
 
-namespace CVC4 {
+namespace CVC5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm)),
@@ -505,7 +505,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   return false;
 }
 
-CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
+CVC5::SExpr SmtEngine::getInfo(const std::string& key) const
 {
   SmtScope smts(this);
 
@@ -2058,4 +2058,4 @@ OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 
 theory::Rewriter* SmtEngine::getRewriter() { return d_env->getRewriter(); }
 
-}/* CVC4 namespace */
+}  // namespace CVC5

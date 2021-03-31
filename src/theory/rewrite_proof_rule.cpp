@@ -20,9 +20,9 @@
 #include "theory/rewrite_db_sc.h"
 #include "theory/rewrite_db_term_process.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 const char* toString(DslPfRule drule)
@@ -210,4 +210,4 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
 Node RewriteProofRule::getConclusion() const { return d_conc; }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

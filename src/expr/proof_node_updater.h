@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class CDProof;
 class ProofNode;
@@ -156,6 +156,6 @@ class ProofNodeUpdater
   bool d_autoSym;
 };
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

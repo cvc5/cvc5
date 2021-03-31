@@ -30,13 +30,13 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace CVC5 {
 
 unique_ptr<Printer> Printer::d_printers[language::output::LANG_MAX];
 
 unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 {
-  using namespace CVC4::language::output;
+  using namespace CVC5::language::output;
 
   switch(lang) {
   case LANG_SMTLIB_V2_6:
@@ -459,4 +459,4 @@ void Printer::toStreamCmdDeclarationSequence(
   printUnknownCommand(out, "sequence");
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5

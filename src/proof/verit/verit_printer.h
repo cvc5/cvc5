@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace proof {
 
@@ -129,6 +129,6 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 
 }  // namespace proof
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

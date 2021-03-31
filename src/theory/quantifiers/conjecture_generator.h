@@ -23,7 +23,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -466,6 +466,6 @@ private:  //information about ground equivalence classes
 
 }
 }
-}
+}  // namespace CVC5
 
 #endif

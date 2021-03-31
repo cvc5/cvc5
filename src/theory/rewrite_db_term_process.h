@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 /**
@@ -60,6 +60,6 @@ class RewriteDbTermProcess
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H */

@@ -20,9 +20,9 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace proof {
 
 LfscTermProcessor::LfscTermProcessor()
@@ -474,4 +474,4 @@ size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5

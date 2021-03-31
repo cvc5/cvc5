@@ -29,7 +29,7 @@
 #include "cvc4_export.h"
 #include "util/sexpr.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class Stat;
 
@@ -127,6 +127,6 @@ public:
 
 }; /* class Statistics */
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__STATISTICS_H */

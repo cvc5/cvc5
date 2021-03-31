@@ -24,7 +24,7 @@
 #include "expr/type_node.h"
 #include "proof/term_processor.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace proof {
 
 class LfscTermProcessor : public TermProcessor
@@ -84,6 +84,6 @@ class LfscTermProcessor : public TermProcessor
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

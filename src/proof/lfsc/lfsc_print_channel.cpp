@@ -18,7 +18,7 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
@@ -120,4 +120,4 @@ void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace CVC5
