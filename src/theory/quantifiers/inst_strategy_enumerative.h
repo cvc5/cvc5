@@ -61,10 +61,10 @@ class RelevantDomain;
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe,
-                   QuantifiersState& qs,
+  InstStrategyEnum(QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
+                   TermRegistry& tr,
                    RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Presolve */

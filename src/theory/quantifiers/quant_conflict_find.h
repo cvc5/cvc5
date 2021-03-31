@@ -236,10 +236,10 @@ private:  //for equivalence classes
   bool areMatchDisequal( TNode n1, TNode n2 );
 
  public:
-  QuantConflictFind(QuantifiersEngine* qe,
-                    QuantifiersState& qs,
+  QuantConflictFind(QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
-                    QuantifiersRegistry& qr);
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;

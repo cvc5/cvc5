@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/sygus/cegis.h"
+
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -20,7 +21,6 @@
 #include "theory/quantifiers/sygus/example_min_eval.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -31,12 +31,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe,
-             QuantifiersInferenceManager& qim,
+Cegis::Cegis(QuantifiersInferenceManager& qim,
+             TermDbSygus* tds,
              SynthConjecture* p)
-    : SygusModule(qe, qim, p), d_eval_unfold(nullptr), d_usingSymCons(false)
+    : SygusModule(qim, tds, p),
+      d_eval_unfold(tds->getEvalUnfold()),
+      d_usingSymCons(false)
 {
-  d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }
 
 bool Cegis::initialize(Node conj,

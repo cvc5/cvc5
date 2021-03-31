@@ -24,7 +24,6 @@
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "util/random.h"
@@ -70,10 +69,10 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
   return false;
 }
 
-CegisCoreConnective::CegisCoreConnective(QuantifiersEngine* qe,
-                                         QuantifiersInferenceManager& qim,
+CegisCoreConnective::CegisCoreConnective(QuantifiersInferenceManager& qim,
+                                         TermDbSygus* tds,
                                          SynthConjecture* p)
-    : Cegis(qe, qim, p)
+    : Cegis(qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

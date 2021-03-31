@@ -36,6 +36,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_theoryState(state),
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
+      d_decManager(nullptr),
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(t.getSatContext()),
@@ -70,6 +71,11 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   }
 }
 
+void TheoryInferenceManager::setDecisionManager(DecisionManager* dm)
+{
+  d_decManager = dm;
+}
+
 bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryInferenceManager::reset()
@@ -95,8 +101,7 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
   if (!d_theoryState.isInConflict())
   {
     TrustNode tconf = explainConflictEqConstantMerge(a, b);
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
+    trustedConflict(tconf, InferenceId::EQ_CONSTANT_MERGE);
   }
 }
 
@@ -113,6 +118,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   d_conflictIdStats << id;
   d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,
@@ -480,6 +486,11 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   }
   d_lemmasSent.insert(rewritten);
   return true;
+}
+
+DecisionManager* TheoryInferenceManager::getDecisionManager()
+{
+  return d_decManager;
 }
 
 void TheoryInferenceManager::requirePhase(TNode n, bool pol)

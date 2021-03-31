@@ -60,6 +60,7 @@ void print_statistics()
 {
   if (pExecutor != nullptr)
   {
+    totalTime.reset();
     pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }

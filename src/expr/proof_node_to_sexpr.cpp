@@ -27,9 +27,8 @@ namespace CVC4 {
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->mkSExprType(types));
-  d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
+  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->sExprType());
+  d_argsMarker = nm->mkBoundVar(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
@@ -125,8 +124,7 @@ Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
   std::stringstream ss;
   ss << r;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
   d_pfrMap[r] = var;
   return var;
 }
@@ -141,8 +139,7 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(Node n)
   std::stringstream ss;
   ss << n;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
   d_nodeMap[n] = var;
   return var;
 }

@@ -1162,7 +1162,7 @@ void TheoryArrays::presolve()
   {
     d_dstratInit = true;
     // add the decision strategy, which is user-context-independent
-    getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_ARRAYS,
         d_dstrat.get(),
         DecisionManager::STRAT_SCOPE_CTX_INDEPENDENT);

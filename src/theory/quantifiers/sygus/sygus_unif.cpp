@@ -16,7 +16,6 @@
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
 using namespace std;
@@ -26,23 +25,19 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif()
-    : d_qe(nullptr), d_tds(nullptr), d_enableMinimality(false)
-{
-}
+SygusUnif::SygusUnif() : d_tds(nullptr), d_enableMinimality(false) {}
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
-  d_qe = qe;
-  d_tds = qe->getTermDatabaseSygus();
+  d_tds = tds;
   d_candidates.push_back(f);
   // initialize the strategy
-  d_strategy[f].initialize(qe, f, enums);
+  d_strategy[f].initialize(tds, f, enums);
 }
 
 Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)

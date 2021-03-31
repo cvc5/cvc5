@@ -490,6 +490,7 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_enumerator.cpp
   theory/bags/theory_bags_type_enumerator.h
   theory/bags/theory_bags_type_rules.h
+  theory/bags/theory_bags_type_rules.cpp
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
   theory/booleans/proof_circuit_propagator.cpp
@@ -549,6 +550,7 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/int_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
   theory/bv/slicer.cpp
@@ -621,6 +623,7 @@ libcvc4_add_sources(
   theory/fp/theory_fp_rewriter.cpp
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
+  theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
   theory/inference_id.cpp
@@ -1124,47 +1127,43 @@ if(ENABLE_VALGRIND)
   target_include_directories(cvc4 PRIVATE ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_link_libraries(cvc4 ${ABC_LIBRARIES})
+  target_link_libraries(cvc4 PRIVATE ${ABC_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
 if(USE_CADICAL)
-  target_link_libraries(cvc4 ${CaDiCaL_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${CaDiCaL_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE CaDiCaL)
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE ${CLN_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
 endif()
 if(USE_CRYPTOMINISAT)
-  target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE CryptoMiniSat)
 endif()
 if(USE_KISSAT)
-  target_link_libraries(cvc4 ${Kissat_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE Kissat)
 endif()
 if(USE_GLPK)
-  target_link_libraries(cvc4 ${GLPK_LIBRARIES})
+  target_link_libraries(cvc4 PRIVATE ${GLPK_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc4 ${POLY_LIBRARIES})
+  target_link_libraries(cvc4 PRIVATE ${POLY_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
 endif()
 if(USE_SYMFPU)
-  target_include_directories(cvc4
-    PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE SymFPU)
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
-target_link_libraries(cvc4 ${GMP_LIBRARIES})
-target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+target_link_libraries(cvc4 PRIVATE ${GMP_LIBRARIES})
+target_include_directories(cvc4 PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
-target_link_libraries(cvc4 ${RT_LIBRARIES})
+target_link_libraries(cvc4 PRIVATE ${RT_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc4. For target main, we have

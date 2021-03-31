@@ -172,7 +172,7 @@ void TheoryEngine::finishInit()
   // special model builder object
   if (d_logicInfo.isQuantified())
   {
-    d_quantEngine->finishInit(this, d_decManager.get());
+    d_quantEngine->finishInit(this);
   }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.

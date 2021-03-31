@@ -54,12 +54,10 @@ class QuantifiersModules
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules.
    */
-  void initialize(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  void initialize(QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
-                  DecisionManager* dm,
                   std::vector<QuantifiersModule*>& modules);
 
  private:

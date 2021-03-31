@@ -43,10 +43,11 @@ private:
   int d_triedLemmas;
   int d_totalLemmas;
 public:
- ModelEngine(QuantifiersEngine* qe,
-             QuantifiersState& qs,
+ ModelEngine(QuantifiersState& qs,
              QuantifiersInferenceManager& qim,
-             QuantifiersRegistry& qr);
+             QuantifiersRegistry& qr,
+             TermRegistry& tr,
+             QModelBuilder* builder);
  virtual ~ModelEngine();
 
 public:
@@ -62,6 +63,10 @@ public:
  void debugPrint(const char* c);
  /** Identify this module */
  std::string identify() const override { return "ModelEngine"; }
+
+private:
+ /** Pointer to the model builder of quantifiers engine */
+ QModelBuilder* d_builder;
 };/* class ModelEngine */
 
 }/* CVC4::theory::quantifiers namespace */
