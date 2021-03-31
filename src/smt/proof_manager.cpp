@@ -25,7 +25,7 @@
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace smt {
 
 PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
@@ -190,4 +190,4 @@ void PfManager::getAssertions(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5

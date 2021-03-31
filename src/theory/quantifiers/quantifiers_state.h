@@ -21,7 +21,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -86,6 +86,6 @@ class QuantifiersState : public TheoryState
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H */

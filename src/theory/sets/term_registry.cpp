@@ -17,9 +17,9 @@
 #include "expr/emptyset.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace sets {
 
@@ -151,4 +151,4 @@ void TermRegistry::debugPrintSet(Node s, const char* c) const
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

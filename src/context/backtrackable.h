@@ -23,7 +23,7 @@
 #include <vector>
 #include "context/cdo.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 template <class T> class List;
 template <class T> class List_iterator;
@@ -217,6 +217,6 @@ template <class T> void Backtracker<T>::checkConsistency() {
   Assert(curr_level == pop_level);
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__UTIL__BACKTRACKABLE_H */

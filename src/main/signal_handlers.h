@@ -17,7 +17,7 @@
 #ifndef CVC4__MAIN__SIGNAL_HANDLERS_H
 #define CVC4__MAIN__SIGNAL_HANDLERS_H
 
-namespace CVC4 {
+namespace CVC5 {
 namespace main {
 namespace signal_handlers {
 
@@ -41,6 +41,6 @@ void cleanup();
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__MAIN__SIGNAL_HANDLERS_H */

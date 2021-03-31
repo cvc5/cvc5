@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 const char* toString(InferenceId i)
@@ -357,4 +357,4 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

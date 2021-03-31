@@ -16,9 +16,9 @@
 
 #include <cmath>
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 
@@ -325,4 +325,4 @@ Node negateProofLiteral(TNode n)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

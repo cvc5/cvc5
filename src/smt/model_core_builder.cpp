@@ -16,9 +16,9 @@
 
 #include "theory/subs_minimize.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 
 bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
                                     theory::TheoryModel* m,
@@ -104,4 +104,4 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   return false;
 }
 
-} /* namespace CVC4 */
+} // namespace CVC5
