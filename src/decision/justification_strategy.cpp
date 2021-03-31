@@ -28,7 +28,10 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_skdm(skdm),
-      d_assertions(u, c, options::jhNewRlvOrder()),        // assertions are user-context dependent
+      d_assertions(
+          u,
+          c,
+          options::jhNewRlvOrder()),  // assertions are user-context dependent
       d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
       d_justified(c),
       d_stack(c),
@@ -554,8 +557,8 @@ bool JustificationStrategy::refreshCurrentAssertion()
       // processed. don't track its status?
       d_currUnderStatus = Node::null();
       // also reset the stack ???
-      //d_stack.clear();
-      //d_stack.reset(curr);
+      // d_stack.clear();
+      // d_stack.reset(curr);
     }
     return true;
   }

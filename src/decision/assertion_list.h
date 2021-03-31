@@ -45,7 +45,9 @@ std::ostream& operator<<(std::ostream& out, DecisionStatus s);
 class AssertionList
 {
  public:
-  AssertionList(context::Context* ac, context::Context* ic, bool useDyn = false);
+  AssertionList(context::Context* ac,
+                context::Context* ic,
+                bool useDyn = false);
   virtual ~AssertionList() {}
   /** Add the assertion */
   void addAssertion(TNode n);
