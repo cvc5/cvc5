@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 /** sort inference
@@ -166,6 +166,6 @@ private:
 };
 
 }  // namespace theory
-}
+}  // namespace CVC5
 
 #endif

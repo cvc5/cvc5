@@ -26,7 +26,7 @@
 
 #include <cadical.hpp>
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
 
 class CadicalSolver : public SatSolver
@@ -103,7 +103,7 @@ class CadicalSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif  // CVC4_USE_CADICAL
 #endif  // CVC4__PROP__CADICAL_H

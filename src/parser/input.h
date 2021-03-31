@@ -30,7 +30,7 @@
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class Command;
 
@@ -176,7 +176,7 @@ class CVC4_EXPORT Input
 
 }; /* class Input */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC5
 
 #endif /* CVC4__PARSER__ANTLR_INPUT_H */

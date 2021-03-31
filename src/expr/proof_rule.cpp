@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace CVC5 {
 
 const char* toString(PfRule id)
 {
@@ -210,4 +210,4 @@ size_t PfRuleHashFunction::operator()(PfRule id) const
   return static_cast<size_t>(id);
 }
 
-}  // namespace CVC4
+}  // namespace CVC5

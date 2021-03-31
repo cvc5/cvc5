@@ -21,7 +21,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -69,8 +69,8 @@ private:
  QModelBuilder* d_builder;
 };/* class ModelEngine */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H */

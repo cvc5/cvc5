@@ -20,7 +20,7 @@
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 DecisionEngine::DecisionEngine(context::Context* c,
                                context::UserContext* u,
@@ -104,4 +104,4 @@ void DecisionEngine::notifyAsserted(TNode n)
   d_jstrat->notifyAsserted(n);
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5

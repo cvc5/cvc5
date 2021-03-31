@@ -25,7 +25,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace prop {
 class SkolemDefManager;
@@ -82,6 +82,6 @@ class DecisionEngine
   bool d_useOld;
 };
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__DECISION__DECISION_ENGINE_H */

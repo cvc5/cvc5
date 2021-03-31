@@ -37,7 +37,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace decision {
 
 class JustificationHeuristic : public ITEDecisionStrategy {
@@ -116,6 +116,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
     }
   };
 
+<<<<<<< HEAD
  public:
   JustificationHeuristic(DecisionEngineOld* de,
                          context::UserContext* uc,
@@ -192,9 +193,87 @@ class JustificationHeuristic : public ITEDecisionStrategy {
                                 prop::SatValue desiredVal2);
   SearchResult handleITE(TNode node, prop::SatValue desiredVal);
   SearchResult handleEmbeddedSkolems(TNode node);
+=======
+public:
+ JustificationHeuristic(CVC5::DecisionEngine* de,
+                        context::UserContext* uc,
+                        context::Context* c);
+
+ ~JustificationHeuristic();
+
+ prop::SatLiteral getNext(bool& stopSearch) override;
+
+ /**
+  * Notify this class that assertion is an (input) assertion, not corresponding
+  * to a skolem definition.
+  */
+ void addAssertion(TNode assertion) override;
+ /**
+  * Notify this class  that lem is the skolem definition for skolem, which is
+  * a part of the current assertions.
+  */
+ void addSkolemDefinition(TNode lem, TNode skolem) override;
+
+private:
+ /* getNext with an option to specify threshold */
+ prop::SatLiteral getNextThresh(bool& stopSearch, DecisionWeight threshold);
+
+ prop::SatLiteral findSplitter(TNode node, prop::SatValue desiredVal);
+
+ /**
+  * Do all the hard work.
+  */
+ SearchResult findSplitterRec(TNode node, prop::SatValue value);
+
+ /* Helper functions */
+ void setJustified(TNode);
+ bool checkJustified(TNode);
+ DecisionWeight getExploredThreshold(TNode);
+ void setExploredThreshold(TNode);
+ void setPrvsIndex(int);
+ int getPrvsIndex();
+ DecisionWeight getWeightPolarized(TNode n, bool polarity);
+ DecisionWeight getWeightPolarized(TNode n, prop::SatValue);
+ static DecisionWeight getWeight(TNode);
+ bool compareByWeightFalse(TNode, TNode);
+ bool compareByWeightTrue(TNode, TNode);
+ TNode getChildByWeight(TNode n, int i, bool polarity);
+
+ /* If literal exists corresponding to the node return
+    that. Otherwise an UNKNOWN */
+ prop::SatValue tryGetSatValue(Node n);
+
+ /* Get list of all term-ITEs for the atomic formula v */
+ JustificationHeuristic::SkolemList getSkolems(TNode n);
+
+ /**
+  * For big and/or nodes, a cache to save starting index into children
+  * for efficiently.
+  */
+ typedef context::CDHashMap<Node, int, NodeHashFunction> StartIndexCache;
+ StartIndexCache d_startIndexCache;
+ int getStartIndex(TNode node);
+ void saveStartIndex(TNode node, int val);
+
+ /* Compute all term-removal skolems in a node recursively */
+ void computeSkolems(TNode n, SkolemList& l);
+
+ SearchResult handleAndOrEasy(TNode node, prop::SatValue desiredVal);
+ SearchResult handleAndOrHard(TNode node, prop::SatValue desiredVal);
+ SearchResult handleBinaryEasy(TNode node1,
+                               prop::SatValue desiredVal1,
+                               TNode node2,
+                               prop::SatValue desiredVal2);
+ SearchResult handleBinaryHard(TNode node1,
+                               prop::SatValue desiredVal1,
+                               TNode node2,
+                               prop::SatValue desiredVal2);
+ SearchResult handleITE(TNode node, prop::SatValue desiredVal);
+ SearchResult handleEmbeddedSkolems(TNode node);
+>>>>>>> a1466978fbc328507406d4a121dab4d1a1047e1d
 };/* class JustificationHeuristic */
 
 }/* namespace decision */
-}/* namespace CVC4 */
+} // namespace CVC5
 
 #endif /* CVC4__DECISION__JUSTIFICATION_HEURISTIC */

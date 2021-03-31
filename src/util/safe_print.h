@@ -44,7 +44,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 /**
  * Prints arrays of chars (e.g. string literals) of length N. Safe to use in a
@@ -136,6 +136,6 @@ void safe_print_hex(int fd, uint64_t i);
  */
 void safe_print_right_aligned(int fd, uint64_t i, ssize_t width);
 
-} /* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__SAFE_PRINT_H */

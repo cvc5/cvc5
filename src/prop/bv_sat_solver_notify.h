@@ -21,7 +21,7 @@
 #include "prop/sat_solver_types.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
 
 class BVSatSolverNotify {
@@ -45,6 +45,6 @@ public:
 };/* class BVSatSolverInterface::Notify */
 
 }
-}
+}  // namespace CVC5
 
 #endif

@@ -18,9 +18,9 @@
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -156,4 +156,4 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

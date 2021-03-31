@@ -23,7 +23,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -318,8 +318,8 @@ class SygusSampler : public LazyTrieEvaluator
   void registerSygusType(TypeNode tn);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H */
