@@ -52,21 +52,31 @@ namespace detail {
 
 /**
  * Base class for all statistic values.
- * Requires four methods:
- * - `hasValue` checks whether the data holds a non-default value
- * - `getViewer` converts to the API representation `Stat`
- * - `print` writes the data to a regular `std::ostream`
- * - `printSafe` safely writes the data to a file descriptor
- * The remaining three methods are only safe to call if `hasValue` returns
- * true. Otherwise, the return value of `getViewer` is assumed to be
- * `std::monostate` and the value should be printed as "<undef>".
  */
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue();
+  /** Checks whether the data holds a non-default value. */
   virtual bool hasValue() const = 0;
+  /**
+   * Converts the internal data to an instance of `StatExportData` that is
+   * suitable for printing and exporting to the API.
+   * Assumes that `hasValue` returns true. Otherwise, the return value should
+   * assumed to be `std::monostate`.
+   */
   virtual StatExportData getViewer() const = 0;
+  /**
+   * Writes the data to a regular `std::ostream`.
+   * Assumes that `hasValue` returns true. Otherwise, the user should write
+   * `<undef>` to the stream.
+   */
   virtual void print(std::ostream&) const = 0;
+  /**
+   * Safely writes the data to a file descriptor. Is suitable to be used
+   * within a signal handler.
+   * Assumes that `hasValue` returns true. Otherwise, the user should write
+   * `<undef>` to the file descriptor.
+   */
   virtual void printSafe(int fd) const = 0;
 
   bool d_expert = true;
@@ -236,10 +246,7 @@ struct StatisticReferenceValue : StatisticBaseValue
       {
         return static_cast<int64_t>(*d_committed);
       }
-      else
-      {
-        return *d_committed;
-      }
+      return *d_committed;
     }
     else if (d_value != nullptr)
     {
@@ -247,10 +254,7 @@ struct StatisticReferenceValue : StatisticBaseValue
       {
         return static_cast<int64_t>(*d_value);
       }
-      else
-      {
-        return *d_value;
-      }
+      return *d_value;
     }
     return {};
   }
@@ -369,8 +373,17 @@ struct StatisticTimerValue : StatisticBaseValue
   /** Make sure that we include the time of a currently running timer */
   duration get() const;
 
+  /**
+   * The cumulative duration of the timer so far. 
+   * Does not include a currently running timer, but `get()` takes care of this.
+   */
   duration d_duration;
+  /**
+   * The start time of a currently running timer.
+   * May not be reset when the timer is stopped.
+   */
   time_point d_start;
+  /** Whether a timer is running right now. */
   bool d_running;
 };
 

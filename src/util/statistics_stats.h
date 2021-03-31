@@ -60,7 +60,9 @@ class AverageStat
   AverageStat& operator<<(double v);
 
  private:
+  /** Construct from a pointer to the internal data */
   AverageStat(stat_type* data) : d_data(data) {}
+  /** The actual data that lives in the registry */
   stat_type* d_data;
 };
 
@@ -91,7 +93,9 @@ class HistogramStat
   }
 
  private:
+  /** Construct from a pointer to the internal data */
   HistogramStat(stat_type* data) : d_data(data) {}
+  /** The actual data that lives in the registry */
   stat_type* d_data;
 };
 
@@ -134,7 +138,9 @@ class ReferenceStat
   }
 
  private:
+  /** Construct from a pointer to the internal data */
   ReferenceStat(StatisticReferenceValue<T>* data) : d_data(data) {}
+  /** The actual data that lives in the registry */
   StatisticReferenceValue<T>* d_data;
 };
 
@@ -171,7 +177,9 @@ class SizeStat
   }
 
  private:
+  /** Construct from a pointer to the internal data */
   SizeStat(stat_type* data) : d_data(data) {}
+  /** The actual data that lives in the registry */
   stat_type* d_data;
 };
 
@@ -205,7 +213,9 @@ class TimerStat
   bool running() const;
 
  private:
+  /** Construct from a pointer to the internal data */
   TimerStat(stat_type* data) : d_data(data) {}
+  /** The actual data that lives in the registry */
   stat_type* d_data;
 };
 
@@ -226,13 +236,21 @@ class CodeTimer
   CodeTimer(const CodeTimer& timer) = delete;
   /** Disallow assignment */
   CodeTimer& operator=(const CodeTimer& timer) = delete;
-  /** Start the timer */
+  /**
+   * Start the timer.
+   * If `allow_reentrant` is true we check whether the timer is already
+   * running. If so, this particular instance of `CodeTimer` neither starts
+   * nor stops the actual timer, but leaves this to the first (or outermost)
+   * `CodeTimer`.
+   */
   CodeTimer(TimerStat& timer, bool allow_reentrant = false);
   /** Stop the timer */
   ~CodeTimer();
 
  private:
+  /** Reference to the timer this utility works on */
   TimerStat& d_timer;
+  /** Whether this timer is reentrant (i.e. does not do anything) */
   bool d_reentrant;
 };
 
@@ -276,14 +294,13 @@ class ValueStat
     {
       return d_data->d_value;
     }
-    else
-    {
-      return T();
-    }
+    return T();
   }
 
  private:
+  /** Construct from a pointer to the internal data */
   ValueStat(StatisticBackedValue<T>* data) : d_data(data) {}
+  /** The actual data that lives in the registry */
   StatisticBackedValue<T>* d_data;
 };
 
@@ -314,6 +331,7 @@ class IntStat : public ValueStat<int64_t>
   void minAssign(int64_t val);
 
  private:
+  /** Construct from a pointer to the internal data */
   IntStat(stat_type* data) : ValueStat(data) {}
 };
 
