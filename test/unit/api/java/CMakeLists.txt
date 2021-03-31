@@ -12,16 +12,23 @@
 find_package(Java REQUIRED)
 include(UseJava)
 
-# run gradle check
+find_package(JUnit REQUIRED)
+
+
+# run junit tests
 add_custom_target(
-  gradle-test
+  junit-tests
   ALL
   COMMAND
-  # run gradlew tests
-  ${PROJECT_SOURCE_DIR}/src/api/java/gradlew -p "$<TARGET_FILE_DIR:cvc4>/api/java" check
-  COMMENT "Test java unit tests using gradlew check"
+    # run junit tests
+    ${Java_JAVA_EXECUTABLE} -jar ${Junit5_JAR}
+    -cp ${PROJECT_SOURCE_DIR}/test/unit/api/java
+    #-cp $<TARGET_FILE:cvcjar>
+    -cp ${CVC_JAR}
+    -select-package cvc
+  COMMENT "Run junit tests"
   VERBATIM
 )
 
-
-add_dependencies(units cvcjar)
+add_dependencies(junit-tests cvcjar)
+add_dependencies(units junit-tests)
