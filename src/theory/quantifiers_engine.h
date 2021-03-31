@@ -63,21 +63,11 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
-  //---------------------- external interface
-  /** The quantifiers state object */
-  quantifiers::QuantifiersState& getState();
-  /** The quantifiers inference manager */
-  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
-  /** The term registry */
-  quantifiers::TermRegistry& getTermRegistry();
-  //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get term database */
-  quantifiers::TermDb* getTermDatabase() const;
   /** get model */
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
@@ -209,8 +199,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- end temporary information during check
- private:
   /** list of all quantifiers seen */
   std::map<Node, bool> d_quants;
   /** quantifiers pre-registered */
