@@ -69,7 +69,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   JustifyInfo* ji;
   JustifyNode next;
   // we start with the value implied by the last decision, if it exists
-  SatValue lastChildVal = SAT_VALUE_UNKNOWN;  // d_lastDecisionValue.get();
+  SatValue lastChildVal = SAT_VALUE_UNKNOWN;
   Trace("jh-process") << "getNext" << std::endl;
   // If we had just sent a decision, then we lookup its value here. This may
   // correspond to a context where the decision was carried out, or
@@ -85,9 +85,15 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     lastChildVal = lookupValue(d_lastDecisionLit.get());
     if (lastChildVal == SAT_VALUE_UNKNOWN)
     {
-      // if the value is now unknown, we must reprocess the child
-      ji = d_stack.getCurrent();
-      ji->revertChildIndex();
+      // if the value is now unknown, we must reprocess the assertion, since
+      // we have backtracked
+      TNode curr = d_stack.getCurrentAssertion();
+      d_stack.clear();
+      d_stack.reset(curr);
+      // TODO: we should be able to just backtrack the index??? However, this
+      // leads to reporting children with unknown values
+      //ji = d_stack.getCurrent();
+      //ji->revertChildIndex();
     }
   }
   d_lastDecisionLit = TNode::null();
