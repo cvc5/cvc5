@@ -3,7 +3,7 @@
 #include "api/cvc4cpp.h"
 #include "cvcJavaApi.h"
 
-using namespace CVC4::api;
+using namespace CVC5::api;
 
 /*
  * Class:     cvc_Solver
