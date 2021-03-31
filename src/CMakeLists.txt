@@ -490,6 +490,7 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_enumerator.cpp
   theory/bags/theory_bags_type_enumerator.h
   theory/bags/theory_bags_type_rules.h
+  theory/bags/theory_bags_type_rules.cpp
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
   theory/booleans/proof_circuit_propagator.cpp
