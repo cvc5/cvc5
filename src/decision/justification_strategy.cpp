@@ -498,8 +498,10 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
                                                   bool useSkolemList)
 {
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
-  // always miniscope AND immediately
+  // always miniscope AND and negated OR immediately
   size_t index = 0;
+  // must keep some intermediate nodes below around for ref counting
+  std::vector<Node> keep;
   while (index < toProcess.size())
   {
     TNode curr = toProcess[index];
@@ -516,7 +518,10 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       std::vector<Node> negc;
       for (TNode c : currAtom)
       {
-        negc.push_back(c.negate());
+        Node cneg = c.negate();
+        negc.push_back(cneg);
+        // ensure ref counted
+        keep.push_back(cneg);
       }
       toProcess.insert(toProcess.begin() + index, negc.begin(), negc.end());
     }
