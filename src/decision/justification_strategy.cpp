@@ -21,24 +21,6 @@ using namespace CVC4::prop;
 
 namespace CVC4 {
 
-const char* toString(DecisionStatus s)
-{
-  switch (s)
-  {
-    case DecisionStatus::INACTIVE: return "INACTIVE";
-    case DecisionStatus::NO_DECISION: return "NO_DECISION";
-    case DecisionStatus::DECISION: return "DECISION";
-    case DecisionStatus::BACKTRACK: return "BACKTRACK";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, DecisionStatus s)
-{
-  out << toString(s);
-  return out;
-}
-
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
                                              prop::SkolemDefManager* skdm)
@@ -51,8 +33,7 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_justified(c),
       d_stack(c),
       d_lastDecisionLit(c),
-      d_currStatus(DecisionStatus::INACTIVE),
-      d_currUnderStatusIndex(0),
+      d_currStatusDec(false),
       d_useRlvOrder(options::jhNewRlvOrder()),
       d_jhSkMode(options::jhNewSkolemMode()),
       d_jhSkRlvMode(options::jhNewSkolemRlvMode())
@@ -138,7 +119,18 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       if (!d_currUnderStatus.isNull())
       {
         // notify status if we are watching it
-        notifyStatus(d_currUnderStatusIndex, d_currStatus);
+        DecisionStatus ds;
+        if (d_currStatusDec)
+        {
+          ds = DecisionStatus::DECISION;
+          ++(d_stats.d_numStatusDecision);
+        }
+        else
+        {
+          ds = DecisionStatus::NO_DECISION;
+          ++(d_stats.d_numStatusNoDecision);
+        }
+        d_assertions.notifyStatus(d_currUnderStatus, ds);
       }
       // we did not find a next node for current, refresh current assertion
       d_stack.clear();
@@ -179,11 +171,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // on. The value of d_lastDecisionLit will be processed at the
           // beginning of the next call to getNext above.
           d_lastDecisionLit = next.first;
-          // update the decision
-          if (d_currStatus == DecisionStatus::NO_DECISION)
-          {
-            d_currStatus = DecisionStatus::DECISION;
-          }
+          // record that we made a decision
+          d_currStatusDec = true;
           return lastChildVal == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -249,18 +238,20 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   {
     if (i == 0)
     {
-      // Maybe expensive, so only do this for i==0?
+      // we scan only once, when processing the first child
       if ((ck == AND) == (currDesiredVal == SAT_VALUE_FALSE))
       {
         // lookahead to determine if already satisfied
         for (const Node& c : curr)
         {
-          if (lookupValue(c) == currDesiredVal)
+          SatValue v = lookupValue(c);
+          if (v == currDesiredVal)
           {
             Trace("jh-debug") << "already forcing child " << c << std::endl;
             value = currDesiredVal;
             break;
           }
+          // TODO: add trigger if v == SAT_VALUE_UNKNOWN
         }
       }
       desiredVal = currDesiredVal;
@@ -327,7 +318,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       // if first branch is already wrong or second branch is already correct,
       // try to make condition false. Note that we arbitrarily choose true here
-      // if both children are unknown
+      // if both children are unknown. If both children have the same value
+      // and that value is not unknown, desiredVal will be ignored, since
+      // value is set above.
       desiredVal =
           (val1 == invertValue(currDesiredVal) || val2 == currDesiredVal)
               ? SAT_VALUE_FALSE
@@ -335,6 +328,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     }
     else if (i == 1)
     {
+      Assert (lastChildVal!=SAT_VALUE_UNKNOWN);
       // we just computed the value of the condition, check if the condition
       // was false
       if (lastChildVal == SAT_VALUE_FALSE)
@@ -433,10 +427,11 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   {
     return pol ? jit->second : invertValue(jit->second);
   }
-  // TODO: for simplicity, should we just lookup values for non-theory atoms
-  // too? Notice that looking up values for non-theory atoms may lead to
+  // Notice that looking up values for non-theory atoms may lead to
   // an incomplete strategy where a formula is asserted but not justified
-  // via its theory literal subterms?
+  // via its theory literal subterms. This is the case because the justification
+  // heuristic is not the only source of decisions, as the theory may request
+  // them.
   if (isTheoryAtom(atom))
   {
     SatLiteral nsl = d_cnfStream->getLiteral(atom);
@@ -445,12 +440,8 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
     {
       // this is the moment where we realize a skolem definition is relevant,
       // add now.
-      if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::JUSTIFY)
-      {
-        std::vector<TNode> defs;
-        d_skdm->notifyAsserted(atom, defs, true);
-        insertToAssertionList(defs, true);
-      }
+      // TODO:
+      //notifyJustified(atom);
       d_justified.insert(atom, val);
       return pol ? val : invertValue(val);
     }
@@ -491,6 +482,15 @@ void JustificationStrategy::notifyAsserted(TNode n)
   // TODO: updates tracking triggers?
 }
 
+void JustificationStrategy::notifyJustified(TNode atom)
+{
+  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::JUSTIFY)
+  {
+    std::vector<TNode> defs;
+    d_skdm->notifyAsserted(atom, defs, true);
+    insertToAssertionList(defs, true);
+  }
+}
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
                                                   bool useSkolemList)
 {
@@ -535,6 +535,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       // we skip (top-level) theory literals, since these are always propagated
       // TODO: skolem definitions that are always relevant should be added to
       // assertions, for uniformity
+      //notifyJustified(currAtom);
     }
   }
 }
@@ -547,11 +548,11 @@ bool JustificationStrategy::refreshCurrentAssertion()
   {
     if (curr != d_currUnderStatus && !d_currUnderStatus.isNull())
     {
-      notifyStatus(d_currUnderStatusIndex, DecisionStatus::BACKTRACK);
+      ++(d_stats.d_numStatusBacktrack);
+      d_assertions.notifyStatus(d_currUnderStatus, DecisionStatus::BACKTRACK);
       // we've backtracked to another assertion which may be partially
       // processed. don't track its status?
       d_currUnderStatus = Node::null();
-      d_currStatus = DecisionStatus::INACTIVE;
     }
     return true;
   }
@@ -569,15 +570,9 @@ bool JustificationStrategy::refreshCurrentAssertion()
 bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
 {
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
-  bool doWatchStatus = true;
-  if (useSkolemList)
-  {
-    doWatchStatus = false;
-    d_currUnderStatus = Node::null();
-    d_currStatus = DecisionStatus::INACTIVE;
-  }
-  size_t fromIndex;
-  TNode curr = al.getNextAssertion(fromIndex);
+  bool doWatchStatus = !useSkolemList;
+  d_currUnderStatus = Node::null();
+  TNode curr = al.getNextAssertion();
   SatValue currValue;
   while (!curr.isNull())
   {
@@ -594,8 +589,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
       {
         // initially, mark that we have not found a decision in this
         d_currUnderStatus = d_stack.getCurrentAssertion();
-        d_currUnderStatusIndex = fromIndex;
-        d_currStatus = DecisionStatus::NO_DECISION;
+        d_currStatusDec = false;
       }
       return true;
     }
@@ -604,42 +598,13 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
     if (doWatchStatus)
     {
       // mark that we did not find a decision in it
-      notifyStatus(fromIndex, DecisionStatus::NO_DECISION);
+      ++(d_stats.d_numStatusNoDecision);
+      d_assertions.notifyStatus(curr, DecisionStatus::NO_DECISION);
     }
     // already justified, immediately skip
-    curr = al.getNextAssertion(fromIndex);
+    curr = al.getNextAssertion();
   }
   return false;
-}
-
-void JustificationStrategy::notifyStatus(size_t i, DecisionStatus s)
-{
-  // TODO: update order
-  Trace("jh-status") << "Assertion #" << i << " had status " << s << std::endl;
-  switch (s)
-  {
-    case DecisionStatus::BACKTRACK:
-    {
-      ++(d_stats.d_numStatusBacktrack);
-      // erase from backtrack queue if already there
-      // add to front of backtrack queue
-    }
-    break;
-    case DecisionStatus::DECISION:
-    {
-      ++(d_stats.d_numStatusDecision);
-      // add to decision queue if not there already
-    }
-    break;
-    case DecisionStatus::NO_DECISION:
-    {
-      ++(d_stats.d_numStatusNoDecision);
-      // erase from backtrack queue if already there
-      // erase from decision queue if already there
-    }
-    break;
-    default: Unhandled(); break;
-  }
 }
 
 bool JustificationStrategy::isTheoryLiteral(TNode n)

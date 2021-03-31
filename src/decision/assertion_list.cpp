@@ -16,16 +16,34 @@
 
 namespace CVC4 {
 
+const char* toString(DecisionStatus s)
+{
+  switch (s)
+  {
+    case DecisionStatus::INACTIVE: return "INACTIVE";
+    case DecisionStatus::NO_DECISION: return "NO_DECISION";
+    case DecisionStatus::DECISION: return "DECISION";
+    case DecisionStatus::BACKTRACK: return "BACKTRACK";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, DecisionStatus s)
+{
+  out << toString(s);
+  return out;
+}
+
 AssertionList::AssertionList(context::Context* ac, context::Context* ic)
-    : d_assertions(ac), d_assertionIndex(ic)
+    : d_assertions(ac), d_assertionIndex(ic), d_dindex(ic)
 {
 }
 
 void AssertionList::addAssertion(TNode n) { d_assertions.push_back(n); }
 
-TNode AssertionList::getNextAssertion(size_t& fromIndex)
+TNode AssertionList::getNextAssertion()
 {
-  fromIndex = d_assertionIndex.get();
+  size_t fromIndex = d_assertionIndex.get();
   Assert(fromIndex <= d_assertions.size());
   if (fromIndex == d_assertions.size())
   {
@@ -37,13 +55,30 @@ TNode AssertionList::getNextAssertion(size_t& fromIndex)
 }
 size_t AssertionList::size() const { return d_assertions.size(); }
 
-DynamicAssertionList::DynamicAssertionList(context::Context* ic)
-    : d_assertionIndex(ic)
+void AssertionList::notifyStatus(TNode n, DecisionStatus s)
 {
+  Trace("jh-status") << "Assertion status " << s << " for " << n << std::endl;
+  switch (s)
+  {
+    case DecisionStatus::BACKTRACK:
+    {
+      // erase from backtrack queue if already there
+      // add to front of backtrack queue
+    }
+    break;
+    case DecisionStatus::DECISION:
+    {
+      // add to decision queue if not there already
+    }
+    break;
+    case DecisionStatus::NO_DECISION:
+    {
+      // erase from backtrack queue if already there
+      // erase from decision queue if already there
+    }
+    break;
+    default: Unhandled(); break;
+  }
 }
-
-void DynamicAssertionList::erase(TNode n) {}
-void DynamicAssertionList::addToFront(TNode n) {}
-TNode DynamicAssertionList::getNextAssertion() { return TNode::null(); }
 
 }  // namespace CVC4

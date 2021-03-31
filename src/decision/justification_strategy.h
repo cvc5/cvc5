@@ -17,8 +17,6 @@
 #ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
-#include <iosfwd>
-
 #include "context/cdinsert_hashmap.h"
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
@@ -36,23 +34,6 @@ namespace CVC4 {
 namespace prop {
 class SkolemDefManager;
 }
-
-/**
- * For monitoring activity of assertions
- */
-enum class DecisionStatus
-{
-  // not currently watching status of the current assertion
-  INACTIVE,
-  // no decision was made considering the assertion
-  NO_DECISION,
-  // a decision was made considering the assertion
-  DECISION,
-  // we backtracked while considering the assertion
-  BACKTRACK
-};
-const char* toString(DecisionStatus s);
-std::ostream& operator<<(std::ostream& out, DecisionStatus s);
 
 /**
  * An implementation of justification SAT decision heuristic.
@@ -127,8 +108,8 @@ class JustificationStrategy
    * Lookup value, return value of n if one can be determined.
    */
   prop::SatValue lookupValue(TNode n);
-  /** Notify status */
-  void notifyStatus(size_t i, DecisionStatus s);
+  /** Notify justified atom */
+  void notifyJustified(TNode atom);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
   /** Is n a theory atom? */
@@ -145,6 +126,7 @@ class JustificationStrategy
   AssertionList d_assertions;
   /** The skolem assertions */
   AssertionList d_skolemAssertions;
+
   /** Mapping from non-negated nodes to their SAT value */
   context::CDInsertHashMap<Node, prop::SatValue, NodeHashFunction> d_justified;
   /** A justify stack */
@@ -152,12 +134,10 @@ class JustificationStrategy
   /** The last decision literal */
   context::CDO<TNode> d_lastDecisionLit;
   //------------------------------------ activity
-  /** The status of the last assertion */
-  DecisionStatus d_currStatus;
   /** Current assertion we are checking for status (context-independent) */
   Node d_currUnderStatus;
-  /** The index of curr under status */
-  size_t d_currUnderStatusIndex;
+  /** Whether we have added a decision while considering d_currUnderStatus */
+  bool d_currStatusDec;
   //------------------------------------ options
   /** using relevancy order */
   bool d_useRlvOrder;
