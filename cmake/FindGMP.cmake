@@ -47,7 +47,7 @@ if(NOT GMP_FOUND_SYSTEM)
 
   ExternalProject_Add(
     GMP-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND

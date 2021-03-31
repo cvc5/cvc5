@@ -44,7 +44,7 @@ if(NOT CLN_FOUND_SYSTEM)
 
     ExternalProject_Add(
       CLN-EP
-      PREFIX ${DEPS_PREFIX}
+      ${COMMON_EP_CONFIG}
       URL "https://www.ginac.de/CLN/cln.git/?p=cln.git\\\;a=snapshot\\\;h=cln_${CLN_TAG}\\\;sf=tgz"
       URL_HASH SHA1=71d02b90ef0575f06b7bafb8690f73e8064d8228
       DOWNLOAD_NAME cln.tgz

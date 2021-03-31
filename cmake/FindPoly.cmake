@@ -65,7 +65,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   ExternalProject_Add(
     Poly-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
     URL_HASH SHA1=2e79d5220d3ecbb40811463fcf12c5ddbd4b9f30
     DOWNLOAD_NAME libpoly.tar.gz
