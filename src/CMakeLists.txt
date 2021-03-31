@@ -1150,8 +1150,7 @@ if(USE_GLPK)
   target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc4 ${POLY_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
+  target_link_libraries(cvc4 Polyxx)
 endif()
 if(USE_SYMFPU)
   target_include_directories(cvc4
@@ -1160,8 +1159,7 @@ endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
-target_link_libraries(cvc4 ${GMP_LIBRARIES})
-target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+target_link_libraries(cvc4 GMP)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
