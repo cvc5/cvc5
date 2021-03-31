@@ -295,7 +295,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_qim.addPendingLemma(prangeLem, InferenceId::UNKNOWN);
+      d_qim.addPendingLemma(prangeLem, InferenceId::QUANTIFIERS_BINT_PROXY);
       addedLemma = true;
     }
   }
@@ -726,7 +726,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_qim.lemma(lem, InferenceId::UNKNOWN);
+      d_qim.lemma(lem, InferenceId::QUANTIFIERS_BINT_MIN_NG);
     }
     return false;
   }else{

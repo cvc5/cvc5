@@ -145,6 +145,11 @@ public:
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
  /**
+  * Get instantiations for quantified formula q. If q is (forall ((x T)) (P x)),
+  * this is a list of the form (P t1) ... (P tn) for ground terms ti.
+  */
+ void getInstantiations(Node q, std::vector<Node>& insts);
+ /**
   * Get skolemization vectors, where for each quantified formula that was
   * skolemized, this is the list of skolems that were used to witness the
   * negation of that quantified formula.

@@ -283,11 +283,13 @@ bool TypeNode::isClosedEnumerable()
   return getAttribute(IsClosedEnumerableAttr());
 }
 
-bool TypeNode::isFirstClass() const {
+bool TypeNode::isFirstClass() const
+{
   return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE && getKind() != kind::SEXPR_TYPE
+         && getKind() != kind::TESTER_TYPE
          && (getKind() != kind::TYPE_CONSTANT
-             || getConst<TypeConstant>() != REGEXP_TYPE);
+             || (getConst<TypeConstant>() != REGEXP_TYPE
+                 && getConst<TypeConstant>() != SEXPR_TYPE));
 }
 
 bool TypeNode::isWellFounded() const {
@@ -420,15 +422,6 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
     types.push_back(dt[0][i].getRangeType());
-  }
-  return types;
-}
-
-vector<TypeNode> TypeNode::getSExprTypes() const {
-  Assert(isSExpr());
-  vector<TypeNode> types;
-  for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
-    types.push_back((*this)[i]);
   }
   return types;
 }
@@ -589,7 +582,6 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::SEQUENCE_TYPE:
     case kind::SET_TYPE:
     case kind::BAG_TYPE:
-    case kind::SEXPR_TYPE:
     {
       // we don't support subtyping except for built in types Int and Real.
       return TypeNode();  // return null type
@@ -651,7 +643,33 @@ bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
-/** Is this a codatatype type */
+bool TypeNode::isFloatingPoint() const
+{
+  return getKind() == kind::FLOATINGPOINT_TYPE;
+}
+
+bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
+
+bool TypeNode::isDatatype() const
+{
+  return getKind() == kind::DATATYPE_TYPE
+         || getKind() == kind::PARAMETRIC_DATATYPE;
+}
+
+bool TypeNode::isParametricDatatype() const
+{
+  return getKind() == kind::PARAMETRIC_DATATYPE;
+}
+
+bool TypeNode::isConstructor() const
+{
+  return getKind() == kind::CONSTRUCTOR_TYPE;
+}
+
+bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
+
+bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
+
 bool TypeNode::isCodatatype() const
 {
   if (isDatatype())

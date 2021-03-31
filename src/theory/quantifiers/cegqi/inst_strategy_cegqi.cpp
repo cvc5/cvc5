@@ -379,7 +379,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
     ce_vars.push_back(d_qreg.getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_qim.lemma(lem, InferenceId::UNKNOWN);
+  d_qim.lemma(lem, InferenceId::QUANTIFIERS_CEGQI_CEX);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;
@@ -393,11 +393,11 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   std::vector<Node> auxLems;
   CegInstantiator* cinst = getInstantiator(q);
   cinst->registerCounterexampleLemma(ppLem, ce_vars, auxLems);
-  for (unsigned i = 0, size = auxLems.size(); i < size; i++)
+  for (size_t i = 0, size = auxLems.size(); i < size; i++)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
                          << std::endl;
-    d_qim.addPendingLemma(auxLems[i], InferenceId::UNKNOWN);
+    d_qim.addPendingLemma(auxLems[i], InferenceId::QUANTIFIERS_CEGQI_CEX_AUX);
   }
 }
 
@@ -472,34 +472,29 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
+  // check if we need virtual term substitution (if used delta or infinity)
+  bool usedVts = d_vtsCache->containsVtsTerm(subs, false);
   Instantiate* inst = d_qim.getInstantiate();
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    inst->recordInstantiation(d_curr_quant, subs, false, false);
+    inst->recordInstantiation(d_curr_quant, subs, usedVts);
     return true;
   }
-  // check if we need virtual term substitution (if used delta or infinity)
-  bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
-  if (inst->addInstantiation(d_curr_quant,
-                             subs,
-                             InferenceId::QUANTIFIERS_INST_CEGQI,
-                             false,
-                             false,
-                             used_vts))
+  else if (inst->addInstantiation(d_curr_quant,
+                                  subs,
+                                  InferenceId::QUANTIFIERS_INST_CEGQI,
+                                  false,
+                                  false,
+                                  usedVts))
   {
     return true;
   }
   // this should never happen for monotonic selection strategies
   Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
   return false;
-}
-
-bool InstStrategyCegqi::addPendingLemma(Node lem) const
-{
-  return d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
 }
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
@@ -540,7 +535,7 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+        d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_CEGQI_NESTED_QE);
       }
       // don't need to process this, since it has been reduced
       return true;
