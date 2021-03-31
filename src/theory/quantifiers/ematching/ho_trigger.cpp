@@ -22,7 +22,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
 
