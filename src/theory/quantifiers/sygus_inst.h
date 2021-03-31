@@ -63,8 +63,7 @@ namespace quantifiers {
 class SygusInst : public QuantifiersModule
 {
  public:
-  SygusInst(QuantifiersEngine* qe,
-            QuantifiersState& qs,
+  SygusInst(QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
             QuantifiersRegistry& qr,
             TermRegistry& tr);

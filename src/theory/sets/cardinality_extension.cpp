@@ -560,7 +560,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         {
           // split on empty
           Trace("sets-nf") << "Split empty : " << n << std::endl;
-          d_im.split(n.eqNode(emp_set), InferenceId::UNKNOWN, 1);
+          d_im.split(n.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY, 1);
         }
         Assert(d_im.hasSent());
         return;

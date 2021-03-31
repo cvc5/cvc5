@@ -14,7 +14,6 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/term_util.h"
 
