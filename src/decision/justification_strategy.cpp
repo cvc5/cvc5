@@ -92,8 +92,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       d_stack.reset(curr);
       // TODO: we should be able to just backtrack the index??? However, this
       // leads to reporting children with unknown values
-      //ji = d_stack.getCurrent();
-      //ji->revertChildIndex();
+      // ji = d_stack.getCurrent();
+      // ji->revertChildIndex();
     }
   }
   d_lastDecisionLit = TNode::null();
