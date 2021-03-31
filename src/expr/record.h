@@ -29,7 +29,7 @@ namespace CVC5 {
 // This forward delcartion is required to resolve a cicular dependency with
 // Record which is a referenced in a Kind file.
 class TypeNode;
-} /* namespace CVC5 */
+} // namespace CVC5
 
 namespace CVC5 {
 

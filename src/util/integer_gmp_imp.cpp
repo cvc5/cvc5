@@ -483,4 +483,4 @@ const Integer& Integer::max(const Integer& a, const Integer& b)
   return (a >= b) ? a : b;
 }
 
-} /* namespace CVC5 */
+} // namespace CVC5

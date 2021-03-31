@@ -115,6 +115,6 @@ class SynthEngine : public QuantifiersModule
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5
 
 #endif

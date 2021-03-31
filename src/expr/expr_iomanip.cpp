@@ -123,4 +123,4 @@ std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
 }
 
 }  // namespace expr
-} /* namespace CVC5 */
+} // namespace CVC5

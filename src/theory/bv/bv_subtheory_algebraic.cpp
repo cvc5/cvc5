@@ -992,4 +992,4 @@ Node mergeExplanations(TNode expl1, TNode expl2) {
 
 }  // namespace bv
 } /* namespace CVc4::theory */
-} /* namespace CVC5 */
+} // namespace CVC5

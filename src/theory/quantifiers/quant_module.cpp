@@ -75,4 +75,4 @@ quantifiers::QuantifiersRegistry& QuantifiersModule::getQuantifiersRegistry()
 }
 
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

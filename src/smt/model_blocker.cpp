@@ -278,4 +278,4 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   return blocker;
 }
 
-} /* namespace CVC5 */
+} // namespace CVC5

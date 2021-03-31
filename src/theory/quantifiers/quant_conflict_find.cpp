@@ -2351,4 +2351,4 @@ bool QuantConflictFind::isPropagatingInstance(Node n) const
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

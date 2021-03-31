@@ -160,4 +160,4 @@ private:
 
 } /* namespace arith */
 } /* namespace theory */
-} /* namespace CVC5 */
+} // namespace CVC5

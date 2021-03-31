@@ -804,4 +804,4 @@ void SynthConjectureProcess::getComponentVector(Kind k,
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

@@ -828,4 +828,4 @@ void BVSolverLazy::setConflict(Node conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

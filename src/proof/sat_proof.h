@@ -36,7 +36,7 @@
 // Forward declarations.
 namespace CVC5 {
 class CnfProof;
-} /* namespace CVC5 */
+} // namespace CVC5
 
 namespace CVC5 {
 /**

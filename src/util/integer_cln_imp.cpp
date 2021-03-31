@@ -568,4 +568,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n)
 {
   return os << n.toString();
 }
-} /* namespace CVC5 */
+} // namespace CVC5

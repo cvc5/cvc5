@@ -160,6 +160,6 @@ class ExampleEvalCache
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5
 
 #endif

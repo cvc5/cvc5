@@ -290,4 +290,4 @@ void SynthEngine::preregisterAssertion(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

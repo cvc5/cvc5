@@ -1353,4 +1353,4 @@ ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

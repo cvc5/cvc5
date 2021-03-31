@@ -1622,4 +1622,4 @@ bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

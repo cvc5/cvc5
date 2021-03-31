@@ -183,7 +183,7 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 }
 
 }  // namespace Minisat
-} /* namespace CVC5 */
+} // namespace CVC5
 
 namespace CVC5 {
 namespace Minisat{

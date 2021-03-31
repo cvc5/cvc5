@@ -117,4 +117,4 @@ Maybe<Rational> Rational::fromDouble(double d)
   }
 }
 
-} /* namespace CVC5 */
+} // namespace CVC5

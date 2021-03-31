@@ -313,6 +313,6 @@ std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5
 
 #endif

@@ -733,4 +733,4 @@ JustificationHeuristic::handleEmbeddedSkolems(TNode node)
 }
 
 } /* namespace decision */
-} /* namespace CVC5 */
+} // namespace CVC5

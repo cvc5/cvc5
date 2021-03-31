@@ -137,4 +137,4 @@ void TypeSet::addSubTerms(TNode n,
 }
 
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

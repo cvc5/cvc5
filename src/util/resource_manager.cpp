@@ -420,4 +420,4 @@ void ResourceManager::registerListener(Listener* listener)
   return d_listeners.push_back(listener);
 }
 
-} /* namespace CVC5 */
+} // namespace CVC5

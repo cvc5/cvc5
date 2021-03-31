@@ -765,4 +765,4 @@ std::string TheoryModel::debugPrintModelEqc() const
 }
 
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

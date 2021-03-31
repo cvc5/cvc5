@@ -426,6 +426,6 @@ class SynthConjecture
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5
 
 #endif

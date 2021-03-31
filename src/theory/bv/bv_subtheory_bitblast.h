@@ -83,4 +83,4 @@ class BitblastSolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

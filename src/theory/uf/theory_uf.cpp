@@ -693,4 +693,4 @@ bool TheoryUF::isHigherOrderType(TypeNode tn)
 
 }  // namespace uf
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

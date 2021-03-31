@@ -298,4 +298,4 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
 }
 
 }  // namespace prop
-} /* namespace CVC5 */
+} // namespace CVC5

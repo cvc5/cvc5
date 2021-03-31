@@ -301,7 +301,7 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
 }
 
 }  // namespace prop
-} /* namespace CVC5 */
+} // namespace CVC5
 
 namespace CVC5 {
 template <>
@@ -317,4 +317,4 @@ void toSatClause<CVC5::Minisat::Solver>(
   prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 }
 
-} /* namespace CVC5 */
+} // namespace CVC5

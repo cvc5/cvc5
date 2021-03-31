@@ -292,6 +292,6 @@ class SingleInvocationPartition
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */

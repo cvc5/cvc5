@@ -195,6 +195,6 @@ private:
 };/* class JustificationHeuristic */
 
 }/* namespace decision */
-} /* namespace CVC5 */
+} // namespace CVC5
 
 #endif /* CVC4__DECISION__JUSTIFICATION_HEURISTIC */

@@ -615,4 +615,4 @@ void SingleInvocationPartition::debugPrint(const char* c)
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

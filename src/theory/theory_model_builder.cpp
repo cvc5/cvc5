@@ -1429,4 +1429,4 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 }
 
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

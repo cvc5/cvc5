@@ -278,4 +278,4 @@ void BitblastSolver::setConflict(TNode conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

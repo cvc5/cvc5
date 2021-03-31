@@ -131,4 +131,4 @@ void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol,
 }
 
 }  // namespace theory
-} /* namespace CVC5 */
+} // namespace CVC5

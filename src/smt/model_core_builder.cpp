@@ -104,4 +104,4 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   return false;
 }
 
-} /* namespace CVC5 */
+} // namespace CVC5

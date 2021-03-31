@@ -264,4 +264,4 @@ std::ostream& operator<<(std::ostream& os,  const Algorithms a){
 
 } /* namespace arith */
 } /* namespace theory */
-} /* namespace CVC5 */
+} // namespace CVC5
