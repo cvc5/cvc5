@@ -73,7 +73,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_te = te;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, d_modules);
+  d_qmodules->initialize(d_qstate, d_qim, d_qreg, d_treg, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -86,23 +86,9 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
-quantifiers::QuantifiersState& QuantifiersEngine::getState()
-{
-  return d_qstate;
-}
-quantifiers::QuantifiersInferenceManager&
-QuantifiersEngine::getInferenceManager()
-{
-  return d_qim;
-}
-
 quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
-}
-quantifiers::TermRegistry& QuantifiersEngine::getTermRegistry()
-{
-  return d_treg;
 }
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
@@ -119,11 +105,6 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_treg.getTermDatabaseSygus();
-}
-
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
-{
-  return d_treg.getTermDatabase();
 }
 /// !!!!!!!!!!!!!!
 

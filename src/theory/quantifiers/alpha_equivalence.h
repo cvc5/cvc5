@@ -81,7 +81,7 @@ class AlphaEquivalenceDb
 class AlphaEquivalence
 {
  public:
-  AlphaEquivalence(QuantifiersEngine* qe);
+  AlphaEquivalence();
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
