@@ -29,12 +29,12 @@ namespace std {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
-  CVC4::container_to_stream(os, v);
+  CVC5::container_to_stream(os, v);
   return os;
 }
 }  // namespace std
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -545,6 +545,6 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

@@ -34,7 +34,7 @@
 /****************************************************************************/
 /* Some utility functions for timespec                                    */
 /****************************************************************************/
-namespace CVC4 {
+namespace CVC5 {
 
 void StatisticsRegistry::registerStat(Stat* s)
 {
@@ -89,4 +89,4 @@ RegisterStatistic::~RegisterStatistic() {
   d_reg->unregisterStat(d_stat);
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5

@@ -23,7 +23,7 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class SmtEngine;
 class TheoryEngine;
@@ -151,6 +151,6 @@ class SmtSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__SMT__SMT_SOLVER_H */

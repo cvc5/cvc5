@@ -27,9 +27,9 @@
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
-using namespace CVC4::context;
+using namespace CVC5::context;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace bv {
 
@@ -276,6 +276,6 @@ void BitblastSolver::setConflict(TNode conflict)
   d_bv->setConflict(final_conflict);
 }
 
-}/* namespace CVC4::theory::bv */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace bv
+}  // namespace theory
+} // namespace CVC5

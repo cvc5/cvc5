@@ -20,15 +20,13 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace CVC5;
+using namespace CVC5::kind;
+using namespace CVC5::context;
+using namespace CVC5::theory;
+using namespace CVC5::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(QuantifiersState& qs,
                              QuantifiersRegistry& qr,
