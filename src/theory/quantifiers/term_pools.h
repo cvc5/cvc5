@@ -90,6 +90,7 @@ class TermPools : public QuantifiersUtil
   void processInstantiation(Node q, const std::vector<Node>& terms);
   /** Same as above, for SKOLEM_ADD_TO_POOL. */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
+
  private:
   void processInternal(Node q, const std::vector<Node>& ts, bool isInst);
   /** reference to the quantifiers state */
