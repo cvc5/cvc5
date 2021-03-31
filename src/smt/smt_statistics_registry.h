@@ -20,7 +20,7 @@
 
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 /**
  * This returns the StatisticsRegistry attached to the currently in scope
@@ -28,4 +28,4 @@ namespace CVC4 {
  */
 StatisticsRegistry* smtStatisticsRegistry();
 
-}/* CVC4 namespace */
+}  // namespace CVC5

@@ -22,13 +22,12 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -527,4 +526,4 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

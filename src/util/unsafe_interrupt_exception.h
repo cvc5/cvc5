@@ -21,9 +21,9 @@
 #include "base/exception.h"
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
-class CVC4_EXPORT UnsafeInterruptException : public CVC4::Exception
+class CVC4_EXPORT UnsafeInterruptException : public CVC5::Exception
 {
  public:
   UnsafeInterruptException() :
@@ -40,6 +40,6 @@ class CVC4_EXPORT UnsafeInterruptException : public CVC4::Exception
   }
 }; /* class UnsafeInterruptException */
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__UNSAFE_INTERRUPT_EXCEPTION_H */

@@ -19,10 +19,10 @@
 #include "smt/smt_engine_scope.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 StatisticsRegistry* smtStatisticsRegistry() {
   return smt::SmtScope::currentStatisticsRegistry();
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5

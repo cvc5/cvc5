@@ -26,10 +26,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC5::kind;
+using namespace CVC5::context;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -46,12 +46,11 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
-InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
-                                     QuantifiersState& qs,
+InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
@@ -547,4 +546,4 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

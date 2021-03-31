@@ -25,7 +25,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace CVC5 {
 
 // clang-format off
 #if @CVC4_USE_SYMFPU@
@@ -254,6 +254,6 @@ class FloatingPointLiteral
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

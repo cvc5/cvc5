@@ -26,7 +26,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -68,8 +68,7 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe,
-                    QuantifiersState& qs,
+  InstStrategyCegqi(QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
                     QuantifiersRegistry& qr,
                     TermRegistry& tr);
@@ -216,6 +215,6 @@ class InstStrategyCegqi : public QuantifiersModule
 
 }
 }
-}
+}  // namespace CVC5
 
 #endif

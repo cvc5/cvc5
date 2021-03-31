@@ -38,7 +38,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace CVC5 {
 namespace symfpuLiteral {
 
 /**
@@ -48,12 +48,12 @@ namespace symfpuLiteral {
 template <bool T>
 class wrappedBitVector;
 
-using CVC4BitWidth = uint32_t;
-using CVC4Prop = bool;
-using CVC4RM = ::CVC4::RoundingMode;
-using CVC4FPSize = ::CVC4::FloatingPointSize;
-using CVC4UnsignedBitVector = wrappedBitVector<false>;
-using CVC4SignedBitVector = wrappedBitVector<true>;
+using CVC5BitWidth = uint32_t;
+using CVC5Prop = bool;
+using CVC5RM = ::CVC5::RoundingMode;
+using CVC5FPSize = ::CVC5::FloatingPointSize;
+using CVC5UnsignedBitVector = wrappedBitVector<false>;
+using CVC5SignedBitVector = wrappedBitVector<true>;
 
 /**
  * This is the template parameter for symfpu's templates.
@@ -62,12 +62,12 @@ class traits
 {
  public:
   /** The six key types that symfpu uses. */
-  using bwt = CVC4BitWidth;           // bit-width type
-  using prop = CVC4Prop;              // boolean type
-  using rm = CVC4RM;                  // rounding-mode type
-  using fpt = CVC4FPSize;             // floating-point format type
-  using ubv = CVC4UnsignedBitVector;  // unsigned bit-vector type
-  using sbv = CVC4SignedBitVector;    // signed bit-vector type
+  using bwt = CVC5BitWidth;           // bit-width type
+  using prop = CVC5Prop;              // boolean type
+  using rm = CVC5RM;                  // rounding-mode type
+  using fpt = CVC5FPSize;             // floating-point format type
+  using ubv = CVC5UnsignedBitVector;  // unsigned bit-vector type
+  using sbv = CVC5SignedBitVector;    // signed bit-vector type
 
   /** Give concrete instances of each rounding mode, mainly for comparisons. */
   static rm RNE(void);
@@ -100,7 +100,7 @@ struct signedToLiteralType<false>
 };
 
 /**
- * This extends the interface for CVC4::BitVector for compatibility with symFPU.
+ * This extends the interface for CVC5::BitVector for compatibility with symFPU.
  * The template parameter distinguishes signed and unsigned bit-vectors, a
  * distinction symfpu uses.
  */
@@ -111,33 +111,33 @@ class wrappedBitVector : public BitVector
   using literalType = typename signedToLiteralType<isSigned>::literalType;
   friend wrappedBitVector<!isSigned>;  // To allow conversion between types
 
-  friend ::symfpu::ite<CVC4Prop, wrappedBitVector<isSigned> >;  // For ITE
+  friend ::symfpu::ite<CVC5Prop, wrappedBitVector<isSigned> >;  // For ITE
 
  public:
   /** Constructors. */
-  wrappedBitVector(const CVC4BitWidth w, const uint32_t v) : BitVector(w, v) {}
-  wrappedBitVector(const CVC4Prop& p) : BitVector(1, p ? 1U : 0U) {}
+  wrappedBitVector(const CVC5BitWidth w, const uint32_t v) : BitVector(w, v) {}
+  wrappedBitVector(const CVC5Prop& p) : BitVector(1, p ? 1U : 0U) {}
   wrappedBitVector(const wrappedBitVector<isSigned>& old) : BitVector(old) {}
   wrappedBitVector(const BitVector& old) : BitVector(old) {}
 
   /** Get the bit-width of this wrapped bit-vector. */
-  CVC4BitWidth getWidth(void) const { return getSize(); }
+  CVC5BitWidth getWidth(void) const { return getSize(); }
 
   /** Create a zero value of given bit-width 'w'. */
-  static wrappedBitVector<isSigned> one(const CVC4BitWidth& w);
+  static wrappedBitVector<isSigned> one(const CVC5BitWidth& w);
   /** Create a one value of given bit-width 'w'. */
-  static wrappedBitVector<isSigned> zero(const CVC4BitWidth& w);
+  static wrappedBitVector<isSigned> zero(const CVC5BitWidth& w);
   /** Create a ones value (all bits 1) of given bit-width 'w'. */
-  static wrappedBitVector<isSigned> allOnes(const CVC4BitWidth& w);
+  static wrappedBitVector<isSigned> allOnes(const CVC5BitWidth& w);
   /** Create a maximum signed/unsigned value of given bit-width 'w'. */
-  static wrappedBitVector<isSigned> maxValue(const CVC4BitWidth& w);
+  static wrappedBitVector<isSigned> maxValue(const CVC5BitWidth& w);
   /** Create a minimum signed/unsigned value of given bit-width 'w'. */
-  static wrappedBitVector<isSigned> minValue(const CVC4BitWidth& w);
+  static wrappedBitVector<isSigned> minValue(const CVC5BitWidth& w);
 
   /** Return true if this a bit-vector representing a ones value. */
-  CVC4Prop isAllOnes() const;
+  CVC5Prop isAllOnes() const;
   /** Return true if this a bit-vector representing a zero value. */
-  CVC4Prop isAllZeros() const;
+  CVC5Prop isAllZeros() const;
 
   /** Left shift. */
   wrappedBitVector<isSigned> operator<<(
@@ -149,7 +149,7 @@ class wrappedBitVector : public BitVector
   /**
    * Inherited but ...
    * *sigh* if we use the inherited version then it will return a
-   * CVC4::BitVector which can be converted back to a
+   * CVC5::BitVector which can be converted back to a
    * wrappedBitVector<isSigned> but isn't done automatically when working
    * out types for templates instantiation.  ITE is a particular
    * problem as expressions and constants no longer derive the
@@ -210,15 +210,15 @@ class wrappedBitVector : public BitVector
   wrappedBitVector<isSigned> modularNegate() const;
 
   /** Bit-vector equality. */
-  CVC4Prop operator==(const wrappedBitVector<isSigned>& op) const;
+  CVC5Prop operator==(const wrappedBitVector<isSigned>& op) const;
   /** Bit-vector signed/unsigned less or equal than. */
-  CVC4Prop operator<=(const wrappedBitVector<isSigned>& op) const;
+  CVC5Prop operator<=(const wrappedBitVector<isSigned>& op) const;
   /** Bit-vector sign/unsigned greater or equal than. */
-  CVC4Prop operator>=(const wrappedBitVector<isSigned>& op) const;
+  CVC5Prop operator>=(const wrappedBitVector<isSigned>& op) const;
   /** Bit-vector signed/unsigned less than. */
-  CVC4Prop operator<(const wrappedBitVector<isSigned>& op) const;
+  CVC5Prop operator<(const wrappedBitVector<isSigned>& op) const;
   /** Bit-vector sign/unsigned greater or equal than. */
-  CVC4Prop operator>(const wrappedBitVector<isSigned>& op) const;
+  CVC5Prop operator>(const wrappedBitVector<isSigned>& op) const;
 
   /** Convert this bit-vector to a signed bit-vector. */
   wrappedBitVector<true> toSigned(void) const;
@@ -226,20 +226,20 @@ class wrappedBitVector : public BitVector
   wrappedBitVector<false> toUnsigned(void) const;
 
   /** Bit-vector signed/unsigned (zero) extension. */
-  wrappedBitVector<isSigned> extend(CVC4BitWidth extension) const;
+  wrappedBitVector<isSigned> extend(CVC5BitWidth extension) const;
 
   /**
    * Create a "contracted" bit-vector by cutting off the 'reduction' number of
    * most significant bits, i.e., by extracting the (bit-width - reduction)
    * least significant bits.
    */
-  wrappedBitVector<isSigned> contract(CVC4BitWidth reduction) const;
+  wrappedBitVector<isSigned> contract(CVC5BitWidth reduction) const;
 
   /**
    * Create a "resized" bit-vector of given size bei either extending (if new
    * size is larger) or contracting (if it is smaller) this wrapped bit-vector.
    */
-  wrappedBitVector<isSigned> resize(CVC4BitWidth newSize) const;
+  wrappedBitVector<isSigned> resize(CVC5BitWidth newSize) const;
 
   /**
    * Create an extension of this bit-vector that matches the bit-width of the
@@ -255,8 +255,8 @@ class wrappedBitVector : public BitVector
   wrappedBitVector<isSigned> append(const wrappedBitVector<isSigned>& op) const;
 
   /** Inclusive of end points, thus if the same, extracts just one bit. */
-  wrappedBitVector<isSigned> extract(CVC4BitWidth upper,
-                                     CVC4BitWidth lower) const;
+  wrappedBitVector<isSigned> extract(CVC5BitWidth upper,
+                                     CVC5BitWidth lower) const;
 };
 }  // namespace symfpuLiteral
 }

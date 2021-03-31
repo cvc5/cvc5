@@ -39,9 +39,9 @@ namespace symfpu {
 
 #define CVC4_LIT_ITE_DFN(T)                                            \
   template <>                                                          \
-  struct ite<::CVC4::symfpuLiteral::CVC4Prop, T>                       \
+  struct ite<::CVC5::symfpuLiteral::CVC5Prop, T>                       \
   {                                                                    \
-    static const T& iteOp(const ::CVC4::symfpuLiteral::CVC4Prop& cond, \
+    static const T& iteOp(const ::CVC5::symfpuLiteral::CVC5Prop& cond, \
                           const T& l,                                  \
                           const T& r)                                  \
     {                                                                  \
@@ -49,10 +49,10 @@ namespace symfpu {
     }                                                                  \
   }
 
-CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::rm);
-CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::prop);
-CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::sbv);
-CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::ubv);
+CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::rm);
+CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::prop);
+CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::sbv);
+CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::ubv);
 
 #undef CVC4_LIT_ITE_DFN
 }  // namespace symfpu
@@ -60,7 +60,7 @@ CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::ubv);
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace CVC5 {
 
 uint32_t FloatingPointLiteral::getUnpackedExponentWidth(FloatingPointSize& size)
 {
@@ -90,7 +90,7 @@ FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
 #ifdef CVC4_USE_SYMFPU
       ,
       d_symuf(symfpu::unpack<symfpuLiteral::traits>(
-          symfpuLiteral::CVC4FPSize(exp_size, sig_size), bv))
+          symfpuLiteral::CVC5FPSize(exp_size, sig_size), bv))
 #endif
 {
 }
@@ -140,13 +140,13 @@ FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
 #ifdef CVC4_USE_SYMFPU
       ,
       d_symuf(signedBV ? symfpu::convertSBVToFloat<symfpuLiteral::traits>(
-                  symfpuLiteral::CVC4FPSize(size),
-                  symfpuLiteral::CVC4RM(rm),
-                  symfpuLiteral::CVC4SignedBitVector(bv))
+                  symfpuLiteral::CVC5FPSize(size),
+                  symfpuLiteral::CVC5RM(rm),
+                  symfpuLiteral::CVC5SignedBitVector(bv))
                        : symfpu::convertUBVToFloat<symfpuLiteral::traits>(
-                           symfpuLiteral::CVC4FPSize(size),
-                           symfpuLiteral::CVC4RM(rm),
-                           symfpuLiteral::CVC4UnsignedBitVector(bv)))
+                           symfpuLiteral::CVC5FPSize(size),
+                           symfpuLiteral::CVC5RM(rm),
+                           symfpuLiteral::CVC5UnsignedBitVector(bv)))
 #endif
 {
 }
@@ -517,4 +517,4 @@ size_t FloatingPointLiteral::hash(void) const
 }
 #endif
 
-}  // namespace CVC4
+}  // namespace CVC5

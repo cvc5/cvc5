@@ -24,10 +24,10 @@
 #include "smt/abstract_values.h"
 #include "smt/smt_engine.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace CVC5::theory;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace smt {
 
 Assertions::Assertions(context::UserContext* u, AbstractValues& absv)
@@ -243,4 +243,4 @@ bool Assertions::isProofEnabled() const
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5

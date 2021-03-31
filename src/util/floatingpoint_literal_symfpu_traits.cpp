@@ -18,44 +18,44 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace symfpuLiteral {
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::one(
-    const CVC4BitWidth& w)
+    const CVC5BitWidth& w)
 {
   return wrappedBitVector<isSigned>(w, 1);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::zero(
-    const CVC4BitWidth& w)
+    const CVC5BitWidth& w)
 {
   return wrappedBitVector<isSigned>(w, 0);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::allOnes(
-    const CVC4BitWidth& w)
+    const CVC5BitWidth& w)
 {
   return ~wrappedBitVector<isSigned>::zero(w);
 }
 
 template <bool isSigned>
-CVC4Prop wrappedBitVector<isSigned>::isAllOnes() const
+CVC5Prop wrappedBitVector<isSigned>::isAllOnes() const
 {
   return (*this == wrappedBitVector<isSigned>::allOnes(getWidth()));
 }
 template <bool isSigned>
-CVC4Prop wrappedBitVector<isSigned>::isAllZeros() const
+CVC5Prop wrappedBitVector<isSigned>::isAllZeros() const
 {
   return (*this == wrappedBitVector<isSigned>::zero(getWidth()));
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(
-    const CVC4BitWidth& w)
+    const CVC5BitWidth& w)
 {
   if (isSigned)
   {
@@ -70,7 +70,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::minValue(
-    const CVC4BitWidth& w)
+    const CVC5BitWidth& w)
 {
   if (isSigned)
   {
@@ -231,70 +231,71 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularNegate() const
 /*** Comparisons ***/
 
 template <bool isSigned>
-CVC4Prop wrappedBitVector<isSigned>::operator==(
+CVC5Prop wrappedBitVector<isSigned>::operator==(
     const wrappedBitVector<isSigned>& op) const
 {
   return BitVector::operator==(op);
 }
 
 template <>
-CVC4Prop wrappedBitVector<true>::operator<=(
+CVC5Prop wrappedBitVector<true>::operator<=(
     const wrappedBitVector<true>& op) const
 {
   return signedLessThanEq(op);
 }
 
 template <>
-CVC4Prop wrappedBitVector<true>::operator>=(
+CVC5Prop wrappedBitVector<true>::operator>=(
     const wrappedBitVector<true>& op) const
 {
   return !(signedLessThan(op));
 }
 
 template <>
-CVC4Prop wrappedBitVector<true>::operator<(
+CVC5Prop wrappedBitVector<true>::operator<(
     const wrappedBitVector<true>& op) const
 {
   return signedLessThan(op);
 }
 
 template <>
-CVC4Prop wrappedBitVector<true>::operator>(
+CVC5Prop wrappedBitVector<true>::operator>(
     const wrappedBitVector<true>& op) const
 {
   return !(signedLessThanEq(op));
 }
 
 template <>
-CVC4Prop wrappedBitVector<false>::operator<=(
+CVC5Prop wrappedBitVector<false>::operator<=(
     const wrappedBitVector<false>& op) const
 {
   return unsignedLessThanEq(op);
 }
 
 template <>
-CVC4Prop wrappedBitVector<false>::operator>=(
+CVC5Prop wrappedBitVector<false>::operator>=(
     const wrappedBitVector<false>& op) const
 {
   return !(unsignedLessThan(op));
 }
 
 template <>
-CVC4Prop wrappedBitVector<false>::operator<(
+CVC5Prop wrappedBitVector<false>::operator<(
     const wrappedBitVector<false>& op) const
 {
   return unsignedLessThan(op);
 }
 
 template <>
-CVC4Prop wrappedBitVector<false>::operator>(
+CVC5Prop wrappedBitVector<false>::operator>(
     const wrappedBitVector<false>& op) const
 {
   return !(unsignedLessThanEq(op));
 }
 
 /*** Type conversion ***/
-// CVC4 nodes make no distinction between signed and unsigned, thus ...
+
+// Node makes no distinction between signed and unsigned, thus ...
 template <bool isSigned>
 wrappedBitVector<true> wrappedBitVector<isSigned>::toSigned(void) const
 {
@@ -311,7 +312,7 @@ wrappedBitVector<false> wrappedBitVector<isSigned>::toUnsigned(void) const
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
-    CVC4BitWidth extension) const
+    CVC5BitWidth extension) const
 {
   if (isSigned)
   {
@@ -325,7 +326,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
-    CVC4BitWidth reduction) const
+    CVC5BitWidth reduction) const
 {
   Assert(getWidth() > reduction);
 
@@ -334,9 +335,9 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::resize(
-    CVC4BitWidth newSize) const
+    CVC5BitWidth newSize) const
 {
-  CVC4BitWidth width = getWidth();
+  CVC5BitWidth width = getWidth();
 
   if (newSize > width)
   {
@@ -370,7 +371,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::append(
 // Inclusive of end points, thus if the same, extracts just one bit
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
-    CVC4BitWidth upper, CVC4BitWidth lower) const
+    CVC5BitWidth upper, CVC5BitWidth lower) const
 {
   Assert(upper >= lower);
   return BitVector::extract(upper, lower);
@@ -380,11 +381,11 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
 template class wrappedBitVector<true>;
 template class wrappedBitVector<false>;
 
-traits::rm traits::RNE(void) { return ::CVC4::ROUND_NEAREST_TIES_TO_EVEN; };
-traits::rm traits::RNA(void) { return ::CVC4::ROUND_NEAREST_TIES_TO_AWAY; };
-traits::rm traits::RTP(void) { return ::CVC4::ROUND_TOWARD_POSITIVE; };
-traits::rm traits::RTN(void) { return ::CVC4::ROUND_TOWARD_NEGATIVE; };
-traits::rm traits::RTZ(void) { return ::CVC4::ROUND_TOWARD_ZERO; };
+traits::rm traits::RNE(void) { return ::CVC5::ROUND_NEAREST_TIES_TO_EVEN; };
+traits::rm traits::RNA(void) { return ::CVC5::ROUND_NEAREST_TIES_TO_AWAY; };
+traits::rm traits::RTP(void) { return ::CVC5::ROUND_TOWARD_POSITIVE; };
+traits::rm traits::RTN(void) { return ::CVC5::ROUND_TOWARD_NEGATIVE; };
+traits::rm traits::RTZ(void) { return ::CVC5::ROUND_TOWARD_ZERO; };
 // This is a literal back-end so props are actually bools
 // so these can be handled in the same way as the internal assertions above
 
@@ -404,5 +405,5 @@ void traits::invariant(const traits::prop& p)
   return;
 }
 }  // namespace symfpuLiteral
-}  // namespace CVC4
+}  // namespace CVC5
 #endif

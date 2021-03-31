@@ -26,13 +26,13 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4;
+using namespace CVC5;
 using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::kind;
+using namespace CVC5::theory;
+using namespace CVC5::theory::quantifiers;
+using namespace CVC5::kind;
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     Node r,
@@ -85,12 +85,11 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   return lem;
 }
 
-BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
-                                 QuantifiersState& qs,
+BoundedIntegers::BoundedIntegers(QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe)
+    : QuantifiersModule(qs, qim, qr, tr)
 {
 }
 

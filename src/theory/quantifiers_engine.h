@@ -25,7 +25,7 @@
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class TheoryEngine;
 
@@ -52,7 +52,7 @@ class TermRegistry;
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
-  friend class ::CVC4::TheoryEngine;
+  friend class ::CVC5::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
@@ -63,21 +63,11 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
-  //---------------------- external interface
-  /** The quantifiers state object */
-  quantifiers::QuantifiersState& getState();
-  /** The quantifiers inference manager */
-  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
-  /** The term registry */
-  quantifiers::TermRegistry& getTermRegistry();
-  //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get term database */
-  quantifiers::TermDb* getTermDatabase() const;
   /** get model */
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
@@ -209,8 +199,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- end temporary information during check
- private:
   /** list of all quantifiers seen */
   std::map<Node, bool> d_quants;
   /** quantifiers pre-registered */
@@ -220,7 +208,7 @@ public:
   std::map<Node, Node> d_quants_red_lem;
 };/* class QuantifiersEngine */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS_ENGINE_H */

@@ -14,9 +14,9 @@
 
 #include "expr/match_trie.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace expr {
 
 bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
@@ -196,4 +196,4 @@ void MatchTrie::clear()
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace CVC5
