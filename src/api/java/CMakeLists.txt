@@ -72,18 +72,5 @@ add_jar(cvcjar
 
 add_dependencies(cvcjar gen-java-kinds cvcjni cvc4)
 
-# add libcvc4.so and libcvcjni.so to the jar file
-add_custom_command(
-  TARGET cvcjar
-  POST_BUILD
-  COMMAND
-  ${Java_JAR_EXECUTABLE} uf
-  ${CVC_JAR}
-  # add libcvc4.so
-  -C $<TARGET_FILE_DIR:cvc4> $<TARGET_FILE_NAME:cvc4>
-  # add libcvcjni.so
-  -C $<TARGET_FILE_DIR:cvcjni> $<TARGET_FILE_NAME:cvcjni>
-  VERBATIM
-)
-
 set(CVC_JAR "${CMAKE_CURRENT_BINARY_DIR}/${CVC_JAR}" CACHE STRING "cvc jar" FORCE)
+set(CVC_JNI_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "cvc jni path" FORCE)

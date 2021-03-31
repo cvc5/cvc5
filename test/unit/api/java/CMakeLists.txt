@@ -39,7 +39,9 @@ add_custom_target(
   ALL
   COMMAND
     # run junit tests
-    ${Java_JAVA_EXECUTABLE} -jar ${Junit5_JAR}
+    ${Java_JAVA_EXECUTABLE}
+    -Djava.library.path=${CVC_JNI_PATH}
+    -jar ${Junit5_JAR}
     -cp ${Junit5_JAR}:${CVC_JAR}:.
     -select-package cvc
   COMMENT "Run junit tests"
