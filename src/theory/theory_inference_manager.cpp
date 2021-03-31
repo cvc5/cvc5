@@ -114,6 +114,7 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
   d_conflictIdStats << id;
+  Trace("im-conflict") << "(conflict " << id << " " << conf << ")" << std::endl;
   d_theoryState.notifyInConflict();
   d_out.conflict(conf);
   ++d_numConflicts;
@@ -122,6 +123,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   d_conflictIdStats << id;
+  Trace("im-conflict") << "(conflict " << id << " " << tconf.getProven() << ")" << std::endl;
   d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
@@ -252,6 +254,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
     }
   }
   d_lemmaIdStats << id;
+  Trace("im-lemma") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -338,8 +341,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 InferenceId id,
                                                 TNode exp)
 {
-  d_factIdStats << id;
-  return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
+  return processInternalFact(atom, pol, id, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
 bool TheoryInferenceManager::assertInternalFact(TNode atom,
@@ -350,8 +352,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& args)
 {
   Assert(pfr != PfRule::UNKNOWN);
-  d_factIdStats << id;
-  return processInternalFact(atom, pol, pfr, exp, args, nullptr);
+  return processInternalFact(atom, pol, id, pfr, exp, args, nullptr);
 }
 
 bool TheoryInferenceManager::assertInternalFact(TNode atom,
@@ -360,17 +361,19 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
-  d_factIdStats << id;
-  return processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
+  return processInternalFact(atom, pol, id, PfRule::ASSUME, exp, {}, pg);
 }
 
 bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  bool pol,
+                                                 InferenceId iid,
                                                  PfRule id,
                                                  const std::vector<Node>& exp,
                                                  const std::vector<Node>& args,
                                                  ProofGenerator* pg)
 {
+  d_factIdStats << iid;
+  Trace("im-fact") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode()) << ")" << std::endl;
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
   // call the pre-notify fact method with preReg = false, isInternal = true
