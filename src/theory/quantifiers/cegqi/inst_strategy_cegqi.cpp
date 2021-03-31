@@ -16,16 +16,13 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "theory/arith/partial_model.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -52,8 +49,9 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
-                                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                                     QuantifiersRegistry& qr,
+                                     TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
@@ -84,10 +82,10 @@ bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 
 QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 {
-  size_t nquant = d_quantEngine->getModel()->getNumAssertedQuantifiers();
+  size_t nquant = d_treg.getModel()->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
   {
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+    Node q = d_treg.getModel()->getAssertedQuantifier(i);
     if (doCbqi(q))
     {
       return QEFFORT_STANDARD;
@@ -179,7 +177,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       dlds = itds->second.get();
     }
     // it is appended to the list of strategies
-    d_quantEngine->getDecisionManager()->registerStrategy(
+    d_qim.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, dlds);
     return true;
   }else{
@@ -193,11 +191,15 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
   d_incomplete_check = false;
   d_active_quant.clear();
   //check if any cbqi lemma has not been added yet
-  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
+  FirstOrderModel* fm = d_treg.getModel();
+  size_t nquant = fm->getNumAssertedQuantifiers();
+  for (size_t i = 0; i < nquant; i++)
+  {
+    Node q = fm->getAssertedQuantifier(i);
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
+      if (fm->isQuantifierActive(q))
+      {
         d_active_quant[q] = true;
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
@@ -211,7 +213,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
               Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
               Trace("cegqi") << "Inactive : " << q << std::endl;
-              d_quantEngine->getModel()->setQuantifierActive( q, false );
+              fm->setQuantifierActive(q, false);
               d_cbqi_set_quant_inactive = true;
               d_active_quant.erase( q );
             }
@@ -404,7 +406,7 @@ bool InstStrategyCegqi::doCbqi(Node q)
 {
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
-    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q, d_quantEngine);
+    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q);
     Trace("cegqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret != CEG_UNHANDLED;
@@ -471,23 +473,23 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
+  // check if we need virtual term substitution (if used delta or infinity)
+  bool usedVts = d_vtsCache->containsVtsTerm(subs, false);
   Instantiate* inst = d_qim.getInstantiate();
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    inst->recordInstantiation(d_curr_quant, subs, false, false);
+    inst->recordInstantiation(d_curr_quant, subs, usedVts);
     return true;
   }
-  // check if we need virtual term substitution (if used delta or infinity)
-  bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
-  if (inst->addInstantiation(d_curr_quant,
-                             subs,
-                             InferenceId::QUANTIFIERS_INST_CEGQI,
-                             false,
-                             false,
-                             used_vts))
+  else if (inst->addInstantiation(d_curr_quant,
+                                  subs,
+                                  InferenceId::QUANTIFIERS_INST_CEGQI,
+                                  false,
+                                  false,
+                                  usedVts))
   {
     return true;
   }
@@ -505,7 +507,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(q, d_qstate, this));
+    d_cinst[q].reset(new CegInstantiator(q, d_qstate, d_treg, this));
     return d_cinst[q].get();
   }
   return it->second.get();

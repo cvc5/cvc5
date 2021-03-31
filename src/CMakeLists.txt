@@ -549,6 +549,7 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/int_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
   theory/bv/slicer.cpp
@@ -621,6 +622,7 @@ libcvc4_add_sources(
   theory/fp/theory_fp_rewriter.cpp
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
+  theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
   theory/inference_id.cpp

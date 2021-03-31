@@ -29,11 +29,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+CegisUnif::CegisUnif(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
+                     TermDbSygus* tds,
                      SynthConjecture* p)
-    : Cegis(qe, qim, p), d_sygus_unif(p), d_u_enum_manager(qe, qs, qim, p)
+    : Cegis(qim, tds, p), d_sygus_unif(p), d_u_enum_manager(qs, qim, tds, p)
 {
 }
 
@@ -59,7 +59,7 @@ bool CegisUnif::processInitialize(Node conj,
   {
     // Init UNIF util for this candidate
     d_sygus_unif.initializeCandidate(
-        d_qe, f, d_cand_to_strat_pt[f], strategy_lemmas);
+        d_tds, f, d_cand_to_strat_pt[f], strategy_lemmas);
     if (!d_sygus_unif.usingUnif(f))
     {
       Trace("cegis-unif") << "* non-unification candidate : " << f << std::endl;
@@ -401,17 +401,16 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
-    QuantifiersEngine* qe,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
+    TermDbSygus* tds,
     SynthConjecture* parent)
     : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
-      d_qe(qe),
       d_qim(qim),
+      d_tds(tds),
       d_parent(parent)
 {
   d_initialized = false;
-  d_tds = d_qe->getTermDatabaseSygus();
   options::SygusUnifPiMode mode = options::sygusUnifPi();
   d_useCondPool = mode == options::SygusUnifPiMode::CENUM
                   || mode == options::SygusUnifPiMode::CENUM_IGAIN;
@@ -564,7 +563,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
 
   // register this strategy
-  d_qe->getDecisionManager()->registerStrategy(
+  d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
 
   // create single condition enumerator for each decision tree strategy

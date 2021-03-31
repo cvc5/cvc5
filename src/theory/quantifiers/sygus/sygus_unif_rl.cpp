@@ -36,14 +36,14 @@ SygusUnifRl::SygusUnifRl(SynthConjecture* p)
 }
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   // initialize
   std::vector<Node> all_enums;
-  SygusUnif::initializeCandidate(qe, f, all_enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(tds, f, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
   StrategyRestrictions restrictions;

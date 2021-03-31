@@ -21,7 +21,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -36,8 +35,7 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
                                                    bool rewAccel,
                                                    bool silent,
                                                    bool filterPairs)
-    : d_qe(nullptr),
-      d_tds(nullptr),
+    : d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
@@ -52,7 +50,6 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
   Assert(ss != nullptr);
   d_candidate = Node::null();
   d_using_sygus = false;
-  d_qe = nullptr;
   d_tds = nullptr;
   d_ext_rewrite = nullptr;
   if (d_filterPairs)
@@ -63,15 +60,14 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
 }
 
 void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
-                                               QuantifiersEngine* qe,
+                                               TermDbSygus* tds,
                                                Node f,
                                                SygusSampler* ss)
 {
   Assert(ss != nullptr);
   d_candidate = f;
   d_using_sygus = true;
-  d_qe = qe;
-  d_tds = d_qe->getTermDatabaseSygus();
+  d_tds = tds;
   d_ext_rewrite = nullptr;
   if (d_filterPairs)
   {
