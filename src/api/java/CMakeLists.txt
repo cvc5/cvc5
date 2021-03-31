@@ -51,7 +51,7 @@ add_custom_target(
   "Generate Kind.java"
 )
 
-# Create cvc.jar from all src/cvc/*.java files.
+# Create cvc.jar from all cvc/*.java files
 set(java_files
   ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiRecoverableException.java
@@ -68,7 +68,8 @@ add_jar(cvcjar
   SOURCES
   ${java_files}
   VERSION ${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}
-  OUTPUT_NAME cvc)
+  OUTPUT_NAME cvc
+)
 
 add_dependencies(cvcjar gen-java-kinds cvcjni cvc4)
 

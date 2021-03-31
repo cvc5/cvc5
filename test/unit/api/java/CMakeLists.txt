@@ -23,9 +23,9 @@ add_custom_target(
   build-junit-tests
   ALL
   COMMAND
-  ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
-  -cp ${JUnit5_JAR}:${CVC_JAR} # add JUnit5 and cvc jar files to the class path
-  -d . # specify the output directory for the generated .class files
+    ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
+    -cp ${JUnit5_JAR}:${CVC_JAR} # add JUnit5 and cvc jar files to the class path
+    -d . # specify the output directory for the generated .class files
   COMMENT "Build junit tests"
   VERBATIM
 )
