@@ -316,14 +316,10 @@ well-founded FUNCTION_TYPE \
 enumerator FUNCTION_TYPE \
     ::CVC4::theory::builtin::FunctionEnumerator \
     "theory/builtin/type_enumerator.h"
-operator SEXPR_TYPE 0: "the type of a symbolic expression"
-cardinality SEXPR_TYPE \
-    "::CVC4::theory::builtin::SExprProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded SEXPR_TYPE \
-    "::CVC4::theory::builtin::SExprProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::SExprProperties::mkGroundTerm(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
+sort SEXPR_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "the type of a symbolic expression"
 
 typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
