@@ -118,12 +118,7 @@ jobs:
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
-        ./contrib/get-poly
         ./contrib/get-lfsc-checker
-
-    - name: List dependencies
-      run: |
-        find deps/install -type f
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
