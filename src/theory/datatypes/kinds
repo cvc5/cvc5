@@ -7,7 +7,7 @@
 theory THEORY_DATATYPES ::CVC5::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
 typechecker "theory/datatypes/theory_datatypes_type_rules.h"
 
-properties check parametric
+properties parametric
 
 rewriter ::CVC5::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
 

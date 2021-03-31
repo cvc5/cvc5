@@ -8,7 +8,7 @@ theory THEORY_ARITH ::CVC5::theory::arith::TheoryArith "theory/arith/theory_arit
 typechecker "theory/arith/theory_arith_type_rules.h"
 
 properties stable-infinite
-properties check propagate ppStaticLearn presolve notifyRestart
+properties propagate ppStaticLearn presolve notifyRestart
 
 rewriter ::CVC5::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 

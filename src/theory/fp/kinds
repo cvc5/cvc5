@@ -8,8 +8,6 @@ theory THEORY_FP ::CVC5::theory::fp::TheoryFp "theory/fp/theory_fp.h"
 typechecker "theory/fp/theory_fp_type_rules.h"
 rewriter ::CVC5::theory::fp::TheoryFpRewriter "theory/fp/theory_fp_rewriter.h"
 
-properties check
-
 # Theory content goes here.
 
 # constants...
