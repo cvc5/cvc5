@@ -120,10 +120,6 @@ jobs:
       run: |
         ./contrib/get-lfsc-checker
 
-    - name: List dependencies
-      run: |
-        find deps/install -type f
-
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
     # cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}. This
