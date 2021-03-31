@@ -113,11 +113,8 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 
 void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
-  d_conflictIdStats << id;
-  Trace("im-conflict") << "(conflict " << id << " " << conf << ")" << std::endl;
-  d_theoryState.notifyInConflict();
-  d_out.conflict(conf);
-  ++d_numConflicts;
+  TrustNode tconf = TrustNode::mkTrustConflict(conf, nullptr);
+  return trustedConflict(tconf, id);
 }
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
