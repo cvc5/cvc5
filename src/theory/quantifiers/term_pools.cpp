@@ -16,7 +16,7 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
