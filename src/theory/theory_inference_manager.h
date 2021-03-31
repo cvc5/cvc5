@@ -377,9 +377,9 @@ class TheoryInferenceManager
    * Process internal fact. This is a common helper method for the
    * assertInternalFact variants above. Returns true if the fact was processed.
    */
-  bool processInternalFact(InferenceId iid,
-                           TNode atom,
+  bool processInternalFact(TNode atom,
                            bool pol,
+                           InferenceId iid,
                            PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args,
