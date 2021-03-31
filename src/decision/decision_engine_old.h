@@ -28,10 +28,10 @@
 #include "prop/sat_solver_types.h"
 #include "util/result.h"
 
-using namespace CVC4::prop;
-using namespace CVC4::decision;
+using namespace CVC5::prop;
+using namespace CVC5::decision;
 
-namespace CVC4 {
+namespace CVC5 {
 
 class DecisionEngineOld
 {
@@ -147,6 +147,6 @@ class DecisionEngineOld
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
 }; /* DecisionEngineOld class */
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__DECISION__DECISION_ENGINE_H */

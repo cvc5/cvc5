@@ -16,8 +16,8 @@
 
 #include "prop/skolem_def_manager.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::prop;
+using namespace CVC5::kind;
+using namespace CVC5::prop;
 
 namespace CVC5 {
 
