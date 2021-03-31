@@ -9,8 +9,8 @@
 ## directory for licensing information.
 ##
 # Find SymFPU
-# SymFPU_FOUND - system has SymFPU lib
-# SymFPU_INCLUDE_DIR - the SymFPU include directory
+# SymFPU_FOUND - should always be true
+# SymFPU - interface target for the SymFPU headers
 
 find_path(SymFPU_INCLUDE_DIR NAMES symfpu/core/unpackedFloat.h)
 
