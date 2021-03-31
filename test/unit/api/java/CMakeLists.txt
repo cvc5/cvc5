@@ -11,24 +11,40 @@
 
 find_package(Java REQUIRED)
 include(UseJava)
-
 find_package(JUnit REQUIRED)
 
+# specify source files for junit tests
+set(java_test_src_files
+  ${CMAKE_CURRENT_SOURCE_DIR}/cvc/SolverTest.java
+)
+
+# build junit tests
+add_custom_target(
+  build-junit-tests
+  ALL
+  COMMAND
+  ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
+  -cp ${Junit5_JAR}:${CVC_JAR} # add Junit5 and cvc jar files to the class path
+  -d . # specify the output directory for the generated .class files
+  COMMENT "Build junit tests"
+  VERBATIM
+)
+
+# make sure cvc.jar file is built first
+add_dependencies(build-junit-tests cvcjar)
 
 # run junit tests
 add_custom_target(
-  junit-tests
+  run-junit-tests
   ALL
   COMMAND
     # run junit tests
     ${Java_JAVA_EXECUTABLE} -jar ${Junit5_JAR}
-    -cp ${PROJECT_SOURCE_DIR}/test/unit/api/java
-    #-cp $<TARGET_FILE:cvcjar>
-    -cp ${CVC_JAR}
+    -cp ${Junit5_JAR}:${CVC_JAR}:.
     -select-package cvc
   COMMENT "Run junit tests"
   VERBATIM
 )
 
-add_dependencies(junit-tests cvcjar)
-add_dependencies(units junit-tests)
+add_dependencies(run-junit-tests build-junit-tests)
+add_dependencies(units run-junit-tests)

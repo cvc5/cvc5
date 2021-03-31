@@ -61,7 +61,7 @@ set(java_files
   ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind.java
 )
 
-set(CVC_JAR "cvc-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar")
+set(CVC_JAR "cvc-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar" CACHE STRING "cvc jar" FORCE)
 
 # create cvc.jar file
 add_jar(cvcjar
@@ -83,6 +83,7 @@ add_custom_command(
   -C $<TARGET_FILE_DIR:cvc4> $<TARGET_FILE_NAME:cvc4>
   # add libcvcjni.so
   -C $<TARGET_FILE_DIR:cvcjni> $<TARGET_FILE_NAME:cvcjni>
-  COMMENT "Add libraries cvc and cvcjni to the jar file"
   VERBATIM
 )
+
+set(CVC_JAR "${CMAKE_CURRENT_BINARY_DIR}/${CVC_JAR}" CACHE STRING "cvc jar" FORCE)
