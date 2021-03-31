@@ -107,8 +107,7 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
   if (!d_theoryState.isInConflict())
   {
     TrustNode tconf = explainConflictEqConstantMerge(a, b);
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
+    trustedConflict(tconf, InferenceId::EQ_CONSTANT_MERGE);
   }
 }
 
@@ -125,6 +124,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   d_conflictIdStats << id;
   d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,

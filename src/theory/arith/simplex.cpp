@@ -94,7 +94,7 @@ void SimplexDecisionProcedure::reportConflict(ArithVar basic){
 
   ConstraintCP conflicted = generateConflictForBasic(basic);
   Assert(conflicted != NullConstraint);
-  d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
+  d_conflictChannel.raiseConflict(conflicted, InferenceId::ARITH_CONF_SIMPLEX);
 
   d_conflictVariables.add(basic);
 }

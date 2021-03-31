@@ -33,8 +33,7 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  public:
-  SynthEngine(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  SynthEngine(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr);

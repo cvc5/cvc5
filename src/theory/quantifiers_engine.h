@@ -63,21 +63,11 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
-  //---------------------- external interface
-  /** The quantifiers state object */
-  quantifiers::QuantifiersState& getState();
-  /** The quantifiers inference manager */
-  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
-  /** The term registry */
-  quantifiers::TermRegistry& getTermRegistry();
-  //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get term database */
-  quantifiers::TermDb* getTermDatabase() const;
   /** get model */
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
@@ -155,6 +145,11 @@ public:
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
  /**
+  * Get instantiations for quantified formula q. If q is (forall ((x T)) (P x)),
+  * this is a list of the form (P t1) ... (P tn) for ground terms ti.
+  */
+ void getInstantiations(Node q, std::vector<Node>& insts);
+ /**
   * Get skolemization vectors, where for each quantified formula that was
   * skolemized, this is the list of skolems that were used to witness the
   * negation of that quantified formula.
@@ -204,8 +199,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- end temporary information during check
- private:
   /** list of all quantifiers seen */
   std::map<Node, bool> d_quants;
   /** quantifiers pre-registered */

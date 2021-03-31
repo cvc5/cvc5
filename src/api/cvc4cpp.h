@@ -2250,6 +2250,14 @@ class CVC4_EXPORT Grammar
    */
   void addSygusConstructorVariables(DatatypeDecl& dt, const Sort& sort) const;
 
+  /**
+   * Check if <rule> contains variables that are neither parameters of
+   * the corresponding synthFun/synthInv nor non-terminals.
+   * @param rule the non-terminal allowed to be any constant
+   * @return <true> if <rule> contains free variables and <false> otherwise
+   */
+  bool containsFreeVariables(const Term& rule) const;
+
   /** The solver that created this grammar. */
   const Solver* d_solver;
   /** Input variables to the corresponding function/invariant to synthesize.*/

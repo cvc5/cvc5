@@ -29,9 +29,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -185,11 +183,12 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
 
 CegInstantiator::CegInstantiator(Node q,
                                  QuantifiersState& qs,
+                                 TermRegistry& tr,
                                  InstStrategyCegqi* parent)
     : d_quant(q),
       d_qstate(qs),
+      d_treg(tr),
       d_parent(parent),
-      d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
@@ -562,7 +561,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         sf.d_vars.size() > d_input_vars.size() || !d_var_order_index.empty();
     std::vector< Instantiator * > pp_inst;
     std::map< Instantiator *, Node > pp_inst_to_var;
-    std::vector< Node > lemmas;
     for( std::map< Node, Instantiator * >::iterator ita = d_active_instantiators.begin(); ita != d_active_instantiators.end(); ++ita ){
       if (ita->second->needsPostProcessInstantiationForVariable(
               this, sf, ita->first, d_effort))
@@ -577,19 +575,19 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       bool postProcessSuccess = true;
       for( std::map< Instantiator *, Node >::iterator itp = pp_inst_to_var.begin(); itp != pp_inst_to_var.end(); ++itp ){
         if (!itp->first->postProcessInstantiationForVariable(
-                this, sf_tmp, itp->second, d_effort, lemmas))
+                this, sf_tmp, itp->second, d_effort))
         {
           postProcessSuccess = false;
           break;
         }
       }
       if( postProcessSuccess ){
-        return doAddInstantiation( sf_tmp.d_vars, sf_tmp.d_subs, lemmas );
+        return doAddInstantiation(sf_tmp.d_vars, sf_tmp.d_subs);
       }else{
         return false;
       }
     }else{
-      return doAddInstantiation( sf.d_vars, sf.d_subs, lemmas );
+      return doAddInstantiation(sf.d_vars, sf.d_subs);
     }
   }else{
     bool is_sv = false;
@@ -1050,7 +1048,9 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   }
 }
 
-bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& lemmas ) {
+bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
+                                         std::vector<Node>& subs)
+{
   if (vars.size() > d_input_vars.size() || !d_var_order_index.empty())
   {
     Trace("cegqi-inst-debug") << "Reconstructing instantiations...." << std::endl;
@@ -1082,12 +1082,7 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
-  bool ret = d_parent->doAddInstantiation(subs);
-  for (const Node& l : lemmas)
-  {
-    d_parent->addPendingLemma(l);
-  }
-  return ret;
+  return d_parent->doAddInstantiation(subs);
 }
 
 bool CegInstantiator::isEligibleForInstantiation(Node n) const
@@ -1437,7 +1432,7 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_qe->getModel()->getValue( n );
+  return d_treg.getModel()->getValue(n);
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)

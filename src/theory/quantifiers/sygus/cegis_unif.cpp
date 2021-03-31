@@ -15,13 +15,11 @@
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
 #include "expr/sygus_datatype.h"
-#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 

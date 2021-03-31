@@ -89,7 +89,7 @@ class AlphaEquivalenceDb
 class AlphaEquivalence
 {
  public:
-  AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm = nullptr);
+  AlphaEquivalence(ProofNodeManager* pnm = nullptr);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
