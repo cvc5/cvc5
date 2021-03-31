@@ -1,0 +1,13 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index f91e3e8..6205689 100755
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -38,7 +38,7 @@ set(poly_SOURCES
+ )
+ 
+ if (NOT HAVE_OPEN_MEMSTREAM) 
+-  set(poly_SOURCES "utils/open_memstream.c ${poly_SOURCES}")
++  set(poly_SOURCES utils/open_memstream.c ${poly_SOURCES})
+ endif()
+ 
+ set(polyxx_SOURCES
