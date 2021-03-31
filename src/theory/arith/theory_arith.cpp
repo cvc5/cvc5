@@ -269,6 +269,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (d_nonlinearExtension != nullptr)
     {
       Node eq = p.first.eqNode(p.second);
+      Trace("nl-split") << "NL SPLIT " << eq << std::endl;
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
       bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
       AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
