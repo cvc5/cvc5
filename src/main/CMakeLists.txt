@@ -40,6 +40,11 @@ endif()
 add_dependencies(main cvc4 cvc4parser gen-tokens)
 get_target_property(LIBCVC4_INCLUDES cvc4 INCLUDE_DIRECTORIES)
 target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
+if(USE_CLN)
+  target_link_libraries(main ${CLN_LIBRARIES})
+  target_include_directories(main PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(main GMP)
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
