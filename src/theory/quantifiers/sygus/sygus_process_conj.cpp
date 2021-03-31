@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 
+#include <sstream>
 #include <stack>
 
 #include "options/quantifiers_options.h"
@@ -519,7 +520,7 @@ void SynthConjectureProcessFun::getIrrelevantArgs(
   }
 }
 
-SynthConjectureProcess::SynthConjectureProcess(QuantifiersEngine* qe) {}
+SynthConjectureProcess::SynthConjectureProcess() {}
 SynthConjectureProcess::~SynthConjectureProcess() {}
 Node SynthConjectureProcess::preSimplify(Node q)
 {

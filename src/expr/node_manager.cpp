@@ -165,6 +165,11 @@ TypeNode NodeManager::mkBitVectorType(unsigned size)
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
 }
 
+TypeNode NodeManager::sExprType()
+{
+  return mkTypeConst<TypeConstant>(SEXPR_TYPE);
+}
+
 TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
 {
   return mkTypeConst<FloatingPointSize>(FloatingPointSize(exp, sig));

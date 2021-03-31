@@ -14,6 +14,8 @@
 
 #include "smt/sygus_solver.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"

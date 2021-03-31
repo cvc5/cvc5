@@ -514,6 +514,12 @@ public:
                   Iterator substitutionsEnd) const;
 
   /**
+   * Simultaneous substitution of Nodes in cache.
+   */
+  Node substitute(
+      std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+
+  /**
    * Returns the kind of this node.
    * @return the kind
    */
@@ -1378,6 +1384,16 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd) const {
   std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
   return substitute(substitutionsBegin, substitutionsEnd, cache);
+}
+
+template <bool ref_count>
+inline Node NodeTemplate<ref_count>::substitute(
+    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const
+{
+  // Since no substitution is given (other than what may already be in the
+  // cache), we pass dummy iterators to conform to the main substitute method,
+  // giving the same value to substitutionsBegin and substitutionsEnd.
+  return substitute(cache.cend(), cache.cend(), cache);
 }
 
 template <bool ref_count>

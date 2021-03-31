@@ -16,6 +16,8 @@
 
 #include "preprocessing/passes/ho_elim.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"

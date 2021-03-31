@@ -32,6 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -41,12 +42,10 @@ using namespace CVC4::theory::datatypes;
 
 SygusExtension::SygusExtension(TheoryState& s,
                                InferenceManager& im,
-                               quantifiers::TermDbSygus* tds,
-                               DecisionManager* dm)
+                               quantifiers::TermDbSygus* tds)
     : d_state(s),
       d_im(im),
       d_tds(tds),
-      d_dm(dm),
       d_ssb(tds),
       d_testers(s.getSatContext()),
       d_testers_exp(s.getSatContext()),
@@ -1331,8 +1330,9 @@ void SygusExtension::registerSizeTerm(Node e)
                                         d_state.getSatContext(),
                                         d_state.getValuation()));
     }
-    d_dm->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
-                           d_anchor_to_ag_strategy[e].get());
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
+        d_anchor_to_ag_strategy[e].get());
   }
   Node m;
   if (!ag.isNull())
@@ -1412,8 +1412,8 @@ void SygusExtension::registerMeasureTerm( Node m ) {
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
     d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_im, m, d_state));
     // register this as a decision strategy
-    d_dm->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE,
-                           d_szinfo[m].get());
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
   }
 }
 

@@ -344,51 +344,59 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPIEEEBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPFloatingPoint>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPReal>().d_fp_size.exponentWidth()
+          << n.getConst<FloatingPointToFPReal>().getSize().exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPReal>().d_fp_size.significandWidth()
+          << n.getConst<FloatingPointToFPReal>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPSignedBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
       out << "(_ to_fp_unsigned "
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.exponentWidth()
+          << n.getConst<FloatingPointToFPGeneric>().getSize().exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.significandWidth()
+          << n.getConst<FloatingPointToFPGeneric>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
@@ -934,22 +942,33 @@ void Smt2Printer::toStream(std::ostream& out,
     // do not letify the bound variable list
     toStream(out, n[0], toDepth, nullptr);
     out << " ";
+    std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
-      out << "(! ";
+      annot << " ";
+      for (const Node& nc : n[2])
+      {
+        if (nc.getKind() == kind::INST_PATTERN)
+        {
+          out << "(! ";
+          annot << ":pattern ";
+          toStream(annot, nc, toDepth, nullptr);
+          annot << ") ";
+        }
+        else if (nc.getKind() == kind::INST_NO_PATTERN)
+        {
+          out << "(! ";
+          annot << ":no-pattern ";
+          toStream(annot, nc, toDepth, nullptr);
+          annot << ") ";
+        }
+      }
     }
     // Use a fresh let binder, since using existing let symbols may violate
     // scoping issues for let-bound variables, see explanation in let_binding.h.
     size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
     toStream(out, n[1], toDepth - 1, dag);
-    if (n.getNumChildren() == 3)
-    {
-      out << " ";
-      // do not letify the annotation
-      toStream(out, n[2], toDepth, nullptr);
-      out << ")";
-    }
-    out << ")";
+    out << annot.str() << ")";
     return;
     break;
   }
@@ -972,23 +991,8 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   case kind::INST_PATTERN:
-  case kind::INST_NO_PATTERN: break;
-  case kind::INST_PATTERN_LIST:
-  {
-    for (const Node& nc : n)
-    {
-      if (nc.getKind() == kind::INST_PATTERN)
-      {
-        out << ":pattern " << nc;
-      }
-      else if (nc.getKind() == kind::INST_NO_PATTERN)
-      {
-        out << ":no-pattern " << nc[0];
-      }
-    }
-    return;
-    break;
-  }
+  case kind::INST_NO_PATTERN:
+  case kind::INST_PATTERN_LIST: break;
   default:
     // fall back on however the kind prints itself; this probably
     // won't be SMT-LIB v2 compliant, but it will be clear from the

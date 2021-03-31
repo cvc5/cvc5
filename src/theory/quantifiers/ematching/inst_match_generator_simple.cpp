@@ -15,17 +15,17 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
-#include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
@@ -46,7 +46,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
   {
     d_eqc = d_match_pattern[1];
     d_match_pattern = d_match_pattern[0];
-    Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
+    Assert(!TermUtil::hasInstConstAttr(d_eqc));
   }
   Assert(TriggerTermInfo::isSimpleTrigger(d_match_pattern));
   for (size_t i = 0, nchild = d_match_pattern.getNumChildren(); i < nchild; i++)
@@ -54,7 +54,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
     if (d_match_pattern[i].getKind() == INST_CONSTANT)
     {
       if (!options::cegqi()
-          || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
+          || TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
       {
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
       }
@@ -65,7 +65,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
     }
     d_match_pattern_arg_types.push_back(d_match_pattern[i].getType());
   }
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  TermDb* tdb = d_treg.getTermDatabase();
   d_op = tdb->getMatchOperator(d_match_pattern);
 }
 
@@ -74,7 +74,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
 {
   uint64_t addedLemmas = 0;
   TNodeTrie* tat;
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  TermDb* tdb = d_treg.getTermDatabase();
   if (d_eqc.isNull())
   {
     tat = tdb->getTermArgTrie(d_op);
@@ -187,7 +187,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
 
 int InstMatchGeneratorSimple::getActiveScore()
 {
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  TermDb* tdb = d_treg.getTermDatabase();
   Node f = tdb->getMatchOperator(d_match_pattern);
   size_t ngt = tdb->getNumGroundTerms(f);
   Trace("trigger-active-sel-debug") << "Number of ground terms for (simple) "
@@ -196,5 +196,6 @@ int InstMatchGeneratorSimple::getActiveScore()
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

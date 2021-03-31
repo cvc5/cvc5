@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Definitions of TPTP constants.
- **
- ** Definitions of TPTP constants.
+ ** \brief Definition of TPTP parser
  **/
 
 #include "parser/antlr_input.h" // Needs to go first.
@@ -176,6 +174,13 @@ class Tptp : public Parser {
    * what is necessary in parsing SMT-LIB.
    */
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
+  /**
+   * Make decimal, returns a real corresponding to string ( snum "." sden ),
+   * negated if pos is false, having exponent exp, negated exponent if posE is
+   * false.
+   */
+  api::Term mkDecimal(
+      std::string& snum, std::string& sden, bool pos, size_t exp, bool posE);
 
  private:
   void addArithmeticOperators();
