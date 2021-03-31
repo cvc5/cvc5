@@ -37,7 +37,7 @@ endif()
 if(NOT Poly_FOUND_SYSTEM)
   include(ExternalProject)
 
-  set(Poly_VERSION "0.1.8")
+  # TODO(#4706): Use proper release, after the next release
   set(Poly_VERSION "bae67639726f63ed508a30845108bfdac4a77546")
 
   check_if_cross_compiling(CCWIN "Windows" "")
