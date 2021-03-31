@@ -665,8 +665,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
                     long=option.long.split('=')[0]))
 
     filename = os.path.splitext(os.path.split(module.header)[1])[0]
-    print(filename)
-    print(tpl_module_h)
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
         filename=filename,
         header=module.header,
