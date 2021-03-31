@@ -49,8 +49,7 @@ class QuantDSplit : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantDSplit(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  QuantDSplit(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr);

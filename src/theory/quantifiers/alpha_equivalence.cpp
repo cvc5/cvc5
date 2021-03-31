@@ -15,8 +15,6 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
-#include "theory/quantifiers_engine.h"
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -83,10 +81,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe)
-    : d_termCanon(), d_aedb(&d_termCanon)
-{
-}
+AlphaEquivalence::AlphaEquivalence() : d_termCanon(), d_aedb(&d_termCanon) {}
 
 Node AlphaEquivalence::reduceQuantifier(Node q)
 {
