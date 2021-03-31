@@ -21,7 +21,6 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
 
@@ -697,11 +696,7 @@ bool ArithInstantiator::needsPostProcessInstantiationForVariable(
 }
 
 bool ArithInstantiator::postProcessInstantiationForVariable(
-    CegInstantiator* ci,
-    SolvedForm& sf,
-    Node pv,
-    CegInstEffort effort,
-    std::vector<Node>& lemmas)
+    CegInstantiator* ci, SolvedForm& sf, Node pv, CegInstEffort effort)
 {
   Assert(std::find(sf.d_non_basic.begin(), sf.d_non_basic.end(), pv)
          != sf.d_non_basic.end());

@@ -31,7 +31,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -554,9 +555,7 @@ class CegInstantiator {
    * It returns true if a successful call to the output channel's
    * doAddInstantiation was made.
    */
-  bool doAddInstantiation(std::vector<Node>& vars,
-                          std::vector<Node>& subs,
-                          std::vector<Node>& lemmas);
+  bool doAddInstantiation(std::vector<Node>& vars, std::vector<Node>& subs);
 
   //------------------------------------ static queries
   /** is cbqi sort
@@ -771,8 +770,7 @@ public:
   virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                                    SolvedForm& sf,
                                                    Node pv,
-                                                   CegInstEffort effort,
-                                                   std::vector<Node>& lemmas)
+                                                   CegInstEffort effort)
   {
     return true;
   }
