@@ -379,7 +379,6 @@ class TheoryInferenceManager
    */
   bool processInternalFact(TNode atom,
                            bool pol,
-                           InferenceId iid,
                            PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args,
