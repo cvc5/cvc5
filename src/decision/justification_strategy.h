@@ -29,7 +29,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace prop {
 class SkolemDefManager;
@@ -149,6 +149,6 @@ class JustificationStrategy
   JustifyStatistics d_stats;
 };
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__DECISION__JUSTIFICATION_STRATEGY_H */

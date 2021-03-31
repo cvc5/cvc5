@@ -22,7 +22,7 @@
 #include "decision/justify_info.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class JustifyStack
 {
@@ -62,6 +62,6 @@ class JustifyStack
   context::CDO<size_t> d_stackSizeValid;
 };
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__DECISION__JUSTIFY_INFO_H */

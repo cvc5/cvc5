@@ -19,7 +19,7 @@
 using namespace CVC4::kind;
 using namespace CVC4::prop;
 
-namespace CVC4 {
+namespace CVC5 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
@@ -637,4 +637,4 @@ bool JustificationStrategy::isTheoryAtom(TNode n)
          && (k != EQUAL || !n[0].getType().isBoolean());
 }
 
-}  // namespace CVC4
+}  // namespace CVC5
