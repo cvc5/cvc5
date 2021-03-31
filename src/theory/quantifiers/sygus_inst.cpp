@@ -26,7 +26,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -183,12 +182,11 @@ void addSpecialValues(
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+SygusInst::SygusInst(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),
       d_notified_assertions(qs.getUserContext())
@@ -548,7 +546,7 @@ void SygusInst::addCeLemma(Node q)
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
 
   Node lem = d_ce_lemmas[q];
-  d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+  d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYQI_CEX);
   d_ce_lemma_added.insert(q);
   Trace("sygus-inst") << "Add CE Lemma: " << lem << std::endl;
 }
