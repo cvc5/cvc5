@@ -697,11 +697,7 @@ bool ArithInstantiator::needsPostProcessInstantiationForVariable(
 }
 
 bool ArithInstantiator::postProcessInstantiationForVariable(
-    CegInstantiator* ci,
-    SolvedForm& sf,
-    Node pv,
-    CegInstEffort effort,
-    std::vector<Node>& lemmas)
+    CegInstantiator* ci, SolvedForm& sf, Node pv, CegInstEffort effort)
 {
   Assert(std::find(sf.d_non_basic.begin(), sf.d_non_basic.end(), pv)
          != sf.d_non_basic.end());
