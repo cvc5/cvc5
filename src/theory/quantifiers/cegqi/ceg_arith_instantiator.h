@@ -22,7 +22,7 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -209,6 +209,6 @@ class ArithInstantiator : public Instantiator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */

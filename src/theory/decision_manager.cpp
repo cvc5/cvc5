@@ -17,9 +17,9 @@
 
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 DecisionManager::DecisionManager(context::Context* userContext)
@@ -107,4 +107,4 @@ Node DecisionManager::getNextDecisionRequest()
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

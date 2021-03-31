@@ -28,10 +28,10 @@
 #include "theory/uf/theory_uf.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC5::kind;
+using namespace CVC5::context;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace uf {
 
@@ -1764,6 +1764,6 @@ CardinalityExtension::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace CVC5

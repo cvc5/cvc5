@@ -43,7 +43,7 @@
 #include "word.h"
 
 using namespace std;
-using namespace CVC4;
+using namespace CVC5;
 
 int main(int argc, char* argv[]) {
 
@@ -104,7 +104,9 @@ int main(int argc, char* argv[]) {
 
     // Checksat command
     output << CheckSatCommand() << endl;
-  } catch (CVC4::Exception& e) {
+  }
+  catch (CVC5::Exception& e)
+  {
     cerr << e << endl;
   }
 }

@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 // forward declarations
 namespace Minisat {
@@ -37,22 +37,22 @@ namespace Minisat {
 
 namespace prop {
   class CnfStream;
-}/* CVC4::prop namespace */
+  }  // namespace prop
 
 class SmtEngine;
 
 template <class Solver> class TSatProof;
-typedef TSatProof< CVC4::Minisat::Solver> CoreSatProof;
+typedef TSatProof<CVC5::Minisat::Solver> CoreSatProof;
 
 class CnfProof;
 
-typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
+typedef TSatProof<CVC5::Minisat::Solver> CoreSatProof;
 
 namespace prop {
   typedef uint64_t SatVariable;
   class SatLiteral;
   typedef std::vector<SatLiteral> SatClause;
-}/* CVC4::prop namespace */
+  }  // namespace prop
 
 typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
 typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
@@ -81,7 +81,7 @@ public:
 
  // initialization
  void initSatProof(Minisat::Solver* solver);
- void initCnfProof(CVC4::prop::CnfStream* cnfStream, context::Context* ctx);
+ void initCnfProof(CVC5::prop::CnfStream* cnfStream, context::Context* ctx);
 
  // getting various proofs
  static CoreSatProof* getSatProof();
@@ -120,8 +120,6 @@ private:
 
 };/* class ProofManager */
 
-}/* CVC4 namespace */
-
-
+}  // namespace CVC5
 
 #endif /* CVC4__PROOF_MANAGER_H */

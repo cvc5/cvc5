@@ -35,7 +35,7 @@
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace api {
 class Solver;
@@ -51,10 +51,10 @@ namespace expr {
   namespace attr {
     class AttributeUniqueId;
     class AttributeManager;
-  }/* CVC4::expr::attr namespace */
+    }  // namespace attr
 
   class TypeChecker;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 /**
  * An interface that an interested party can implement and then subscribe
@@ -163,7 +163,7 @@ class NodeManager
    * PLUS, are APPLYs of a PLUS operator to arguments.  This array
    * holds the set of operators for these things.  A PLUS operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
+   * plusOperator->getConst<CVC5::Kind>(), you get kind::PLUS back.
    */
   Node d_operators[kind::LAST_KIND];
 
@@ -660,7 +660,7 @@ class NodeManager
   /**
    * Get the (singleton) operator of an OPERATOR-kinded kind.  The
    * returned node n will have kind BUILTIN, and calling
-   * n.getConst<CVC4::Kind>() will yield k.
+   * n.getConst<CVC5::Kind>() will yield k.
    */
   inline TNode operatorOf(Kind k) {
     AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k,
@@ -1203,7 +1203,7 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #define CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 #include "expr/metakind.h"
@@ -1211,7 +1211,7 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
 
 #include "expr/node_builder.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 // general expression-builders
 
@@ -1577,6 +1577,6 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
   return NodeClass(nv);
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__NODE_MANAGER_H */

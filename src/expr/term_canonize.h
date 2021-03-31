@@ -20,7 +20,7 @@
 #include <map>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace expr {
 
 /** TermCanonize
@@ -100,6 +100,6 @@ class TermCanonize
 };
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__EXPR__TERM_CANONIZE_H */
