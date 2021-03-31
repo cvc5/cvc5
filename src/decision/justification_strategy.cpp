@@ -328,7 +328,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     }
     else if (i == 1)
     {
-      Assert (lastChildVal!=SAT_VALUE_UNKNOWN);
+      Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       // we just computed the value of the condition, check if the condition
       // was false
       if (lastChildVal == SAT_VALUE_FALSE)
@@ -441,7 +441,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
       // this is the moment where we realize a skolem definition is relevant,
       // add now.
       // TODO:
-      //notifyJustified(atom);
+      // notifyJustified(atom);
       d_justified.insert(atom, val);
       return pol ? val : invertValue(val);
     }
@@ -535,7 +535,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       // we skip (top-level) theory literals, since these are always propagated
       // TODO: skolem definitions that are always relevant should be added to
       // assertions, for uniformity
-      //notifyJustified(currAtom);
+      // notifyJustified(currAtom);
     }
   }
 }

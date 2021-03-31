@@ -41,12 +41,12 @@ enum class DecisionStatus
 };
 const char* toString(DecisionStatus s);
 std::ostream& operator<<(std::ostream& out, DecisionStatus s);
-  
+
 class AssertionList
 {
  public:
   AssertionList(context::Context* ac, context::Context* ic);
-  virtual ~AssertionList(){}
+  virtual ~AssertionList() {}
   /** Add the assertion */
   void addAssertion(TNode n);
   /**
@@ -58,6 +58,7 @@ class AssertionList
   size_t size() const;
   /** Notify status */
   void notifyStatus(TNode n, DecisionStatus s);
+
  private:
   /** The list of assertions */
   context::CDList<Node> d_assertions;
@@ -69,7 +70,6 @@ class AssertionList
   /** The index of the next assertion to satify */
   context::CDO<size_t> d_dindex;
 };
-
 
 }  // namespace CVC4
 
