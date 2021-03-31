@@ -21,7 +21,6 @@
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -78,7 +77,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
                          << std::endl;
   }
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   bool inConflict = false;
   uint64_t addedLemmas = 0;
   size_t nquant = fm->getNumAssertedQuantifiers();
@@ -130,7 +129,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = true;
   ttec.d_increaseSum = options::fullSaturateSum();
-  TermPools* tp = d_quantEngine->getTermRegistry().getTermPools();
+  TermPools* tp = d_treg.getTermPools();
   std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
       mkTermTupleEnumeratorPool(q, &ttec, tp, p));
   Instantiate* ie = d_qim.getInstantiate();
