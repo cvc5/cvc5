@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 /** Quantifiers utility
@@ -78,6 +78,6 @@ public:
 };
 
 }
-}
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANT_UTIL_H */

@@ -23,11 +23,11 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory::quantifiers::inst;
+using namespace CVC5::kind;
+using namespace CVC5::context;
+using namespace CVC5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -272,4 +272,4 @@ bool InstantiationEngine::shouldProcess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

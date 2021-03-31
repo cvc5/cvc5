@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__INFERENCE_ID_H
 #define CVC4__THEORY__INFERENCE_ID_H
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 /** Types of inferences used in the procedure
@@ -754,6 +754,6 @@ const char* toString(InferenceId i);
 std::ostream& operator<<(std::ostream& out, InferenceId i);
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__INFERENCE_H */

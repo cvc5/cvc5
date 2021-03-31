@@ -32,7 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 template <typename T>
 static CVC4ostream& operator<<(CVC4ostream& out, const std::vector<T>& v)
@@ -555,4 +555,4 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

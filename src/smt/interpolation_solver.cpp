@@ -23,9 +23,9 @@
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
+using namespace CVC5::theory;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace smt {
 
 InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent)
@@ -136,4 +136,4 @@ void InterpolationSolver::checkInterpol(Node interpol,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5

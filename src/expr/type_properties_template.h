@@ -29,7 +29,7 @@
 
 ${type_properties_includes}
 
-namespace CVC4 {
+namespace CVC5 {
 namespace kind {
 
 /**
@@ -113,7 +113,7 @@ ${type_groundterms}
   }
 } /* mkGroundTerm(TypeNode) */
 
-}/* CVC4::kind namespace */
-}/* CVC4 namespace */
+}  // namespace kind
+}  // namespace CVC5
 
 #endif /* CVC4__TYPE_PROPERTIES_H */

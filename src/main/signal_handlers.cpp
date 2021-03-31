@@ -41,10 +41,10 @@
 #include "smt/smt_engine.h"
 #include "util/safe_print.h"
 
-using CVC4::Exception;
+using CVC5::Exception;
 using namespace std;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace main {
 
 /**
@@ -343,4 +343,4 @@ void cleanup() noexcept
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace CVC4
+}  // namespace CVC5
