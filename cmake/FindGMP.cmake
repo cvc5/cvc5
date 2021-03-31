@@ -21,7 +21,7 @@ set(GMP_FOUND_SYSTEM FALSE)
 if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   set(GMP_FOUND_SYSTEM TRUE)
 
-  function(GetVersionPart OUTPUT FILENAME DESC)
+  function(getversionpart OUTPUT FILENAME DESC)
     file(STRINGS ${FILENAME} RES REGEX "^#define __GNU_MP_${DESC}[ \\t]+.*")
     string(REGEX MATCH "[0-9]+" RES "${RES}")
     set(${OUTPUT}
@@ -29,7 +29,7 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
         PARENT_SCOPE
     )
   endfunction()
-  function(GetVersion OUTPUT FILENAME)
+  function(getversion OUTPUT FILENAME)
     getversionpart(MAJOR "${FILENAME}" "VERSION")
     getversionpart(MINOR "${FILENAME}" "VERSION_MINOR")
     getversionpart(PATCH "${FILENAME}" "VERSION_PATCHLEVEL")
