@@ -29,7 +29,7 @@
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -183,6 +183,6 @@ private:
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__UF__THEORY_UF_H */

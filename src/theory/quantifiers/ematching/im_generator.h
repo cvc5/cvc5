@@ -22,7 +22,7 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -117,6 +117,6 @@ protected:
 }  // namespace inst
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

@@ -25,7 +25,7 @@
 #include "theory/type_enumerator.h"
 #include "util/integer.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -106,6 +106,6 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN_TYPE_ENUMERATOR_H */

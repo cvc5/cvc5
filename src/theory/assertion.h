@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 /** Information about an assertion for the theories. */
@@ -48,6 +48,6 @@ struct Assertion {
 std::ostream& operator<<(std::ostream& out, const Assertion& a);
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ASSERTION_H */

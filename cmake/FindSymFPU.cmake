@@ -26,7 +26,7 @@ else()
 
   ExternalProject_Add(
     SymFPU-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     URL https://github.com/martin-cs/symfpu/archive/${SymFPU_COMMIT}.tar.gz
     URL_HASH SHA1=9e00045130b93e3c2a46ce73a1b5b6451340dc46
     CONFIGURE_COMMAND ""

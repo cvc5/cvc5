@@ -17,7 +17,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/string.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -271,4 +271,4 @@ bool SequenceEnumerator::isFinished() { return d_wenum.isFinished(); }
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

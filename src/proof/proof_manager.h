@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 // forward declarations
 namespace Minisat {
@@ -42,11 +42,11 @@ namespace prop {
 class SmtEngine;
 
 template <class Solver> class TSatProof;
-typedef TSatProof<CVC5::Minisat::Solver> CoreSatProof;
+typedef TSatProof<cvc5::Minisat::Solver> CoreSatProof;
 
 class CnfProof;
 
-typedef TSatProof<CVC5::Minisat::Solver> CoreSatProof;
+typedef TSatProof<cvc5::Minisat::Solver> CoreSatProof;
 
 namespace prop {
   typedef uint64_t SatVariable;
@@ -81,7 +81,7 @@ public:
 
  // initialization
  void initSatProof(Minisat::Solver* solver);
- void initCnfProof(CVC5::prop::CnfStream* cnfStream, context::Context* ctx);
+ void initCnfProof(cvc5::prop::CnfStream* cnfStream, context::Context* ctx);
 
  // getting various proofs
  static CoreSatProof* getSatProof();
@@ -120,6 +120,6 @@ private:
 
 };/* class ProofManager */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PROOF_MANAGER_H */

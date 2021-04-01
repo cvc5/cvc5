@@ -43,7 +43,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 std::string sexprToString(api::Term sexpr)
 {
@@ -2819,4 +2819,4 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out,
       out, api::Sort::sortVectorToTypeNodes(d_datatypes));
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

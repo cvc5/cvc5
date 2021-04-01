@@ -25,9 +25,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -478,4 +478,4 @@ Node OperatorElim::mkWitnessTerm(Node v,
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

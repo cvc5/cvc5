@@ -24,7 +24,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/theory.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -165,4 +165,4 @@ class TheoryArith : public Theory {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

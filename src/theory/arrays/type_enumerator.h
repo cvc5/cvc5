@@ -24,7 +24,7 @@
 #include "expr/kind.h"
 #include "theory/rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -157,6 +157,6 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H */

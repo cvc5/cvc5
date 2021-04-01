@@ -22,7 +22,7 @@
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class TConvProofGenerator;
 
@@ -132,4 +132,4 @@ class OperatorElim : public EagerProofGenerator
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

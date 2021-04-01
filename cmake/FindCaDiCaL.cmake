@@ -55,7 +55,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
 
   ExternalProject_Add(
     CaDiCaL-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
     URL https://github.com/arminbiere/cadical/archive/refs/tags/rel-${CaDiCaL_VERSION}.tar.gz
     URL_HASH SHA1=9de1176737b74440921ba86395fe5edbb3b131eb

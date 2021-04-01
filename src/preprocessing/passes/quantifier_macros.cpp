@@ -35,11 +35,11 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC5::theory;
-using namespace CVC5::theory::quantifiers;
-using namespace CVC5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -568,4 +568,4 @@ void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
 
 }  // passes
 }  // preprocessing
-}  // namespace CVC5
+}  // namespace cvc5

@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -104,6 +104,6 @@ class BVGauss : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

@@ -21,10 +21,10 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC5::context;
-using namespace CVC5::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -377,4 +377,4 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

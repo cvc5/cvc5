@@ -23,7 +23,7 @@
 #include "prop/minisat/minisat.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 CnfProof::CnfProof(prop::CnfStream* stream,
                    context::Context* ctx,
@@ -113,4 +113,4 @@ bool CnfProof::getCurrentAssertionKind()
   return d_currentAssertionStack.back().second;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

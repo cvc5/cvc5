@@ -29,7 +29,7 @@
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
@@ -218,4 +218,4 @@ ParserBuilder& ParserBuilder::withStringInput(const std::string& input) {
 }
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5

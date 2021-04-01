@@ -37,7 +37,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace decision {
 
 class JustificationHeuristic : public ITEDecisionStrategy {
@@ -117,7 +117,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   };
 
 public:
- JustificationHeuristic(CVC5::DecisionEngine* de,
+ JustificationHeuristic(cvc5::DecisionEngine* de,
                         context::UserContext* uc,
                         context::Context* c);
 
@@ -195,6 +195,6 @@ private:
 };/* class JustificationHeuristic */
 
 }/* namespace decision */
-} // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__JUSTIFICATION_HEURISTIC */

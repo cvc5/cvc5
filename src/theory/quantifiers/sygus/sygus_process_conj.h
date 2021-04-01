@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -358,6 +358,6 @@ class SynthConjectureProcess
 
 }  // namespace quantifiers
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5
 
 #endif

@@ -20,7 +20,7 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 using namespace theory::strings;
 
@@ -59,4 +59,4 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
   }
 }
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

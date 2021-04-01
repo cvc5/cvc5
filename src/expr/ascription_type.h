@@ -22,7 +22,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace CVC5 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -60,6 +60,6 @@ struct AscriptionTypeHashFunction
 /** An output routine for AscriptionTypes */
 std::ostream& operator<<(std::ostream& out, AscriptionType at);
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__ASCRIPTION_TYPE_H */
