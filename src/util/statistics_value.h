@@ -37,7 +37,7 @@
 
 #include "util/safe_print.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class StatisticsRegistry;
 
@@ -387,6 +387,6 @@ struct StatisticTimerValue : StatisticBaseValue
   bool d_running;
 };
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif
