@@ -205,7 +205,8 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
 {
   if (Trace.isOn("strings-debug-model"))
   {
-    Trace("strings-debug-model") << "TheoryStrings::collectModelValues" << std::endl;
+    Trace("strings-debug-model")
+        << "TheoryStrings::collectModelValues" << std::endl;
     Trace("strings-debug-model") << "Equivalence classes are:" << std::endl;
     Trace("strings-debug-model") << debugPrintStringsEqc() << std::endl;
     Trace("strings-debug-model") << "Extended functions are:" << std::endl;

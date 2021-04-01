@@ -738,7 +738,7 @@ std::string ExtfSolver::debugPrintModel()
     {
       ss << " :model-inactive";
     }
-    if (d_reduced.find(n)!=d_reduced.end())
+    if (d_reduced.find(n) != d_reduced.end())
     {
       ss << " :reduced";
     }

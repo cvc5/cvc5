@@ -158,6 +158,7 @@ class ExtfSolver
    * string.
    */
   std::string debugPrintModel();
+
  private:
   /** do reduction
    *
