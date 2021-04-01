@@ -98,7 +98,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_originalOptions(),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
@@ -412,7 +411,6 @@ void SmtEngine::notifyStartParsing(const std::string& filename)
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
-  d_originalOptions.copyValues(getOptions());
 }
 
 const std::string& SmtEngine::getFilename() const
@@ -1792,24 +1790,6 @@ void SmtEngine::pop() {
                        << getUserContext()->getLevel() << endl;
   // should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
-}
-
-void SmtEngine::reset()
-{
-  // save pointer to the current node manager
-  NodeManager* nm = getNodeManager();
-  Trace("smt") << "SMT reset()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
-  }
-  std::string filename = d_state->getFilename();
-  Options opts;
-  opts.copyValues(d_originalOptions);
-  this->~SmtEngine();
-  new (this) SmtEngine(nm, &opts);
-  // Restore data set after creation
-  notifyStartParsing(filename);
 }
 
 void SmtEngine::resetAssertions()
