@@ -27,13 +27,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/mtl/Queue.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
   class TheoryProxy;
 }
-}
+}  // namespace CVC5
 
-namespace CVC4 {
+namespace CVC5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -42,9 +42,9 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-  SimpSolver(CVC4::prop::TheoryProxy* proxy,
-             CVC4::context::Context* context,
-             CVC4::context::UserContext* userContext,
+  SimpSolver(CVC5::prop::TheoryProxy* proxy,
+             CVC5::context::Context* context,
+             CVC5::context::UserContext* userContext,
              ProofNodeManager* pnm,
              bool enableIncremental = false);
   ~SimpSolver();
@@ -270,7 +270,7 @@ inline lbool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool t
  }
 
  //=================================================================================================
-} /* CVC4::Minisat namespace */
-} /* CVC4 namespace */
+ }  // namespace Minisat
+ }  // namespace CVC5
 
 #endif

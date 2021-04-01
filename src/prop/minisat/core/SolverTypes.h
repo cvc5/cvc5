@@ -31,15 +31,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Vec.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace Minisat {
 class Solver;
 }
 template <class Solver>
 class TSatProof;
-}  // namespace CVC4
+}  // namespace CVC5
 
-namespace CVC4 {
+namespace CVC5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -182,11 +182,10 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
   return out;
 }
 
-} /* namespace CVC4::Minisat */
-} /* namespace CVC4 */
+}  // namespace Minisat
+} // namespace CVC5
 
-
-namespace CVC4 {
+namespace CVC5 {
 namespace Minisat{
 
 //=================================================================================================
@@ -323,7 +322,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
 
     void reloc(CRef& cr,
                ClauseAllocator& to,
-               CVC4::TSatProof<Solver>* proof = NULL);
+               CVC5::TSatProof<Solver>* proof = NULL);
     // Implementation moved to Solver.cc.
 };
 
@@ -501,6 +500,6 @@ inline void Clause::strengthen(Lit p)
 
 //=================================================================================================
 }
-}
+}  // namespace CVC5
 
 #endif

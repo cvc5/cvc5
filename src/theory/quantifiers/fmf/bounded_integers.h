@@ -26,7 +26,7 @@
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_bound_inference.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 class RepSetIterator;
@@ -164,8 +164,7 @@ private:
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 
  public:
-  BoundedIntegers(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  BoundedIntegers(QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);
@@ -239,6 +238,6 @@ private:
 
 }
 }
-}
+}  // namespace CVC5
 
 #endif

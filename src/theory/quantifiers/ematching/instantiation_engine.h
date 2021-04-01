@@ -24,7 +24,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -33,8 +33,7 @@ class InstStrategyAutoGenTriggers;
 
 class InstantiationEngine : public QuantifiersModule {
  public:
-  InstantiationEngine(QuantifiersEngine* qe,
-                      QuantifiersState& qs,
+  InstantiationEngine(QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
                       QuantifiersRegistry& qr,
                       TermRegistry& tr);
@@ -74,8 +73,8 @@ class InstantiationEngine : public QuantifiersModule {
   std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

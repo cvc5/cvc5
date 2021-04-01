@@ -39,11 +39,11 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4::preprocessing;
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace CVC5::preprocessing;
+using namespace CVC5::theory;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace smt {
 
 /** Useful for counting the number of recursive calls. */
@@ -462,4 +462,4 @@ void ProcessAssertions::dumpAssertions(const char* key,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5
