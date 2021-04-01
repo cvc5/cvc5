@@ -46,6 +46,7 @@ public:
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
     bool isInteger = true;
+    Kind k = n.getKind();
     for(; child_it != child_it_end; ++child_it) {
       TypeNode childType = (*child_it).getType(check);
       if (!childType.isInteger()) {
@@ -58,9 +59,13 @@ public:
         if(!childType.isReal()) {
           throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic subterm");
         }
+        if (k == kind::TO_REAL && !childType.isInteger())
+        {
+          throw TypeCheckingExceptionPrivate(n, "expecting an integer subterm");
+        }
       }
     }
-    switch (Kind k = n.getKind())
+    switch (k)
     {
       case kind::TO_REAL:
       case kind::CAST_TO_REAL: return realType;
