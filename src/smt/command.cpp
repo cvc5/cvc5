@@ -262,6 +262,11 @@ TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
                             : sortToTypeNode(grammar->resolve());
 }
 
+Options& Command::getOriginalOptionsFrom(api::Solver * s)
+{
+  return *s->d_originalOptions.get();
+}
+
 /* -------------------------------------------------------------------------- */
 /* class EmptyCommand                                                         */
 /* -------------------------------------------------------------------------- */
@@ -890,7 +895,7 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     sm->reset();
     Options opts;
-    opts.copyValues(*solver->d_originalOptions);
+    opts.copyValues(getOriginalOptionsFrom(solver));
     // This reconstructs a new solver object at the same memory location as the
     // current one. Note that this command does not own the solver object!
     // It may be safer to instead make the ResetCommand a special case in the

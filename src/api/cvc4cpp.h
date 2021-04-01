@@ -41,7 +41,6 @@ class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class NodeManager;
-class ResetCommand;
 class SmtEngine;
 class TypeNode;
 class Options;
@@ -2271,7 +2270,6 @@ class CVC4_EXPORT Solver
   friend class DatatypeSelector;
   friend class Grammar;
   friend class Op;
-  friend class CVC5::ResetCommand;
   friend class Sort;
   friend class Term;
 
