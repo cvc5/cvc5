@@ -119,14 +119,14 @@ jobs:
 
     - name: Restore Dependencies
       id: restore-deps
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: build/deps
         key: ${{ runner.os }}-deps-${{ hashFiles('cmake/Find**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Restore Auxiliary Tools
       id: restore-aux-tools
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: deps/install
         key: ${{ runner.os }}-aux-tools-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
@@ -138,7 +138,7 @@ jobs:
 
     - name: Restore ccache
       id: cache
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ccache-dir
         key: cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
