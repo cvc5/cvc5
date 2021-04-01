@@ -167,6 +167,21 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal,
+                              const std::string& prefix,
+                              const std::string& comment,)
+{
+  std::pair<SkolemFunId, Node> key(id, cacheVal);
+  std::map< std::pair<SkolemFunId, Node>, Node>::iterator it = d_skolemFuns.find(key);
+  if (it==d_skolemFuns.end())
+  {
+    Node k = nm->mkSkolem(prefix, tn, comment);
+    d_skolemFuns[key] = k;
+    return k;
+  }
+  return it->second;
+}
+
 Node SkolemManager::mkBooleanTermVariable(Node t)
 {
   return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);

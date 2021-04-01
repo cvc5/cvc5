@@ -175,6 +175,25 @@ class SkolemManager
                       const std::string& prefix,
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
+  /** Skolem function identifier */
+  enum class SkolemFunId
+  {
+    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+    DIV_BY_ZERO,
+    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+    INT_DIV_BY_ZERO,
+    /* an uninterpreted function f s.t. f(x) = x mod 0 */
+    MOD_BY_ZERO,
+    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+    SQRT,
+  };
+  /**
+   * Make skolem function. This method should be used for creating fixed
+   * skolem functions of the above forms.
+   */
+  Node mkSkolemFunction(SkolemFunId id, TypeNode tn, 
+                              const std::string& prefix,
+                              const std::string& comment, Node cacheVal=Node::null());
   /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind
@@ -205,6 +224,10 @@ class SkolemManager
   static Node getOriginalForm(Node n);
 
  private:
+  /** 
+   * Cached of skolem functions for mkSkolemFunction above.
+   */
+  std::map< std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
   /**
    * Mapping from witness terms to proof generators.
    */
