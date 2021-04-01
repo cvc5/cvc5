@@ -16,9 +16,9 @@
 
 #include "theory/rewriter.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 bool ArithMSum::getMonomial(Node n, Node& c, Node& v)
@@ -322,4 +322,4 @@ void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c)
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

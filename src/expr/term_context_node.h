@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class TCtxStack;
 class TermContext;
@@ -74,6 +74,6 @@ class TCtxNode
   const TermContext* d_tctx;
 };
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

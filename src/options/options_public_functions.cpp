@@ -36,7 +36,7 @@
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 // Get accessor functions.
 InputLanguage Options::getInputLanguage() const {
@@ -238,4 +238,4 @@ void Options::flushOut() {
   }
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

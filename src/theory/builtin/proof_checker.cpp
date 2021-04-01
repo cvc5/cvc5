@@ -20,9 +20,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 const char* toString(MethodId id)
@@ -497,4 +497,4 @@ Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

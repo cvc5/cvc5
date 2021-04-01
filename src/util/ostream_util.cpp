@@ -17,7 +17,7 @@
 
 #include <ostream>
 
-namespace CVC5 {
+namespace cvc5 {
 
 StreamFormatScope::StreamFormatScope(std::ostream& out)
     : d_out(out), d_format_flags(out.flags()), d_precision(out.precision())
@@ -30,4 +30,4 @@ StreamFormatScope::~StreamFormatScope()
   d_out.flags(d_format_flags);
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

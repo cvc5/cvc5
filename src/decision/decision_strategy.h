@@ -25,7 +25,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/term_formula_removal.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class DecisionEngine;
 
@@ -66,6 +66,6 @@ public:
 };/* class ITEDecisionStrategy */
 
 }  // namespace decision
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__DECISION_STRATEGY_H */

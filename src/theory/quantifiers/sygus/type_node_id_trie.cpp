@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -49,4 +49,4 @@ void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

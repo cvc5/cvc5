@@ -29,7 +29,7 @@
 
 #include "util/index.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 
 template <class CleanUp = DefaultCleanUp<Index> >
@@ -97,4 +97,4 @@ public:
 };/* class CDDenseSet<> */
 
 }  // namespace context
-}  // namespace CVC5
+}  // namespace cvc5

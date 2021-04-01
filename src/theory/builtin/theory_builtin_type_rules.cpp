@@ -18,7 +18,7 @@
 
 #include "expr/attribute.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -47,4 +47,4 @@ Node SortProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

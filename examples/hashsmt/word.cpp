@@ -33,8 +33,8 @@
 
 using namespace std;
 using namespace hashsmt;
-using namespace CVC5;
-using namespace CVC5::options;
+using namespace cvc5;
+using namespace cvc5::options;
 
 Expr Word::extendToSize(unsigned newSize) const {
   if (newSize <= size()) {
@@ -50,10 +50,10 @@ ExprManager* Word::s_manager = 0;
 
 ExprManager* Word::em() {
   if (s_manager == 0) {
-    CVC5::Options options;
+    cvc5::Options options;
     options.setInputLanguage(language::input::LANG_SMTLIB_V2);
     options.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    s_manager = new CVC5::ExprManager(options);
+    s_manager = new cvc5::ExprManager(options);
   }
   return s_manager;
 }
@@ -71,7 +71,7 @@ Word Word::concat(const Word words[], unsigned size) {
 }
 
 void Word::print(ostream& out) const {
-  out << CVC5::expr::ExprSetDepth(-1) << d_expr;
+  out << cvc5::expr::ExprSetDepth(-1) << d_expr;
 }
 
 Word::Word(unsigned newSize, unsigned value) {

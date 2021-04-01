@@ -34,7 +34,7 @@
 #include "word.h"
 
 using namespace std;
-using namespace CVC5;
+using namespace cvc5;
 
 hashsmt::cvc4_uchar8 *createInput(unsigned size, std::string prefix, std::ostream& output) {
   hashsmt::cvc4_uchar8 *input = new hashsmt::cvc4_uchar8[size];
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     delete[] cvc4input1;
     delete[] cvc4input2;
   }
-  catch (CVC5::Exception& e)
+  catch (cvc5::Exception& e)
   {
     cerr << e << endl;
   }

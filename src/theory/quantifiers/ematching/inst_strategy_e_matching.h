@@ -21,7 +21,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -112,6 +112,6 @@ class InstStrategyAutoGenTriggers : public InstStrategy
 }; /* class InstStrategyAutoGenTriggers */
 }
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

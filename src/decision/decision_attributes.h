@@ -22,7 +22,7 @@
 #include "options/decision_weight.h"
 #include "expr/attribute.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace decision {
 namespace attr {
   struct DecisionWeightTag {};
@@ -31,6 +31,6 @@ namespace attr {
 typedef expr::Attribute<attr::DecisionWeightTag, DecisionWeight> DecisionWeightAttr;
 
 }  // namespace decision
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__DECISION_ATTRIBUTES_H */
