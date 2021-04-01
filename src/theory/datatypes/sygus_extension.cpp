@@ -34,11 +34,11 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::datatypes;
+using namespace CVC5;
+using namespace CVC5::kind;
+using namespace CVC5::context;
+using namespace CVC5::theory;
+using namespace CVC5::theory::datatypes;
 
 SygusExtension::SygusExtension(TheoryState& s,
                                InferenceManager& im,

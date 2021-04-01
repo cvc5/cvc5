@@ -21,9 +21,9 @@
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
@@ -588,4 +588,4 @@ std::string TConvProofGenerator::toStringDebug() const
   return ss.str();
 }
 
-}  // namespace CVC4
+}  // namespace CVC5

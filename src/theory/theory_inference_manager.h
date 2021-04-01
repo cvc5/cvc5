@@ -27,7 +27,7 @@
 #include "theory/trust_node.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class ProofNodeManager;
 
@@ -459,6 +459,6 @@ class TheoryInferenceManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */

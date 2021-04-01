@@ -56,7 +56,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace uf {
 
@@ -168,11 +168,13 @@ private:
 
 };/* class SymmetryBreaker */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
+}  // namespace uf
+}  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const ::CVC4::theory::uf::SymmetryBreaker::Permutation& p);
+std::ostream& operator<<(
+    std::ostream& out,
+    const ::CVC5::theory::uf::SymmetryBreaker::Permutation& p);
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__UF__SYMMETRY_BREAKER_H */

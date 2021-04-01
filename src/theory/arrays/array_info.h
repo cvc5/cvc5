@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arrays {
 
@@ -204,8 +204,8 @@ public:
   void mergeInfo(const TNode a, const TNode b);
 };/* class ArrayInfo */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__ARRAYS__ARRAY_INFO_H */

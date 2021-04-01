@@ -20,7 +20,7 @@
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
 
 class MinisatSatSolver : public CDCLTSatSolverInterface
@@ -40,7 +40,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
-                  CVC4::context::UserContext* userContext,
+                  CVC5::context::UserContext* userContext,
                   ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -116,5 +116,5 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
 }; /* class MinisatSatSolver */
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace CVC5

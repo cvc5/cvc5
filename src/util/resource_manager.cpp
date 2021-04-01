@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace CVC5 {
 
 bool WallClockTimer::on() const
 {
@@ -369,4 +369,4 @@ void ResourceManager::registerListener(Listener* listener)
   return d_listeners.push_back(listener);
 }
 
-} /* namespace CVC4 */
+} // namespace CVC5

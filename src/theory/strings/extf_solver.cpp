@@ -21,10 +21,10 @@
 #include "util/statistics_registry.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace CVC5::context;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace strings {
 
@@ -725,4 +725,4 @@ bool StringsExtfCallback::getCurrentSubstitution(
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

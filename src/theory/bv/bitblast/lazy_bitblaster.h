@@ -26,7 +26,7 @@
 #include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
 class CnfStream;
 class NullRegistrat;
@@ -175,5 +175,5 @@ class TLazyBitblaster : public TBitblaster<Node>
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 #endif  //  CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H

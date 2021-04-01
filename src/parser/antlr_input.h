@@ -36,7 +36,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
@@ -291,7 +291,7 @@ inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTL
   return BitVector(sz, val);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC5
 
 #endif /* CVC4__PARSER__ANTLR_INPUT_H */

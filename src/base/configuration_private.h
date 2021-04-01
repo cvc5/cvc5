@@ -22,7 +22,7 @@
 
 #include "base/configuration.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 #ifdef CVC4_DEBUG
 #  define IS_DEBUG_BUILD true
@@ -176,6 +176,6 @@ namespace CVC4 {
 #endif /* __has_feature(thread_sanitizer) */
 #endif /* defined(__has_feature) */
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__CONFIGURATION_PRIVATE_H */

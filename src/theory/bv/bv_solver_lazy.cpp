@@ -32,9 +32,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC4::theory::bv::utils;
+using namespace CVC5::theory::bv::utils;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace bv {
 
@@ -809,4 +809,4 @@ void BVSolverLazy::setConflict(Node conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+} // namespace CVC5

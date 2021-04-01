@@ -35,7 +35,7 @@
 
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -80,6 +80,6 @@ class PreprocessingPass {
 };
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_H */

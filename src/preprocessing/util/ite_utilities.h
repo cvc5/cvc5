@@ -30,7 +30,7 @@
 #include "util/hash.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -414,6 +414,6 @@ class ITECareSimplifier
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

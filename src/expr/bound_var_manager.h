@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 /**
  * Bound variable manager.
@@ -98,6 +98,6 @@ class BoundVarManager
   std::unordered_set<Node, NodeHashFunction> d_cacheVals;
 };
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__EXPR__BOUND_VAR_MANAGER_H */

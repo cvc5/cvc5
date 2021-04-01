@@ -33,7 +33,7 @@
 #include "util/result.h"
 #include "util/sexpr.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
@@ -63,7 +63,7 @@ class Solver;
 namespace context {
   class Context;
   class UserContext;
-}/* CVC4::context namespace */
+  }  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -75,7 +75,7 @@ class PreprocessingPassContext;
 
 namespace prop {
   class PropEngine;
-}/* CVC4::prop namespace */
+  }  // namespace prop
 
 /* -------------------------------------------------------------------------- */
 
@@ -111,24 +111,23 @@ class PfManager;
 class UnsatCoreManager;
 
 ProofManager* currentProofManager();
-}/* CVC4::smt namespace */
+}  // namespace smt
 
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
   class Rewriter;
   class QuantifiersEngine;
-}/* CVC4::theory namespace */
-
+  }  // namespace theory
 
 /* -------------------------------------------------------------------------- */
 
 class CVC4_EXPORT SmtEngine
 {
-  friend class ::CVC4::api::Solver;
-  friend class ::CVC4::smt::SmtEngineState;
-  friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::LogicRequest;
+  friend class ::CVC5::api::Solver;
+  friend class ::CVC5::smt::SmtEngineState;
+  friend class ::CVC5::smt::SmtScope;
+  friend class ::CVC5::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -220,7 +219,7 @@ class CVC4_EXPORT SmtEngine
   bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
-  CVC4::SExpr getInfo(const std::string& key) const;
+  CVC5::SExpr getInfo(const std::string& key) const;
 
   /**
    * Set an aspect of the current SMT execution environment.
@@ -1167,6 +1166,6 @@ class CVC4_EXPORT SmtEngine
 
 /* -------------------------------------------------------------------------- */
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__SMT_ENGINE_H */

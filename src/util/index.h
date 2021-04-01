@@ -19,11 +19,11 @@
 #ifndef CVC4__INDEX_H
 #define CVC4__INDEX_H
 
-namespace CVC4 {
+namespace CVC5 {
 
 /** Index is a standardized unsigned integer used for efficient indexing. */
 using Index = uint32_t;
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__INDEX_H */

@@ -25,7 +25,7 @@
 #include "smt/witness_form.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class SmtEngine;
 
@@ -302,6 +302,6 @@ class ProofPostproccess
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

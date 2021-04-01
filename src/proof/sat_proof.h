@@ -33,11 +33,11 @@
 #include "util/statistics_stats.h"
 
 // Forward declarations.
-namespace CVC4 {
+namespace CVC5 {
 class CnfProof;
-} /* namespace CVC4 */
+} // namespace CVC5
 
-namespace CVC4 {
+namespace CVC5 {
 /**
  * Helper debugging functions
  */
@@ -367,6 +367,6 @@ template <class Solver>
 void toSatClause(const typename Solver::TClause& minisat_cl,
                  prop::SatClause& sat_cl);
 
-} /* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__SAT__PROOF_H */

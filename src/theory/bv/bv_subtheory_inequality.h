@@ -26,7 +26,7 @@
 #include "theory/bv/bv_inequality_graph.h"
 #include "theory/bv/bv_subtheory.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace bv {
 
@@ -88,6 +88,6 @@ class InequalitySolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */

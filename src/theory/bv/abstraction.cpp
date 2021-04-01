@@ -23,13 +23,13 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::context;
+using namespace CVC5;
+using namespace CVC5::theory;
+using namespace CVC5::theory::bv;
+using namespace CVC5::context;
 
 using namespace std;
-using namespace CVC4::theory::bv::utils;
+using namespace CVC5::theory::bv::utils;
 
 bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
                                          std::vector<Node>& new_assertions)

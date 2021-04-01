@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace smt {
 
 /**
@@ -55,6 +55,6 @@ class DefinedFunction
 }; /* class DefinedFunction */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__SMT__DEFINED_FUNCTION_H */

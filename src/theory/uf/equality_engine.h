@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace eq {
 
@@ -843,6 +843,6 @@ private:
 
 } // Namespace eq
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace CVC5
 
 #endif

@@ -108,8 +108,7 @@ if(USE_CLN)
   target_link_libraries(cvc4parser PRIVATE ${CLN_LIBRARIES})
   target_include_directories(cvc4parser PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
 endif()
-target_link_libraries(cvc4parser PRIVATE ${GMP_LIBRARIES})
-target_include_directories(cvc4parser PRIVATE $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+target_link_libraries(cvc4parser PRIVATE GMP)
 
 install(TARGETS cvc4parser
   EXPORT cvc4-targets

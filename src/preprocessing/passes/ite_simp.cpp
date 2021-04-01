@@ -26,10 +26,10 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::theory;
+using namespace CVC5;
+using namespace CVC5::theory;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace preprocessing {
 namespace passes {
 
@@ -97,7 +97,7 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
   assertionsToPreprocess->resize(before);
   size_t lastBeforeItes = assertionsToPreprocess->getRealAssertionsEnd() - 1;
   intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
-  Node newLast = CVC4::util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
+  Node newLast = CVC5::util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
   assertionsToPreprocess->replace(lastBeforeItes, newLast);
   Assert(assertionsToPreprocess->size() == before);
 }
@@ -255,4 +255,4 @@ PreprocessingPassResult ITESimp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace CVC5

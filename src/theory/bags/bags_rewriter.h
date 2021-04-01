@@ -21,7 +21,7 @@
 #include "theory/theory_rewriter.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace bags {
 
@@ -222,6 +222,6 @@ class BagsRewriter : public TheoryRewriter
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H */

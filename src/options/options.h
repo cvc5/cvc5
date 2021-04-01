@@ -31,7 +31,7 @@
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 namespace api {
 class Solver;
@@ -39,7 +39,7 @@ class Solver;
 namespace options {
   struct OptionsHolder;
   class OptionsHandler;
-}/* CVC4::options namespace */
+  }  // namespace options
 
 class OptionsListener;
 
@@ -305,6 +305,6 @@ public:
                                     std::vector<std::string>* nonoptions);
 }; /* class Options */
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__OPTIONS__OPTIONS_H */

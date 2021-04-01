@@ -27,7 +27,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class LazyCDProof;
 
@@ -358,8 +358,8 @@ class Instantiate : public QuantifiersUtil
   std::unique_ptr<CDProof> d_pfInst;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H */

@@ -15,10 +15,10 @@
 #include "theory/quantifiers/quant_relevance.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC5::kind;
+using namespace CVC5::context;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -60,6 +60,6 @@ size_t QuantRelevance::getNumQuantifiersForSymbol(Node s) const
   return it->second.size();
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5

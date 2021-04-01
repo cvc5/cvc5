@@ -19,7 +19,7 @@
 
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -52,6 +52,6 @@ class SygusStatistics
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+} // namespace CVC5
 
 #endif

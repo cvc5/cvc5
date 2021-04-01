@@ -27,10 +27,10 @@
 #include "theory/strings/word.h"
 #include "util/statistics_registry.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace CVC5;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace strings {
 
@@ -1027,6 +1027,6 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   return nm->mkNode(FORALL, bvl, body, ipl);
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC5

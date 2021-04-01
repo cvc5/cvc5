@@ -22,10 +22,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC5::kind;
+using namespace CVC5::context;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -333,4 +333,4 @@ Node SygusEvalUnfold::unfold(Node en)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

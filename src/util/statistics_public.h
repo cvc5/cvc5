@@ -19,7 +19,7 @@
 #ifndef CVC4__UTIL__STATISTICS_PUBLIC_H
 #define CVC4__UTIL__STATISTICS_PUBLIC_H
 
-namespace CVC4 {
+namespace CVC5 {
 
 class StatisticsRegistry;
 
@@ -28,6 +28,6 @@ class StatisticsRegistry;
  */
 void registerPublicStatistics(StatisticsRegistry& reg);
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

@@ -20,9 +20,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_registry.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -290,4 +290,4 @@ void SynthEngine::preregisterAssertion(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+} // namespace CVC5

@@ -16,7 +16,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace bags {
 
@@ -26,4 +26,4 @@ BagsStatistics::BagsStatistics() : d_rewrites(smtStatisticsRegistry().registerHi
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

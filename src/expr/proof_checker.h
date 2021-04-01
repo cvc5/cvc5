@@ -23,7 +23,7 @@
 #include "expr/proof_rule.h"
 #include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class ProofChecker;
 class ProofNode;
@@ -200,6 +200,6 @@ class ProofChecker
                      bool enableOutput);
 };
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__EXPR__PROOF_CHECKER_H */
