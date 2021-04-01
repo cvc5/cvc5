@@ -25,7 +25,7 @@
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_util.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace proof {
 
 class LfscPrintChannel
@@ -88,6 +88,6 @@ class LfscPrintChannelLetifyNode : public LfscPrintChannel
 };
 
 }  // namespace proof
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

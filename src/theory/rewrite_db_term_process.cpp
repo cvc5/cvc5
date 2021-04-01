@@ -16,9 +16,9 @@
 
 #include "expr/attribute.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 struct RdtpInternalAttributeId
@@ -205,4 +205,4 @@ Node RewriteDbTermProcess::computeExternal(Node n)
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

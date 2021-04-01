@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace CVC5 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -123,4 +123,4 @@ const char* veritRuletoString(VeritRule id)
 
 }  // namespace proof
 
-}  // namespace CVC5
+}  // namespace cvc5

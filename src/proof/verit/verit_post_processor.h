@@ -23,7 +23,7 @@
 #include "expr/proof_node_updater.h"
 #include "proof/verit/verit_proof_rule.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -113,6 +113,6 @@ class VeritProofPostprocess
 
 }  // namespace proof
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

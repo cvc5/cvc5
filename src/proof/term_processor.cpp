@@ -16,9 +16,9 @@
 
 #include "expr/attribute.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace proof {
 
 TermProcessor::TermProcessor(bool forceIdem) : d_forceIdem(forceIdem) {}
@@ -192,4 +192,4 @@ TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
 bool TermProcessor::shouldTraverse(Node n) { return true; }
 
 }  // namespace proof
-}  // namespace CVC5
+}  // namespace cvc5
