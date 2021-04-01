@@ -237,12 +237,10 @@ void Command::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-Node Command::termToNode(const api::Term& term)
-{
-  return term.getNode();
-}
+Node Command::termToNode(const api::Term& term) { return term.getNode(); }
 
-std::vector<Node> Command::termVectorToNodes(const std::vector<api::Term>& terms)
+std::vector<Node> Command::termVectorToNodes(
+    const std::vector<api::Term>& terms)
 {
   return api::Term::termVectorToNodes(terms);
 }
@@ -260,7 +258,8 @@ std::vector<TypeNode> Command::sortVectorToTypeNodes(
 
 TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
 {
-  return grammar==nullptr ? TypeNode::null() : sortToTypeNode(grammar->resolve());
+  return grammar == nullptr ? TypeNode::null()
+                            : sortToTypeNode(grammar->resolve());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -709,8 +708,7 @@ void SynthFunCommand::toStream(std::ostream& out,
       termToNode(d_fun),
       nodeVars,
       d_isInv,
-      d_grammar == nullptr ? TypeNode::null()
-                           : grammarToTypeNode(d_grammar));
+      d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1236,10 +1234,7 @@ void DefineSortCommand::toStream(std::ostream& out,
                                  OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDefineType(
-      out,
-      d_symbol,
-      sortVectorToTypeNodes(d_params),
-      sortToTypeNode(d_sort));
+      out, d_symbol, sortVectorToTypeNodes(d_params), sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1398,10 +1393,7 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
   }
 
   Printer::getPrinter(language)->toStreamCmdDefineFunctionRec(
-      out,
-      termVectorToNodes(d_funcs),
-      formals,
-      termVectorToNodes(d_formulas));
+      out, termVectorToNodes(d_funcs), formals, termVectorToNodes(d_formulas));
 }
 /* -------------------------------------------------------------------------- */
 /* class DeclareHeapCommand                                                   */
@@ -1478,11 +1470,10 @@ void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     if (!d_term.isNull())
     {
-      solver->getSmtEngine()->setUserAttribute(
-          d_attr,
-          termToNode(d_term),
-          termVectorToNodes(d_termValues),
-          d_strValue);
+      solver->getSmtEngine()->setUserAttribute(d_attr,
+                                               termToNode(d_term),
+                                               termVectorToNodes(d_termValues),
+                                               d_strValue);
     }
     d_commandStatus = CommandSuccess::instance();
   }

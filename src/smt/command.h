@@ -277,11 +277,13 @@ class CVC4_EXPORT Command
    * successful execution.
    */
   bool d_muted;
-protected:
+
+ protected:
   /** Helper to convert a Term to an internal Node */
   static Node termToNode(const api::Term& term);
   /** Helper to convert a vector of Terms to internal Nodes. */
-  static std::vector<Node> termVectorToNodes(const std::vector<api::Term>& terms);
+  static std::vector<Node> termVectorToNodes(
+      const std::vector<api::Term>& terms);
   /** Helper to convert a Sort to an internal TypeNode */
   static TypeNode sortToTypeNode(const api::Sort& sort);
   /** Helper to convert a vector of Sorts to internal TypeNodes. */
