@@ -73,6 +73,9 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
  * case for algorithms that introduce witness, e.g. BV/set instantiation.
+ *
+ * Additionally, we consider a third class of skolems (mkSkolemFunction) which
+ * are for convenience associated with an identifier, and not a witness term.
  */
 class SkolemManager
 {
@@ -199,6 +202,12 @@ class SkolemManager
    * matches the description of id. Skolem functions are useful for modelling
    * the behavior of partial functions, or for theory-specific inferences that
    * introduce fresh variables.
+   *
+   * A skolem function is not given a formal semantics in terms of a witness
+   * term, nor is it a purification skolem, thus it does not fall into the two
+   * categories of skolems above. This method is motivated by convenience, as
+   * the user of this method does not require constructing canonical variables
+   * for witness terms.
    *
    * The returned skolem is an ordinary skolem variable that can be used
    * e.g. in APPLY_UF terms when tn is a function type.
