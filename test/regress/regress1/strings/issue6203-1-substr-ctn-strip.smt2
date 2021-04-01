@@ -1,3 +1,6 @@
+; COMMAND-LINE: --strings-exp
+; EXPECT: sat
+(set-logic ALL)
 (declare-fun a () String)
 (declare-fun b () String)
 (declare-fun c () String)
