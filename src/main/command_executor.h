@@ -24,7 +24,7 @@
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 
@@ -65,9 +65,9 @@ class CommandExecutor
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(CVC5::Command* cmd);
+  bool doCommand(cvc5::Command* cmd);
 
-  bool doCommand(std::unique_ptr<CVC5::Command>& cmd)
+  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
   {
     return doCommand(cmd.get());
   }
@@ -101,7 +101,7 @@ class CommandExecutor
 
 protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(CVC5::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::Command* cmd);
 
 private:
   CommandExecutor();
@@ -114,6 +114,6 @@ bool solverInvoke(api::Solver* solver,
                   std::ostream* out);
 
 }  // namespace main
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif  /* CVC4__MAIN__COMMAND_EXECUTOR_H */

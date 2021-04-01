@@ -24,7 +24,7 @@
 #include "theory/inference_id.h"
 #include "util/rational.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNode;
 
@@ -199,4 +199,4 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

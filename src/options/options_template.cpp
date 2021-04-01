@@ -64,10 +64,10 @@ ${headers_module}$
 
 ${headers_handler}$
 
-using namespace CVC5;
-using namespace CVC5::options;
+using namespace cvc5;
+using namespace cvc5::options;
 
-namespace CVC5 {
+namespace cvc5 {
 
 thread_local Options* Options::s_current = NULL;
 
@@ -369,7 +369,7 @@ public:
 }  // namespace options
 
 /**
- * Parse argc/argv and put the result into a CVC5::Options.
+ * Parse argc/argv and put the result into a cvc5::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  *
@@ -601,5 +601,5 @@ std::string Options::getOption(const std::string& key) const
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
-}  // namespace CVC5
+}  // namespace cvc5
 // clang-format on

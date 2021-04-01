@@ -16,7 +16,7 @@
 
 #include "test_api.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -1422,7 +1422,7 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   {
     d_solver.assertFormula(t);
   }
-  CVC5::api::Result res = d_solver.checkSat();
+  cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
 }
 
@@ -1533,7 +1533,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   solver->declareSeparationHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
-  Term heap = solver->mkTerm(CVC5::api::Kind::SEP_PTO, p, x);
+  Term heap = solver->mkTerm(cvc5::api::Kind::SEP_PTO, p, x);
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
   solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
@@ -2334,4 +2334,4 @@ TEST_F(TestApiBlackSolver, tupleProject)
 }
 
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

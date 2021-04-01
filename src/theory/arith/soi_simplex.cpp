@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -1024,4 +1024,4 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

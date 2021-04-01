@@ -26,7 +26,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class DeltaRational;
 
@@ -46,20 +46,20 @@ class DeltaRationalException : public Exception {
  */
 class DeltaRational {
 private:
- CVC5::Rational c;
- CVC5::Rational k;
+ cvc5::Rational c;
+ cvc5::Rational k;
 
 public:
   DeltaRational() : c(0,1), k(0,1) {}
-  DeltaRational(const CVC5::Rational& base) : c(base), k(0, 1) {}
-  DeltaRational(const CVC5::Rational& base, const CVC5::Rational& coeff)
+  DeltaRational(const cvc5::Rational& base) : c(base), k(0, 1) {}
+  DeltaRational(const cvc5::Rational& base, const cvc5::Rational& coeff)
       : c(base), k(coeff)
   {
   }
 
-  const CVC5::Rational& getInfinitesimalPart() const { return k; }
+  const cvc5::Rational& getInfinitesimalPart() const { return k; }
 
-  const CVC5::Rational& getNoninfinitesimalPart() const { return c; }
+  const cvc5::Rational& getNoninfinitesimalPart() const { return c; }
 
   int sgn() const {
     int s = getNoninfinitesimalPart().sgn();
@@ -97,14 +97,14 @@ public:
   }
 
   DeltaRational operator+(const DeltaRational& other) const{
-    CVC5::Rational tmpC = c + other.c;
-    CVC5::Rational tmpK = k + other.k;
+    cvc5::Rational tmpC = c + other.c;
+    cvc5::Rational tmpK = k + other.k;
     return DeltaRational(tmpC, tmpK);
   }
 
   DeltaRational operator*(const Rational& a) const{
-    CVC5::Rational tmpC = a * c;
-    CVC5::Rational tmpK = a * k;
+    cvc5::Rational tmpC = a * c;
+    cvc5::Rational tmpK = a * k;
     return DeltaRational(tmpC, tmpK);
   }
 
@@ -127,7 +127,7 @@ public:
 
 
   DeltaRational operator-(const DeltaRational& a) const{
-    CVC5::Rational negOne(CVC5::Integer(-1));
+    cvc5::Rational negOne(cvc5::Integer(-1));
     return *(this) + (a * negOne);
   }
 
@@ -136,14 +136,14 @@ public:
   }
 
   DeltaRational operator/(const Rational& a) const{
-    CVC5::Rational tmpC = c / a;
-    CVC5::Rational tmpK = k / a;
+    cvc5::Rational tmpC = c / a;
+    cvc5::Rational tmpK = k / a;
     return DeltaRational(tmpC, tmpK);
   }
 
   DeltaRational operator/(const Integer& a) const{
-    CVC5::Rational tmpC = c / a;
-    CVC5::Rational tmpK = k / a;
+    cvc5::Rational tmpC = c / a;
+    cvc5::Rational tmpK = k / a;
     return DeltaRational(tmpC, tmpK);
   }
 
@@ -204,7 +204,7 @@ public:
     return *(this);
   }
 
-  DeltaRational& operator*=(const CVC5::Rational& a)
+  DeltaRational& operator*=(const cvc5::Rational& a)
   {
     c *=  a;
     k *=  a;
@@ -299,4 +299,4 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& n);
 
-}  // namespace CVC5
+}  // namespace cvc5

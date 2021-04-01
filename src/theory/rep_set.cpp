@@ -18,9 +18,9 @@
 #include "theory/type_enumerator.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 void RepSet::clear(){
@@ -462,4 +462,4 @@ void RepSetIterator::debugPrintSmall( const char* c ){
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

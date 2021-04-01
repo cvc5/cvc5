@@ -20,7 +20,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
@@ -126,6 +126,6 @@ class PfManager
 }; /* class SmtEngine */
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__PROOF_MANAGER_H */

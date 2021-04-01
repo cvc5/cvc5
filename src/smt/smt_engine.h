@@ -34,7 +34,7 @@
 #include "util/sexpr.h"
 #include "util/statistics.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
@@ -124,10 +124,10 @@ namespace theory {
 
 class CVC4_EXPORT SmtEngine
 {
-  friend class ::CVC5::api::Solver;
-  friend class ::CVC5::smt::SmtEngineState;
-  friend class ::CVC5::smt::SmtScope;
-  friend class ::CVC5::LogicRequest;
+  friend class ::cvc5::api::Solver;
+  friend class ::cvc5::smt::SmtEngineState;
+  friend class ::cvc5::smt::SmtScope;
+  friend class ::cvc5::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -219,7 +219,7 @@ class CVC4_EXPORT SmtEngine
   bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
-  CVC5::SExpr getInfo(const std::string& key) const;
+  cvc5::SExpr getInfo(const std::string& key) const;
 
   /**
    * Set an aspect of the current SMT execution environment.
@@ -1154,6 +1154,6 @@ class CVC4_EXPORT SmtEngine
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT_ENGINE_H */

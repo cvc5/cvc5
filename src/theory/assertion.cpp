@@ -16,7 +16,7 @@
 
 #include "theory/assertion.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& out, const Assertion& a) {
@@ -24,4 +24,4 @@ std::ostream& operator<<(std::ostream& out, const Assertion& a) {
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

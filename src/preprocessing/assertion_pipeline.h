@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofGenerator;
 namespace smt {
@@ -198,6 +198,6 @@ class AssertionPipeline
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */

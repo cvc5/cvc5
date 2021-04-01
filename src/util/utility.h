@@ -24,7 +24,7 @@
 #include <memory>
 #include <string>
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * Using std::find_if(), finds the first iterator in [first,last)
@@ -77,6 +77,6 @@ void container_to_stream(std::ostream& out,
  */
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__UTILITY_H */

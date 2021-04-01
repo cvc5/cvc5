@@ -32,10 +32,10 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
-using namespace CVC5;
-using namespace CVC5::theory;
+using namespace cvc5;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -336,4 +336,4 @@ PreprocessingPassResult Ackermann::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5

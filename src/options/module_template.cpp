@@ -19,7 +19,7 @@
 #include "base/check.h"
 
 // clang-format off
-namespace CVC5 {
+namespace cvc5 {
 
 ${accs}$
 
@@ -31,5 +31,5 @@ ${defs}$
 ${modes}$
 
 }  // namespace options
-}  // namespace CVC5
+}  // namespace cvc5
 // clang-format on

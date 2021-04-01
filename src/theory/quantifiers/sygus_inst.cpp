@@ -28,7 +28,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -553,4 +553,4 @@ void SygusInst::addCeLemma(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

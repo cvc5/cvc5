@@ -19,7 +19,7 @@
 #include "theory/arith/tableau_sizes.h"
 #include "theory/arith/tableau.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -33,4 +33,4 @@ uint32_t TableauSizes::getColumnLength(ArithVar x) const {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

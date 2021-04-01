@@ -25,7 +25,7 @@
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -52,7 +52,7 @@ class TermRegistry;
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
-  friend class ::CVC5::TheoryEngine;
+  friend class ::cvc5::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
@@ -209,6 +209,6 @@ public:
 };/* class QuantifiersEngine */
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS_ENGINE_H */

@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -422,6 +422,6 @@ class TermDb : public QuantifiersUtil {
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -693,4 +693,4 @@ bool TheoryUF::isHigherOrderType(TypeNode tn)
 
 }  // namespace uf
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5
