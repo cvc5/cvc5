@@ -18,7 +18,6 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
-#include "expr/skolem_manager.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
@@ -428,12 +427,12 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     {
       // partial function: division, where we treat the skolem function as
       // a constant
-      skolem = sm->mkSkolemFunction(name, tn);
+      skolem = sm->mkSkolemFunction(id, tn);
     }
     else
     {
       // partial function: division
-      skolem = sm->mkSkolemFunction(name,
+      skolem = sm->mkSkolemFunction(id,
                             nm->mkFunctionType(tn, tn));
     }
     // cache it

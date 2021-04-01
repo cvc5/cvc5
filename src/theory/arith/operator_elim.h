@@ -20,6 +20,7 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
+#include "expr/skolem_manager.h"
 
 namespace CVC5 {
 
@@ -72,8 +73,8 @@ class OperatorElim : public EagerProofGenerator
    * stores Skolem constants instead of Skolem functions, meaning that the
    * function-ness of e.g. division by zero is ignored.
    *
-   * Note that this cache is used only for performance reasons. The skolem
-   * functions live in SkolemManager.
+   * Note that this cache is used only for performance reasons. Conceptually, 
+   * these skolem functions actually live in SkolemManager.
    */
   std::map<SkolemFunId, Node> d_arith_skolem;
   /**

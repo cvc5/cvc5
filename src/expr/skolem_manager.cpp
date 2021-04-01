@@ -14,6 +14,8 @@
 
 #include "expr/skolem_manager.h"
 
+#include <sstream>
+
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
@@ -194,6 +196,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
+    NodeManager* nm = NodeManager::currentNM();
     std::stringstream ss;
     ss << "SKOLEM_FUN_" << id;
     Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function");
