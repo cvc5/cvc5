@@ -36,37 +36,14 @@ template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
 
-class AssertCommand;
-class BlockModelValuesCommand;
-class CheckSatCommand;
-class CheckSatAssumingCommand;
-class DatatypeDeclarationCommand;
-class DeclareFunctionCommand;
-class DeclareHeapCommand;
-class DeclareSortCommand;
-class DeclareSygusVarCommand;
-class DefineFunctionCommand;
-class DefineFunctionRecCommand;
-class DefineSortCommand;
+class Command;
 class DType;
 class DTypeConstructor;
 class DTypeSelector;
-class GetAbductCommand;
-class GetInterpolCommand;
-class GetModelCommand;
-class GetQuantifierEliminationCommand;
-class GetUnsatCoreCommand;
-class GetValueCommand;
 class NodeManager;
-class SetUserAttributeCommand;
-class SimplifyCommand;
 class SmtEngine;
-class SygusConstraintCommand;
-class SygusInvConstraintCommand;
-class SynthFunCommand;
 class TypeNode;
 class Options;
-class QueryCommand;
 class Random;
 class Result;
 
@@ -239,16 +216,7 @@ class Datatype;
  */
 class CVC4_EXPORT Sort
 {
-  friend class CVC5::DatatypeDeclarationCommand;
-  friend class CVC5::DeclareFunctionCommand;
-  friend class CVC5::DeclareHeapCommand;
-  friend class CVC5::DeclareSortCommand;
-  friend class CVC5::DeclareSygusVarCommand;
-  friend class CVC5::DefineSortCommand;
-  friend class CVC5::GetAbductCommand;
-  friend class CVC5::GetInterpolCommand;
-  friend class CVC5::GetModelCommand;
-  friend class CVC5::SynthFunCommand;
+  friend class CVC5::Command;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
@@ -889,25 +857,7 @@ class CVC4_EXPORT Op
  */
 class CVC4_EXPORT Term
 {
-  friend class CVC5::AssertCommand;
-  friend class CVC5::BlockModelValuesCommand;
-  friend class CVC5::CheckSatCommand;
-  friend class CVC5::CheckSatAssumingCommand;
-  friend class CVC5::DeclareSygusVarCommand;
-  friend class CVC5::DefineFunctionCommand;
-  friend class CVC5::DefineFunctionRecCommand;
-  friend class CVC5::GetAbductCommand;
-  friend class CVC5::GetInterpolCommand;
-  friend class CVC5::GetModelCommand;
-  friend class CVC5::GetQuantifierEliminationCommand;
-  friend class CVC5::GetUnsatCoreCommand;
-  friend class CVC5::GetValueCommand;
-  friend class CVC5::SetUserAttributeCommand;
-  friend class CVC5::SimplifyCommand;
-  friend class CVC5::SygusConstraintCommand;
-  friend class CVC5::SygusInvConstraintCommand;
-  friend class CVC5::SynthFunCommand;
-  friend class CVC5::QueryCommand;
+  friend class CVC5::Command;
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
@@ -2135,9 +2085,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_EXPORT Grammar
 {
-  friend class CVC5::GetAbductCommand;
-  friend class CVC5::GetInterpolCommand;
-  friend class CVC5::SynthFunCommand;
+  friend class CVC5::Command;
   friend class Solver;
 
  public:

@@ -277,6 +277,12 @@ class CVC4_EXPORT Command
    * successful execution.
    */
   bool d_muted;
+protected:
+  /** Helper to convert a vector of Terms to internal Nodes. */
+  static std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of Sorts to internal TypeNodes. */
+  static std::vector<TypeNode> sortVectorToTypeNodes(
+      const std::vector<Sort>& sorts);
 }; /* class Command */
 
 /**
