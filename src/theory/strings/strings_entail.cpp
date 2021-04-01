@@ -517,7 +517,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       n1cmp = utils::decomposeSubstrChain(n1cmp, sss, sls);
       Trace("strings-rewrite-debug2")
           << "stripConstantEndpoints : Compare " << n1cmp << " " << n2[index1]
-          << ", dir = " << dir << std::endl;
+          << ", dir = " << r << ", sss/sls=" << sss << "/" << sls << std::endl;
       if (n1cmp.isConst())
       {
         Node s = n1cmp;
@@ -536,6 +536,8 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // can remove everything
               //   e.g. str.contains( "abc", str.++( "ba", x ) ) -->
               //   str.contains( "", str.++( "ba", x ) )
+              //   or std.contains( str.substr( "abc", x, y ), "d" ) --->
+              //   str.contains( "", "d" )
               removeComponent = true;
             }
             else if (sss.empty())  // only if not substr
@@ -546,15 +548,11 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // str.contains( str.++( "c", x ), str.++( "cd", y ) )
               overlap = r == 0 ? Word::overlap(s, t) : Word::overlap(t, s);
             }
-            else
-            {
-              // if we are looking at a substring, we can remove the component
-              // if there is no overlap
-              //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
-              //        --> str.contains( x, "a" )
-              removeComponent =
-                  ((r == 0 ? Word::overlap(s, t) : Word::overlap(t, s)) == 0);
-            }
+            // note that we cannot process substring here, since t may
+            // match only part of s. Consider:
+            // (str.++ "C" (str.substr "AB" x y)), "CB"
+            // where "AB" and "CB" have no overlap, but "C" is not part of what
+            // is matched with "AB".
           }
           else if (sss.empty())  // only if not substr
           {
@@ -572,6 +570,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         {
           // inconclusive
         }
+        Trace("strings-rewrite-debug2") << "rem = " << removeComponent << ", overlap = " << overlap << std::endl;
         // process the overlap
         if (overlap < slen)
         {
@@ -635,6 +634,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       }
       if (removeComponent)
       {
+        Trace("strings-rewrite-debug2") << "...remove component" << std::endl;
         // can drop entire first (resp. last) component
         if (r == 0)
         {
