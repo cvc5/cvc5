@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class NodeCommand;
 
@@ -75,6 +75,6 @@ class DumpManager
 };
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

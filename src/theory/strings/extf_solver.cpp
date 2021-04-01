@@ -20,10 +20,10 @@
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
-using namespace CVC5::context;
-using namespace CVC5::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -724,4 +724,4 @@ bool StringsExtfCallback::getCurrentSubstitution(
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

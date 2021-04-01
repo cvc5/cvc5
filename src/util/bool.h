@@ -19,7 +19,7 @@
 #ifndef CVC4__BOOL_H
 #define CVC4__BOOL_H
 
-namespace CVC5 {
+namespace cvc5 {
 
 struct BoolHashFunction {
   inline size_t operator()(bool b) const {
@@ -27,6 +27,6 @@ struct BoolHashFunction {
   }
 };/* struct BoolHashFunction */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__BOOL_H */

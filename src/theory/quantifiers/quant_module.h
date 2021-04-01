@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 class TermDb;
@@ -174,6 +174,6 @@ class QuantifiersModule
 }; /* class QuantifiersModule */
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANT_UTIL_H */

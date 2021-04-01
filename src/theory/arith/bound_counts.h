@@ -22,7 +22,7 @@
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -231,4 +231,4 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

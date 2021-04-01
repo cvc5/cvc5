@@ -41,7 +41,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class OutputChannel;
@@ -302,6 +302,6 @@ class ExtTheory
 };
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__EXT_THEORY_H */

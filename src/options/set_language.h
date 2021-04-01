@@ -24,7 +24,7 @@
 #include "cvc4_export.h"
 #include "options/language.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace language {
 
 /**
@@ -91,6 +91,6 @@ private:
 std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_EXPORT;
 
 }  // namespace language
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__OPTIONS__SET_LANGUAGE_H */

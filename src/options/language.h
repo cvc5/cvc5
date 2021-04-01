@@ -24,7 +24,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace language {
 
 namespace input {
@@ -177,6 +177,6 @@ InputLanguage toInputLanguage(std::string language) CVC4_EXPORT;
 OutputLanguage toOutputLanguage(std::string language) CVC4_EXPORT;
 
 }  // namespace language
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__LANGUAGE_H */

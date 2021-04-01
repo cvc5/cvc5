@@ -23,7 +23,7 @@
 #include "theory/arith/rewrites.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -73,6 +73,6 @@ class ArithRewriter : public TheoryRewriter
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__ARITH_REWRITER_H */
