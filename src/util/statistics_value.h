@@ -256,6 +256,8 @@ struct StatisticReferenceValue : StatisticBaseValue
       }
       else
       {
+        // this else branch is required to ensure compilation.
+        // if T is unsigned int, this return statement triggers a compiler error
         return *d_value;
       }
     }
