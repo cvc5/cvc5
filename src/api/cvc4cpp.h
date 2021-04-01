@@ -41,6 +41,7 @@ class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class NodeManager;
+class ResetCommand;
 class SmtEngine;
 class TypeNode;
 class Options;
@@ -2270,6 +2271,7 @@ class CVC4_EXPORT Solver
   friend class DatatypeSelector;
   friend class Grammar;
   friend class Op;
+  friend class CVC5::ResetCommand;
   friend class Sort;
   friend class Term;
 
@@ -3641,6 +3643,8 @@ class CVC4_EXPORT Solver
   /** Increment the vars stats (if 'is_var') or consts stats counter. */
   void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
 
+  /** Keep a copy of the original option settings (for resets). */
+  std::unique_ptr<Options> d_originalOptions;
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;
   /** The statistics collected on the Api level. */
