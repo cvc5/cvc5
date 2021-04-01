@@ -2323,7 +2323,7 @@ class CVC4_EXPORT Solver
   friend class DatatypeSelector;
   friend class Grammar;
   friend class Op;
-  friend class CVC4::ResetCommand;
+  friend class CVC5::ResetCommand;
   friend class Sort;
   friend class Term;
 
