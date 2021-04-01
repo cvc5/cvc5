@@ -295,7 +295,7 @@ class CVC4_EXPORT Command
   /** Helper to convert a Grammar to an internal TypeNode */
   static TypeNode grammarToTypeNode(api::Grammar* grammar);
   /** Get original options from the solver (for ResetCommand) */
-  Options& getOriginalOptionsFrom(api::Solver * s);
+  Options& getOriginalOptionsFrom(api::Solver* s);
 }; /* class Command */
 
 /**
