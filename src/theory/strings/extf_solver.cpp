@@ -721,16 +721,30 @@ bool StringsExtfCallback::getCurrentSubstitution(
   return true;
 }
 
-void ExtfSolver::debugPrintModel(std::ostream& os)
+std::string ExtfSolver::debugPrintModel()
 {
-  os << "==== Strings ext functions" << std::endl;
+  std::stringstream ss;
+  std::vector<Node> extf;
+  d_extt.getTerms(extf);
+  // each extended function should have at least one annotation below
   for (const Node& n : extf)
   {
-    os << "- " << n;
-    os << ", model active = " << d_extfInfoTmp[n].d_modelActive;
-    os << ", reduced = " << (d_reduced.find(n)!=d_reduced.end());
-    os << std::endl;
+    ss << "- " << n;
+    if (!d_extt.isActive(n))
+    {
+      ss << " :extt-inactive";
+    }
+    if (!d_extfInfoTmp[n].d_modelActive)
+    {
+      ss << " :model-inactive";
+    }
+    if (d_reduced.find(n)!=d_reduced.end())
+    {
+      ss << " :reduced";
+    }
+    ss << std::endl;
   }
+  return ss.str();
 }
 
 }  // namespace strings

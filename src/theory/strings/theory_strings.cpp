@@ -206,16 +206,12 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   if (Trace.isOn("strings-debug-model"))
   {
     Trace("strings-debug-model") << "TheoryStrings::collectModelValues" << std::endl;
-    std::stringstream ss;
-    d_esolver.debugPrintModel(ss);
-    Trace("strings-debug-model") << ss.str();
+    Trace("strings-debug-model") << "Equivalence classes are:" << std::endl;
+    Trace("strings-debug-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model") << "Extended functions are:" << std::endl;
+    Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
-  if (Trace.isOn("strings-model"))
-  {
-    Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
-    Trace("strings-model") << "Equivalence classes are:" << std::endl;
-    Trace("strings-model") << debugPrintStringsEqc() << std::endl;
-  }
+  Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes
