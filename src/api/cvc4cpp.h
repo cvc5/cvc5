@@ -2085,13 +2085,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_EXPORT Grammar
 {
-<<<<<<< HEAD
-  friend class CVC5::Command;
-=======
-  friend class cvc5::GetAbductCommand;
-  friend class cvc5::GetInterpolCommand;
-  friend class cvc5::SynthFunCommand;
->>>>>>> 71699a551d207ab373c733d8ea83a5b071ed99ee
+  friend class cvc5::Command;
   friend class Solver;
 
  public:
