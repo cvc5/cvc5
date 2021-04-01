@@ -28,7 +28,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/rational.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -1404,6 +1404,6 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NORMAL_FORM_H */

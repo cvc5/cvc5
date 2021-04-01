@@ -33,7 +33,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -423,6 +423,6 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__DIO_SOLVER_H */

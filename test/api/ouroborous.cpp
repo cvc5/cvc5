@@ -34,9 +34,9 @@
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 
-using namespace CVC5;
-using namespace CVC5::parser;
-using namespace CVC5::language;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::language;
 
 int runTest();
 

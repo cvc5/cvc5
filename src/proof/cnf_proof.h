@@ -28,7 +28,7 @@
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
   class CnfStream;
   }  // namespace prop
@@ -46,7 +46,7 @@ typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
 class CnfProof {
 protected:
- CVC5::prop::CnfStream* d_cnfStream;
+ cvc5::prop::CnfStream* d_cnfStream;
 
  /** Map from ClauseId to the assertion that lead to adding this clause **/
  ClauseIdToNode d_clauseToAssertion;
@@ -67,7 +67,7 @@ protected:
 
  std::string d_name;
 public:
- CnfProof(CVC5::prop::CnfStream* cnfStream,
+ CnfProof(cvc5::prop::CnfStream* cnfStream,
           context::Context* ctx,
           const std::string& name);
  ~CnfProof();
@@ -95,6 +95,6 @@ public:
  Node getAssertionForClause(ClauseId clause);
 };/* class CnfProof */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__CNF_PROOF_H */

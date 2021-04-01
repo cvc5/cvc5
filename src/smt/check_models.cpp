@@ -23,9 +23,9 @@
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC5::theory;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 CheckModels::CheckModels(SmtSolver& s) : d_smt(s) {}
@@ -148,4 +148,4 @@ void CheckModels::checkModel(Model* m,
 }
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5

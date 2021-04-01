@@ -22,7 +22,7 @@
 #ifndef CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
 #define CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 #ifdef __cplusplus
@@ -46,6 +46,6 @@ BoundedTokenFactoryNew(pANTLR3_INPUT_STREAM input,ANTLR3_UINT32 size);
 #endif
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H */

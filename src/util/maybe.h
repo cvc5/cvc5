@@ -31,7 +31,7 @@
 
 #include "base/exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 template <class T>
 class Maybe
@@ -84,6 +84,6 @@ inline std::ostream& operator<<(std::ostream& out, const Maybe<T>& m){
   return out;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__UTIL__MAYBE_H */

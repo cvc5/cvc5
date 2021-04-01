@@ -19,9 +19,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -324,4 +324,4 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

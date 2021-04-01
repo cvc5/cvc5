@@ -91,7 +91,7 @@
 #include "context/cdhashmap_forward.h"
 #include "context/context.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 
 // Auxiliary class: almost the same as CDO (see cdo.h)
@@ -453,6 +453,6 @@ public:
 };/* class CDHashMap<> */
 
 }  // namespace context
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__CONTEXT__CDHASHMAP_H */

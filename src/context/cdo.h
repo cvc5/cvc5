@@ -21,7 +21,7 @@
 
 #include "context/context.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 
 /**
@@ -176,6 +176,6 @@ public:
 };/* class CDO */
 
 }  // namespace context
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__CONTEXT__CDO_H */

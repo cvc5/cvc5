@@ -22,7 +22,7 @@
 #include "smt/assertions.h"
 #include "util/result.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -150,6 +150,6 @@ class OptimizationSolver
 };
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__OPTIMIZATION_SOLVER_H */

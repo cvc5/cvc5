@@ -21,7 +21,7 @@
 #include "base/check.h"
 #include "context/context.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 
 
@@ -388,4 +388,4 @@ void Scope::enqueueToGarbageCollect(ContextObj* obj) {
 }
 
 }  // namespace context
-}  // namespace CVC5
+}  // namespace cvc5

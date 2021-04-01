@@ -16,7 +16,7 @@
 #include "smt/optimization_solver.h"
 #include "test_smt.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace smt;
@@ -175,4 +175,4 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
 }
 
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

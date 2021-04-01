@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -704,4 +704,4 @@ void DenseVector::print(ostream& out, const DenseMap<Rational>& v){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

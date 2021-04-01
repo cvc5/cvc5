@@ -25,9 +25,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -36,8 +36,8 @@ RegExpOpr::RegExpOpr(SkolemCache* sc)
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
                                                      std::vector<Node>{})),
-      d_zero(NodeManager::currentNM()->mkConst(::CVC5::Rational(0))),
-      d_one(NodeManager::currentNM()->mkConst(::CVC5::Rational(1))),
+      d_zero(NodeManager::currentNM()->mkConst(::cvc5::Rational(0))),
+      d_one(NodeManager::currentNM()->mkConst(::cvc5::Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
       d_sigma_star(
@@ -266,7 +266,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 }
 
 // 0-unknown, 1-yes, 2-no
-int RegExpOpr::derivativeS(Node r, CVC5::String c, Node& retNode)
+int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
 {
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
@@ -302,8 +302,8 @@ int RegExpOpr::derivativeS(Node r, CVC5::String c, Node& retNode)
         break;
       }
       case kind::REGEXP_RANGE: {
-        CVC5::String a = r[0].getConst<String>();
-        CVC5::String b = r[1].getConst<String>();
+        cvc5::String a = r[0].getConst<String>();
+        cvc5::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -521,7 +521,7 @@ int RegExpOpr::derivativeS(Node r, CVC5::String c, Node& retNode)
   return ret;
 }
 
-Node RegExpOpr::derivativeSingle(Node r, CVC5::String c)
+Node RegExpOpr::derivativeSingle(Node r, cvc5::String c)
 {
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
@@ -555,8 +555,8 @@ Node RegExpOpr::derivativeSingle(Node r, CVC5::String c)
         break;
       }
       case kind::REGEXP_RANGE: {
-        CVC5::String a = r[0].getConst<String>();
-        CVC5::String b = r[1].getConst<String>();
+        cvc5::String a = r[0].getConst<String>();
+        cvc5::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -1314,7 +1314,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             std::map< PairNodes, Node > cache2(cache);
             cache2[p] = NodeManager::currentNM()->mkNode(
                 kind::REGEXP_RV,
-                NodeManager::currentNM()->mkConst(CVC5::Rational(cnt)));
+                NodeManager::currentNM()->mkConst(cvc5::Rational(cnt)));
             rt = intersectInternal(r1l, r2l, cache2, cnt+1);
             cacheX[ pp ] = rt;
           }
@@ -1619,4 +1619,4 @@ Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

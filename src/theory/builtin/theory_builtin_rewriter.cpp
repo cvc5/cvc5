@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -504,4 +504,4 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

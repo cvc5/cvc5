@@ -55,13 +55,13 @@ if(NOT Dummy_FOUND_SYSTEM)
     # declare some release, version, tag, commit
     set(Dummy_VERSION "1.2.3")
     # do whatever is necessary
-    # - set the proper install prefix
+    # - use some common config
     # - prefer URL to GIT (to avoid rebuilds)
     # - only build / install static versions if possible
     # - pass ${TOOLCHAIN_PREFIX}
     ExternalProject_Add(
         Dummy-EP
-        PREFIX ${DEPS_PREFIX}
+        ${COMMON_EP_CONFIG}
         URL https://dummy.org/download/dummy-${Dummy_VERSION}.tar.bz2
         URL_HASH SHA1=abc123
         CMAKE_ARGS

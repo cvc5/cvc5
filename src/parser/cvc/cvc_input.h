@@ -23,10 +23,10 @@
 #include "parser/cvc/CvcLexer.h"
 #include "parser/cvc/CvcParser.h"
 
-// extern void CvcParserSetAntlrParser(CVC5::parser::AntlrParser*
+// extern void CvcParserSetAntlrParser(cvc5::parser::AntlrParser*
 // newAntlrParser);
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -73,6 +73,6 @@ class CvcInput : public AntlrInput {
 }; // class CvcInput
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__CVC_INPUT_H */
