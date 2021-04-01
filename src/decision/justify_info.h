@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 /** A pair indicating a node and its desired value */
 using JustifyNode = std::pair<TNode, prop::SatValue>;
@@ -52,6 +52,6 @@ class JustifyInfo
   context::CDO<size_t> d_childIndex;
 };
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__JUSTIFY_INFO_H */

@@ -16,7 +16,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 JustifyStatistics::JustifyStatistics()
     : d_numStatusNoDecision("JustifyStrategy::StatusNoDecision", 0),
@@ -44,4 +44,4 @@ JustifyStatistics::~JustifyStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_maxSkolemDefsSize);
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

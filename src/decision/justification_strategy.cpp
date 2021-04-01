@@ -16,10 +16,10 @@
 
 #include "prop/skolem_def_manager.h"
 
-using namespace CVC5::kind;
-using namespace CVC5::prop;
+using namespace cvc5::kind;
+using namespace cvc5::prop;
 
-namespace CVC5 {
+namespace cvc5 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
@@ -637,4 +637,4 @@ bool JustificationStrategy::isTheoryAtom(TNode n)
          && (k != EQUAL || !n[0].getType().isBoolean());
 }
 
-}  // namespace CVC5
+}  // namespace cvc5
