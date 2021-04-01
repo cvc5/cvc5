@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -185,6 +185,6 @@ private:
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* SRC_THEORY_SETS_THEORY_SETS_RELS_H_ */

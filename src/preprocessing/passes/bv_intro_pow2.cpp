@@ -25,12 +25,12 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-using namespace CVC5::theory;
+using namespace cvc5::theory;
 
 namespace {
 
@@ -103,4 +103,4 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
 }  // namespace passes
 }  // namespace preprocessing
 
-}  // namespace CVC5
+}  // namespace cvc5

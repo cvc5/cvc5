@@ -19,9 +19,9 @@
 #include "theory/sets/theory_sets_private.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -595,4 +595,4 @@ bool SolverState::merge(TNode t1,
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

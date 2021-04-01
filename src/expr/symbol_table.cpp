@@ -28,11 +28,11 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
-using ::CVC5::context::CDHashMap;
-using ::CVC5::context::CDHashSet;
-using ::CVC5::context::Context;
+using ::cvc5::context::CDHashMap;
+using ::cvc5::context::CDHashSet;
+using ::cvc5::context::Context;
 using ::std::copy;
 using ::std::endl;
 using ::std::ostream_iterator;
@@ -679,4 +679,4 @@ size_t SymbolTable::getLevel() const { return d_implementation->getLevel(); }
 void SymbolTable::reset() { d_implementation->reset(); }
 void SymbolTable::resetAssertions() { d_implementation->resetAssertions(); }
 
-}  // namespace CVC5
+}  // namespace cvc5

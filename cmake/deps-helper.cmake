@@ -6,6 +6,22 @@ set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
 # (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")
 
+set(COMMON_EP_CONFIG
+    PREFIX ${DEPS_PREFIX}
+    LOG_DOWNLOAD ON
+    LOG_UPDATE ON
+    LOG_CONFIGURE ON
+    LOG_BUILD ON
+    LOG_INSTALL ON
+)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14")
+    set(COMMON_EP_CONFIG ${COMMON_EP_CONFIG}
+        LOG_PATCH ON
+        LOG_MERGED_STDOUTERR ON
+        LOG_OUTPUT_ON_FAILURE ON
+    )
+endif()
+
 macro(check_system_version name)
     # find_package sets this variable when called with a version
     # https://cmake.org/cmake/help/latest/command/find_package.html#version-selection

@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
@@ -110,4 +110,4 @@ bool NodeTemplate<ref_count>::isConst() const {
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
-}  // namespace CVC5
+}  // namespace cvc5

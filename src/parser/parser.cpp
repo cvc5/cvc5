@@ -33,9 +33,9 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
@@ -909,4 +909,4 @@ api::Term Parser::mkStringConstant(const std::string& s)
 }
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5

@@ -30,7 +30,7 @@
 #include "util/random.h"
 #include "util/sampler.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -845,4 +845,4 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

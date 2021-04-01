@@ -18,7 +18,7 @@
 #include "expr/attribute.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -46,4 +46,4 @@ void setMostFrequentValueCount(TNode store, uint64_t count) {
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

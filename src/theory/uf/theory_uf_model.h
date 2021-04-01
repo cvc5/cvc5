@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -114,6 +114,6 @@ public:
 
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

@@ -38,7 +38,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
     # Download antlr generator jar
     ExternalProject_Add(
         ANTLR3-EP-jar
-        PREFIX ${DEPS_PREFIX}
+        ${COMMON_EP_CONFIG}
         URL https://www.antlr3.org/download/antlr-${ANTLR3_VERSION}-complete.jar
         URL_HASH SHA1=5cab59d859caa6598e28131d30dd2e89806db57f
         DOWNLOAD_NO_EXTRACT ON
@@ -53,7 +53,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
     # Download config guess
     ExternalProject_Add(
         ANTLR3-EP-config.guess
-        PREFIX ${DEPS_PREFIX}
+        ${COMMON_EP_CONFIG}
         URL "http://git.savannah.gnu.org/gitweb/?p=config.git\\\;a=blob_plain\\\;f=config.guess\\\;hb=HEAD"
         DOWNLOAD_NAME config.guess
         DOWNLOAD_NO_EXTRACT ON
@@ -72,16 +72,14 @@ if(NOT ANTLR3_FOUND_SYSTEM)
     # Download, build and install antlr3 runtime
     ExternalProject_Add(
         ANTLR3-EP-runtime
+        ${COMMON_EP_CONFIG}
         DEPENDS ANTLR3-EP-config.guess
-        PREFIX ${DEPS_PREFIX}
         URL https://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz
         URL_HASH SHA1=faa9ab43ab4d3774f015471c3f011cc247df6a18
         CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy 
             <SOURCE_DIR>/../config.guess <SOURCE_DIR>/config.guess
-        COMMAND sed "s/avr32 \\\\/avr32 | aarch64 \\\\/"
-            <SOURCE_DIR>/config.sub > <SOURCE_DIR>/config.sub.new
-        COMMAND ${CMAKE_COMMAND} -E copy
-            <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
+        COMMAND sed -i.orig "s/avr | avr32/avr | aarch64 | avr32/"
+            <SOURCE_DIR>/config.sub
         COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
         COMMAND <SOURCE_DIR>/configure
             --with-pic

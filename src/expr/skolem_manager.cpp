@@ -18,9 +18,9 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
@@ -298,4 +298,4 @@ Node SkolemManager::mkSkolemInternal(Node w,
   return k;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

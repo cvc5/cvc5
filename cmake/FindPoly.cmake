@@ -19,7 +19,7 @@ find_path(Poly_INCLUDE_DIR NAMES poly/poly.h)
 find_library(Poly_LIBRARIES NAMES poly)
 find_library(PolyXX_LIBRARIES NAMES polyxx)
 
-set(Dummy_FOUND_SYSTEM FALSE)
+set(Poly_FOUND_SYSTEM FALSE)
 if(Poly_INCLUDE_DIR
    AND Poly_LIBRARIES
    AND PolyXX_LIBRARIES
@@ -65,7 +65,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   ExternalProject_Add(
     Poly-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
     URL_HASH SHA1=2e79d5220d3ecbb40811463fcf12c5ddbd4b9f30
     DOWNLOAD_NAME libpoly.tar.gz

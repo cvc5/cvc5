@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -188,4 +188,4 @@ std::ostream& operator<<(std::ostream& out,  WitnessImprovement w){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

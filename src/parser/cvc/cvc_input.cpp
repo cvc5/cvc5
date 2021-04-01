@@ -24,7 +24,7 @@
 #include "parser/cvc/CvcParser.h"
 #include "parser/parser_exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=3 */
@@ -73,4 +73,4 @@ pANTLR3_LEXER CvcInput::getLexer() {
 */
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5

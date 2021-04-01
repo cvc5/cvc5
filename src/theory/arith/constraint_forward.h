@@ -24,7 +24,7 @@
 #include "cvc4_private.h"
 #include <vector>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -46,6 +46,6 @@ static const RationalVectorP RationalVectorPSentinel = NULL;
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H */

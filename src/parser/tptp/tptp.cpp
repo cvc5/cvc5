@@ -28,7 +28,7 @@
 #undef true
 #undef false
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 Tptp::Tptp(api::Solver* solver,
@@ -202,7 +202,7 @@ void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist,
   {
     parseError("malformed let: LHS must be formula");
   }
-  for (const CVC5::api::Term& var : vars)
+  for (const cvc5::api::Term& var : vars)
   {
     if (var.hasOp())
     {
@@ -581,4 +581,4 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
 }
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
