@@ -26,7 +26,7 @@
 
 #include "util/ostream_util.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 // standard helper, see https://en.cppreference.com/w/cpp/utility/variant/visit
 template <class... Ts>
@@ -123,4 +123,4 @@ StatisticTimerValue::duration StatisticTimerValue::get() const
   return data;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

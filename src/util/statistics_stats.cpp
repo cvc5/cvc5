@@ -19,7 +19,7 @@
 #include "base/check.h"
 #include "util/statistics_value.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 AverageStat& AverageStat::operator<<(double v)
 {
@@ -135,4 +135,4 @@ CodeTimer::~CodeTimer()
   }
 }
 
-}  // namespace CVC5
+}  // namespace cvc5
