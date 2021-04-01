@@ -490,6 +490,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
                            "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete();
+        return Result::Sat::SAT_UNKNOWN;
       }
     }
     d_im.clearWaitingLemmas();
