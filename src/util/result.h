@@ -24,7 +24,7 @@
 
 #include "options/language.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class Result;
 
@@ -160,6 +160,6 @@ bool operator==(enum Result::Entailment e, const Result& r);
 bool operator!=(enum Result::Sat s, const Result& r);
 bool operator!=(enum Result::Entailment e, const Result& r);
 
-} /* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__RESULT_H */

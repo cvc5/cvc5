@@ -18,9 +18,9 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
@@ -188,4 +188,4 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

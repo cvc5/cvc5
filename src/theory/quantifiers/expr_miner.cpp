@@ -22,9 +22,9 @@
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -104,4 +104,4 @@ Result ExprMiner::doCheck(Node query)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

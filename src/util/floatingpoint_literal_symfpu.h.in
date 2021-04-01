@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace CVC5 {
 
 class FloatingPointSize;
 class FloatingPointLiteral;
@@ -56,8 +56,8 @@ class wrappedBitVector;
 
 using CVC4BitWidth = uint32_t;
 using CVC4Prop = bool;
-using CVC4RM = ::CVC4::RoundingMode;
-using CVC4FPSize = ::CVC4::FloatingPointSize;
+using CVC4RM = ::CVC5::RoundingMode;
+using CVC4FPSize = ::CVC5::FloatingPointSize;
 using CVC4UnsignedBitVector = wrappedBitVector<false>;
 using CVC4SignedBitVector = wrappedBitVector<true>;
 
@@ -106,7 +106,7 @@ struct signedToLiteralType<false>
 };
 
 /**
- * This extends the interface for CVC4::BitVector for compatibility with symFPU.
+ * This extends the interface for CVC5::BitVector for compatibility with symFPU.
  * The template parameter distinguishes signed and unsigned bit-vectors, a
  * distinction symfpu uses.
  */
@@ -159,7 +159,7 @@ class wrappedBitVector : public BitVector
   /**
    * Inherited but ...
    * *sigh* if we use the inherited version then it will return a
-   * CVC4::BitVector which can be converted back to a
+   * CVC5::BitVector which can be converted back to a
    * wrappedBitVector<isSigned> but isn't done automatically when working
    * out types for templates instantiation.  ITE is a particular
    * problem as expressions and constants no longer derive the
@@ -502,6 +502,6 @@ class FloatingPointLiteral
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

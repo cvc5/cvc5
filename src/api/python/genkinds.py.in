@@ -40,13 +40,13 @@ PYCOMMENT           = '#'
 CDEF_KIND = "    cdef Kind "
 
 KINDS_PXD_TOP = \
-r"""cdef extern from "api/cvc4cppkind.h" namespace "CVC4::api":
+r"""cdef extern from "api/cvc4cppkind.h" namespace "CVC5::api":
     cdef cppclass Kind:
         pass
 
 
 # Kind declarations: See cvc4cppkind.h for additional information
-cdef extern from "api/cvc4cppkind.h" namespace "CVC4::api::Kind":
+cdef extern from "api/cvc4cppkind.h" namespace "CVC5::api::Kind":
 """
 
 KINDS_PXI_TOP = \
