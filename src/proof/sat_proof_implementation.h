@@ -26,7 +26,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 template <class Solver>
 void printLit(typename Solver::TLit l) {
@@ -1040,12 +1040,12 @@ TSatProof<Solver>::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_usedClauseGlue);
 }
 
-inline std::ostream& operator<<(std::ostream& out, CVC5::ClauseKind k)
+inline std::ostream& operator<<(std::ostream& out, cvc5::ClauseKind k)
 {
   switch (k) {
-    case CVC5::INPUT: out << "INPUT"; break;
-    case CVC5::THEORY_LEMMA: out << "THEORY_LEMMA"; break;
-    case CVC5::LEARNT: out << "LEARNT"; break;
+    case cvc5::INPUT: out << "INPUT"; break;
+    case cvc5::THEORY_LEMMA: out << "THEORY_LEMMA"; break;
+    case cvc5::LEARNT: out << "LEARNT"; break;
     default:
       out << "ClauseKind Unknown! [" << unsigned(k) << "]";
   }
@@ -1053,6 +1053,6 @@ inline std::ostream& operator<<(std::ostream& out, CVC5::ClauseKind k)
   return out;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SAT__PROOF_IMPLEMENTATION_H */

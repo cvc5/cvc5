@@ -20,7 +20,7 @@
 #include "util/safe_print.h"
 #include "util/statistics_registry.h" // for details about class Stat
 
-namespace CVC5 {
+namespace cvc5 {
 
 bool StatisticsBase::StatCmp::operator()(const Stat* s1, const Stat* s2) const {
   return s1->getName() < s2->getName();
@@ -130,4 +130,4 @@ SExpr StatisticsBase::getStatistic(std::string name) const {
   }
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

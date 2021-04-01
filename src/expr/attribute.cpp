@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace expr {
 namespace attr {
 
@@ -116,4 +116,4 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
 
 }  // namespace attr
 }  // namespace expr
-}  // namespace CVC5
+}  // namespace cvc5

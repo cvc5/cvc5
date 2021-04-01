@@ -31,7 +31,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -351,6 +351,6 @@ class TheorySep : public Theory {
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SEP__THEORY_SEP_H */

@@ -16,9 +16,9 @@
 
 #include "theory/uf/theory_uf_rewriter.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -207,4 +207,4 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

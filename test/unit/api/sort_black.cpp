@@ -16,7 +16,7 @@
 
 #include "test_api.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -603,4 +603,4 @@ TEST_F(TestApiBlackSort, sortScopedToString)
 }
 
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

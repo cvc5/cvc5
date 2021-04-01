@@ -21,9 +21,9 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -686,4 +686,4 @@ void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

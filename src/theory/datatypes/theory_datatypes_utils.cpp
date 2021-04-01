@@ -19,10 +19,10 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace CVC5;
-using namespace CVC5::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -207,4 +207,4 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

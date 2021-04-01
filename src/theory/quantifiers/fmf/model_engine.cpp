@@ -22,10 +22,10 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 
-using namespace CVC5::kind;
-using namespace CVC5::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -343,4 +343,4 @@ void ModelEngine::debugPrint( const char* c ){
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

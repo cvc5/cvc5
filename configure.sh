@@ -329,18 +329,6 @@ do
 done
 
 #--------------------------------------------------------------------------#
-# Automatically set up dependencies based on configure options
-#--------------------------------------------------------------------------#
-
-if [ "$arm64" == "ON" ]; then
-  echo "Setting up dependencies for ARM 64-bit build"
-  contrib/get-gmp-dev --host=aarch64-linux-gnu || exit 1
-elif [ "$win64" == "ON" ]; then
-  echo "Setting up dependencies for Windows 64-bit build"
-  contrib/get-gmp-dev --host=x86_64-w64-mingw32 || exit 1
-fi
-
-#--------------------------------------------------------------------------#
 
 if [ $werror != default ]; then
   export CFLAGS=-Werror

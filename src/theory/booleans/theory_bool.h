@@ -24,7 +24,7 @@
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -53,6 +53,6 @@ class TheoryBool : public Theory {
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BOOLEANS__THEORY_BOOL_H */

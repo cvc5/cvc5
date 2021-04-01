@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
 
-using namespace CVC5;
-using namespace CVC5::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -258,4 +258,4 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
 
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5

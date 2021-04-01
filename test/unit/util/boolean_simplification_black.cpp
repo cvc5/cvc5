@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC5::BooleanSimplification
+ ** \brief Black box testing of cvc5::BooleanSimplification
  **
- ** Black box testing of CVC5::BooleanSimplification.
+ ** Black box testing of cvc5::BooleanSimplification.
  **/
 
 #include <algorithm>
@@ -26,7 +26,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "test_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackBooleanSimplification : public TestNode
@@ -248,4 +248,4 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
 #endif
 }
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

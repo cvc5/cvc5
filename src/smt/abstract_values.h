@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/substitutions.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -75,6 +75,6 @@ class AbstractValues
 };
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

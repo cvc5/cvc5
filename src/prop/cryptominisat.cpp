@@ -22,7 +22,7 @@
 
 #include <cryptominisat5/cryptominisat.h>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 using CMSatVar = unsigned;
@@ -244,5 +244,5 @@ CryptoMinisatSolver::Statistics::~Statistics() {
 }
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5
 #endif

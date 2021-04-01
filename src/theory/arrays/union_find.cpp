@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -53,4 +53,4 @@ template void UnionFind<TNode, TNodeHashFunction>::notify();
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

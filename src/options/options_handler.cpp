@@ -38,7 +38,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace options {
 
 // helper functions
@@ -505,26 +505,26 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
 void OptionsHandler::setVerbosity(std::string option, int value)
 {
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC5::null_os);
-    TraceChannel.setStream(&CVC5::null_os);
-    NoticeChannel.setStream(&CVC5::null_os);
-    ChatChannel.setStream(&CVC5::null_os);
-    MessageChannel.setStream(&CVC5::null_os);
-    WarningChannel.setStream(&CVC5::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   } else {
     if(value < 2) {
-      ChatChannel.setStream(&CVC5::null_os);
+      ChatChannel.setStream(&cvc5::null_os);
     } else {
       ChatChannel.setStream(&std::cout);
     }
     if(value < 1) {
-      NoticeChannel.setStream(&CVC5::null_os);
+      NoticeChannel.setStream(&cvc5::null_os);
     } else {
       NoticeChannel.setStream(&std::cout);
     }
     if(value < 0) {
-      MessageChannel.setStream(&CVC5::null_os);
-      WarningChannel.setStream(&CVC5::null_os);
+      MessageChannel.setStream(&cvc5::null_os);
+      WarningChannel.setStream(&cvc5::null_os);
     } else {
       MessageChannel.setStream(&std::cout);
       WarningChannel.setStream(&std::cerr);
@@ -543,4 +543,4 @@ void OptionsHandler::decreaseVerbosity(std::string option) {
 }
 
 }  // namespace options
-}  // namespace CVC5
+}  // namespace cvc5
