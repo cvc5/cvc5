@@ -21,7 +21,7 @@
 
 #include "base/output.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 class NodeCommand;
@@ -110,8 +110,8 @@ class DumpC
 /** The dump singleton */
 extern DumpC DumpChannel;
 
-#define Dump ::CVC5::DumpChannel
+#define Dump ::cvc5::DumpChannel
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__DUMP_H */

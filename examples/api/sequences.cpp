@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-using namespace CVC5::api;
+using namespace cvc5::api;
 
 int main()
 {

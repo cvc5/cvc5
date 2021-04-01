@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class ResourceManager;
@@ -95,6 +95,6 @@ class ExpandDefs
 };
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

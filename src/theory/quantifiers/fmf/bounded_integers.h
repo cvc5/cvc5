@@ -26,7 +26,7 @@
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_bound_inference.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class RepSetIterator;
@@ -238,6 +238,6 @@ private:
 
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

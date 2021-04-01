@@ -36,7 +36,7 @@
 
 /// \cond internals
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 
 template <class T>
@@ -51,6 +51,6 @@ class CDList;
 /// \endcond
 
 }  // namespace context
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__CONTEXT__CDLIST_FORWARD_H */

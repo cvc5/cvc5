@@ -21,7 +21,7 @@
 
 #include "theory/rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -79,6 +79,6 @@ private:
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H */

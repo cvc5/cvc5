@@ -37,7 +37,7 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -1421,4 +1421,4 @@ TheoryFpRewriter::TheoryFpRewriter()
 
   }  // namespace fp
   }  // namespace theory
-  }  // namespace CVC5
+  }  // namespace cvc5

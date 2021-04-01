@@ -37,9 +37,9 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
@@ -653,4 +653,4 @@ bool QuantifiersEngine::getSynthSolutions(
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

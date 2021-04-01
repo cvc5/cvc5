@@ -30,7 +30,7 @@
 #include "context/cdhashmap.h"
 #include "util/hash.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -179,6 +179,6 @@ inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subs
 
 std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i);
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SUBSTITUTIONS_H */

@@ -26,7 +26,7 @@
 #include "parser/smt2/Smt2Parser.h"
 #include "parser/smt2/sygus_input.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=2 */
@@ -69,4 +69,4 @@ api::Term SygusInput::parseExpr()
 }
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
