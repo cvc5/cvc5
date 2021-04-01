@@ -28,7 +28,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace CVC5 {
 
 /* -------------------------------------------------------------------------- */
 
@@ -512,4 +512,4 @@ std::ostream& operator<<(std::ostream& os, const FloatingPointConvertSort& fpcs)
   return os << "(_ to_fp " << fpcs.getSize().exponentWidth() << " "
             << fpcs.getSize().significandWidth() << ")";
 }
-}/* CVC4 namespace */
+}  // namespace CVC5

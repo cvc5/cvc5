@@ -16,9 +16,9 @@
 
 #include "omt/omt_optimizer.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::omt;
-namespace CVC4 {
+using namespace CVC5::theory;
+
+namespace CVC5 {
 namespace smt {
 
 /**
@@ -89,4 +89,4 @@ Node Objective::getNode() { return d_node; }
 bool Objective::getSigned() { return d_bvSigned; }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5

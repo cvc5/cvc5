@@ -28,11 +28,11 @@
 
 #include <functional>
 
-namespace CVC4 {
+namespace CVC5 {
 namespace context {
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class CDInsertHashMap;
 }  // namespace context
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__CONTEXT__CDINSERT_HASHMAP_FORWARD_H */

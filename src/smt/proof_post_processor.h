@@ -25,7 +25,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class SmtEngine;
 
@@ -303,6 +303,6 @@ class ProofPostproccess
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

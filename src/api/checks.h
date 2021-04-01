@@ -528,7 +528,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i) \
           << "a term associated with this solver object";       \
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          bv.d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,   \
+          bv.d_node->getKind() == CVC5::Kind::BOUND_VARIABLE,   \
           "bound variable",                                     \
           bound_vars,                                           \
           i)                                                    \
@@ -560,7 +560,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i)               \
           << "a term associated with this solver object";                     \
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,                 \
+          bv.d_node->getKind() == CVC5::Kind::BOUND_VARIABLE,                 \
           "bound variable",                                                   \
           bound_vars,                                                         \
           i)                                                                  \

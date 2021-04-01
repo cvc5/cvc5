@@ -29,7 +29,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace context {
 
 /**
@@ -434,7 +434,7 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
                 "Cannot create a CDList with a ContextMemoryAllocator.");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace CVC5
 
 #endif /* CVC4__CONTEXT__CDLIST_H */

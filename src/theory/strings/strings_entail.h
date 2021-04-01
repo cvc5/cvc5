@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace strings {
 
@@ -379,6 +379,6 @@ class StringsEntail
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__STRINGS__STRING_ENTAIL_H */

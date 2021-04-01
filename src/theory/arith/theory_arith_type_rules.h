@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 #define CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 
@@ -157,8 +157,8 @@ class IndexedRootPredicateTypeRule
   }
 }; /* class IndexedRootPredicateTypeRule */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H */

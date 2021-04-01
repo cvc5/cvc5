@@ -22,9 +22,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
@@ -107,8 +107,7 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
   if (!d_theoryState.isInConflict())
   {
     TrustNode tconf = explainConflictEqConstantMerge(a, b);
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
+    trustedConflict(tconf, InferenceId::EQ_CONSTANT_MERGE);
   }
 }
 
@@ -125,6 +124,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   d_conflictIdStats << id;
   d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,
@@ -517,4 +517,4 @@ void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
 void TheoryInferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

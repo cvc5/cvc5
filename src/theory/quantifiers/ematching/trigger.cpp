@@ -32,9 +32,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/valuation.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -229,4 +229,4 @@ void Trigger::debugPrint(const char* c) const
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

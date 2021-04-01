@@ -14,6 +14,7 @@
  **/
 
 #include "theory/quantifiers/conjecture_generator.h"
+
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
@@ -22,17 +23,16 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace CVC5;
+using namespace CVC5::kind;
+using namespace CVC5::theory;
+using namespace CVC5::theory::quantifiers;
 using namespace std;
 
-namespace CVC4 {
+namespace CVC5 {
 
 struct sortConjectureScore {
   std::vector< int > d_scores;
@@ -85,12 +85,11 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
-                                         QuantifiersState& qs,
+ConjectureGenerator::ConjectureGenerator(QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_notify(*this),
       d_uequalityEngine(
           d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
@@ -2261,4 +2260,4 @@ unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 
-}
+}  // namespace CVC5

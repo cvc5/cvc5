@@ -102,7 +102,7 @@
 #include "util/statistics.h"
 #include "util/stats_base.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 /** A statistic that contains a SExpr. */
 class SExprStat : public Stat {
@@ -196,6 +196,6 @@ private:
 
 }; /* class RegisterStatistic */
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__STATISTICS_REGISTRY_H */
