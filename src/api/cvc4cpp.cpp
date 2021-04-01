@@ -4261,11 +4261,6 @@ Solver::Solver(Options* opts)
 
 Solver::~Solver() {}
 
-void Solver::reset() {
-  d_smtEngine->reset();
-  resetStatistics();
-}
-
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
 
