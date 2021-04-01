@@ -39,9 +39,9 @@ namespace symfpu {
 
 #define CVC4_LIT_ITE_DFN(T)                                            \
   template <>                                                          \
-  struct ite<::cvc5::symfpuLiteral::CVC5Prop, T>                       \
+  struct ite<::cvc5::symfpuLiteral::Cvc5Prop, T>                       \
   {                                                                    \
-    static const T& iteOp(const ::cvc5::symfpuLiteral::CVC5Prop& cond, \
+    static const T& iteOp(const ::cvc5::symfpuLiteral::Cvc5Prop& cond, \
                           const T& l,                                  \
                           const T& r)                                  \
     {                                                                  \
@@ -90,7 +90,7 @@ FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
 #ifdef CVC4_USE_SYMFPU
       ,
       d_symuf(symfpu::unpack<symfpuLiteral::traits>(
-          symfpuLiteral::CVC5FPSize(exp_size, sig_size), bv))
+          symfpuLiteral::Cvc5FPSize(exp_size, sig_size), bv))
 #endif
 {
 }
@@ -140,13 +140,13 @@ FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
 #ifdef CVC4_USE_SYMFPU
       ,
       d_symuf(signedBV ? symfpu::convertSBVToFloat<symfpuLiteral::traits>(
-                  symfpuLiteral::CVC5FPSize(size),
-                  symfpuLiteral::CVC5RM(rm),
-                  symfpuLiteral::CVC5SignedBitVector(bv))
+                  symfpuLiteral::Cvc5FPSize(size),
+                  symfpuLiteral::Cvc5RM(rm),
+                  symfpuLiteral::Cvc5SignedBitVector(bv))
                        : symfpu::convertUBVToFloat<symfpuLiteral::traits>(
-                           symfpuLiteral::CVC5FPSize(size),
-                           symfpuLiteral::CVC5RM(rm),
-                           symfpuLiteral::CVC5UnsignedBitVector(bv)))
+                           symfpuLiteral::Cvc5FPSize(size),
+                           symfpuLiteral::Cvc5RM(rm),
+                           symfpuLiteral::Cvc5UnsignedBitVector(bv)))
 #endif
 {
 }

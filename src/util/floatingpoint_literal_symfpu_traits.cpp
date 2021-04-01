@@ -23,39 +23,39 @@ namespace symfpuLiteral {
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::one(
-    const CVC5BitWidth& w)
+    const Cvc5BitWidth& w)
 {
   return wrappedBitVector<isSigned>(w, 1);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::zero(
-    const CVC5BitWidth& w)
+    const Cvc5BitWidth& w)
 {
   return wrappedBitVector<isSigned>(w, 0);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::allOnes(
-    const CVC5BitWidth& w)
+    const Cvc5BitWidth& w)
 {
   return ~wrappedBitVector<isSigned>::zero(w);
 }
 
 template <bool isSigned>
-CVC5Prop wrappedBitVector<isSigned>::isAllOnes() const
+Cvc5Prop wrappedBitVector<isSigned>::isAllOnes() const
 {
   return (*this == wrappedBitVector<isSigned>::allOnes(getWidth()));
 }
 template <bool isSigned>
-CVC5Prop wrappedBitVector<isSigned>::isAllZeros() const
+Cvc5Prop wrappedBitVector<isSigned>::isAllZeros() const
 {
   return (*this == wrappedBitVector<isSigned>::zero(getWidth()));
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(
-    const CVC5BitWidth& w)
+    const Cvc5BitWidth& w)
 {
   if (isSigned)
   {
@@ -70,7 +70,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::minValue(
-    const CVC5BitWidth& w)
+    const Cvc5BitWidth& w)
 {
   if (isSigned)
   {
@@ -231,63 +231,63 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularNegate() const
 /*** Comparisons ***/
 
 template <bool isSigned>
-CVC5Prop wrappedBitVector<isSigned>::operator==(
+Cvc5Prop wrappedBitVector<isSigned>::operator==(
     const wrappedBitVector<isSigned>& op) const
 {
   return BitVector::operator==(op);
 }
 
 template <>
-CVC5Prop wrappedBitVector<true>::operator<=(
+Cvc5Prop wrappedBitVector<true>::operator<=(
     const wrappedBitVector<true>& op) const
 {
   return signedLessThanEq(op);
 }
 
 template <>
-CVC5Prop wrappedBitVector<true>::operator>=(
+Cvc5Prop wrappedBitVector<true>::operator>=(
     const wrappedBitVector<true>& op) const
 {
   return !(signedLessThan(op));
 }
 
 template <>
-CVC5Prop wrappedBitVector<true>::operator<(
+Cvc5Prop wrappedBitVector<true>::operator<(
     const wrappedBitVector<true>& op) const
 {
   return signedLessThan(op);
 }
 
 template <>
-CVC5Prop wrappedBitVector<true>::operator>(
+Cvc5Prop wrappedBitVector<true>::operator>(
     const wrappedBitVector<true>& op) const
 {
   return !(signedLessThanEq(op));
 }
 
 template <>
-CVC5Prop wrappedBitVector<false>::operator<=(
+Cvc5Prop wrappedBitVector<false>::operator<=(
     const wrappedBitVector<false>& op) const
 {
   return unsignedLessThanEq(op);
 }
 
 template <>
-CVC5Prop wrappedBitVector<false>::operator>=(
+Cvc5Prop wrappedBitVector<false>::operator>=(
     const wrappedBitVector<false>& op) const
 {
   return !(unsignedLessThan(op));
 }
 
 template <>
-CVC5Prop wrappedBitVector<false>::operator<(
+Cvc5Prop wrappedBitVector<false>::operator<(
     const wrappedBitVector<false>& op) const
 {
   return unsignedLessThan(op);
 }
 
 template <>
-CVC5Prop wrappedBitVector<false>::operator>(
+Cvc5Prop wrappedBitVector<false>::operator>(
     const wrappedBitVector<false>& op) const
 {
   return !(unsignedLessThanEq(op));
@@ -312,7 +312,7 @@ wrappedBitVector<false> wrappedBitVector<isSigned>::toUnsigned(void) const
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
-    CVC5BitWidth extension) const
+    Cvc5BitWidth extension) const
 {
   if (isSigned)
   {
@@ -326,7 +326,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
-    CVC5BitWidth reduction) const
+    Cvc5BitWidth reduction) const
 {
   Assert(getWidth() > reduction);
 
@@ -335,9 +335,9 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::resize(
-    CVC5BitWidth newSize) const
+    Cvc5BitWidth newSize) const
 {
-  CVC5BitWidth width = getWidth();
+  Cvc5BitWidth width = getWidth();
 
   if (newSize > width)
   {
@@ -371,7 +371,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::append(
 // Inclusive of end points, thus if the same, extracts just one bit
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
-    CVC5BitWidth upper, CVC5BitWidth lower) const
+    Cvc5BitWidth upper, Cvc5BitWidth lower) const
 {
   Assert(upper >= lower);
   return BitVector::extract(upper, lower);
