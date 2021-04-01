@@ -36,7 +36,7 @@ add_custom_target(
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
     --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc4kinds"
   DEPENDS
-    genkinds.py
+    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
   COMMENT
     "Generate cvc4kinds.{pxd,pyx}"
 )
@@ -46,6 +46,8 @@ add_cython_target(pycvc4 CXX)
 add_library(pycvc4
             MODULE
             ${pycvc4})
+
+add_dependencies(pycvc4 gen-pycvc4-kinds)
 
 target_link_libraries(pycvc4 cvc4 ${PYTHON_LIBRARIES})
 
