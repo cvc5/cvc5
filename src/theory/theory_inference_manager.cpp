@@ -121,7 +121,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   d_conflictIdStats << id;
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
-                       << std::endl;
+              << std::endl;
   d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
@@ -252,8 +252,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
     }
   }
   d_lemmaIdStats << id;
-  Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")"
-                    << std::endl;
+  Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -373,8 +372,8 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  ProofGenerator* pg)
 {
   d_factIdStats << iid;
-  Trace("im") << "(fact " << iid << " "
-                   << (pol ? Node(atom) : atom.notNode()) << ")" << std::endl;
+  Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
+              << ")" << std::endl;
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
   // call the pre-notify fact method with preReg = false, isInternal = true
