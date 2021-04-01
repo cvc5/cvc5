@@ -23,10 +23,10 @@
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
-using namespace CVC5::kind;
-using namespace CVC5::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 void TheoryEngineModelBuilder::Assigner::initialize(
@@ -1429,4 +1429,4 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 }
 
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5

@@ -34,7 +34,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/interrupted.h"
 #include "util/utility.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
@@ -82,7 +82,7 @@ CRef Solver::TCRef_Lazy = CRef_Undef - 1; // no real lazy ref here
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(CVC5::context::Context* context)
+Solver::Solver(cvc5::context::Context* context)
     :
 
       // Parameters (user settable):
@@ -976,7 +976,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
         return l_False;
       }
 
-      if (!CVC5::options::bvEagerExplanations())
+      if (!cvc5::options::bvEagerExplanations())
       {
         // check if uip leads to a conflict
         if (backtrack_level < assumptions.size())
@@ -1028,7 +1028,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
         isWithinBudget =
             withinBudget(ResourceManager::Resource::BvSatConflictsStep);
       }
-      catch (const CVC5::theory::Interrupted& e)
+      catch (const cvc5::theory::Interrupted& e)
       {
         // do some clean-up and rethrow
         cancelUntil(assumptions.size());
@@ -1418,4 +1418,4 @@ bool Solver::withinBudget(ResourceManager::Resource r) const
 }
 
 }  // namespace BVMinisat
-}  // namespace CVC5
+}  // namespace cvc5

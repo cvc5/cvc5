@@ -23,7 +23,7 @@
 #include <vector>
 #include "util/index.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -51,6 +51,6 @@ public:
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__SLICER_BV_H */

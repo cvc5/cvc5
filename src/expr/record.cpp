@@ -19,10 +19,10 @@
 #include "base/check.h"
 #include "base/output.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
   return out << "[" << t.getField() << "]";
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

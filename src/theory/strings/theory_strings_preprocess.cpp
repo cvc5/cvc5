@@ -26,10 +26,10 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
 
-using namespace CVC5;
-using namespace CVC5::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -1028,4 +1028,4 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 class AbstractValues;
@@ -172,6 +172,6 @@ class Assertions
 };
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

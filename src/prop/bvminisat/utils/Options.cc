@@ -21,7 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Sort.h"
 #include "prop/bvminisat/utils/ParseUtils.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace BVMinisat {
 
 void BVMinisat::parseOptions(int& argc, char** argv, bool strict)
@@ -91,4 +91,4 @@ void BVMinisat::printUsageAndExit (int argc, char** argv, bool verbose)
 }
 
 }  // namespace BVMinisat
-}  // namespace CVC5
+}  // namespace cvc5

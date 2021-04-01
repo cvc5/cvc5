@@ -43,7 +43,7 @@
 #include "util/resource_manager.h"
 #include "util/result.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 /** Keeps a boolean flag scoped */
@@ -625,4 +625,4 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5

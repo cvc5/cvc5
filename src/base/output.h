@@ -28,7 +28,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 template <class T, class U>
 std::ostream& operator<<(std::ostream& out,
@@ -413,57 +413,57 @@ extern DumpOutC DumpOutChannel CVC4_EXPORT;
 #ifdef CVC4_MUZZLE
 
 #define Debug \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::DebugChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DebugChannel
 #define Warning \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::WarningChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::WarningChannel
 #define WarningOnce \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::WarningChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::WarningChannel
 #define CVC4Message \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::MessageChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::MessageChannel
 #define Notice \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::NoticeChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::NoticeChannel
 #define Chat \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::ChatChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::ChatChannel
 #define Trace \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::TraceChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::TraceChannel
 #define DumpOut \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::DumpOutChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DumpOutChannel
 
 #else /* CVC4_MUZZLE */
 
 #  if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
-#define Debug ::CVC5::DebugChannel
+#define Debug ::cvc5::DebugChannel
 #  else /* CVC4_DEBUG && CVC4_TRACING */
 #define Debug \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::DebugChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DebugChannel
 #  endif /* CVC4_DEBUG && CVC4_TRACING */
 #define Warning                                             \
-  (!::CVC5::WarningChannel.isOn()) ? ::CVC5::nullCvc4Stream \
-                                   : ::CVC5::WarningChannel
+  (!::cvc5::WarningChannel.isOn()) ? ::cvc5::nullCvc4Stream \
+                                   : ::cvc5::WarningChannel
 #define WarningOnce                                         \
-  (!::CVC5::WarningChannel.isOn()                           \
-   || !::CVC5::WarningChannel.warnOnce(__FILE__, __LINE__)) \
-      ? ::CVC5::nullCvc4Stream                              \
-      : ::CVC5::WarningChannel
+  (!::cvc5::WarningChannel.isOn()                           \
+   || !::cvc5::WarningChannel.warnOnce(__FILE__, __LINE__)) \
+      ? ::cvc5::nullCvc4Stream                              \
+      : ::cvc5::WarningChannel
 #define CVC4Message                                         \
-  (!::CVC5::MessageChannel.isOn()) ? ::CVC5::nullCvc4Stream \
-                                   : ::CVC5::MessageChannel
+  (!::cvc5::MessageChannel.isOn()) ? ::cvc5::nullCvc4Stream \
+                                   : ::cvc5::MessageChannel
 #define Notice                                             \
-  (!::CVC5::NoticeChannel.isOn()) ? ::CVC5::nullCvc4Stream \
-                                  : ::CVC5::NoticeChannel
+  (!::cvc5::NoticeChannel.isOn()) ? ::cvc5::nullCvc4Stream \
+                                  : ::cvc5::NoticeChannel
 #define Chat \
-  (!::CVC5::ChatChannel.isOn()) ? ::CVC5::nullCvc4Stream : ::CVC5::ChatChannel
+  (!::cvc5::ChatChannel.isOn()) ? ::cvc5::nullCvc4Stream : ::cvc5::ChatChannel
 #  ifdef CVC4_TRACING
-#define Trace ::CVC5::TraceChannel
+#define Trace ::cvc5::TraceChannel
 #  else /* CVC4_TRACING */
 #define Trace \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::TraceChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::TraceChannel
 #  endif /* CVC4_TRACING */
 #  ifdef CVC4_DUMPING
-#define DumpOut ::CVC5::DumpOutChannel
+#define DumpOut ::cvc5::DumpOutChannel
 #  else /* CVC4_DUMPING */
 #define DumpOut \
-  ::CVC5::__cvc4_true() ? ::CVC5::nullCvc4Stream : ::CVC5::DumpOutChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DumpOutChannel
 #  endif /* CVC4_DUMPING */
 
 #endif /* CVC4_MUZZLE */
@@ -579,6 +579,6 @@ inline IndentedScope::IndentedScope(CVC4ostream out) {}
 inline IndentedScope::~IndentedScope() {}
 #endif /* CVC4_DEBUG && CVC4_TRACING */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__OUTPUT_H */

@@ -25,11 +25,11 @@
 
 
 using namespace std;
-using namespace CVC5;
-using namespace CVC5::parser;
-using namespace CVC5::kind;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 InputStreamException::InputStreamException(const std::string& msg) :
@@ -80,4 +80,4 @@ Input* Input::newStringInput(InputLanguage lang,
 }
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5

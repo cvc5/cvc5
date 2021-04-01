@@ -25,7 +25,7 @@
 #include "proof/sat_proof.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 //// DPllMinisatSatSolver
@@ -301,20 +301,20 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
 }
 
 }  // namespace prop
-} // namespace CVC5
+}  // namespace cvc5
 
-namespace CVC5 {
+namespace cvc5 {
 template <>
-prop::SatLiteral toSatLiteral<CVC5::Minisat::Solver>(Minisat::Solver::TLit lit)
+prop::SatLiteral toSatLiteral<cvc5::Minisat::Solver>(Minisat::Solver::TLit lit)
 {
   return prop::MinisatSatSolver::toSatLiteral(lit);
 }
 
 template <>
-void toSatClause<CVC5::Minisat::Solver>(
-    const CVC5::Minisat::Solver::TClause& minisat_cl, prop::SatClause& sat_cl)
+void toSatClause<cvc5::Minisat::Solver>(
+    const cvc5::Minisat::Solver::TClause& minisat_cl, prop::SatClause& sat_cl)
 {
   prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 }
 
-} // namespace CVC5
+}  // namespace cvc5

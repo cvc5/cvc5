@@ -22,7 +22,7 @@
 
 #include "expr/sequence.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -426,6 +426,6 @@ struct SequenceProperties
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */

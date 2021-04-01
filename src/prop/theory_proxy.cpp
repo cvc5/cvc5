@@ -29,7 +29,7 @@
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 TheoryProxy::TheoryProxy(PropEngine* propEngine,
@@ -102,7 +102,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (CVC5::options::produceProofs())
+  if (cvc5::options::produceProofs())
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
@@ -230,4 +230,4 @@ void TheoryProxy::getSkolems(TNode node,
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5

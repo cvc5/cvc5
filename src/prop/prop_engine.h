@@ -28,7 +28,7 @@
 #include "theory/trust_node.h"
 #include "util/result.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ResourceManager;
 class DecisionEngine;
@@ -371,6 +371,6 @@ class PropEngine
 };
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PROP_ENGINE_H */

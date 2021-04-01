@@ -26,7 +26,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 /**
@@ -93,6 +93,6 @@ class SkolemDefManager
 };
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__SKOLEM_DEF_MANAGER_H */

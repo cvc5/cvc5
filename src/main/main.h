@@ -26,7 +26,7 @@
 #ifndef CVC4__MAIN__MAIN_H
 #define CVC4__MAIN__MAIN_H
 
-namespace CVC5 {
+namespace cvc5 {
 namespace main {
 
 class CommandExecutor;
@@ -38,7 +38,7 @@ extern const char* progPath;
 extern const std::string* progName;
 
 /** A reference for use by the signal handlers to print statistics */
-extern std::unique_ptr<CVC5::main::CommandExecutor> pExecutor;
+extern std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
 /** Manages a custom timer for the total runtime in RAII-style. */
 class TotalTimer
@@ -64,7 +64,7 @@ extern bool segvSpin;
 extern thread_local Options* pOptions;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV.
- * This can throw a CVC5::Exception.
+ * This can throw a cvc5::Exception.
  */
 void cvc4_init();
 
@@ -72,10 +72,10 @@ void cvc4_init();
 void cvc4_shutdown() noexcept;
 
 }  // namespace main
-}  // namespace CVC5
+}  // namespace cvc5
 
 /** Actual Cvc4 driver functions **/
-int runCvc4(int argc, char* argv[], CVC5::Options&);
-void printUsage(CVC5::Options&, bool full = false);
+int runCvc4(int argc, char* argv[], cvc5::Options&);
+void printUsage(cvc5::Options&, bool full = false);
 
 #endif /* CVC4__MAIN__MAIN_H */

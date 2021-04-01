@@ -25,7 +25,7 @@
 #include "options/language.h"
 #include "parser/input.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -189,6 +189,6 @@ class CVC4_EXPORT ParserBuilder
 }; /* class ParserBuilder */
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__PARSER_BUILDER_H */

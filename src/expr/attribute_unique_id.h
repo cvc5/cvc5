@@ -21,7 +21,7 @@
 
 // ATTRIBUTE IDs ============================================================
 
-namespace CVC5 {
+namespace cvc5 {
 namespace expr {
 namespace attr {
 
@@ -59,8 +59,8 @@ public:
   AttrTableId getTableId() const{ return d_tableId; }
   uint64_t getWithinTypeId() const{ return d_withinTypeId; }
 
-}; /* CVC5::expr::attr::AttributeUniqueId */
+}; /* cvc5::expr::attr::AttributeUniqueId */
 
 }  // namespace attr
 }  // namespace expr
-}  // namespace CVC5
+}  // namespace cvc5

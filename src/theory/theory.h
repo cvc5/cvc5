@@ -39,7 +39,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class TheoryEngine;
@@ -95,7 +95,7 @@ namespace eq {
  * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
-  friend class ::CVC5::TheoryEngine;
+  friend class ::cvc5::TheoryEngine;
 
  private:
   // Disallow default construction, copy, assignment.
@@ -916,7 +916,7 @@ inline theory::Assertion Theory::get() {
 }
 
 inline std::ostream& operator<<(std::ostream& out,
-                                const CVC5::theory::Theory& theory)
+                                const cvc5::theory::Theory& theory)
 {
   return out << theory.identify();
 }
@@ -936,6 +936,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_H */

@@ -35,9 +35,9 @@
 #include "util/resource_manager.h"
 
 using namespace std;
-using namespace CVC5::expr;
+using namespace cvc5::expr;
 
-namespace CVC5 {
+namespace cvc5 {
 
 thread_local NodeManager* NodeManager::s_current = NULL;
 
@@ -373,7 +373,7 @@ void NodeManager::reclaimZombies() {
       if(mk == kind::metakind::CONSTANT) {
         // Destroy (call the destructor for) the C++ type representing
         // the constant in this NodeValue.  This is needed for
-        // e.g. CVC5::Rational, since it has a gmp internal
+        // e.g. cvc5::Rational, since it has a gmp internal
         // representation that mallocs memory and should be cleaned
         // up.  (This won't delete a pointer value if used as a
         // constant, but then, you should probably use a smart-pointer
@@ -678,7 +678,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
-        // CVC5::DType class, but this actually needs to be checked.
+        // cvc5::DType class, but this actually needs to be checked.
         AlwaysAssert(!selectorType.getRangeType().isFunctionLike())
             << "cannot put function-like things in datatypes";
       }
@@ -1170,4 +1170,4 @@ Kind NodeManager::getKindForFunction(TNode fun)
   return kind::UNDEFINED_KIND;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

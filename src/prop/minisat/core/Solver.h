@@ -38,16 +38,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 
-namespace CVC5 {
+namespace cvc5 {
 template <class Solver> class TSatProof;
 
 namespace prop {
 class PropEngine;
 class TheoryProxy;
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5
 
-namespace CVC5 {
+namespace cvc5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -56,10 +56,10 @@ namespace Minisat {
 class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
-  friend class CVC5::prop::PropEngine;
-  friend class CVC5::prop::TheoryProxy;
-  friend class CVC5::prop::SatProofManager;
-  friend class CVC5::TSatProof<Minisat::Solver>;
+  friend class cvc5::prop::PropEngine;
+  friend class cvc5::prop::TheoryProxy;
+  friend class cvc5::prop::SatProofManager;
+  friend class cvc5::TSatProof<Minisat::Solver>;
 
  public:
   static CRef TCRef_Undef;
@@ -73,10 +73,10 @@ class Solver {
 
  protected:
   /** The pointer to the proxy that provides interfaces to the SMT engine */
-  CVC5::prop::TheoryProxy* d_proxy;
+  cvc5::prop::TheoryProxy* d_proxy;
 
   /** The context from the SMT solver */
-  CVC5::context::Context* d_context;
+  cvc5::context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -88,7 +88,7 @@ class Solver {
   Var varFalse;
 
   /** The resolution proof manager */
-  std::unique_ptr<CVC5::prop::SatProofManager> d_pfManager;
+  std::unique_ptr<cvc5::prop::SatProofManager> d_pfManager;
 
  public:
   /** Returns the current user assertion level */
@@ -105,7 +105,7 @@ class Solver {
   vec<bool> lemmas_removable;
 
   /** Nodes being converted to CNF */
-  std::vector<CVC5::Node> lemmas_cnf_assertion;
+  std::vector<cvc5::Node> lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -134,9 +134,9 @@ public:
 
     // Constructor/Destructor:
     //
- Solver(CVC5::prop::TheoryProxy* proxy,
-        CVC5::context::Context* context,
-        CVC5::context::UserContext* userContext,
+ Solver(cvc5::prop::TheoryProxy* proxy,
+        cvc5::context::Context* context,
+        cvc5::context::UserContext* userContext,
         ProofNodeManager* pnm,
         bool enableIncremental = false);
  virtual ~Solver();
@@ -153,7 +153,7 @@ public:
  Var falseVar() const { return varFalse; }
 
  /** Retrive the SAT proof manager */
- CVC5::prop::SatProofManager* getProofManager();
+ cvc5::prop::SatProofManager* getProofManager();
 
  /** Retrive the refutation proof */
  std::shared_ptr<ProofNode> getProof();
@@ -438,7 +438,7 @@ protected:
     CRef     propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
     void     propagateTheory  ();                                                      // Perform Theory propagation.
     void theoryCheck(
-        CVC5::theory::Theory::Effort
+        cvc5::theory::Theory::Effort
             effort);  // Perform a theory satisfiability check. Adds lemmas.
     CRef     updateLemmas     ();                                                      // Add the lemmas, backtraking if necessary and return a conflict if there is one
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
@@ -666,6 +666,6 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 //=================================================================================================
 }  // namespace Minisat
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

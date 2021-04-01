@@ -34,7 +34,7 @@
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class DecisionEngine;
 class TheoryEngine;
@@ -168,6 +168,6 @@ class TheoryProxy : public Registrar
 
 }  // namespace prop
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__SAT_H */

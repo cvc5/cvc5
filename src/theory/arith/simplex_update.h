@@ -33,7 +33,7 @@
 #include "theory/arith/constraint_forward.h"
 #include "util/maybe.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -354,4 +354,4 @@ std::ostream& operator<<(std::ostream& out, const UpdateInfo& up);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
