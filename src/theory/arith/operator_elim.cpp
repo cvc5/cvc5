@@ -413,7 +413,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
   {
     NodeManager* nm = NodeManager::currentNM();
     TypeNode tn;
-    if (id==SkolemFunId::DIV_BY_ZERO || id==SkolemFunId::SQRT)
+    if (id == SkolemFunId::DIV_BY_ZERO || id == SkolemFunId::SQRT)
     {
       tn = nm->realType();
     }
@@ -422,7 +422,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
       tn = nm->integerType();
     }
     Node skolem;
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     if (options::arithNoPartialFun())
     {
       // partial function: division, where we treat the skolem function as
@@ -432,8 +432,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     else
     {
       // partial function: division
-      skolem = sm->mkSkolemFunction(id,
-                            nm->mkFunctionType(tn, tn));
+      skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
     }
     // cache it
     d_arith_skolem[id] = skolem;

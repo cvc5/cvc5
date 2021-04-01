@@ -43,7 +43,7 @@ typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
 const char* toString(SkolemFunId id)
 {
-  switch(id)
+  switch (id)
   {
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
@@ -187,9 +187,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                                     TypeNode tn,
-                                     Node cacheVal)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
 {
   std::pair<SkolemFunId, Node> key(id, cacheVal);
   std::map<std::pair<SkolemFunId, Node>, Node>::iterator it =
