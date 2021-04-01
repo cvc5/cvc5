@@ -56,6 +56,8 @@ JustificationHeuristic::JustificationHeuristic(CVC5::DecisionEngine* de,
   Trace("decision") << "Justification heuristic enabled" << std::endl;
 }
 
+JustificationHeuristic::~JustificationHeuristic() {}
+
 CVC5::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
 {
   if(options::decisionThreshold() > 0) {
@@ -723,4 +725,4 @@ JustificationHeuristic::handleEmbeddedSkolems(TNode node)
 }
 
 } /* namespace decision */
-} // namespace CVC5
+}  // namespace CVC5
