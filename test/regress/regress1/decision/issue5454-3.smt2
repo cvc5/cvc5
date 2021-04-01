@@ -1,3 +1,5 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
 (set-logic AUFLIA)
 (declare-fun v () Bool)
 (declare-fun i () Int)

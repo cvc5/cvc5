@@ -1,3 +1,5 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
 (set-logic ANIA)
 (declare-fun i () Int)
 (declare-fun a () (Array Int Bool))

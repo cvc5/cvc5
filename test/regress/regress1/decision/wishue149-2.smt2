@@ -1,3 +1,5 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
 (set-logic AUFLIA)
 (declare-const v4 Bool)
 (declare-const v6 Bool)

@@ -1,3 +1,5 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
 (set-logic AUFLRA)
 (declare-fun _substvar_323_ () Bool)
 (declare-sort S0 0)

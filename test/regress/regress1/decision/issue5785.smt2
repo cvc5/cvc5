@@ -1,3 +1,5 @@
+; COMMAND-LINE: --fmf-fun -i --decision=justification
+; EXPECT: sat
 (set-logic ALRA)
 (set-option :fmf-fun true)
 (declare-fun v2 () Bool)

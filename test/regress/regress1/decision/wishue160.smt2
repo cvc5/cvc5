@@ -1,3 +1,5 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
 (set-logic ALIA)
 (set-option :repeat-simp true)
 (set-option :sygus-rr-synth-check true)

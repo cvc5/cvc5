@@ -1,3 +1,5 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
 (set-logic AUFNIA)
 (declare-fun _substvar_298_ () (Array Int Bool))
 (declare-fun _substvar_379_ () (Array Bool (Array Int Bool)))
