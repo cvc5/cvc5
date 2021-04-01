@@ -2270,6 +2270,7 @@ class CVC4_EXPORT Solver
   friend class DatatypeSelector;
   friend class Grammar;
   friend class Op;
+  friend class CVC5::Command;
   friend class Sort;
   friend class Term;
 
