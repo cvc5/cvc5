@@ -254,7 +254,10 @@ struct StatisticReferenceValue : StatisticBaseValue
       {
         return static_cast<int64_t>(*d_value);
       }
-      return *d_value;
+      else
+      {
+        return *d_value;
+      }
     }
     return {};
   }
