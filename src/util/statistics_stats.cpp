@@ -107,10 +107,7 @@ bool TimerStat::running() const
   {
     return d_data->d_running;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
