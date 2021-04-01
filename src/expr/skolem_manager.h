@@ -194,7 +194,26 @@ class SkolemManager
                       int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Make skolem function. This method should be used for creating fixed
-   * skolem functions of the above forms.
+   * skolem functions of the forms described in SkolemFunId. The user of this
+   * method is responsible for providing a proper type for the identifier that
+   * matches the description of id. Skolem functions are useful for modelling
+   * the behavior of partial functions, or for theory-specific inferences that
+   * introduce fresh variables.
+   *
+   * The returned skolem is an ordinary skolem variable that can be used
+   * e.g. in APPLY_UF terms when tn is a function type.
+   *
+   * Notice that we do not insist that tn is a function type. A user of this
+   * method may construct a canonical (first-order) skolem using this method
+   * as well.
+   *
+   * @param id The identifier of the skolem function
+   * @param tn The type of the returned skolem function
+   * @param cacheVal A cache value. The returned skolem function will be
+   * unique to the pair (id, cacheVal). This value is required, for instance,
+   * for skolem functions that are in fact families of skolem functions,
+   * e.g. the wrongly applied case of selectors.
+   * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemFunId id,
                         TypeNode tn,
