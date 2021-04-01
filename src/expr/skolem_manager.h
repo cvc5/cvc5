@@ -25,6 +25,23 @@ namespace CVC5 {
 
 class ProofGenerator;
 
+/** Skolem function identifier */
+enum class SkolemFunId
+{
+  /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  DIV_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  INT_DIV_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = x mod 0 */
+  MOD_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+  SQRT,
+};
+/** Converts a skolem function name to a string. */
+const char* toString(SkolemFunId id);
+/** Writes a skolem function name to a stream. */
+std::ostream& operator<<(std::ostream& out, SkolemFunId id);
+
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
  * a trusted interface to NodeManager::mkSkolem, where one
@@ -175,26 +192,12 @@ class SkolemManager
                       const std::string& prefix,
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
-  /** Skolem function identifier */
-  enum class SkolemFunId
-  {
-    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
-    DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
-    INT_DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x mod 0 */
-    MOD_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
-    SQRT,
-  };
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the above forms.
    */
   Node mkSkolemFunction(SkolemFunId id,
                         TypeNode tn,
-                        const std::string& prefix,
-                        const std::string& comment,
                         Node cacheVal = Node::null());
   /**
    * Make Boolean term variable for term t. This is a special case of

@@ -39,6 +39,24 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+const char* toString(SkolemFunId id)
+{
+  switch(id)
+  {
+    case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
+    case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
+    case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
+    case SkolemFunId::SQRT: return "SQRT";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, SkolemFunId id)
+{
+  out << toString(id);
+  return out;
+}
+
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
@@ -169,16 +187,16 @@ Node SkolemManager::mkPurifySkolem(Node t,
 
 Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                                      TypeNode tn,
-                                     Node cacheVal,
-                                     const std::string& prefix,
-                                     const std::string& comment, )
+                                     Node cacheVal)
 {
   std::pair<SkolemFunId, Node> key(id, cacheVal);
   std::map<std::pair<SkolemFunId, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
-    Node k = nm->mkSkolem(prefix, tn, comment);
+    std::stringstream ss;
+    ss << "SKOLEM_FUN_" << id;
+    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function");
     d_skolemFuns[key] = k;
     return k;
   }
