@@ -21,7 +21,7 @@
 #include "expr/node_value.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -431,4 +431,4 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

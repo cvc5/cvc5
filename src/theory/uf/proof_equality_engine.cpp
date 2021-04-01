@@ -22,9 +22,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -549,4 +549,4 @@ void ProofEqEngine::explainWithProof(Node lit,
 
 }  // namespace eq
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

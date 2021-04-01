@@ -18,7 +18,7 @@
 #include "theory/rewriter.h"
 #include "theory_bags_type_enumerator.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -83,4 +83,4 @@ bool BagEnumerator::isFinished()
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

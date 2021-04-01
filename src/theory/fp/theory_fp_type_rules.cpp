@@ -18,7 +18,7 @@
 #include "theory/theory.h"
 #include "util/roundingmode.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -812,4 +812,4 @@ Cardinality CardinalityComputer::computeCardinality(TypeNode type)
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

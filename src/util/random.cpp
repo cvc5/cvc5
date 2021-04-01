@@ -21,7 +21,7 @@
 #include <cfloat>
 #include "base/check.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 Random::Random(uint64_t seed) { setSeed(seed); }
 
@@ -66,4 +66,4 @@ bool Random::pickWithProb(double probability)
   return r < p;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

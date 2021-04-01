@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class NodeManager;
 
@@ -229,6 +229,6 @@ class CardinalityComputer
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

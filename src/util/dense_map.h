@@ -35,7 +35,7 @@
 #include "base/check.h"
 #include "util/index.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 template <class T>
 class DenseMap {
@@ -338,4 +338,4 @@ public:
   void pop_back() { d_map.pop_back(); }
 }; /* class DenseMultiset */
 
-}  // namespace CVC5
+}  // namespace cvc5

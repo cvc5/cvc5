@@ -30,7 +30,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace CVC5 {
+namespace cvc5 {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -202,14 +202,14 @@ class CVC4_EXPORT Result
    * @param r the internal result that is to be wrapped by this result
    * @return the Result
    */
-  Result(const CVC5::Result& r);
+  Result(const cvc5::Result& r);
 
   /**
    * The interal result wrapped by this result.
-   * Note: This is a shared_ptr rather than a unique_ptr since CVC5::Result is
+   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::Result is
    *       not ref counted.
    */
-  std::shared_ptr<CVC5::Result> d_result;
+  std::shared_ptr<cvc5::Result> d_result;
 };
 
 /**
@@ -240,16 +240,16 @@ class Datatype;
  */
 class CVC4_EXPORT Sort
 {
-  friend class CVC5::DatatypeDeclarationCommand;
-  friend class CVC5::DeclareFunctionCommand;
-  friend class CVC5::DeclareHeapCommand;
-  friend class CVC5::DeclareSortCommand;
-  friend class CVC5::DeclareSygusVarCommand;
-  friend class CVC5::DefineSortCommand;
-  friend class CVC5::GetAbductCommand;
-  friend class CVC5::GetInterpolCommand;
-  friend class CVC5::GetModelCommand;
-  friend class CVC5::SynthFunCommand;
+  friend class cvc5::DatatypeDeclarationCommand;
+  friend class cvc5::DeclareFunctionCommand;
+  friend class cvc5::DeclareHeapCommand;
+  friend class cvc5::DeclareSortCommand;
+  friend class cvc5::DeclareSygusVarCommand;
+  friend class cvc5::DefineSortCommand;
+  friend class cvc5::GetAbductCommand;
+  friend class cvc5::GetInterpolCommand;
+  friend class cvc5::GetModelCommand;
+  friend class cvc5::SynthFunCommand;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
@@ -701,7 +701,7 @@ class CVC4_EXPORT Sort
 
  private:
   /** @return the internal wrapped TypeNode of this sort. */
-  const CVC5::TypeNode& getTypeNode(void) const;
+  const cvc5::TypeNode& getTypeNode(void) const;
 
   /** Helper to convert a set of Sorts to internal TypeNodes. */
   std::set<TypeNode> static sortSetToTypeNodes(const std::set<Sort>& sorts);
@@ -718,7 +718,7 @@ class CVC4_EXPORT Sort
    * @param t the internal type that is to be wrapped by this sort
    * @return the Sort
    */
-  Sort(const Solver* slv, const CVC5::TypeNode& t);
+  Sort(const Solver* slv, const cvc5::TypeNode& t);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -734,10 +734,10 @@ class CVC4_EXPORT Sort
   /**
    * The interal type wrapped by this sort.
    * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (CVC5::Type is already ref counted, so this
+   *       to memory allocation (cvc5::Type is already ref counted, so this
    *       could be a unique_ptr instead).
    */
-  std::shared_ptr<CVC5::TypeNode> d_type;
+  std::shared_ptr<cvc5::TypeNode> d_type;
 };
 
 /**
@@ -848,7 +848,7 @@ class CVC4_EXPORT Op
    * @param n the internal node that is to be wrapped by this term
    * @return the Term
    */
-  Op(const Solver* slv, const Kind k, const CVC5::Node& n);
+  Op(const Solver* slv, const Kind k, const cvc5::Node& n);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -875,10 +875,10 @@ class CVC4_EXPORT Op
   /**
    * The internal node wrapped by this operator.
    * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (CVC5::Node is already ref counted, so this
+   *       to memory allocation (cvc5::Node is already ref counted, so this
    *       could be a unique_ptr instead).
    */
-  std::shared_ptr<CVC5::Node> d_node;
+  std::shared_ptr<cvc5::Node> d_node;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -890,25 +890,25 @@ class CVC4_EXPORT Op
  */
 class CVC4_EXPORT Term
 {
-  friend class CVC5::AssertCommand;
-  friend class CVC5::BlockModelValuesCommand;
-  friend class CVC5::CheckSatCommand;
-  friend class CVC5::CheckSatAssumingCommand;
-  friend class CVC5::DeclareSygusVarCommand;
-  friend class CVC5::DefineFunctionCommand;
-  friend class CVC5::DefineFunctionRecCommand;
-  friend class CVC5::GetAbductCommand;
-  friend class CVC5::GetInterpolCommand;
-  friend class CVC5::GetModelCommand;
-  friend class CVC5::GetQuantifierEliminationCommand;
-  friend class CVC5::GetUnsatCoreCommand;
-  friend class CVC5::GetValueCommand;
-  friend class CVC5::SetUserAttributeCommand;
-  friend class CVC5::SimplifyCommand;
-  friend class CVC5::SygusConstraintCommand;
-  friend class CVC5::SygusInvConstraintCommand;
-  friend class CVC5::SynthFunCommand;
-  friend class CVC5::QueryCommand;
+  friend class cvc5::AssertCommand;
+  friend class cvc5::BlockModelValuesCommand;
+  friend class cvc5::CheckSatCommand;
+  friend class cvc5::CheckSatAssumingCommand;
+  friend class cvc5::DeclareSygusVarCommand;
+  friend class cvc5::DefineFunctionCommand;
+  friend class cvc5::DefineFunctionRecCommand;
+  friend class cvc5::GetAbductCommand;
+  friend class cvc5::GetInterpolCommand;
+  friend class cvc5::GetModelCommand;
+  friend class cvc5::GetQuantifierEliminationCommand;
+  friend class cvc5::GetUnsatCoreCommand;
+  friend class cvc5::GetValueCommand;
+  friend class cvc5::SetUserAttributeCommand;
+  friend class cvc5::SimplifyCommand;
+  friend class cvc5::SygusConstraintCommand;
+  friend class cvc5::SygusInvConstraintCommand;
+  friend class cvc5::SynthFunCommand;
+  friend class cvc5::QueryCommand;
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
@@ -1117,7 +1117,7 @@ class CVC4_EXPORT Term
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
-                   const std::shared_ptr<CVC5::Node>& e,
+                   const std::shared_ptr<cvc5::Node>& e,
                    uint32_t p);
 
     /**
@@ -1170,7 +1170,7 @@ class CVC4_EXPORT Term
      */
     const Solver* d_solver;
     /** The original node to be iterated over. */
-    std::shared_ptr<CVC5::Node> d_origNode;
+    std::shared_ptr<cvc5::Node> d_origNode;
     /** Keeps track of the iteration position. */
     uint32_t d_pos;
   };
@@ -1260,10 +1260,10 @@ class CVC4_EXPORT Term
    * @param n the internal node that is to be wrapped by this term
    * @return the Term
    */
-  Term(const Solver* slv, const CVC5::Node& n);
+  Term(const Solver* slv, const cvc5::Node& n);
 
   /** @return the internal wrapped Node of this term. */
-  const CVC5::Node& getNode(void) const;
+  const cvc5::Node& getNode(void) const;
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1286,10 +1286,10 @@ class CVC4_EXPORT Term
   /**
    * The internal node wrapped by this term.
    * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (CVC5::Node is already ref counted, so this
+   *       to memory allocation (cvc5::Node is already ref counted, so this
    *       could be a unique_ptr instead).
    */
-  std::shared_ptr<CVC5::Node> d_node;
+  std::shared_ptr<cvc5::Node> d_node;
 };
 
 /**
@@ -1446,9 +1446,9 @@ class CVC4_EXPORT DatatypeConstructorDecl
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * Note: This is a shared_ptr rather than a unique_ptr since
-   *       CVC5::DTypeConstructor is not ref counted.
+   *       cvc5::DTypeConstructor is not ref counted.
    */
-  std::shared_ptr<CVC5::DTypeConstructor> d_ctor;
+  std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
 
 class Solver;
@@ -1535,7 +1535,7 @@ class CVC4_EXPORT DatatypeDecl
                bool isCoDatatype = false);
 
   /** @return the internal wrapped Dtype of this datatype declaration. */
-  CVC5::DType& getDatatype(void) const;
+  cvc5::DType& getDatatype(void) const;
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1551,10 +1551,10 @@ class CVC4_EXPORT DatatypeDecl
   /**
    * The internal (intermediate) datatype wrapped by this datatype
    * declaration.
-   * Note: This is a shared_ptr rather than a unique_ptr since CVC5::DType is
+   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
    *       not ref counted.
    */
-  std::shared_ptr<CVC5::DType> d_dtype;
+  std::shared_ptr<cvc5::DType> d_dtype;
 };
 
 /**
@@ -1605,7 +1605,7 @@ class CVC4_EXPORT DatatypeSelector
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const Solver* slv, const CVC5::DTypeSelector& stor);
+  DatatypeSelector(const Solver* slv, const cvc5::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1620,10 +1620,10 @@ class CVC4_EXPORT DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * Note: This is a shared_ptr rather than a unique_ptr since CVC5::DType is
+   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
    *       not ref counted.
    */
-  std::shared_ptr<CVC5::DTypeSelector> d_stor;
+  std::shared_ptr<cvc5::DTypeSelector> d_stor;
 };
 
 /**
@@ -1786,7 +1786,7 @@ class CVC4_EXPORT DatatypeConstructor
      * @param true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
-                   const CVC5::DTypeConstructor& ctor,
+                   const cvc5::DTypeConstructor& ctor,
                    bool begin);
 
     /**
@@ -1824,7 +1824,7 @@ class CVC4_EXPORT DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const Solver* slv, const CVC5::DTypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const cvc5::DTypeConstructor& ctor);
 
   /**
    * Return selector for name.
@@ -1846,10 +1846,10 @@ class CVC4_EXPORT DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * Note: This is a shared_ptr rather than a unique_ptr since CVC5::DType is
+   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
    *       not ref counted.
    */
-  std::shared_ptr<CVC5::DTypeConstructor> d_ctor;
+  std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
 
 /*
@@ -2008,7 +2008,7 @@ class CVC4_EXPORT Datatype
      * @param dtype the internal datatype to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const Solver* slv, const CVC5::DType& dtype, bool begin);
+    const_iterator(const Solver* slv, const cvc5::DType& dtype, bool begin);
 
     /**
      * The associated solver object.
@@ -2045,7 +2045,7 @@ class CVC4_EXPORT Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const Solver* slv, const CVC5::DType& dtype);
+  Datatype(const Solver* slv, const cvc5::DType& dtype);
 
   /**
    * Return constructor for name.
@@ -2067,10 +2067,10 @@ class CVC4_EXPORT Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * Note: This is a shared_ptr rather than a unique_ptr since CVC5::DType is
+   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
    *       not ref counted.
    */
-  std::shared_ptr<CVC5::DType> d_dtype;
+  std::shared_ptr<cvc5::DType> d_dtype;
 };
 
 /**
@@ -2136,9 +2136,9 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_EXPORT Grammar
 {
-  friend class CVC5::GetAbductCommand;
-  friend class CVC5::GetInterpolCommand;
-  friend class CVC5::SynthFunCommand;
+  friend class cvc5::GetAbductCommand;
+  friend class cvc5::GetInterpolCommand;
+  friend class cvc5::SynthFunCommand;
   friend class Solver;
 
  public:
@@ -2323,7 +2323,7 @@ class CVC4_EXPORT Solver
   friend class DatatypeSelector;
   friend class Grammar;
   friend class Op;
-  friend class CVC5::ResetCommand;
+  friend class cvc5::ResetCommand;
   friend class Sort;
   friend class Term;
 
@@ -3708,5 +3708,5 @@ class CVC4_EXPORT Solver
 };
 
 }  // namespace api
-}  // namespace CVC5
+}  // namespace cvc5
 #endif

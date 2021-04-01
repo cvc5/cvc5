@@ -22,7 +22,7 @@
 #include "options/language.h"
 #include "options/options.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace language {
 
 const int SetLanguage::s_iosIndex = std::ios_base::xalloc();
@@ -79,4 +79,4 @@ std::ostream& operator<<(std::ostream& out, SetLanguage l) {
 }
 
 }  // namespace language
-}  // namespace CVC5
+}  // namespace cvc5

@@ -20,7 +20,7 @@
 #include <unordered_set>
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class LogicInfo;
 
@@ -209,6 +209,6 @@ class SygusRepairConst
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
