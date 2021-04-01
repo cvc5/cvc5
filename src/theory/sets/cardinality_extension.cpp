@@ -25,9 +25,9 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace sets {
 
@@ -1114,4 +1114,4 @@ const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

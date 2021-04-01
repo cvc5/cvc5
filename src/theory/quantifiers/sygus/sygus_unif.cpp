@@ -19,9 +19,9 @@
 #include "util/random.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -134,6 +134,6 @@ void SygusUnif::print_val(const char* c, std::vector<Node>& vals, bool pol)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC5

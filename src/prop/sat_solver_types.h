@@ -29,7 +29,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
 
 /**
@@ -235,4 +235,4 @@ enum SatSolverLifespan
 };
 
 }
-}
+}  // namespace CVC5

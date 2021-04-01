@@ -29,7 +29,7 @@
 #include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class TheoryEngine;
 
@@ -278,4 +278,4 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   ProofNodeManager* d_pnm;
 };
 
-}
+}  // namespace CVC5

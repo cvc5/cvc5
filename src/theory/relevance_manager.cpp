@@ -16,9 +16,9 @@
 
 #include <sstream>
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
@@ -314,4 +314,4 @@ bool RelevanceManager::isRelevant(Node lit)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
