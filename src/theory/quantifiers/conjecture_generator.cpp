@@ -26,13 +26,13 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace CVC5;
+using namespace CVC5::kind;
+using namespace CVC5::theory;
+using namespace CVC5::theory::quantifiers;
 using namespace std;
 
-namespace CVC4 {
+namespace CVC5 {
 
 struct sortConjectureScore {
   std::vector< int > d_scores;
@@ -2260,4 +2260,4 @@ unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 
-}
+}  // namespace CVC5

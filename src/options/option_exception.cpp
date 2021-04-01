@@ -16,6 +16,6 @@
 
 #include "options/option_exception.h"
 
-namespace CVC4 {
+namespace CVC5 {
 const std::string OptionException::s_errPrefix = "Error in option parsing: ";
-}  // namespace CVC4
+}  // namespace CVC5

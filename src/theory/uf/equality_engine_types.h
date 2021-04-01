@@ -26,7 +26,7 @@
 
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace eq {
 
@@ -359,6 +359,6 @@ struct TriggerInfo {
 
 } // namespace eq
 } // namespace theory
-} // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */

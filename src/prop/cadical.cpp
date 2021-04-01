@@ -20,7 +20,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace prop {
 
 using CadicalLit = int;
@@ -200,6 +200,6 @@ CadicalSolver::Statistics::~Statistics() {
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif  // CVC4_USE_CADICAL

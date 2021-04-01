@@ -25,9 +25,9 @@
 #include "theory/rewriter.h"
 #include "util/iand.h"
 
-using namespace CVC4::kind;
+using namespace CVC5::kind;
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -298,4 +298,4 @@ Node IAndSolver::bitwiseLemma(Node i)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5

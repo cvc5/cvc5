@@ -24,7 +24,7 @@
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -147,6 +147,6 @@ class SygusInst : public QuantifiersModule
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif

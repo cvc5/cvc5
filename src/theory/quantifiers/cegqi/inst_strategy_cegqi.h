@@ -26,7 +26,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 namespace theory {
 namespace quantifiers {
 
@@ -215,6 +215,6 @@ class InstStrategyCegqi : public QuantifiersModule
 
 }
 }
-}
+}  // namespace CVC5
 
 #endif

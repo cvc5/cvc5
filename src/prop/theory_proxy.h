@@ -35,7 +35,7 @@
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 class DecisionEngine;
 class TheoryEngine;
@@ -165,8 +165,8 @@ class TheoryProxy : public Registrar
   std::unique_ptr<SkolemDefManager> d_skdm;
 }; /* class TheoryProxy */
 
-}/* CVC4::prop namespace */
+}  // namespace prop
 
-}/* CVC4 namespace */
+}  // namespace CVC5
 
 #endif /* CVC4__PROP__SAT_H */

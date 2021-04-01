@@ -22,7 +22,7 @@
 #include "base/exception.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 struct IntAnd
 {
@@ -41,6 +41,6 @@ inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
   return os << "[" << ia.d_size << "]";
 }
 
-}  // namespace CVC4
+}  // namespace CVC5
 
 #endif /* CVC4__IAND_H */
