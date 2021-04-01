@@ -172,7 +172,7 @@ struct TheoryTraits<${theory_id}> {
   # warnings about theory content and properties
   dir="$(dirname "$kf")/../../"
   if [ -e "$dir/$theory_header" ]; then
-    for function in check propagate ppStaticLearn notifyRestart presolve postsolve; do
+    for function in propagate ppStaticLearn notifyRestart presolve postsolve; do
        if eval "\$theory_has_$function"; then
          grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' ||
            echo "$kf: warning: $theory_class has property \"$function\" in its kinds file but doesn't appear to declare the function" >&2
