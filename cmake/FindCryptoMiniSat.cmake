@@ -38,7 +38,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
 
   ExternalProject_Add(
     CryptoMiniSat-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     URL https://github.com/msoos/cryptominisat/archive/refs/tags/${CryptoMiniSat_VERSION}.tar.gz
     URL_HASH SHA1=f79dfa1ffc6c9c75b3a33f76d3a89a3df2b3f4c2
     PATCH_COMMAND
