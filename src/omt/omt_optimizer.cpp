@@ -21,9 +21,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC5::theory;
-using namespace CVC5::smt;
-namespace CVC5::omt {
+using namespace cvc5::theory;
+using namespace cvc5::smt;
+namespace cvc5::omt {
 
 std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(Node targetNode,
                                                                 bool isSigned)
@@ -52,7 +52,7 @@ std::unique_ptr<SmtEngine> OMTOptimizer::createOptCheckerWithTimeout(
   std::unique_ptr<SmtEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
-  CVC5::theory::initializeSubsolver(optChecker, needsTimeout, timeout);
+  theory::initializeSubsolver(optChecker, needsTimeout, timeout);
   // we need to be in incremental mode for multiple objectives since we need to
   // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
@@ -66,4 +66,4 @@ std::unique_ptr<SmtEngine> OMTOptimizer::createOptCheckerWithTimeout(
   return optChecker;
 }
 
-}  // namespace CVC5::omt
+}  // namespace cvc5::omt

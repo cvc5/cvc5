@@ -17,7 +17,7 @@
 
 #include "smt/optimization_solver.h"
 
-namespace CVC5::omt {
+namespace cvc5::omt {
 
 /**
  * The base class for optimizers of individual CVC type
@@ -79,6 +79,6 @@ class OMTOptimizer
                                                    Node target) = 0;
 };
 
-}  // namespace CVC5::omt
+}  // namespace cvc5::omt
 
 #endif /* CVC4__OMT__OMT_OPTIMIZER_H */

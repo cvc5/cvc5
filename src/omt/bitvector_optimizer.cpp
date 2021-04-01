@@ -19,9 +19,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC5::theory;
-using namespace CVC5::smt;
-namespace CVC5::omt {
+using namespace cvc5::theory;
+using namespace cvc5::smt;
+namespace cvc5::omt {
 
 OMTOptimizerBitVector::OMTOptimizerBitVector(bool isSigned)
     : d_isSigned(isSigned)
@@ -239,4 +239,4 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   return std::make_pair(OptResult::OPT_OPTIMAL, value);
 }
 
-}  // namespace CVC5::omt
+}  // namespace cvc5::omt
