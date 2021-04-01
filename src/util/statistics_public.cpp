@@ -21,7 +21,7 @@
 #include "theory/inference_id.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 void registerPublicStatistics(StatisticsRegistry& reg)
 {
@@ -53,4 +53,4 @@ void registerPublicStatistics(StatisticsRegistry& reg)
   }
 }
 
-}  // namespace CVC4
+}  // namespace CVC5

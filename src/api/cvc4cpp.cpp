@@ -4059,7 +4059,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* -------------------------------------------------------------------------- */
 
 struct Stat::StatData {
-  CVC4::StatExportData data;
+  CVC5::StatExportData data;
   template<typename T>
   StatData(T&& t): data(std::forward<T>(t)) {}
   StatData(): data() {}
@@ -4132,7 +4132,7 @@ Stat::Stat(bool expert, StatData&& sd): d_expert(expert), d_data(std::make_uniqu
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
-  return CVC4::detail::print(os, sv.d_data->data);
+  return CVC5::detail::print(os, sv.d_data->data);
 }
 
 Statistics::BaseType::const_reference Statistics::iterator::operator*() const
