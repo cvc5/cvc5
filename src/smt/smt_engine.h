@@ -724,13 +724,6 @@ class CVC4_EXPORT SmtEngine
    */
   void pop();
 
-  /**
-   * Completely reset the state of the solver, as though destroyed and
-   * recreated.  The result is as if newly constructed (so it still
-   * retains the same options structure and NodeManager).
-   */
-  void reset();
-
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
 
@@ -1126,12 +1119,6 @@ class CVC4_EXPORT SmtEngine
    * logic, lives in the Env class.
    */
   LogicInfo d_userLogic;
-
-  /**
-   * Keep a copy of the original option settings (for reset()). The current
-   * options live in the Env object.
-   */
-  Options d_originalOptions;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
