@@ -34,7 +34,6 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   getversionpart(PATCH "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_PATCHLEVEL")
   set(GMP_VERSION
       "${MAJOR}.${MINOR}.${PATCH}"
-      PARENT_SCOPE
   )
 
   check_system_version("GMP")
