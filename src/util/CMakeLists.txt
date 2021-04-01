@@ -9,6 +9,8 @@
 ## directory for licensing information.
 ##
 configure_file(floatingpoint_literal_symfpu.h.in floatingpoint_literal_symfpu.h)
+configure_file(floatingpoint_literal_symfpu_traits.h.in
+               floatingpoint_literal_symfpu_traits.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
@@ -29,6 +31,8 @@ libcvc4_add_sources(
   floatingpoint.h
   floatingpoint_size.cpp
   floatingpoint_size.h
+  floatingpoint_literal_symfpu.cpp
+  floatingpoint_literal_symfpu_traits.cpp
   gmp_util.h
   hash.h
   iand.h
@@ -69,7 +73,6 @@ libcvc4_add_sources(
   stats_utils.h
   string.cpp
   string.h
-  floatingpoint_literal_symfpu.cpp
   tuple.h
   unsafe_interrupt_exception.h
   utility.cpp
