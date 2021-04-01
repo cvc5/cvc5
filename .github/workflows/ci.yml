@@ -108,17 +108,6 @@ jobs:
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
-    - name: Restore Dependencies
-      id: restore-deps
-      uses: actions/cache@v1
-      with:
-        path: deps/install
-        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
-
-    - name: Setup Dependencies
-      if: steps.restore-deps.outputs.cache-hit != 'true'
-      run: |
-        ./contrib/get-lfsc-checker
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
@@ -127,6 +116,26 @@ jobs:
     # for the most recent cache with prefix
     # cache-${{ runner.os }}-${{ matrix.cache-key }}-, and if found uses it as
     # a base for the new cache.
+
+    - name: Restore Dependencies
+      id: restore-deps
+      uses: actions/cache@v1
+      with:
+        path: build/deps
+        key: ${{ runner.os }}-deps-${{ hashFiles('cmake/Find**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+
+    - name: Restore Auxiliary Tools
+      id: restore-aux-tools
+      uses: actions/cache@v1
+      with:
+        path: deps/install
+        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+
+    - name: Setup Auxiliary Tools
+      if: steps.restore-aux-tools.outputs.cache-hit != 'true'
+      run: |
+        ./contrib/get-lfsc-checker
+
     - name: Restore ccache
       id: cache
       uses: actions/cache@v1
