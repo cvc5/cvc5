@@ -6,7 +6,7 @@
 
 theory THEORY_STRINGS ::CVC5::theory::strings::TheoryStrings "theory/strings/theory_strings.h"
 
-properties parametric presolve
+properties check parametric presolve
 
 rewriter ::CVC5::theory::strings::SequencesRewriter "theory/strings/sequences_rewriter.h"
 

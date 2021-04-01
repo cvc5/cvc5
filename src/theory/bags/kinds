@@ -12,7 +12,7 @@ rewriter ::CVC5::theory::bags::BagsRewriter \
     "theory/bags/bags_rewriter.h"
 
 properties parametric
-properties presolve
+properties check propagate presolve
 
 # constants
 constant EMPTYBAG \
