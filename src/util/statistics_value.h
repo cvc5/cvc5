@@ -254,7 +254,12 @@ struct StatisticReferenceValue : StatisticBaseValue
       {
         return static_cast<int64_t>(*d_value);
       }
-      return *d_value;
+      else
+      {
+        // this else branch is required to ensure compilation.
+        // if T is unsigned int, this return statement triggers a compiler error
+        return *d_value;
+      }
     }
     return {};
   }
