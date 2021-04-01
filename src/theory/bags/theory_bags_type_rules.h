@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class NodeManager;
 
@@ -102,6 +102,6 @@ struct BagsProperties
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H */

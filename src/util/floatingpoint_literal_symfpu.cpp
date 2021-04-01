@@ -39,9 +39,9 @@ namespace symfpu {
 
 #define CVC4_LIT_ITE_DFN(T)                                            \
   template <>                                                          \
-  struct ite<::CVC5::symfpuLiteral::CVC4Prop, T>                       \
+  struct ite<::cvc5::symfpuLiteral::CVC4Prop, T>                       \
   {                                                                    \
-    static const T& iteOp(const ::CVC5::symfpuLiteral::CVC4Prop& cond, \
+    static const T& iteOp(const ::cvc5::symfpuLiteral::CVC4Prop& cond, \
                           const T& l,                                  \
                           const T& r)                                  \
     {                                                                  \
@@ -49,10 +49,10 @@ namespace symfpu {
     }                                                                  \
   }
 
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::rm);
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::prop);
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::sbv);
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::ubv);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::rm);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::prop);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::sbv);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::ubv);
 
 #undef CVC4_LIT_ITE_DFN
 }  // namespace symfpu
@@ -60,7 +60,7 @@ CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::ubv);
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC5 {
+namespace cvc5 {
 
 uint32_t FloatingPointLiteral::getUnpackedExponentWidth(FloatingPointSize& size)
 {
@@ -881,11 +881,11 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
 template class wrappedBitVector<true>;
 template class wrappedBitVector<false>;
 
-traits::rm traits::RNE(void) { return ::CVC5::ROUND_NEAREST_TIES_TO_EVEN; };
-traits::rm traits::RNA(void) { return ::CVC5::ROUND_NEAREST_TIES_TO_AWAY; };
-traits::rm traits::RTP(void) { return ::CVC5::ROUND_TOWARD_POSITIVE; };
-traits::rm traits::RTN(void) { return ::CVC5::ROUND_TOWARD_NEGATIVE; };
-traits::rm traits::RTZ(void) { return ::CVC5::ROUND_TOWARD_ZERO; };
+traits::rm traits::RNE(void) { return ::cvc5::ROUND_NEAREST_TIES_TO_EVEN; };
+traits::rm traits::RNA(void) { return ::cvc5::ROUND_NEAREST_TIES_TO_AWAY; };
+traits::rm traits::RTP(void) { return ::cvc5::ROUND_TOWARD_POSITIVE; };
+traits::rm traits::RTN(void) { return ::cvc5::ROUND_TOWARD_NEGATIVE; };
+traits::rm traits::RTZ(void) { return ::cvc5::ROUND_TOWARD_ZERO; };
 // This is a literal back-end so props are actually bools
 // so these can be handled in the same way as the internal assertions above
 
@@ -906,4 +906,4 @@ void traits::invariant(const traits::prop& p)
 }
 }  // namespace symfpuLiteral
 
-}  // namespace CVC5
+}  // namespace cvc5

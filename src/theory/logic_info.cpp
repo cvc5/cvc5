@@ -27,9 +27,9 @@
 #include "expr/kind.h"
 
 using namespace std;
-using namespace CVC5::theory;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 
 LogicInfo::LogicInfo()
     : d_logicString(""),
@@ -725,4 +725,4 @@ std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) {
   return out << logic.getLogicString();
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

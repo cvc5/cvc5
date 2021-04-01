@@ -20,9 +20,9 @@
 #include "smt/smt_engine_scope.h"
 #include "util/random.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -103,4 +103,4 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

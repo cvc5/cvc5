@@ -28,7 +28,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "util/string.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -55,7 +55,7 @@ enum RegExpConstType
 };
 
 class RegExpOpr {
-  typedef std::pair<Node, CVC5::String> PairNodeStr;
+  typedef std::pair<Node, cvc5::String> PairNodeStr;
   typedef std::set< Node > SetNodes;
   typedef std::pair< Node, Node > PairNodes;
 
@@ -171,8 +171,8 @@ class RegExpOpr {
    * - delta( (re.union (re.* "A") R) ) returns 1.
    */
   int delta( Node r, Node &exp );
-  int derivativeS(Node r, CVC5::String c, Node& retNode);
-  Node derivativeSingle(Node r, CVC5::String c);
+  int derivativeS(Node r, cvc5::String c, Node& retNode);
+  Node derivativeSingle(Node r, cvc5::String c);
   /**
    * Returns the regular expression intersection of r1 and r2. If r1 or r2 is
    * not constant, then this method returns null.
@@ -209,6 +209,6 @@ class RegExpOpr {
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__REGEXP__OPERATION_H */

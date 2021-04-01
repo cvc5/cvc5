@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -835,4 +835,4 @@ Node DioSolver::trailIndexToEquality(TrailIndex i) const {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

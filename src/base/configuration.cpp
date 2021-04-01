@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 string Configuration::getName() {
   return CVC4_PACKAGE_NAME;
@@ -371,7 +371,7 @@ std::string Configuration::getGitId() {
 
   stringstream ss;
   ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
-     << (::CVC5::Configuration::hasGitModifications() ? " (with modifications)"
+     << (::cvc5::Configuration::hasGitModifications() ? " (with modifications)"
                                                       : "");
   return ss.str();
 }
@@ -395,4 +395,4 @@ std::string Configuration::getCompiledDateTime() {
   return __DATE__ " " __TIME__;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

@@ -59,10 +59,10 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 
-using namespace CVC5::preprocessing::passes;
+using namespace cvc5::preprocessing::passes;
 
 PreprocessingPassRegistry& PreprocessingPassRegistry::getInstance()
 {
@@ -158,4 +158,4 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
 }
 
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5

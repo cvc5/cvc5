@@ -25,7 +25,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * Represents the (static) configuration of CVC4.
@@ -142,6 +142,6 @@ public:
 
 }; /* class Configuration */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__CONFIGURATION_H */

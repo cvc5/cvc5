@@ -26,7 +26,7 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class DTypeConstructor;
 
@@ -157,6 +157,6 @@ class Skolemize
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H */

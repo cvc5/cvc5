@@ -22,7 +22,7 @@
 #include "theory/arrays/theory_arrays_rewriter.h" // for array-constant attributes
 #include "theory/type_enumerator.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -276,6 +276,6 @@ struct ArrayEqRangeTypeRule
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */
