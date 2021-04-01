@@ -16,7 +16,7 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -155,4 +155,4 @@ void TermPools::processInternal(Node q,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
