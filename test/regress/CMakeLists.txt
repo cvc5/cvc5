@@ -2039,7 +2039,6 @@ set(regress_1_tests
   regress1/strings/issue6075-repl-len-one-rr.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
-  regress1/strings/issue6180-proxy.smt2
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
