@@ -191,9 +191,11 @@ class SkolemManager
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the above forms.
    */
-  Node mkSkolemFunction(SkolemFunId id, TypeNode tn, 
-                              const std::string& prefix,
-                              const std::string& comment, Node cacheVal=Node::null());
+  Node mkSkolemFunction(SkolemFunId id,
+                        TypeNode tn,
+                        const std::string& prefix,
+                        const std::string& comment,
+                        Node cacheVal = Node::null());
   /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind
@@ -224,10 +226,10 @@ class SkolemManager
   static Node getOriginalForm(Node n);
 
  private:
-  /** 
+  /**
    * Cached of skolem functions for mkSkolemFunction above.
    */
-  std::map< std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
+  std::map<std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
   /**
    * Mapping from witness terms to proof generators.
    */
