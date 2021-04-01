@@ -36,7 +36,7 @@ add_custom_target(
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
     --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc4kinds"
   DEPENDS
-    genkinds.py
+    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
   COMMENT
     "Generate cvc4kinds.{pxd,pyx}"
 )

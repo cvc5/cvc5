@@ -19,7 +19,7 @@
 #include <limits>
 #include <set>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -32,4 +32,4 @@ bool debugIsASet(const std::vector<ArithVar>& variables){
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

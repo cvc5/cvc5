@@ -33,7 +33,7 @@
 #include "util/ostream_util.h"
 #include "util/smt2_quote_string.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 const int PrettySExprs::s_iosIndex = std::ios_base::xalloc();
 
@@ -90,7 +90,7 @@ SExpr::SExpr(const SExpr& other)
   Assert((d_children == NULL) == isAtom());
 }
 
-SExpr::SExpr(const CVC5::Integer& value)
+SExpr::SExpr(const cvc5::Integer& value)
     : d_sexprType(SEXPR_INTEGER),
       d_integerValue(value),
       d_rationalValue(0),
@@ -127,7 +127,7 @@ SExpr::SExpr(unsigned long int value)
       d_stringValue(""),
       d_children(NULL) {}
 
-SExpr::SExpr(const CVC5::Rational& value)
+SExpr::SExpr(const cvc5::Rational& value)
     : d_sexprType(SEXPR_RATIONAL),
       d_integerValue(0),
       d_rationalValue(value),
@@ -308,13 +308,13 @@ std::string SExpr::getValue() const {
   return std::string();
 }
 
-const CVC5::Integer& SExpr::getIntegerValue() const
+const cvc5::Integer& SExpr::getIntegerValue() const
 {
   PrettyCheckArgument(isInteger(), this);
   return d_integerValue;
 }
 
-const CVC5::Rational& SExpr::getRationalValue() const
+const cvc5::Rational& SExpr::getRationalValue() const
 {
   PrettyCheckArgument(isRational(), this);
   return d_rationalValue;
@@ -383,4 +383,4 @@ SExpr SExpr::parseListOfListOfAtoms(
   return SExpr(parsedListsOfAtoms);
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

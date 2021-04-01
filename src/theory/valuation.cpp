@@ -24,7 +24,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, EqualityStatus s)
@@ -222,4 +222,4 @@ context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

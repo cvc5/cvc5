@@ -54,7 +54,7 @@
 #include "util/result.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class EagerProofGenerator;
@@ -886,4 +886,4 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

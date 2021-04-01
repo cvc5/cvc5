@@ -72,13 +72,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace CVC5::smt;
-using namespace CVC5::preprocessing;
-using namespace CVC5::prop;
-using namespace CVC5::context;
-using namespace CVC5::theory;
+using namespace cvc5::smt;
+using namespace cvc5::preprocessing;
+using namespace cvc5::prop;
+using namespace cvc5::context;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm)),
@@ -98,7 +98,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_originalOptions(),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
@@ -412,7 +411,6 @@ void SmtEngine::notifyStartParsing(const std::string& filename)
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
-  d_originalOptions.copyValues(getOptions());
 }
 
 const std::string& SmtEngine::getFilename() const
@@ -505,7 +503,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   return false;
 }
 
-CVC5::SExpr SmtEngine::getInfo(const std::string& key) const
+cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
 {
   SmtScope smts(this);
 
@@ -1790,24 +1788,6 @@ void SmtEngine::pop() {
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
-void SmtEngine::reset()
-{
-  // save pointer to the current node manager
-  NodeManager* nm = getNodeManager();
-  Trace("smt") << "SMT reset()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
-  }
-  std::string filename = d_state->getFilename();
-  Options opts;
-  opts.copyValues(d_originalOptions);
-  this->~SmtEngine();
-  new (this) SmtEngine(nm, &opts);
-  // Restore data set after creation
-  notifyStartParsing(filename);
-}
-
 void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
@@ -2054,4 +2034,4 @@ OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 
 theory::Rewriter* SmtEngine::getRewriter() { return d_env->getRewriter(); }
 
-}  // namespace CVC5
+}  // namespace cvc5

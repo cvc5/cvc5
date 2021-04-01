@@ -21,7 +21,7 @@
 
 #include "expr/term_canonize.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -101,6 +101,6 @@ class AlphaEquivalence
 
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

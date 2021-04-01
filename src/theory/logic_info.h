@@ -27,7 +27,7 @@
 #include "cvc4_export.h"
 #include "theory/theory_id.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * A LogicInfo instance describes a collection of theory modules and some
@@ -291,6 +291,6 @@ public:
 
 std::ostream& operator<<(std::ostream& out, const LogicInfo& logic);
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__LOGIC_INFO_H */

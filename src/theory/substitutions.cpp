@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 struct substitution_stack_element {
@@ -223,4 +223,4 @@ std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::itera
   return out << "[CDMap-iterator]";
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

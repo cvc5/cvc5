@@ -19,7 +19,7 @@
 #include <sstream>
 #include <string>
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * SMT-LIB 2 quoting for symbols
@@ -43,4 +43,4 @@ std::string quoteSymbol(const std::string& s){
   return s;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

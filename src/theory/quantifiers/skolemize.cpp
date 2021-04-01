@@ -28,9 +28,9 @@
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -405,4 +405,4 @@ bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

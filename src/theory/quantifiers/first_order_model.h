@@ -22,7 +22,7 @@
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -196,6 +196,6 @@ class FirstOrderModel : public TheoryModel
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__FIRST_ORDER_MODEL_H */

@@ -37,10 +37,10 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -1353,4 +1353,4 @@ ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
 
 }  // namespace quantifiers
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5

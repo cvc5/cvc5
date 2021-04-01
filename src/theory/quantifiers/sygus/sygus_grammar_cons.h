@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -266,6 +266,6 @@ public:
 
 }  // namespace quantifiers
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5
 
 #endif
