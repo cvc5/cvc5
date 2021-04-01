@@ -59,20 +59,6 @@ class OperatorElim : public EagerProofGenerator
  private:
   /** Logic info of the owner of this class */
   const LogicInfo& d_info;
-
-  /** Arithmetic skolem identifier */
-  enum class ArithSkolemId
-  {
-    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
-    DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
-    INT_DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x mod 0 */
-    MOD_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
-    SQRT,
-  };
-
   /**
    * Function symbols used to implement:
    * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
@@ -85,8 +71,11 @@ class OperatorElim : public EagerProofGenerator
    * If the option arithNoPartialFun() is enabled, then the range of this map
    * stores Skolem constants instead of Skolem functions, meaning that the
    * function-ness of e.g. division by zero is ignored.
+   *
+   * Note that this cache is used only for performance reasons. The skolem
+   * functions live in SkolemManager.
    */
-  std::map<ArithSkolemId, Node> d_arith_skolem;
+  std::map<SkolemFunId, Node> d_arith_skolem;
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
@@ -113,7 +102,7 @@ class OperatorElim : public EagerProofGenerator
    * Returns the Skolem in the above map for the given id, creating it if it
    * does not already exist.
    */
-  Node getArithSkolem(ArithSkolemId asi);
+  Node getArithSkolem(SkolemFunId asi);
   /**
    * Make the witness term, which creates a witness term based on the skolem
    * manager with this class as a proof generator.
@@ -131,7 +120,7 @@ class OperatorElim : public EagerProofGenerator
    * If the option arithNoPartialFun is enabled, this returns f, where f is
    * the Skolem constant for the identifier asi.
    */
-  Node getArithSkolemApp(Node n, ArithSkolemId asi);
+  Node getArithSkolemApp(Node n, SkolemFunId asi);
 
   /**
    * Called when a non-linear term n is given to this class. Throw an exception
