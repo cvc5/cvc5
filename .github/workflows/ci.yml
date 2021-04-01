@@ -108,28 +108,30 @@ jobs:
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
-
     # GitHub actions currently does not support modifying an already existing
-    # cache. Hence, we create a new cache for each commit with key
-    # cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}. This
-    # will result in an initial cache miss. However, restore-keys will search
-    # for the most recent cache with prefix
-    # cache-${{ runner.os }}-${{ matrix.cache-key }}-, and if found uses it as
-    # a base for the new cache.
-
-    - name: Restore Dependencies
-      id: restore-deps
-      uses: actions/cache@v2
-      with:
-        path: build/deps
-        key: ${{ runner.os }}-deps-${{ hashFiles('cmake/Find**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+    # cache. We thus have two possibilities for every cached directory:
+    # (a) have a single cache for every config. It should not be necessary to
+    #     modify it once it has been build and it should to be invalidated
+    #     whenever rebuilding it would yield a different result.
+    # (b) have a new cache for every commit. We restore the most recent cache
+    #     and (can) update it with every run. This is done by attaching the
+    #     current commit hash to the cache key and use `restore-keys`
+    #
+    # We define three caches: aux-tools, ccache, deps.
+    # - aux-tools (deps/) should not change frequently and does not handle
+    #   outdated contents gracefully. We thus need to go with (a).
+    # - ccache changes with (almost) every commit and handles outdated contents
+    #   properly. We use (a).
+    # - deps (build/deps/) should not change frequently. While updating it
+    #   (as in b) would work, this is a rare event (when a Find*.cmake changes)
+    #   and storing this cache for every commit is probably not worth it.
 
     - name: Restore Auxiliary Tools
       id: restore-aux-tools
       uses: actions/cache@v2
       with:
         path: deps/install
-        key: ${{ runner.os }}-aux-tools-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Setup Auxiliary Tools
       if: steps.restore-aux-tools.outputs.cache-hit != 'true'
@@ -137,12 +139,12 @@ jobs:
         ./contrib/get-lfsc-checker
 
     - name: Restore ccache
-      id: cache
+      id: ccache
       uses: actions/cache@v2
       with:
         path: ccache-dir
-        key: cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
-        restore-keys: cache-${{ runner.os }}-${{ matrix.cache-key }}-
+        key: ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
+        restore-keys: ccache-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure ccache
       run: |
@@ -151,6 +153,14 @@ jobs:
         ccache --set-config=compression_level=6
         ccache -M 500M
         ccache -z
+
+    - name: Restore Dependencies
+      id: restore-deps
+      uses: actions/cache@v2
+      with:
+        path: build/deps
+        key: deps-${{ runner.os }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        restore-keys: deps-${{ runner.os }}-
 
     - name: Configure
       run: |
