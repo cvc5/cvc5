@@ -59,7 +59,7 @@ public:
         if(!childType.isReal()) {
           throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic subterm");
         }
-        if (k==kind::TO_REAL && !childType.isInteger())
+        if (k == kind::TO_REAL && !childType.isInteger())
         {
           throw TypeCheckingExceptionPrivate(n, "expecting an integer subterm");
         }
