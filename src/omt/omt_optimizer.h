@@ -17,10 +17,10 @@
 
 #include "smt/optimization_solver.h"
 
-namespace CVC4::omt {
+namespace CVC5::omt {
 
 /**
- * The base class for optimizers of individual CVC4 type
+ * The base class for optimizers of individual CVC type
  */
 class OMTOptimizer
 {
@@ -79,6 +79,6 @@ class OMTOptimizer
                                                    Node target) = 0;
 };
 
-}  // namespace CVC4::omt
+}  // namespace CVC5::omt
 
 #endif /* CVC4__OMT__OMT_OPTIMIZER_H */

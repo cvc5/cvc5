@@ -19,9 +19,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::smt;
-namespace CVC4::omt {
+using namespace CVC5::theory;
+using namespace CVC5::smt;
+namespace CVC5::omt {
 
 std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
     SmtEngine* parentSMTSolver, Node target, ObjectiveType objType)
@@ -87,4 +87,4 @@ std::pair<OptResult, Node> OMTOptimizerInteger::maximize(
       parentSMTSolver, target, ObjectiveType::OBJECTIVE_MAXIMIZE);
 }
 
-}  // namespace CVC4::omt
+}  // namespace CVC5::omt

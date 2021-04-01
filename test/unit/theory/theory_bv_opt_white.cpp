@@ -16,7 +16,7 @@
 #include "smt/optimization_solver.h"
 #include "test_smt.h"
 
-namespace CVC4 {
+namespace CVC5 {
 
 using namespace theory;
 using namespace smt;
@@ -151,4 +151,4 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace CVC5
