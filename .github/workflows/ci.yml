@@ -129,7 +129,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: deps/install
-        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: ${{ runner.os }}-aux-tools-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Setup Auxiliary Tools
       if: steps.restore-aux-tools.outputs.cache-hit != 'true'
