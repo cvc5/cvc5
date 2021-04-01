@@ -279,6 +279,9 @@ class CVC4_EXPORT Command
   bool d_muted;
 
  protected:
+  // These methods rely on Command being a friend of classes in the API.
+  // Subclasses of command should use these methods for conversions,
+  // which is currently necessary for e.g. printing commands.
   /** Helper to convert a Term to an internal Node */
   static Node termToNode(const api::Term& term);
   /** Helper to convert a vector of Terms to internal Nodes. */
