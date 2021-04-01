@@ -4433,7 +4433,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
   }
 
   // Integers are reals, too
-  Assert(t.isReal());
+  Assert(t.d_type->isReal());
   Term res = term;
   if (t.isInteger())
   {
