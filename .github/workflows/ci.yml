@@ -108,23 +108,30 @@ jobs:
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
-    # GitHub actions currently does not support modifying an already existing
-    # cache. We thus have two possibilities for every cached directory:
-    # (a) have a single cache for every config. It should not be necessary to
-    #     modify it once it has been build and it should to be invalidated
-    #     whenever rebuilding it would yield a different result.
-    # (b) have a new cache for every commit. We restore the most recent cache
-    #     and (can) update it with every run. This is done by attaching the
-    #     current commit hash to the cache key and use `restore-keys`
+    # The GitHub action for caching currently does not support modifying an
+    # already existing cache. We thus have a few different possibilities:
+    # - If having (partially) outdated data in the cached directory is fine, we
+    #   may want to restore any old cache via `restore-keys`. We should try hard
+    #   to detect that we have (partially) outdated data and make sure that the
+    #   updated data is stored to a new cache key.
+    # - If a cache is updated frequently (i.e. almost with every commit), we
+    #   should use the current commit hash as suffix and use `restore-keys` to
+    #   restore the cache from the previous commit.
     #
     # We define three caches: aux-tools, ccache, deps.
-    # - aux-tools (deps/) should not change frequently and does not handle
-    #   outdated contents gracefully. We thus need to go with (a).
+    # - aux-tools (deps/) does not handle outdated contents gracefully. As it is
+    #   not updated frequently, we completely rebuild it whenever it might
+    #   change, which is when the contrib scripts or the CI config changes.
     # - ccache changes with (almost) every commit and handles outdated contents
-    #   properly. We use (a).
-    # - deps (build/deps/) should not change frequently. While updating it
-    #   (as in b) would work, this is a rare event (when a Find*.cmake changes)
-    #   and storing this cache for every commit is probably not worth it.
+    #   properly. We thus use `restore-keys` and store a new cache for every
+    #   commit.
+    # - deps (build/deps/) does handle outdated contents gracefully, but does
+    #   not change frequently. We thus use `restore-keys` to restore any recent
+    #   cache, but only store a new cache if the cmake or CI config changes.
+    #
+    # All caches are separated by operating system. Both ccache and deps are
+    # additionally deparated by `cache-key`, i.e. the CI job type, because they
+    # depend on the configured compiler.
 
     - name: Restore Auxiliary Tools
       id: restore-aux-tools
@@ -159,8 +166,8 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build/deps
-        key: deps-${{ runner.os }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
-        restore-keys: deps-${{ runner.os }}-
+        key: deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        restore-keys: deps-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure
       run: |
