@@ -203,10 +203,16 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
+  if (Trace.isOn("strings-debug-model"))
+  {
+    Trace("strings-debug-model") << "TheoryStrings::collectModelValues" << std::endl;
+    std::stringstream ss;
+    d_esolver.debugPrintModel(ss);
+    Trace("strings-debug-model") << ss.str();
+  }
   if (Trace.isOn("strings-model"))
   {
-    Trace("strings-model") << "TheoryStrings : Collect model values"
-                           << std::endl;
+    Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
     Trace("strings-model") << "Equivalence classes are:" << std::endl;
     Trace("strings-model") << debugPrintStringsEqc() << std::endl;
   }

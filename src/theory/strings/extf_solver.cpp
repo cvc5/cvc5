@@ -85,7 +85,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   if (d_reduced.find(n)!=d_reduced.end())
   {
     // already sent a reduction lemma
-  Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
   // determine the effort level to process the extf at
@@ -157,8 +157,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   if (effort != r_effort)
   {
-    
-  Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
     // not the right effort level to reduce
     return false;
   }
@@ -720,6 +719,18 @@ bool StringsExtfCallback::getCurrentSubstitution(
     subs.push_back(s);
   }
   return true;
+}
+
+void ExtfSolver::debugPrintModel(std::ostream& os)
+{
+  os << "==== Strings ext functions" << std::endl;
+  for (const Node& n : extf)
+  {
+    os << "- " << n;
+    os << ", model active = " << d_extfInfoTmp[n].d_modelActive;
+    os << ", reduced = " << (d_reduced.find(n)!=d_reduced.end());
+    os << std::endl;
+  }
 }
 
 }  // namespace strings
