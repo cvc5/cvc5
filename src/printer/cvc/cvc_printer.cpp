@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace printer {
 namespace cvc {
 
@@ -1614,4 +1614,4 @@ void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
 
 }  // namespace cvc
 }  // namespace printer
-}  // namespace CVC5
+}  // namespace cvc5

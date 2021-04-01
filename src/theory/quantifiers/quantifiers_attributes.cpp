@@ -20,10 +20,10 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC5::kind;
-using namespace CVC5::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -378,4 +378,4 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

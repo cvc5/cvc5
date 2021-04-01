@@ -26,8 +26,8 @@
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 
-using namespace CVC5;
-using namespace CVC5::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 using namespace std;
 
 void testGetInfo(api::Solver* solver, const char* s);

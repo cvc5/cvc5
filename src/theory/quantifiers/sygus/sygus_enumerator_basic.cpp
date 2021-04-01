@@ -15,10 +15,10 @@
 
 #include "options/datatypes_options.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -55,4 +55,4 @@ bool EnumValGeneratorBasic::increment()
 
 }  // namespace quantifiers
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5

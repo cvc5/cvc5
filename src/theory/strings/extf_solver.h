@@ -32,7 +32,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -233,6 +233,6 @@ class StringsExtfCallback : public ExtTheoryCallback
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__EXTF_SOLVER_H */

@@ -21,7 +21,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -98,6 +98,6 @@ public:
 };
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

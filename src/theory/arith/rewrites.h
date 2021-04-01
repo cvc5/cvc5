@@ -19,7 +19,7 @@
 
 #include <iosfwd>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -77,6 +77,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__REWRITES_H */

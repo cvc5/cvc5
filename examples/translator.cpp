@@ -28,9 +28,9 @@
 #include <cvc4/options/set_language.h>
 
 using namespace std;
-using namespace CVC5;
-using namespace CVC5::language;
-using namespace CVC5::parser;
+using namespace cvc5;
+using namespace cvc5::language;
+using namespace cvc5::parser;
 
 enum {
   INPUT_LANG = 'L',

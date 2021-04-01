@@ -24,7 +24,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 namespace expr {
   class NodeValue;
@@ -74,16 +74,16 @@ struct ConstantMapReverse;
  */
 template <Kind k, bool pool>
 struct NodeValueConstCompare {
-  inline static bool compare(const ::CVC5::expr::NodeValue* x,
-                             const ::CVC5::expr::NodeValue* y);
-  inline static size_t constHash(const ::CVC5::expr::NodeValue* nv);
+  inline static bool compare(const ::cvc5::expr::NodeValue* x,
+                             const ::cvc5::expr::NodeValue* y);
+  inline static size_t constHash(const ::cvc5::expr::NodeValue* nv);
 };/* NodeValueConstCompare<k, pool> */
 
 struct NodeValueCompare {
   template <bool pool>
-  static bool compare(const ::CVC5::expr::NodeValue* nv1,
-                      const ::CVC5::expr::NodeValue* nv2);
-  static size_t constHash(const ::CVC5::expr::NodeValue* nv);
+  static bool compare(const ::cvc5::expr::NodeValue* nv1,
+                      const ::cvc5::expr::NodeValue* nv2);
+  static size_t constHash(const ::cvc5::expr::NodeValue* nv);
 };/* struct NodeValueCompare */
 
 /**
@@ -104,9 +104,9 @@ enum MetaKind_t {
 
 }  // namespace metakind
 
-// import MetaKind into the "CVC5::kind" namespace but keep the
+// import MetaKind into the "cvc5::kind" namespace but keep the
 // individual MetaKind constants under kind::metakind::
-typedef ::CVC5::kind::metakind::MetaKind_t MetaKind;
+typedef ::cvc5::kind::metakind::MetaKind_t MetaKind;
 
 /**
  * Get the metakind for a particular kind.
@@ -119,12 +119,12 @@ namespace expr {
 // Comparison predicate
 struct NodeValuePoolEq {
   inline bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
-    return ::CVC5::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
+    return ::cvc5::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
   }
 };
 
 }  // namespace expr
-}  // namespace CVC5
+}  // namespace cvc5
 
 #include "expr/node_value.h"
 
@@ -134,7 +134,7 @@ ${metakind_includes}
 
 #ifdef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
-namespace CVC5 {
+namespace cvc5 {
 
 namespace expr {
 ${metakind_getConst_decls}
@@ -145,7 +145,7 @@ namespace metakind {
 
 template <Kind k, bool pool>
 inline bool NodeValueConstCompare<k, pool>::compare(
-    const ::CVC5::expr::NodeValue* x, const ::CVC5::expr::NodeValue* y)
+    const ::cvc5::expr::NodeValue* x, const ::cvc5::expr::NodeValue* y)
 {
   typedef typename ConstantMapReverse<k>::T T;
   if(pool) {
@@ -165,7 +165,7 @@ inline bool NodeValueConstCompare<k, pool>::compare(
 
 template <Kind k, bool pool>
 inline size_t NodeValueConstCompare<k, pool>::constHash(
-    const ::CVC5::expr::NodeValue* nv)
+    const ::cvc5::expr::NodeValue* nv)
 {
   typedef typename ConstantMapReverse<k>::T T;
   return nv->getConst<T>().hash();
@@ -174,7 +174,7 @@ inline size_t NodeValueConstCompare<k, pool>::constHash(
 ${metakind_constantMaps_decls}
 
 struct NodeValueConstPrinter {
-  static void toStream(std::ostream& out, const ::CVC5::expr::NodeValue* nv);
+  static void toStream(std::ostream& out, const ::cvc5::expr::NodeValue* nv);
   static void toStream(std::ostream& out, TNode n);
 };
 
@@ -187,12 +187,12 @@ struct NodeValueConstPrinter {
  * This doesn't support "non-inlined" NodeValues, which shouldn't need this
  * kind of cleanup.
  */
-void deleteNodeValueConstant(::CVC5::expr::NodeValue* nv);
+void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv);
 
 /** Return the minimum arity of the given kind. */
-uint32_t getMinArityForKind(::CVC5::Kind k);
+uint32_t getMinArityForKind(::cvc5::Kind k);
 /** Return the maximum arity of the given kind. */
-uint32_t getMaxArityForKind(::CVC5::Kind k);
+uint32_t getMaxArityForKind(::cvc5::Kind k);
 
 }  // namespace metakind
 
@@ -201,10 +201,10 @@ uint32_t getMaxArityForKind(::CVC5::Kind k);
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.
  */
-Kind operatorToKind(::CVC5::expr::NodeValue* nv);
+Kind operatorToKind(::cvc5::expr::NodeValue* nv);
 
 }  // namespace kind
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */

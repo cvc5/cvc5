@@ -19,7 +19,7 @@
 
 #include "theory/quantifiers/sygus/sygus_module.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -168,6 +168,6 @@ class SygusPbe : public SygusModule
 
 }  // namespace quantifiers
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5
 
 #endif

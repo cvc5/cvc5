@@ -33,7 +33,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/utils/Options.h"
 #include "util/resource_manager.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 namespace BVMinisat {
 class Solver;
@@ -80,7 +80,7 @@ private:
     Notify* d_notify;
 
     /** Cvc4 context */
-    CVC5::context::Context* c;
+    cvc5::context::Context* c;
 
     /** True constant */
     Var varTrue;
@@ -92,7 +92,7 @@ public:
 
     // Constructor/Destructor:
     //
- Solver(CVC5::context::Context* c);
+ Solver(cvc5::context::Context* c);
  virtual ~Solver();
 
  void setNotify(Notify* toNotify);
@@ -534,6 +534,6 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 //=================================================================================================
 }  // namespace BVMinisat
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif
