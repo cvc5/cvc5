@@ -23,10 +23,10 @@
 #include "parser/tptp/TptpLexer.h"
 #include "parser/tptp/TptpParser.h"
 
-// extern void TptpParserSetAntlrParser(CVC5::parser::AntlrParser*
+// extern void TptpParserSetAntlrParser(cvc5::parser::AntlrParser*
 // newAntlrParser);
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -82,6 +82,6 @@ class TptpInput : public AntlrInput {
 };/* class TptpInput */
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__TPTP_INPUT_H */

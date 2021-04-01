@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC5::KindMap
+ ** \brief Black box testing of cvc5::KindMap
  **
- ** Black box testing of CVC5::KindMap.
+ ** Black box testing of cvc5::KindMap.
  **/
 
 #include <iostream>
@@ -21,7 +21,7 @@
 #include "expr/kind_map.h"
 #include "test.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -45,4 +45,4 @@ TEST_F(TestNodeBlackKindMap, simple)
 }
 
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

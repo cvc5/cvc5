@@ -23,7 +23,7 @@
 
 #include "theory/sets/normal_form.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -390,7 +390,7 @@ struct JoinImageTypeRule {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be a constant");
     }
-    CVC5::Rational r(INT_MAX);
+    cvc5::Rational r(INT_MAX);
     if (n[1].getConst<Rational>() > r) {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage Exceeded INT_MAX in cardinality constraint");
@@ -444,6 +444,6 @@ struct SetsProperties {
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */

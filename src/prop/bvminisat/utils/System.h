@@ -29,7 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 //-------------------------------------------------------------------------------------------------
 
-namespace CVC5 {
+namespace cvc5 {
 namespace BVMinisat {
 
 static inline double cpuTime(void); // CPU-time in seconds.
@@ -37,7 +37,7 @@ extern double memUsed();            // Memory in mega bytes (returns 0 for unsup
 extern double memUsedPeak();        // Peak-memory in mega bytes (returns 0 for unsupported architectures).
 
 }  // namespace BVMinisat
-}  // namespace CVC5
+}  // namespace cvc5
 
 //-------------------------------------------------------------------------------------------------
 // Implementation of inline functions:
@@ -45,7 +45,7 @@ extern double memUsedPeak();        // Peak-memory in mega bytes (returns 0 for 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <time.h>
 
-static inline double CVC5::BVMinisat::cpuTime(void)
+static inline double cvc5::BVMinisat::cpuTime(void)
 {
   return (double)clock() / CLOCKS_PER_SEC;
 }
@@ -55,7 +55,7 @@ static inline double CVC5::BVMinisat::cpuTime(void)
 #include <sys/resource.h>
 #include <unistd.h>
 
-static inline double CVC5::BVMinisat::cpuTime(void)
+static inline double cvc5::BVMinisat::cpuTime(void)
 {
   struct rusage ru;
   getrusage(RUSAGE_SELF, &ru);

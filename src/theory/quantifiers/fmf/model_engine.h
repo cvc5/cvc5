@@ -21,7 +21,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/theory_model.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -71,6 +71,6 @@ private:
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H */

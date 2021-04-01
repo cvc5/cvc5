@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -490,6 +490,6 @@ class TheoryArrays : public Theory {
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */

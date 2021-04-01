@@ -22,7 +22,7 @@
 #include "base/check.h"
 #include "lib/ffs.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 TheoryId& operator++(TheoryId& id)
@@ -162,4 +162,4 @@ std::string TheoryIdSetUtil::setToString(TheoryIdSet theorySet)
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

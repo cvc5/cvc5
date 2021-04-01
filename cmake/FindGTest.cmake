@@ -29,7 +29,7 @@ if(NOT GTest_FOUND_SYSTEM)
 
     ExternalProject_Add(
         GTest-EP
-        PREFIX ${DEPS_PREFIX}
+        ${COMMON_EP_CONFIG}
         URL https://github.com/google/googletest/archive/refs/tags/release-${GTest_VERSION}.tar.gz
         URL_HASH SHA1=9c89be7df9c5e8cb0bc20b3c4b39bf7e82686770
         DOWNLOAD_NAME gtest.tar.gz

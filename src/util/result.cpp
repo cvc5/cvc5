@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 Result::Result()
     : d_sat(SAT_UNKNOWN),
@@ -374,4 +374,4 @@ void Result::toStream(std::ostream& out, OutputLanguage language) const {
   };
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

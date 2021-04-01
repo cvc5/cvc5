@@ -27,7 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 //#include <zlib.h>
 #include <unistd.h>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace BVMinisat {
 
 //-------------------------------------------------------------------------------------------------
@@ -120,6 +120,6 @@ static bool eagerMatch(B& in, const char* str) {
 
 //=================================================================================================
 }  // namespace BVMinisat
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

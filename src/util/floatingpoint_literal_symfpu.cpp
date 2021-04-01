@@ -39,9 +39,9 @@ namespace symfpu {
 
 #define CVC4_LIT_ITE_DFN(T)                                            \
   template <>                                                          \
-  struct ite<::CVC5::symfpuLiteral::CVC5Prop, T>                       \
+  struct ite<::cvc5::symfpuLiteral::CVC5Prop, T>                       \
   {                                                                    \
-    static const T& iteOp(const ::CVC5::symfpuLiteral::CVC5Prop& cond, \
+    static const T& iteOp(const ::cvc5::symfpuLiteral::CVC5Prop& cond, \
                           const T& l,                                  \
                           const T& r)                                  \
     {                                                                  \
@@ -49,10 +49,10 @@ namespace symfpu {
     }                                                                  \
   }
 
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::rm);
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::prop);
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::sbv);
-CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::ubv);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::rm);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::prop);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::sbv);
+CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::ubv);
 
 #undef CVC4_LIT_ITE_DFN
 }  // namespace symfpu
@@ -60,7 +60,7 @@ CVC4_LIT_ITE_DFN(::CVC5::symfpuLiteral::traits::ubv);
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC5 {
+namespace cvc5 {
 
 uint32_t FloatingPointLiteral::getUnpackedExponentWidth(FloatingPointSize& size)
 {
@@ -517,4 +517,4 @@ size_t FloatingPointLiteral::hash(void) const
 }
 #endif
 
-}  // namespace CVC5
+}  // namespace cvc5

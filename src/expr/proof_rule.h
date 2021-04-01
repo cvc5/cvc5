@@ -19,7 +19,7 @@
 
 #include <iosfwd>
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * An enumeration for proof rules. This enumeration is analogous to Kind for
@@ -1379,6 +1379,6 @@ struct PfRuleHashFunction
   size_t operator()(PfRule id) const;
 }; /* struct PfRuleHashFunction */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_RULE_H */

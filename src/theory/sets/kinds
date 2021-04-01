@@ -5,10 +5,10 @@
 #
 
 theory THEORY_SETS \
-    ::CVC5::theory::sets::TheorySets \
+    ::cvc5::theory::sets::TheorySets \
     "theory/sets/theory_sets.h"
 typechecker "theory/sets/theory_sets_type_rules.h"
-rewriter ::CVC5::theory::sets::TheorySetsRewriter \
+rewriter ::cvc5::theory::sets::TheorySetsRewriter \
     "theory/sets/theory_sets_rewriter.h"
 
 properties parametric
@@ -16,22 +16,22 @@ properties check presolve
 
 # constants
 constant EMPTYSET \
-    ::CVC5::EmptySet \
-    ::CVC5::EmptySetHashFunction \
+    ::cvc5::EmptySet \
+    ::cvc5::EmptySetHashFunction \
     "expr/emptyset.h" \
-    "the empty set constant; payload is an instance of the CVC5::EmptySet class"
+    "the empty set constant; payload is an instance of the cvc5::EmptySet class"
 
 # the type
 operator SET_TYPE 1 "set type, takes as parameter the type of the elements"
 cardinality SET_TYPE \
-    "::CVC5::theory::sets::SetsProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::sets::SetsProperties::computeCardinality(%TYPE%)" \
     "theory/sets/theory_sets_type_rules.h"
 well-founded SET_TYPE \
-    "::CVC5::theory::sets::SetsProperties::isWellFounded(%TYPE%)" \
-    "::CVC5::theory::sets::SetsProperties::mkGroundTerm(%TYPE%)" \
+    "::cvc5::theory::sets::SetsProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::sets::SetsProperties::mkGroundTerm(%TYPE%)" \
     "theory/sets/theory_sets_type_rules.h"
 enumerator SET_TYPE \
-    "::CVC5::theory::sets::SetEnumerator" \
+    "::cvc5::theory::sets::SetEnumerator" \
     "theory/sets/theory_sets_type_enumerator.h"
 
 # operators
@@ -42,10 +42,10 @@ operator SUBSET         2  "subset predicate; first parameter a subset of second
 operator MEMBER         2  "set membership predicate; first parameter a member of second"
 
 constant SINGLETON_OP \
-	::CVC5::SingletonOp \
-	::CVC5::SingletonOpHashFunction \
+	::cvc5::SingletonOp \
+	::cvc5::SingletonOpHashFunction \
 	"theory/sets/singleton_op.h" \
-	"operator for singletons; payload is an instance of the CVC5::SingletonOp class"
+	"operator for singletons; payload is an instance of the cvc5::SingletonOp class"
 parameterized SINGLETON SINGLETON_OP 1  \
 "constructs a set of a single element. First parameter is a SingletonOp. Second is a term"
 
@@ -85,30 +85,30 @@ operator TCLOSURE      1  "set transitive closure"
 operator JOIN_IMAGE	   2  "set join image"
 operator IDEN 	   	   1  "set identity"
 
-typerule UNION          ::CVC5::theory::sets::SetsBinaryOperatorTypeRule
-typerule INTERSECTION   ::CVC5::theory::sets::SetsBinaryOperatorTypeRule
-typerule SETMINUS       ::CVC5::theory::sets::SetsBinaryOperatorTypeRule
-typerule SUBSET         ::CVC5::theory::sets::SubsetTypeRule
-typerule MEMBER         ::CVC5::theory::sets::MemberTypeRule
+typerule UNION          ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule INTERSECTION   ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule SETMINUS       ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule SUBSET         ::cvc5::theory::sets::SubsetTypeRule
+typerule MEMBER         ::cvc5::theory::sets::MemberTypeRule
 typerule SINGLETON_OP   "SimpleTypeRule<RBuiltinOperator>"
-typerule SINGLETON      ::CVC5::theory::sets::SingletonTypeRule
-typerule EMPTYSET       ::CVC5::theory::sets::EmptySetTypeRule
-typerule INSERT         ::CVC5::theory::sets::InsertTypeRule
-typerule CARD           ::CVC5::theory::sets::CardTypeRule
-typerule COMPLEMENT     ::CVC5::theory::sets::ComplementTypeRule
-typerule UNIVERSE_SET   ::CVC5::theory::sets::UniverseSetTypeRule
-typerule COMPREHENSION  ::CVC5::theory::sets::ComprehensionTypeRule
-typerule CHOOSE         ::CVC5::theory::sets::ChooseTypeRule
-typerule IS_SINGLETON   ::CVC5::theory::sets::IsSingletonTypeRule
+typerule SINGLETON      ::cvc5::theory::sets::SingletonTypeRule
+typerule EMPTYSET       ::cvc5::theory::sets::EmptySetTypeRule
+typerule INSERT         ::cvc5::theory::sets::InsertTypeRule
+typerule CARD           ::cvc5::theory::sets::CardTypeRule
+typerule COMPLEMENT     ::cvc5::theory::sets::ComplementTypeRule
+typerule UNIVERSE_SET   ::cvc5::theory::sets::UniverseSetTypeRule
+typerule COMPREHENSION  ::cvc5::theory::sets::ComprehensionTypeRule
+typerule CHOOSE         ::cvc5::theory::sets::ChooseTypeRule
+typerule IS_SINGLETON   ::cvc5::theory::sets::IsSingletonTypeRule
 
-typerule JOIN 			::CVC5::theory::sets::RelBinaryOperatorTypeRule
-typerule PRODUCT 		::CVC5::theory::sets::RelBinaryOperatorTypeRule
-typerule TRANSPOSE 		::CVC5::theory::sets::RelTransposeTypeRule
-typerule TCLOSURE 	    ::CVC5::theory::sets::RelTransClosureTypeRule
-typerule JOIN_IMAGE	    ::CVC5::theory::sets::JoinImageTypeRule
-typerule IDEN 			::CVC5::theory::sets::RelIdenTypeRule
+typerule JOIN 			::cvc5::theory::sets::RelBinaryOperatorTypeRule
+typerule PRODUCT 		::cvc5::theory::sets::RelBinaryOperatorTypeRule
+typerule TRANSPOSE 		::cvc5::theory::sets::RelTransposeTypeRule
+typerule TCLOSURE 	    ::cvc5::theory::sets::RelTransClosureTypeRule
+typerule JOIN_IMAGE	    ::cvc5::theory::sets::JoinImageTypeRule
+typerule IDEN 			::cvc5::theory::sets::RelIdenTypeRule
 
-construle UNION         ::CVC5::theory::sets::SetsBinaryOperatorTypeRule
-construle SINGLETON     ::CVC5::theory::sets::SingletonTypeRule
+construle UNION         ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+construle SINGLETON     ::cvc5::theory::sets::SingletonTypeRule
 
 endtheory

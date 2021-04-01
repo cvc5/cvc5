@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY_BOOL_TYPE_RULES_H
 #define CVC4__THEORY_BOOL_TYPE_RULES_H
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace boolean {
 
@@ -72,6 +72,6 @@ public:
 
 }  // namespace boolean
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_BOOL_TYPE_RULES_H */
