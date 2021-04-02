@@ -147,6 +147,9 @@ class IntBlaster
   /** Adds the constraint 0 <= node < 2^size to lemmas */
   void addRangeConstraint(Node node, uint64_t size, std::vector<Node>& lemmas);
 
+  /** Adds a constraint that encodes bitwise and */
+  void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
+
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint64_t bvsize);
 
@@ -316,6 +319,12 @@ class IntBlaster
    * These are added for every new integer variable that we introduce.
    */
   context::CDHashSet<Node, NodeHashFunction> d_rangeAssertions;
+
+  /**
+   * A set of "bitwise" equalities over integers for BITVECTOR_AND
+   *   used in for options::SolveBVAsIntMode::BITWISE
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_bitwiseAssertions;
 
   /** Useful constants */
   Node d_zero;
