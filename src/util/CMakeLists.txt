@@ -60,6 +60,8 @@ libcvc4_add_sources(
   sexpr.h
   smt2_quote_string.cpp
   smt2_quote_string.h
+  statistics.cpp
+  statistics.h
   statistics_public.cpp
   statistics_public.h
   statistics_reg.cpp
