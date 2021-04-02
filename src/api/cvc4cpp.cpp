@@ -35,7 +35,6 @@
 
 #include <cstring>
 #include <sstream>
-#include <variant>
 
 #include "api/checks.h"
 #include "base/check.h"
