@@ -14,23 +14,23 @@ import sys
 
 from pycvc4 import kinds
 
-class TestSolver:
-    def setup_class(self):
-        self.solver = pycvc4.Solver()
+@pytest.fixture
+def solver():
+    return pycvc4.Solver()
 
-    def test_recoverableException(self):
-        self.solver.setOption("produce-models", "true")
-        x = self.solver.mkConst(self.solver.getBooleanSort(), "x")
-        self.solver.assertFormula(x.eqTerm(x).notTerm())
-        with pytest.raises(Exception):
-            c = self.solver.get_value(x)
+def test_recoverableException(solver):
+    solver.setOption("produce-models", "true")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x).notTerm())
+    with pytest.raises(RuntimeError):
+        c = solver.getValue(x)
 
-    def test_supportsFloatingPoint(self):
-        if self.solver.supportsFloatingPoint():
-          try:
-              self.solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN)
-          except Exception:
-              pytest.fail()
-        else:
-            with pytest.raises(Exception):
-                self.solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN)
+def test_supportsFloatingPoint(solver):
+    if solver.supportsFloatingPoint():
+      try:
+          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+      except RuntimeError:
+          pytest.fail()
+    else:
+        with pytest.raises(RuntimeError):
+          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
