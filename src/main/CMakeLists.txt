@@ -38,7 +38,7 @@ endif()
 # dependencies are not propagated and we need to manually add the include
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
-get_target_property(GMP_INCLUDES GMP INCLUDE_DIRECTORIES)
+get_target_property(GMP_INCLUDES GMP INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS "GMP INCLUDES: ${GMP_INCLUDES}")
 if(USE_CLN)
   target_include_directories(main PUBLIC CLN)
