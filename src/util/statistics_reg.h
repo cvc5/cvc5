@@ -153,7 +153,8 @@ class StatisticsRegistry
   auto end() const { return d_stats.end(); }
 
   /**
-   * Obtain the current state of all statistics.
+   * Store the current state of the statistics to allow for printing a diff
+   * using `printDiff`.
    */
   void storeSnapshot();
 
@@ -172,7 +173,8 @@ class StatisticsRegistry
    */
   void printSafe(int fd) const;
   /**
-   * Print all statistics as a diff to the last stored snapshot.
+   * Print all statistics as a diff to the last snapshot that was stored by
+   * calling `storeSnapshot`.
    */
   void printDiff(std::ostream& os) const;
 
@@ -211,6 +213,15 @@ class StatisticsRegistry
    */
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
 
+  /**
+   * Holds a snapshot of the statistic values as StatExportData.
+   * The current state can be saved to this snapshot using `storeSnapshot`,
+   * which is then used in the next call to `printDiff`, but the data is not
+   * exposed otherwise.
+   * As this snapshot is only used by `printDiff`, which honors the relevant
+   * options `--stats-expert` and `--stats-unset`, the snapshot is populated
+   * by `storeSnapshot` to contain only those values that would be printed.
+   */
   std::unique_ptr<Snapshot> d_lastSnapshot;
 };
 
