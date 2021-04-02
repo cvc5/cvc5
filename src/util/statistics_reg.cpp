@@ -19,7 +19,7 @@
 #include "options/base_options.h"
 #include "util/statistics_public.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 StatisticsRegistry::StatisticsRegistry(bool registerPublic)
 {
@@ -132,4 +132,4 @@ std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
   return os;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

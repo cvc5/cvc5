@@ -18,11 +18,11 @@
 
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 void registerPublicStatistics(StatisticsRegistry& reg)
 {
 
 }
 
-}  // namespace CVC4
+}  // namespace cvc5
