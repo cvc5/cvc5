@@ -23,8 +23,8 @@ set(libmain_src_files
 )
 
 #-----------------------------------------------------------------------------#
-# Build object library since we will use the object files for cvc4-bin,
-# pcvc4-bin, and main-test library.
+# Build object library since we will use the object files for cvc4-bin and
+# main-test library.
 
 add_library(main OBJECT ${libmain_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
@@ -39,10 +39,6 @@ endif()
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
 target_include_directories(main PRIVATE cvc4)
-target_include_directories(main PUBLIC GMP)
-if(USE_CLN)
-  target_include_directories(main PUBLIC CLN)
-endif()
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
@@ -65,10 +61,7 @@ set_target_properties(cvc4-bin
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin PUBLIC cvc4 cvc4parser)
-if(USE_CLN)
-  target_link_libraries(cvc4-bin PUBLIC CLN)
-endif()
-target_link_libraries(cvc4-bin PUBLIC GMP)
+
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
