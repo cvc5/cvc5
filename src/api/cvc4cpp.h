@@ -2296,7 +2296,7 @@ class Stat
   /** Is this value an string? */
   bool isString() const;
   /** Return the string value */
-  std::string getString() const;
+  const std::string& getString() const;
   /** Is this value an histogram? */
   bool isHistogram() const;
   /** Return the histogram value */
@@ -2367,10 +2367,9 @@ class Statistics
   /** end iteration */
   iterator end() const;
 
-  // TODO: make this private
+ private:
   Statistics() = default;
   Statistics(const StatisticsRegistry& reg);
- private:
   /** Internal data */
   BaseType d_stats;
 };

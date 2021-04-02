@@ -4108,7 +4108,7 @@ bool Stat::isString() const
 {
   return std::holds_alternative<std::string>(d_data->data);
 }
-std::string Stat::getString() const
+const std::string& Stat::getString() const
 {
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(isString()) << "Expected Stat of type std::string.";
