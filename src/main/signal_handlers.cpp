@@ -38,7 +38,6 @@
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 #include "util/safe_print.h"
 
 using cvc5::Exception;

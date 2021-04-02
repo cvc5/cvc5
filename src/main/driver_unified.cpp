@@ -23,11 +23,10 @@
 #include <memory>
 #include <new>
 
-#include "cvc4autoconfig.h"
-
 #include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
+#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
@@ -38,6 +37,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 #include "util/result.h"
 
 using namespace std;

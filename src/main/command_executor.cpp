@@ -18,6 +18,7 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -25,6 +26,7 @@
 
 #include "main/main.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
 namespace cvc5 {
 namespace main {
