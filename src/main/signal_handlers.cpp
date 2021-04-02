@@ -38,7 +38,6 @@
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 #include "util/safe_print.h"
 
 using cvc5::Exception;
@@ -58,10 +57,10 @@ namespace signal_handlers {
 
 void print_statistics()
 {
-  if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
+  if (pExecutor != nullptr)
   {
     totalTime.reset();
-    pExecutor->safeFlushStatistics(STDERR_FILENO);
+    pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }
 

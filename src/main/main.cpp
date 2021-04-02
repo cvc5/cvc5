@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     if (opts.getStatistics() && pExecutor != nullptr)
     {
       totalTime.reset();
-      pExecutor->flushStatistics(*opts.getErr());
+      pExecutor->printStatistics(*opts.getErr());
     }
   }
   exit(1);

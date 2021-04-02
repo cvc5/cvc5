@@ -75,7 +75,6 @@ cvc4_add_example(simple_vc_quant_cxx "" "")
 
 add_subdirectory(api)
 # TODO(project issue $206): Port example to new API
-# add_subdirectory(hashsmt)
 # add_subdirectory(nra-translate)
 # add_subdirectory(sets-translate)
 
