@@ -126,11 +126,11 @@ bool Options::getSemanticChecks() const{
 
 bool Options::getStatistics() const{
   // statsEveryQuery enables stats
-  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
+  return (*this)[options::statistics] || (*this)[options::statisticsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
-  return (*this)[options::statsEveryQuery];
+  return (*this)[options::statisticsEveryQuery];
 }
 
 bool Options::getStatsHideZeros() const{
