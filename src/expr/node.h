@@ -41,7 +41,7 @@
 #include "util/hash.h"
 #include "util/utility.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class TypeNode;
 class NodeManager;
@@ -199,10 +199,10 @@ class NodeTemplate {
   template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
-  friend class ::CVC5::expr::attr::AttributeManager;
-  friend struct ::CVC5::expr::attr::SmtAttributes;
+  friend class ::cvc5::expr::attr::AttributeManager;
+  friend struct ::cvc5::expr::attr::SmtAttributes;
 
-  friend struct ::CVC5::kind::metakind::NodeValueConstPrinter;
+  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -951,12 +951,12 @@ std::ostream& operator<<(
   return out;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 inline size_t NodeHashFunction::operator()(Node node) const {
   return node.getId();
@@ -986,7 +986,7 @@ template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -999,7 +999,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1012,7 +1012,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1025,7 +1025,7 @@ template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1225,7 +1225,7 @@ template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1255,7 +1255,7 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1491,6 +1491,6 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
 }
 #endif /* CVC4_DEBUG */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__NODE_H */

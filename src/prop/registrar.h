@@ -23,7 +23,7 @@
 #ifndef CVC4__PROP__REGISTRAR_H
 #define CVC4__PROP__REGISTRAR_H
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 class Registrar {
@@ -40,6 +40,6 @@ public:
 };/* class NullRegistrar */
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__REGISTRAR_H */

@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-namespace CVC5 {
+namespace cvc5 {
 
 class DidYouMean {
  public:
@@ -50,4 +50,4 @@ class DidYouMean {
   Words d_words;
 };
 
-}  // namespace CVC5
+}  // namespace cvc5

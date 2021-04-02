@@ -22,7 +22,7 @@
 #include <antlr3input.h>
 #include <string>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 #ifdef __cplusplus
@@ -37,6 +37,6 @@ MemoryMappedInputBufferNew(const std::string& filename);
 #endif
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H */

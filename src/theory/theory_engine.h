@@ -41,7 +41,7 @@
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ResourceManager;
 class OutputManager;
@@ -668,6 +668,6 @@ private:
   void checkTheoryAssertionsWithModel(bool hardFailure);
 };/* class TheoryEngine */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_ENGINE_H */

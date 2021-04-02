@@ -28,7 +28,7 @@
 #include "context/cdo.h"
 #include "context/cdinsert_hashmap.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace util {
 class ContainsTermITEVisitor;
@@ -111,6 +111,6 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H */

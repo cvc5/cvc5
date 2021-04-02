@@ -22,7 +22,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 // attribute for "contains instantiation constants from"
@@ -206,6 +206,6 @@ public:
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H */

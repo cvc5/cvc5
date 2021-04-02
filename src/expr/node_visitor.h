@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * Traverses the nodes reverse-topologically (children before parents),
@@ -123,4 +123,4 @@ public:
 template <typename Visitor>
 thread_local bool NodeVisitor<Visitor>::s_inRun = false;
 
-}  // namespace CVC5
+}  // namespace cvc5

@@ -19,12 +19,12 @@
 
 #include "expr/kind.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace kind {
 
-const char* toString(CVC5::Kind k)
+const char* toString(cvc5::Kind k)
 {
-  using namespace CVC5::kind;
+  using namespace cvc5::kind;
 
   switch (k)
   {
@@ -37,7 +37,7 @@ const char* toString(CVC5::Kind k)
   }
 }
 
-std::ostream& operator<<(std::ostream& out, CVC5::Kind k)
+std::ostream& operator<<(std::ostream& out, cvc5::Kind k)
 {
   out << toString(k);
   return out;
@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& out, CVC5::Kind k)
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
 /* TODO: This could be generated. */
-bool isAssociative(::CVC5::Kind k)
+bool isAssociative(::cvc5::Kind k)
 {
   switch(k) {
   case kind::AND:
@@ -61,7 +61,7 @@ bool isAssociative(::CVC5::Kind k)
   }
 }
 
-std::string kindToString(::CVC5::Kind k)
+std::string kindToString(::cvc5::Kind k)
 {
   std::stringstream ss;
   ss << k;
@@ -82,7 +82,7 @@ ${type_constant_descriptions}
 
 namespace theory {
 
-TheoryId kindToTheoryId(::CVC5::Kind k)
+TheoryId kindToTheoryId(::cvc5::Kind k)
 {
   switch(k) {
   case kind::UNDEFINED_KIND:
@@ -95,7 +95,7 @@ ${kind_to_theory_id}
   throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }
 
-TheoryId typeConstantToTheoryId(::CVC5::TypeConstant typeConstant)
+TheoryId typeConstantToTheoryId(::cvc5::TypeConstant typeConstant)
 {
   switch (typeConstant)
   {
@@ -107,4 +107,4 @@ ${type_constant_to_theory_id}
 }
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

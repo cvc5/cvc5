@@ -19,7 +19,7 @@
 #include "base/check.h"
 #include "theory/bags/normal_form.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -279,4 +279,4 @@ TypeNode ToSetTypeRule::computeType(NodeManager* nodeManager,
 }
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

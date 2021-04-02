@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC5::Configuration.
+ ** \brief Black box testing of cvc5::Configuration.
  **
- ** Black box testing of CVC5::Configuration.
+ ** Black box testing of cvc5::Configuration.
  **/
 
 #include "base/configuration.h"
 #include "test.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackConfiguration : public TestInternal
@@ -96,4 +96,4 @@ TEST_F(TestUtilBlackConfiguration, about)
   Configuration::about();
 }
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

@@ -21,7 +21,7 @@
 
 #include <iosfwd>
 
-namespace CVC5 {
+namespace cvc5 {
 namespace expr {
 
 /**
@@ -173,6 +173,6 @@ std::ostream& operator<<(std::ostream& out, ExprSetDepth sd);
 
 }  // namespace expr
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__EXPR_IOMANIP_H */
