@@ -21,8 +21,12 @@ execute_process(
 )
 
 if(RET_PYTEST)
-    message(FATAL_ERROR
-      "Could not find Python module pytest. Install via `pip install pytest'.")
+  message(FATAL_ERROR
+      "Could not find pytest for Python "
+      "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+      "Make sure to install pytest for this Python version "
+      "via \n`${PYTHON_EXECUTABLE} -m pip install pytest'.\nNote: You need to "
+      "have pip installed for this Python version.")
 endif()
 
 macro(cvc4_add_python_api_test name filename)
