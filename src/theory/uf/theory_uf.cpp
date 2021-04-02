@@ -108,7 +108,7 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
@@ -343,7 +343,8 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: end presolve()" << endl;
 }
 
-void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
   vector<TNode> workList;
@@ -462,7 +463,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   if(options::ufSymmetryBreaker()) {
     d_symb.assertFormula(n);
   }
-}/* TheoryUF::ppStaticLearn() */
+} /* TheoryUF::ppStaticLearn() */
 
 EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 

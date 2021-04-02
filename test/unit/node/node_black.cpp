@@ -76,7 +76,7 @@ class TestNodeBlackNode : public TestNode
 
   void testNaryExpForSize(Kind k, uint32_t n)
   {
-    NodeBuilder<> nbz(k);
+    NodeBuilder nbz(k);
     Node trueNode = d_nodeManager->mkConst(true);
     for (uint32_t i = 0; i < n; ++i)
     {
@@ -459,7 +459,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 
 TEST_F(TestNodeBlackNode, iterator)
 {
-  NodeBuilder<> b;
+  NodeBuilder b;
   Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
   Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
   Node z = d_nodeManager->mkSkolem("z", d_nodeManager->booleanType());
@@ -518,8 +518,8 @@ TEST_F(TestNodeBlackNode, toString)
       "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
   Node z = d_nodeManager->mkSkolem(
       "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder<>() << w << x << kind::OR;
-  Node n = NodeBuilder<>() << m << y << z << kind::AND;
+  Node m = NodeBuilder() << w << x << kind::OR;
+  Node n = NodeBuilder() << m << y << z << kind::AND;
 
   ASSERT_EQ(n.toString(), "(AND (OR w x) y z)");
 }
@@ -536,9 +536,9 @@ TEST_F(TestNodeBlackNode, toStream)
       "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
   Node z = d_nodeManager->mkSkolem(
       "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder<>() << x << y << kind::OR;
-  Node n = NodeBuilder<>() << w << m << z << kind::AND;
-  Node o = NodeBuilder<>() << n << n << kind::XOR;
+  Node m = NodeBuilder() << x << y << kind::OR;
+  Node n = NodeBuilder() << w << m << z << kind::AND;
+  Node o = NodeBuilder() << n << n << kind::XOR;
 
   std::stringstream sstr;
   sstr << Node::dag(false);
@@ -764,7 +764,7 @@ TEST_F(TestNodeBlackNode, isConst)
 namespace {
 Node level0(NodeManager* nm)
 {
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   Node x = nm->mkSkolem("x", nm->booleanType());
   nb << x;
   nb << x;

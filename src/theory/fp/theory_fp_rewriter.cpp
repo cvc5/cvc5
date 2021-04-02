@@ -110,8 +110,7 @@ namespace rewrite {
 
     size_t children = node.getNumChildren();
     if (children > 2) {
-
-      NodeBuilder<> conjunction(kind::AND);
+      NodeBuilder conjunction(kind::AND);
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {

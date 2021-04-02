@@ -91,7 +91,7 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
   } else {
     // \todo see bv::utils::flattenAnd
 
-    NodeBuilder<> conjunction(kind::AND);
+    NodeBuilder conjunction(kind::AND);
     for (std::vector<TNode>::const_iterator it = assumptions.begin();
          it != assumptions.end(); ++it) {
       conjunction << *it;

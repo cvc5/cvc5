@@ -151,7 +151,7 @@ Node AbstractionModule::reverseAbstraction(Node assertion, NodeNodeMap& seen) {
     return assertion;
   }
 
-  NodeBuilder<> result(assertion.getKind());
+  NodeBuilder result(assertion.getKind());
   if (assertion.getMetaKind() == kind::metakind::PARAMETERIZED) {
     result << assertion.getOperator();
   }
@@ -204,7 +204,7 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions)
       assertion_table.addEntry(func.getOperator(), args);
     }
 
-    NodeBuilder<> assertion_builder(kind::OR);
+    NodeBuilder assertion_builder(kind::OR);
     // construct skolemized assertion
     for (ArgsTable::iterator it = assertion_table.begin();
          it != assertion_table.end();
@@ -214,7 +214,7 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions)
       ++(d_statistics.d_numArgsSkolemized);
       TNode func = it->first;
       ArgsTableEntry& args = it->second;
-      NodeBuilder<> skolem_func(kind::APPLY_UF);
+      NodeBuilder skolem_func(kind::APPLY_UF);
       skolem_func << func;
       std::vector<Node> skolem_args;
 
@@ -241,7 +241,7 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions)
       // for (ArgsTableEntry::iterator it = args.begin(); it != args.end();
       // ++it)
       {
-        NodeBuilder<> arg_assignment(kind::AND);
+        NodeBuilder arg_assignment(kind::AND);
         // ArgsVec& args = *it;
         for (unsigned k = 0; k < av.size(); ++k)
         {
@@ -342,7 +342,7 @@ Node AbstractionModule::computeSignatureRec(TNode node, NodeNodeMap& cache) {
     return sig;
   }
 
-  NodeBuilder<> builder(node.getKind());
+  NodeBuilder builder(node.getKind());
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
     builder << node.getOperator();
   }
@@ -676,7 +676,7 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
     return signature;
   }
 
-  NodeBuilder<> builder(signature.getKind());
+  NodeBuilder builder(signature.getKind());
   if (signature.getMetaKind() == kind::metakind::PARAMETERIZED) {
     builder << signature.getOperator();
   }
