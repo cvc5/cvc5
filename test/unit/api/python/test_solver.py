@@ -1,5 +1,5 @@
 #####################
-## test_term.py
+## test_solver.py
 ## Top contributors (to current version):
 ##   Yoni Zohar
 ## This file is part of the CVC4 project.
