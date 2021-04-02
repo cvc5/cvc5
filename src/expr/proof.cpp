@@ -18,9 +18,9 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 CDProof::CDProof(ProofNodeManager* pnm,
                  context::Context* c,
@@ -455,4 +455,4 @@ Node CDProof::getSymmFact(TNode f)
 
 std::string CDProof::identify() const { return d_name; }
 
-}  // namespace CVC4
+}  // namespace cvc5

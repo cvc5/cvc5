@@ -18,7 +18,7 @@
 
 #include <fenv.h>
 
-namespace CVC4 {
+namespace cvc5 {
 
 #define CVC4_NUM_ROUNDING_MODES 5
 
@@ -45,6 +45,6 @@ struct RoundingModeHashFunction
   inline size_t operator()(const RoundingMode& rm) const { return size_t(rm); }
 }; /* struct RoundingModeHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

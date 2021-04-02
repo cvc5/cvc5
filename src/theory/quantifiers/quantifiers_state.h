@@ -17,10 +17,11 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
 
+#include "theory/quantifiers/quantifiers_statistics.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -56,6 +57,8 @@ class QuantifiersState : public TheoryState
   void debugPrintEqualityEngine(const char* c) const;
   /** get the logic info */
   const LogicInfo& getLogicInfo() const;
+  /** get the stats */
+  QuantifiersStatistics& getStats();
 
  private:
   /** The number of instantiation rounds in this SAT context */
@@ -77,10 +80,12 @@ class QuantifiersState : public TheoryState
   uint64_t d_instWhenPhase;
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
+  /** The statistics */
+  QuantifiersStatistics d_statistics;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H */

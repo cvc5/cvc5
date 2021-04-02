@@ -31,13 +31,12 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -51,7 +50,7 @@ Instantiate::Instantiate(QuantifiersState& qs,
       d_qreg(qr),
       d_treg(tr),
       d_pnm(pnm),
-      d_total_inst_debug(qs.getUserContext()),
+      d_insts(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
@@ -68,24 +67,16 @@ Instantiate::~Instantiate()
 
 bool Instantiate::reset(Theory::Effort e)
 {
-  if (!d_recorded_inst.empty())
-  {
-    Trace("quant-engine-debug") << "Removing " << d_recorded_inst.size()
-                                << " instantiations..." << std::endl;
-    // remove explicitly recorded instantiations
-    for (std::pair<Node, std::vector<Node> >& r : d_recorded_inst)
-    {
-      removeInstantiationInternal(r.first, r.second);
-    }
-    d_recorded_inst.clear();
-  }
+  Trace("inst-debug") << "Reset, effort " << e << std::endl;
+  // clear explicitly recorded instantiations
+  d_recordedInst.clear();
   return true;
 }
 
 void Instantiate::registerQuantifier(Node q) {}
 bool Instantiate::checkComplete()
 {
-  if (!d_recorded_inst.empty())
+  if (!d_recordedInst.empty())
   {
     Trace("quant-engine-debug")
         << "Set incomplete due to recorded instantiations." << std::endl;
@@ -337,7 +328,10 @@ bool Instantiate::addInstantiation(Node q,
     return false;
   }
 
-  d_total_inst_debug[q] = d_total_inst_debug[q] + 1;
+  // add to list of instantiations
+  InstLemmaList* ill = getOrMkInstLemmaList(q);
+  ill->d_list.push_back(body);
+  // add to temporary debug statistics (# inst on this round)
   d_temp_inst_debug[q]++;
   if (Trace.isOn("inst"))
   {
@@ -480,12 +474,16 @@ bool Instantiate::addInstantiationExpFail(Node q,
   return false;
 }
 
-bool Instantiate::recordInstantiation(Node q,
+void Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
-                                      bool modEq,
-                                      bool addedLem)
+                                      bool doVts)
 {
-  return recordInstantiationInternal(q, terms, modEq, addedLem);
+  Trace("inst-debug") << "Record instantiation for " << q << std::endl;
+  // get the instantiation list, which ensures that q is marked as a quantified
+  // formula we instantiated, despite only recording an instantiation here
+  getOrMkInstLemmaList(q);
+  Node inst = getInstantiation(q, terms, doVts);
+  d_recordedInst[q].push_back(inst);
 }
 
 bool Instantiate::existsInstantiation(Node q,
@@ -562,14 +560,8 @@ Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 
 bool Instantiate::recordInstantiationInternal(Node q,
                                               std::vector<Node>& terms,
-                                              bool modEq,
-                                              bool addedLem)
+                                              bool modEq)
 {
-  if (!addedLem)
-  {
-    // record the instantiation for deletion later
-    d_recorded_inst.push_back(std::pair<Node, std::vector<Node> >(q, terms));
-  }
   if (options::incrementalSolving())
   {
     Trace("inst-add-debug")
@@ -607,24 +599,13 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
   return d_inst_match_trie[q].removeInstMatch(q, terms);
 }
 
-void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
 {
-  if (options::incrementalSolving())
+  for (NodeInstListMap::const_iterator it = d_insts.begin();
+       it != d_insts.end();
+       ++it)
   {
-    for (context::CDHashSet<Node, NodeHashFunction>::const_iterator it =
-             d_c_inst_match_trie_dom.begin();
-         it != d_c_inst_match_trie_dom.end();
-         ++it)
-    {
-      qs.push_back(*it);
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, InstMatchTrie>& t : d_inst_match_trie)
-    {
-      qs.push_back(t.first);
-    }
+    qs.push_back(it->first);
   }
 }
 
@@ -671,6 +652,20 @@ void Instantiate::getInstantiationTermVectors(
   }
 }
 
+void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
+{
+  Trace("inst-debug") << "get instantiations for " << q << std::endl;
+  InstLemmaList* ill = getOrMkInstLemmaList(q);
+  insts.insert(insts.end(), ill->d_list.begin(), ill->d_list.end());
+  // also include recorded instantations (for qe-partial)
+  std::map<Node, std::vector<Node> >::const_iterator it =
+      d_recordedInst.find(q);
+  if (it != d_recordedInst.end())
+  {
+    insts.insert(insts.end(), it->second.begin(), it->second.end());
+  }
+}
+
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
 void Instantiate::debugPrint(std::ostream& out)
@@ -705,12 +700,11 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
-         it != d_total_inst_debug.end();
+    for (NodeInstListMap::iterator it = d_insts.begin(); it != d_insts.end();
          ++it)
     {
-      Trace("inst-per-quant")
-          << " * " << (*it).second << " for " << (*it).first << std::endl;
+      Trace("inst-per-quant") << " * " << (*it).second->d_list.size() << " for "
+                              << (*it).first << std::endl;
     }
   }
 }
@@ -729,6 +723,19 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
     return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
   }
   return Node::null();
+}
+
+InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
+{
+  NodeInstListMap::iterator it = d_insts.find(q);
+  if (it != d_insts.end())
+  {
+    return it->second.get();
+  }
+  std::shared_ptr<InstLemmaList> ill =
+      std::make_shared<InstLemmaList>(d_qstate.getUserContext());
+  d_insts.insert(q, ill);
+  return ill.get();
 }
 
 Instantiate::Statistics::Statistics()
@@ -751,6 +758,6 @@ Instantiate::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

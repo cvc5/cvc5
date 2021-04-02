@@ -25,11 +25,8 @@ import argparse
 import os
 import sys
 
-# the following command in CVC4/build/src/api/python/CMakeFiles/gen-pycvc4-kinds.dir/build.make
-# cd CVC4/build/src/api/python && /usr/bin/python3 CVC4/src/api/python/genkinds.py ...
-# indicates we are in directory CVC4/build/src/api/python
-# so we use ../../../../src/api to access CVC4/src/api/parsekinds.py
-sys.path.insert(0, os.path.abspath('../../../../src/api'))
+# get access to CVC4/src/api/parsekinds.py
+sys.path.insert(0, os.path.abspath('${CMAKE_SOURCE_DIR}/src/api'))
 
 from parsekinds import *
 
@@ -43,13 +40,13 @@ PYCOMMENT           = '#'
 CDEF_KIND = "    cdef Kind "
 
 KINDS_PXD_TOP = \
-r"""cdef extern from "api/cvc4cppkind.h" namespace "CVC4::api":
+r"""cdef extern from "api/cvc4cppkind.h" namespace "cvc5::api":
     cdef cppclass Kind:
         pass
 
 
 # Kind declarations: See cvc4cppkind.h for additional information
-cdef extern from "api/cvc4cppkind.h" namespace "CVC4::api::Kind":
+cdef extern from "api/cvc4cppkind.h" namespace "cvc5::api::Kind":
 """
 
 KINDS_PXI_TOP = \

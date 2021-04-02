@@ -31,7 +31,7 @@
 #include "cvc4_export.h"
 #include "options/language.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -1509,6 +1509,6 @@ class CVC4_EXPORT DeclarationSequence : public CommandSequence
       OutputLanguage language = language::output::LANG_AUTO) const override;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__COMMAND_H */

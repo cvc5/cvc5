@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/arith/nl/icp/intersection.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -78,7 +78,7 @@ std::ostream& operator<<(std::ostream& os, const Candidate& c);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

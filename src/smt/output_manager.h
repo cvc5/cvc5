@@ -20,7 +20,7 @@
 
 #include <ostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Printer;
 class SmtEngine;
@@ -52,6 +52,6 @@ class OutputManager
   SmtEngine* d_smt;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  // CVC4__SMT__OUTPUT_MANAGER_H

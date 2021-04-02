@@ -9,16 +9,16 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::context::Context.
+ ** \brief White box testing of cvc5::context::Context.
  **
- ** White box testing of CVC4::context::Context.
+ ** White box testing of cvc5::context::Context.
  **/
 
 #include "base/check.h"
 #include "context/cdo.h"
 #include "test_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
@@ -180,4 +180,4 @@ TEST_F(TestContextWhite, simple)
   ASSERT_EQ(c.d_ppContextObjPrev, &s->d_pContextObjList);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

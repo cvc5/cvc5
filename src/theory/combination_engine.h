@@ -23,7 +23,7 @@
 #include "theory/ee_manager.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -137,6 +137,6 @@ class CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */

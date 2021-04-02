@@ -22,7 +22,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersModule;
@@ -129,6 +129,6 @@ class QuantifiersRegistry : public QuantifiersUtil
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H */

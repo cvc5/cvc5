@@ -20,19 +20,18 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
 class QuantifiersState;
+class TermRegistry;
 
 /**
  * Descriptions of the types of constraints that a term was solved for in.
@@ -209,7 +208,10 @@ class CegInstantiator {
    * The instantiator will be constructing instantiations for quantified formula
    * q, parent is the owner of this object.
    */
-  CegInstantiator(Node q, QuantifiersState& qs, InstStrategyCegqi* parent);
+  CegInstantiator(Node q,
+                  QuantifiersState& qs,
+                  TermRegistry& tr,
+                  InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -233,8 +235,6 @@ class CegInstantiator {
                                    std::vector<Node>& ce_vars,
                                    std::vector<Node>& auxLems);
   //------------------------------interface for instantiators
-  /** get quantifiers engine */
-  QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
   /** push stack variable
    * This adds a new variable to solve for in the stack
    * of variables we are processing. This stack is only
@@ -251,7 +251,7 @@ class CegInstantiator {
    * instantiation, specified by sf.
    *
    * This function returns true if a call to
-   * QuantifiersEngine::addInstantiation(...)
+   * Instantiate::addInstantiation(...)
    * was successfully made in a recursive call.
    *
    * The solved form sf is reverted to its original state if
@@ -323,20 +323,14 @@ class CegInstantiator {
    * This method returns whether the type tn is handled by cegqi techniques.
    * If the result is CEG_HANDLED_UNCONDITIONAL, then this indicates that a
    * variable of this type is handled regardless of the formula it appears in.
-   *
-   * The argument qe is used if handling sort tn is conditional on the
-   * strategies initialized in qe. For example, uninterpreted sorts are
-   * handled if dedicated support for EPR is enabled.
    */
-  static CegHandledStatus isCbqiSort(TypeNode tn,
-                                     QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiSort(TypeNode tn);
   /** is cbqi quantifier prefix
    *
    * This returns the minimum value of the above method for a bound variable
    * in the prefix of quantified formula q.
    */
-  static CegHandledStatus isCbqiQuantPrefix(Node q,
-                                            QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiQuantPrefix(Node q);
   /** is cbqi quantified formula
    *
    * This returns whether quantified formula q can and should be handled by
@@ -348,17 +342,17 @@ class CegInstantiator {
    * quantified formula using cegqi, however other strategies should also be
    * tried.
    */
-  static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiQuant(Node q);
   //------------------------------------ end static queries
  private:
   /** The quantified formula of this instantiator */
   Node d_quant;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** The parent of this instantiator */
   InstStrategyCegqi* d_parent;
-  /** quantified formula associated with this instantiator */
-  QuantifiersEngine* d_qe;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains
@@ -561,9 +555,7 @@ class CegInstantiator {
    * It returns true if a successful call to the output channel's
    * doAddInstantiation was made.
    */
-  bool doAddInstantiation(std::vector<Node>& vars,
-                          std::vector<Node>& subs,
-                          std::vector<Node>& lemmas);
+  bool doAddInstantiation(std::vector<Node>& vars, std::vector<Node>& subs);
 
   //------------------------------------ static queries
   /** is cbqi sort
@@ -572,9 +564,7 @@ class CegInstantiator {
    * of the type tn, where visited stores the types we have visited.
    */
   static CegHandledStatus isCbqiSort(
-      TypeNode tn,
-      std::map<TypeNode, CegHandledStatus>& visited,
-      QuantifiersEngine* qe);
+      TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
 };
 
@@ -780,8 +770,7 @@ public:
   virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                                    SolvedForm& sf,
                                                    Node pv,
-                                                   CegInstEffort effort,
-                                                   std::vector<Node>& lemmas)
+                                                   CegInstEffort effort)
   {
     return true;
   }
@@ -831,8 +820,8 @@ class InstantiatorPreprocess
   }
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

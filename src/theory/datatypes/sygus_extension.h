@@ -29,7 +29,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 class SynthConjecture;
@@ -71,8 +71,7 @@ class SygusExtension
  public:
   SygusExtension(TheoryState& s,
                  InferenceManager& im,
-                 quantifiers::TermDbSygus* tds,
-                 DecisionManager* dm);
+                 quantifiers::TermDbSygus* tds);
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
@@ -113,8 +112,6 @@ class SygusExtension
   InferenceManager& d_im;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
-  /** Pointer to the decision manager */
-  DecisionManager* d_dm;
   /** the simple symmetry breaking utility */
   SygusSimpleSymBreak d_ssb;
   /**
@@ -712,7 +709,7 @@ private:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif
 

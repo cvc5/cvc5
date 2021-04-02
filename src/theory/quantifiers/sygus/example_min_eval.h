@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/node_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -118,6 +118,6 @@ class EmeEvalTds : public EmeEval
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

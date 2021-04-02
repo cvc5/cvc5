@@ -29,7 +29,7 @@
 #include "theory/skolem_lemma.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LogicInfo;
 class TheoryEngine;
@@ -223,6 +223,6 @@ class TheoryPreprocessor
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_PREPROCESSOR_H */

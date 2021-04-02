@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "smt/assertions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 class SmtSolver;
@@ -99,6 +99,6 @@ class QuantElimSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__QUANT_ELIM_SOLVER_H */

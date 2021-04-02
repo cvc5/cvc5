@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
@@ -101,7 +101,7 @@ void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
     std::stringstream serr;
     serr << "Illegal string character: \"" << ch
          << "\", must use escape sequence";
-    throw CVC4::Exception(serr.str());
+    throw cvc5::Exception(serr.str());
   }
   else
   {
@@ -513,4 +513,4 @@ std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString() << "\"";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

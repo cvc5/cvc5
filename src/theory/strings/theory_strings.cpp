@@ -29,10 +29,10 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -187,7 +187,7 @@ void TheoryStrings::presolve() {
     d_stringsFmf.presolve();
     // This strategy is local to a check-sat call, since we refresh the strategy
     // on every call to presolve.
-    getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_STRINGS_SUM_LENGTHS,
         d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
@@ -203,13 +203,16 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
-  if (Trace.isOn("strings-model"))
+  if (Trace.isOn("strings-debug-model"))
   {
-    Trace("strings-model") << "TheoryStrings : Collect model values"
-                           << std::endl;
-    Trace("strings-model") << "Equivalence classes are:" << std::endl;
-    Trace("strings-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model")
+        << "TheoryStrings::collectModelValues" << std::endl;
+    Trace("strings-debug-model") << "Equivalence classes are:" << std::endl;
+    Trace("strings-debug-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model") << "Extended functions are:" << std::endl;
+    Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
+  Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes
@@ -1086,6 +1089,6 @@ std::string TheoryStrings::debugPrintStringsEqc()
   return ss.str();
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

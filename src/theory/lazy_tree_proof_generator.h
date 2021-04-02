@@ -23,7 +23,7 @@
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace detail {
 /**
@@ -217,6 +217,6 @@ class LazyTreeProofGenerator : public ProofGenerator
 std::ostream& operator<<(std::ostream& os, const LazyTreeProofGenerator& ltpg);
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

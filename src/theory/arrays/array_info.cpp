@@ -19,7 +19,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -517,7 +517,6 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
 }
 
-
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5

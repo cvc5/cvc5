@@ -21,7 +21,7 @@
 #include "base/exception.h"
 #include "options/option_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace language {
 
 /** define the end points of smt2 languages */
@@ -83,7 +83,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
     std::stringstream ss;
     ss << "Cannot map output language `" << language
        << "' to an input language.";
-    throw CVC4::Exception(ss.str());
+    throw cvc5::Exception(ss.str());
   }
   }/* switch(language) */
 }/* toInputLanguage() */
@@ -170,5 +170,5 @@ InputLanguage toInputLanguage(std::string language) {
   throw OptionException(std::string("unknown input language `" + language + "'"));
 }/* toInputLanguage() */
 
-}/* CVC4::language namespace */
-}/* CVC4 namespace */
+}  // namespace language
+}  // namespace cvc5

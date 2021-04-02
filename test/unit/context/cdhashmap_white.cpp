@@ -9,16 +9,16 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::context::CDMap<>.
+ ** \brief White box testing of cvc5::context::CDMap<>.
  **
- ** White box testing of CVC4::context::CDMap<>.
+ ** White box testing of cvc5::context::CDMap<>.
  **/
 
 #include "base/check.h"
 #include "context/cdhashmap.h"
 #include "test_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
@@ -44,4 +44,4 @@ TEST_F(TestContextWhiteCDHashMap, unreachable_save_and_restore)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

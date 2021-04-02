@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -216,7 +216,7 @@ public:
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
 };/* class Valuation */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__VALUATION_H */

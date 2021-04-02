@@ -41,10 +41,10 @@
 #include "smt/smt_engine.h"
 #include "util/safe_print.h"
 
-using CVC4::Exception;
+using cvc5::Exception;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 /**
@@ -60,6 +60,7 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
+    totalTime.reset();
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }
@@ -342,4 +343,4 @@ void cleanup() noexcept
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace CVC4
+}  // namespace cvc5

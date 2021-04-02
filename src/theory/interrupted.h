@@ -15,7 +15,7 @@
  ** An exception signaling that a Theory should immediately stop
  ** performing processing and relinquish control to its caller (e.g.,
  ** in a parallel environment).  A Theory might be interrupted if it
- ** calls into its CVC4::theory::OutputChannel, and it should only
+ ** calls into its cvc5::theory::OutputChannel, and it should only
  ** catch this exception to perform emergency repair of any invariants
  ** it must re-establish.  Further, if this exception is caught by a
  ** Theory, the Theory should rethrow the same exception (via "throw;"
@@ -31,13 +31,14 @@
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
-class Interrupted : public CVC4::Exception {
-};/* class Interrupted */
+class Interrupted : public cvc5::Exception
+{
+}; /* class Interrupted */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__INTERRUPTED_H */

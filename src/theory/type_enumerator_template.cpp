@@ -25,7 +25,7 @@ ${type_enumerator_includes}
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
@@ -46,5 +46,5 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
   Unreachable();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

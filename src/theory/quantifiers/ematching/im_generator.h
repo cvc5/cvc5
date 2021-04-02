@@ -22,12 +22,10 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
 class QuantifiersState;
 class TermRegistry;
 
@@ -114,13 +112,11 @@ protected:
  QuantifiersState& d_qstate;
  /** Reference to the term registry */
  TermRegistry& d_treg;
- // !!!!!!!!! temporarily available (project #15)
- QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
 
 }  // namespace inst
 }
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -73,7 +73,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/arith/nl/iand_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -285,6 +285,6 @@ class BVToInt : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H */

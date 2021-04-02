@@ -21,7 +21,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -43,4 +43,4 @@ PreprocessingPassResult ExtRewPre::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

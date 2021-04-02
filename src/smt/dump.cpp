@@ -23,7 +23,7 @@
 #include "smt/command.h"
 #include "smt/node_command.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 #if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
 
@@ -58,12 +58,14 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 DumpC DumpChannel;
 
 std::ostream& DumpC::setStream(std::ostream* os) {
-  ::CVC4::DumpOutChannel.setStream(os);
+  ::cvc5::DumpOutChannel.setStream(os);
   return *os;
 }
-std::ostream& DumpC::getStream() { return ::CVC4::DumpOutChannel.getStream(); }
-std::ostream* DumpC::getStreamPointer() { return ::CVC4::DumpOutChannel.getStreamPointer(); }
-
+std::ostream& DumpC::getStream() { return ::cvc5::DumpOutChannel.getStream(); }
+std::ostream* DumpC::getStreamPointer()
+{
+  return ::cvc5::DumpOutChannel.getStreamPointer();
+}
 
 void DumpC::setDumpFromString(const std::string& optarg) {
   if (Configuration::isDumpingBuild())
@@ -241,4 +243,4 @@ pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
 to a file.\n\
 ";
 
-}/* CVC4 namespace */
+}  // namespace cvc5

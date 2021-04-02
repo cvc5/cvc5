@@ -16,9 +16,9 @@
 
 #include "expr/proof.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
@@ -232,4 +232,4 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

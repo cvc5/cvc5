@@ -24,9 +24,9 @@
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class ModalException : public CVC4::Exception
+class ModalException : public cvc5::Exception
 {
  public:
   ModalException() :
@@ -50,7 +50,7 @@ class ModalException : public CVC4::Exception
  * TODO(#1108): This exception should not be needed anymore in future versions
  * of the public API.
  */
-class RecoverableModalException : public CVC4::ModalException
+class RecoverableModalException : public cvc5::ModalException
 {
  public:
   RecoverableModalException(const std::string& msg) : ModalException(msg) {}
@@ -58,6 +58,6 @@ class RecoverableModalException : public CVC4::ModalException
   RecoverableModalException(const char* msg) : ModalException(msg) {}
 }; /* class RecoverableModalException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__MODAL_EXCEPTION_H */

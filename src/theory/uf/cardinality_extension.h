@@ -23,7 +23,7 @@
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -461,8 +461,8 @@ class CardinalityExtension
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */

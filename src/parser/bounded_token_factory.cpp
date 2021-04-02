@@ -19,7 +19,7 @@
 #include <antlr3interfaces.h>
 #include "parser/bounded_token_factory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 static pANTLR3_COMMON_TOKEN
@@ -140,5 +140,5 @@ setInputStream  (pANTLR3_TOKEN_FACTORY factory, pANTLR3_INPUT_STREAM input)
     }
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

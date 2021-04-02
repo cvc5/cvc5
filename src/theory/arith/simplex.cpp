@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -94,7 +94,7 @@ void SimplexDecisionProcedure::reportConflict(ArithVar basic){
 
   ConstraintCP conflicted = generateConflictForBasic(basic);
   Assert(conflicted != NullConstraint);
-  d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
+  d_conflictChannel.raiseConflict(conflicted, InferenceId::ARITH_CONF_SIMPLEX);
 
   d_conflictVariables.add(basic);
 }
@@ -278,6 +278,6 @@ SimplexDecisionProcedure::sgn_table::const_iterator SimplexDecisionProcedure::fi
   pair<ArithVar, int> p = make_pair(col, determinizeSgn(sgn));
   return sgns.find(p);
 }
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

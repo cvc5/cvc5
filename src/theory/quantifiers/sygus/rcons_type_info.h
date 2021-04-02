@@ -19,7 +19,7 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -97,6 +97,6 @@ class RConsTypeInfo
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  // CVC4__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H

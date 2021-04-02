@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const AbstractValue& val) {
   return out << "@" << val.getIndex();
@@ -38,4 +38,4 @@ AbstractValue::AbstractValue(Integer index) : d_index(index)
                       index.toString().c_str());
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

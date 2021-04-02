@@ -31,7 +31,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -417,6 +417,6 @@ class ITECareSimplifier
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -19,7 +19,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4":
         pass
 
 
-cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
+cdef extern from "api/cvc4cpp.h" namespace "cvc5::api":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](size_t idx) except +
@@ -353,7 +353,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         size_t operator()(const Term & t) except +
 
 
-cdef extern from "api/cvc4cpp.h" namespace "CVC4::api::RoundingMode":
+cdef extern from "api/cvc4cpp.h" namespace "cvc5::api::RoundingMode":
     cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
     cdef RoundingMode ROUND_TOWARD_POSITIVE,
     cdef RoundingMode ROUND_TOWARD_NEGATIVE,

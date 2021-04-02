@@ -23,7 +23,7 @@
 #include "util/ostream_util.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& os,
                          const timer_stat_detail::duration& dur)
@@ -35,4 +35,4 @@ std::ostream& operator<<(std::ostream& os,
             << (dur % std::chrono::seconds(1)).count();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

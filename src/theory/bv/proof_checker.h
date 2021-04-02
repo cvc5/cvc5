@@ -22,7 +22,7 @@
 #include "expr/proof_node.h"
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -45,6 +45,6 @@ class BVProofRuleChecker : public ProofRuleChecker
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__PROOF_CHECKER_H */

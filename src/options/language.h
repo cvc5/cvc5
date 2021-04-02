@@ -24,7 +24,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace language {
 
 namespace input {
@@ -83,7 +83,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   return out;
 }
 
-}/* CVC4::language::input namespace */
+}  // namespace input
 
 namespace output {
 
@@ -147,9 +147,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   return out;
 }
 
-}/* CVC4::language::output namespace */
+}  // namespace output
 
-}/* CVC4::language namespace */
+}  // namespace language
 
 typedef language::input::Language InputLanguage;
 typedef language::output::Language OutputLanguage;
@@ -176,7 +176,7 @@ OutputLanguage toOutputLanguage(InputLanguage language) CVC4_EXPORT;
 InputLanguage toInputLanguage(std::string language) CVC4_EXPORT;
 OutputLanguage toOutputLanguage(std::string language) CVC4_EXPORT;
 
-}/* CVC4::language namespace */
-}/* CVC4 namespace */
+}  // namespace language
+}  // namespace cvc5
 
 #endif /* CVC4__LANGUAGE_H */

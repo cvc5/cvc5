@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -149,6 +149,6 @@ class RelevanceManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__RELEVANCE_MANAGER__H */

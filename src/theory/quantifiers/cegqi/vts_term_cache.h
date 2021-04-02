@@ -21,7 +21,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Attribute to mark Skolems as virtual terms */
@@ -140,6 +140,6 @@ class VtsTermCache
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H */

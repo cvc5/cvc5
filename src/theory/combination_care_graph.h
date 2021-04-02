@@ -21,7 +21,7 @@
 
 #include "theory/combination_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -47,6 +47,6 @@ class CombinationCareGraph : public CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */

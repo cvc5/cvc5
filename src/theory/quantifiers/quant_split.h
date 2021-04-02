@@ -20,7 +20,7 @@
 #include "context/cdo.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -49,10 +49,10 @@ class QuantDSplit : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantDSplit(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  QuantDSplit(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
-              QuantifiersRegistry& qr);
+              QuantifiersRegistry& qr,
+              TermRegistry& tr);
   /** determine whether this quantified formula will be reduced */
   void checkOwnership(Node q) override;
   /* whether this module needs to check this round */
@@ -73,6 +73,6 @@ class QuantDSplit : public QuantifiersModule {
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

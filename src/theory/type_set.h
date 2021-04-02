@@ -22,7 +22,7 @@
 
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /* Type set
@@ -84,7 +84,7 @@ class TypeSet
                    bool topLevel = true);
 }; /* class TypeSet */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__TYPE_SET_H */

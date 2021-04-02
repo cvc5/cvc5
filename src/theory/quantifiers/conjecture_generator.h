@@ -23,7 +23,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -436,10 +436,10 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 
  public:
-  ConjectureGenerator(QuantifiersEngine* qe,
-                      QuantifiersState& qs,
+  ConjectureGenerator(QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
-                      QuantifiersRegistry& qr);
+                      QuantifiersRegistry& qr,
+                      TermRegistry& tr);
   ~ConjectureGenerator();
 
   /* needs check */
@@ -466,6 +466,6 @@ private:  //information about ground equivalence classes
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -22,12 +22,13 @@
 #include "options/quantifiers_options.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+namespace inst {
+class TriggerDatabase;
+}
 
 class QuantifiersState;
 class QuantifiersInferenceManager;
@@ -49,7 +50,7 @@ enum class InstStrategyStatus
 class InstStrategy
 {
  public:
-  InstStrategy(QuantifiersEngine* qe,
+  InstStrategy(inst::TriggerDatabase& td,
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,
@@ -70,8 +71,8 @@ class InstStrategy
    * maintained by the quantifiers state.
    */
   options::UserPatMode getInstUserPatMode() const;
-  /** reference to the instantiation engine */
-  QuantifiersEngine* d_quantEngine;
+  /** reference to the trigger database */
+  inst::TriggerDatabase& d_td;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager object */
@@ -84,6 +85,6 @@ class InstStrategy
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

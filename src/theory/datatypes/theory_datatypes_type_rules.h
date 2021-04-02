@@ -24,7 +24,7 @@
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -626,8 +626,8 @@ class TupleProjectTypeRule
   }
 }; /* class TupleProjectTypeRule */
 
-} /* CVC4::theory::datatypes namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */

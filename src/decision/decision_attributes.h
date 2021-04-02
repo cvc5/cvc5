@@ -22,15 +22,15 @@
 #include "options/decision_weight.h"
 #include "expr/attribute.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace decision {
 namespace attr {
   struct DecisionWeightTag {};
-}/* CVC4::decision::attr namespace */
+  }  // namespace attr
 
 typedef expr::Attribute<attr::DecisionWeightTag, DecisionWeight> DecisionWeightAttr;
 
-}/* CVC4::decision namespace */
-}/* CVC4 namespace */
+}  // namespace decision
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__DECISION_ATTRIBUTES_H */

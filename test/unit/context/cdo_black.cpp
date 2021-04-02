@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::context::CDO<>.
+ ** \brief Black box testing of cvc5::context::CDO<>.
  **
- ** Black box testing of CVC4::context::CDO<>.
+ ** Black box testing of cvc5::context::CDO<>.
  **/
 
 #include <iostream>
@@ -22,7 +22,7 @@
 #include "context/cdo.h"
 #include "test_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
@@ -48,4 +48,4 @@ TEST_F(TestContextBlackCDO, cdo)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

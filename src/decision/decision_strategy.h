@@ -25,13 +25,13 @@
 #include "prop/sat_solver_types.h"
 #include "smt/term_formula_removal.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DecisionEngine;
 
 namespace context {
   class Context;
-}/* CVC4::context namespace */
+  }  // namespace context
 
 namespace decision {
 
@@ -65,7 +65,7 @@ public:
   virtual void addSkolemDefinition(TNode lem, TNode skolem) = 0;
 };/* class ITEDecisionStrategy */
 
-}/* CVC4::decision namespace */
-}/* CVC4 namespace */
+}  // namespace decision
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__DECISION_STRATEGY_H */

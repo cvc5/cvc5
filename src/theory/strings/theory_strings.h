@@ -46,7 +46,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -299,8 +299,8 @@ class TheoryStrings : public Theory {
   Strategy d_strat;
 };/* class TheoryStrings */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

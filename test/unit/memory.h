@@ -15,7 +15,7 @@
  **
  ** Use it like this (for example):
  **
- **   CVC4::test::WithLimitedMemory wlm(amount);
+ **   cvc5::test::WithLimitedMemory wlm(amount);
  **   TS_ASSERT_THROWS( foo(), bad_alloc );
  **
  ** The WithLimitedMemory destructor will re-establish the previous limit.
@@ -53,7 +53,7 @@
 #  endif
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 #ifndef CVC4_MEMORY_LIMITING_DISABLED
@@ -86,9 +86,8 @@ class WithLimitedMemory {
 }; /* class WithLimitedMemory */
 #endif
 
-} /* CVC4::test namespace */
-} /* CVC4 namespace */
-
+}  // namespace test
+}  // namespace cvc5
 
 // Remove CVC4_MEMORY_LIMITING_DISABLED_REASON if it is defined.
 #ifdef CVC4_MEMORY_LIMITING_DISABLED_REASON

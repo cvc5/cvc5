@@ -23,7 +23,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace CVC4;
+using namespace cvc5;
 
 set<string> getDebugTags();
 set<string> getOptionStrings();

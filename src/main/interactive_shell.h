@@ -22,7 +22,7 @@
 #include "options/options.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Options;
@@ -33,7 +33,7 @@ class Solver;
 
 namespace parser {
   class Parser;
-}/* CVC4::parser namespace */
+  }  // namespace parser
 
 class SymbolManager;
 
@@ -72,6 +72,6 @@ public:
 
 };/* class InteractiveShell */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__INTERACTIVE_SHELL_H */

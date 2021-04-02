@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -224,4 +224,4 @@ std::ostream& operator<<(std::ostream& out, Rewrite r)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

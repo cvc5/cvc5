@@ -22,7 +22,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -51,8 +51,8 @@ class TheoryFpRewriter : public TheoryRewriter
   RewriteFunction d_constantFoldTable[kind::LAST_KIND];
 }; /* class TheoryFpRewriter */
 
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fp
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_REWRITER_H */

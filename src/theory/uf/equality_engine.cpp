@@ -24,7 +24,7 @@
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -2635,4 +2635,4 @@ EqualityNodeId EqualityEngine::TriggerTermSet::getTrigger(TheoryId tag) const
 
 } // Namespace uf
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5

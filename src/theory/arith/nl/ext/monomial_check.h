@@ -19,7 +19,7 @@
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -194,6 +194,6 @@ class MonomialCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

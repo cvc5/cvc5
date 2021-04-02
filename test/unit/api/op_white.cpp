@@ -14,7 +14,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -32,4 +32,4 @@ TEST_F(TestApiWhiteOp, opFromKind)
   ASSERT_EQ(plus, d_solver.mkOp(PLUS));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -25,7 +25,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -162,8 +162,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
 };/* DatatypesEnumerator */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H */

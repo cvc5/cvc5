@@ -16,18 +16,20 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/proof.h"
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/theory_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -395,6 +397,6 @@ void Skolemize::getSkolemTermVectors(
 
 bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

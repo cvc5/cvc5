@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -312,8 +312,8 @@ private:
   DatatypesProofRuleChecker d_pchecker;
 };/* class TheoryDatatypes */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */

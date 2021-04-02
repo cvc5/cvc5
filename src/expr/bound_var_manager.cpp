@@ -16,7 +16,7 @@
 
 #include "expr/node_manager_attributes.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 BoundVarManager::BoundVarManager() : d_keepCacheVals(false) {}
 
@@ -53,4 +53,4 @@ Node BoundVarManager::getCacheValue(TNode cv, size_t i)
   return getCacheValue(cv, getCacheValue(i));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

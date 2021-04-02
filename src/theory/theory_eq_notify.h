@@ -21,7 +21,7 @@
 #include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine_notify.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -77,6 +77,6 @@ class TheoryEqNotifyClass : public eq::EqualityEngineNotify
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

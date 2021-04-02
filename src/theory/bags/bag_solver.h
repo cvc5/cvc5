@@ -19,7 +19,7 @@
 
 #include "theory/bags/inference_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -90,6 +90,6 @@ class BagSolver
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAG__SOLVER_H */

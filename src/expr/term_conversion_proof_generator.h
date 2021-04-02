@@ -21,7 +21,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class TermContext;
@@ -242,6 +242,6 @@ class TConvProofGenerator : public ProofGenerator
   std::string toStringDebug() const;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -79,7 +79,7 @@ public:
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set(quantifiers::QuantifiersState& qs, size_t i, TNode n);
+  bool set(QuantifiersState& qs, size_t i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
@@ -88,7 +88,7 @@ inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
 }
 
 }  // namespace quantifiers
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */

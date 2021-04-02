@@ -19,9 +19,9 @@
 #include "theory/sets/theory_sets.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -1333,4 +1333,4 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 }
 }
-}
+}  // namespace cvc5

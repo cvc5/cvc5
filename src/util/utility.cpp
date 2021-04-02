@@ -22,7 +22,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
 {
@@ -52,4 +52,4 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
   return tmpStream;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

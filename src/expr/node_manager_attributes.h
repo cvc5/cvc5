@@ -19,7 +19,7 @@
 
 #include "expr/attribute.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 // Definition of an attribute for the variable name.
@@ -29,12 +29,12 @@ namespace attr {
   struct SortArityTag { };
   struct TypeTag { };
   struct TypeCheckedTag { };
-}/* CVC4::expr::attr namespace */
+  }  // namespace attr
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5

@@ -27,7 +27,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -246,6 +246,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

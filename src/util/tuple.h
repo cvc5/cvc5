@@ -23,7 +23,7 @@
 #include <vector>
 #include <utility>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TupleUpdate
 {
@@ -49,6 +49,6 @@ inline std::ostream& operator<<(std::ostream& out, const TupleUpdate& t) {
   return out << "[" << t.getIndex() << "]";
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__TUPLE_H */

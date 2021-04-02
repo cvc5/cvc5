@@ -26,8 +26,8 @@
 #include <cvc4/cvc4.h>
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 void translate_to_qepcad(
         string input,

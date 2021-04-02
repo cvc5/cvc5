@@ -19,7 +19,7 @@
 
 #include "expr/proof.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 class ProofNodeManager;
@@ -105,6 +105,6 @@ class LazyCDProof : public CDProof
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__LAZY_PROOF_H */

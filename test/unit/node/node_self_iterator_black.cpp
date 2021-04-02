@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::expr::NodeSelfIterator
+ ** \brief Black box testing of cvc5::expr::NodeSelfIterator
  **
- ** Black box testing of CVC4::expr::NodeSelfIterator
+ ** Black box testing of cvc5::expr::NodeSelfIterator
  **/
 
 #include "expr/node.h"
@@ -19,7 +19,7 @@
 #include "expr/node_self_iterator.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace expr;
@@ -54,4 +54,4 @@ TEST_F(TestNodeBlackNodeSelfIterator, iteration)
   ASSERT_EQ(++i, x_and_y.end());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

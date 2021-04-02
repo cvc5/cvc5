@@ -18,7 +18,7 @@
 
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 bool Subs::empty() const { return d_vars.empty(); }
 
@@ -176,4 +176,4 @@ std::ostream& operator<<(std::ostream& out, const Subs& s)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

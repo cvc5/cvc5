@@ -19,7 +19,7 @@
 
 #include <string>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OptionsListener
 {
@@ -32,6 +32,6 @@ class OptionsListener
   virtual void notifySetOption(const std::string& key) = 0;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__OPTIONS__OPTION_LISTENER_H */

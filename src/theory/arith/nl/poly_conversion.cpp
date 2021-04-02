@@ -23,12 +23,12 @@
 #include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-poly::Variable VariableMapper::operator()(const CVC4::Node& n)
+poly::Variable VariableMapper::operator()(const cvc5::Node& n)
 {
   auto it = mVarCVCpoly.find(n);
   if (it == mVarCVCpoly.end())
@@ -54,7 +54,7 @@ poly::Variable VariableMapper::operator()(const CVC4::Node& n)
   return it->second;
 }
 
-CVC4::Node VariableMapper::operator()(const poly::Variable& n)
+cvc5::Node VariableMapper::operator()(const poly::Variable& n)
 {
   auto it = mVarpolyCVC.find(n);
   Assert(it != mVarpolyCVC.end())
@@ -62,7 +62,7 @@ CVC4::Node VariableMapper::operator()(const poly::Variable& n)
   return it->second;
 }
 
-CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p, const CVC4::Node& var)
+cvc5::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::Node& var)
 {
   Trace("poly::conversion")
       << "Converting " << p << " over " << var << std::endl;
@@ -87,9 +87,9 @@ CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p, const CVC4::Node& var)
   return res;
 }
 
-poly::UPolynomial as_poly_upolynomial_impl(const CVC4::Node& n,
+poly::UPolynomial as_poly_upolynomial_impl(const cvc5::Node& n,
                                            poly::Integer& denominator,
-                                           const CVC4::Node& var)
+                                           const cvc5::Node& var)
 {
   denominator = poly::Integer(1);
   if (n.isVar())
@@ -140,14 +140,14 @@ poly::UPolynomial as_poly_upolynomial_impl(const CVC4::Node& n,
   return poly::UPolynomial();
 }
 
-poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
-                                      const CVC4::Node& var)
+poly::UPolynomial as_poly_upolynomial(const cvc5::Node& n,
+                                      const cvc5::Node& var)
 {
   poly::Integer denom;
   return as_poly_upolynomial_impl(n, denom, var);
 }
 
-poly::Polynomial as_poly_polynomial_impl(const CVC4::Node& n,
+poly::Polynomial as_poly_polynomial_impl(const cvc5::Node& n,
                                          poly::Integer& denominator,
                                          VariableMapper& vm)
 {
@@ -195,12 +195,12 @@ poly::Polynomial as_poly_polynomial_impl(const CVC4::Node& n,
   }
   return poly::Polynomial();
 }
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm)
+poly::Polynomial as_poly_polynomial(const cvc5::Node& n, VariableMapper& vm)
 {
   poly::Integer denom;
   return as_poly_polynomial_impl(n, denom, vm);
 }
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+poly::Polynomial as_poly_polynomial(const cvc5::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator)
 {
@@ -257,7 +257,7 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
 }
 }  // namespace
 
-CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+cvc5::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
 {
   CollectMonomialData cmd(vm);
   // Do the actual conversion
@@ -274,7 +274,7 @@ CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
   return cmd.d_nm->mkNode(Kind::PLUS, cmd.d_terms);
 }
 
-poly::SignCondition normalize_kind(CVC4::Kind kind,
+poly::SignCondition normalize_kind(cvc5::Kind kind,
                                    bool negated,
                                    poly::Polynomial& lhs)
 {
@@ -803,6 +803,6 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

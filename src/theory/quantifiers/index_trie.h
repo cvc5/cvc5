@@ -21,7 +21,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -106,5 +106,5 @@ class IndexTrie
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif /* THEORY__QUANTIFIERS__INDEX_TRIE_H */

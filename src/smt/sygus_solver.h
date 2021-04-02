@@ -23,7 +23,7 @@
 #include "smt/assertions.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 
@@ -189,6 +189,6 @@ class SygusSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__SYGUS_SOLVER_H */

@@ -23,7 +23,7 @@
 
 #include "theory/quantifiers/lazy_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -51,7 +51,7 @@ class SygusUnifRl : public SygusUnif
 
   /** initialize */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;
@@ -443,6 +443,6 @@ class SygusUnifRl : public SygusUnif
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H */

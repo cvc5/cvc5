@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/uf/equality_engine_types.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -79,6 +79,6 @@ class EqClassIterator
 
 }  // Namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5
 
 #endif

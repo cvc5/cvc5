@@ -33,7 +33,7 @@ typedef Abc_Aig_t_ Abc_Aig_t;
 class Cnf_Dat_t_;
 typedef Cnf_Dat_t_ Cnf_Dat_t;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 class SatSolver;
 }
@@ -121,6 +121,6 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  //  CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H

@@ -18,15 +18,14 @@
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -760,4 +759,4 @@ void BvInstantiatorPreprocess::collectExtracts(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -21,9 +21,9 @@
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -455,4 +455,4 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__INFERENCE_ID_H
 #define CVC4__THEORY__INFERENCE_ID_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Types of inferences used in the procedure
@@ -37,6 +37,9 @@ namespace theory {
  */
 enum class InferenceId
 {
+  // ---------------------------------- core
+  // a conflict when two constants merge in the equality engine (of any theory)
+  EQ_CONSTANT_MERGE,
   // ---------------------------------- arith theory
   //-------------------- linear core
   // black box conflicts. It's magic.
@@ -49,6 +52,10 @@ enum class InferenceId
   ARITH_CONF_TRICHOTOMY,
   // conflicting upper bound
   ARITH_CONF_UPPER,
+  // conflict from simplex
+  ARITH_CONF_SIMPLEX,
+  // conflict from sum-of-infeasibility simplex
+  ARITH_CONF_SOI_SIMPLEX,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
   // tighten integer inequalities to ceiling
@@ -257,7 +264,18 @@ enum class InferenceId
   QUANTIFIERS_INST_SYQI,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
+  //-------------------- bounded integers
+  // a proxy lemma from bounded integers, used to control bounds on ground terms
+  QUANTIFIERS_BINT_PROXY,
+  // a proxy lemma to minimize an instantiation of non-ground terms
+  QUANTIFIERS_BINT_MIN_NG,
   //-------------------- counterexample-guided instantiation
+  // a counterexample lemma
+  QUANTIFIERS_CEGQI_CEX,
+  // an auxiliary lemma from counterexample lemma
+  QUANTIFIERS_CEGQI_CEX_AUX,
+  // a reduction lemma for nested quantifier elimination
+  QUANTIFIERS_CEGQI_NESTED_QE,
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.
   QUANTIFIERS_CEGQI_CEX_DEP,
@@ -268,6 +286,8 @@ enum class InferenceId
   // infinity > c
   QUANTIFIERS_CEGQI_VTS_LB_INF,
   //-------------------- syntax-guided instantiation
+  // a counterexample lemma
+  QUANTIFIERS_SYQI_CEX,
   // evaluation unfolding for syntax-guided instantiation
   QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
@@ -282,11 +302,18 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
-  //-------------------- reductions
+  //-------------------- dynamic splitting
+  // a dynamic split from quantifiers
+  QUANTIFIERS_DSPLIT,
+  //-------------------- miscellaneous
   // skolemization
   QUANTIFIERS_SKOLEMIZE,
   // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
   QUANTIFIERS_REDUCE_ALPHA_EQ,
+  // a higher-order match predicate lemma
+  QUANTIFIERS_HO_MATCH_PRED,
+  // reduction of quantifiers that don't have triggers that cover all variables
+  QUANTIFIERS_PARTIAL_TRIGGER_REDUCE,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
@@ -336,6 +363,8 @@ enum class InferenceId
   SETS_UP_UNIV,
   SETS_UNIV_TYPE,
   //-------------------- sets cardinality solver
+  // split on emptyset
+  SETS_CARD_SPLIT_EMPTY,
   // cycle of cardinalities, hence all sets have the same
   SETS_CARD_CYCLE,
   // two sets have the same cardinality
@@ -723,6 +752,6 @@ const char* toString(InferenceId i);
 std::ostream& operator<<(std::ostream& out, InferenceId i);
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__INFERENCE_H */

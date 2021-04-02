@@ -23,7 +23,7 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -79,6 +79,6 @@ void Constraints::sortConstraints()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

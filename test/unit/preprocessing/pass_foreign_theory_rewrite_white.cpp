@@ -18,7 +18,7 @@
 #include "smt/smt_engine.h"
 #include "test_smt.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace preprocessing::passes;
 
@@ -47,4 +47,4 @@ TEST_F(TestPPWhiteForeignTheoryRewrite, simplify)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

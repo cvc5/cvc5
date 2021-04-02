@@ -19,13 +19,13 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusQePreproc::SygusQePreproc(QuantifiersEngine* qe) {}
+SygusQePreproc::SygusQePreproc() {}
 
 Node SygusQePreproc::preprocess(Node q)
 {
@@ -144,4 +144,4 @@ Node SygusQePreproc::preprocess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

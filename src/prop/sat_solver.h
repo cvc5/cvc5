@@ -30,7 +30,7 @@
 #include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace prop {
 
@@ -150,7 +150,7 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
-                          CVC4::context::UserContext* userContext,
+                          cvc5::context::UserContext* userContext,
                           ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
@@ -208,7 +208,7 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
   return out;
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__SAT_MODULE_H */

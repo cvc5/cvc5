@@ -30,7 +30,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace smt;
@@ -445,4 +445,4 @@ TEST_F(TestNodeWhiteAttribute, attributes)
   ASSERT_FALSE(unnamed.hasAttribute(VarNameAttr()));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

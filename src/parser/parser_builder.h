@@ -25,7 +25,7 @@
 #include "options/language.h"
 #include "parser/input.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -188,7 +188,7 @@ class CVC4_EXPORT ParserBuilder
   ParserBuilder& withForcedLogic(const std::string& logic);
 }; /* class ParserBuilder */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__PARSER_BUILDER_H */

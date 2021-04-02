@@ -20,7 +20,7 @@
 #include <vector>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class RepSetIterator;
@@ -122,6 +122,6 @@ class QuantifiersBoundInference
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H */

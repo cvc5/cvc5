@@ -30,13 +30,12 @@
 
 /// \cond internals
 
-
-namespace CVC4 {
-  namespace context {
-    template <class Key, class Data, class HashFcn = std::hash<Key> >
-    class CDHashMap;
-  }/* CVC4::context namespace */
-}/* CVC4 namespace */
+namespace cvc5 {
+namespace context {
+template <class Key, class Data, class HashFcn = std::hash<Key> >
+class CDHashMap;
+}  // namespace context
+}  // namespace cvc5
 
 /// \endcond
 

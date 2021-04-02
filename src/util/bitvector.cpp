@@ -20,7 +20,7 @@
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 unsigned BitVector::getSize() const { return d_size; }
 
@@ -375,4 +375,4 @@ BitVector BitVector::mkMaxSigned(unsigned size)
   return ~BitVector::mkMinSigned(size);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

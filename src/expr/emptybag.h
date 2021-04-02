@@ -20,7 +20,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -58,6 +58,6 @@ struct EmptyBagHashFunction
   size_t operator()(const EmptyBag& es) const;
 }; /* struct EmptyBagHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EMPTY_BAG_H */

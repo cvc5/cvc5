@@ -43,7 +43,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::string sexprToString(api::Term sexpr)
 {
@@ -865,7 +865,15 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    solver->getSmtEngine()->reset();
+    Options opts;
+    opts.copyValues(*solver->d_originalOptions);
+    // This reconstructs a new solver object at the same memory location as the
+    // current one. Note that this command does not own the solver object!
+    // It may be safer to instead make the ResetCommand a special case in the
+    // CommandExecutor such that this reconstruction can be done within the
+    // CommandExecutor, who actually owns the solver.
+    solver->~Solver();
+    new (solver) api::Solver(&opts);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2811,4 +2819,4 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out,
       out, api::Sort::sortVectorToTypeNodes(d_datatypes));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

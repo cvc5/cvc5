@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace cvc {
 
@@ -273,17 +273,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " ELSE ";
       toStreamNode(out, n[2], depth, true, lbind);
       out << " ENDIF";
-      return;
-      break;
-    case kind::SEXPR_TYPE:
-      out << '[';
-      for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
-        if (i > 0) {
-          out << ", ";
-        }
-        toStreamNode(out, n[i], depth, false, lbind);
-      }
-      out << ']';
       return;
       break;
     case kind::SEXPR:
@@ -1623,6 +1612,6 @@ void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
   lbind->popScope();
 }
 
-}/* CVC4::printer::cvc namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace cvc
+}  // namespace printer
+}  // namespace cvc5

@@ -22,7 +22,7 @@
 #include "expr/proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -115,6 +115,6 @@ class TConvSeqProofGenerator : public ProofGenerator
   std::string d_name;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H */

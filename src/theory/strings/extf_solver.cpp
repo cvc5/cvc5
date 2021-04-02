@@ -20,10 +20,10 @@
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -85,7 +85,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   if (d_reduced.find(n)!=d_reduced.end())
   {
     // already sent a reduction lemma
-  Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
   // determine the effort level to process the extf at
@@ -157,8 +157,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   if (effort != r_effort)
   {
-    
-  Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
     // not the right effort level to reduce
     return false;
   }
@@ -722,6 +721,32 @@ bool StringsExtfCallback::getCurrentSubstitution(
   return true;
 }
 
+std::string ExtfSolver::debugPrintModel()
+{
+  std::stringstream ss;
+  std::vector<Node> extf;
+  d_extt.getTerms(extf);
+  // each extended function should have at least one annotation below
+  for (const Node& n : extf)
+  {
+    ss << "- " << n;
+    if (!d_extt.isActive(n))
+    {
+      ss << " :extt-inactive";
+    }
+    if (!d_extfInfoTmp[n].d_modelActive)
+    {
+      ss << " :model-inactive";
+    }
+    if (d_reduced.find(n) != d_reduced.end())
+    {
+      ss << " :reduced";
+    }
+    ss << std::endl;
+  }
+  return ss.str();
+}
+
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

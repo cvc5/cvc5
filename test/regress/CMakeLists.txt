@@ -1776,6 +1776,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5507-qe.smt2
   regress1/quantifiers/issue5658-qe.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
+  regress1/quantifiers/issue5899-qe.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -2038,6 +2039,8 @@ set(regress_1_tests
   regress1/strings/issue6075-repl-len-one-rr.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
+  regress1/strings/issue6191-replace-all.smt2
+  regress1/strings/issue6203-2-re-ccache.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

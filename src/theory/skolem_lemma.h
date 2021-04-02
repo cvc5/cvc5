@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -59,6 +59,6 @@ class SkolemLemma
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SKOLEM_LEMMA_H */

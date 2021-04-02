@@ -16,9 +16,9 @@
 
 #include "theory/quantifiers/ematching/trigger.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -33,12 +33,7 @@ bool IMGenerator::sendInstantiation(InstMatch& m, InferenceId id)
   return d_tparent->sendInstantiation(m, id);
 }
 
-QuantifiersEngine* IMGenerator::getQuantifiersEngine()
-{
-  return d_tparent->d_quantEngine;
-}
-
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

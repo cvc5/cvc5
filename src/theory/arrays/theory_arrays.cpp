@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -1184,7 +1184,7 @@ void TheoryArrays::presolve()
   {
     d_dstratInit = true;
     // add the decision strategy, which is user-context-independent
-    getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_ARRAYS,
         d_dstrat.get(),
         DecisionManager::STRAT_SCOPE_CTX_INDEPENDENT);
@@ -2269,6 +2269,6 @@ void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
   } while (changed);
 }
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5

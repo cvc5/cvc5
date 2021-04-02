@@ -27,7 +27,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -1571,4 +1571,4 @@ inline Node RewriteRule<NormalizeEqPlusNeg>::apply(TNode node)
 
 }
 }
-}
+}  // namespace cvc5

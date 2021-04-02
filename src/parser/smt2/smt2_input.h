@@ -23,9 +23,10 @@
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
 
-// extern void Smt2ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
+// extern void Smt2ParserSetAntlrParser(cvc5::parser::AntlrParser*
+// newAntlrParser);
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -80,7 +81,7 @@ class Smt2Input : public AntlrInput {
 
 };/* class Smt2Input */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__SMT2_INPUT_H */

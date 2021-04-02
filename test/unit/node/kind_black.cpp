@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Kind.
+ ** \brief Black box testing of cvc5::Kind.
  **
- ** Black box testing of CVC4::Kind.
+ ** Black box testing of cvc5::Kind.
  **/
 
 #include <iostream>
@@ -21,7 +21,7 @@
 #include "expr/kind.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -87,4 +87,4 @@ TEST_F(TestNodeBlackKind, output_concat)
   ASSERT_EQ(act.str(), exp.str());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

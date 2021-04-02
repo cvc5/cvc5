@@ -21,7 +21,7 @@
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryInferenceManager;
@@ -118,6 +118,6 @@ class SimpleTheoryInternalFact : public TheoryInference
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

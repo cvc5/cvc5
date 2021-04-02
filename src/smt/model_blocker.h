@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 class TheoryModel;
@@ -69,6 +69,6 @@ class ModelBlocker
       const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* __CVC4__THEORY__MODEL_BLOCKER_H */

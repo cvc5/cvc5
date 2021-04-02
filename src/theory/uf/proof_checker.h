@@ -21,7 +21,7 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -44,6 +44,6 @@ class UfProofRuleChecker : public ProofRuleChecker
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__UF__PROOF_CHECKER_H */

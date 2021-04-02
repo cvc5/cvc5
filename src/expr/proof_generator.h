@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 class ProofNode;
@@ -107,6 +107,6 @@ class ProofGenerator
   virtual std::string identify() const = 0;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_GENERATOR_H */

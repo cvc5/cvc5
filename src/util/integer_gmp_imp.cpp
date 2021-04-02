@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Integer::Integer(const char* s, unsigned base)
   : d_value(s, base)
@@ -483,4 +483,4 @@ const Integer& Integer::max(const Integer& a, const Integer& b)
   return (a >= b) ? a : b;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

@@ -19,7 +19,7 @@
 #include "theory/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -230,6 +230,6 @@ std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

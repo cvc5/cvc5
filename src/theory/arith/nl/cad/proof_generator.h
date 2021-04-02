@@ -28,7 +28,7 @@
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/lazy_tree_proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 
@@ -144,7 +144,7 @@ std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 #endif

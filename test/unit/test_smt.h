@@ -29,7 +29,7 @@
 #include "util/resource_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 /* -------------------------------------------------------------------------- */
@@ -99,7 +99,7 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
-class DummyOutputChannel : public CVC4::theory::OutputChannel
+class DummyOutputChannel : public cvc5::theory::OutputChannel
 {
  public:
   DummyOutputChannel() {}
@@ -249,5 +249,5 @@ class DummyTheory : public theory::Theory
 
 /* -------------------------------------------------------------------------- */
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

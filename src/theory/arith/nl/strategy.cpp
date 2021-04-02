@@ -19,7 +19,7 @@
 #include "base/check.h"
 #include "options/arith_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -173,4 +173,4 @@ StepGenerator Strategy::getStrategy()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

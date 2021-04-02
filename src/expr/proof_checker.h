@@ -24,7 +24,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
@@ -202,6 +202,6 @@ class ProofChecker
                      bool enableOutput);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_CHECKER_H */

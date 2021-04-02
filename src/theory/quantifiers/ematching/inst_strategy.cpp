@@ -16,16 +16,16 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategy::InstStrategy(QuantifiersEngine* qe,
+InstStrategy::InstStrategy(inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,
                            TermRegistry& tr)
-    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
+    : d_td(td), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 InstStrategy::~InstStrategy() {}
@@ -44,4 +44,4 @@ options::UserPatMode InstStrategy::getInstUserPatMode() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

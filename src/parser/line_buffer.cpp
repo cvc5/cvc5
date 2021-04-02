@@ -22,7 +22,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 LineBuffer::LineBuffer(std::istream* stream) : d_stream(stream) {}
@@ -90,4 +90,4 @@ bool LineBuffer::readToLine(size_t line_size)
 }
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5

@@ -28,10 +28,10 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace decision {
 
-JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
+JustificationHeuristic::JustificationHeuristic(cvc5::DecisionEngine* de,
                                                context::UserContext* uc,
                                                context::Context* c)
     : ITEDecisionStrategy(de, c),
@@ -66,7 +66,7 @@ JustificationHeuristic::~JustificationHeuristic()
   smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
 
-CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
+cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 {
   if(options::decisionThreshold() > 0) {
     bool stopSearchTmp = false;
@@ -82,7 +82,9 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
   return getNextThresh(stopSearch, 0);
 }
 
-CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, DecisionWeight threshold) {
+cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
+    bool& stopSearch, DecisionWeight threshold)
+{
   Trace("decision") << "JustificationHeuristic::getNextThresh(stopSearch, "<<threshold<<")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_timestat);
 
@@ -731,4 +733,4 @@ JustificationHeuristic::handleEmbeddedSkolems(TNode node)
 }
 
 } /* namespace decision */
-} /* namespace CVC4 */
+}  // namespace cvc5

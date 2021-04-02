@@ -22,7 +22,7 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -125,8 +125,7 @@ class ArithInstantiator : public Instantiator
   bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                            SolvedForm& sf,
                                            Node pv,
-                                           CegInstEffort effort,
-                                           std::vector<Node>& lemmas) override;
+                                           CegInstEffort effort) override;
   std::string identify() const override { return "Arith"; }
 
  private:
@@ -210,6 +209,6 @@ class ArithInstantiator : public Instantiator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */

@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::context::ContextMemoryManager.
+ ** \brief Black box testing of cvc5::context::ContextMemoryManager.
  **
- ** Black box testing of CVC4::context::ContextMemoryManager.
+ ** Black box testing of cvc5::context::ContextMemoryManager.
  **/
 
 #include <cstring>
@@ -21,7 +21,7 @@
 #include "context/context_mm.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
@@ -104,4 +104,4 @@ TEST_F(TestContextBlackMM, push_pop)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

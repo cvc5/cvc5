@@ -25,7 +25,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A class to contain a number of useful functions for simple
@@ -223,6 +223,6 @@ class BooleanSimplification {
 
 };/* class BooleanSimplification */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__BOOLEAN_SIMPLIFICATION_H */

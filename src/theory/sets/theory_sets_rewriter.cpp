@@ -22,9 +22,9 @@
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -540,6 +540,6 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5

@@ -26,7 +26,7 @@
 
 ${theory_includes}
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 template <TheoryId theoryId>
@@ -43,7 +43,7 @@ ${theory_constructors}
 default: Unhandled() << id;
     }
   }
-};/* struct CVC4::theory::TheoryConstructor */
+}; /* struct cvc5::theory::TheoryConstructor */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

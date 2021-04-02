@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -63,4 +63,4 @@ PreprocessingPassResult ApplySubsts::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -18,9 +18,9 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
@@ -187,4 +187,4 @@ void InferenceManagerBuffered::assertInternalFactTheoryInference(
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

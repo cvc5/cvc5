@@ -16,7 +16,7 @@
 
 #include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 TCtxStack::TCtxStack(const TermContext* tctx) : d_tctx(tctx) {}
 
@@ -75,4 +75,4 @@ TCtxNode TCtxStack::getCurrentNode() const
   return TCtxNode(curr.first, curr.second, d_tctx);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

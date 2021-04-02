@@ -29,7 +29,7 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -291,6 +291,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H */

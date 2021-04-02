@@ -18,7 +18,7 @@
 #include <iosfwd>
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -173,6 +173,6 @@ class Strategy
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NL__STRATEGY_H */

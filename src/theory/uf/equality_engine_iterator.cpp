@@ -16,7 +16,7 @@
 
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -132,4 +132,4 @@ bool EqClassIterator::isFinished() const { return d_current == null_id; }
 
 }  // namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5

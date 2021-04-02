@@ -26,7 +26,7 @@
 #include <memory>
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Listener;
 class Options;
@@ -206,6 +206,6 @@ class ResourceManager
 
 }; /* class ResourceManager */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__RESOURCE_MANAGER_H */

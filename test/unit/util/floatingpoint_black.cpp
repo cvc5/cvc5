@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::FloatingPoint.
+ ** \brief Black box testing of cvc5::FloatingPoint.
  **
- ** Black box testing of CVC4::FloatingPoint.
+ ** Black box testing of cvc5::FloatingPoint.
  **/
 
 #include "test.h"
 #include "util/floatingpoint.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackFloatingPoint : public TestInternal
@@ -136,4 +136,4 @@ TEST_F(TestUtilBlackFloatingPoint, makeMaxNormal)
   ASSERT_TRUE(mfp128.isNormal());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

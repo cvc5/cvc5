@@ -26,7 +26,7 @@
 #include "smt/model.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class CommandStatus;
@@ -308,6 +308,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PRINTER__PRINTER_H */

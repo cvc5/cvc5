@@ -35,7 +35,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SExprKeyword
 {
@@ -61,14 +61,14 @@ class CVC4_EXPORT SExpr
   SExpr& operator=(const SExpr& other);
   ~SExpr();
 
-  SExpr(const CVC4::Integer& value);
+  SExpr(const cvc5::Integer& value);
 
   SExpr(int value);
   SExpr(long int value);
   SExpr(unsigned int value);
   SExpr(unsigned long int value);
 
-  SExpr(const CVC4::Rational& value);
+  SExpr(const cvc5::Rational& value);
 
   SExpr(const std::string& value);
 
@@ -120,13 +120,13 @@ class CVC4_EXPORT SExpr
    * Get the integer value of this S-expression. This will cause an
    * error if this S-expression is not an integer.
    */
-  const CVC4::Integer& getIntegerValue() const;
+  const cvc5::Integer& getIntegerValue() const;
 
   /**
    * Get the rational value of this S-expression. This will cause an
    * error if this S-expression is not a rational.
    */
-  const CVC4::Rational& getRationalValue() const;
+  const cvc5::Rational& getRationalValue() const;
 
   /**
    * Get the children of this S-expression. This will cause an error
@@ -211,10 +211,10 @@ class CVC4_EXPORT SExpr
   } d_sexprType;
 
   /** The value of an atomic integer-valued S-expression. */
-  CVC4::Integer d_integerValue;
+  cvc5::Integer d_integerValue;
 
   /** The value of an atomic rational-valued S-expression. */
-  CVC4::Rational d_rationalValue;
+  cvc5::Rational d_rationalValue;
 
   /** The value of an atomic S-expression. */
   std::string d_stringValue;
@@ -301,6 +301,6 @@ class CVC4_EXPORT PrettySExprs
  */
 std::ostream& operator<<(std::ostream& out, PrettySExprs ps);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__SEXPR_H */

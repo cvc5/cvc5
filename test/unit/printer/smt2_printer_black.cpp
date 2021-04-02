@@ -23,7 +23,7 @@
 #include "smt/smt_engine.h"
 #include "test_smt.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -59,4 +59,4 @@ TEST_F(TestPrinterBlackSmt2, regexp_loop)
   checkToString(n, "((_ re.loop 1 3) (str.to_re \"x\"))");
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

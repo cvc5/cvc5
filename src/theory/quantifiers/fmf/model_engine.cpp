@@ -21,25 +21,26 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 //Model Engine constructor
-ModelEngine::ModelEngine(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+ModelEngine::ModelEngine(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr,
+                         QModelBuilder* builder)
+    : QuantifiersModule(qs, qim, qr, tr),
       d_incomplete_check(true),
       d_addedLemmas(0),
       d_triedLemmas(0),
-      d_totalLemmas(0)
+      d_totalLemmas(0),
+      d_builder(builder)
 {
 
 }
@@ -148,7 +149,7 @@ void ModelEngine::assertNode( Node f ){
 }
 
 int ModelEngine::checkModel(){
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
 
   //for debugging, setup
   for (std::map<TypeNode, std::vector<Node> >::iterator it =
@@ -247,11 +248,10 @@ int ModelEngine::checkModel(){
 
 void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   //first check if the builder can do the exhaustive instantiation
-  quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
-  unsigned prev_alem = mb->getNumAddedLemmas();
-  unsigned prev_tlem = mb->getNumTriedLemmas();
-  FirstOrderModel* fm = d_quantEngine->getModel();
-  int retEi = mb->doExhaustiveInstantiation(fm, f, effort);
+  unsigned prev_alem = d_builder->getNumAddedLemmas();
+  unsigned prev_tlem = d_builder->getNumTriedLemmas();
+  FirstOrderModel* fm = d_treg.getModel();
+  int retEi = d_builder->doExhaustiveInstantiation(fm, f, effort);
   if( retEi!=0 ){
     if( retEi<0 ){
       Trace("fmf-exh-inst") << "-> Builder determined complete instantiation was impossible." << std::endl;
@@ -259,8 +259,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }else{
       Trace("fmf-exh-inst") << "-> Builder determined instantiation(s)." << std::endl;
     }
-    d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
-    d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
+    d_triedLemmas += d_builder->getNumTriedLemmas() - prev_tlem;
+    d_addedLemmas += d_builder->getNumAddedLemmas() - prev_alem;
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
@@ -317,23 +317,30 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
 }
 
 void ModelEngine::debugPrint( const char* c ){
-  Trace( c ) << "Quantifiers: " << std::endl;
-  for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    if (d_qreg.hasOwnership(q, this))
+  if (Trace.isOn(c))
+  {
+    Trace(c) << "Quantifiers: " << std::endl;
+    FirstOrderModel* m = d_treg.getModel();
+    for (size_t i = 0, nquant = m->getNumAssertedQuantifiers(); i < nquant; i++)
     {
-      Trace( c ) << "   ";
-      if( !d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        Trace( c ) << "*Inactive* ";
-      }else{
-        Trace( c ) << "           ";
+      Node q = m->getAssertedQuantifier(i);
+      if (d_qreg.hasOwnership(q, this))
+      {
+        Trace(c) << "   ";
+        if (!m->isQuantifierActive(q))
+        {
+          Trace(c) << "*Inactive* ";
+        }
+        else
+        {
+          Trace(c) << "           ";
+        }
+        Trace(c) << q << std::endl;
       }
-      Trace( c ) << q << std::endl;
     }
   }
-  //d_quantEngine->getModel()->debugPrint( c );
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

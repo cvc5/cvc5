@@ -23,9 +23,9 @@
 #include "options/proof_options.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNodeManager::ProofNodeManager(ProofChecker* pc)
     : d_checker(pc)
@@ -356,4 +356,4 @@ bool ProofNodeManager::updateNodeInternal(
   return true;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

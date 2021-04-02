@@ -20,7 +20,7 @@
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class ProofStep;
@@ -57,6 +57,6 @@ class BufferedProofGenerator : public ProofGenerator
   ProofNodeManager* d_pnm;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__BUFFERED_PROOF_GENERATOR_H */

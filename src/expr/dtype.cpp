@@ -19,9 +19,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/type_matcher.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 DType::DType(std::string name, bool isCo)
     : d_name(name),
@@ -954,4 +954,4 @@ std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
   return out << "index_" << dic.getIndex();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

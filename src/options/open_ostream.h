@@ -25,7 +25,7 @@
 #include <string>
 #include <utility>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OstreamOpener {
  public:
@@ -55,6 +55,6 @@ class OstreamOpener {
 
 std::string cvc4_errno_failreason();
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__OPEN_OSTREAM_H */

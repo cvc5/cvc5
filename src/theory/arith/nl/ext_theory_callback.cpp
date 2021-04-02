@@ -17,9 +17,9 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -129,4 +129,4 @@ bool NlExtTheoryCallback::isExtfReduced(int effort,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

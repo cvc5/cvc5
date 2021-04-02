@@ -34,7 +34,7 @@
 #define CVC4_USE_STATISTICS false
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * The base class for all statistics.
@@ -274,6 +274,6 @@ class SizeStat : public Stat
   const T& d_sized;
 }; /* class SizeStat */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

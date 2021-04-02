@@ -20,7 +20,7 @@
 #include "expr/proof_checker.h"
 #include "options/uf_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -1438,4 +1438,4 @@ Node EqProof::addToProof(
 
 }  // namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5

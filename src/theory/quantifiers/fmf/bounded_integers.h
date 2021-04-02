@@ -24,8 +24,9 @@
 #include "context/context.h"
 #include "expr/attribute.h"
 #include "theory/decision_strategy.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class RepSetIterator;
@@ -163,11 +164,10 @@ private:
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 
  public:
-  BoundedIntegers(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  BoundedIntegers(QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
-                  DecisionManager* dm);
+                  TermRegistry& tr);
   virtual ~BoundedIntegers();
 
   void presolve() override;
@@ -234,12 +234,10 @@ private:
   Node matchBoundVar( Node v, Node t, Node e );
   
   bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
-  /** Pointer to the decision manager */
-  DecisionManager* d_dm;
 };
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

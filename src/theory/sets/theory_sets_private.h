@@ -31,7 +31,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -234,9 +234,8 @@ class TheorySetsPrivate {
   std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */

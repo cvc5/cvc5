@@ -25,7 +25,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Represents the (static) configuration of CVC4.
@@ -48,7 +48,14 @@ public:
 
   static bool isDebugBuild();
 
-  static bool isStatisticsBuild();
+  static constexpr bool isStatisticsBuild()
+  {
+#ifdef CVC4_STATISTICS_ON
+    return true;
+#else
+    return false;
+#endif
+  }
 
   static bool isTracingBuild();
 
@@ -135,6 +142,6 @@ public:
 
 }; /* class Configuration */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__CONFIGURATION_H */

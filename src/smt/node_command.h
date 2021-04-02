@@ -25,7 +25,7 @@
 #include "expr/type_node.h"
 #include "options/language.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A node version of Command. DO NOT use this version unless there is a need
@@ -142,6 +142,6 @@ class DefineFunctionNodeCommand : public NodeCommand
   Node d_formula;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__NODE_COMMAND_H */

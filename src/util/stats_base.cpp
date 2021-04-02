@@ -18,7 +18,7 @@
 
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 Stat::Stat(const std::string& name) : d_name(name)
 {
@@ -112,4 +112,4 @@ SExpr AverageStat::getValue() const
   return SExpr(Rational::fromDecimal(ss.str()));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

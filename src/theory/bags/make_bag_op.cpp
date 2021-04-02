@@ -18,7 +18,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const MakeBagOp& op)
 {
@@ -46,4 +46,4 @@ bool MakeBagOp::operator==(const MakeBagOp& op) const
   return getType() == op.getType();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

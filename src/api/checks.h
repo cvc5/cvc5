@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Check macros for the CVC5 C++ API.
+ ** \brief Check macros for the cvc5 C++ API.
  **
- ** These macros implement guards for the CVC5 C++ API functions.
+ ** These macros implement guards for the cvc5 C++ API functions.
  **/
 
 #include "cvc4_public.h"
@@ -528,7 +528,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i) \
           << "a term associated with this solver object";       \
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          bv.d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,   \
+          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,   \
           "bound variable",                                     \
           bound_vars,                                           \
           i)                                                    \
@@ -560,7 +560,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i)               \
           << "a term associated with this solver object";                     \
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,                 \
+          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,                 \
           "bound variable",                                                   \
           bound_vars,                                                         \
           i)                                                                  \

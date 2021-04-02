@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Definitions of TPTP constants.
- **
- ** Definitions of TPTP constants.
+ ** \brief Definition of TPTP parser
  **/
 
 #include "parser/antlr_input.h" // Needs to go first.
@@ -29,7 +27,7 @@
 #include "parser/parser.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 
@@ -176,6 +174,13 @@ class Tptp : public Parser {
    * what is necessary in parsing SMT-LIB.
    */
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
+  /**
+   * Make decimal, returns a real corresponding to string ( snum "." sden ),
+   * negated if pos is false, having exponent exp, negated exponent if posE is
+   * false.
+   */
+  api::Term mkDecimal(
+      std::string& snum, std::string& sden, bool pos, size_t exp, bool posE);
 
  private:
   void addArithmeticOperators();
@@ -213,12 +218,12 @@ namespace tptp {
  * Just exists to provide the uintptr_t constructor that ANTLR
  * requires.
  */
-struct myExpr : public CVC4::api::Term
+struct myExpr : public cvc5::api::Term
 {
-  myExpr() : CVC4::api::Term() {}
-  myExpr(void*) : CVC4::api::Term() {}
-  myExpr(const CVC4::api::Term& e) : CVC4::api::Term(e) {}
-  myExpr(const myExpr& e) : CVC4::api::Term(e) {}
+  myExpr() : cvc5::api::Term() {}
+  myExpr(void*) : cvc5::api::Term() {}
+  myExpr(const cvc5::api::Term& e) : cvc5::api::Term(e) {}
+  myExpr(const myExpr& e) : cvc5::api::Term(e) {}
 }; /* struct myExpr*/
 
 enum NonAssoc {
@@ -230,10 +235,9 @@ enum NonAssoc {
   NA_REVAND,
 };
 
-}/* CVC4::parser::tptp namespace */
+}  // namespace tptp
 
-
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__TPTP_INPUT_H */

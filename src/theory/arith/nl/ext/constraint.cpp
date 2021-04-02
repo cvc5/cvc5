@@ -18,9 +18,9 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/ext/monomial.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -123,4 +123,4 @@ bool ConstraintDb::isMaximal(Node atom, Node x) const
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

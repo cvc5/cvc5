@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace util {
 
 Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children)
@@ -202,4 +202,4 @@ Node RePairAssocCommutativeOperators::case_other(TNode n){
 }
 
 }/* util namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5

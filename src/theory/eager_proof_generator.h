@@ -23,7 +23,7 @@
 #include "expr/proof_rule.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 class ProofNodeManager;
@@ -193,6 +193,6 @@ class EagerProofGenerator : public ProofGenerator
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__PROOF_GENERATOR_H */

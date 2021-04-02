@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -97,6 +97,6 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

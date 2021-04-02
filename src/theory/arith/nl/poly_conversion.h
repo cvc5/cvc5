@@ -30,7 +30,7 @@
 #include "expr/node.h"
 #include "util/real_algebraic_number.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -42,23 +42,23 @@ namespace nl {
 struct VariableMapper
 {
   /** A mapping from CVC4 variables to poly variables. */
-  std::map<CVC4::Node, poly::Variable> mVarCVCpoly;
+  std::map<cvc5::Node, poly::Variable> mVarCVCpoly;
   /** A mapping from poly variables to CVC4 variables. */
-  std::map<poly::Variable, CVC4::Node> mVarpolyCVC;
+  std::map<poly::Variable, cvc5::Node> mVarpolyCVC;
 
   /** Retrieves the according poly variable. */
-  poly::Variable operator()(const CVC4::Node& n);
+  poly::Variable operator()(const cvc5::Node& n);
   /** Retrieves the according CVC4 variable. */
-  CVC4::Node operator()(const poly::Variable& n);
+  cvc5::Node operator()(const poly::Variable& n);
 };
 
-/** Convert a poly univariate polynomial to a CVC4::Node. */
-CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p,
-                              const CVC4::Node& var);
+/** Convert a poly univariate polynomial to a cvc5::Node. */
+cvc5::Node as_cvc_upolynomial(const poly::UPolynomial& p,
+                              const cvc5::Node& var);
 
-/** Convert a CVC4::Node to a poly univariate polynomial. */
-poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
-                                      const CVC4::Node& var);
+/** Convert a cvc5::Node to a poly univariate polynomial. */
+poly::UPolynomial as_poly_upolynomial(const cvc5::Node& n,
+                                      const cvc5::Node& var);
 
 /**
  * Constructs a polynomial from the given node.
@@ -73,8 +73,8 @@ poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
  * in the context of ICP) the second overload provides the denominator in the
  * third argument.
  */
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm);
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+poly::Polynomial as_poly_polynomial(const cvc5::Node& n, VariableMapper& vm);
+poly::Polynomial as_poly_polynomial(const cvc5::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator);
 
@@ -87,7 +87,7 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
  * multiplications with one or use NONLINEAR_MULT where regular MULT may be
  * sufficient), so it may be sensible to rewrite it afterwards.
  */
-CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
+cvc5::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
 
 /**
  * Constructs a constraints (a polynomial and a sign condition) from the given
@@ -164,7 +164,7 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

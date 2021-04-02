@@ -28,7 +28,7 @@
 #include "util/dense_map.h"
 #include "util/index.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -368,8 +368,8 @@ public:
   typedef MatrixEntry<T> Entry;
 
 protected:
-  typedef CVC4::theory::arith::RowVector<T> RowVectorT;
-  typedef CVC4::theory::arith::ColumnVector<T> ColumnVectorT;
+ typedef cvc5::theory::arith::RowVector<T> RowVectorT;
+ typedef cvc5::theory::arith::ColumnVector<T> ColumnVectorT;
 
 public:
   typedef typename RowVectorT::const_iterator RowIterator;
@@ -997,7 +997,6 @@ protected:
 
 };/* class Matrix<T> */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

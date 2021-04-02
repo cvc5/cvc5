@@ -21,7 +21,7 @@
 #include <cvc4/api/cvc4cpp.h>
 
 using namespace std;
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 {

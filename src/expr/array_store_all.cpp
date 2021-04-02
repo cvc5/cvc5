@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
     : d_type(), d_value()
@@ -115,4 +115,4 @@ size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
          * NodeHashFunction()(asa.getValue());
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

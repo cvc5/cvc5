@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 
@@ -70,6 +70,6 @@ bool containsSubproof(ProofNode* pn,
                       std::unordered_set<const ProofNode*>& visited);
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_NODE_ALGORITHM_H */

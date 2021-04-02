@@ -22,7 +22,7 @@
 #include "theory/ee_manager.h"
 #include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -152,6 +152,6 @@ class ModelManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__MODEL_MANAGER__H */

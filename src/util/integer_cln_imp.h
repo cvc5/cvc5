@@ -33,13 +33,13 @@
 #include "base/exception.h"
 #include "cvc4_export.h"  // remove when Cvc language support is removed
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Rational;
 
 class CVC4_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::Rational;
 
  public:
   /**
@@ -380,11 +380,11 @@ class CVC4_EXPORT Integer
 
 struct IntegerHashFunction
 {
-  size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__INTEGER_H */

@@ -25,7 +25,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/mtl/XAlloc.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -149,6 +149,6 @@ RegionAllocator<T>::alloc(int size)
 
 //=================================================================================================
 }
-}
+}  // namespace cvc5
 
 #endif

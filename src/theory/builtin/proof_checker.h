@@ -22,7 +22,7 @@
 #include "expr/proof_node.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -179,6 +179,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN__PROOF_CHECKER_H */

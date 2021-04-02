@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "infer_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -188,6 +188,6 @@ class InferenceGenerator
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H */

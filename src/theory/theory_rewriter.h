@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class Rewriter;
@@ -140,6 +140,6 @@ class TheoryRewriter
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_REWRITER_H */

@@ -21,11 +21,8 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class SynthConjecture;
@@ -53,8 +50,8 @@ class QuantifiersInferenceManager;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe,
-              QuantifiersInferenceManager& qim,
+  SygusModule(QuantifiersInferenceManager& qim,
+              TermDbSygus* tds,
               SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
@@ -150,8 +147,6 @@ class SygusModule
   virtual bool usingRepairConst() { return false; }
 
  protected:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
@@ -160,8 +155,8 @@ class SygusModule
   SynthConjecture* d_parent;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H */

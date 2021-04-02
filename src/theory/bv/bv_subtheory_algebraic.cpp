@@ -31,12 +31,12 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::context;
-using namespace CVC4::prop;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5::context;
+using namespace cvc5::prop;
+using namespace cvc5::theory::bv::utils;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -990,6 +990,6 @@ Node mergeExplanations(TNode expl1, TNode expl2) {
   return mergeExplanations(expls);
 }
 
-} /* namespace CVC4::theory::bv */
+}  // namespace bv
 } /* namespace CVc4::theory */
-} /* namespace CVC4 */
+}  // namespace cvc5

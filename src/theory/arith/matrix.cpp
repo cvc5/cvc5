@@ -18,7 +18,7 @@
 #include "theory/arith/matrix.h"
 
 using namespace std;
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -26,6 +26,6 @@ void NoEffectCCCB::update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) {
 void NoEffectCCCB::multiplyRow(RowIndex ridx, int sgn){}
 bool NoEffectCCCB::canUseRow(RowIndex ridx) const { return false; }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

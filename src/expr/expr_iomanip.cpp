@@ -22,7 +22,7 @@
 #include "options/options.h"
 #include "options/expr_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
@@ -122,6 +122,5 @@ std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
   return out;
 }
 
-
-}/* namespace CVC4::expr */
-}/* namespace CVC4 */
+}  // namespace expr
+}  // namespace cvc5

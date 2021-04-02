@@ -29,10 +29,10 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 SygusSolver::SygusSolver(SmtSolver& sms,
@@ -412,4 +412,4 @@ void SygusSolver::setSygusConjectureStale()
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

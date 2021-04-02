@@ -17,7 +17,7 @@
 #include "theory/arrays/skolem_cache.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -115,4 +115,4 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

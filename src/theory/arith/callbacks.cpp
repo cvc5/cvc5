@@ -21,7 +21,7 @@
 #include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -194,6 +194,6 @@ BoundCounts BoundCountingLookup::hasBounds(ArithVar basic) const {
   return boundsInfo(basic).hasBounds();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

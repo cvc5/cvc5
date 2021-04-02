@@ -24,7 +24,7 @@
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -65,7 +65,7 @@ class ExpressionMinerManager
    * If useSygusType is false, the terms are the builtin equivalent of these
    * terms. The argument nsamples is used to initialize the sampler.
    */
-  void initializeSygus(QuantifiersEngine* qe,
+  void initializeSygus(TermDbSygus* tds,
                        Node f,
                        unsigned nsamples,
                        bool useSygusType);
@@ -102,9 +102,7 @@ class ExpressionMinerManager
   Node d_sygus_fun;
   /** whether we are using sygus types */
   bool d_use_sygus_type;
-  /** pointer to the quantifiers engine, used if d_use_sygus is true */
-  QuantifiersEngine* d_qe;
-  /** the sygus term database of d_qe */
+  /** the sygus term database of the quantifiers engine */
   TermDbSygus* d_tds;
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
@@ -120,6 +118,6 @@ class ExpressionMinerManager
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */

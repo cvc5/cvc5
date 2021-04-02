@@ -30,7 +30,7 @@
 #include "theory/uf/proof_equality_engine.h"
 #include "options/arith_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -689,6 +689,6 @@ std::vector<Node> andComponents(TNode an)
   return a;
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

@@ -38,7 +38,7 @@ struct hash<uint64_t> {
 
 }/* std namespace */
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace fnv1a {
 
@@ -64,6 +64,6 @@ struct PairHashFunction {
   }
 };/* struct PairHashFunction */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__HASH_H */

@@ -22,26 +22,25 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory::quantifiers::inst;
+using namespace cvc5::kind;
+using namespace cvc5::context;
+using namespace cvc5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
-                                         QuantifiersState& qs,
+InstantiationEngine::InstantiationEngine(QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, qe),
+    : QuantifiersModule(qs, qim, qr, tr),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
       d_quants(),
+      d_trdb(qs, qim, qr, tr),
       d_quant_rel(nullptr)
 {
   if (options::relevantTriggers())
@@ -53,14 +52,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(
-          new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr, tr));
+      d_isup.reset(new InstStrategyUserPatterns(d_trdb, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(new InstStrategyAutoGenTriggers(
-        d_quantEngine, qs, qim, qr, tr, d_quant_rel.get()));
+        d_trdb, qs, qim, qr, tr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -135,7 +133,7 @@ void InstantiationEngine::reset_round( Theory::Effort e ){
 
 void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
 {
-  CodeTimer codeTimer(d_quantEngine->d_statistics.d_ematching_time);
+  CodeTimer codeTimer(d_qstate.getStats().d_ematching_time);
   if (quant_e != QEFFORT_STANDARD)
   {
     return;
@@ -150,11 +148,11 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   // collect all active quantified formulas belonging to this
   bool quantActive = false;
   d_quants.clear();
-  FirstOrderModel* m = d_quantEngine->getModel();
+  FirstOrderModel* m = d_treg.getModel();
   size_t nquant = m->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
   {
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier(i, true);
+    Node q = m->getAssertedQuantifier(i, true);
     if (shouldProcess(q) && m->isQuantifierActive(q))
     {
       quantActive = true;
@@ -274,4 +272,4 @@ bool InstantiationEngine::shouldProcess(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

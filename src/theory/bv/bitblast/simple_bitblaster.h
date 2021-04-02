@@ -19,7 +19,7 @@
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -75,6 +75,6 @@ class BBSimple : public TBitblaster<Node>
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

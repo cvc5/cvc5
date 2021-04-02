@@ -18,9 +18,9 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -57,4 +57,4 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

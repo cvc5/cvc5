@@ -17,10 +17,10 @@
 
 #include "theory/quantifiers/quant_util.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -275,4 +275,4 @@ bool ExampleInfer::hasExamplesOut(Node f) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -31,7 +31,7 @@
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 
@@ -430,6 +430,6 @@ class Smt2 : public Parser
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__SMT2_H */

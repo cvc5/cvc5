@@ -28,7 +28,7 @@ namespace Minisat {
 class Solver;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -587,6 +587,6 @@ class SatProofManager
 }; /* class SatProofManager */
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SAT_PROOF_MANAGER_H */

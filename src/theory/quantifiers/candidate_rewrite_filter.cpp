@@ -20,9 +20,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -277,4 +277,4 @@ bool CandidateRewriteFilter::notify(Node s,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

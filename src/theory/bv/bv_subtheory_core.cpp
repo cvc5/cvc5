@@ -25,11 +25,11 @@
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
+using namespace cvc5::theory::bv::utils;
 
 bool CoreSolverExtTheoryCallback::getCurrentSubstitution(
     int effort,

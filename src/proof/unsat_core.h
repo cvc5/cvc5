@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * An unsat core, which can optionally be initialized as a list of names
@@ -68,6 +68,6 @@ class UnsatCore
 /** Print the unsat core to stream out */
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__UNSAT_CORE_H */

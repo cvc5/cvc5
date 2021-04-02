@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * The Node-level representation of a constructor for a datatype, which
@@ -371,6 +371,6 @@ struct DTypeConstructorHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -22,9 +22,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
@@ -36,6 +36,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_theoryState(state),
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
+      d_decManager(nullptr),
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(t.getSatContext()),
@@ -76,6 +77,11 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   }
 }
 
+void TheoryInferenceManager::setDecisionManager(DecisionManager* dm)
+{
+  d_decManager = dm;
+}
+
 bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryInferenceManager::reset()
@@ -101,24 +107,24 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
   if (!d_theoryState.isInConflict())
   {
     TrustNode tconf = explainConflictEqConstantMerge(a, b);
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
+    trustedConflict(tconf, InferenceId::EQ_CONSTANT_MERGE);
   }
 }
 
 void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
-  d_conflictIdStats << id;
-  d_theoryState.notifyInConflict();
-  d_out.conflict(conf);
-  ++d_numConflicts;
+  TrustNode tconf = TrustNode::mkTrustConflict(conf, nullptr);
+  return trustedConflict(tconf, id);
 }
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   d_conflictIdStats << id;
+  Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
+              << std::endl;
   d_theoryState.notifyInConflict();
   d_out.trustedConflict(tconf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,
@@ -246,6 +252,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
     }
   }
   d_lemmaIdStats << id;
+  Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -332,8 +339,8 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 InferenceId id,
                                                 TNode exp)
 {
-  d_factIdStats << id;
-  return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
+  return processInternalFact(
+      atom, pol, id, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
 bool TheoryInferenceManager::assertInternalFact(TNode atom,
@@ -344,8 +351,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& args)
 {
   Assert(pfr != PfRule::UNKNOWN);
-  d_factIdStats << id;
-  return processInternalFact(atom, pol, pfr, exp, args, nullptr);
+  return processInternalFact(atom, pol, id, pfr, exp, args, nullptr);
 }
 
 bool TheoryInferenceManager::assertInternalFact(TNode atom,
@@ -354,17 +360,20 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
-  d_factIdStats << id;
-  return processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
+  return processInternalFact(atom, pol, id, PfRule::ASSUME, exp, {}, pg);
 }
 
 bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  bool pol,
+                                                 InferenceId iid,
                                                  PfRule id,
                                                  const std::vector<Node>& exp,
                                                  const std::vector<Node>& args,
                                                  ProofGenerator* pg)
 {
+  d_factIdStats << iid;
+  Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
+              << ")" << std::endl;
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
   // call the pre-notify fact method with preReg = false, isInternal = true
@@ -488,6 +497,11 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   return true;
 }
 
+DecisionManager* TheoryInferenceManager::getDecisionManager()
+{
+  return d_decManager;
+}
+
 void TheoryInferenceManager::requirePhase(TNode n, bool pol)
 {
   return d_out.requirePhase(n, pol);
@@ -506,4 +520,4 @@ void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
 void TheoryInferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

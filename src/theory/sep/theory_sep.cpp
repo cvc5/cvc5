@@ -34,9 +34,9 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sep {
 
@@ -468,8 +468,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
         "sep_neg_guard", g, getSatContext(), getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
-    getDecisionManager()->registerStrategy(DecisionManager::STRAT_SEP_NEG_GUARD,
-                                           ds);
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_SEP_NEG_GUARD, ds);
     Node lit = ds->getLiteral(0);
     d_neg_guard[slbl][satom] = lit;
     Trace("sep-lemma-debug")
@@ -1796,6 +1796,6 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   return curr;
 }
 
-}/* CVC4::theory::sep namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sep
+}  // namespace theory
+}  // namespace cvc5

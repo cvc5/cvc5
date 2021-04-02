@@ -17,7 +17,7 @@
 #include "theory/bags/bags_rewriter.h"
 #include "theory/strings/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -688,4 +688,4 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
               && response.d_status == REWRITE_AGAIN_FULL);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

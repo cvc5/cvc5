@@ -20,7 +20,7 @@
 #include "prop/minisat/minisat.h"
 #include "theory/theory_proof_step_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 SatProofManager::SatProofManager(Minisat::Solver* solver,
@@ -753,4 +753,4 @@ void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

@@ -26,9 +26,9 @@
 #include <cvc4/cvc4.h>
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::options;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::options;
 
 void translate_to_isat(
         string input,

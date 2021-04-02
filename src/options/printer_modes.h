@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace options {
 
 /** Enumeration of inst_format modes (how to print models from get-model
@@ -39,6 +39,6 @@ enum class InstFormatMode
 
 std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PRINTER__MODEL_FORMAT_H */

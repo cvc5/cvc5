@@ -23,7 +23,7 @@
 #include "context/context.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A (context-dependent) set of proofs, which is used for memory
@@ -70,6 +70,6 @@ class CDProofSet
   std::string d_namePrefix;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__LAZY_PROOF_SET_H */

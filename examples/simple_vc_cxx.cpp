@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main() {
   Solver slv;

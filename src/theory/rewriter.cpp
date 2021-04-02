@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Attribute true for nodes that have been rewritten with proofs enabled */
@@ -511,5 +511,5 @@ void Rewriter::clearCaches() {
   rewriter->clearCachesInternal();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

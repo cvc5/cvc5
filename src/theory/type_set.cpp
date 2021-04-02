@@ -14,9 +14,9 @@
 #include "theory/type_set.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TypeSet::~TypeSet()
@@ -136,5 +136,5 @@ void TypeSet::addSubTerms(TNode n,
   }
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

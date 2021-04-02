@@ -16,7 +16,7 @@
 
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
@@ -246,4 +246,4 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

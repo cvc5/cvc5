@@ -20,7 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 bool hasSubterm(TNode n, TNode t, bool strict)
@@ -764,4 +764,4 @@ bool match(Node x,
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

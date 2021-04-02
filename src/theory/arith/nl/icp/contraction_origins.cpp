@@ -14,7 +14,7 @@
 
 #include "theory/arith/nl/icp/contraction_origins.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -117,4 +117,4 @@ inline std::ostream& operator<<(std::ostream& os,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

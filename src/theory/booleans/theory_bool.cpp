@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -80,6 +80,6 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   return Theory::ppAssert(tin, outSubstitutions);
 }
 
-}/* CVC4::theory::booleans namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace booleans
+}  // namespace theory
+}  // namespace cvc5

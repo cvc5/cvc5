@@ -23,7 +23,7 @@
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -34,7 +34,7 @@ namespace quantifiers {
 class InstStrategyUserPatterns : public InstStrategy
 {
  public:
-  InstStrategyUserPatterns(QuantifiersEngine* qe,
+  InstStrategyUserPatterns(inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,
@@ -64,6 +64,6 @@ class InstStrategyUserPatterns : public InstStrategy
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

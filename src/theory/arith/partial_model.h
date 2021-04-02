@@ -32,7 +32,7 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -412,9 +412,8 @@ private:
 
 };/* class ArithVariables */
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__PARTIAL_MODEL_H */

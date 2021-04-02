@@ -25,7 +25,7 @@
 
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 // ATTRIBUTE HASH FUNCTIONS ====================================================
@@ -54,7 +54,7 @@ struct AttrBoolHashFunction {
   }
 };/* struct AttrBoolHashFunction */
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE TYPE MAPPINGS =====================================================
 
@@ -131,7 +131,7 @@ struct KindValueToTableValueMapping<
   static T convertBack(const uint64_t& t) { return static_cast<T>(t); }
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE HASH TABLES =======================================================
 
@@ -363,7 +363,7 @@ public:
   }
 };/* class AttrHash<bool> */
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT TEMPLATE ====================================
 
@@ -393,7 +393,7 @@ struct LastAttributeId {
   }
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE DEFINITION ========================================================
 
@@ -511,7 +511,7 @@ template <class T, bool context_dep>
 const uint64_t Attribute<T, bool, context_dep>::s_id =
     Attribute<T, bool, context_dep>::registerAttribute();
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__ATTRIBUTE_INTERNALS_H */

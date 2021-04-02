@@ -19,7 +19,7 @@
 
 #include "theory/quantifiers/sygus/sygus_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -85,8 +85,8 @@ class SynthConjecture;
 class SygusPbe : public SygusModule
 {
  public:
-  SygusPbe(QuantifiersEngine* qe,
-           QuantifiersInferenceManager& qim,
+  SygusPbe(QuantifiersInferenceManager& qim,
+           TermDbSygus* tds,
            SynthConjecture* p);
   ~SygusPbe();
 
@@ -166,8 +166,8 @@ class SygusPbe : public SygusModule
   std::map<Node, Node> d_enum_to_candidate;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

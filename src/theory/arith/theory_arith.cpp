@@ -29,9 +29,9 @@
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -270,7 +270,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
+      bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
+      AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
     }
     return false;
   }
@@ -310,6 +311,6 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
   return d_im.getProofEqEngine();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

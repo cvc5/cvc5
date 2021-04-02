@@ -23,7 +23,7 @@
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -128,6 +128,6 @@ class Preprocessor
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

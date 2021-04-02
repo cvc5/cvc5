@@ -23,7 +23,7 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -48,9 +48,9 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
-                                QuantifiersState& qs,
+  CegisUnifEnumDecisionStrategy(QuantifiersState& qs,
                                 QuantifiersInferenceManager& qim,
+                                TermDbSygus* tds,
                                 SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
@@ -101,8 +101,6 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   void registerEvalPts(const std::vector<Node>& eis, Node e);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
@@ -208,9 +206,9 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersEngine* qe,
-            QuantifiersState& qs,
+  CegisUnif(QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
+            TermDbSygus* tds,
             SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
@@ -335,6 +333,6 @@ class CegisUnif : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

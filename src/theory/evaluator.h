@@ -30,7 +30,7 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -159,6 +159,6 @@ class Evaluator
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__EVALUATOR_H */

@@ -25,9 +25,9 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -560,7 +560,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         {
           // split on empty
           Trace("sets-nf") << "Split empty : " << n << std::endl;
-          d_im.split(n.eqNode(emp_set), InferenceId::UNKNOWN, 1);
+          d_im.split(n.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY, 1);
         }
         Assert(d_im.hasSent());
         return;
@@ -1114,4 +1114,4 @@ const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

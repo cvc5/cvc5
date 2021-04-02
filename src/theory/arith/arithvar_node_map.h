@@ -27,7 +27,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -88,8 +88,8 @@ public:
 
 };/* class ArithVarNodeMap */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__ARITHVAR_NODE_MAP_H */

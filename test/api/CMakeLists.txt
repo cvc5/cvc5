@@ -30,8 +30,12 @@ set(CVC4_API_TEST_FLAGS
 macro(cvc4_add_api_test name)
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/)
   add_executable(${name} ${name}.cpp)
-  target_link_libraries(${name} main-test)
+  target_link_libraries(${name} PUBLIC main-test)
   target_compile_definitions(${name} PRIVATE ${CVC4_API_TEST_FLAGS})
+  if(USE_CLN)
+    target_link_libraries(${name} PRIVATE CLN)
+  endif()
+  target_link_libraries(${name} PRIVATE GMP)
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
   add_test(api/${name} ${test_bin_dir}/${name})

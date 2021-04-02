@@ -25,10 +25,10 @@
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -48,7 +48,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_processed_memberships(s.getSatContext()),
       d_regexp_opr(skc)
 {
-  d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
+  d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
   std::vector<Node> nvec;
   d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY, nvec);
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -96,7 +96,6 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   bool addedLemma = false;
   bool changed = false;
   std::vector<Node> processed;
-  std::vector<Node> cprocessed;
 
   Trace("regexp-process") << "Checking Memberships ... " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
@@ -287,14 +286,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
                 polarity ? InferenceId::STRINGS_RE_UNFOLD_POS : InferenceId::STRINGS_RE_UNFOLD_NEG;
             d_im.sendInference(iexp, noExplain, conc, inf);
             addedLemma = true;
-            if (changed)
-            {
-              cprocessed.push_back(assertion);
-            }
-            else
-            {
-              processed.push_back(assertion);
-            }
+            processed.push_back(assertion);
             if (e == 0)
             {
               // Remember that we have unfolded a membership for x
@@ -325,12 +317,6 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         Trace("strings-regexp")
             << "...add " << processed[i] << " to u-cache." << std::endl;
         d_regexp_ucached.insert(processed[i]);
-      }
-      for (unsigned i = 0; i < cprocessed.size(); i++)
-      {
-        Trace("strings-regexp")
-            << "...add " << cprocessed[i] << " to c-cache." << std::endl;
-        d_regexp_ccached.insert(cprocessed[i]);
       }
     }
   }
@@ -582,7 +568,7 @@ bool RegExpSolver::checkPDerivative(
   return true;
 }
 
-CVC4::String RegExpSolver::getHeadConst(Node x)
+cvc5::String RegExpSolver::getHeadConst(Node x)
 {
   if (x.isConst())
   {
@@ -606,7 +592,7 @@ bool RegExpSolver::deriveRegExp(Node x,
   Assert(x != d_emptyString);
   Trace("regexp-derive") << "RegExpSolver::deriveRegExp: x=" << x
                          << ", r= " << r << std::endl;
-  CVC4::String s = getHeadConst(x);
+  cvc5::String s = getHeadConst(x);
   // only allow RE_DERIVE for concrete constant regular expressions
   if (!s.empty() && d_regexp_opr.getRegExpConstType(r) == RE_C_CONRETE_CONSTANT)
   {
@@ -615,7 +601,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     bool flag = true;
     for (unsigned i = 0; i < s.size(); ++i)
     {
-      CVC4::String c = s.substr(i, 1);
+      cvc5::String c = s.substr(i, 1);
       Node dc2;
       int rt = d_regexp_opr.derivativeS(dc, c, dc2);
       dc = dc2;
@@ -706,4 +692,4 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

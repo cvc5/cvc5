@@ -21,7 +21,7 @@
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 class CDProof;
 namespace theory {
 namespace arith {
@@ -278,6 +278,6 @@ struct TranscendentalState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

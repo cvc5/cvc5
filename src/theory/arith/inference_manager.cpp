@@ -19,7 +19,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -147,4 +147,4 @@ bool InferenceManager::isEntailedFalse(const SimpleTheoryLemma& lem)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

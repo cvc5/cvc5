@@ -21,13 +21,12 @@
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -83,14 +82,14 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
   return os;
 }
 
-void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
+void SygusUnifStrategy::initialize(TermDbSygus* tds,
                                    Node f,
                                    std::vector<Node>& enums)
 {
   Assert(d_candidate.isNull());
   d_candidate = f;
   d_root = f.getType();
-  d_qe = qe;
+  d_tds = tds;
 
   // collect the enumerator types and form the strategy
   buildStrategyGraph(d_root, role_equal);
@@ -263,7 +262,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     Node eut = nm->mkNode(DT_SYGUS_EVAL, echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
-    eut = d_qe->getTermDatabaseSygus()->getEvalUnfold()->unfold(eut);
+    eut = d_tds->getEvalUnfold()->unfold(eut);
     Trace("sygus-unif-debug2") << "  ...got " << eut;
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
 
@@ -1049,6 +1048,6 @@ void SygusUnifStrategy::indent(const char* c, int ind)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

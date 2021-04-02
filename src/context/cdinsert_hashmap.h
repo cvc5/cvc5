@@ -45,7 +45,7 @@
 
 #pragma once
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 
@@ -406,5 +406,5 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

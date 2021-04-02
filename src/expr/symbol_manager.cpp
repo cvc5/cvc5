@@ -19,9 +19,9 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 
-using namespace CVC4::context;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 
 // ---------------------------------------------- SymbolManager::Implementation
 
@@ -367,4 +367,4 @@ void SymbolManager::resetAssertions()
   d_symtabAllocated.resetAssertions();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

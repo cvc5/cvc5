@@ -30,11 +30,11 @@
 #include "theory/rewriter.h"
 #include "theory/quantifiers/quant_util.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 void SortInference::UnionFind::print(const char * c){
@@ -869,4 +869,4 @@ bool SortInference::isHandledApplyUf(Kind k) const
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

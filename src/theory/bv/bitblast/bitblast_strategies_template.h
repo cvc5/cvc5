@@ -27,7 +27,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -899,6 +899,6 @@ void DefaultRotateLeftBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) 
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

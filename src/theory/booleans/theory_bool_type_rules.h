@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY_BOOL_TYPE_RULES_H
 #define CVC4__THEORY_BOOL_TYPE_RULES_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace boolean {
 
@@ -70,8 +70,8 @@ public:
   }
 };/* class IteTypeRule */
 
-}/* CVC4::theory::boolean namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace boolean
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_BOOL_TYPE_RULES_H */

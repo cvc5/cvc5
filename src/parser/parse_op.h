@@ -21,7 +21,7 @@
 
 #include "api/cvc4cpp.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /** A parsed operator
  *
@@ -79,6 +79,6 @@ struct ParseOp
 
 std::ostream& operator<<(std::ostream& os, const ParseOp& p);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__PARSE_OP_H */

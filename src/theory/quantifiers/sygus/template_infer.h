@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -71,6 +71,6 @@ class SygusTemplateInfer
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

@@ -19,7 +19,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
@@ -115,4 +115,4 @@ void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

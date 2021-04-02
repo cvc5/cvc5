@@ -21,7 +21,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -142,8 +142,8 @@ class DatatypesRewriter : public TheoryRewriter
                               unsigned depth);
 }; /* class DatatypesRewriter */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */

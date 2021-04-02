@@ -55,8 +55,8 @@ extern int optreset;
 #include "options/options_handler.h"
 #include "options/options_listener.h"
 
+// clang-format off
 ${headers_module}$
-
 
 #include "options/options_holder.h"
 #include "cvc4autoconfig.h"
@@ -64,11 +64,10 @@ ${headers_module}$
 
 ${headers_handler}$
 
+using namespace cvc5;
+using namespace cvc5::options;
 
-using namespace CVC4;
-using namespace CVC4::options;
-
-namespace CVC4 {
+namespace cvc5 {
 
 thread_local Options* Options::s_current = NULL;
 
@@ -367,10 +366,10 @@ public:
   }
 };/* class OptionsGuard */
 
-}/* CVC4::options namespace */
+}  // namespace options
 
 /**
- * Parse argc/argv and put the result into a CVC4::Options.
+ * Parse argc/argv and put the result into a cvc5::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
  *
@@ -505,7 +504,8 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("preemptGetopt") << "processing option " << c
                            << " (`" << char(c) << "'), " << option << std::endl;
 
-    switch(c) {
+    switch(c)
+    {
 ${options_handler}$
 
 
@@ -601,4 +601,5 @@ std::string Options::getOption(const std::string& key) const
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
-}  // namespace CVC4
+}  // namespace cvc5
+// clang-format on

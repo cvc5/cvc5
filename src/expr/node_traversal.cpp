@@ -16,7 +16,7 @@
 
 #include <functional>
 
-namespace CVC4 {
+namespace cvc5 {
 
 NodeDfsIterator::NodeDfsIterator(TNode n,
                                  VisitOrder order,
@@ -156,4 +156,4 @@ NodeDfsIterator NodeDfsIterable::end() const
   return NodeDfsIterator(d_order);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

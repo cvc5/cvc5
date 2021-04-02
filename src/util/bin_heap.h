@@ -29,7 +29,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * BinaryHeap that orders its elements greatest-first (i.e., in the opposite
@@ -363,6 +363,6 @@ private:
 template <class Elem, class CmpFcn>
 const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::max()-2)/2;
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__BIN_HEAP_H */

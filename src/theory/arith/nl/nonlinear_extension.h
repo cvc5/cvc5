@@ -39,8 +39,9 @@
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
+#include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
   class EqualityEngine;
@@ -154,12 +155,12 @@ class NonlinearExtension
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
    *
-   * This function returns true if a lemma was added to the inference manager.
-   * Otherwise, it returns false. In the latter case, the model object d_model
-   * may have information regarding how to construct a model, in the case that
-   * we determined the problem is satisfiable.
+   * This function returns whether we found a satisfying assignment
+   * (Result::Sat::SAT), or not (Result::Sat::UNSAT). Note that UNSAT does not
+   * necessarily means the whole query is UNSAT, but that the linear model was
+   * refuted by a lemma.
    */
-  bool modelBasedRefinement(const std::set<Node>& termSet);
+  Result::Sat modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *
@@ -290,13 +291,11 @@ class NonlinearExtension
    * NlModel::getModelValueRepair.
    */
   std::map<Node, Node> d_witnesses;
-  /** have we successfully built the model in this SAT context? */
-  context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */

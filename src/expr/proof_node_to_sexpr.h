@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 
@@ -64,6 +64,6 @@ class ProofNodeToSExpr
   Node getOrMkNodeVariable(Node n);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_RULE_H */

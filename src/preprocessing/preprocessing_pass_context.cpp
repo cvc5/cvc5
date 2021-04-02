@@ -18,7 +18,7 @@
 
 #include "expr/node_algorithm.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
@@ -61,4 +61,4 @@ ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -28,11 +28,8 @@
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class QuantifiersState;
@@ -67,7 +64,6 @@ class DbList
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
-  friend class ::CVC4::theory::QuantifiersEngine;
   using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
@@ -424,8 +420,8 @@ class TermDb : public QuantifiersUtil {
   //------------------------------end higher-order term indexing
 };/* class TermDb */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

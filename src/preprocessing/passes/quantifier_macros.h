@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -91,6 +91,6 @@ class QuantifierMacros : public PreprocessingPass
 
 }  // passes
 }  // preprocessing
-}  // CVC4
+}  // namespace cvc5
 
 #endif /*CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */

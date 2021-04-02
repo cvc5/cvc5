@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 
@@ -48,28 +48,43 @@ class FloatingPoint
 
   /**
    * Get the number of exponent bits in the unpacked format corresponding to a
-   * given packed format.  These is the unpacked counter-parts of
+   * given packed format.  This is the unpacked counter-part of
    * FloatingPointSize::exponentWidth().
    */
   static uint32_t getUnpackedExponentWidth(FloatingPointSize& size);
   /**
    * Get the number of exponent bits in the unpacked format corresponding to a
-   * given packed format.  These is the unpacked counter-parts of
+   * given packed format.  This is the unpacked counter-part of
    * FloatingPointSize::significandWidth().
    */
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
   /** Constructors. */
+
+  /** Create a FP value from its IEEE bit-vector representation. */
   FloatingPoint(uint32_t e, uint32_t s, const BitVector& bv);
   FloatingPoint(const FloatingPointSize& size, const BitVector& bv);
-  FloatingPoint(const FloatingPoint& fp);
+
+  /**
+   * Create a FP value from a signed or unsigned bit-vector value with
+   * respect to given rounding mode.
+   */
   FloatingPoint(const FloatingPointSize& size,
                 const RoundingMode& rm,
                 const BitVector& bv,
                 bool signedBV);
+
+  /**
+   * Create a FP value from a rational value with respect to given rounding
+   * mode.
+   */
   FloatingPoint(const FloatingPointSize& size,
                 const RoundingMode& rm,
                 const Rational& r);
+
+  /** Copy constructor. */
+  FloatingPoint(const FloatingPoint& fp);
+
   /** Destructor. */
   ~FloatingPoint();
 
@@ -116,6 +131,9 @@ class FloatingPoint
    * sign: True for negative sign, false otherwise.
    */
   static FloatingPoint makeMaxNormal(const FloatingPointSize& size, bool sign);
+
+  /** Return the size of this FP value. */
+  const FloatingPointSize& getSize() const;
 
   /** Get the wrapped floating-point value. */
   const FloatingPointLiteral* getLiteral(void) const { return d_fpl.get(); }
@@ -254,9 +272,6 @@ class FloatingPoint
    */
   PartialRational convertToRational(void) const;
 
-  /** The floating-point size of this floating-point value. */
-  FloatingPointSize d_fp_size;
-
  private:
   /**
    * Constructor.
@@ -264,7 +279,7 @@ class FloatingPoint
    * Note: This constructor takes ownership of 'fpl' and is not intended for
    *       public use.
    */
-  FloatingPoint(const FloatingPointSize& fp_size, FloatingPointLiteral* fpl);
+  FloatingPoint(FloatingPointLiteral* fpl);
 
   /** The floating-point literal of this floating-point value. */
   std::unique_ptr<FloatingPointLiteral> d_fpl;
@@ -281,7 +296,7 @@ struct FloatingPointHashFunction
     FloatingPointSizeHashFunction fpshf;
     BitVectorHashFunction bvhf;
 
-    return fpshf(fp.d_fp_size) ^ bvhf(fp.pack());
+    return fpshf(fp.getSize()) ^ bvhf(fp.pack());
   }
 }; /* struct FloatingPointHashFunction */
 
@@ -303,6 +318,10 @@ class FloatingPointConvertSort
     return d_fp_size == fpcs.d_fp_size;
   }
 
+  /** Return the size of this FP convert sort. */
+  FloatingPointSize getSize() const { return d_fp_size; }
+
+ private:
   /** The floating-point size of this sort. */
   FloatingPointSize d_fp_size;
 };
@@ -314,7 +333,7 @@ struct FloatingPointConvertSortHashFunction
   inline size_t operator()(const FloatingPointConvertSort& fpcs) const
   {
     FloatingPointSizeHashFunction f;
-    return f(fpcs.d_fp_size) ^ (0x00005300 | (key << 24));
+    return f(fpcs.getSize()) ^ (0x00005300 | (key << 24));
   }
 }; /* struct FloatingPointConvertSortHashFunction */
 
@@ -495,7 +514,7 @@ struct FloatingPointToBVHashFunction
 {
   inline size_t operator()(const FloatingPointToBV& fptbv) const
   {
-    UnsignedHashFunction< ::CVC4::BitVectorSize> f;
+    UnsignedHashFunction< ::cvc5::BitVectorSize> f;
     return (key ^ 0x46504256) ^ f(fptbv.d_bv_size);
   }
 }; /* struct FloatingPointToBVHashFunction */
@@ -514,6 +533,6 @@ std::ostream& operator<<(std::ostream& os, const FloatingPointSize& fps);
 std::ostream& operator<<(std::ostream& os,
                          const FloatingPointConvertSort& fpcs);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__FLOATINGPOINT_H */

@@ -21,13 +21,13 @@
 
 #include <string>
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * SMT-LIB 2 quoting for symbols
  */
 std::string quoteSymbol(const std::string& s);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__UTIL__SMT2_QUOTE_STRING_H */

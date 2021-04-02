@@ -20,7 +20,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 struct SmtEngineStatistics
@@ -60,6 +60,6 @@ struct SmtEngineStatistics
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__SMT_ENGINE_STATS_H */

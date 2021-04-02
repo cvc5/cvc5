@@ -20,9 +20,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::string PreRegisterVisitor::toString() const {
   std::stringstream ss;
@@ -292,4 +292,4 @@ void SharedTermsVisitor::clear() {
   d_visited.clear();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

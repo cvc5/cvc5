@@ -27,7 +27,7 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/theory_proof_step_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class SatProofManager;
@@ -170,6 +170,6 @@ class ProofCnfStream : public ProofGenerator
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

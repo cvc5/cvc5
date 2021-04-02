@@ -25,7 +25,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -69,8 +69,8 @@ private:
 
 };/* class ArithStaticLearner */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */

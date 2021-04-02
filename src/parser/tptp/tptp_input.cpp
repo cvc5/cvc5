@@ -26,7 +26,7 @@
 #include "parser/tptp/TptpParser.h"
 #include "parser/tptp/tptp.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=2 */
@@ -68,5 +68,5 @@ api::Term TptpInput::parseExpr()
   return d_pTptpParser->parseExpr(d_pTptpParser);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

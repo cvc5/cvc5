@@ -28,7 +28,7 @@
 #include "base/check.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
     : d_value(std::move(an))
@@ -174,4 +174,4 @@ int sgn(const RealAlgebraicNumber& ran) { return sgn(ran.getValue()); }
 bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
 
-}  // namespace CVC4
+}  // namespace cvc5

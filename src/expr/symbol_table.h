@@ -26,7 +26,7 @@
 #include "base/exception.h"
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -210,6 +210,6 @@ class CVC4_EXPORT SymbolTable
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SYMBOL_TABLE_H */

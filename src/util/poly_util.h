@@ -36,7 +36,7 @@
 
 #include <poly/polyxx.h>
 
-namespace CVC4 {
+namespace cvc5 {
 /**
  * Utilities for working with libpoly.
  * This namespace contains various basic conversion routines necessary for the
@@ -49,28 +49,28 @@ namespace CVC4 {
  */
 namespace poly_utils {
 
-/** Converts a poly::Integer to a CVC4::Integer. */
+/** Converts a poly::Integer to a cvc5::Integer. */
 Integer toInteger(const poly::Integer& i);
-/** Converts a poly::Integer to a CVC4::Rational. */
+/** Converts a poly::Integer to a cvc5::Rational. */
 Rational toRational(const poly::Integer& r);
-/** Converts a poly::Rational to a CVC4::Rational. */
+/** Converts a poly::Rational to a cvc5::Rational. */
 Rational toRational(const poly::Rational& r);
-/** Converts a poly::DyadicRational to a CVC4::Rational. */
+/** Converts a poly::DyadicRational to a cvc5::Rational. */
 Rational toRational(const poly::DyadicRational& dr);
 
-/** Converts a poly::Value to a CVC4::Rational (that may be a bit above). */
+/** Converts a poly::Value to a cvc5::Rational (that may be a bit above). */
 Rational toRationalAbove(const poly::Value& v);
-/** Converts a poly::Value to a CVC4::Rational (that may be a bit below). */
+/** Converts a poly::Value to a cvc5::Rational (that may be a bit below). */
 Rational toRationalBelow(const poly::Value& v);
 
-/** Converts a CVC4::Integer to a poly::Integer. */
+/** Converts a cvc5::Integer to a poly::Integer. */
 poly::Integer toInteger(const Integer& i);
-/** Converts a vector of CVC4::Integers to a vector of poly::Integers. */
+/** Converts a vector of cvc5::Integers to a vector of poly::Integers. */
 std::vector<poly::Integer> toInteger(const std::vector<Integer>& vi);
-/** Converts a CVC4::Rational to a poly::Rational. */
+/** Converts a cvc5::Rational to a poly::Rational. */
 poly::Rational toRational(const Rational& r);
 /**
- * Converts a CVC4::Rational to a poly::DyadicRational. If the input is not
+ * Converts a cvc5::Rational to a poly::DyadicRational. If the input is not
  * dyadic, no result is produced.
  */
 Maybe<poly::DyadicRational> toDyadicRational(const Rational& r);
@@ -91,7 +91,7 @@ poly::Rational approximateToDyadic(const poly::Rational& r,
 
 /**
  * Constructs a poly::AlgebraicNumber, allowing for refinement of the
- * CVC4::Rational bounds. As a poly::AlgebraicNumber works on
+ * cvc5::Rational bounds. As a poly::AlgebraicNumber works on
  * poly::DyadicRationals internally, the bounds are iteratively refined using
  * approximateToDyadic until the respective interval is isolating. If the
  * provided rational bounds are already dyadic, the refinement is skipped.
@@ -101,7 +101,7 @@ poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
                                               const Rational& upper);
 
 /**
- * Constructs a CVC4::RealAlgebraicNumber, simply wrapping
+ * Constructs a cvc5::RealAlgebraicNumber, simply wrapping
  * toPolyRanWithRefinement.
  */
 RealAlgebraicNumber toRanWithRefinement(poly::UPolynomial&& p,
@@ -138,7 +138,7 @@ void getVariableInformation(VariableInformation& vi,
                             const poly::Polynomial& poly);
 
 }  // namespace poly_utils
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

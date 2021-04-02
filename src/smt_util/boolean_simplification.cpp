@@ -16,7 +16,7 @@
 
 #include "smt_util/boolean_simplification.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 bool BooleanSimplification::push_back_associative_commute_recursive(
     Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
@@ -61,4 +61,4 @@ bool BooleanSimplification::push_back_associative_commute_recursive(
   return true;
 }/* BooleanSimplification::push_back_associative_commute_recursive() */
 
-}/* CVC4 namespace */
+}  // namespace cvc5

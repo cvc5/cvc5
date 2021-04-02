@@ -21,7 +21,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -51,6 +51,6 @@ class TheoryRewriteEq : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H */

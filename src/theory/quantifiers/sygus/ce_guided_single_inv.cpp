@@ -29,22 +29,21 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s)
-    : d_qe(qe),
-      d_sip(new SingleInvocationPartition),
-      d_srcons(new SygusReconstruct(qe->getTermDatabaseSygus(), s)),
+CegSingleInv::CegSingleInv(TermRegistry& tr, SygusStatistics& s)
+    : d_sip(new SingleInvocationPartition),
+      d_srcons(new SygusReconstruct(tr.getTermDatabaseSygus(), s)),
       d_isSolved(false),
-      d_single_invocation(false)
+      d_single_invocation(false),
+      d_treg(tr)
 {
 }
 
@@ -349,7 +348,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
       ptn = ptn.getRangeType();
     }
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermRegistry().getTermEnumeration()->getEnumerateTerm(ptn, 0);
+    s = d_treg.getTermEnumeration()->getEnumerateTerm(ptn, 0);
   }
   else
   {
@@ -395,7 +394,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   }
   //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << s << std::endl;
-  s = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
+  s = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
   return SygusUtils::wrapSolutionForSynthFun(prog, s);
@@ -462,7 +461,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   {
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = sol;
-    sol = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
+    sol = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
     if (prev != sol)
     {
       Trace("csi-sol") << "Solution (after post process) : " << sol
@@ -549,4 +548,4 @@ bool CegSingleInv::solveTrivial(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

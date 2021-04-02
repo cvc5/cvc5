@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
@@ -75,7 +75,6 @@ Theory::Theory(TheoryId id,
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(nullptr),
-      d_decManager(nullptr),
       d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
@@ -127,9 +126,11 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 
 void Theory::setDecisionManager(DecisionManager* dm)
 {
-  Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
-  d_decManager = dm;
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setDecisionManager(dm);
+  }
 }
 
 void Theory::finishInitStandalone()
@@ -563,5 +564,5 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

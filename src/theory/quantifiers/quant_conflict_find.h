@@ -25,7 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -236,10 +236,10 @@ private:  //for equivalence classes
   bool areMatchDisequal( TNode n1, TNode n2 );
 
  public:
-  QuantConflictFind(QuantifiersEngine* qe,
-                    QuantifiersState& qs,
+  QuantConflictFind(QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
-                    QuantifiersRegistry& qr);
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;
@@ -311,8 +311,8 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

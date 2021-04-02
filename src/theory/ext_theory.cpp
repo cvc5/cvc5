@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 bool ExtTheoryCallback::getCurrentSubstitution(
@@ -557,5 +557,5 @@ std::vector<Node> ExtTheory::getActive(Kind k) const
 
 void ExtTheory::clearCache() { d_gst_cache.clear(); }
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

@@ -27,19 +27,17 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(QuantifiersEngine* qe)
-    : d_qe(qe), d_allow_constant_grammar(false)
+SygusRepairConst::SygusRepairConst(TermDbSygus* tds)
+    : d_tds(tds), d_allow_constant_grammar(false)
 {
-  d_tds = d_qe->getTermDatabaseSygus();
 }
 
 void SygusRepairConst::initialize(Node base_inst,
@@ -218,7 +216,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (fo_body.getKind() == FORALL)
   {
     // must be a CBQI quantifier
-    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body, d_qe);
+    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body);
     if (hstatus < CEG_HANDLED)
     {
       // abort if less than fully handled
@@ -621,6 +619,6 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
   return true;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

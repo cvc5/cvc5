@@ -23,7 +23,7 @@
 #include "expr/type_node.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 /**
@@ -213,6 +213,6 @@ class SygusInterpol
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */

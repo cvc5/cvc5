@@ -22,7 +22,7 @@
 
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -189,5 +189,4 @@ class SharedTermsVisitor {
   TNodeToTheorySetMap d_preregistered;
 };
 
-
-}
+}  // namespace cvc5

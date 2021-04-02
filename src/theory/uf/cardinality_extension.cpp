@@ -28,10 +28,10 @@
 #include "theory/uf/theory_uf.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -507,8 +507,8 @@ void SortModel::initialize()
     d_initialized = true;
     // Strategy is user-context-dependent, since it is in sync with
     // user-context-dependent flag d_initialized.
-    d_thss->getTheory()->getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_UF_CARD, d_c_dec_strat.get());
+    d_im.getDecisionManager()->registerStrategy(DecisionManager::STRAT_UF_CARD,
+                                                d_c_dec_strat.get());
   }
 }
 
@@ -1656,7 +1656,7 @@ void CardinalityExtension::initializeCombinedCardinality()
       && !d_initializedCombinedCardinality.get())
   {
     d_initializedCombinedCardinality = true;
-    d_th->getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_UF_COMBINED_CARD, d_cc_dec_strat.get());
   }
 }
@@ -1764,6 +1764,6 @@ CardinalityExtension::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5

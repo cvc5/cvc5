@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Node.
+ ** \brief Black box testing of cvc5::Node.
  **
- ** Black box testing of CVC4::Node.
+ ** Black box testing of cvc5::Node.
  **/
 
 #include <algorithm>
@@ -30,7 +30,7 @@
 #include "test_node.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -784,4 +784,4 @@ TEST_F(TestNodeBlackNode, node_tnode_usage)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

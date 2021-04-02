@@ -24,11 +24,11 @@
 #include "base/check.h"
 #include "expr/kind.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace expr {
   class NodeValue;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 namespace kind {
 namespace metakind {
@@ -74,16 +74,16 @@ struct ConstantMapReverse;
  */
 template <Kind k, bool pool>
 struct NodeValueConstCompare {
-  inline static bool compare(const ::CVC4::expr::NodeValue* x,
-                             const ::CVC4::expr::NodeValue* y);
-  inline static size_t constHash(const ::CVC4::expr::NodeValue* nv);
+  inline static bool compare(const ::cvc5::expr::NodeValue* x,
+                             const ::cvc5::expr::NodeValue* y);
+  inline static size_t constHash(const ::cvc5::expr::NodeValue* nv);
 };/* NodeValueConstCompare<k, pool> */
 
 struct NodeValueCompare {
   template <bool pool>
-  static bool compare(const ::CVC4::expr::NodeValue* nv1,
-                      const ::CVC4::expr::NodeValue* nv2);
-  static size_t constHash(const ::CVC4::expr::NodeValue* nv);
+  static bool compare(const ::cvc5::expr::NodeValue* nv1,
+                      const ::cvc5::expr::NodeValue* nv2);
+  static size_t constHash(const ::cvc5::expr::NodeValue* nv);
 };/* struct NodeValueCompare */
 
 /**
@@ -102,29 +102,29 @@ enum MetaKind_t {
   NULLARY_OPERATOR /**< nullary operator */
 };/* enum MetaKind_t */
 
-}/* CVC4::kind::metakind namespace */
+}  // namespace metakind
 
-// import MetaKind into the "CVC4::kind" namespace but keep the
+// import MetaKind into the "cvc5::kind" namespace but keep the
 // individual MetaKind constants under kind::metakind::
-typedef ::CVC4::kind::metakind::MetaKind_t MetaKind;
+typedef ::cvc5::kind::metakind::MetaKind_t MetaKind;
 
 /**
  * Get the metakind for a particular kind.
  */
 MetaKind metaKindOf(Kind k);
-}/* CVC4::kind namespace */
+}  // namespace kind
 
 namespace expr {
 
 // Comparison predicate
 struct NodeValuePoolEq {
   inline bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
-    return ::CVC4::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
+    return ::cvc5::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
   }
 };
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5
 
 #include "expr/node_value.h"
 
@@ -134,18 +134,19 @@ ${metakind_includes}
 
 #ifdef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace expr {
 ${metakind_getConst_decls}
-}/* CVC4::expr namespace */
+}  // namespace expr
 
 namespace kind {
 namespace metakind {
 
 template <Kind k, bool pool>
-inline bool NodeValueConstCompare<k, pool>::compare(const ::CVC4::expr::NodeValue* x,
-                                                    const ::CVC4::expr::NodeValue* y) {
+inline bool NodeValueConstCompare<k, pool>::compare(
+    const ::cvc5::expr::NodeValue* x, const ::cvc5::expr::NodeValue* y)
+{
   typedef typename ConstantMapReverse<k>::T T;
   if(pool) {
     if(x->d_nchildren == 1) {
@@ -163,7 +164,9 @@ inline bool NodeValueConstCompare<k, pool>::compare(const ::CVC4::expr::NodeValu
 }
 
 template <Kind k, bool pool>
-inline size_t NodeValueConstCompare<k, pool>::constHash(const ::CVC4::expr::NodeValue* nv) {
+inline size_t NodeValueConstCompare<k, pool>::constHash(
+    const ::cvc5::expr::NodeValue* nv)
+{
   typedef typename ConstantMapReverse<k>::T T;
   return nv->getConst<T>().hash();
 }
@@ -171,8 +174,7 @@ inline size_t NodeValueConstCompare<k, pool>::constHash(const ::CVC4::expr::Node
 ${metakind_constantMaps_decls}
 
 struct NodeValueConstPrinter {
-  static void toStream(std::ostream& out,
-                              const ::CVC4::expr::NodeValue* nv);
+  static void toStream(std::ostream& out, const ::cvc5::expr::NodeValue* nv);
   static void toStream(std::ostream& out, TNode n);
 };
 
@@ -185,24 +187,24 @@ struct NodeValueConstPrinter {
  * This doesn't support "non-inlined" NodeValues, which shouldn't need this
  * kind of cleanup.
  */
-void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
+void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv);
 
 /** Return the minimum arity of the given kind. */
-uint32_t getMinArityForKind(::CVC4::Kind k);
+uint32_t getMinArityForKind(::cvc5::Kind k);
 /** Return the maximum arity of the given kind. */
-uint32_t getMaxArityForKind(::CVC4::Kind k);
+uint32_t getMaxArityForKind(::cvc5::Kind k);
 
-}/* CVC4::kind::metakind namespace */
+}  // namespace metakind
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.
  */
-Kind operatorToKind(::CVC4::expr::NodeValue* nv);
+Kind operatorToKind(::cvc5::expr::NodeValue* nv);
 
-}/* CVC4::kind namespace */
+}  // namespace kind
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */

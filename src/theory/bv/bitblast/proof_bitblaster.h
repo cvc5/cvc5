@@ -18,7 +18,7 @@
 
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -47,5 +47,5 @@ class BBProof
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

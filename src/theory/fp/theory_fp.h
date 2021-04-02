@@ -31,7 +31,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -189,6 +189,6 @@ class TheoryFp : public Theory
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_H */

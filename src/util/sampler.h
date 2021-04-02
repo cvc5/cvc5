@@ -22,7 +22,7 @@
 
 #include "util/floatingpoint.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Sampler
 {
@@ -52,6 +52,6 @@ class Sampler
   static constexpr double probSpecial = 0.2;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__UTIL_FLOATINGPOINT_SAMPLER_H */

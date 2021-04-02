@@ -26,7 +26,7 @@
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -68,6 +68,6 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__TYPE_ENUMERATOR_H */

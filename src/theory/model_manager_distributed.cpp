@@ -18,7 +18,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 ModelManagerDistributed::ModelManagerDistributed(TheoryEngine& te,
@@ -114,4 +114,4 @@ bool ModelManagerDistributed::finishBuildModel() const
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

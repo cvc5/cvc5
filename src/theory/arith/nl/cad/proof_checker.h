@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -53,6 +53,6 @@ class CADProofRuleChecker : public ProofRuleChecker
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__PROOF_CHECKER_H */

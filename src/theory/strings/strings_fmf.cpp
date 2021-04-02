@@ -16,10 +16,10 @@
 #include "theory/strings/strings_fmf.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -102,4 +102,4 @@ std::string StringsFmf::StringSumLengthDecisionStrategy::identify() const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

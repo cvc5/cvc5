@@ -28,7 +28,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class BVMinisatSatSolver : public BVSatSolverInterface,
@@ -147,5 +147,5 @@ public:
   Statistics d_statistics;
 };
 
-} /* CVC4::prop namespace */
-} /* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

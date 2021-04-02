@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::NodeManager.
+ ** \brief White box testing of cvc5::NodeManager.
  **
- ** White box testing of CVC4::NodeManager.
+ ** White box testing of cvc5::NodeManager.
  **/
 
 #include <string>
@@ -21,9 +21,9 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-using namespace CVC4::expr;
+using namespace cvc5::expr;
 
 namespace test {
 
@@ -81,4 +81,4 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

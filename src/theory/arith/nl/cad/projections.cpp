@@ -20,7 +20,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -106,6 +106,6 @@ PolyVector projection_mccallum(const std::vector<Polynomial>& polys)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

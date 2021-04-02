@@ -21,7 +21,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const EmptySet& asa) {
   return out << "emptyset(" << asa.getType() << ')';
@@ -64,4 +64,4 @@ bool EmptySet::operator<=(const EmptySet& es) const
 
 bool EmptySet::operator>(const EmptySet& es) const { return !(*this <= es); }
 bool EmptySet::operator>=(const EmptySet& es) const { return !(*this < es); }
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 
 using namespace std;
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace util {
 
@@ -1909,4 +1909,4 @@ ITECareSimplifier::CareSetPtr ITECareSimplifier::CareSetPtr::mkNew(
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

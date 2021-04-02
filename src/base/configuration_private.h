@@ -22,19 +22,13 @@
 
 #include "base/configuration.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 #ifdef CVC4_DEBUG
 #  define IS_DEBUG_BUILD true
 #else /* CVC4_DEBUG */
 #  define IS_DEBUG_BUILD false
 #endif /* CVC4_DEBUG */
-
-#ifdef CVC4_STATISTICS_ON
-#  define IS_STATISTICS_BUILD true
-#else /* CVC4_STATISTICS_ON */
-#  define IS_STATISTICS_BUILD false
-#endif /* CVC4_STATISTICS_ON */
 
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true
@@ -182,6 +176,6 @@ namespace CVC4 {
 #endif /* __has_feature(thread_sanitizer) */
 #endif /* defined(__has_feature) */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__CONFIGURATION_PRIVATE_H */

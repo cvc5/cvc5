@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Attribute.
+ ** \brief Black box testing of cvc5::Attribute.
  **
- ** Black box testing of CVC4::Attribute.
+ ** Black box testing of cvc5::Attribute.
  **/
 
 #include <sstream>
@@ -23,7 +23,7 @@
 #include "expr/node_value.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace smt;
@@ -125,4 +125,4 @@ TEST_F(TestNodeBlackAttribute, bools)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

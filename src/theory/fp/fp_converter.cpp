@@ -41,75 +41,75 @@
 
 #ifdef CVC4_USE_SYMFPU
 namespace symfpu {
-using namespace ::CVC4::theory::fp::symfpuSymbolic;
+using namespace ::cvc5::theory::fp::symfpuSymbolic;
 
 #define CVC4_SYM_ITE_DFN(T)                                                \
   template <>                                                              \
   struct ite<symbolicProposition, T>                                       \
   {                                                                        \
-    static const T iteOp(const symbolicProposition &_cond,                 \
-                         const T &_l,                                      \
-                         const T &_r)                                      \
+    static const T iteOp(const symbolicProposition& _cond,                 \
+                         const T& _l,                                      \
+                         const T& _r)                                      \
     {                                                                      \
-      ::CVC4::NodeManager *nm = ::CVC4::NodeManager::currentNM();          \
+      ::cvc5::NodeManager* nm = ::cvc5::NodeManager::currentNM();          \
                                                                            \
-      ::CVC4::Node cond = _cond;                                           \
-      ::CVC4::Node l = _l;                                                 \
-      ::CVC4::Node r = _r;                                                 \
+      ::cvc5::Node cond = _cond;                                           \
+      ::cvc5::Node l = _l;                                                 \
+      ::cvc5::Node r = _r;                                                 \
                                                                            \
       /* Handle some common symfpu idioms */                               \
       if (cond.isConst())                                                  \
       {                                                                    \
-        return (cond == nm->mkConst(::CVC4::BitVector(1U, 1U))) ? l : r;   \
+        return (cond == nm->mkConst(::cvc5::BitVector(1U, 1U))) ? l : r;   \
       }                                                                    \
       else                                                                 \
       {                                                                    \
-        if (l.getKind() == ::CVC4::kind::BITVECTOR_ITE)                    \
+        if (l.getKind() == ::cvc5::kind::BITVECTOR_ITE)                    \
         {                                                                  \
           if (l[1] == r)                                                   \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
                            cond,                                           \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, l[0])), \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, l[0])), \
                 l[2],                                                      \
                 r);                                                        \
           }                                                                \
           else if (l[2] == r)                                              \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND, cond, l[0]),       \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND, cond, l[0]),       \
                 l[1],                                                      \
                 r);                                                        \
           }                                                                \
         }                                                                  \
-        else if (r.getKind() == ::CVC4::kind::BITVECTOR_ITE)               \
+        else if (r.getKind() == ::cvc5::kind::BITVECTOR_ITE)               \
         {                                                                  \
           if (r[1] == l)                                                   \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, cond),  \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, r[0])), \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, cond),  \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, r[0])), \
                 r[2],                                                      \
                 l);                                                        \
           }                                                                \
           else if (r[2] == l)                                              \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, cond),  \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, cond),  \
                            r[0]),                                          \
                 r[1],                                                      \
                 l);                                                        \
           }                                                                \
         }                                                                  \
       }                                                                    \
-      return T(nm->mkNode(::CVC4::kind::BITVECTOR_ITE, cond, l, r));       \
+      return T(nm->mkNode(::cvc5::kind::BITVECTOR_ITE, cond, l, r));       \
     }                                                                      \
   }
 
@@ -148,7 +148,7 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
 #define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 namespace symfpuSymbolic {
@@ -412,8 +412,8 @@ symbolicBitVector<true> symbolicBitVector<true>::maxValue(const bwt &w)
   symbolicBitVector<true> leadingZero(symbolicBitVector<true>::zero(1));
   symbolicBitVector<true> base(symbolicBitVector<true>::allOnes(w - 1));
 
-  return symbolicBitVector<true>(::CVC4::NodeManager::currentNM()->mkNode(
-      ::CVC4::kind::BITVECTOR_CONCAT, leadingZero, base));
+  return symbolicBitVector<true>(::cvc5::NodeManager::currentNM()->mkNode(
+      ::cvc5::kind::BITVECTOR_CONCAT, leadingZero, base));
 }
 
 template <>
@@ -428,8 +428,8 @@ symbolicBitVector<true> symbolicBitVector<true>::minValue(const bwt &w)
   symbolicBitVector<true> leadingOne(symbolicBitVector<true>::one(1));
   symbolicBitVector<true> base(symbolicBitVector<true>::zero(w - 1));
 
-  return symbolicBitVector<true>(::CVC4::NodeManager::currentNM()->mkNode(
-      ::CVC4::kind::BITVECTOR_CONCAT, leadingOne, base));
+  return symbolicBitVector<true>(::cvc5::NodeManager::currentNM()->mkNode(
+      ::cvc5::kind::BITVECTOR_CONCAT, leadingOne, base));
 }
 
 template <>
@@ -817,7 +817,7 @@ Node FpConverter::propToNode(const prop &p) const
 {
   NodeManager *nm = NodeManager::currentNM();
   Node value =
-      nm->mkNode(kind::EQUAL, p, nm->mkConst(::CVC4::BitVector(1U, 1U)));
+      nm->mkNode(kind::EQUAL, p, nm->mkConst(::cvc5::BitVector(1U, 1U)));
   return value;
 }
 Node FpConverter::ubvToNode(const ubv &u) const { return u; }
@@ -1739,4 +1739,4 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -236,4 +236,4 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

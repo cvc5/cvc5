@@ -23,7 +23,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 class PreprocessingPass;
@@ -94,6 +94,6 @@ class PreprocessingPassRegistry {
 };  // class PreprocessingPassRegistry
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */

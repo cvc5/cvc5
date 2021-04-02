@@ -21,7 +21,7 @@
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -174,6 +174,6 @@ class InferenceManagerBuffered : public TheoryInferenceManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

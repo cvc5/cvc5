@@ -41,27 +41,39 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::main;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::main;
 
-namespace CVC4 {
-  namespace main {
-    /** Global options variable */
-    thread_local Options* pOptions;
+namespace cvc5 {
+namespace main {
+/** Global options variable */
+thread_local Options* pOptions;
 
-    /** Full argv[0] */
-    const char *progPath;
+/** Full argv[0] */
+const char* progPath;
 
-    /** Just the basename component of argv[0] */
-    const std::string *progName;
+/** Just the basename component of argv[0] */
+const std::string* progName;
 
-    /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = nullptr;
+/** A pointer to the CommandExecutor (the signal handlers need it) */
+std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
-  }/* CVC4::main namespace */
-}/* CVC4 namespace */
+/** The time point the binary started, accessible to signal handlers */
+std::unique_ptr<TotalTimer> totalTime;
 
+TotalTimer::~TotalTimer()
+{
+  if (pExecutor != nullptr)
+  {
+    auto duration = std::chrono::steady_clock::now() - d_start;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(
+        std::chrono::duration<double>(duration).count());
+  }
+    }
+
+    }  // namespace main
+    }  // namespace cvc5
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
@@ -78,8 +90,7 @@ void printUsage(Options& opts, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& opts) {
-
-  std::chrono::time_point totalTimeStart = std::chrono::steady_clock::now();
+  main::totalTime = std::make_unique<TotalTimer>();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -164,19 +175,19 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC4::null_os);
-    TraceChannel.setStream(&CVC4::null_os);
-    NoticeChannel.setStream(&CVC4::null_os);
-    ChatChannel.setStream(&CVC4::null_os);
-    MessageChannel.setStream(&CVC4::null_os);
-    WarningChannel.setStream(&CVC4::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   }
 
   // important even for muzzled builds (to get result output right)
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the command executor to execute the parsed commands
-  pExecutor = new CommandExecutor(opts);
+  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
@@ -457,10 +468,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // or other on_exit/atexit stuff.
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
-    pExecutor->getSmtEngine()->setResultStatistic(result.toString());
-    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
-    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
+    totalTime.reset();
     pExecutor->flushOutputStreams();
 
 #ifdef CVC4_DEBUG
@@ -474,9 +483,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_DEBUG */
   }
 
-  delete pExecutor;
-
-  pExecutor = nullptr;
+  pExecutor.reset();
 
   signal_handlers::cleanup();
 

@@ -19,9 +19,9 @@
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
@@ -347,4 +347,4 @@ bool ProofChecker::isPedanticFailure(PfRule id,
   return false;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

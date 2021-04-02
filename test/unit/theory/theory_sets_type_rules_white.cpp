@@ -16,9 +16,9 @@
 #include "test_api.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 namespace test {
 
@@ -83,4 +83,4 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
   ASSERT_TRUE(n.isConst());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

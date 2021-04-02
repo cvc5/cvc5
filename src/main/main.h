@@ -14,7 +14,9 @@
  ** Header for main CVC4 driver.
  **/
 
+#include <chrono>
 #include <exception>
+#include <memory>
 #include <string>
 
 #include "base/exception.h"
@@ -24,7 +26,7 @@
 #ifndef CVC4__MAIN__MAIN_H
 #define CVC4__MAIN__MAIN_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 class CommandExecutor;
@@ -36,7 +38,20 @@ extern const char* progPath;
 extern const std::string* progName;
 
 /** A reference for use by the signal handlers to print statistics */
-extern CVC4::main::CommandExecutor* pExecutor;
+extern std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
+
+/** Manages a custom timer for the total runtime in RAII-style. */
+class TotalTimer
+{
+ public:
+  TotalTimer() : d_start(std::chrono::steady_clock::now()) {}
+  ~TotalTimer();
+
+ private:
+  std::chrono::steady_clock::time_point d_start;
+};
+/** The time point the binary started, accessible to signal handlers */
+extern std::unique_ptr<TotalTimer> totalTime;
 
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.
@@ -49,18 +64,18 @@ extern bool segvSpin;
 extern thread_local Options* pOptions;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV.
- * This can throw a CVC4::Exception.
+ * This can throw a cvc5::Exception.
  */
 void cvc4_init();
 
 /** Shutdown the driver. Frees memory for the signal handlers. */
 void cvc4_shutdown() noexcept;
 
-}/* CVC4::main namespace */
-}/* CVC4 namespace */
+}  // namespace main
+}  // namespace cvc5
 
 /** Actual Cvc4 driver functions **/
-int runCvc4(int argc, char* argv[], CVC4::Options&);
-void printUsage(CVC4::Options&, bool full = false);
+int runCvc4(int argc, char* argv[], cvc5::Options&);
+void printUsage(cvc5::Options&, bool full = false);
 
 #endif /* CVC4__MAIN__MAIN_H */

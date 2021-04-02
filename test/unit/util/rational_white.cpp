@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::Rational.
+ ** \brief White box testing of cvc5::Rational.
  **
- ** White box testing of CVC4::Rational.
+ ** White box testing of cvc5::Rational.
  **/
 
 #include <sstream>
@@ -19,7 +19,7 @@
 #include "test.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilWhiteRational : public TestInternal
@@ -416,4 +416,4 @@ TEST_F(TestUtilWhiteRational, constructrion)
   ASSERT_EQ(Rational(u), Rational(u));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

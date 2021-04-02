@@ -17,9 +17,9 @@
 #include "expr/sequence.h"
 #include "util/string.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -486,4 +486,4 @@ Node Word::reverse(TNode x)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

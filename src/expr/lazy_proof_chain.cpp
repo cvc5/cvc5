@@ -21,7 +21,7 @@
 #include "expr/proof_node_manager.h"
 #include "options/proof_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    bool cyclic,
@@ -317,4 +317,4 @@ ProofGenerator* LazyCDProofChain::getGeneratorForInternal(Node fact, bool& rec)
 
 std::string LazyCDProofChain::identify() const { return "LazyCDProofChain"; }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -35,7 +35,7 @@
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -51,10 +51,10 @@ namespace expr {
   namespace attr {
     class AttributeUniqueId;
     class AttributeManager;
-  }/* CVC4::expr::attr namespace */
+    }  // namespace attr
 
   class TypeChecker;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 /**
  * An interface that an interested party can implement and then subscribe
@@ -163,7 +163,7 @@ class NodeManager
    * PLUS, are APPLYs of a PLUS operator to arguments.  This array
    * holds the set of operators for these things.  A PLUS operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
+   * plusOperator->getConst<cvc5::Kind>(), you get kind::PLUS back.
    */
   Node d_operators[kind::LAST_KIND];
 
@@ -660,7 +660,7 @@ class NodeManager
   /**
    * Get the (singleton) operator of an OPERATOR-kinded kind.  The
    * returned node n will have kind BUILTIN, and calling
-   * n.getConst<CVC4::Kind>() will yield k.
+   * n.getConst<cvc5::Kind>() will yield k.
    */
   inline TNode operatorOf(Kind k) {
     AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k,
@@ -935,14 +935,9 @@ class NodeManager
   TypeNode mkRecordType(const Record& rec);
 
   /**
-   * Make a symbolic expression type with types from
-   * <code>types</code>. <code>types</code> may have any number of
-   * elements.
-   *
-   * @param types a vector of types
-   * @returns the symbolic expression type (types[0], ..., types[n])
+   * @returns the symbolic expression type
    */
-  inline TypeNode mkSExprType(const std::vector<TypeNode>& types);
+  TypeNode sExprType();
 
   /** Make the type of floating-point with <code>exp</code> bit exponent and
       <code>sig</code> bit significand */
@@ -1140,14 +1135,6 @@ public:
   }
 };/* class NodeManagerScope */
 
-inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {
-  std::vector<TypeNode> typeNodes;
-  for (unsigned i = 0; i < types.size(); ++ i) {
-    typeNodes.push_back(types[i]);
-  }
-  return mkTypeNode(kind::SEXPR_TYPE, typeNodes);
-}
-
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                                          TypeNode constituentType) {
   CheckArgument(!indexType.isNull(), indexType,
@@ -1216,7 +1203,7 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #define CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 #include "expr/metakind.h"
@@ -1224,7 +1211,7 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
 
 #include "expr/node_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // general expression-builders
 
@@ -1590,6 +1577,6 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
   return NodeClass(nv);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__NODE_MANAGER_H */

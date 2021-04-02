@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /**
@@ -235,6 +235,6 @@ bool match(Node n1,
            std::unordered_map<Node, Node, NodeHashFunction>& subs);
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

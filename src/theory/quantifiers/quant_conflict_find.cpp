@@ -27,13 +27,12 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -1854,11 +1853,11 @@ bool MatchGen::isHandled( TNode n ) {
   return true;
 }
 
-QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
-                                     QuantifiersState& qs,
+QuantConflictFind::QuantConflictFind(QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
-                                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                                     QuantifiersRegistry& qr,
+                                     TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1988,7 +1987,7 @@ inline QuantConflictFind::Effort QcfEffortEnd() {
 /** check */
 void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
 {
-  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
+  CodeTimer codeTimer(d_qstate.getStats().d_qcf_time);
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;
@@ -2027,7 +2026,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     Trace("qcf-debug") << std::endl;
   }
   bool isConflict = false;
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
   for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e)
@@ -2199,7 +2198,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // checked first on the next round. This is an optimization to
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
-        d_quantEngine->markRelevant(q);
+        d_treg.getModel()->markRelevant(q);
         if (options::qcfAllConflict())
         {
           isConflict = true;
@@ -2212,7 +2211,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       }
       else if (d_effort == EFFORT_PROP_EQ)
       {
-        d_quantEngine->markRelevant(q);
+        d_treg.getModel()->markRelevant(q);
       }
     }
     // clean up assigned
@@ -2350,6 +2349,6 @@ bool QuantConflictFind::isPropagatingInstance(Node n) const
   return true;
 }
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
