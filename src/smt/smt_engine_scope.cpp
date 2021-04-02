@@ -62,7 +62,7 @@ SmtScope::~SmtScope() {
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->getStatisticsRegistry();
+  return &(s_smtEngine_current->getStatisticsRegistry());
 }
 
 }  // namespace smt

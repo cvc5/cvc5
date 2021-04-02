@@ -284,16 +284,21 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             }
             InferenceId inf =
                 polarity ? InferenceId::STRINGS_RE_UNFOLD_POS : InferenceId::STRINGS_RE_UNFOLD_NEG;
-            d_im.sendInference(iexp, noExplain, conc, inf);
-            addedLemma = true;
-            processed.push_back(assertion);
-            if (e == 0)
+            // in very rare cases, we may find out that the unfolding lemma
+            // for a membership is equivalent to true, in spite of the RE
+            // not being rewritten to true.
+            if (d_im.sendInference(iexp, noExplain, conc, inf))
             {
-              // Remember that we have unfolded a membership for x
-              // notice that we only do this here, after we have definitely
-              // added a lemma.
-              repUnfold.insert(rep);
+              addedLemma = true;
+              if (e == 0)
+              {
+                // Remember that we have unfolded a membership for x
+                // notice that we only do this here, after we have definitely
+                // added a lemma.
+                repUnfold.insert(rep);
+              }
             }
+            processed.push_back(assertion);
           }
           else
           {
