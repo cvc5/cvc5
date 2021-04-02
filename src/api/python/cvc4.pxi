@@ -740,7 +740,7 @@ cdef class Solver:
             else:
                 term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str,
                                                       <const string &> str(val).encode(),
-                                                      <uint32_t> 10)
+                                                      10)
         elif isinstance(size_or_str, str):
             # handle default value
             if val is None:
