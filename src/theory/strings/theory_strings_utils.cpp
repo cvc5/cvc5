@@ -24,9 +24,9 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 namespace utils {
@@ -423,4 +423,4 @@ unsigned getLoopMinOccurrences(TNode node)
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

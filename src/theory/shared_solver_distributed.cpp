@@ -16,7 +16,7 @@
 
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te,
@@ -93,4 +93,4 @@ void SharedSolverDistributed::assertSharedEquality(TNode equality,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

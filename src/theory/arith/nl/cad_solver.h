@@ -22,7 +22,7 @@
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -110,6 +110,6 @@ class CadSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__CAD_SOLVER_H */

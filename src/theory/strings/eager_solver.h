@@ -23,7 +23,7 @@
 #include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -63,6 +63,6 @@ class EagerSolver
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__EAGER_SOLVER_H */

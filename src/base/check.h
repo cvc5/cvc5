@@ -75,7 +75,7 @@
 #define CVC4_FALLTHROUGH
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Implementation notes:
 // To understand FatalStream and OStreamVoider, it is useful to understand
@@ -206,11 +206,11 @@ class AssertArgumentException : public Exception
 #define InternalError() CVC4_FATAL() << "Internal error detected"
 
 #define IllegalArgument(arg, msg...)      \
-  throw ::CVC4::IllegalArgumentException( \
+  throw ::cvc5::IllegalArgumentException( \
       "",                                 \
       #arg,                               \
       __PRETTY_FUNCTION__,                \
-      ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str());
+      ::cvc5::IllegalArgumentException::formatVariadic(msg).c_str());
 // This cannot use check argument directly as this forces
 // CheckArgument to use a va_list. This is unsupported in Swig.
 #define PrettyCheckArgument(cond, arg, msg...)                            \
@@ -218,11 +218,11 @@ class AssertArgumentException : public Exception
   {                                                                       \
     if (__builtin_expect((!(cond)), false))                               \
     {                                                                     \
-      throw ::CVC4::IllegalArgumentException(                             \
+      throw ::cvc5::IllegalArgumentException(                             \
           #cond,                                                          \
           #arg,                                                           \
           __PRETTY_FUNCTION__,                                            \
-          ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str()); \
+          ::cvc5::IllegalArgumentException::formatVariadic(msg).c_str()); \
     }                                                                     \
   } while (0)
 #define AlwaysAssertArgument(cond, arg, msg...)                         \
@@ -230,7 +230,7 @@ class AssertArgumentException : public Exception
   {                                                                     \
     if (__builtin_expect((!(cond)), false))                             \
     {                                                                   \
-      throw ::CVC4::AssertArgumentException(                            \
+      throw ::cvc5::AssertArgumentException(                            \
           #cond, #arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ##msg); \
     }                                                                   \
   } while (0)
@@ -245,6 +245,6 @@ class AssertArgumentException : public Exception
     cond, arg, msg...) /*__builtin_expect( ( cond ), true )*/
 #endif                 /* CVC4_ASSERTIONS */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__CHECK_H */

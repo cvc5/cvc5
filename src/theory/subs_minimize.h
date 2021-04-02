@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** SubstitutionMinimize
@@ -95,6 +95,6 @@ class SubstitutionMinimize
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SUBS_MINIMIZE_H */

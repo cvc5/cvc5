@@ -21,7 +21,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * This class is used for inferring the parameters of an instantiated
@@ -68,6 +68,6 @@ class TypeMatcher
   void addTypes(const std::vector<TypeNode>& types);
 }; /* class TypeMatcher */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__MATCHER_H */

@@ -18,7 +18,7 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -264,4 +264,4 @@ std::ostream& operator<<(std::ostream& os,  const Algorithms a){
 
 } /* namespace arith */
 } /* namespace theory */
-} /* namespace CVC4 */
+}  // namespace cvc5

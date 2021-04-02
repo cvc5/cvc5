@@ -20,7 +20,7 @@
 #include <unordered_set>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LogicInfo;
 
@@ -207,8 +207,8 @@ class SygusRepairConst
   bool getFitToLogicExcludeVar(LogicInfo& logic, Node n, Node& exvar);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

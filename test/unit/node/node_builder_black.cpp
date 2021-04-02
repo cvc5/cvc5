@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::NodeBuilder.
+ ** \brief Black box testing of cvc5::NodeBuilder.
  **
- ** Black box testing of CVC4::NodeBuilder.
+ ** Black box testing of cvc5::NodeBuilder.
  **/
 
 #include <limits.h>
@@ -30,7 +30,7 @@
 #define K 30u
 #define LARGE_K UINT_MAX / 40
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -587,4 +587,4 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
   ASSERT_EQ(nexpected, n);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -17,7 +17,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_to_sexpr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNode::ProofNode(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -81,4 +81,4 @@ std::ostream& operator<<(std::ostream& out, const ProofNode& pn)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

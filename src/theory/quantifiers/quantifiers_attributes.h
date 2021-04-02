@@ -22,7 +22,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Attribute true for function definition quantifiers */
@@ -244,6 +244,6 @@ class QuantAttributes
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

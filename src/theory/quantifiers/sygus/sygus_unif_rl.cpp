@@ -24,9 +24,9 @@
 
 #include <math.h>
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -1207,4 +1207,4 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

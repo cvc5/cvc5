@@ -16,7 +16,7 @@
 
 #include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
     : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
@@ -73,4 +73,4 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   return h[0];
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -684,6 +684,6 @@ void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
   d_pm->popUpperBound(p);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

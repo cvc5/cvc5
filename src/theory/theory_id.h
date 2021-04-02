@@ -22,7 +22,7 @@
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -106,5 +106,5 @@ class TheoryIdSetUtil
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

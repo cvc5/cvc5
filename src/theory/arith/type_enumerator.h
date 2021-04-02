@@ -25,7 +25,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -100,8 +100,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   bool isFinished() override { return false; }
 };/* class IntegerEnumerator */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__TYPE_ENUMERATOR_H */

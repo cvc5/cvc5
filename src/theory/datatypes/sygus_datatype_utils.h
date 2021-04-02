@@ -24,7 +24,7 @@
 #include "expr/node_manager_attributes.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // ----------------------- sygus datatype attributes
@@ -237,6 +237,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -20,7 +20,7 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -63,6 +63,6 @@ class SygusInference : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */

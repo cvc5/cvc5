@@ -25,7 +25,7 @@
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -90,6 +90,6 @@ class ExprMiner
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

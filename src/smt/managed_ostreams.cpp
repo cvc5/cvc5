@@ -24,7 +24,7 @@
 #include "options/smt_options.h"
 #include "smt/update_ostream.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ManagedOstream::ManagedOstream() : d_managed(NULL) {}
 
@@ -164,4 +164,4 @@ void ManagedDiagnosticOutputChannel::addSpecialCases(OstreamOpener* opener)
   opener->addSpecialCase("stderr", &std::cerr);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -20,7 +20,7 @@
 #include "expr/dtype.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -98,6 +98,6 @@ class SygusSimpleSymBreak
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H */

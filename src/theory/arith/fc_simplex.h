@@ -61,7 +61,7 @@
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -254,6 +254,6 @@ private:
   } d_statistics;
 };/* class FCSimplexDecisionProcedure */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

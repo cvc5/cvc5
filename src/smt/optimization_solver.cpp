@@ -19,9 +19,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -134,4 +134,4 @@ ObjectiveType Objective::getType() { return d_type; }
 Node Objective::getNode() { return d_node; }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

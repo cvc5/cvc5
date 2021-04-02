@@ -37,7 +37,7 @@
 #include "util/integer.h"
 #include "util/maybe.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  ** A multi-precision rational constant.
@@ -336,11 +336,11 @@ class CVC4_EXPORT Rational
 
 struct RationalHashFunction
 {
-  inline size_t operator()(const CVC4::Rational& r) const { return r.hash(); }
+  inline size_t operator()(const cvc5::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Rational& n) CVC4_EXPORT;
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__RATIONAL_H */

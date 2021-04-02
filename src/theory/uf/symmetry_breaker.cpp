@@ -48,11 +48,11 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
-using namespace ::CVC4::context;
+using namespace ::cvc5::context;
 
 SymmetryBreaker::Template::Template() :
   d_template(),
@@ -800,8 +800,8 @@ void SymmetryBreaker::insertUsedIn(Term term, const Permutation& p, set<Node>& c
   }
 }
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
+}  // namespace uf
+}  // namespace theory
 
 std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::Permutation& p) {
   out << "{";
@@ -816,4 +816,4 @@ std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::P
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -24,7 +24,7 @@
 #include "options/smt_options.h"
 #include "theory/arith/nl/iand_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /*
 ** Converts bit-vector formulas to integer formulas.
@@ -349,6 +349,6 @@ class IntBlaster
   bool d_introduceFreshIntVars;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* __CVC4__THEORY__BV__INT_BLASTER_H */

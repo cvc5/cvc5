@@ -32,11 +32,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 BvAbstraction::BvAbstraction(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-abstraction"){};
@@ -60,4 +60,4 @@ PreprocessingPassResult BvAbstraction::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

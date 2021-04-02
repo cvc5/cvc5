@@ -28,7 +28,7 @@
 #include "theory/arith/nl/icp/intersection.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -153,6 +153,6 @@ class ICPSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

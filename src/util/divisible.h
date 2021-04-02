@@ -26,7 +26,7 @@
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * The structure representing the divisibility-by-k predicate.
@@ -61,6 +61,6 @@ inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
   return os << "divisible-by-" << d.k;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__DIVISIBLE_H */

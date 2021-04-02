@@ -21,7 +21,7 @@
 #include "test_node.h"
 #include "util/cardinality.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -332,4 +332,4 @@ TEST_F(TestNodeBlackTypeCardinality, bitvectors)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -24,7 +24,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -95,6 +95,6 @@ class EqEngineManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__EE_MANAGER__H */

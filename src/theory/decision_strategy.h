@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -140,6 +140,6 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DECISION_STRATEGY__H */

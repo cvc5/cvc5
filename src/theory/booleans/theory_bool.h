@@ -24,7 +24,7 @@
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -51,8 +51,8 @@ class TheoryBool : public Theory {
   BoolProofRuleChecker d_bProofChecker;
 };/* class TheoryBool */
 
-}/* CVC4::theory::booleans namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace booleans
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BOOLEANS__THEORY_BOOL_H */

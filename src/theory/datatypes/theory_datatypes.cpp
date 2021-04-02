@@ -40,10 +40,10 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -2039,6 +2039,6 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
   return make_pair(false, Node::null());
 }
 
-} /* namepsace CVC4::theory::datatypes */
-} /* namepsace CVC4::theory */
-} /* namepsace CVC4 */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5

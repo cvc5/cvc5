@@ -20,7 +20,7 @@
 #include <ostream>
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -53,6 +53,6 @@ struct TupleProjectOpHashFunction
   size_t operator()(const TupleProjectOp& op) const;
 }; /* struct TupleProjectOpHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PROJECT_OP_H */

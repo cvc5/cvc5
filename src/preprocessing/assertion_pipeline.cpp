@@ -23,7 +23,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline()
@@ -212,4 +212,4 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -22,10 +22,10 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/valuation.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -184,4 +184,4 @@ void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::v
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

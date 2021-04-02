@@ -22,7 +22,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -301,8 +301,8 @@ public:
                        bool marked = false);
 }; /* class QuantifiersRewriter */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

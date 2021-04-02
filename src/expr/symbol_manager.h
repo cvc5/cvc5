@@ -25,7 +25,7 @@
 #include "cvc4_export.h"
 #include "expr/symbol_table.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Symbol manager, which manages:
@@ -156,6 +156,6 @@ class CVC4_EXPORT SymbolManager
   bool d_globalDeclarations;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__SYMBOL_MANAGER_H */

@@ -21,7 +21,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -84,6 +84,6 @@ class ConstraintDb
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NL_SOLVER_H */

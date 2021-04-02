@@ -18,7 +18,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/term_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -208,4 +208,4 @@ bool QuantifiersRegistry::getNameForQuant(Node q, Node& name, bool req) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -23,7 +23,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -60,6 +60,6 @@ struct EmptySetHashFunction
   size_t operator()(const EmptySet& es) const;
 }; /* struct EmptySetHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EMPTY_SET_H */

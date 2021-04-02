@@ -31,7 +31,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 class ProofNode;
@@ -274,6 +274,6 @@ class CircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

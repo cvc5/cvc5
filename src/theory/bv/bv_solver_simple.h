@@ -24,7 +24,7 @@
 #include "theory/bv/proof_checker.h"
 #include "theory/eager_proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -81,6 +81,6 @@ class BVSolverSimple : public BVSolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

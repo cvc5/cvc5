@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 class ProofNode;
@@ -67,6 +67,6 @@ void pfnEnsureClosedWrt(ProofNode* pn,
                         const std::vector<Node>& assumps,
                         const char* c,
                         const char* ctx);
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_ENSURE_CLOSED_H */

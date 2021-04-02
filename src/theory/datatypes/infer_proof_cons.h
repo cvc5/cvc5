@@ -22,7 +22,7 @@
 #include "expr/proof_generator.h"
 #include "theory/datatypes/inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -95,6 +95,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H */

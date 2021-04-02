@@ -21,7 +21,7 @@
 #ifndef CVC4__UTIL__RANDOM_H
 #define CVC4__UTIL__RANDOM_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Random
 {
@@ -69,5 +69,5 @@ class Random
   uint64_t d_state;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

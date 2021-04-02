@@ -30,7 +30,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -590,4 +590,4 @@ void TLazyBitblaster::clearSolver() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -215,7 +215,7 @@ Further information (the old option package)
     well as an OptionsHandler*.
 
       void custom-notification(
-        const std::string& option, CVC4::options::OptionsHandler* handler);
+        const std::string& option, cvc5::options::OptionsHandler* handler);
 
     The name is provided so multiple options can use the same notification
     implementation.

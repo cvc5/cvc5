@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -488,8 +488,8 @@ class TheoryArrays : public Theory {
   void computeRelevantTerms(std::set<Node>& termSet) override;
 };/* class TheoryArrays */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */

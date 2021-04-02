@@ -16,9 +16,9 @@
 
 #include "theory/strings/theory_strings_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -148,4 +148,4 @@ void EagerSolver::notifyFact(TNode atom,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

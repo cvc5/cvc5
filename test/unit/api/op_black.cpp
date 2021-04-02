@@ -14,7 +14,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -178,4 +178,4 @@ TEST_F(TestApiBlackOp, opScopingToString)
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -18,14 +18,14 @@
 #include "expr/attribute.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
 namespace attr {
   struct ArrayConstantMostFrequentValueTag { };
   struct ArrayConstantMostFrequentValueCountTag { };
-}/* CVC4::theory::arrays::attr namespace */
+  }  // namespace attr
 
 typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
 typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
@@ -44,6 +44,6 @@ void setMostFrequentValueCount(TNode store, uint64_t count) {
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5

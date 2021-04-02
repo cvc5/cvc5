@@ -19,12 +19,12 @@
 #ifndef CVC4__OPTIONS__DECISION_WEIGHT_H
 #define CVC4__OPTIONS__DECISION_WEIGHT_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace decision {
 
 typedef uint64_t DecisionWeight;
 
-}/* CVC4::decision namespace */
-}/* CVC4 namespace */
+}  // namespace decision
+}  // namespace cvc5
 
 #endif /* CVC4__OPTIONS__DECISION_WEIGHT_H */

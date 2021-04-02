@@ -26,7 +26,7 @@
 
 ${rewriter_includes}
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
@@ -77,7 +77,7 @@ for (size_t i = 0; i < theory::THEORY_LAST; ++i)
 }
 
 void Rewriter::clearCachesInternal() {
-  typedef CVC4::expr::attr::AttributeUniqueId AttributeUniqueId;
+  typedef cvc5::expr::attr::AttributeUniqueId AttributeUniqueId;
   std::vector<AttributeUniqueId> preids;
   ${pre_rewrite_attribute_ids}
 
@@ -94,5 +94,5 @@ void Rewriter::clearCachesInternal() {
   NodeManager::currentNM()->deleteAttributes(allids);
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

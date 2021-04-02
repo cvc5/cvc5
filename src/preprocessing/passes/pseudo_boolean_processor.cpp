@@ -24,12 +24,12 @@
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+using namespace cvc5::theory;
+using namespace cvc5::theory::arith;
 
 PseudoBooleanProcessor::PseudoBooleanProcessor(
     PreprocessingPassContext* preprocContext)
@@ -418,4 +418,4 @@ void PseudoBooleanProcessor::clear()
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::DType
+ ** \brief Black box testing of cvc5::DType
  **
- ** Black box testing of CVC4::DType.
+ ** Black box testing of cvc5::DType.
  **/
 
 #include <sstream>
@@ -21,7 +21,7 @@
 #include "expr/type_node.h"
 #include "test_smt.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackDatatype : public TestSmt
@@ -495,4 +495,4 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

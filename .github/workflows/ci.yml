@@ -118,15 +118,7 @@ jobs:
     - name: Setup Dependencies
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
-        ./contrib/get-poly
-        ./contrib/get-symfpu
-        ./contrib/get-cadical
-        ./contrib/get-cryptominisat
         ./contrib/get-lfsc-checker
-
-    - name: List dependencies
-      run: |
-        find deps/install -type f
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
@@ -176,7 +168,7 @@ jobs:
     - name: Install Check
       run: |
         make -j2 install
-        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
+        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
         g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
       working-directory: build
 

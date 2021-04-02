@@ -28,10 +28,10 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -1230,6 +1230,6 @@ Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
   return k;
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

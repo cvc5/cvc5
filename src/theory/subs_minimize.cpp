@@ -20,9 +20,9 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 SubstitutionMinimize::SubstitutionMinimize() {}
@@ -466,4 +466,4 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

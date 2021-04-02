@@ -20,7 +20,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "options/sep_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sep {
 
@@ -164,6 +164,6 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   return RewriteResponse(node==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
 
-}/* CVC4::theory::sep namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sep
+}  // namespace theory
+}  // namespace cvc5

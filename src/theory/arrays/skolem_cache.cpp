@@ -19,9 +19,9 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_node.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -78,4 +78,4 @@ Node SkolemCache::getExtIndexVar(Node deq)
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

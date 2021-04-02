@@ -22,7 +22,7 @@
 
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -313,7 +313,7 @@ class TheoryEngineModelBuilder
 
 }; /* class TheoryEngineModelBuilder */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_MODEL_BUILDER_H */

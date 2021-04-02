@@ -23,7 +23,7 @@
 #include "options/smt_options.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A utility for building model cores.
@@ -59,6 +59,6 @@ class ModelCoreBuilder
                            options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__MODEL_CORE_BUILDER_H */

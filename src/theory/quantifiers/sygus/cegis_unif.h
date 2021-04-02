@@ -23,7 +23,7 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -333,6 +333,6 @@ class CegisUnif : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

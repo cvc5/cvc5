@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/arith/nl/iand_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -132,6 +132,6 @@ class IAndSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__IAND_SOLVER_H */

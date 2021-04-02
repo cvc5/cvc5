@@ -16,9 +16,9 @@
 
 #include "options/set_language.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 DTypeSelector::DTypeSelector(std::string name, Node selector)
     : d_name(name), d_selector(selector), d_resolved(false)
@@ -83,4 +83,4 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
   return os;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

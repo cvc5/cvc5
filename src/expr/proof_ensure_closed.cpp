@@ -22,7 +22,7 @@
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Ensure closed with respect to assumptions, internal version, which
@@ -179,4 +179,4 @@ void pfnEnsureClosedWrt(ProofNode* pn,
   ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

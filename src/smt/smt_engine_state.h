@@ -23,7 +23,7 @@
 #include "smt/smt_mode.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -261,6 +261,6 @@ class SmtEngineState
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

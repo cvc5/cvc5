@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -324,7 +324,7 @@ class RepBoundExt
   }
 };
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__REP_SET_H */

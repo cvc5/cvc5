@@ -22,7 +22,7 @@
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace parser {
 
@@ -48,6 +48,6 @@ class Cvc : public Parser
 };
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__CVC_H */

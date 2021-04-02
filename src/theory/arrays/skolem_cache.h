@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -52,6 +52,6 @@ class SkolemCache
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

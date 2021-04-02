@@ -160,14 +160,14 @@
 #include <memory>
 #include <vector>
 
-namespace CVC4 {
-  static const unsigned default_nchild_thresh = 10;
+namespace cvc5 {
+static const unsigned default_nchild_thresh = 10;
 
-  template <unsigned nchild_thresh>
-  class NodeBuilder;
+template <unsigned nchild_thresh>
+class NodeBuilder;
 
-  class NodeManager;
-}/* CVC4 namespace */
+class NodeManager;
+}  // namespace cvc5
 
 #include "base/check.h"
 #include "base/output.h"
@@ -175,7 +175,7 @@ namespace CVC4 {
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Sometimes it's useful for debugging to output a NodeBuilder that
 // isn't yet a Node..
@@ -729,7 +729,7 @@ public:
 
 };/* class NodeBuilder<> */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 // TODO: add templatized NodeTemplate<ref_count> to all above and
 // below inlines for 'const [T]Node&' arguments?  Technically a lot of
@@ -741,7 +741,7 @@ public:
 #include "expr/node_manager.h"
 #include "options/expr_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::clear(Kind k) {
@@ -1324,6 +1324,6 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder<nchild_thresh>& nb
   return out << *nb.d_nv;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__NODE_BUILDER_H */

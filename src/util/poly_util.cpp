@@ -35,7 +35,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace poly_utils {
 
 namespace {
@@ -361,6 +361,6 @@ void getVariableInformation(VariableInformation& vi,
 }
 
 }  // namespace poly_utils
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

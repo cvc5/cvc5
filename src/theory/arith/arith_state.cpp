@@ -16,7 +16,7 @@
 
 #include "theory/arith/theory_arith_private.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -35,4 +35,4 @@ bool ArithState::isInConflict() const
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

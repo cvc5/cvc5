@@ -18,16 +18,15 @@
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
+using namespace cvc5::theory::bv::utils;
 
-const TermId CVC4::theory::bv::UndefinedTermId = -1; 
-const ReasonId CVC4::theory::bv::UndefinedReasonId = -1;
-const ReasonId CVC4::theory::bv::AxiomReasonId = -2;
-
+const TermId cvc5::theory::bv::UndefinedTermId = -1;
+const ReasonId cvc5::theory::bv::UndefinedReasonId = -1;
+const ReasonId cvc5::theory::bv::AxiomReasonId = -2;
 
 bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason) {
   Debug("bv-inequality") << "InequalityGraph::addInequality " << a << " " << b << " strict: " << strict << "\n"; 

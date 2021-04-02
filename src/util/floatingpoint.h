@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 
@@ -514,7 +514,7 @@ struct FloatingPointToBVHashFunction
 {
   inline size_t operator()(const FloatingPointToBV& fptbv) const
   {
-    UnsignedHashFunction< ::CVC4::BitVectorSize> f;
+    UnsignedHashFunction< ::cvc5::BitVectorSize> f;
     return (key ^ 0x46504256) ^ f(fptbv.d_bv_size);
   }
 }; /* struct FloatingPointToBVHashFunction */
@@ -533,6 +533,6 @@ std::ostream& operator<<(std::ostream& os, const FloatingPointSize& fps);
 std::ostream& operator<<(std::ostream& os,
                          const FloatingPointConvertSort& fpcs);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__FLOATINGPOINT_H */

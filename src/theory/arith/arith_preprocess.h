@@ -21,7 +21,7 @@
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class SkolemLemma;
@@ -86,6 +86,6 @@ class ArithPreprocess
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

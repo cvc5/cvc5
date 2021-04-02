@@ -23,7 +23,7 @@
 #include "smt/smt_engine.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace context;
@@ -94,4 +94,4 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   ASSERT_TRUE(bvType.getBaseType() == bvType);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,12 +16,12 @@
 
 #include "theory/assertion.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& out, const Assertion& a) {
   return out << a.d_assertion;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

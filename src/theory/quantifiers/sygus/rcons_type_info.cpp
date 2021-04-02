@@ -16,7 +16,7 @@
 
 #include "theory/datatypes/sygus_datatype_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -69,4 +69,4 @@ Node RConsTypeInfo::builtinToOb(Node builtin) { return d_ob[builtin]; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

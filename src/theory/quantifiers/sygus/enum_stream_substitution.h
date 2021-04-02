@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -299,6 +299,6 @@ class EnumStreamConcrete : public EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -18,16 +18,16 @@
 #include "context/context.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestContext : public TestInternal
 {
  protected:
-  void SetUp() override { d_context.reset(new CVC4::context::Context()); }
-  std::unique_ptr<CVC4::context::Context> d_context;
+  void SetUp() override { d_context.reset(new cvc5::context::Context()); }
+  std::unique_ptr<cvc5::context::Context> d_context;
 };
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

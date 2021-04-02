@@ -17,7 +17,7 @@
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 SmtEngineState::SmtEngineState(context::Context* c,
@@ -308,4 +308,4 @@ void SmtEngineState::doPendingPops()
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

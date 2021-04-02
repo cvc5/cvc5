@@ -24,7 +24,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace theory::bv;
@@ -452,4 +452,4 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_EQ(norm_axax[1], a);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

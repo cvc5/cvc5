@@ -20,7 +20,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -240,9 +240,9 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
   Node d_ufOp;
 };
 
-}/* CVC4::theory::inst namespace */
+}  // namespace inst
 }  // namespace quantifiers
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */

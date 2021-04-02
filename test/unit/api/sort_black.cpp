@@ -16,7 +16,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -71,12 +71,14 @@ TEST_F(TestApiBlackSort, isBoolean)
 TEST_F(TestApiBlackSort, isInteger)
 {
   ASSERT_TRUE(d_solver.getIntegerSort().isInteger());
+  ASSERT_TRUE(!d_solver.getRealSort().isInteger());
   ASSERT_NO_THROW(Sort().isInteger());
 }
 
 TEST_F(TestApiBlackSort, isReal)
 {
   ASSERT_TRUE(d_solver.getRealSort().isReal());
+  ASSERT_TRUE(!d_solver.getIntegerSort().isReal());
   ASSERT_NO_THROW(Sort().isReal());
 }
 
@@ -603,4 +605,4 @@ TEST_F(TestApiBlackSort, sortScopedToString)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

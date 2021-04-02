@@ -18,7 +18,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -185,4 +185,4 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

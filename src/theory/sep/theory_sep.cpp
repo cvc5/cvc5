@@ -34,9 +34,9 @@
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sep {
 
@@ -1796,6 +1796,6 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   return curr;
 }
 
-}/* CVC4::theory::sep namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sep
+}  // namespace theory
+}  // namespace cvc5

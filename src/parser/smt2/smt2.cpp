@@ -28,7 +28,7 @@
 #undef true
 #undef false
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
@@ -1209,4 +1209,4 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
 }
 
 }  // namespace parser
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -20,7 +20,7 @@
 #include "base/output.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackOutput : public TestInternal
@@ -241,4 +241,4 @@ TEST_F(TestUtilBlackOutput, simple_print)
 #endif /* CVC4_MUZZLE */
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

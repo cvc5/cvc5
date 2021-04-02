@@ -21,7 +21,7 @@
 
 #include "theory/arith/arithvar.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -37,7 +37,6 @@ public:
   uint32_t getColumnLength(ArithVar x) const;
 }; /* TableauSizes */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

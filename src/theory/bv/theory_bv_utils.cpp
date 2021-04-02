@@ -21,7 +21,7 @@
 #include "options/theory_options.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 namespace utils {
@@ -508,7 +508,7 @@ Node eliminateInt2Bv(TNode node)
   return Node(result);
 }
 
-}/* CVC4::theory::bv::utils namespace */
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace utils
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5

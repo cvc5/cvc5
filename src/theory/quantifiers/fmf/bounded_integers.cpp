@@ -28,11 +28,11 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
+using namespace cvc5;
 using namespace std;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
+using namespace cvc5::kind;
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     Node r,

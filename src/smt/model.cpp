@@ -23,7 +23,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 Model::Model(theory::TheoryModel* tm) : d_isKnownSat(false), d_tmodel(tm)
@@ -68,4 +68,4 @@ const std::vector<Node>& Model::getDeclaredTerms() const
 }
 
 }  // namespace smt
-}/* CVC4 namespace */
+}  // namespace cvc5

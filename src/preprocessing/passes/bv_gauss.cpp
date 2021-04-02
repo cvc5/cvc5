@@ -28,11 +28,11 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace cvc5;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -704,7 +704,7 @@ PreprocessingPassResult BVGauss::applyInternal(
   {
     Node a = assertions.back();
     assertions.pop_back();
-    CVC4::Kind k = a.getKind();
+    cvc5::Kind k = a.getKind();
 
     if (k == kind::AND)
     {
@@ -800,4 +800,4 @@ PreprocessingPassResult BVGauss::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

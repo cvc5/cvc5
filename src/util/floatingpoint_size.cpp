@@ -15,7 +15,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 FloatingPointSize::FloatingPointSize(uint32_t exp_size, uint32_t sig_size)
     : d_exp_size(exp_size), d_sig_size(sig_size)
@@ -31,4 +31,4 @@ FloatingPointSize::FloatingPointSize(const FloatingPointSize& old)
   Assert(validSignificandSize(d_sig_size));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

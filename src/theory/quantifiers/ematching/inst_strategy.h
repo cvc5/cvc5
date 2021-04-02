@@ -22,7 +22,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -85,6 +85,6 @@ class InstStrategy
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

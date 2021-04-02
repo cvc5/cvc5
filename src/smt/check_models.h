@@ -20,7 +20,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 class Model;
@@ -48,6 +48,6 @@ class CheckModels
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

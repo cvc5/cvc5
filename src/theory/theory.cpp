@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
@@ -564,5 +564,5 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

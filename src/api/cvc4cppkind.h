@@ -21,7 +21,7 @@
 
 #include <ostream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
@@ -33,7 +33,7 @@ namespace api {
  *
  * Note that the underlying type of Kind must be signed (to enable range
  * checks for validity). The size of this type depends on the size of
- * CVC4::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
+ * cvc5::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
  */
 enum CVC4_EXPORT Kind : int32_t
 {
@@ -2868,6 +2868,6 @@ struct CVC4_EXPORT KindHashFunction
 };
 
 }  // namespace api
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

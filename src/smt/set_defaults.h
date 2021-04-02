@@ -17,7 +17,7 @@
 
 #include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -36,6 +36,6 @@ namespace smt {
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver);
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__SET_DEFAULTS_H */

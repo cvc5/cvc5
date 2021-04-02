@@ -45,7 +45,7 @@
 #include "theory/rewriter.h"
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -97,7 +97,7 @@ class traits
 typedef traits::bwt bwt;
 
 /**
- * Wrap the CVC4::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::Node types so that we can debug issues with this back-end
  */
 class nodeWrapper : public Node
 {
@@ -352,6 +352,6 @@ class FpConverter
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_H */

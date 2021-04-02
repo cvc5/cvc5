@@ -20,7 +20,7 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -184,9 +184,9 @@ protected:
   bool isHandled(Node q) const;
 };/* class FullModelChecker */
 
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fmcheck
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */

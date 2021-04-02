@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
@@ -520,4 +520,4 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

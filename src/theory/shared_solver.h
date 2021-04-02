@@ -22,7 +22,7 @@
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LogicInfo;
 class ProofNodeManager;
@@ -134,6 +134,6 @@ class SharedSolver
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SHARED_SOLVER__H */

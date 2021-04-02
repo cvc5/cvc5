@@ -26,7 +26,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Represents a real algebraic number based on poly::AlgebraicNumber.
@@ -148,6 +148,6 @@ bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
 bool isOne(const RealAlgebraicNumber& ran);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__REAL_ALGEBRAIC_NUMBER_H */

@@ -19,7 +19,7 @@
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * The mode of the solver, which is an extension of Figure 4.1 on
@@ -52,6 +52,6 @@ enum class SmtMode
  */
 std::ostream& operator<<(std::ostream& out, SmtMode m);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

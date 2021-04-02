@@ -27,9 +27,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -490,6 +490,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
                            "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete();
+        return Result::Sat::SAT_UNKNOWN;
       }
     }
     d_im.clearWaitingLemmas();
@@ -621,4 +622,4 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

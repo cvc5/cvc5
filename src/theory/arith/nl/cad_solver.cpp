@@ -20,7 +20,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -212,4 +212,4 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

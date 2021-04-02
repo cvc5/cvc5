@@ -30,7 +30,7 @@
 #include "base/exception.h"
 #include "parser/memory_mapped_input_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 extern "C" {
@@ -129,5 +129,5 @@ void UnmapFile(pANTLR3_INPUT_STREAM input) {
 
 }/* extern "C" */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

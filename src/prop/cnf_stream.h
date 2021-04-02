@@ -34,7 +34,7 @@
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 
@@ -318,6 +318,6 @@ class CnfStream {
 }; /* class CnfStream */
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__CNF_STREAM_H */

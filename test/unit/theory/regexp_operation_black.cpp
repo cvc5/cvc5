@@ -27,7 +27,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -144,4 +144,4 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

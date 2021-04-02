@@ -20,9 +20,9 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "options/quantifiers_options.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -207,4 +207,4 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -19,9 +19,9 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -488,4 +488,4 @@ void SygusReconstruct::printPool(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

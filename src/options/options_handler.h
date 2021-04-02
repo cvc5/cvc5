@@ -30,7 +30,7 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Options;
 
@@ -133,7 +133,7 @@ void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 #endif
 }
 
-}/* CVC4::options namespace */
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace cvc5
 
 #endif /*  CVC4__OPTIONS__OPTIONS_HANDLER_H */

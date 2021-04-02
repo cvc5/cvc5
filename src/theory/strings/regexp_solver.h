@@ -31,7 +31,7 @@
 #include "theory/strings/solver_state.h"
 #include "util/string.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -137,7 +137,7 @@ class RegExpSolver
       Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp);
   Node getMembership(Node n, bool isPos, unsigned i);
   unsigned getNumMemberships(Node n, bool isPos);
-  CVC4::String getHeadConst(Node x);
+  cvc5::String getHeadConst(Node x);
   bool deriveRegExp(Node x, Node r, Node atom, std::vector<Node>& ant);
   Node getNormalSymRegExp(Node r, std::vector<Node>& nf_exp);
   // regular expression memberships
@@ -154,6 +154,6 @@ class RegExpSolver
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

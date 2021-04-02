@@ -23,7 +23,7 @@
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -126,8 +126,8 @@ class CandidateRewriteDatabase : public ExprMiner
   std::unordered_map<Node, Node, NodeHashFunction> d_add_term_cache;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H */

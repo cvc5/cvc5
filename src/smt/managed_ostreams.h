@@ -22,7 +22,7 @@
 
 #include <ostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OstreamOpener;
 
@@ -141,6 +141,6 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
   void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedRegularOutputChannel */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__MANAGED_OSTREAMS_H */

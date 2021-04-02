@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DatatypeConstructorArg;
 class DType;
@@ -90,6 +90,6 @@ class DTypeSelector
 
 std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

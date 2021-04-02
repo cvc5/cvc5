@@ -21,7 +21,7 @@
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LetBinding;
 
@@ -35,11 +35,11 @@ enum Variant
                    // support for the string standard
 };                 /* enum Variant */
 
-class Smt2Printer : public CVC4::Printer
+class Smt2Printer : public cvc5::Printer
 {
  public:
   Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
@@ -275,6 +275,6 @@ class Smt2Printer : public CVC4::Printer
 
 }  // namespace smt2
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PRINTER__SMT2_PRINTER_H */

@@ -32,7 +32,7 @@
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/template_infer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -426,6 +426,6 @@ class SynthConjecture
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

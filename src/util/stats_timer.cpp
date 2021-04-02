@@ -21,7 +21,7 @@
 #include "base/check.h"
 #include "util/ostream_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <>
 void safe_print(int fd, const timer_stat_detail::duration& t)
@@ -101,4 +101,4 @@ CodeTimer::~CodeTimer()
   }
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -22,7 +22,7 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 EvalResult::EvalResult(const EvalResult& other)
@@ -952,4 +952,4 @@ Node Evaluator::reconstruct(
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

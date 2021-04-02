@@ -22,7 +22,7 @@
 #include "theory/bv/int_blaster.h"
 #include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -44,4 +44,4 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
   Node d_one;
 };
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

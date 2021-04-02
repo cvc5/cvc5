@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/theory_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -144,6 +144,6 @@ class ArgTrie
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NL_LEMMA_UTILS_H */

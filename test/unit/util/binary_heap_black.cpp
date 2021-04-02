@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::BinaryHeap
+ ** \brief Black box testing of cvc5::BinaryHeap
  **
- ** Black box testing of CVC4::BinaryHeap.
+ ** Black box testing of cvc5::BinaryHeap.
  **/
 
 #include <iostream>
@@ -20,7 +20,7 @@
 #include "test.h"
 #include "util/bin_heap.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackBinaryHeap : public TestInternal
@@ -230,4 +230,4 @@ TEST_F(TestUtilBlackBinaryHeap, large_heap)
   ASSERT_TRUE(heap.empty());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 
@@ -69,6 +69,6 @@ class FactoringCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

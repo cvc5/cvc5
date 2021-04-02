@@ -20,7 +20,7 @@
 
 #include "expr/attribute.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 template <bool pre, theory::TheoryId theoryId>
@@ -98,5 +98,5 @@ struct RewriteAttibute {
   }
 };/* struct RewriteAttribute */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

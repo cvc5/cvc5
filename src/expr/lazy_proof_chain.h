@@ -22,7 +22,7 @@
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -148,6 +148,6 @@ class LazyCDProofChain : public ProofGenerator
   ProofGenerator* d_defGen;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__LAZY_PROOF_CHAIN_H */

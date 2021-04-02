@@ -22,7 +22,7 @@
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Properties of lemmas */
@@ -66,7 +66,7 @@ class Theory;
 /**
  * Generic "theory output channel" interface.
  *
- * All methods can throw unrecoverable CVC4::Exception's unless otherwise
+ * All methods can throw unrecoverable cvc5::Exception's unless otherwise
  * documented.
  */
 class OutputChannel {
@@ -199,6 +199,6 @@ class OutputChannel {
 }; /* class OutputChannel */
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__OUTPUT_CHANNEL_H */

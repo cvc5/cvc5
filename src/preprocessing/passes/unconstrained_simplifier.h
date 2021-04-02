@@ -29,7 +29,7 @@
 #include "theory/substitutions.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -72,6 +72,6 @@ class UnconstrainedSimplifier : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

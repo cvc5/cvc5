@@ -58,7 +58,7 @@
 #include "theory/arith/approx_simplex.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -90,6 +90,6 @@ public:
   } d_statistics;
 };/* class AttemptSolutionSDP */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

@@ -22,14 +22,12 @@
 
 #include "options/options.h"
 
+// clang-format off
 ${includes}$
-
 
 ${holder_spec}$
 
-
-namespace CVC4 {
-
+namespace cvc5 {
 namespace options {
 
 ${modes}$
@@ -40,12 +38,11 @@ ${decls}$
 
 ${specs}$
 
-
 namespace options {
-
 ${inls}$
 
 }  // namespace options
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__OPTIONS__${id}$_H */
+//clang-format on

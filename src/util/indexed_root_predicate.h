@@ -19,7 +19,7 @@
 #ifndef CVC4__UTIL__INDEXED_ROOT_PREDICATE_H
 #define CVC4__UTIL__INDEXED_ROOT_PREDICATE_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * The structure representing the index of a root predicate.
@@ -69,6 +69,6 @@ struct IndexedRootPredicateHashFunction
   }
 }; /* struct IndexedRootPredicateHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

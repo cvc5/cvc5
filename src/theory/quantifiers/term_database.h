@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -420,8 +420,8 @@ class TermDb : public QuantifiersUtil {
   //------------------------------end higher-order term indexing
 };/* class TermDb */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

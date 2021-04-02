@@ -25,7 +25,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Exception : public std::exception
 {
@@ -121,15 +121,15 @@ template <class T>
 inline void CheckArgument(bool cond, const T& arg, const char* tail);
 template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
                                              const char* tail CVC4_UNUSED) {
-  if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", tail); \
+  if(__builtin_expect( ( !cond ), false )) {
+    throw ::cvc5::IllegalArgumentException("", "", tail);
   } \
 }
 template <class T>
 inline void CheckArgument(bool cond, const T& arg);
 template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
-  if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", ""); \
+  if(__builtin_expect( ( !cond ), false )) {
+    throw ::cvc5::IllegalArgumentException("", "", "");
   } \
 }
 
@@ -159,6 +159,6 @@ private:
   static thread_local LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__EXCEPTION_H */

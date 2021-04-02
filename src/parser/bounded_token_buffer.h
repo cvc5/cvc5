@@ -30,7 +30,7 @@
 
 #include <antlr3defs.h>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 #ifdef __cplusplus
@@ -58,7 +58,7 @@ BoundedTokenBufferFree(pBOUNDED_TOKEN_BUFFER buffer);
 }/* extern "C" */
 #endif
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H */

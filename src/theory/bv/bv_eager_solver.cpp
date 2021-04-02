@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -125,4 +125,4 @@ bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

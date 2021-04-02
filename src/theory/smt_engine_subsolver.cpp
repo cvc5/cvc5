@@ -19,7 +19,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // optimization: try to rewrite to constant
@@ -119,4 +119,4 @@ Result checkWithSubsolver(Node query,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

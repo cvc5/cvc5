@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 
@@ -234,6 +234,6 @@ class SkolemManager
                  int flags = NodeManager::SKOLEM_DEFAULT);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_SKOLEM_CACHE_H */

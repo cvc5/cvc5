@@ -430,8 +430,8 @@ unsigned findPivot(const std::vector<unsigned>& operators,
   return pivot;
 }/* findPivot() */
 
-CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
-                          const std::vector<CVC4::api::Term>& expressions,
+cvc5::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
+                          const std::vector<cvc5::api::Term>& expressions,
                           const std::vector<unsigned>& operators,
                           unsigned startIndex, unsigned stopIndex) {
   Assert(expressions.size() == operators.size() + 1);
@@ -447,9 +447,9 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
   //Debug("prec") << "pivot[" << startIndex << "," << stopIndex - 1 << "] at " << pivot << std::endl;
   bool negate;
   api::Kind k = getOperatorKind(operators[pivot], negate);
-  CVC4::api::Term lhs = createPrecedenceTree(
+  cvc5::api::Term lhs = createPrecedenceTree(
       parser, solver, expressions, operators, startIndex, pivot);
-  CVC4::api::Term rhs = createPrecedenceTree(
+  cvc5::api::Term rhs = createPrecedenceTree(
       parser, solver, expressions, operators, pivot + 1, stopIndex);
 
   if (lhs.getSort().isSet())
@@ -477,7 +477,7 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
 }/* createPrecedenceTree() recursive variant */
 
 api::Term createPrecedenceTree(Parser* parser, api::Solver* s,
-                          const std::vector<CVC4::api::Term>& expressions,
+                          const std::vector<cvc5::api::Term>& expressions,
                           const std::vector<unsigned>& operators) {
   if(Debug.isOn("prec") && operators.size() > 1) {
     for(unsigned i = 0; i < expressions.size(); ++i) {
@@ -552,7 +552,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 #include "smt/command.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
   class Expr;
 }/* CVC4 namespace */
 
@@ -582,8 +582,8 @@ namespace CVC4 {
         });                                                 \
   })
 
-using namespace CVC4;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
@@ -611,7 +611,7 @@ using namespace CVC4::parser;
  * Parses an expression.
  * @return the parsed expression
  */
-parseExpr returns [CVC4::api::Term expr = CVC4::api::Term()]
+parseExpr returns [cvc5::api::Term expr = cvc5::api::Term()]
   : formula[expr]
   | EOF
   ;
@@ -620,9 +620,9 @@ parseExpr returns [CVC4::api::Term expr = CVC4::api::Term()]
  * Parses a command (the whole benchmark)
  * @return the command of the benchmark
  */
-parseCommand returns [CVC4::Command* cmd_return = NULL]
+parseCommand returns [cvc5::Command* cmd_return = NULL]
 @declarations {
-    std::unique_ptr<CVC4::Command> cmd;
+    std::unique_ptr<cvc5::Command> cmd;
 }
 @after {
     cmd_return = cmd.release();
@@ -652,7 +652,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  * Matches a command of the input. If a declaration, it will return an empty
  * command.
  */
-command [std::unique_ptr<CVC4::Command>* cmd]
+command [std::unique_ptr<cvc5::Command>* cmd]
   : ( mainCommand[cmd] SEMICOLON
     | SEMICOLON
     | LET_TOK { PARSER_STATE->pushScope(); }
@@ -674,18 +674,18 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     }
   ;
 
-typeOrVarLetDecl[CVC4::parser::DeclarationCheck check]
+typeOrVarLetDecl[cvc5::parser::DeclarationCheck check]
 options { backtrack = true; }
   : letDecl | typeLetDecl[check]
   ;
 
-mainCommand[std::unique_ptr<CVC4::Command>* cmd]
+mainCommand[std::unique_ptr<cvc5::Command>* cmd]
 @init {
   api::Term f;
   api::Term sexpr;
   std::string id;
   api::Sort t;
-  std::vector<CVC4::api::DatatypeDecl> dts;
+  std::vector<cvc5::api::DatatypeDecl> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
   api::Term func;
@@ -694,7 +694,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<api::Term> formulas;
   std::vector<std::vector<api::Term>> formals;
   std::vector<std::string> ids;
-  std::vector<CVC4::api::Sort> types;
+  std::vector<cvc5::api::Sort> types;
   bool idCommaFlag = true;
   bool formCommaFlag = true;
 }
@@ -953,7 +953,7 @@ simpleSymbolicExpr[std::string& s]
     { s = AntlrInput::tokenText($IDENTIFIER); }
   ;
 
-symbolicExpr[CVC4::api::Term& sexpr]
+symbolicExpr[cvc5::api::Term& sexpr]
 @declarations {
   std::string s;
   std::vector<api::Term> children;
@@ -961,13 +961,13 @@ symbolicExpr[CVC4::api::Term& sexpr]
   : simpleSymbolicExpr[s]
     { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
   | LPAREN (symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN
-    { sexpr = SOLVER->mkTerm(CVC4::api::SEXPR, children); }
+    { sexpr = SOLVER->mkTerm(cvc5::api::SEXPR, children); }
   ;
 
 /**
  * Match a top-level declaration.
  */
-toplevelDeclaration[std::unique_ptr<CVC4::Command>* cmd]
+toplevelDeclaration[std::unique_ptr<cvc5::Command>* cmd]
 @init {
   std::vector<std::string> ids;
   api::Sort t;
@@ -982,7 +982,7 @@ toplevelDeclaration[std::unique_ptr<CVC4::Command>* cmd]
 /**
  * A bound variable declaration.
  */
-boundVarDecl[std::vector<std::string>& ids, CVC4::api::Sort& t]
+boundVarDecl[std::vector<std::string>& ids, cvc5::api::Sort& t]
 @init {
   std::unique_ptr<Command> local_cmd;
 }
@@ -1001,8 +1001,8 @@ boundVarDecls
   : boundVarDecl[ids,t] ( COMMA boundVarDecl[ids,t] )*
   ;
 
-boundVarDeclsReturn[std::vector<CVC4::api::Term>& terms,
-                    std::vector<CVC4::api::Sort>& types]
+boundVarDeclsReturn[std::vector<cvc5::api::Term>& terms,
+                    std::vector<cvc5::api::Sort>& types]
 @init {
   std::vector<std::string> ids;
   api::Sort t;
@@ -1012,8 +1012,8 @@ boundVarDeclsReturn[std::vector<CVC4::api::Term>& terms,
   : boundVarDeclReturn[terms,types] ( COMMA boundVarDeclReturn[terms,types] )*
   ;
 
-boundVarDeclReturn[std::vector<CVC4::api::Term>& terms,
-                   std::vector<CVC4::api::Sort>& types]
+boundVarDeclReturn[std::vector<cvc5::api::Term>& terms,
+                   std::vector<cvc5::api::Sort>& types]
 @init {
   std::vector<std::string> ids;
   api::Sort t;
@@ -1035,7 +1035,7 @@ boundVarDeclReturn[std::vector<CVC4::api::Term>& terms,
  * because type declarations are always top-level, except for
  * type-lets, which don't use this rule.
  */
-declareTypes[std::unique_ptr<CVC4::Command>* cmd,
+declareTypes[std::unique_ptr<cvc5::Command>* cmd,
              const std::vector<std::string>& idList]
 @init {
   api::Sort t;
@@ -1077,7 +1077,7 @@ declareTypes[std::unique_ptr<CVC4::Command>* cmd,
  * permitted and "cmd" is output.  If topLevel is false, bound vars
  * are created
  */
-declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
+declareVariables[std::unique_ptr<cvc5::Command>* cmd, cvc5::api::Sort& t,
                  const std::vector<std::string>& idList, bool topLevel]
 @init {
   api::Term f;
@@ -1167,8 +1167,8 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
  * @param check what kinds of check to perform on the symbols
  */
 identifierList[std::vector<std::string>& idList,
-               CVC4::parser::DeclarationCheck check,
-               CVC4::parser::SymbolType type]
+               cvc5::parser::DeclarationCheck check,
+               cvc5::parser::SymbolType type]
 @init {
   std::string id;
   idList.clear();
@@ -1181,8 +1181,8 @@ identifierList[std::vector<std::string>& idList,
  * Matches an identifier and returns a string.
  */
 identifier[std::string& id,
-           CVC4::parser::DeclarationCheck check,
-           CVC4::parser::SymbolType type]
+           cvc5::parser::DeclarationCheck check,
+           cvc5::parser::SymbolType type]
   : IDENTIFIER
     { id = AntlrInput::tokenText($IDENTIFIER);
       PARSER_STATE->checkDeclaration(id, check, type); }
@@ -1200,8 +1200,8 @@ identifier[std::string& id,
  * way; then you should trace through Parser::bindMutualDatatypeType()
  * to figure out just what you're in for.
  */
-type[CVC4::api::Sort& t,
-     CVC4::parser::DeclarationCheck check]
+type[cvc5::api::Sort& t,
+     cvc5::parser::DeclarationCheck check]
 @init {
   api::Sort t2;
   bool lhs;
@@ -1244,8 +1244,8 @@ type[CVC4::api::Sort& t,
 // there).  The "type" rule above uses restictedTypePossiblyFunctionLHS
 // directly in order to implement that; this rule allows a type list to
 // parse but then issues an error.
-restrictedType[CVC4::api::Sort& t,
-               CVC4::parser::DeclarationCheck check]
+restrictedType[cvc5::api::Sort& t,
+               cvc5::parser::DeclarationCheck check]
 @init {
   bool lhs;
 }
@@ -1257,8 +1257,8 @@ restrictedType[CVC4::api::Sort& t,
  * lhs is set to "true" on output if we have a list of types, so an
  * ARROW must follow.  An ARROW can always follow; lhs means it MUST.
  */
-restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
-                                  CVC4::parser::DeclarationCheck check,
+restrictedTypePossiblyFunctionLHS[cvc5::api::Sort& t,
+                                  cvc5::parser::DeclarationCheck check,
                                   bool& lhs]
 @init {
   api::Sort t2;
@@ -1369,8 +1369,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
     }
   ;
 
-parameterization[CVC4::parser::DeclarationCheck check,
-                 std::vector<CVC4::api::Sort>& params]
+parameterization[cvc5::parser::DeclarationCheck check,
+                 std::vector<cvc5::api::Sort>& params]
 @init {
   api::Sort t;
 }
@@ -1383,7 +1383,7 @@ bound
   | integer
 ;
 
-typeLetDecl[CVC4::parser::DeclarationCheck check]
+typeLetDecl[cvc5::parser::DeclarationCheck check]
 @init {
   api::Sort t;
   std::string id;
@@ -1399,11 +1399,11 @@ typeLetDecl[CVC4::parser::DeclarationCheck check]
  *
  * @return the expression representing the formula/term
  */
-formula[CVC4::api::Term& f]
+formula[cvc5::api::Term& f]
 @init {
   Debug("parser-extra") << "formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
   api::Term f2;
-  std::vector<CVC4::api::Term> expressions;
+  std::vector<cvc5::api::Term> expressions;
   std::vector<unsigned> operators;
   unsigned op;
 }
@@ -1421,7 +1421,7 @@ formula[CVC4::api::Term& f]
     )
   ;
 
-morecomparisons[std::vector<CVC4::api::Term>& expressions,
+morecomparisons[std::vector<cvc5::api::Term>& expressions,
                 std::vector<unsigned>& operators] returns [size_t i = 0]
 @init {
   unsigned op;
@@ -1445,7 +1445,7 @@ nots returns [size_t n = 0]
   : ( NOT_TOK { ++$n; } )*
   ;
 
-prefixFormula[CVC4::api::Term& f]
+prefixFormula[cvc5::api::Term& f]
 @init {
   std::vector<std::string> ids;
   std::vector<api::Term> terms;
@@ -1499,7 +1499,7 @@ prefixFormula[CVC4::api::Term& f]
     }
   ;
 
-instantiationPatterns[ CVC4::api::Term& expr ]
+instantiationPatterns[ cvc5::api::Term& expr ]
 @init {
   std::vector<api::Term> args;
   api::Term f;
@@ -1545,9 +1545,9 @@ booleanBinop[unsigned& op]
   | AND_TOK
   ;
 
-comparison[CVC4::api::Term& f]
+comparison[cvc5::api::Term& f]
 @init {
-  std::vector<CVC4::api::Term> expressions;
+  std::vector<cvc5::api::Term> expressions;
   std::vector<unsigned> operators;
   unsigned op;
 }
@@ -1585,9 +1585,9 @@ arithmeticBinop[unsigned& op]
   ;
 
 /** Parses an array/tuple/record assignment term. */
-term[CVC4::api::Term& f]
+term[cvc5::api::Term& f]
 @init {
-  std::vector<CVC4::api::Term> expressions;
+  std::vector<cvc5::api::Term> expressions;
   std::vector<unsigned> operators;
   unsigned op;
   api::Sort t;
@@ -1607,24 +1607,24 @@ term[CVC4::api::Term& f]
  * Parses just part of the array assignment (and constructs
  * the store terms).
  */
-arrayStore[CVC4::api::Term& f]
+arrayStore[cvc5::api::Term& f]
 @init {
   api::Term f2, k;
 }
   : LBRACKET formula[k] RBRACKET
-    { f2 = MK_TERM(CVC4::api::SELECT, f, k); }
+    { f2 = MK_TERM(cvc5::api::SELECT, f, k); }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = MK_TERM(CVC4::api::STORE, f, k, f2); }
+    { f = MK_TERM(cvc5::api::STORE, f, k, f2); }
   ;
 
 /**
  * Parses just part of the tuple assignment (and constructs
  * the store terms).
  */
-tupleStore[CVC4::api::Term& f]
+tupleStore[cvc5::api::Term& f]
 @init {
   api::Term f2;
 }
@@ -1654,7 +1654,7 @@ tupleStore[CVC4::api::Term& f]
  * Parses just part of the record assignment (and constructs
  * the store terms).
  */
-recordStore[CVC4::api::Term& f]
+recordStore[cvc5::api::Term& f]
 @init {
   std::string id;
   api::Term f2;
@@ -1680,7 +1680,7 @@ recordStore[CVC4::api::Term& f]
   ;
 
 /** Parses a unary minus term. */
-uminusTerm[CVC4::api::Term& f]
+uminusTerm[cvc5::api::Term& f]
 @init {
   unsigned minusCount = 0;
 }
@@ -1690,14 +1690,14 @@ uminusTerm[CVC4::api::Term& f]
       while (minusCount > 0)
       {
         --minusCount;
-        f = MK_TERM(CVC4::api::UMINUS, f);
+        f = MK_TERM(cvc5::api::UMINUS, f);
       }
     };
 
 /** Parses bitvectors.  Starts with binary operators @, &, and |. */
-bvBinaryOpTerm[CVC4::api::Term& f]
+bvBinaryOpTerm[cvc5::api::Term& f]
 @init {
-  std::vector<CVC4::api::Term> expressions;
+  std::vector<cvc5::api::Term> expressions;
   std::vector<unsigned> operators;
   unsigned op;
 }
@@ -1714,12 +1714,12 @@ bvBinop[unsigned& op]
   | BVAND_TOK
   ;
 
-bvNegTerm[CVC4::api::Term& f]
+bvNegTerm[cvc5::api::Term& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     {
-      f = f.getSort().isSet() ? MK_TERM(CVC4::api::COMPLEMENT, f)
-                              : MK_TERM(CVC4::api::BITVECTOR_NOT, f);
+      f = f.getSort().isSet() ? MK_TERM(cvc5::api::COMPLEMENT, f)
+                              : MK_TERM(cvc5::api::BITVECTOR_NOT, f);
     }
   | relationBinopTerm[f]
   ;
@@ -1733,9 +1733,9 @@ relationBinop[unsigned& op]
   | JOIN_IMAGE_TOK
   ;
 
-relationBinopTerm[CVC4::api::Term& f]
+relationBinopTerm[cvc5::api::Term& f]
 @init {
-  std::vector<CVC4::api::Term> expressions;
+  std::vector<cvc5::api::Term> expressions;
   std::vector<unsigned> operators;
   unsigned op;
 }
@@ -1753,7 +1753,7 @@ relationBinopTerm[CVC4::api::Term& f]
  * brackets ], so we left-factor as much out as possible to make ANTLR
  * happy.
  */
-postfixTerm[CVC4::api::Term& f]
+postfixTerm[cvc5::api::Term& f]
 @init {
   api::Term f2;
   bool extract = false, left = false;
@@ -1772,7 +1772,7 @@ postfixTerm[CVC4::api::Term& f]
           f = SOLVER->mkTerm(SOLVER->mkOp(api::BITVECTOR_EXTRACT,k1,k2), f);
         } else {
           /* array select */
-          f = MK_TERM(CVC4::api::SELECT, f, f2);
+          f = MK_TERM(cvc5::api::SELECT, f, f2);
         }
       }
       /* left- or right-shift */
@@ -1834,19 +1834,19 @@ postfixTerm[CVC4::api::Term& f]
       )
     )*
     | FLOOR_TOK LPAREN formula[f] RPAREN
-      { f = MK_TERM(CVC4::api::TO_INTEGER, f); }
+      { f = MK_TERM(cvc5::api::TO_INTEGER, f); }
     | IS_INTEGER_TOK LPAREN formula[f] RPAREN
-      { f = MK_TERM(CVC4::api::IS_INTEGER, f); }
+      { f = MK_TERM(cvc5::api::IS_INTEGER, f); }
     | ABS_TOK LPAREN formula[f] RPAREN
-      { f = MK_TERM(CVC4::api::ABS, f); }
+      { f = MK_TERM(cvc5::api::ABS, f); }
     | DIVISIBLE_TOK LPAREN formula[f] COMMA n=numeral RPAREN
-      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE, n), f); }
+      { f = MK_TERM(SOLVER->mkOp(cvc5::api::DIVISIBLE, n), f); }
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       {
         f = (args.size() == 1) ? SOLVER->mkTrue()
-                               : MK_TERM(CVC4::api::DISTINCT, args);
+                               : MK_TERM(cvc5::api::DISTINCT, args);
       }
     )
     ( typeAscription[f, t]
@@ -1856,12 +1856,12 @@ postfixTerm[CVC4::api::Term& f]
     )?
   ;
 
-relationTerm[CVC4::api::Term& f]
+relationTerm[cvc5::api::Term& f]
     /* relation terms */
   : TRANSPOSE_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::TRANSPOSE, f); }
+    { f = MK_TERM(cvc5::api::TRANSPOSE, f); }
   | TRANSCLOSURE_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::TCLOSURE, f); }
+    { f = MK_TERM(cvc5::api::TCLOSURE, f); }
   | TUPLE_TOK LPAREN formula[f] RPAREN
     { std::vector<api::Sort> types;
       std::vector<api::Term> args;
@@ -1873,30 +1873,30 @@ relationTerm[CVC4::api::Term& f]
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
   | IDEN_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::IDEN, f); }
+    { f = MK_TERM(cvc5::api::IDEN, f); }
   | bvTerm[f]
   ;
 
-bvTerm[CVC4::api::Term& f]
+bvTerm[cvc5::api::Term& f]
 @init {
   api::Term f2;
   std::vector<api::Term> args;
 }
     /* BV xor */
   : BVXOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_XOR, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_XOR, f, f2); }
   | BVNAND_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_NAND, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_NAND, f, f2); }
   | BVNOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_NOR, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_NOR, f, f2); }
   | BVCOMP_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_COMP, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_COMP, f, f2); }
   | BVXNOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_XNOR, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_XNOR, f, f2); }
 
     /* BV unary minus */
   | BVUMINUS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_NEG, f); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_NEG, f); }
     /* BV addition */
   | BVPLUS_TOK LPAREN k=numeral COMMA formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
@@ -1907,7 +1907,7 @@ bvTerm[CVC4::api::Term& f]
       for (unsigned i = 0; i < args.size(); ++ i) {
         ENSURE_BV_SIZE(k, args[i]);
       }
-      f = MK_TERM(CVC4::api::BITVECTOR_PLUS, args);
+      f = MK_TERM(cvc5::api::BITVECTOR_PLUS, args);
     }
     /* BV subtraction */
   | BVSUB_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
@@ -1917,7 +1917,7 @@ bvTerm[CVC4::api::Term& f]
       }
       ENSURE_BV_SIZE(k, f);
       ENSURE_BV_SIZE(k, f2);
-      f = MK_TERM(CVC4::api::BITVECTOR_SUB, f, f2);
+      f = MK_TERM(cvc5::api::BITVECTOR_SUB, f, f2);
     }
     /* BV multiplication */
   | BVMULT_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
@@ -1927,32 +1927,32 @@ bvTerm[CVC4::api::Term& f]
       }
       ENSURE_BV_SIZE(k, f);
       ENSURE_BV_SIZE(k, f2);
-      f = MK_TERM(CVC4::api::BITVECTOR_MULT, f, f2);
+      f = MK_TERM(cvc5::api::BITVECTOR_MULT, f, f2);
     }
     /* BV unsigned division */
   | BVUDIV_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_UDIV, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_UDIV, f, f2); }
     /* BV signed division */
   | BVSDIV_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SDIV, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SDIV, f, f2); }
     /* BV unsigned remainder */
   | BVUREM_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_UREM, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_UREM, f, f2); }
     /* BV signed remainder */
   | BVSREM_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SREM, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SREM, f, f2); }
     /* BV signed modulo */
   | BVSMOD_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SMOD, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SMOD, f, f2); }
     /* BV left shift */
   | BVSHL_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SHL, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SHL, f, f2); }
     /* BV arithmetic right shift */
   | BVASHR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_ASHR, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_ASHR, f, f2); }
     /* BV logical left shift */
   | BVLSHR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_LSHR, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_LSHR, f, f2); }
     /* BV sign extension */
   | SX_TOK LPAREN formula[f] COMMA k=numeral RPAREN
     { unsigned n = f.getSort().getBVSize();
@@ -1983,25 +1983,25 @@ bvTerm[CVC4::api::Term& f]
 
     /* BV comparisons */
   | BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_ULT, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_ULT, f, f2); }
   | BVLE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_ULE, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_ULE, f, f2); }
   | BVGT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_UGT, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_UGT, f, f2); }
   | BVGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_UGE, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_UGE, f, f2); }
   | BVSLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SLT, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SLT, f, f2); }
   | BVSLE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SLE, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SLE, f, f2); }
   | BVSGT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SGT, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SGT, f, f2); }
   | BVSGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::BITVECTOR_SGE, f, f2); }
+    { f = MK_TERM(cvc5::api::BITVECTOR_SGE, f, f2); }
   | stringTerm[f]
   ;
 
-stringTerm[CVC4::api::Term& f]
+stringTerm[cvc5::api::Term& f]
 @init {
   api::Term f2;
   api::Term f3;
@@ -2011,67 +2011,67 @@ stringTerm[CVC4::api::Term& f]
     /* String prefix operators */
   : STRING_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
-    { f = MK_TERM(CVC4::api::STRING_CONCAT, args); }
+    { f = MK_TERM(cvc5::api::STRING_CONCAT, args); }
   | STRING_LENGTH_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_LENGTH, f); }
+    { f = MK_TERM(cvc5::api::STRING_LENGTH, f); }
   | STRING_CONTAINS_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_CONTAINS, f, f2); }
+    { f = MK_TERM(cvc5::api::STRING_CONTAINS, f, f2); }
   | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_SUBSTR, f, f2, f3); }
+    { f = MK_TERM(cvc5::api::STRING_SUBSTR, f, f2, f3); }
   | STRING_CHARAT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_CHARAT, f, f2); }
+    { f = MK_TERM(cvc5::api::STRING_CHARAT, f, f2); }
   | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_INDEXOF, f, f2, f3); }
+    { f = MK_TERM(cvc5::api::STRING_INDEXOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_REPLACE, f, f2, f3); }
+    { f = MK_TERM(cvc5::api::STRING_REPLACE, f, f2, f3); }
   | STRING_REPLACE_ALL_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_REPLACE_ALL, f, f2, f3); }
+    { f = MK_TERM(cvc5::api::STRING_REPLACE_ALL, f, f2, f3); }
   | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_PREFIX, f, f2); }
+    { f = MK_TERM(cvc5::api::STRING_PREFIX, f, f2); }
   | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_SUFFIX, f, f2); }
+    { f = MK_TERM(cvc5::api::STRING_SUFFIX, f, f2); }
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_TO_INT, f); }
+    { f = MK_TERM(cvc5::api::STRING_TO_INT, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_FROM_INT, f); }
+    { f = MK_TERM(cvc5::api::STRING_FROM_INT, f); }
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_TO_REGEXP, f); }
+    { f = MK_TERM(cvc5::api::STRING_TO_REGEXP, f); }
   | STRING_TOLOWER_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_TOLOWER, f); }
+    { f = MK_TERM(cvc5::api::STRING_TOLOWER, f); }
   | STRING_TOUPPER_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_TOUPPER, f); }
+    { f = MK_TERM(cvc5::api::STRING_TOUPPER, f); }
   | STRING_REV_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_REV, f); }
+    { f = MK_TERM(cvc5::api::STRING_REV, f); }
   | REGEXP_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_CONCAT, args); }
+    { f = MK_TERM(cvc5::api::REGEXP_CONCAT, args); }
   | REGEXP_UNION_TOK LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_UNION, args); }
+    { f = MK_TERM(cvc5::api::REGEXP_UNION, args); }
   | REGEXP_INTER_TOK LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_INTER, args); }
+    { f = MK_TERM(cvc5::api::REGEXP_INTER, args); }
   | REGEXP_STAR_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_STAR, f); }
+    { f = MK_TERM(cvc5::api::REGEXP_STAR, f); }
   | REGEXP_PLUS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_PLUS, f); }
+    { f = MK_TERM(cvc5::api::REGEXP_PLUS, f); }
   | REGEXP_OPT_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_OPT, f); }
+    { f = MK_TERM(cvc5::api::REGEXP_OPT, f); }
   | REGEXP_RANGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_RANGE, f, f2); }
+    { f = MK_TERM(cvc5::api::REGEXP_RANGE, f, f2); }
   | REGEXP_LOOP_TOK LPAREN formula[f] COMMA lo=numeral COMMA hi=numeral RPAREN
     {
-      api::Op lop = SOLVER->mkOp(CVC4::api::REGEXP_LOOP, lo, hi);
+      api::Op lop = SOLVER->mkOp(cvc5::api::REGEXP_LOOP, lo, hi);
       f = MK_TERM(lop, f); 
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
+    { f = MK_TERM(cvc5::api::REGEXP_COMPLEMENT, f); }
   | SEQ_UNIT_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::SEQ_UNIT, f); }
+    { f = MK_TERM(cvc5::api::SEQ_UNIT, f); }
   | REGEXP_EMPTY_TOK
-    { f = MK_TERM(CVC4::api::REGEXP_EMPTY, std::vector<api::Term>()); }
+    { f = MK_TERM(cvc5::api::REGEXP_EMPTY, std::vector<api::Term>()); }
   | REGEXP_SIGMA_TOK
-    { f = MK_TERM(CVC4::api::REGEXP_SIGMA, std::vector<api::Term>()); }
+    { f = MK_TERM(cvc5::api::REGEXP_SIGMA, std::vector<api::Term>()); }
 
     /* string literal */
   | str[s]
@@ -2080,20 +2080,20 @@ stringTerm[CVC4::api::Term& f]
   | setsTerm[f]
   ;
 
-setsTerm[CVC4::api::Term& f]
+setsTerm[cvc5::api::Term& f]
 @init {
 }
     /* Sets prefix operators */
   : SETS_CARD_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::CARD, f); }
+    { f = MK_TERM(cvc5::api::CARD, f); }
   | SETS_CHOOSE_TOK LPAREN formula[f] RPAREN
-        { f = MK_TERM(CVC4::api::CHOOSE, f); }
+        { f = MK_TERM(cvc5::api::CHOOSE, f); }
   | simpleTerm[f]
   ;
 
 
 /** Parses a simple term. */
-simpleTerm[CVC4::api::Term& f]
+simpleTerm[cvc5::api::Term& f]
 @init {
   std::string name;
   std::vector<api::Term> args;
@@ -2234,7 +2234,7 @@ simpleTerm[CVC4::api::Term& f]
       api::Sort dtype = f.getSort();
       if(dtype.isConstructor() && dtype.getConstructorArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
-        f = MK_TERM(CVC4::api::APPLY_CONSTRUCTOR, f);
+        f = MK_TERM(cvc5::api::APPLY_CONSTRUCTOR, f);
       }
     }
   ;
@@ -2243,7 +2243,7 @@ simpleTerm[CVC4::api::Term& f]
  * Matches a type ascription.
  * The f arg is the term to check (it is an input-only argument).
  */
-typeAscription[const CVC4::api::Term& f, CVC4::api::Sort& t]
+typeAscription[const cvc5::api::Term& f, cvc5::api::Sort& t]
 @init {
 }
   : COLON COLON type[t,CHECK_DECLARED]
@@ -2252,14 +2252,14 @@ typeAscription[const CVC4::api::Term& f, CVC4::api::Sort& t]
 /**
  * Matches an entry in a record literal.
  */
-recordEntry[std::string& name, CVC4::api::Term& ex]
+recordEntry[std::string& name, cvc5::api::Term& ex]
   : identifier[name,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK formula[ex]
   ;
 
 /**
  * Parses an ITE term.
  */
-iteTerm[CVC4::api::Term& f]
+iteTerm[cvc5::api::Term& f]
 @init {
   std::vector<api::Term> args;
   Debug("parser-extra") << "ite: " << AntlrInput::tokenText(LT(1)) << std::endl;
@@ -2268,13 +2268,13 @@ iteTerm[CVC4::api::Term& f]
     THEN_TOK formula[f] { args.push_back(f); }
     iteElseTerm[f] { args.push_back(f); }
     ENDIF_TOK
-    { f = MK_TERM(CVC4::api::ITE, args); }
+    { f = MK_TERM(cvc5::api::ITE, args); }
   ;
 
 /**
  * Parses the else part of the ITE, i.e. ELSE f, or ELSIF b THEN f1 ...
  */
-iteElseTerm[CVC4::api::Term& f]
+iteElseTerm[cvc5::api::Term& f]
 @init {
   std::vector<api::Term> args;
   Debug("parser-extra") << "else: " << AntlrInput::tokenText(LT(1)) << std::endl;
@@ -2283,13 +2283,13 @@ iteElseTerm[CVC4::api::Term& f]
   | ELSEIF_TOK iteCondition = formula[f] { args.push_back(f); }
     THEN_TOK iteThen = formula[f] { args.push_back(f); }
     iteElse = iteElseTerm[f] { args.push_back(f); }
-    { f = MK_TERM(CVC4::api::ITE, args); }
+    { f = MK_TERM(cvc5::api::ITE, args); }
   ;
 
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
+datatypeDef[std::vector<cvc5::api::DatatypeDecl>& datatypes]
 @init {
   std::string id, id2;
   api::Sort t;
@@ -2324,14 +2324,14 @@ datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[CVC4::api::DatatypeDecl& type]
+constructorDef[cvc5::api::DatatypeDecl& type]
 @init {
   std::string id;
-  std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
+  std::unique_ptr<cvc5::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
     {
-      ctor.reset(new CVC4::api::DatatypeConstructorDecl(
+      ctor.reset(new cvc5::api::DatatypeConstructorDecl(
           SOLVER->mkDatatypeConstructorDecl(id)));
     }
     ( LPAREN
@@ -2345,7 +2345,7 @@ constructorDef[CVC4::api::DatatypeDecl& type]
     }
   ;
 
-selector[std::unique_ptr<CVC4::api::DatatypeConstructorDecl>* ctor]
+selector[std::unique_ptr<cvc5::api::DatatypeConstructorDecl>* ctor]
 @init {
   std::string id;
   api::Sort t, t2;
@@ -2377,7 +2377,7 @@ numeral returns [unsigned k = 0]
 /**
  * Similar to numeral but for arbitrary-precision, signed integer.
  */
-integer returns [CVC4::Rational k = 0]
+integer returns [cvc5::Rational k = 0]
   : INTEGER_LITERAL
     { $k = AntlrInput::tokenToInteger($INTEGER_LITERAL); }
   | MINUS_TOK INTEGER_LITERAL

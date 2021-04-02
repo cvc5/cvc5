@@ -24,11 +24,11 @@
 #include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::preprocessing;
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::preprocessing;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ExpandDefs::ExpandDefs(SmtEngine& smt,
@@ -367,4 +367,4 @@ void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

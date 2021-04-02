@@ -28,7 +28,7 @@
 #include "theory/trust_node.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -209,4 +209,4 @@ class RemoveTermFormulas {
   bool isProofEnabled() const;
 };/* class RemoveTTE */
 
-}/* CVC4 namespace */
+}  // namespace cvc5

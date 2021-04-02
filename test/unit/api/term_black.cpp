@@ -14,7 +14,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -848,4 +848,4 @@ TEST_F(TestApiBlackTerm, termScopedToString)
   ASSERT_EQ(x.toString(), "x");
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

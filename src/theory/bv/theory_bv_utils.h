@@ -25,7 +25,7 @@
 
 #include "expr/node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -226,4 +226,4 @@ Node eliminateInt2Bv(TNode node);
 }
 }
 }
-}
+}  // namespace cvc5

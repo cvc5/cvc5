@@ -24,9 +24,9 @@
 
 #include <numeric>  // for std::iota
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -621,4 +621,4 @@ bool EnumStreamConcrete::increment()
 Node EnumStreamConcrete::getCurrent() { return d_currTerm; }
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

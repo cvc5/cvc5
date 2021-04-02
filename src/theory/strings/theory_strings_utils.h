@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 namespace utils {
@@ -220,6 +220,6 @@ unsigned getLoopMinOccurrences(TNode node);
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

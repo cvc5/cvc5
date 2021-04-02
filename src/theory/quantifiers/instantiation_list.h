@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /** A list of instantiations for a quantified formula */
 struct InstantiationList
@@ -53,6 +53,6 @@ struct SkolemList
 /** Print the skolem list to stream out */
 std::ostream& operator<<(std::ostream& out, const SkolemList& skl);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H */

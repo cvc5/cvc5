@@ -16,9 +16,9 @@
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -674,4 +674,4 @@ Node NormalForm::evaluateToSet(TNode n)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

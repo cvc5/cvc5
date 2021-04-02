@@ -17,7 +17,7 @@
 
 #include "options/printer_modes.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode)
 {
@@ -31,4 +31,4 @@ std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

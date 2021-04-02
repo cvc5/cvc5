@@ -14,7 +14,7 @@
 
 #include "type_matcher.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 TypeMatcher::TypeMatcher(TypeNode dt)
 {
@@ -125,4 +125,4 @@ void TypeMatcher::getMatches(std::vector<TypeNode>& types) const
   }
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

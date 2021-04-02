@@ -23,7 +23,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -73,6 +73,6 @@ class BVToBool : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H */

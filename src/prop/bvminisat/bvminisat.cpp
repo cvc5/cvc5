@@ -20,7 +20,7 @@
 #include "proof/clause_id.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name)
@@ -297,5 +297,5 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
   d_statEliminatedVars.set(minisat->eliminated_vars);
 }
 
-} /* namespace CVC4::prop */
-} /* namespace CVC4 */
+}  // namespace prop
+}  // namespace cvc5

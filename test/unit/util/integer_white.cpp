@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::Integer.
+ ** \brief White box testing of cvc5::Integer.
  **
- ** White box testing of CVC4::Integer.
+ ** White box testing of cvc5::Integer.
  **/
 
 #include <sstream>
@@ -19,7 +19,7 @@
 #include "test.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilWhiteInteger : public TestInternal
@@ -53,4 +53,4 @@ TEST_F(TestUtilWhiteInteger, construction)
   ASSERT_EQ(Integer(u), Integer(u));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

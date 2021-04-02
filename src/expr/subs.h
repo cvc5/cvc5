@@ -19,7 +19,7 @@
 #include <vector>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Helper substitution class. Stores a substitution in parallel vectors
@@ -80,6 +80,6 @@ class Subs
  */
 std::ostream& operator<<(std::ostream& out, const Subs& s);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__SUBS_H */

@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/inference_id.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -219,6 +219,6 @@ class Trigger {
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_H */

@@ -17,9 +17,9 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_bound_inference.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -86,4 +86,4 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -17,7 +17,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -155,4 +155,4 @@ bool BBSimple::isVariable(TNode node)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

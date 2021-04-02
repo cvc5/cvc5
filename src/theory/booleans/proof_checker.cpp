@@ -16,7 +16,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -948,4 +948,4 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

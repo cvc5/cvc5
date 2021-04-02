@@ -27,7 +27,7 @@
 #include "parser/parser.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 
@@ -218,12 +218,12 @@ namespace tptp {
  * Just exists to provide the uintptr_t constructor that ANTLR
  * requires.
  */
-struct myExpr : public CVC4::api::Term
+struct myExpr : public cvc5::api::Term
 {
-  myExpr() : CVC4::api::Term() {}
-  myExpr(void*) : CVC4::api::Term() {}
-  myExpr(const CVC4::api::Term& e) : CVC4::api::Term(e) {}
-  myExpr(const myExpr& e) : CVC4::api::Term(e) {}
+  myExpr() : cvc5::api::Term() {}
+  myExpr(void*) : cvc5::api::Term() {}
+  myExpr(const cvc5::api::Term& e) : cvc5::api::Term(e) {}
+  myExpr(const myExpr& e) : cvc5::api::Term(e) {}
 }; /* struct myExpr*/
 
 enum NonAssoc {
@@ -235,10 +235,9 @@ enum NonAssoc {
   NA_REVAND,
 };
 
-}/* CVC4::parser::tptp namespace */
+}  // namespace tptp
 
-
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__TPTP_INPUT_H */

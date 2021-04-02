@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/quant_module.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 QuantifiersModule::QuantifiersModule(
@@ -75,4 +75,4 @@ quantifiers::QuantifiersRegistry& QuantifiersModule::getQuantifiersRegistry()
 }
 
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

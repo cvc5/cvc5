@@ -19,7 +19,7 @@
 
 #include "options/options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 /**
@@ -47,6 +47,6 @@ struct TimeLimit
 TimeLimit install_time_limit(const Options& opts);
 
 }  // namespace main
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__MAIN__TIME_LIMIT_H */

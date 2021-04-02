@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "theory/theory_id.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -60,6 +60,6 @@ struct CarePair {
 typedef std::set<CarePair> CareGraph;
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__CARE_GRAPH_H */

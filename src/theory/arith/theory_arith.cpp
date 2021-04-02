@@ -29,9 +29,9 @@
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -311,6 +311,6 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
   return d_im.getProofEqEngine();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

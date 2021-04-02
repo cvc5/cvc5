@@ -22,9 +22,9 @@
 #include "theory/strings/word.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -599,6 +599,6 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   return false;
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

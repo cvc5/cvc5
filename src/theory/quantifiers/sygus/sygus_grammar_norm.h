@@ -25,7 +25,7 @@
 #include "expr/sygus_datatype.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -426,6 +426,6 @@ class SygusGrammarNorm
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

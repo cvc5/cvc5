@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -105,6 +105,6 @@ class TriggerDatabase
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_DATABASE_H */

@@ -21,7 +21,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -95,9 +95,9 @@ public:
         kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
   }     
     
-};             
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+};
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

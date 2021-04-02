@@ -27,10 +27,10 @@
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -345,4 +345,4 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

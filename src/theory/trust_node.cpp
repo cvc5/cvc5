@@ -17,7 +17,7 @@
 #include "expr/proof_ensure_closed.h"
 #include "expr/proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 const char* toString(TrustNodeKind tnk)
@@ -146,4 +146,4 @@ std::ostream& operator<<(std::ostream& out, TrustNode n)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

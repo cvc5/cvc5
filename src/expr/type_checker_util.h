@@ -26,7 +26,7 @@
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /** Type check returns the builtin operator sort */
@@ -202,4 +202,4 @@ class SimpleTypeRuleVar
 };
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

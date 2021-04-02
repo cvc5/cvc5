@@ -24,7 +24,7 @@
 #include "cvc4_export.h"
 #include "util/stats_base.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace timer_stat_detail {
 using clock = std::chrono::steady_clock;
 using time_point = clock::time_point;
@@ -46,7 +46,7 @@ class CodeTimer;
 class CVC4_EXPORT TimerStat : public BackedStat<timer_stat_detail::duration>
 {
  public:
-  typedef CVC4::CodeTimer CodeTimer;
+  typedef cvc5::CodeTimer CodeTimer;
 
   /**
    * Construct a timer statistic with the given name.  Newly-constructed
@@ -108,6 +108,6 @@ private:
   CodeTimer& operator=(const CodeTimer& timer) = delete;
 }; /* class CodeTimer */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

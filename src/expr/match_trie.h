@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /** A virtual class for notifications regarding matches. */
@@ -77,6 +77,6 @@ class MatchTrie
 };
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */

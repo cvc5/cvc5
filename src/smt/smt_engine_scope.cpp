@@ -22,7 +22,7 @@
 #include "base/output.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 thread_local SmtEngine* s_smtEngine_current = NULL;
@@ -62,8 +62,8 @@ SmtScope::~SmtScope() {
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->getStatisticsRegistry();
+  return &(s_smtEngine_current->getStatisticsRegistry());
 }
 
-}/* CVC4::smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace cvc5

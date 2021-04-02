@@ -32,7 +32,7 @@
 #include "expr/attribute_internals.h"
 #undef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 namespace attr {
 
@@ -218,7 +218,7 @@ public:
   void debugHook(int debugFlag);
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // MAPPING OF ATTRIBUTE KINDS TO TABLES IN THE ATTRIBUTE MANAGER ===============
 
@@ -318,7 +318,7 @@ struct getTable<std::string, false> {
   }
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE MANAGER IMPLEMENTATIONS ===========================================
 
@@ -540,9 +540,8 @@ void AttributeManager::reconstructTable(AttrHash<T>& table){
   d_inGarbageCollection = false;
 }
 
-
-}/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
+}  // namespace attr
+}  // namespace expr
 
 template <class AttrKind>
 inline typename AttrKind::value_type
@@ -622,6 +621,6 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
   d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__ATTRIBUTE_H */

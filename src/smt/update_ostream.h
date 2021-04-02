@@ -30,7 +30,7 @@
 #include "options/set_language.h"
 #include "smt/dump.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ChannelSettings {
  public:
@@ -116,6 +116,6 @@ class TraceOstreamUpdate : public OstreamUpdate {
   void set(std::ostream* setTo) override { Trace.setStream(setTo); }
 };  /* class TraceOstreamUpdate */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__UPDATE_OSTREAM_H */

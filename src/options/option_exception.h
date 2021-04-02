@@ -22,7 +22,7 @@
 #include "base/exception.h"
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Class representing an option-parsing exception such as badly-typed
@@ -30,10 +30,10 @@ namespace CVC4 {
  * name is itself unrecognized, a UnrecognizedOptionException (a derived
  * class, below) should be used instead.
  */
-class CVC4_EXPORT OptionException : public CVC4::Exception
+class CVC4_EXPORT OptionException : public cvc5::Exception
 {
  public:
-  OptionException(const std::string& s) : CVC4::Exception(s_errPrefix + s) {}
+  OptionException(const std::string& s) : cvc5::Exception(s_errPrefix + s) {}
 
   /**
    * Get the error message without the prefix that is automatically added for
@@ -53,18 +53,22 @@ class CVC4_EXPORT OptionException : public CVC4::Exception
  * Class representing an exception in option processing due to an
  * unrecognized or unsupported option key.
  */
-class UnrecognizedOptionException : public CVC4::OptionException
+class UnrecognizedOptionException : public cvc5::OptionException
 {
  public:
-  UnrecognizedOptionException() :
-    CVC4::OptionException("Unrecognized informational or option key or setting") {
+  UnrecognizedOptionException()
+      : cvc5::OptionException(
+          "Unrecognized informational or option key or setting")
+  {
   }
 
-  UnrecognizedOptionException(const std::string& msg) :
-    CVC4::OptionException("Unrecognized informational or option key or setting: " + msg) {
+  UnrecognizedOptionException(const std::string& msg)
+      : cvc5::OptionException(
+          "Unrecognized informational or option key or setting: " + msg)
+  {
   }
 }; /* class UnrecognizedOptionException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__OPTION_EXCEPTION_H */

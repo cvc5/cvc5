@@ -18,10 +18,10 @@
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory::quantifiers::inst;
+using namespace cvc5::kind;
+using namespace cvc5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -175,4 +175,4 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::NodeManager.
+ ** \brief Black box testing of cvc5::NodeManager.
  **
- ** Black box testing of CVC4::NodeManager.
+ ** Black box testing of cvc5::NodeManager.
  **/
 
 #include <string>
@@ -24,7 +24,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace expr;
@@ -330,4 +330,4 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 #endif
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -43,6 +43,6 @@ class ArraysProofRuleChecker : public ProofRuleChecker
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__PROOF_CHECKER_H */

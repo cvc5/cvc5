@@ -18,7 +18,7 @@
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -47,6 +47,6 @@ FunctionEnumerator& FunctionEnumerator::operator++()
   return *this;
 }
 
-} /* CVC4::theory::builtin namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5

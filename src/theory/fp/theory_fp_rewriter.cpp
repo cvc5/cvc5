@@ -37,7 +37,7 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -324,8 +324,7 @@ namespace rewrite {
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-}; /* CVC4::theory::fp::rewrite */
-
+  };  // namespace rewrite
 
 namespace constantFold {
 
@@ -978,8 +977,7 @@ namespace constantFold {
                            NodeManager::currentNM()->mkConst(value));
   }
 
-};  /* CVC4::theory::fp::constantFold */
-
+  };  // namespace constantFold
 
   /**
    * Initialize the rewriter.
@@ -1421,8 +1419,6 @@ TheoryFpRewriter::TheoryFpRewriter()
     return res;
   }
 
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+  }  // namespace fp
+  }  // namespace theory
+  }  // namespace cvc5

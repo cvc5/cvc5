@@ -23,7 +23,7 @@
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace prop {
 
@@ -92,6 +92,6 @@ class PropPfManager
 }; /* class PropPfManager */
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__PROOF_MANAGER_H */

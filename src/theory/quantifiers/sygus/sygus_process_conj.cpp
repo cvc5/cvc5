@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -802,6 +802,6 @@ void SynthConjectureProcess::getComponentVector(Kind k,
   }
 }
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

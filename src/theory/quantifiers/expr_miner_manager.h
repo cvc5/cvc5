@@ -24,7 +24,7 @@
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -118,6 +118,6 @@ class ExpressionMinerManager
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */

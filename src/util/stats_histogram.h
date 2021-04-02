@@ -24,7 +24,7 @@
 
 #include "util/stats_base.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A histogram statistic class for integral types.
@@ -123,6 +123,6 @@ class IntegralHistogramStat : public Stat
   int64_t d_offset;
 }; /* class IntegralHistogramStat */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

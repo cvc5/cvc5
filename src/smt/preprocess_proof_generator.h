@@ -24,7 +24,7 @@
 #include "expr/proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -144,6 +144,6 @@ class PreprocessProofGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -23,7 +23,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A flexible let binding class. This class provides functionalities for
@@ -157,6 +157,6 @@ class LetBinding
   NodeIdMap d_letMap;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -31,7 +31,7 @@
 #include "util/maybe.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -110,6 +110,6 @@ class PseudoBooleanProcessor : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  // CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H

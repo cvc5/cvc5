@@ -29,9 +29,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -619,6 +619,6 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
   return true;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

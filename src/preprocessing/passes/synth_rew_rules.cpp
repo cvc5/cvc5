@@ -30,9 +30,9 @@
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -474,4 +474,4 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -24,7 +24,7 @@
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -60,6 +60,6 @@ struct UninterpretedConstantHashFunction
   size_t operator()(const UninterpretedConstant& uc) const;
 }; /* struct UninterpretedConstantHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__UNINTERPRETED_CONSTANT_H */

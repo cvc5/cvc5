@@ -24,7 +24,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -124,6 +124,6 @@ class TheoryBV : public Theory
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__THEORY_BV_H */

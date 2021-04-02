@@ -18,7 +18,7 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
@@ -154,4 +154,4 @@ TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 std::string EagerProofGenerator::identify() const { return d_name; }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

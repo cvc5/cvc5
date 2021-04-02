@@ -32,7 +32,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -153,6 +153,12 @@ class ExtfSolver
    */
   std::vector<Node> getActive(Kind k) const;
   //---------------------------------- end information about ExtTheory
+  /**
+   * Print the relevant information regarding why we have a model, return as a
+   * string.
+   */
+  std::string debugPrintModel();
+
  private:
   /** do reduction
    *
@@ -227,6 +233,6 @@ class StringsExtfCallback : public ExtTheoryCallback
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__EXTF_SOLVER_H */

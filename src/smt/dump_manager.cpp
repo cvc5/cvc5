@@ -18,7 +18,7 @@
 #include "smt/dump.h"
 #include "smt/node_command.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 DumpManager::DumpManager(context::UserContext* u)
@@ -72,4 +72,4 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

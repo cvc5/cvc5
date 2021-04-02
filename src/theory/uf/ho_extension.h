@@ -25,7 +25,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -198,6 +198,6 @@ class HoExtension
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* __CVC4__THEORY__UF__HO_EXTENSION_H */

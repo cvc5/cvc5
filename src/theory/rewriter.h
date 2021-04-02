@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TConvProofGenerator;
 class ProofNodeManager;
@@ -231,5 +231,5 @@ class Rewriter {
 #endif /* CVC4_ASSERTIONS */
 };/* class Rewriter */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

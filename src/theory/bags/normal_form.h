@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__BAGS__NORMAL_FORM_H
 #define CVC4__THEORY__BAGS__NORMAL_FORM_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -192,6 +192,6 @@ class NormalForm
 };
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAGS__NORMAL_FORM_H */

@@ -24,7 +24,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -268,6 +268,6 @@ class SolverState : public TheoryState
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H */

@@ -16,7 +16,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -547,4 +547,4 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   ASSERT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

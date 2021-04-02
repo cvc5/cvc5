@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::RealAlgebraicNumber.
+ ** \brief Black box testing of cvc5::RealAlgebraicNumber.
  **
- ** Black box testing of CVC4::RealAlgebraicNumber.
+ ** Black box testing of cvc5::RealAlgebraicNumber.
  **/
 
 #include "test.h"
 #include "util/real_algebraic_number.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 #ifndef CVC4_POLY_IMP
@@ -81,4 +81,4 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, arithmetic)
   ASSERT_EQ(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

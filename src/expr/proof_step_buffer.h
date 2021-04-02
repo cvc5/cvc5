@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 
@@ -92,6 +92,6 @@ class ProofStepBuffer
   std::vector<std::pair<Node, ProofStep>> d_steps;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_STEP_BUFFER_H */

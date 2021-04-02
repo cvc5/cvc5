@@ -40,7 +40,7 @@ static inline int Cnf_Lit2Var(int Lit)
   return (Lit & 1) ? -(Lit >> 1) - 1 : (Lit >> 1) + 1;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -123,7 +123,7 @@ Abc_Ntk_t* AigBitblaster::currentAigNtk() {
   if (!AigBitblaster::s_abcAigNetwork) {
     Abc_Start();
     s_abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
-    char pName[] = "CVC4::theory::bv::AigNetwork";
+    char pName[] = "cvc5::theory::bv::AigNetwork";
     s_abcAigNetwork->pName = Extra_UtilStrsav(pName);
   }
   
@@ -496,5 +496,5 @@ AigBitblaster::Statistics::~Statistics() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif // CVC4_USE_ABC

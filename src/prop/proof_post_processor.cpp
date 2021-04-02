@@ -17,7 +17,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 ProofPostprocessCallback::ProofPostprocessCallback(
@@ -105,4 +105,4 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

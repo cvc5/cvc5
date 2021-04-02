@@ -35,7 +35,7 @@
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -268,6 +268,6 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__BITBLAST__BITBLASTER_H */

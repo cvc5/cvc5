@@ -22,7 +22,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
@@ -239,4 +239,4 @@ void ModelManager::collectTerms(TheoryId tid,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

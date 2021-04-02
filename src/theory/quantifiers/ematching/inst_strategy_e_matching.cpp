@@ -22,10 +22,10 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory::quantifiers::inst;
+using namespace cvc5::kind;
+using namespace cvc5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -686,6 +686,6 @@ void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

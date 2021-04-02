@@ -19,9 +19,9 @@
 #include "theory/datatypes/inference_manager.h"
 #include "theory/theory.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -80,4 +80,4 @@ Node DatatypesInference::processFact(std::vector<Node>& exp,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

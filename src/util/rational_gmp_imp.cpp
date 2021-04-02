@@ -27,7 +27,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
@@ -98,4 +98,4 @@ Maybe<Rational> Rational::fromDouble(double d)
   return Maybe<Rational>();
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

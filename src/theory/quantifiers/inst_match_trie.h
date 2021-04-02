@@ -23,7 +23,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -223,7 +223,7 @@ class InstMatchTrieOrdered
 };
 
 }  // namespace quantifiers
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H */

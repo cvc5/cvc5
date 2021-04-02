@@ -28,7 +28,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -379,6 +379,7 @@ class TheoryInferenceManager
    */
   bool processInternalFact(TNode atom,
                            bool pol,
+                           InferenceId iid,
                            PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args,
@@ -460,6 +461,6 @@ class TheoryInferenceManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */

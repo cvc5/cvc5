@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 DecisionEngine::DecisionEngine(context::Context* sc,
                                context::UserContext* uc,
@@ -101,4 +101,4 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -22,7 +22,7 @@
 #include "base/listener.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 class SmtEngine;
@@ -75,6 +75,6 @@ class SmtNodeManagerListener : public NodeManagerListener
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

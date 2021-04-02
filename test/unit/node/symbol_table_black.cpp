@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::SymbolTable
+ ** \brief Black box testing of cvc5::SymbolTable
  **
- ** Black box testing of CVC4::SymbolTable.
+ ** Black box testing of cvc5::SymbolTable.
  **/
 
 #include <sstream>
@@ -24,7 +24,7 @@
 #include "expr/symbol_table.h"
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace context;
@@ -146,4 +146,4 @@ TEST_F(TestNodeBlackSymbolTable, bad_pop)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

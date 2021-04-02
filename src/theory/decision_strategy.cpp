@@ -17,9 +17,9 @@
 
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 DecisionStrategyFmf::DecisionStrategyFmf(context::Context* satContext,
@@ -147,4 +147,4 @@ Node DecisionStrategySingleton::mkLiteral(unsigned n)
 Node DecisionStrategySingleton::getSingleLiteral() { return d_literal; }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

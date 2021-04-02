@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -183,11 +183,8 @@ private:
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
 };
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* SRC_THEORY_SETS_THEORY_SETS_RELS_H_ */

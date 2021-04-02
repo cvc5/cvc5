@@ -17,9 +17,9 @@
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -175,4 +175,4 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

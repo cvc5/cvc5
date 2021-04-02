@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -788,4 +788,4 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 
 }
 }
-}
+}  // namespace cvc5

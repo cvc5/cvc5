@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 class ProofNodeManager;
@@ -212,6 +212,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -28,7 +28,7 @@
 #include "theory/theory_proof_step_buffer.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -133,6 +133,6 @@ class TrustSubstitutionMap
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__TRUST_SUBSTITUTIONS_H */

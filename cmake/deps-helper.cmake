@@ -6,6 +6,22 @@ set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
 # (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")
 
+set(COMMON_EP_CONFIG
+    PREFIX ${DEPS_PREFIX}
+    LOG_DOWNLOAD ON
+    LOG_UPDATE ON
+    LOG_CONFIGURE ON
+    LOG_BUILD ON
+    LOG_INSTALL ON
+)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14")
+    set(COMMON_EP_CONFIG ${COMMON_EP_CONFIG}
+        LOG_PATCH ON
+        LOG_MERGED_STDOUTERR ON
+        LOG_OUTPUT_ON_FAILURE ON
+    )
+endif()
+
 macro(check_system_version name)
     # find_package sets this variable when called with a version
     # https://cmake.org/cmake/help/latest/command/find_package.html#version-selection
@@ -23,28 +39,46 @@ endmacro(check_system_version)
 # we are cross compiling if
 # - CMAKE_SYSTEM_NAME has been changed to ${name}
 # - CMAKE_SYSTEM_PROCESSOR has been changed to ${processor}
-function(fail_if_cross_compiling name processor target error)
-    set(FAIL FALSE)
+function(check_if_cross_compiling OUT name processor)
     if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "${CMAKE_HOST_SYSTEM_NAME}")
         if(NOT "${name}" STREQUAL "")
             if("${CMAKE_SYSTEM_NAME}" STREQUAL "${name}")
-                set(FAIL TRUE)
+                set(${OUT} TRUE PARENT_SCOPE)
+                return()
             endif()
         endif()
     endif()
     if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "${CMAKE_HOST_SYSTEM_PROCESSOR}")
         if(NOT "${processor}" STREQUAL "")
             if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "${processor}")
-                set(FAIL TRUE)
+                set(${OUT} TRUE PARENT_SCOPE)
+                return()
             endif()
         endif()
     endif()
+    set(${OUT} FALSE PARENT_SCOPE)
+endfunction(check_if_cross_compiling)
+
+# fail if we are cross compiling as indicated by name and processor
+# we are cross compiling if
+# - CMAKE_SYSTEM_NAME has been changed to ${name}
+# - CMAKE_SYSTEM_PROCESSOR has been changed to ${processor}
+function(fail_if_cross_compiling name processor target error)
+    check_if_cross_compiling(FAIL "${name}" "${processor}")
     if(FAIL)
         message(SEND_ERROR
-            "We are cross compiling from \
+        "We are cross compiling from \
 ${CMAKE_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR} to \
 ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}.\n"
-            "This is not supported by ${target}:\n"
-            "${error}")
+        "This is not supported by ${target}:\n"
+        "${error}")
     endif()
 endfunction(fail_if_cross_compiling)
+
+function(fail_if_include_missing include target)
+    include(CheckIncludeFileCXX)
+    check_include_file_cxx(${include} HAVE_INCLUDE)
+    if(NOT HAVE_INCLUDE)
+        message(SEND_ERROR "${target} requires ${include} header, but it is not available.")
+    endif()
+endfunction(fail_if_include_missing)

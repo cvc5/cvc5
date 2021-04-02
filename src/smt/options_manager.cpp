@@ -24,7 +24,7 @@
 #include "smt/set_defaults.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
@@ -143,4 +143,4 @@ void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

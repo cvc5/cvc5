@@ -21,7 +21,7 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -44,6 +44,6 @@ class StringProofRuleChecker : public ProofRuleChecker
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__PROOF_CHECKER_H */

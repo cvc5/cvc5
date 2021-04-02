@@ -41,7 +41,7 @@
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ResourceManager;
 class OutputManager;
@@ -84,7 +84,7 @@ class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
-}/* CVC4::theory namespace */
+}  // namespace theory
 
 namespace prop {
 class PropEngine;
@@ -668,6 +668,6 @@ private:
   void checkTheoryAssertionsWithModel(bool hardFailure);
 };/* class TheoryEngine */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_ENGINE_H */

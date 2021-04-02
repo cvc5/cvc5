@@ -20,7 +20,7 @@
 #include "context/cdo.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -73,6 +73,6 @@ class QuantDSplit : public QuantifiersModule {
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

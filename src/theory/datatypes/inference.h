@@ -22,7 +22,7 @@
 #include "theory/theory_inference.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -69,6 +69,6 @@ class DatatypesInference : public SimpleTheoryInternalFact
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -22,11 +22,11 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_cache(preprocContext->getUserContext()){};
@@ -149,4 +149,4 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

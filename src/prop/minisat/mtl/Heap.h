@@ -24,7 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "base/check.h"
 #include "prop/minisat/mtl/Vec.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -156,6 +156,6 @@ class Heap {
 
 //=================================================================================================
 }
-}
+}  // namespace cvc5
 
 #endif

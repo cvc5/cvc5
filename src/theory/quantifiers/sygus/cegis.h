@@ -21,7 +21,7 @@
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -225,8 +225,8 @@ class Cegis : public SygusModule
   //---------------------------------end for symbolic constructors
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */

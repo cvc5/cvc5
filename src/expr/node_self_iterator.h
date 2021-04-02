@@ -24,7 +24,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 class NodeSelfIterator : public std::iterator<std::input_iterator_tag, Node> {
@@ -122,7 +122,7 @@ inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
   return !(*this == i);
 }
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__NODE_SELF_ITERATOR_H */

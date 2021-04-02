@@ -23,7 +23,7 @@
 #include "theory/quantifiers/sygus/rcons_obligation_info.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -307,6 +307,6 @@ class SygusReconstruct : public expr::NotifyMatch
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  // CVC4__THEORY__QUANTIFIERS__SYGUS_RECONSTRUCT_H

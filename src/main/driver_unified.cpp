@@ -23,11 +23,10 @@
 #include <memory>
 #include <new>
 
-#include "cvc4autoconfig.h"
-
 #include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
+#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
@@ -38,43 +37,43 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::main;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::main;
 
-namespace CVC4 {
-  namespace main {
-    /** Global options variable */
-    thread_local Options* pOptions;
+namespace cvc5 {
+namespace main {
+/** Global options variable */
+thread_local Options* pOptions;
 
-    /** Full argv[0] */
-    const char *progPath;
+/** Full argv[0] */
+const char* progPath;
 
-    /** Just the basename component of argv[0] */
-    const std::string *progName;
+/** Just the basename component of argv[0] */
+const std::string* progName;
 
-    /** A pointer to the CommandExecutor (the signal handlers need it) */
-    std::unique_ptr<CVC4::main::CommandExecutor> pExecutor;
+/** A pointer to the CommandExecutor (the signal handlers need it) */
+std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
-    /** The time point the binary started, accessible to signal handlers */
-    std::unique_ptr<TotalTimer> totalTime;
+/** The time point the binary started, accessible to signal handlers */
+std::unique_ptr<TotalTimer> totalTime;
 
-    TotalTimer::~TotalTimer()
-    {
-      if (pExecutor != nullptr)
-      {
-        auto duration = std::chrono::steady_clock::now() - d_start;
-        pExecutor->getSmtEngine()->setTotalTimeStatistic(
-            std::chrono::duration<double>(duration).count());
-      }
+TotalTimer::~TotalTimer()
+{
+  if (pExecutor != nullptr)
+  {
+    auto duration = std::chrono::steady_clock::now() - d_start;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(
+        std::chrono::duration<double>(duration).count());
+  }
     }
 
-  }/* CVC4::main namespace */
-}/* CVC4 namespace */
-
+    }  // namespace main
+    }  // namespace cvc5
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
@@ -176,12 +175,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC4::null_os);
-    TraceChannel.setStream(&CVC4::null_os);
-    NoticeChannel.setStream(&CVC4::null_os);
-    ChatChannel.setStream(&CVC4::null_os);
-    MessageChannel.setStream(&CVC4::null_os);
-    WarningChannel.setStream(&CVC4::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   }
 
   // important even for muzzled builds (to get result output right)

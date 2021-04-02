@@ -16,7 +16,7 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -101,5 +101,5 @@ bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
 }
 
 }  // namespace quantifiers
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

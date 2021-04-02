@@ -23,7 +23,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -99,6 +99,6 @@ class SequencesStatistics
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__SEQUENCES_STATS_H */

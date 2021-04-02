@@ -21,7 +21,7 @@
 #include "expr/proof_set.h"
 #include "theory/arith/nl/ext/monomial.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 
@@ -91,6 +91,6 @@ struct ExtState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

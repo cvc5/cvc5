@@ -21,9 +21,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
@@ -278,4 +278,4 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   return blocker;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

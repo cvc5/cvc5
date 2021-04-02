@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& dq){
   return os << "(" << dq.getNoninfinitesimalPart()
@@ -106,4 +106,4 @@ Integer DeltaRational::euclidianDivideRemainder(const DeltaRational& y) const
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

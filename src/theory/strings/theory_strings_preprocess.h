@@ -27,7 +27,7 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -102,8 +102,8 @@ class StringsPreprocess {
   static Node mkForallInternal(Node bvl, Node body);
 };
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__PREPROCESS_H */

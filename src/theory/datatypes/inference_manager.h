@@ -21,7 +21,7 @@
 #include "theory/datatypes/infer_proof_cons.h"
 #include "theory/inference_manager_buffered.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class EagerProofGenerator;
@@ -109,6 +109,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

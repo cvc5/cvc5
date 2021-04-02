@@ -21,7 +21,7 @@
 
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -61,8 +61,8 @@ class QuantRelevance : public QuantifiersUtil
   void computeSymbols(Node n, std::vector<Node>& syms);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANT_RELEVANCE_H */

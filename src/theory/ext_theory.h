@@ -41,7 +41,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class OutputChannel;
@@ -301,7 +301,7 @@ class ExtTheory
   std::map<int, std::map<Node, SubsTermInfo> > d_gst_cache;
 };
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__EXT_THEORY_H */

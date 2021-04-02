@@ -26,7 +26,7 @@
 
 #include "prop/sat_solver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -85,5 +85,5 @@ class BitblastingRegistrar : public prop::Registrar
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif  //  CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H

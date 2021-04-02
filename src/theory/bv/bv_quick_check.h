@@ -29,7 +29,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -181,6 +181,6 @@ class QuickXPlain
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__BV_QUICK_CHECK_H */

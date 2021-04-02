@@ -25,7 +25,7 @@ namespace poly {
   class Interval;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -77,7 +77,7 @@ PropagationResult intersect_interval_with(poly::Interval& cur,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

@@ -27,7 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/XAlloc.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -147,6 +147,6 @@ void vec<T>::clear(bool dealloc) {
 
 //=================================================================================================
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -115,6 +115,6 @@ class AbductionSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__ABDUCTION_SOLVER_H */

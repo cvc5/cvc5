@@ -23,10 +23,10 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
@@ -130,4 +130,4 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

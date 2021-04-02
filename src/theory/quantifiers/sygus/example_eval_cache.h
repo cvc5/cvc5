@@ -20,7 +20,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -160,6 +160,6 @@ class ExampleEvalCache
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

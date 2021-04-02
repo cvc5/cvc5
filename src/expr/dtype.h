@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // ----------------------- datatype attributes
 /**
@@ -696,6 +696,6 @@ struct DTypeIndexConstantHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

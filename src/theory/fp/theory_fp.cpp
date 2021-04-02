@@ -33,7 +33,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -774,7 +774,7 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
     NodeManager *nm = NodeManager::currentNM();
 
     handleLemma(
-        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::CVC4::BitVector(1U, 1U))));
+        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))));
 #endif
 
     ++oldAdditionalAssertions;
@@ -791,10 +791,11 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
 #ifdef SYMFPUPROPISBOOL
       handleLemma(nm->mkNode(kind::EQUAL, node, converted));
 #else
-      handleLemma(
-          nm->mkNode(kind::EQUAL, node,
-                     nm->mkNode(kind::EQUAL, converted,
-                                nm->mkConst(::CVC4::BitVector(1U, 1U)))));
+      handleLemma(nm->mkNode(
+          kind::EQUAL,
+          node,
+          nm->mkNode(
+              kind::EQUAL, converted, nm->mkConst(::cvc5::BitVector(1U, 1U)))));
 #endif
 
     } else {
@@ -1156,4 +1157,4 @@ void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

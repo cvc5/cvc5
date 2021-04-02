@@ -24,7 +24,7 @@
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Representation for a Beth number, used only to construct
@@ -225,6 +225,6 @@ std::ostream& operator<<(std::ostream& out, CardinalityBeth b);
 /** Print a cardinality in a human-readable fashion. */
 std::ostream& operator<<(std::ostream& out, const Cardinality& c);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__CARDINALITY_H */

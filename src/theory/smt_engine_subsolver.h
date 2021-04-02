@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -91,6 +91,6 @@ Result checkWithSubsolver(Node query,
                           unsigned long timeout = 0);
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H */

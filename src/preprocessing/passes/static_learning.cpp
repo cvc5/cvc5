@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -57,4 +57,4 @@ PreprocessingPassResult StaticLearning::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -19,9 +19,9 @@
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -296,4 +296,4 @@ bool VtsTermCache::containsVtsInfinity(Node n, bool isFree)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

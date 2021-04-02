@@ -20,7 +20,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -86,6 +86,6 @@ class BagEnumerator : public TypeEnumeratorBase<BagEnumerator>
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAGS__TYPE_ENUMERATOR_H */

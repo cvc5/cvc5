@@ -25,7 +25,7 @@
 
 #include <sstream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -246,8 +246,8 @@ class FunctionProperties {
   }
 };/* class FuctionProperties */
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */

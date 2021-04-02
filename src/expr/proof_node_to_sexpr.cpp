@@ -20,9 +20,9 @@
 #include "expr/proof_node.h"
 #include "options/proof_options.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
@@ -144,4 +144,4 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(Node n)
   return var;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

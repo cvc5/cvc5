@@ -20,7 +20,7 @@
 #include "smt/smt_engine_scope.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestNode : public TestInternal
@@ -45,5 +45,5 @@ class TestNode : public TestInternal
 };
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

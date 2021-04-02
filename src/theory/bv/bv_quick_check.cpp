@@ -21,9 +21,9 @@
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4::prop;
+using namespace cvc5::prop;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -381,4 +381,4 @@ QuickXPlain::Statistics::~Statistics() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

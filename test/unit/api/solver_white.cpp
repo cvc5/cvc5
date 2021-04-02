@@ -17,7 +17,7 @@
 #include "base/configuration.h"
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -54,4 +54,4 @@ TEST_F(TestApiWhiteSolver, getOp)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

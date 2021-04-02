@@ -20,7 +20,7 @@
 #include "test_node.h"
 #include "theory/strings/word.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace theory::strings;
@@ -121,4 +121,4 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::roverlap(aaaaa, aa) == 2);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -21,7 +21,7 @@
 
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -117,6 +117,6 @@ class BVSolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__BV_SOLVER_H */

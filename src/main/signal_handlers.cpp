@@ -38,13 +38,12 @@
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 #include "util/safe_print.h"
 
-using CVC4::Exception;
+using cvc5::Exception;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 /**
@@ -58,10 +57,10 @@ namespace signal_handlers {
 
 void print_statistics()
 {
-  if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
+  if (pExecutor != nullptr)
   {
     totalTime.reset();
-    pExecutor->safeFlushStatistics(STDERR_FILENO);
+    pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }
 
@@ -343,4 +342,4 @@ void cleanup() noexcept
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace CVC4
+}  // namespace cvc5

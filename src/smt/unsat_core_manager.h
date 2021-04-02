@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace smt {
 
@@ -67,6 +67,6 @@ class UnsatCoreManager
 }; /* class UnsatCoreManager */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__UNSAT_CORE_MANAGER_H */

@@ -16,7 +16,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -122,4 +122,4 @@ TEST_F(TestApiBlackGrammar, addAnyVariable)
   ASSERT_THROW(g1.addAnyVariable(start), CVC4ApiException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

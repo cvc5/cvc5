@@ -25,7 +25,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 class Context;
@@ -89,7 +89,7 @@ public:
 
 };/* class CDTrailQueue<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
 #endif /* CVC4__CONTEXT__CDTRAIL_QUEUE_H */

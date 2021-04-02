@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 string NodeValue::toString() const {
@@ -94,5 +94,5 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
   return i + p;
 }
 
-} /* CVC4::expr namespace */
-} /* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5

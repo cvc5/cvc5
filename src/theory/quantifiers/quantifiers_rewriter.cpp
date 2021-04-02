@@ -32,10 +32,10 @@
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -2028,6 +2028,6 @@ TrustNode QuantifiersRewriter::preprocess(Node n, bool isInst)
   return TrustNode::null();
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

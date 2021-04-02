@@ -16,7 +16,7 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -44,4 +44,4 @@ options::UserPatMode InstStrategy::getInstUserPatMode() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

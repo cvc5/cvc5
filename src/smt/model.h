@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class ::CVC4::SmtEngine;
+  friend class ::cvc5::SmtEngine;
 
  public:
   /** construct */
@@ -118,6 +118,6 @@ class Model {
 };
 
 }  // namespace smt
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif  /* CVC4__MODEL_H */

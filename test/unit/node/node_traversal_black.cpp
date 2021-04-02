@@ -26,7 +26,7 @@
 #include "expr/node_value.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -293,4 +293,4 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, skip_if)
   ASSERT_EQ(actual, expected);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -28,9 +28,9 @@
 #include <cvc4/options/set_language.h>
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::theory;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::theory;
 
 int main(int argc, char* argv[])
 {

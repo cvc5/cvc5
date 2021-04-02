@@ -41,9 +41,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
@@ -1480,4 +1480,4 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

@@ -18,7 +18,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -94,5 +94,5 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif /* TERM_TUPLE_ENUMERATOR_H_7640 */

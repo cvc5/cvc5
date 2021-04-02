@@ -18,7 +18,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const SingletonOp& op)
 {
@@ -47,4 +47,4 @@ bool SingletonOp::operator==(const SingletonOp& op) const
   return getType() == op.getType();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

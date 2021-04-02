@@ -25,7 +25,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /** A very simple bitmap for Kinds */
 class KindMap
@@ -51,6 +51,6 @@ class KindMap
   std::bitset<kind::LAST_KIND> d_bits;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__KIND_MAP_H */

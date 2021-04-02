@@ -23,7 +23,7 @@
 #include "expr/type_node.h"
 #include "expr/kind.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -63,8 +63,8 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   bool isFinished() override { return d_value == DONE; }
 };/* class BooleanEnumerator */
 
-}/* CVC4::theory::booleans namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace booleans
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BOOLEANS__TYPE_ENUMERATOR_H */
