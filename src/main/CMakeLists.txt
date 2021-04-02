@@ -32,18 +32,14 @@ if(ENABLE_SHARED)
   set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
-# We can't use target_link_libraries(...) here since this is only supported for
-# cmake version >= 3.12. Hence, we have to manually add the library
-# dependencies for main. As a consequence, include directories from
+# We can't use target_link_libraries(main ...) here since this is only
+# supported for cmake version >= 3.12. Hence, we have to manually add the
+# library dependencies for main. As a consequence, include directories from
 # dependencies are not propagated and we need to manually add the include
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
 get_target_property(LIBCVC4_INCLUDES cvc4 INCLUDE_DIRECTORIES)
 target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
-if(USE_CLN)
-  target_link_libraries(main PUBLIC CLN)
-endif()
-target_link_libraries(main PUBLIC GMP)
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
