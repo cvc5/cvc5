@@ -210,7 +210,8 @@ public:
        d_lemmaAtoms(),
        d_inputAtoms(),
        d_statistics(name, d_signatureToFunc)
- {}
+ {
+ }
   /**
    * returns true if there are new uninterepreted functions symbols in the output
    *

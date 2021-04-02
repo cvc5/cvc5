@@ -69,7 +69,7 @@ namespace cvc5 {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
-/* APIStatistics                                                                 */
+/* APIStatistics                                                              */
 /* -------------------------------------------------------------------------- */
 
 struct APIStatistics
@@ -4055,7 +4055,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Statistics                                                                     */
+/* Statistics                                                                 */
 /* -------------------------------------------------------------------------- */
 
 struct Stat::StatData

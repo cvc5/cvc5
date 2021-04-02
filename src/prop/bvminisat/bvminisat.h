@@ -79,7 +79,7 @@ public:
  {
    Unreachable() << "Minisat does not support native XOR reasoning";
    return ClauseIdError;
-  }
+ }
 
   SatValue propagate() override;
 
