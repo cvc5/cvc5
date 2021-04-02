@@ -38,6 +38,10 @@ endif()
 # dependencies are not propagated and we need to manually add the include
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
+
+# Note: This should not be required anymore as soon as we get rid of the
+#       smt_engine.h include in src/main. smt_engine.h has transitive includes
+#       of GMP and CLN via sexpr.h and therefore needs GMP/CLN headers.
 if(USE_CLN)
   get_target_property(CLN_INCLUDES CLN INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(main PRIVATE ${CLN_INCLUDES})
