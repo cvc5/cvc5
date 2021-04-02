@@ -130,7 +130,7 @@ jobs:
     #   cache, but only store a new cache if the cmake or CI config changes.
     #
     # All caches are separated by operating system. Both ccache and deps are
-    # additionally deparated by `cache-key`, i.e. the CI job type, because they
+    # additionally separated by `cache-key`, i.e. the CI job type, because they
     # depend on the configured compiler.
 
     - name: Restore Auxiliary Tools
