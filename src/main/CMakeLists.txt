@@ -38,7 +38,6 @@ endif()
 # dependencies are not propagated and we need to manually add the include
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
-target_include_directories(main PRIVATE cvc4)
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit

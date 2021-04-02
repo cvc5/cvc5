@@ -18,6 +18,7 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
