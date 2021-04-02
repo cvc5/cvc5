@@ -58,10 +58,10 @@ namespace signal_handlers {
 
 void print_statistics()
 {
-  if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
+  if (pExecutor != nullptr)
   {
     totalTime.reset();
-    pExecutor->safeFlushStatistics(STDERR_FILENO);
+    pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }
 

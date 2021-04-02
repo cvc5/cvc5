@@ -97,7 +97,7 @@ class Env
   const LogicInfo& getLogicInfo() const;
 
   /** Get a pointer to the StatisticsRegistry. */
-  StatisticsRegistry* getStatisticsRegistry();
+  StatisticsRegistry& getStatisticsRegistry();
 
   /* Option helpers---------------------------------------------------------- */
 

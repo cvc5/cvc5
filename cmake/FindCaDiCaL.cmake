@@ -61,9 +61,12 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     URL_HASH SHA1=9de1176737b74440921ba86395fe5edbb3b131eb
     CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
     # avoid configure script, prepare the makefile manually
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/makefile.in
+            <SOURCE_DIR>/build/makefile
     COMMAND
-      sed -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e "s,@CXXFLAGS@,${CXXFLAGS}," -e
-      "s,@MAKEFLAGS@,," <SOURCE_DIR>/makefile.in > <SOURCE_DIR>/build/makefile
+      sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
+      "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
+      <SOURCE_DIR>/build/makefile
     # use $(MAKE) instead of "make" to allow for parallel builds
     BUILD_COMMAND $(MAKE) -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
