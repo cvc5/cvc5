@@ -203,13 +203,16 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
-  if (Trace.isOn("strings-model"))
+  if (Trace.isOn("strings-debug-model"))
   {
-    Trace("strings-model") << "TheoryStrings : Collect model values"
-                           << std::endl;
-    Trace("strings-model") << "Equivalence classes are:" << std::endl;
-    Trace("strings-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model")
+        << "TheoryStrings::collectModelValues" << std::endl;
+    Trace("strings-debug-model") << "Equivalence classes are:" << std::endl;
+    Trace("strings-debug-model") << debugPrintStringsEqc() << std::endl;
+    Trace("strings-debug-model") << "Extended functions are:" << std::endl;
+    Trace("strings-debug-model") << d_esolver.debugPrintModel() << std::endl;
   }
+  Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes

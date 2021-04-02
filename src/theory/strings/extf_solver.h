@@ -153,6 +153,12 @@ class ExtfSolver
    */
   std::vector<Node> getActive(Kind k) const;
   //---------------------------------- end information about ExtTheory
+  /**
+   * Print the relevant information regarding why we have a model, return as a
+   * string.
+   */
+  std::string debugPrintModel();
+
  private:
   /** do reduction
    *
