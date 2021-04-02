@@ -39,9 +39,9 @@ endif()
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
 target_include_directories(main PRIVATE cvc4)
-target_include_directories(main PRIVATE GMP)
+target_include_directories(main PUBLIC GMP)
 if(USE_CLN)
-  target_include_directories(main PRIVATE CLN)
+  target_include_directories(main PUBLIC CLN)
 endif()
 
 # main-test library is only used for linking against api and unit tests so
