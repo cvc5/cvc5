@@ -34,7 +34,8 @@ std::ostream& operator<<(std::ostream& os, const StatisticBaseValue* sbv)
   sbv->print(os);
   return os;
 }
-bool operator==(const StatisticBaseValue* sbv, const std::string& s) {
+bool operator==(const StatisticBaseValue* sbv, const std::string& s)
+{
   std::stringstream ss;
   ss << sbv;
   return ss.str() == s;
@@ -54,19 +55,22 @@ TEST_F(TestUtilBlackStats, stats)
 
   AverageStat avg = reg.registerAverage("avg");
   avg << 1.0 << 2.0;
-  
+
   HistogramStat<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
   histInt << 15 << 16 << 15 << 14 << 16;
-  
-  HistogramStat<PfRule> histPfRule = reg.registerHistogram<PfRule>("hist-pfrule");
+
+  HistogramStat<PfRule> histPfRule =
+      reg.registerHistogram<PfRule>("hist-pfrule");
   histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
   IntStat intstat = reg.registerInt("int");
   intstat = 5;
   intstat++;
 
-  ReferenceStat<std::string> refStr = reg.registerReference<std::string>("strref1", empty);
-  ReferenceStat<std::string> refStr2 = reg.registerReference<std::string>("strref2", bar);
+  ReferenceStat<std::string> refStr =
+      reg.registerReference<std::string>("strref1", empty);
+  ReferenceStat<std::string> refStr2 =
+      reg.registerReference<std::string>("strref2", bar);
 
   TimerStat timer = reg.registerTimer("timer");
   {

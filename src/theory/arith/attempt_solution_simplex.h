@@ -54,8 +54,8 @@
 
 #pragma once
 
-#include "theory/arith/simplex.h"
 #include "theory/arith/approx_simplex.h"
+#include "theory/arith/simplex.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

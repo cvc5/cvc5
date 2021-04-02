@@ -103,14 +103,15 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   class Statistics {
   private:
-    ReferenceStat<int64_t> d_statStarts, d_statDecisions;
-    ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStat<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStat<int64_t> d_statTotLiterals;
+   ReferenceStat<int64_t> d_statStarts, d_statDecisions;
+   ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
+   ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
+   ReferenceStat<int64_t> d_statLearntsLiterals, d_statMaxLiterals;
+   ReferenceStat<int64_t> d_statTotLiterals;
+
   public:
-    Statistics(StatisticsRegistry& registry);
-    void init(Minisat::SimpSolver* d_minisat);
+   Statistics(StatisticsRegistry& registry);
+   void init(Minisat::SimpSolver* d_minisat);
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 

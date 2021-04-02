@@ -22,15 +22,24 @@ namespace theory {
 namespace quantifiers {
 
 SygusStatistics::SygusStatistics()
-    : d_cegqi_lemmas_ce(smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_ce")),
-      d_cegqi_lemmas_refine(smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_refine")),
-      d_cegqi_si_lemmas(smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_si")),
-      d_solutions(smtStatisticsRegistry().registerInt("SynthConjecture::solutions")),
-      d_filtered_solutions(smtStatisticsRegistry().registerInt("SynthConjecture::filtered_solutions")),
-      d_candidate_rewrites_print(smtStatisticsRegistry().registerInt("SynthConjecture::candidate_rewrites_print")),
-      d_enumTermsRewrite(smtStatisticsRegistry().registerInt("SygusEnumerator::enumTermsRewrite")),
-      d_enumTermsExampleEval(smtStatisticsRegistry().registerInt("SygusEnumerator::enumTermsEvalExamples")),
-      d_enumTerms(smtStatisticsRegistry().registerInt("SygusEnumerator::enumTerms"))
+    : d_cegqi_lemmas_ce(
+        smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_ce")),
+      d_cegqi_lemmas_refine(smtStatisticsRegistry().registerInt(
+          "SynthEngine::cegqi_lemmas_refine")),
+      d_cegqi_si_lemmas(
+          smtStatisticsRegistry().registerInt("SynthEngine::cegqi_lemmas_si")),
+      d_solutions(
+          smtStatisticsRegistry().registerInt("SynthConjecture::solutions")),
+      d_filtered_solutions(smtStatisticsRegistry().registerInt(
+          "SynthConjecture::filtered_solutions")),
+      d_candidate_rewrites_print(smtStatisticsRegistry().registerInt(
+          "SynthConjecture::candidate_rewrites_print")),
+      d_enumTermsRewrite(smtStatisticsRegistry().registerInt(
+          "SygusEnumerator::enumTermsRewrite")),
+      d_enumTermsExampleEval(smtStatisticsRegistry().registerInt(
+          "SygusEnumerator::enumTermsEvalExamples")),
+      d_enumTerms(
+          smtStatisticsRegistry().registerInt("SygusEnumerator::enumTerms"))
 
 {
 }

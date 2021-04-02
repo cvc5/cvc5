@@ -58,7 +58,9 @@ void PreprocessingPass::dumpAssertions(const char* key,
 
 PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
                                      const std::string& name)
-    : d_name(name), d_timer(smtStatisticsRegistry().registerTimer("preprocessing::" + name)) {
+    : d_name(name),
+      d_timer(smtStatisticsRegistry().registerTimer("preprocessing::" + name))
+{
   d_preprocContext = preprocContext;
 }
 

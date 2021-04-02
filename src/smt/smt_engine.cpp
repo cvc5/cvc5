@@ -408,7 +408,8 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 void SmtEngine::notifyStartParsing(const std::string& filename)
 {
   d_state->setFilename(filename);
-  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename", filename);
+  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
+                                                            filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -420,10 +421,12 @@ const std::string& SmtEngine::getFilename() const
 }
 
 void SmtEngine::setResultStatistic(const std::string& result) {
-    d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat", result);
+  d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat",
+                                                            result);
 }
 void SmtEngine::setTotalTimeStatistic(double seconds) {
-  d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime", seconds);
+  d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime",
+                                                       seconds);
 }
 
 void SmtEngine::setLogicInternal()
@@ -511,13 +514,14 @@ cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    for (const auto& s: d_env->getStatisticsRegistry()) {
-        std::stringstream ss;
-        s.second->print(ss);
-        vector<SExpr> v;
-        v.push_back(s.first);
-        v.push_back(ss.str());
-        stats.push_back(v);
+    for (const auto& s : d_env->getStatisticsRegistry())
+    {
+      std::stringstream ss;
+      s.second->print(ss);
+      vector<SExpr> v;
+      v.push_back(s.first);
+      v.push_back(ss.str());
+      stats.push_back(v);
     }
     return SExpr(stats);
   }

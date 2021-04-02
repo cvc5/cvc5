@@ -107,7 +107,8 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
 /* -------------------------------------------------------------------------- */
 
 ITESimp::Statistics::Statistics()
-    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt("preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
+    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
 {
 }
 

@@ -33,8 +33,8 @@ namespace bv {
 typedef std::vector<TNode> ArgsVec;
 
 class AbstractionModule {
-
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
+  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
+      NodeVecMap;
   typedef std::unordered_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
   typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
@@ -43,7 +43,7 @@ class AbstractionModule {
   typedef std::unordered_map<unsigned, Node> IntNodeMap;
   typedef std::unordered_map<unsigned, unsigned> IndexMap;
   typedef std::unordered_map<unsigned, std::vector<Node> > SkolemMap;
-  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
+  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction> SignatureMap;
 
   struct Statistics {
     SizeStat<NodeNodeMap> d_numFunctionsAbstracted;
@@ -196,21 +196,21 @@ class AbstractionModule {
   Statistics d_statistics;
 
 public:
-  AbstractionModule(const std::string& name)
-    : d_argsTable()
-    , d_signatureToFunc()
-    , d_funcToSignature()
-    , d_assertionToSignature()
-    , d_signatures()
-    , d_sigToGeneralization()
-    , d_skolems()
-    , d_signatureIndices()
-    , d_signatureSkolems()
-    , d_addedLemmas()
-    , d_lemmaAtoms()
-    , d_inputAtoms()
-    , d_statistics(name, d_signatureToFunc)
-  {}
+ AbstractionModule(const std::string& name)
+     : d_argsTable(),
+       d_signatureToFunc(),
+       d_funcToSignature(),
+       d_assertionToSignature(),
+       d_signatures(),
+       d_sigToGeneralization(),
+       d_skolems(),
+       d_signatureIndices(),
+       d_signatureSkolems(),
+       d_addedLemmas(),
+       d_lemmaAtoms(),
+       d_inputAtoms(),
+       d_statistics(name, d_signatureToFunc)
+ {}
   /**
    * returns true if there are new uninterepreted functions symbols in the output
    *

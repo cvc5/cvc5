@@ -2270,9 +2270,11 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
   }
 }
 
-QuantConflictFind::Statistics::Statistics():
-  d_inst_rounds(smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
-  d_entailment_checks(smtStatisticsRegistry().registerInt("QuantConflictFind::Entailment_Checks"))
+QuantConflictFind::Statistics::Statistics()
+    : d_inst_rounds(
+        smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(smtStatisticsRegistry().registerInt(
+          "QuantConflictFind::Entailment_Checks"))
 {
 }
 

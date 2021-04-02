@@ -24,13 +24,20 @@ namespace cvc5 {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
-    : conflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::conflicts")),
-      propagations(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::propagations")),
-      lemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::lemmas")),
-      requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::requirePhase")),
-      restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::restartDemands")),
-      trustedConflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::trustedConflicts")),
-      trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory) + "::trustedLemmas"))
+    : conflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                    + "::conflicts")),
+      propagations(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                       + "::propagations")),
+      lemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                 + "::lemmas")),
+      requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                       + "::requirePhase")),
+      restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                         + "::restartDemands")),
+      trustedConflicts(smtStatisticsRegistry().registerInt(
+          getStatsPrefix(theory) + "::trustedConflicts")),
+      trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                        + "::trustedLemmas"))
 {
 }
 

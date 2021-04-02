@@ -124,13 +124,20 @@ void BVSolverLazy::spendResource(ResourceManager::Resource r)
 }
 
 BVSolverLazy::Statistics::Statistics()
-    : d_avgConflictSize(smtStatisticsRegistry().registerAverage("theory::bv::lazy::AvgBVConflictSize")),
-      d_solveSubstitutions(smtStatisticsRegistry().registerInt("theory::bv::lazy::NumSolveSubstitutions")),
-      d_solveTimer(smtStatisticsRegistry().registerTimer("theory::bv::lazy::solveTimer")),
-      d_numCallsToCheckFullEffort(smtStatisticsRegistry().registerInt("theory::bv::lazy::NumFullCheckCalls")),
-      d_numCallsToCheckStandardEffort(smtStatisticsRegistry().registerInt("theory::bv::lazy::NumStandardCheckCalls")),
-      d_weightComputationTimer(smtStatisticsRegistry().registerTimer("theory::bv::lazy::weightComputationTimer")),
-      d_numMultSlice(smtStatisticsRegistry().registerInt("theory::bv::lazy::NumMultSliceApplied"))
+    : d_avgConflictSize(smtStatisticsRegistry().registerAverage(
+        "theory::bv::lazy::AvgBVConflictSize")),
+      d_solveSubstitutions(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumSolveSubstitutions")),
+      d_solveTimer(smtStatisticsRegistry().registerTimer(
+          "theory::bv::lazy::solveTimer")),
+      d_numCallsToCheckFullEffort(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumFullCheckCalls")),
+      d_numCallsToCheckStandardEffort(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumStandardCheckCalls")),
+      d_weightComputationTimer(smtStatisticsRegistry().registerTimer(
+          "theory::bv::lazy::weightComputationTimer")),
+      d_numMultSlice(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumMultSliceApplied"))
 {
 }
 

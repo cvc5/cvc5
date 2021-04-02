@@ -35,10 +35,13 @@ AttemptSolutionSDP::AttemptSolutionSDP(LinearEqualityModule& linEq, ErrorSet& er
   , d_statistics()
 { }
 
-AttemptSolutionSDP::Statistics::Statistics():
-  d_searchTime(smtStatisticsRegistry().registerTimer("theory::arith::attempt::searchTime")),
-  d_queueTime(smtStatisticsRegistry().registerTimer("theory::arith::attempt::queueTime")),
-  d_conflicts(smtStatisticsRegistry().registerInt("theory::arith::attempt::conflicts"))
+AttemptSolutionSDP::Statistics::Statistics()
+    : d_searchTime(smtStatisticsRegistry().registerTimer(
+        "theory::arith::attempt::searchTime")),
+      d_queueTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::attempt::queueTime")),
+      d_conflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::attempt::conflicts"))
 {
 }
 

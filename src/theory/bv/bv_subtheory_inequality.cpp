@@ -247,7 +247,9 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
 }
 
 InequalitySolver::Statistics::Statistics()
-    : d_numCallstoCheck(smtStatisticsRegistry().registerInt("theory::bv::inequality::NumCallsToCheck")),
-      d_solveTime(smtStatisticsRegistry().registerTimer("theory::bv::inequality::SolveTime"))
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::inequality::NumCallsToCheck")),
+      d_solveTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::inequality::SolveTime"))
 {
 }

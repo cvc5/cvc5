@@ -20,7 +20,9 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-BagsStatistics::BagsStatistics() : d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>("theory::bags::rewrites"))
+BagsStatistics::BagsStatistics()
+    : d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>(
+        "theory::bags::rewrites"))
 {
 }
 

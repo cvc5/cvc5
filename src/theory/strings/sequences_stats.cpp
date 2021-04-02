@@ -21,17 +21,28 @@ namespace theory {
 namespace strings {
 
 SequencesStatistics::SequencesStatistics()
-    : d_checkRuns(smtStatisticsRegistry().registerInt("theory::strings::checkRuns")),
-      d_strategyRuns(smtStatisticsRegistry().registerInt("theory::strings::strategyRuns")),
-      d_inferencesNoPf(smtStatisticsRegistry().registerHistogram<InferenceId>("theory::strings::inferencesNoPf")),
-      d_cdSimplifications(smtStatisticsRegistry().registerHistogram<Kind>("theory::strings::cdSimplifications")),
-      d_reductions(smtStatisticsRegistry().registerHistogram<Kind>("theory::strings::reductions")),
-      d_regexpUnfoldingsPos(smtStatisticsRegistry().registerHistogram<Kind>("theory::strings::regexpUnfoldingsPos")),
-      d_regexpUnfoldingsNeg(smtStatisticsRegistry().registerHistogram<Kind>("theory::strings::regexpUnfoldingsNeg")),
-      d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>("theory::strings::rewrites")),
-      d_conflictsEqEngine(smtStatisticsRegistry().registerInt("theory::strings::conflictsEqEngine")),
-      d_conflictsEager(smtStatisticsRegistry().registerInt("theory::strings::conflictsEager")),
-      d_conflictsInfer(smtStatisticsRegistry().registerInt("theory::strings::conflictsInfer"))
+    : d_checkRuns(
+        smtStatisticsRegistry().registerInt("theory::strings::checkRuns")),
+      d_strategyRuns(
+          smtStatisticsRegistry().registerInt("theory::strings::strategyRuns")),
+      d_inferencesNoPf(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          "theory::strings::inferencesNoPf")),
+      d_cdSimplifications(smtStatisticsRegistry().registerHistogram<Kind>(
+          "theory::strings::cdSimplifications")),
+      d_reductions(smtStatisticsRegistry().registerHistogram<Kind>(
+          "theory::strings::reductions")),
+      d_regexpUnfoldingsPos(smtStatisticsRegistry().registerHistogram<Kind>(
+          "theory::strings::regexpUnfoldingsPos")),
+      d_regexpUnfoldingsNeg(smtStatisticsRegistry().registerHistogram<Kind>(
+          "theory::strings::regexpUnfoldingsNeg")),
+      d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>(
+          "theory::strings::rewrites")),
+      d_conflictsEqEngine(smtStatisticsRegistry().registerInt(
+          "theory::strings::conflictsEqEngine")),
+      d_conflictsEager(smtStatisticsRegistry().registerInt(
+          "theory::strings::conflictsEager")),
+      d_conflictsInfer(smtStatisticsRegistry().registerInt(
+          "theory::strings::conflictsInfer"))
 {
 }
 

@@ -2269,7 +2269,8 @@ struct CVC4_EXPORT RoundingModeHashFunction
  */
 class Stat
 {
- struct StatData;
+  struct StatData;
+
  public:
   friend class Statistics;
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
@@ -2327,7 +2328,7 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv);
 class Statistics
 {
  public:
- friend Solver;
+  friend Solver;
   using BaseType = std::map<std::string, Stat>;
 
   /** Custom iterator to hide expert statistics from regular iteration */
@@ -2345,7 +2346,10 @@ class Statistics
     bool operator!=(const iterator& rhs) const;
 
    private:
-    iterator(BaseType::const_iterator it, const BaseType& base, bool expert, bool unset);
+    iterator(BaseType::const_iterator it,
+             const BaseType& base,
+             bool expert,
+             bool unset);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
@@ -2362,7 +2366,7 @@ class Statistics
    * With `expert` set to true, expert statistics are shown as well.
    * With `unset` set to true, unset statistics are shown as well. They should
    * never hold a value (i.e. `hasValue() == false`).
-  */
+   */
   iterator begin(bool expert = false, bool unset = false) const;
   /** end iteration */
   iterator end() const;

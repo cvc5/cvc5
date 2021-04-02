@@ -43,20 +43,34 @@ SumOfInfeasibilitiesSPD::SumOfInfeasibilitiesSPD(LinearEqualityModule& linEq, Er
   , d_statistics(d_pivots)
 { }
 
-SumOfInfeasibilitiesSPD::Statistics::Statistics(uint32_t& pivots):
-  d_initialSignalsTime(smtStatisticsRegistry().registerTimer("theory::arith::SOI::initialProcessTime")),
-  d_initialConflicts(smtStatisticsRegistry().registerInt("theory::arith::SOI::UpdateConflicts")),
-  d_soiFoundUnsat(smtStatisticsRegistry().registerInt("theory::arith::SOI::FoundUnsat")),
-  d_soiFoundSat(smtStatisticsRegistry().registerInt("theory::arith::SOI::FoundSat")),
-  d_soiMissed(smtStatisticsRegistry().registerInt("theory::arith::SOI::Missed")),
-  d_soiConflicts(smtStatisticsRegistry().registerInt("theory::arith::SOI::ConfMin::num")),
-  d_hasToBeMinimal(smtStatisticsRegistry().registerInt("theory::arith::SOI::HasToBeMin")),
-  d_maybeNotMinimal(smtStatisticsRegistry().registerInt("theory::arith::SOI::MaybeNotMin")),
-  d_soiTimer(smtStatisticsRegistry().registerTimer("theory::arith::SOI::Time")),
-  d_soiFocusConstructionTimer(smtStatisticsRegistry().registerTimer("theory::arith::SOI::Construction")),
-  d_soiConflictMinimization(smtStatisticsRegistry().registerTimer("theory::arith::SOI::Conflict::Minimization")),
-  d_selectUpdateForSOI(smtStatisticsRegistry().registerTimer("theory::arith::SOI::selectSOI")),
-  d_finalCheckPivotCounter(smtStatisticsRegistry().registerReference<uint32_t>("theory::arith::SOI::lastPivots", pivots))
+SumOfInfeasibilitiesSPD::Statistics::Statistics(uint32_t& pivots)
+    : d_initialSignalsTime(smtStatisticsRegistry().registerTimer(
+        "theory::arith::SOI::initialProcessTime")),
+      d_initialConflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::SOI::UpdateConflicts")),
+      d_soiFoundUnsat(smtStatisticsRegistry().registerInt(
+          "theory::arith::SOI::FoundUnsat")),
+      d_soiFoundSat(
+          smtStatisticsRegistry().registerInt("theory::arith::SOI::FoundSat")),
+      d_soiMissed(
+          smtStatisticsRegistry().registerInt("theory::arith::SOI::Missed")),
+      d_soiConflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::SOI::ConfMin::num")),
+      d_hasToBeMinimal(smtStatisticsRegistry().registerInt(
+          "theory::arith::SOI::HasToBeMin")),
+      d_maybeNotMinimal(smtStatisticsRegistry().registerInt(
+          "theory::arith::SOI::MaybeNotMin")),
+      d_soiTimer(
+          smtStatisticsRegistry().registerTimer("theory::arith::SOI::Time")),
+      d_soiFocusConstructionTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::SOI::Construction")),
+      d_soiConflictMinimization(smtStatisticsRegistry().registerTimer(
+          "theory::arith::SOI::Conflict::Minimization")),
+      d_selectUpdateForSOI(smtStatisticsRegistry().registerTimer(
+          "theory::arith::SOI::selectSOI")),
+      d_finalCheckPivotCounter(
+          smtStatisticsRegistry().registerReference<uint32_t>(
+              "theory::arith::SOI::lastPivots", pivots))
 {
 }
 

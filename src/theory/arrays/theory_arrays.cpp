@@ -63,11 +63,16 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            ProofNodeManager* pnm,
                            std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
-      d_numRow(smtStatisticsRegistry().registerInt(name + "theory::arrays::number of Row lemmas")),
-      d_numExt(smtStatisticsRegistry().registerInt(name + "theory::arrays::number of Ext lemmas")),
-      d_numProp(smtStatisticsRegistry().registerInt(name + "theory::arrays::number of propagations")),
-      d_numExplain(smtStatisticsRegistry().registerInt(name + "theory::arrays::number of explanations")),
-      d_numNonLinear(smtStatisticsRegistry().registerInt(name + "theory::arrays::number of calls to setNonLinear")),
+      d_numRow(smtStatisticsRegistry().registerInt(
+          name + "theory::arrays::number of Row lemmas")),
+      d_numExt(smtStatisticsRegistry().registerInt(
+          name + "theory::arrays::number of Ext lemmas")),
+      d_numProp(smtStatisticsRegistry().registerInt(
+          name + "theory::arrays::number of propagations")),
+      d_numExplain(smtStatisticsRegistry().registerInt(
+          name + "theory::arrays::number of explanations")),
+      d_numNonLinear(smtStatisticsRegistry().registerInt(
+          name + "theory::arrays::number of calls to setNonLinear")),
       d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
           name + "theory::arrays::number of shared array var splits")),
       d_numGetModelValSplits(smtStatisticsRegistry().registerInt(

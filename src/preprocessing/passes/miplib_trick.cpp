@@ -654,7 +654,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
 MipLibTrick::Statistics::Statistics()
     : d_numMiplibAssertionsRemoved(smtStatisticsRegistry().registerInt(
-          "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
+        "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
 }
 

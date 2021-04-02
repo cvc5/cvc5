@@ -1002,9 +1002,11 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics():
-  d_unatePropagateCalls(smtStatisticsRegistry().registerInt("theory::arith::cd::unatePropagateCalls")),
-  d_unatePropagateImplications(smtStatisticsRegistry().registerInt("theory::arith::cd::unatePropagateImplications"))
+ConstraintDatabase::Statistics::Statistics()
+    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
+        "theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
+          "theory::arith::cd::unatePropagateImplications"))
 {
 }
 

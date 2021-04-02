@@ -49,13 +49,18 @@ DioSolver::DioSolver(context::Context* ctxt)
       d_pureSubstitionIter(ctxt, 0),
       d_decompositionLemmaQueue(ctxt) {}
 
-DioSolver::Statistics::Statistics() :
-  d_conflictCalls(smtStatisticsRegistry().registerInt("theory::arith::dio::conflictCalls")),
-  d_cutCalls(smtStatisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
-  d_cuts(smtStatisticsRegistry().registerInt("theory::arith::dio::cuts")),
-  d_conflicts(smtStatisticsRegistry().registerInt("theory::arith::dio::conflicts")),
-  d_conflictTimer(smtStatisticsRegistry().registerTimer("theory::arith::dio::conflictTimer")),
-  d_cutTimer(smtStatisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
+DioSolver::Statistics::Statistics()
+    : d_conflictCalls(smtStatisticsRegistry().registerInt(
+        "theory::arith::dio::conflictCalls")),
+      d_cutCalls(
+          smtStatisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
+      d_cuts(smtStatisticsRegistry().registerInt("theory::arith::dio::cuts")),
+      d_conflicts(
+          smtStatisticsRegistry().registerInt("theory::arith::dio::conflicts")),
+      d_conflictTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::dio::conflictTimer")),
+      d_cutTimer(
+          smtStatisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
 {
 }
 

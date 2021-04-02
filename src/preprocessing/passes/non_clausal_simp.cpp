@@ -41,7 +41,7 @@ namespace passes {
 
 NonClausalSimp::Statistics::Statistics()
     : d_numConstantProps(smtStatisticsRegistry().registerInt(
-          "preprocessing::passes::NonClausalSimp::NumConstantProps"))
+        "preprocessing::passes::NonClausalSimp::NumConstantProps"))
 {
 }
 

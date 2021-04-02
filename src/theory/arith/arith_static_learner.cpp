@@ -44,9 +44,11 @@ ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
 ArithStaticLearner::~ArithStaticLearner(){
 }
 
-ArithStaticLearner::Statistics::Statistics():
-  d_iteMinMaxApplications(smtStatisticsRegistry().registerInt("theory::arith::iteMinMaxApplications")),
-  d_iteConstantApplications(smtStatisticsRegistry().registerInt("theory::arith::iteConstantApplications"))
+ArithStaticLearner::Statistics::Statistics()
+    : d_iteMinMaxApplications(smtStatisticsRegistry().registerInt(
+        "theory::arith::iteMinMaxApplications")),
+      d_iteConstantApplications(smtStatisticsRegistry().registerInt(
+          "theory::arith::iteConstantApplications"))
 {
 }
 

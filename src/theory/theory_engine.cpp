@@ -218,10 +218,9 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_outMgr(outMgr),
       d_pnm(pnm),
       d_lazyProof(
-          d_pnm != nullptr
-              ? new LazyCDProof(
-                    d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
-              : nullptr),
+          d_pnm != nullptr ? new LazyCDProof(
+              d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
+                           : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
@@ -238,7 +237,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_combineTheoriesTime(smtStatisticsRegistry().registerTimer("TheoryEngine::combineTheoriesTime")),
+      d_combineTheoriesTime(smtStatisticsRegistry().registerTimer(
+          "TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
       d_interrupted(false),

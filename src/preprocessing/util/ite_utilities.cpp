@@ -311,7 +311,8 @@ void ITECompressor::reset()
 void ITECompressor::garbageCollect() { reset(); }
 
 ITECompressor::Statistics::Statistics()
-    : d_compressCalls(smtStatisticsRegistry().registerInt("ite-simp::compressCalls")),
+    : d_compressCalls(
+        smtStatisticsRegistry().registerInt("ite-simp::compressCalls")),
       d_skolemsAdded(smtStatisticsRegistry().registerInt("ite-simp::skolems"))
 {
 }
@@ -700,14 +701,21 @@ bool ITESimplifier::doneALotOfWorkHeuristic() const
 }
 
 ITESimplifier::Statistics::Statistics()
-    : d_maxNonConstantsFolded(smtStatisticsRegistry().registerInt("ite-simp::maxNonConstantsFolded")),
+    : d_maxNonConstantsFolded(
+        smtStatisticsRegistry().registerInt("ite-simp::maxNonConstantsFolded")),
       d_unexpected(smtStatisticsRegistry().registerInt("ite-simp::unexpected")),
-      d_unsimplified(smtStatisticsRegistry().registerInt("ite-simp::unsimplified")),
-      d_exactMatchFold(smtStatisticsRegistry().registerInt("ite-simp::exactMatchFold")),
-      d_binaryPredFold(smtStatisticsRegistry().registerInt("ite-simp::binaryPredFold")),
-      d_specialEqualityFolds(smtStatisticsRegistry().registerInt("ite-simp::specialEqualityFolds")),
-      d_simpITEVisits(smtStatisticsRegistry().registerInt("ite-simp::simpITE.visits")),
-      d_inSmaller(smtStatisticsRegistry().registerHistogram<uint32_t>("ite-simp::inSmaller"))
+      d_unsimplified(
+          smtStatisticsRegistry().registerInt("ite-simp::unsimplified")),
+      d_exactMatchFold(
+          smtStatisticsRegistry().registerInt("ite-simp::exactMatchFold")),
+      d_binaryPredFold(
+          smtStatisticsRegistry().registerInt("ite-simp::binaryPredFold")),
+      d_specialEqualityFolds(smtStatisticsRegistry().registerInt(
+          "ite-simp::specialEqualityFolds")),
+      d_simpITEVisits(
+          smtStatisticsRegistry().registerInt("ite-simp::simpITE.visits")),
+      d_inSmaller(smtStatisticsRegistry().registerHistogram<uint32_t>(
+          "ite-simp::inSmaller"))
 {
 }
 

@@ -1084,9 +1084,15 @@ AbstractionModule::ArgsTableEntry& AbstractionModule::ArgsTable::getEntry(TNode 
   return d_data.find(signature)->second;
 }
 
-AbstractionModule::Statistics::Statistics(const std::string& name, const NodeNodeMap& functionsAbstracted)
-    : d_numFunctionsAbstracted(smtStatisticsRegistry().registerSize<NodeNodeMap>(name + "::abstraction::NumFunctionsAbstracted", functionsAbstracted)),
-      d_numArgsSkolemized(smtStatisticsRegistry().registerInt(name + "::abstraction::NumArgsSkolemized")),
-      d_abstractionTime(smtStatisticsRegistry().registerTimer(name + "::abstraction::AbstractionTime"))
+AbstractionModule::Statistics::Statistics(
+    const std::string& name, const NodeNodeMap& functionsAbstracted)
+    : d_numFunctionsAbstracted(
+        smtStatisticsRegistry().registerSize<NodeNodeMap>(
+            name + "::abstraction::NumFunctionsAbstracted",
+            functionsAbstracted)),
+      d_numArgsSkolemized(smtStatisticsRegistry().registerInt(
+          name + "::abstraction::NumArgsSkolemized")),
+      d_abstractionTime(smtStatisticsRegistry().registerTimer(
+          name + "::abstraction::AbstractionTime"))
 {
 }

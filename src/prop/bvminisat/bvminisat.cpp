@@ -23,14 +23,16 @@
 namespace cvc5 {
 namespace prop {
 
-BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry& registry, context::Context* mainSatContext, const std::string& name)
-: context::ContextNotifyObj(mainSatContext, false),
-  d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
-  d_minisatNotify(nullptr),
-  d_assertionsCount(0),
-  d_assertionsRealCount(mainSatContext, 0),
-  d_lastPropagation(mainSatContext, 0),
-  d_statistics(registry, name)
+BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry& registry,
+                                       context::Context* mainSatContext,
+                                       const std::string& name)
+    : context::ContextNotifyObj(mainSatContext, false),
+      d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
+      d_minisatNotify(nullptr),
+      d_assertionsCount(0),
+      d_assertionsRealCount(mainSatContext, 0),
+      d_lastPropagation(mainSatContext, 0),
+      d_statistics(registry, name)
 {
   d_statistics.init(d_minisat.get());
 }
@@ -228,18 +230,30 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
 
 BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                            const std::string& prefix)
-    : d_statStarts(registry.registerReference<int64_t>(prefix + "::bvminisat::starts")),
-      d_statDecisions(registry.registerReference<int64_t>(prefix + "::bvminisat::decisions")),
-      d_statRndDecisions(registry.registerReference<int64_t>(prefix + "::bvminisat::rnd_decisions")),
-      d_statPropagations(registry.registerReference<int64_t>(prefix + "::bvminisat::propagations")),
-      d_statConflicts(registry.registerReference<int64_t>(prefix + "::bvminisat::conflicts")),
-      d_statClausesLiterals(registry.registerReference<int64_t>(prefix + "::bvminisat::clauses_literals")),
-      d_statLearntsLiterals(registry.registerReference<int64_t>(prefix + "::bvminisat::learnts_literals")),
-      d_statMaxLiterals(registry.registerReference<int64_t>(prefix + "::bvminisat::max_literals")),
-      d_statTotLiterals(registry.registerReference<int64_t>(prefix + "::bvminisat::tot_literals")),
-      d_statEliminatedVars(registry.registerReference<int64_t>(prefix + "::bvminisat::eliminated_vars")),
-      d_statCallsToSolve(registry.registerInt(prefix + "::bvminisat::calls_to_solve")),
-      d_statSolveTime(registry.registerTimer(prefix + "::bvminisat::solve_time"))
+    : d_statStarts(
+        registry.registerReference<int64_t>(prefix + "::bvminisat::starts")),
+      d_statDecisions(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::decisions")),
+      d_statRndDecisions(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::rnd_decisions")),
+      d_statPropagations(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::propagations")),
+      d_statConflicts(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::conflicts")),
+      d_statClausesLiterals(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::clauses_literals")),
+      d_statLearntsLiterals(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::learnts_literals")),
+      d_statMaxLiterals(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::max_literals")),
+      d_statTotLiterals(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::tot_literals")),
+      d_statEliminatedVars(registry.registerReference<int64_t>(
+          prefix + "::bvminisat::eliminated_vars")),
+      d_statCallsToSolve(
+          registry.registerInt(prefix + "::bvminisat::calls_to_solve")),
+      d_statSolveTime(
+          registry.registerTimer(prefix + "::bvminisat::solve_time"))
 {
   if (!d_registerStats)
   {

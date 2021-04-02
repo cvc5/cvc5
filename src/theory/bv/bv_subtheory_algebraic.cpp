@@ -751,14 +751,22 @@ Node AlgebraicSolver::getModelValue(TNode node) {
 }
 
 AlgebraicSolver::Statistics::Statistics()
-  : d_numCallstoCheck(smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumCallsToCheck"))
-  , d_numSimplifiesToTrue(smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumSimplifiesToTrue"))
-  , d_numSimplifiesToFalse(smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumSimplifiesToFalse"))
-  , d_numUnsat(smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumUnsat"))
-  , d_numSat(smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumSat"))
-  , d_numUnknown(smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumUnknown"))
-  , d_solveTime(smtStatisticsRegistry().registerTimer("theory::bv::algebraic::SolveTime"))
-  , d_useHeuristic(smtStatisticsRegistry().registerValue<double>("theory::bv::algebraic::UseHeuristic", 0.2))
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::algebraic::NumCallsToCheck")),
+      d_numSimplifiesToTrue(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumSimplifiesToTrue")),
+      d_numSimplifiesToFalse(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumSimplifiesToFalse")),
+      d_numUnsat(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumUnsat")),
+      d_numSat(
+          smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumSat")),
+      d_numUnknown(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumUnknown")),
+      d_solveTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::algebraic::SolveTime")),
+      d_useHeuristic(smtStatisticsRegistry().registerValue<double>(
+          "theory::bv::algebraic::UseHeuristic", 0.2))
 {
 }
 

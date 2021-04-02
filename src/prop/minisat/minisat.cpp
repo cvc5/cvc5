@@ -20,9 +20,9 @@
 #include "options/decision_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
-#include "prop/minisat/simp/SimpSolver.h"
 #include "proof/clause_id.h"
 #include "proof/sat_proof.h"
+#include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -30,10 +30,8 @@ namespace prop {
 
 //// DPllMinisatSatSolver
 
-MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry) :
-  d_minisat(NULL),
-  d_context(NULL),
-  d_statistics(registry)
+MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry)
+    : d_minisat(NULL), d_context(NULL), d_statistics(registry)
 {}
 
 MinisatSatSolver::~MinisatSatSolver()
@@ -253,16 +251,22 @@ void MinisatSatSolver::resetTrail() { d_minisat->resetTrail(); }
 
 /// Statistics for MinisatSatSolver
 
-MinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry) :
-    d_statStarts(registry.registerReference<int64_t>("sat::starts")),
-    d_statDecisions(registry.registerReference<int64_t>("sat::decisions")),
-    d_statRndDecisions(registry.registerReference<int64_t>("sat::rnd_decisions")),
-    d_statPropagations(registry.registerReference<int64_t>("sat::propagations")),
-    d_statConflicts(registry.registerReference<int64_t>("sat::conflicts")),
-    d_statClausesLiterals(registry.registerReference<int64_t>("sat::clauses_literals")),
-    d_statLearntsLiterals(registry.registerReference<int64_t>("sat::learnts_literals")),
-    d_statMaxLiterals(registry.registerReference<int64_t>("sat::max_literals")),
-    d_statTotLiterals(registry.registerReference<int64_t>("sat::tot_literals"))
+MinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry)
+    : d_statStarts(registry.registerReference<int64_t>("sat::starts")),
+      d_statDecisions(registry.registerReference<int64_t>("sat::decisions")),
+      d_statRndDecisions(
+          registry.registerReference<int64_t>("sat::rnd_decisions")),
+      d_statPropagations(
+          registry.registerReference<int64_t>("sat::propagations")),
+      d_statConflicts(registry.registerReference<int64_t>("sat::conflicts")),
+      d_statClausesLiterals(
+          registry.registerReference<int64_t>("sat::clauses_literals")),
+      d_statLearntsLiterals(
+          registry.registerReference<int64_t>("sat::learnts_literals")),
+      d_statMaxLiterals(
+          registry.registerReference<int64_t>("sat::max_literals")),
+      d_statTotLiterals(
+          registry.registerReference<int64_t>("sat::tot_literals"))
 {
 }
 

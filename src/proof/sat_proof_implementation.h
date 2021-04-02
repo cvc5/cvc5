@@ -1009,15 +1009,23 @@ void TSatProof<Solver>::storeClauseGlue(ClauseId clause, int glue) {
 
 template <class Solver>
 TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
-    : d_numLearnedClauses(smtStatisticsRegistry().registerInt("satproof::" + prefix + "::NumLearnedClauses")),
-      d_numLearnedInProof(smtStatisticsRegistry().registerInt("satproof::" + prefix + "::NumLearnedInProof")),
-      d_numLemmasInProof(smtStatisticsRegistry().registerInt("satproof::" + prefix + "::NumLemmasInProof")),
-      d_avgChainLength(smtStatisticsRegistry().registerAverage("satproof::" + prefix + "::AvgResChainLength")),
-      d_resChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix + "::ResChainLengthsHist")),
-      d_usedResChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix +
-                            "::UsedResChainLengthsHist")),
-      d_clauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix + "::ClauseGlueHist")),
-      d_usedClauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix + "::UsedClauseGlueHist")) {
+    : d_numLearnedClauses(smtStatisticsRegistry().registerInt(
+        "satproof::" + prefix + "::NumLearnedClauses")),
+      d_numLearnedInProof(smtStatisticsRegistry().registerInt(
+          "satproof::" + prefix + "::NumLearnedInProof")),
+      d_numLemmasInProof(smtStatisticsRegistry().registerInt(
+          "satproof::" + prefix + "::NumLemmasInProof")),
+      d_avgChainLength(smtStatisticsRegistry().registerAverage(
+          "satproof::" + prefix + "::AvgResChainLength")),
+      d_resChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>(
+          "satproof::" + prefix + "::ResChainLengthsHist")),
+      d_usedResChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>(
+          "satproof::" + prefix + "::UsedResChainLengthsHist")),
+      d_clauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>(
+          "satproof::" + prefix + "::ClauseGlueHist")),
+      d_usedClauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>(
+          "satproof::" + prefix + "::UsedClauseGlueHist"))
+{
 }
 
 inline std::ostream& operator<<(std::ostream& out, cvc5::ClauseKind k)

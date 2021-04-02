@@ -36,13 +36,20 @@ DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(LinearEqualityModule&
   , d_statistics(d_pivots)
 { }
 
-DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots):
-  d_statUpdateConflicts(smtStatisticsRegistry().registerInt("theory::arith::dual::UpdateConflicts")),
-  d_processSignalsTime(smtStatisticsRegistry().registerTimer("theory::arith::dual::findConflictOnTheQueueTime")),
-  d_simplexConflicts(smtStatisticsRegistry().registerInt("theory::arith::dual::simplexConflicts")),
-  d_recentViolationCatches(smtStatisticsRegistry().registerInt("theory::arith::dual::recentViolationCatches")),
-  d_searchTime(smtStatisticsRegistry().registerTimer("theory::arith::dual::searchTime")),
-  d_finalCheckPivotCounter(smtStatisticsRegistry().registerReference<uint32_t>("theory::arith::dual::lastPivots", pivots))
+DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
+    : d_statUpdateConflicts(smtStatisticsRegistry().registerInt(
+        "theory::arith::dual::UpdateConflicts")),
+      d_processSignalsTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::dual::findConflictOnTheQueueTime")),
+      d_simplexConflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::dual::simplexConflicts")),
+      d_recentViolationCatches(smtStatisticsRegistry().registerInt(
+          "theory::arith::dual::recentViolationCatches")),
+      d_searchTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::dual::searchTime")),
+      d_finalCheckPivotCounter(
+          smtStatisticsRegistry().registerReference<uint32_t>(
+              "theory::arith::dual::lastPivots", pivots))
 {
 }
 

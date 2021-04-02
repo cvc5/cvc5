@@ -89,14 +89,21 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee,
   d_pfee = pfee;
 }
 
-ArithCongruenceManager::Statistics::Statistics():
-  d_watchedVariables(smtStatisticsRegistry().registerInt("theory::arith::congruence::watchedVariables")),
-  d_watchedVariableIsZero(smtStatisticsRegistry().registerInt("theory::arith::congruence::watchedVariableIsZero")),
-  d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt("theory::arith::congruence::watchedVariableIsNotZero")),
-  d_equalsConstantCalls(smtStatisticsRegistry().registerInt("theory::arith::congruence::equalsConstantCalls")),
-  d_propagations(smtStatisticsRegistry().registerInt("theory::arith::congruence::propagations")),
-  d_propagateConstraints(smtStatisticsRegistry().registerInt("theory::arith::congruence::propagateConstraints")),
-  d_conflicts(smtStatisticsRegistry().registerInt("theory::arith::congruence::conflicts"))
+ArithCongruenceManager::Statistics::Statistics()
+    : d_watchedVariables(smtStatisticsRegistry().registerInt(
+        "theory::arith::congruence::watchedVariables")),
+      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::watchedVariableIsZero")),
+      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::watchedVariableIsNotZero")),
+      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::equalsConstantCalls")),
+      d_propagations(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::propagations")),
+      d_propagateConstraints(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::propagateConstraints")),
+      d_conflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::conflicts"))
 {
 }
 

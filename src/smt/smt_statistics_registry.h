@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "util/statistics_stats.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 

@@ -42,17 +42,28 @@ FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(LinearEqualityModule& lin
   , d_statistics(d_pivots)
 { }
 
-FCSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots):
-  d_initialSignalsTime(smtStatisticsRegistry().registerTimer("theory::arith::FC::initialProcessTime")),
-  d_initialConflicts(smtStatisticsRegistry().registerInt("theory::arith::FC::UpdateConflicts")),
-  d_fcFoundUnsat(smtStatisticsRegistry().registerInt("theory::arith::FC::FoundUnsat")),
-  d_fcFoundSat(smtStatisticsRegistry().registerInt("theory::arith::FC::FoundSat")),
-  d_fcMissed(smtStatisticsRegistry().registerInt("theory::arith::FC::Missed")),
-  d_fcTimer(smtStatisticsRegistry().registerTimer("theory::arith::FC::Timer")),
-  d_fcFocusConstructionTimer(smtStatisticsRegistry().registerTimer("theory::arith::FC::Construction")),
-  d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer("theory::arith::FC::selectUpdateForDualLike")),
-  d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer("theory::arith::FC::selectUpdateForPrimal")),
-  d_finalCheckPivotCounter(smtStatisticsRegistry().registerReference<uint32_t>("theory::arith::FC::lastPivots", pivots))
+FCSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
+    : d_initialSignalsTime(smtStatisticsRegistry().registerTimer(
+        "theory::arith::FC::initialProcessTime")),
+      d_initialConflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::FC::UpdateConflicts")),
+      d_fcFoundUnsat(
+          smtStatisticsRegistry().registerInt("theory::arith::FC::FoundUnsat")),
+      d_fcFoundSat(
+          smtStatisticsRegistry().registerInt("theory::arith::FC::FoundSat")),
+      d_fcMissed(
+          smtStatisticsRegistry().registerInt("theory::arith::FC::Missed")),
+      d_fcTimer(
+          smtStatisticsRegistry().registerTimer("theory::arith::FC::Timer")),
+      d_fcFocusConstructionTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::FC::Construction")),
+      d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer(
+          "theory::arith::FC::selectUpdateForDualLike")),
+      d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer(
+          "theory::arith::FC::selectUpdateForPrimal")),
+      d_finalCheckPivotCounter(
+          smtStatisticsRegistry().registerReference<uint32_t>(
+              "theory::arith::FC::lastPivots", pivots))
 {
 }
 

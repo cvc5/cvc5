@@ -36,7 +36,8 @@ using namespace cvc5::theory;
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
-      d_numUnconstrainedElim(smtStatisticsRegistry().registerInt("preprocessor::number of unconstrained elims")),
+      d_numUnconstrainedElim(smtStatisticsRegistry().registerInt(
+          "preprocessor::number of unconstrained elims")),
       d_context(preprocContext->getDecisionContext()),
       d_substitutions(preprocContext->getDecisionContext())
 {

@@ -363,14 +363,21 @@ void TLazyBitblaster::getConflict(std::vector<TNode>& conflict)
   }
 }
 
-TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
-  d_numTermClauses(smtStatisticsRegistry().registerInt(prefix + "::NumTermSatClauses")),
-  d_numAtomClauses(smtStatisticsRegistry().registerInt(prefix + "::NumAtomSatClauses")),
-  d_numTerms(smtStatisticsRegistry().registerInt(prefix + "::NumBitblastedTerms")),
-  d_numAtoms(smtStatisticsRegistry().registerInt(prefix + "::NumBitblastedAtoms")),
-  d_numExplainedPropagations(smtStatisticsRegistry().registerInt(prefix + "::NumExplainedPropagations")),
-  d_numBitblastingPropagations(smtStatisticsRegistry().registerInt(prefix + "::NumBitblastingPropagations")),
-  d_bitblastTimer(smtStatisticsRegistry().registerTimer(prefix + "::BitblastTimer"))
+TLazyBitblaster::Statistics::Statistics(const std::string& prefix)
+    : d_numTermClauses(
+        smtStatisticsRegistry().registerInt(prefix + "::NumTermSatClauses")),
+      d_numAtomClauses(
+          smtStatisticsRegistry().registerInt(prefix + "::NumAtomSatClauses")),
+      d_numTerms(
+          smtStatisticsRegistry().registerInt(prefix + "::NumBitblastedTerms")),
+      d_numAtoms(
+          smtStatisticsRegistry().registerInt(prefix + "::NumBitblastedAtoms")),
+      d_numExplainedPropagations(smtStatisticsRegistry().registerInt(
+          prefix + "::NumExplainedPropagations")),
+      d_numBitblastingPropagations(smtStatisticsRegistry().registerInt(
+          prefix + "::NumBitblastingPropagations")),
+      d_bitblastTimer(
+          smtStatisticsRegistry().registerTimer(prefix + "::BitblastTimer"))
 {
 }
 

@@ -393,9 +393,12 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 }
 
 BoolToBV::Statistics::Statistics()
-    : d_numIteToBvite(smtStatisticsRegistry().registerInt("preprocessing::passes::BoolToBV::NumIteToBvite")),
-      d_numTermsLowered(smtStatisticsRegistry().registerInt("preprocessing::passes:BoolToBV::NumTermsLowered")),
-      d_numIntroducedItes(smtStatisticsRegistry().registerInt("preprocessing::passes::BoolToBV::NumTermsForcedLowered"))
+    : d_numIteToBvite(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::BoolToBV::NumIteToBvite")),
+      d_numTermsLowered(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes:BoolToBV::NumTermsLowered")),
+      d_numIntroducedItes(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes::BoolToBV::NumTermsForcedLowered"))
 {
 }
 

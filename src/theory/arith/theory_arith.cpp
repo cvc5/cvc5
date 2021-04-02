@@ -44,7 +44,8 @@ TheoryArith::TheoryArith(context::Context* c,
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
-      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer("theory::arith::ppRewriteTimer")),
+      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::ppRewriteTimer")),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
       d_im(*this, d_astate, pnm),

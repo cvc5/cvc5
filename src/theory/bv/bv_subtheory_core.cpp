@@ -484,7 +484,8 @@ void CoreSolver::addTermToEqualityEngine(TNode node)
 }
 
 CoreSolver::Statistics::Statistics()
-  : d_numCallstoCheck(smtStatisticsRegistry().registerInt("theory::bv::CoreSolver::NumCallsToCheck"))
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::CoreSolver::NumCallsToCheck"))
 {
 }
 

@@ -55,7 +55,7 @@ struct StatisticBaseValue;
  * ones are printed as well if `--all-statistics` is set.
  * All registration methods have a trailing argument `expert`, defaulting to
  * true.
- * 
+ *
  * If statistics are disabled entirely (i.e. the cmake option
  * `ENABLE_STATISTICS` is not set), the registry still issues proxy objects
  * that can be used normally.
@@ -131,8 +131,7 @@ class StatisticsRegistry
 
   /** Register a new value statistic for `name`. */
   template <typename T>
-  ValueStat<T> registerValue(const std::string& name,
-                             bool expert = true)
+  ValueStat<T> registerValue(const std::string& name, bool expert = true)
   {
     return registerStat<ValueStat<T>>(name, expert);
   }

@@ -28,7 +28,8 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::UserContext* userContext,
                                          ProofNodeManager* pnm)
     : ContextNotifyObj(context),
-      d_statSharedTerms(smtStatisticsRegistry().registerInt("theory::shared_terms")),
+      d_statSharedTerms(
+          smtStatisticsRegistry().registerInt("theory::shared_terms")),
       d_addedSharedTermsSize(context, 0),
       d_termsToTheories(context),
       d_alreadyNotifiedMap(context),

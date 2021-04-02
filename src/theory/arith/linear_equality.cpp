@@ -66,16 +66,25 @@ LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, Bou
   d_trackCallback(this)
 {}
 
-LinearEqualityModule::Statistics::Statistics():
-  d_statPivots(smtStatisticsRegistry().registerInt("theory::arith::pivots")),
-  d_statUpdates(smtStatisticsRegistry().registerInt("theory::arith::updates")),
-  d_pivotTime(smtStatisticsRegistry().registerTimer("theory::arith::pivotTime")),
-  d_adjTime(smtStatisticsRegistry().registerTimer("theory::arith::adjTime")),
-  d_weakeningAttempts(smtStatisticsRegistry().registerInt("theory::arith::weakening::attempts")),
-  d_weakeningSuccesses(smtStatisticsRegistry().registerInt("theory::arith::weakening::success")),
-  d_weakenings(smtStatisticsRegistry().registerInt("theory::arith::weakening::total")),
-  d_weakenTime(smtStatisticsRegistry().registerTimer("theory::arith::weakening::time")),
-  d_forceTime(smtStatisticsRegistry().registerTimer("theory::arith::forcing::time"))
+LinearEqualityModule::Statistics::Statistics()
+    : d_statPivots(
+        smtStatisticsRegistry().registerInt("theory::arith::pivots")),
+      d_statUpdates(
+          smtStatisticsRegistry().registerInt("theory::arith::updates")),
+      d_pivotTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::pivotTime")),
+      d_adjTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::adjTime")),
+      d_weakeningAttempts(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::attempts")),
+      d_weakeningSuccesses(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::success")),
+      d_weakenings(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::total")),
+      d_weakenTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::weakening::time")),
+      d_forceTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::forcing::time"))
 {
 }
 

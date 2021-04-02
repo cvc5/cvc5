@@ -76,9 +76,10 @@ Theory::Theory(TheoryId id,
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(nullptr),
       d_instanceName(name),
-      d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id) + name + "::checkTime")),
-      d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id) + name
-                             + "::computeCareGraphTime")),
+      d_checkTime(smtStatisticsRegistry().registerTimer(
+          getStatsPrefix(id) + name + "::checkTime")),
+      d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
+          getStatsPrefix(id) + name + "::computeCareGraphTime")),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),

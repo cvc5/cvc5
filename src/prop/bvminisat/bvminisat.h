@@ -26,7 +26,6 @@
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
 #include "util/statistics_stats.h"
-#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace prop {
@@ -67,18 +66,19 @@ protected:
  void contextNotifyPop() override;
 
 public:
+ BVMinisatSatSolver(StatisticsRegistry& registry,
+                    context::Context* mainSatContext,
+                    const std::string& name = "");
+ virtual ~BVMinisatSatSolver();
 
-  BVMinisatSatSolver(StatisticsRegistry& registry, context::Context* mainSatContext, const std::string& name = "");
-  virtual ~BVMinisatSatSolver();
+ void setNotify(BVSatSolverNotify* notify) override;
 
-  void setNotify(BVSatSolverNotify* notify) override;
+ ClauseId addClause(SatClause& clause, bool removable) override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
-
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
-  {
-    Unreachable() << "Minisat does not support native XOR reasoning";
-    return ClauseIdError;
+ ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+ {
+   Unreachable() << "Minisat does not support native XOR reasoning";
+   return ClauseIdError;
   }
 
   SatValue propagate() override;
@@ -129,17 +129,17 @@ public:
 
   class Statistics {
   public:
-    ReferenceStat<int64_t> d_statStarts, d_statDecisions;
-    ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStat<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStat<int64_t> d_statTotLiterals;
-    ReferenceStat<int64_t> d_statEliminatedVars;
-    IntStat d_statCallsToSolve;
-    TimerStat d_statSolveTime;
-    bool d_registerStats;
-    Statistics(StatisticsRegistry& registry, const std::string& prefix);
-    void init(BVMinisat::SimpSolver* minisat);
+   ReferenceStat<int64_t> d_statStarts, d_statDecisions;
+   ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
+   ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
+   ReferenceStat<int64_t> d_statLearntsLiterals, d_statMaxLiterals;
+   ReferenceStat<int64_t> d_statTotLiterals;
+   ReferenceStat<int64_t> d_statEliminatedVars;
+   IntStat d_statCallsToSolve;
+   TimerStat d_statSolveTime;
+   bool d_registerStats;
+   Statistics(StatisticsRegistry& registry, const std::string& prefix);
+   void init(BVMinisat::SimpSolver* minisat);
   };
 
   Statistics d_statistics;

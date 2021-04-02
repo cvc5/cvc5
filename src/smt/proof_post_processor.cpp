@@ -1079,10 +1079,14 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
 
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>("finalProof::ruleCount")),
-      d_totalRuleCount(smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
-      d_minPedanticLevel(smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
-      d_numFinalProofs(smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
+    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
+        "finalProof::ruleCount")),
+      d_totalRuleCount(
+          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
+      d_minPedanticLevel(
+          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
+      d_numFinalProofs(
+          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
       d_pnm(pnm),
       d_pedanticFailure(false)
 {

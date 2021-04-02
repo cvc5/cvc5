@@ -127,13 +127,19 @@ void ErrorInformation::setAmount(const DeltaRational& am){
   (*d_amount) = am;
 }
 
-ErrorSet::Statistics::Statistics():
-  d_enqueues(smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueues")),
-  d_enqueuesCollection(smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueuesCollection")),
-  d_enqueuesDiffMode(smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueuesDiffMode")),
-  d_enqueuesVarOrderMode(smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueuesVarOrderMode")),
-  d_enqueuesCollectionDuplicates(smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueuesCollectionDuplicates")),
-  d_enqueuesVarOrderModeDuplicates(smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueuesVarOrderModeDuplicates"))
+ErrorSet::Statistics::Statistics()
+    : d_enqueues(
+        smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueues")),
+      d_enqueuesCollection(smtStatisticsRegistry().registerInt(
+          "theory::arith::pqueue::enqueuesCollection")),
+      d_enqueuesDiffMode(smtStatisticsRegistry().registerInt(
+          "theory::arith::pqueue::enqueuesDiffMode")),
+      d_enqueuesVarOrderMode(smtStatisticsRegistry().registerInt(
+          "theory::arith::pqueue::enqueuesVarOrderMode")),
+      d_enqueuesCollectionDuplicates(smtStatisticsRegistry().registerInt(
+          "theory::arith::pqueue::enqueuesCollectionDuplicates")),
+      d_enqueuesVarOrderModeDuplicates(smtStatisticsRegistry().registerInt(
+          "theory::arith::pqueue::enqueuesVarOrderModeDuplicates"))
 {
 }
 

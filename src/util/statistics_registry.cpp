@@ -73,7 +73,8 @@ StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 
 void StatisticsRegistry::print(std::ostream& os) const
 {
-  if constexpr (Configuration::isStatisticsBuild()) {
+  if constexpr (Configuration::isStatisticsBuild())
+  {
     for (const auto& s : d_stats)
     {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
@@ -85,7 +86,8 @@ void StatisticsRegistry::print(std::ostream& os) const
 
 void StatisticsRegistry::printSafe(int fd) const
 {
-  if constexpr (Configuration::isStatisticsBuild()) {
+  if constexpr (Configuration::isStatisticsBuild())
+  {
     for (const auto& s : d_stats)
     {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
@@ -101,9 +103,12 @@ void StatisticsRegistry::printSafe(int fd) const
     }
   }
 }
-void StatisticsRegistry::printDiff(std::ostream& os) const {
-  if constexpr (Configuration::isStatisticsBuild()) {
-    if (!d_lastSnapshot) {
+void StatisticsRegistry::printDiff(std::ostream& os) const
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    if (!d_lastSnapshot)
+    {
       // we have no snapshot, print as usual
       print(os);
       return;
@@ -113,10 +118,13 @@ void StatisticsRegistry::printDiff(std::ostream& os) const {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
       if (!options::statisticsUnset() && !s.second->hasValue()) continue;
       auto oldit = d_lastSnapshot->find(s.first);
-      if (oldit == d_lastSnapshot->end()) {
+      if (oldit == d_lastSnapshot->end())
+      {
         // not present in the snapshot
         os << s.first << " = " << *s.second << " (was <unset>)" << std::endl;
-      } else if (oldit->second != s.second->getViewer()) {
+      }
+      else if (oldit->second != s.second->getViewer())
+      {
         // present in the snapshow, print old value
         os << s.first << " = " << *s.second << " (was ";
         detail::print(os, oldit->second);

@@ -94,15 +94,18 @@ struct ResourceManager::Statistics
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
-    : d_resourceUnitsUsed(stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+    : d_resourceUnitsUsed(
+        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
       d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
       d_numArithPivotStep(stats.registerInt("resource::ArithPivotStep")),
       d_numArithNlLemmaStep(stats.registerInt("resource::ArithNlLemmaStep")),
       d_numBitblastStep(stats.registerInt("resource::BitblastStep")),
       d_numBvEagerAssertStep(stats.registerInt("resource::BvEagerAssertStep")),
       d_numBvPropagationStep(stats.registerInt("resource::BvPropagationStep")),
-      d_numBvSatConflictsStep(stats.registerInt("resource::BvSatConflictsStep")),
-      d_numBvSatPropagateStep(stats.registerInt("resource::BvSatPropagateStep")),
+      d_numBvSatConflictsStep(
+          stats.registerInt("resource::BvSatConflictsStep")),
+      d_numBvSatPropagateStep(
+          stats.registerInt("resource::BvSatPropagateStep")),
       d_numBvSatSimplifyStep(stats.registerInt("resource::BvSatSimplifyStep")),
       d_numCnfStep(stats.registerInt("resource::CnfStep")),
       d_numDecisionStep(stats.registerInt("resource::DecisionStep")),

@@ -29,10 +29,13 @@ namespace theory {
 namespace eq {
 
 EqualityEngine::Statistics::Statistics(const std::string& name)
-    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "::mergesCount")),
+    : d_mergesCount(
+        smtStatisticsRegistry().registerInt(name + "::mergesCount")),
       d_termsCount(smtStatisticsRegistry().registerInt(name + "::termsCount")),
-      d_functionTermsCount(smtStatisticsRegistry().registerInt(name + "::functionTermsCount")),
-      d_constantTermsCount(smtStatisticsRegistry().registerInt(name + "::constantTermsCount"))
+      d_functionTermsCount(
+          smtStatisticsRegistry().registerInt(name + "::functionTermsCount")),
+      d_constantTermsCount(
+          smtStatisticsRegistry().registerInt(name + "::constantTermsCount"))
 {
 }
 

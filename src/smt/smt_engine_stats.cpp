@@ -20,17 +20,28 @@ namespace cvc5 {
 namespace smt {
 
 SmtEngineStatistics::SmtEngineStatistics()
-    : d_definitionExpansionTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::definitionExpansionTime")),
-      d_numConstantProps(smtStatisticsRegistry().registerInt("smt::SmtEngine::numConstantProps")),
-      d_cnfConversionTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::cnfConversionTime")),
-      d_numAssertionsPre(smtStatisticsRegistry().registerInt("smt::SmtEngine::numAssertionsPreITERemoval")),
-      d_numAssertionsPost(smtStatisticsRegistry().registerInt("smt::SmtEngine::numAssertionsPostITERemoval")),
-      d_checkModelTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::checkModelTime")),
-      d_checkUnsatCoreTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::checkUnsatCoreTime")),
-      d_solveTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::solveTime")),
-      d_pushPopTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::pushPopTime")),
-      d_processAssertionsTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::processAssertionsTime")),
-      d_simplifiedToFalse(smtStatisticsRegistry().registerInt("smt::SmtEngine::simplifiedToFalse"))
+    : d_definitionExpansionTime(smtStatisticsRegistry().registerTimer(
+        "smt::SmtEngine::definitionExpansionTime")),
+      d_numConstantProps(smtStatisticsRegistry().registerInt(
+          "smt::SmtEngine::numConstantProps")),
+      d_cnfConversionTime(smtStatisticsRegistry().registerTimer(
+          "smt::SmtEngine::cnfConversionTime")),
+      d_numAssertionsPre(smtStatisticsRegistry().registerInt(
+          "smt::SmtEngine::numAssertionsPreITERemoval")),
+      d_numAssertionsPost(smtStatisticsRegistry().registerInt(
+          "smt::SmtEngine::numAssertionsPostITERemoval")),
+      d_checkModelTime(smtStatisticsRegistry().registerTimer(
+          "smt::SmtEngine::checkModelTime")),
+      d_checkUnsatCoreTime(smtStatisticsRegistry().registerTimer(
+          "smt::SmtEngine::checkUnsatCoreTime")),
+      d_solveTime(
+          smtStatisticsRegistry().registerTimer("smt::SmtEngine::solveTime")),
+      d_pushPopTime(
+          smtStatisticsRegistry().registerTimer("smt::SmtEngine::pushPopTime")),
+      d_processAssertionsTime(smtStatisticsRegistry().registerTimer(
+          "smt::SmtEngine::processAssertionsTime")),
+      d_simplifiedToFalse(smtStatisticsRegistry().registerInt(
+          "smt::SmtEngine::simplifiedToFalse"))
 {
 }
 

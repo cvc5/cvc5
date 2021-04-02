@@ -55,8 +55,10 @@ BitblastSolver::BitblastSolver(context::Context* c, BVSolverLazy* bv)
 BitblastSolver::~BitblastSolver() {}
 
 BitblastSolver::Statistics::Statistics()
-  : d_numCallstoCheck(smtStatisticsRegistry().registerInt("theory::bv::BitblastSolver::NumCallsToCheck"))
-  , d_numBBLemmas(smtStatisticsRegistry().registerInt("theory::bv::BitblastSolver::NumTimesLemmasBB"))
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::BitblastSolver::NumCallsToCheck")),
+      d_numBBLemmas(smtStatisticsRegistry().registerInt(
+          "theory::bv::BitblastSolver::NumTimesLemmasBB"))
 {
 }
 

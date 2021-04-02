@@ -753,13 +753,21 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
 }
 
 SymmetryBreaker::Statistics::Statistics(const std::string& name)
-  : d_clauses(smtStatisticsRegistry().registerInt(name + "theory::uf::symmetry_breaker::clauses"))
-  , d_units(smtStatisticsRegistry().registerInt(name + "theory::uf::symmetry_breaker::units"))
-  , d_permutationSetsConsidered(smtStatisticsRegistry().registerInt(name + "theory::uf::symmetry_breaker::permutationSetsConsidered"))
-  , d_permutationSetsInvariant(smtStatisticsRegistry().registerInt(name + "theory::uf::symmetry_breaker::permutationSetsInvariant"))
-  , d_invariantByPermutationsTimer(smtStatisticsRegistry().registerTimer(name + "theory::uf::symmetry_breaker::timers::invariantByPermutations"))
-  , d_selectTermsTimer(smtStatisticsRegistry().registerTimer(name + "theory::uf::symmetry_breaker::timers::selectTerms"))
-  , d_initNormalizationTimer(smtStatisticsRegistry().registerTimer(name + "theory::uf::symmetry_breaker::timers::initNormalization"))
+    : d_clauses(smtStatisticsRegistry().registerInt(
+        name + "theory::uf::symmetry_breaker::clauses")),
+      d_units(smtStatisticsRegistry().registerInt(
+          name + "theory::uf::symmetry_breaker::units")),
+      d_permutationSetsConsidered(smtStatisticsRegistry().registerInt(
+          name + "theory::uf::symmetry_breaker::permutationSetsConsidered")),
+      d_permutationSetsInvariant(smtStatisticsRegistry().registerInt(
+          name + "theory::uf::symmetry_breaker::permutationSetsInvariant")),
+      d_invariantByPermutationsTimer(smtStatisticsRegistry().registerTimer(
+          name
+          + "theory::uf::symmetry_breaker::timers::invariantByPermutations")),
+      d_selectTermsTimer(smtStatisticsRegistry().registerTimer(
+          name + "theory::uf::symmetry_breaker::timers::selectTerms")),
+      d_initNormalizationTimer(smtStatisticsRegistry().registerTimer(
+          name + "theory::uf::symmetry_breaker::timers::initNormalization"))
 {
 }
 

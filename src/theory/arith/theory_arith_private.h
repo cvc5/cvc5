@@ -863,7 +863,6 @@ private:
     HistogramStat<uint32_t> d_unsatPivots;
     HistogramStat<uint32_t> d_unknownPivots;
 
-
     IntStat d_solveIntModelsAttempts;
     IntStat d_solveIntModelsSuccessful;
     TimerStat d_mipTimer;

@@ -4058,25 +4058,29 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Statistics                                                                     */
 /* -------------------------------------------------------------------------- */
 
-struct Stat::StatData {
+struct Stat::StatData
+{
   cvc5::StatExportData data;
-  template<typename T>
-  StatData(T&& t): data(std::forward<T>(t)) {}
-  StatData(): data() {}
-}; 
+  template <typename T>
+  StatData(T&& t) : data(std::forward<T>(t))
+  {
+  }
+  StatData() : data() {}
+};
 
 Stat::~Stat() {}
-Stat::Stat(const Stat& s): d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data)) {}
-Stat& Stat::operator=(const Stat& s) {
+Stat::Stat(const Stat& s)
+    : d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data))
+{
+}
+Stat& Stat::operator=(const Stat& s)
+{
   d_expert = s.d_expert;
   d_data = std::make_unique<StatData>(s.d_data->data);
   return *this;
 }
 
-bool Stat::isExpert() const
-{
-  return d_expert;
-}
+bool Stat::isExpert() const { return d_expert; }
 bool Stat::hasValue() const
 {
   return !std::holds_alternative<std::monostate>(d_data->data);
@@ -4127,8 +4131,13 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC4_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert) : d_expert(expert), d_data(std::make_unique<StatData>()) {}
-Stat::Stat(bool expert, StatData&& sd): d_expert(expert), d_data(std::make_unique<StatData>(std::move(sd))) {}
+Stat::Stat(bool expert) : d_expert(expert), d_data(std::make_unique<StatData>())
+{
+}
+Stat::Stat(bool expert, StatData&& sd)
+    : d_expert(expert), d_data(std::make_unique<StatData>(std::move(sd)))
+{
+}
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
@@ -4224,9 +4233,13 @@ Statistics::Statistics(const StatisticsRegistry& reg)
 {
   for (const auto& svp : reg)
   {
-    if (svp.second->hasValue()) {
-      d_stats.emplace(svp.first, Stat(svp.second->d_expert, svp.second->getViewer()));
-    } else {
+    if (svp.second->hasValue())
+    {
+      d_stats.emplace(svp.first,
+                      Stat(svp.second->d_expert, svp.second->getViewer()));
+    }
+    else
+    {
       d_stats.emplace(svp.first, Stat(svp.second->d_expert));
     }
   }
@@ -4684,12 +4697,15 @@ bool Solver::isValidInteger(const std::string& s) const
   return true;
 }
 
-void Solver::resetStatistics() {
+void Solver::resetStatistics()
+{
 #if CVC4_STATISTICS_ON
   d_stats.reset(new APIStatistics{
-    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
-    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
-    d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+      d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+          "api::CONSTANT"),
+      d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+          "api::VARIABLE"),
+      d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
   });
 #endif
 }
@@ -7085,7 +7101,10 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
  */
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
-Statistics Solver::getStatistics() const { return Statistics(d_smtEngine->getStatisticsRegistry()); }
+Statistics Solver::getStatistics() const
+{
+  return Statistics(d_smtEngine->getStatisticsRegistry());
+}
 
 }  // namespace api
 
