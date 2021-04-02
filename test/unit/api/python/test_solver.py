@@ -18,14 +18,14 @@ from pycvc4 import kinds
 def solver():
     return pycvc4.Solver()
 
-def test_recoverableException(solver):
+def test_recoverable_exception(solver):
     solver.setOption("produce-models", "true")
     x = solver.mkConst(solver.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x).notTerm())
     with pytest.raises(RuntimeError):
         c = solver.getValue(x)
 
-def test_supportsFloatingPoint(solver):
+def test_supports_floating_point(solver):
     if solver.supportsFloatingPoint():
       try:
           solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
