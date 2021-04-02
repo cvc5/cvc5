@@ -48,11 +48,11 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
-using namespace ::CVC5::context;
+using namespace ::cvc5::context;
 
 SymmetryBreaker::Template::Template() :
   d_template(),
@@ -798,4 +798,4 @@ std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::P
   return out;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

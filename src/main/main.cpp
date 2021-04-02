@@ -34,9 +34,9 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC5;
-using namespace CVC5::main;
-using namespace CVC5::language;
+using namespace cvc5;
+using namespace cvc5::main;
+using namespace cvc5::language;
 
 /**
  * CVC4's main() routine is just an exception-safe wrapper around CVC4.

@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -352,7 +352,7 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 /* Begin the declaration of GLPK specific code. */
 #ifdef CVC4_USE_GLPK
@@ -360,7 +360,7 @@ extern "C" {
 #include <glpk.h>
 }/* extern "C" */
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -520,12 +520,12 @@ int ApproxGLPK::s_verbosity = 0;
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 #endif /*#ifdef CVC4_USE_GLPK */
 /* End the declaration of GLPK specific code. */
 
 /* Begin GPLK/NOGLPK Glue code. */
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s){
@@ -544,12 +544,12 @@ bool ApproximateSimplex::enabled() {
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 /* End GPLK/NOGLPK Glue code. */
 
 /* Begin GPLK implementation. */
 #ifdef CVC4_USE_GLPK
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -3159,6 +3159,6 @@ void ApproxGLPK::tryCut(int nid, CutInfo& cut)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 #endif /*#ifdef CVC4_USE_GLPK */
 /* End GPLK implementation. */

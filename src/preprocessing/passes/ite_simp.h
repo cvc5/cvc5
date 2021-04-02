@@ -21,7 +21,7 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -51,6 +51,6 @@ class ITESimp : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

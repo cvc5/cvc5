@@ -21,7 +21,7 @@
 #include "theory/quantifiers/inst_match.h"
 #include "theory/theory_model_builder.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -73,6 +73,6 @@ class QModelBuilder : public TheoryEngineModelBuilder
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

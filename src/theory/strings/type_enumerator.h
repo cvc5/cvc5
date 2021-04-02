@@ -23,7 +23,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -199,6 +199,6 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H */

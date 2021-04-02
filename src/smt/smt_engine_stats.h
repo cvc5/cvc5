@@ -19,7 +19,7 @@
 
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 struct SmtEngineStatistics
@@ -51,6 +51,6 @@ struct SmtEngineStatistics
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__SMT_ENGINE_STATS_H */

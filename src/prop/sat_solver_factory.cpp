@@ -22,7 +22,7 @@
 #include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 BVSatSolverInterface* SatSolverFactory::createMinisat(
@@ -76,4 +76,4 @@ SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
 }
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5

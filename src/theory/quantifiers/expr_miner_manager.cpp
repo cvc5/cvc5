@@ -16,7 +16,7 @@
 
 #include "options/quantifiers_options.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -165,4 +165,4 @@ bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

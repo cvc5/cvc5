@@ -26,11 +26,11 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC5::kind;
-using namespace CVC5::theory;
-using namespace CVC5::theory::quantifiers;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -466,4 +466,4 @@ void FunDefFmf::getConstraints(Node n,
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5

@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC5::Stat and associated classes
+ ** \brief Black box testing of cvc5::Stat and associated classes
  **
- ** Black box testing of CVC5::Stat and associated classes.
+ ** Black box testing of cvc5::Stat and associated classes.
  **/
 
 #include <fcntl.h>
@@ -27,7 +27,7 @@
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& os, const StatisticBaseValue* sbv)
 {
@@ -96,4 +96,4 @@ TEST_F(TestUtilBlackStats, stats)
 #endif
 }
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5

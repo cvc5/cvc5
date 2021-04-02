@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -1388,4 +1388,4 @@ void LinearEqualityModule::directlyAddToCoefficient(ArithVar row, ArithVar col, 
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

@@ -27,7 +27,7 @@
 #include "prop/sat_solver.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 class SatSolverFactory
@@ -50,6 +50,6 @@ class SatSolverFactory
 }; /* class SatSolverFactory */
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif  // CVC4__PROP__SAT_SOLVER_FACTORY_H

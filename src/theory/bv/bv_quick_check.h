@@ -28,7 +28,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -179,6 +179,6 @@ class QuickXPlain
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__BV_QUICK_CHECK_H */

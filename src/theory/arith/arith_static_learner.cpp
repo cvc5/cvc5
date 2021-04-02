@@ -27,9 +27,9 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -266,4 +266,4 @@ void ArithStaticLearner::addBound(TNode n) {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

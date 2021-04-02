@@ -17,9 +17,9 @@
 #include "theory/bags/normal_form.h"
 #include "util/statistics_registry.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -504,4 +504,4 @@ BagsRewriteResponse BagsRewriter::postRewriteEqual(const TNode& n) const
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

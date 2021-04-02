@@ -22,7 +22,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/trust_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -96,6 +96,6 @@ class NonClausalSimp : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

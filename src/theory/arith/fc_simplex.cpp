@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -830,4 +830,4 @@ const Rational& FCSimplexDecisionProcedure::focusCoefficient(ArithVar nb) const 
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

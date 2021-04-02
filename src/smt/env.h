@@ -24,7 +24,7 @@
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class NodeManager;
 class StatisticsRegistry;
@@ -181,6 +181,6 @@ class Env
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__ENV_H */

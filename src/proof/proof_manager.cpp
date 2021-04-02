@@ -36,7 +36,7 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 ProofManager::ProofManager(context::Context* context)
     : d_context(context),
@@ -217,4 +217,4 @@ void ProofManager::addUnsatCore(Node formula)
   d_outputCoreFormulas.insert(formula);
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

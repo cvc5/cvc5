@@ -28,9 +28,9 @@
 #include "util/statistics_registry.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -1029,7 +1029,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
   }
   NodeManager* nm = NodeManager::currentNM();
-  CVC5::Rational rMaxInt(String::maxSize());
+  cvc5::Rational rMaxInt(String::maxSize());
   uint32_t l = utils::getLoopMinOccurrences(node);
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
@@ -1142,7 +1142,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (x.isConst() && RegExpEntail::isConstRegExp(r))
   {
     // test whether x in node[1]
-    CVC5::String s = x.getConst<String>();
+    cvc5::String s = x.getConst<String>();
     bool test = RegExpEntail::testConstStringInRegExp(s, 0, r);
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
@@ -1572,7 +1572,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     if (node[1].isConst() && node[2].isConst())
     {
       Node s = node[0];
-      CVC5::Rational rMaxInt(String::maxSize());
+      cvc5::Rational rMaxInt(String::maxSize());
       uint32_t start;
       if (node[1].getConst<Rational>() > rMaxInt)
       {
@@ -1629,7 +1629,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Node zero = nm->mkConst(CVC5::Rational(0));
+  Node zero = nm->mkConst(cvc5::Rational(0));
 
   // if entailed non-positive length or negative start point
   if (ArithEntail::check(zero, node[1], true))
@@ -1859,7 +1859,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     // rewriting for constant arguments
     if (node[1].isConst())
     {
-      CVC5::Rational rMaxInt(String::maxSize());
+      cvc5::Rational rMaxInt(String::maxSize());
       if (node[1].getConst<Rational>() > rMaxInt)
       {
         // start beyond the maximum size of strings
@@ -2267,7 +2267,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   utils::getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC5::Rational rMaxInt(CVC5::String::maxSize());
+    cvc5::Rational rMaxInt(cvc5::String::maxSize());
     if (node[2].getConst<Rational>() > rMaxInt)
     {
       // We know that, due to limitations on the size of string constants
@@ -3231,7 +3231,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node val;
   if (isPrefix)
   {
-    val = NodeManager::currentNM()->mkConst(::CVC5::Rational(0));
+    val = NodeManager::currentNM()->mkConst(::cvc5::Rational(0));
   }
   else
   {
@@ -3397,4 +3397,4 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

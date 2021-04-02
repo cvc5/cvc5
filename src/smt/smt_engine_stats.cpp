@@ -16,7 +16,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 SmtEngineStatistics::SmtEngineStatistics()
@@ -35,4 +35,4 @@ SmtEngineStatistics::SmtEngineStatistics()
 }
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5

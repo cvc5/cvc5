@@ -37,7 +37,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace prop {
 
 CnfStream::CnfStream(SatSolver* satSolver,
@@ -788,4 +788,4 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
 }
 
 }  // namespace prop
-}  // namespace CVC5
+}  // namespace cvc5

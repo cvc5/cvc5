@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -260,4 +260,4 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

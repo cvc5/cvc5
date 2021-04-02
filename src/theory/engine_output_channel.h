@@ -22,7 +22,7 @@
 #include "theory/theory_id.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -107,6 +107,6 @@ class EngineOutputChannel : public theory::OutputChannel
 };
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H */

@@ -26,7 +26,7 @@
 #include "main/main.h"
 #include "smt/command.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
@@ -227,4 +227,4 @@ void CommandExecutor::flushOutputStreams() {
 }
 
 }  // namespace main
-}  // namespace CVC5
+}  // namespace cvc5

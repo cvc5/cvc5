@@ -25,10 +25,10 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC5::kind;
-using namespace CVC5::theory;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
@@ -1174,4 +1174,4 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 }
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5

@@ -28,7 +28,7 @@
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 struct StatisticBaseValue;
 
@@ -218,6 +218,6 @@ class StatisticsRegistry
 /** Calls `sr.print(os)`. */
 std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr);
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif

@@ -26,9 +26,9 @@
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
-using namespace CVC5::smt;
+using namespace cvc5::smt;
 
-namespace CVC5 {
+namespace cvc5 {
 
 Env::Env(NodeManager* nm)
     : d_context(new context::Context()),
@@ -102,4 +102,4 @@ const Printer& Env::getPrinter()
 
 std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
 
-}  // namespace CVC5
+}  // namespace cvc5

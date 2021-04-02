@@ -93,7 +93,7 @@
 #include "theory/trust_node.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -1276,6 +1276,6 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__CONSTRAINT_H */

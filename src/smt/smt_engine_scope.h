@@ -24,7 +24,7 @@
 
 #include "options/options.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofManager;
 class SmtEngine;
@@ -60,6 +60,6 @@ class SmtScope : public NodeManagerScope
 };/* class SmtScope */
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__SMT_ENGINE_SCOPE_H */

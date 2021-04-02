@@ -19,9 +19,9 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC5::theory;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
@@ -311,4 +311,4 @@ theory::TrustNode SharedTermsDatabase::explain(TNode literal) const
   return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
-} // namespace CVC5
+}  // namespace cvc5

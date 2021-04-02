@@ -25,7 +25,7 @@
 #include "theory/bv/bv_subtheory.h"
 #include "theory/ext_theory.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -163,4 +163,4 @@ class CoreSolver : public SubtheorySolver {
 
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5

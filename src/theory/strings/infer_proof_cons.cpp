@@ -24,9 +24,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/statistics_registry.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -1043,4 +1043,4 @@ std::string InferProofCons::identify() const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

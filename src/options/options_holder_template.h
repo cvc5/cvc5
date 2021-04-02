@@ -22,7 +22,7 @@
 // clang-format off
 ${headers_module}$
 
-namespace CVC5 {
+namespace cvc5 {
 namespace options {
 
 struct OptionsHolder
@@ -33,7 +33,7 @@ struct OptionsHolder
 }; /* struct OptionsHolder */
 
 }  // namespace options
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__OPTIONS__OPTIONS_HOLDER_H */
 // clang-format on

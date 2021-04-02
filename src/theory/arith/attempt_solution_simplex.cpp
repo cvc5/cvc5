@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -144,4 +144,4 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

@@ -28,7 +28,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -344,6 +344,6 @@ Node negateProofLiteral(TNode n);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__ARITH_UTILITIES_H */

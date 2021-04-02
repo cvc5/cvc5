@@ -26,7 +26,7 @@
 
 #include "options/option_exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace options {
 
 template <template <class U> class Cmp>
@@ -81,6 +81,6 @@ struct not_equal : public comparator<std::not_equal_to> {
 };/* struct not_equal_to */
 
 }  // namespace options
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__BASE_HANDLERS_H */

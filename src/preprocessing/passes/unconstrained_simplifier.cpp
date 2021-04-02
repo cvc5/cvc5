@@ -26,12 +26,12 @@
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC5::theory;
+using namespace cvc5::theory;
 
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
@@ -874,4 +874,4 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5

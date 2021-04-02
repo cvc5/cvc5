@@ -27,7 +27,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -503,6 +503,6 @@ class TheoryArraysRewriter : public TheoryRewriter
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */

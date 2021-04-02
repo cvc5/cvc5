@@ -25,7 +25,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
@@ -67,4 +67,4 @@ PreprocessingPass::~PreprocessingPass() {
 }
 
 }  // namespace preprocessing
-}  // namespace CVC5
+}  // namespace cvc5

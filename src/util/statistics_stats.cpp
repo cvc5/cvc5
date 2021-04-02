@@ -19,7 +19,7 @@
 #include "base/check.h"
 #include "util/statistics_value.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 AverageStat& AverageStat::operator<<(double v)
 {
@@ -107,10 +107,7 @@ bool TimerStat::running() const
   {
     return d_data->d_running;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
@@ -135,4 +132,4 @@ CodeTimer::~CodeTimer()
   }
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

@@ -16,7 +16,7 @@
 
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -37,4 +37,4 @@ SequencesStatistics::SequencesStatistics()
 
 }
 }
-}  // namespace CVC5
+}  // namespace cvc5

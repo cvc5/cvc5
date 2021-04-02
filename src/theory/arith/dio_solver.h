@@ -32,7 +32,7 @@
 #include "util/rational.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -421,6 +421,6 @@ public:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__DIO_SOLVER_H */

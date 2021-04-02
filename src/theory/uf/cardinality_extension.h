@@ -23,7 +23,7 @@
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -462,6 +462,6 @@ class CardinalityExtension
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */
