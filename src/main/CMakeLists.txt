@@ -61,6 +61,10 @@ set_target_properties(cvc4-bin
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin PUBLIC cvc4 cvc4parser)
+if(USE_CLN)
+  target_link_libraries(cvc4-bin PUBLIC CLN)
+endif()
+target_link_libraries(cvc4-bin PUBLIC GMP)
 
 if(PROGRAM_PREFIX)
   install(PROGRAMS
