@@ -37,9 +37,29 @@ using namespace CVC4::theory::bv;
 
 namespace {
 
+// A helper function to compute 2^b as a Rational
 Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
+
+IntBlaster::IntBlaster(context::Context* c,
+                       options::SolveBVAsIntMode mode,
+                       uint64_t granularity,
+                       bool introduceFreshIntVars)
+    : d_binarizeCache(c),
+      d_eliminationCache(c),
+      d_rebuildCache(c),
+      d_intblastCache(c),
+      d_rangeAssertions(c),
+      d_mode(mode),
+      d_granularity(granularity),
+      d_context(c),
+      d_introduceFreshIntVars(introduceFreshIntVars)
+{
+  d_nm = NodeManager::currentNM();
+  d_zero = d_nm->mkConst<Rational>(0);
+  d_one = d_nm->mkConst<Rational>(1);
+};
 
 void IntBlaster::addRangeConstraint(Node node,
                                     uint64_t size,
@@ -392,13 +412,11 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
+  // Exists is eliminated using Forall
+  Assert(oldKind != kind::EXISTS);
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
-  // Assert that BITVECTOR_UDIV/UREM were replaced by their
-  // *_TOTAL versions
-  Assert(oldKind != kind::BITVECTOR_UDIV);
-  Assert(oldKind != kind::BITVECTOR_UREM);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
@@ -746,8 +764,7 @@ Node IntBlaster::translateWithChildren(
        */
       if (childrenTypesChanged(original) && options::ufHo())
       {
-        throw OptionException(
-            "bv-to-int does not support higher order logic ");
+        throw OptionException("bv-to-int does not support higher order logic ");
       }
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
@@ -776,11 +793,6 @@ Node IntBlaster::translateWithChildren(
     {
       returnNode = translateQuantifiedFormula(original);
       break;
-    }
-    case kind::EXISTS:
-    {
-      // Exists is eliminated by the rewriter.
-      Assert(false);
     }
     default:
     {
@@ -842,26 +854,29 @@ Node IntBlaster::translateNoChildren(Node original,
         // In the former case, we must include range lemmas, while in the
         // latter we don't.
         // This is determined by the option bv-to-int-fresh-vars
-        
         // intCast and bvCast are used for models:
         // even if we introduce a fresh variable,
         // it is associated with intCast (which is (bv2nat original)).
         // bvCast is either ( (_ nat2bv k) original) or just original.
         Node intCast = castToType(original, d_nm->integerType());
         Node bvCast;
-        if (d_introduceFreshIntVars) {
-          // we introduce a fresh variable, add range constraints, and save the connection between original and the new variable.
+        if (d_introduceFreshIntVars)
+        {
+          // we introduce a fresh variable, add range constraints, and save the
+          // connection between original and the new variable.
           translation = d_nm->getSkolemManager()->mkPurifySkolem(
-            intCast,
-            "__intblast__var",
-            "Variable introduced in intblasting"
-            "pass instead of original variable "
-                + original.toString());
+              intCast,
+              "__intblast__var",
+              "Variable introduced in intblasting"
+              "pass instead of original variable "
+                  + original.toString());
           uint64_t bvsize = original.getType().getBitVectorSize();
           addRangeConstraint(translation, bvsize, lemmas);
           // put new definition of old variable in skolems
           bvCast = defineBVUFAsIntUF(original, translation);
-        } else {
+        }
+        else
+        {
           // we just translate original to (bv2nat original)
           translation = intCast;
           // no need to do any casting back to bit-vector in tis case.
@@ -978,7 +993,7 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
    * Similarly for the domains.
    */
   TypeNode intRange = bvRange.isBitVector() ? d_nm->integerType() : bvRange;
-  for (TypeNode d : bvDomain)
+  for (const TypeNode& d : bvDomain)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
@@ -1060,26 +1075,6 @@ Node IntBlaster::reconstructNode(Node originalNode,
   reconstruction = castToType(reconstruction, resultType);
   return reconstruction;
 }
-
-IntBlaster::IntBlaster(context::Context* c,
-                       options::SolveBVAsIntMode mode,
-                       uint64_t granularity,
-                       bool introduceFreshIntVars)
-    : d_binarizeCache(c),
-      d_eliminationCache(c),
-      d_rebuildCache(c),
-      d_intblastCache(c),
-      d_rangeAssertions(c),
-      d_bitwiseAssertions(c),
-      d_mode(mode),
-      d_granularity(granularity),
-      d_context(c),
-      d_introduceFreshIntVars(introduceFreshIntVars)
-{
-  d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst<Rational>(0);
-  d_one = d_nm->mkConst<Rational>(1);
-};
 
 Node IntBlaster::createShiftNode(std::vector<Node> children,
                                  uint64_t bvsize,
