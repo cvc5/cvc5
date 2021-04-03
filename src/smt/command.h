@@ -277,6 +277,25 @@ class CVC4_EXPORT Command
    * successful execution.
    */
   bool d_muted;
+
+ protected:
+  // These methods rely on Command being a friend of classes in the API.
+  // Subclasses of command should use these methods for conversions,
+  // which is currently necessary for e.g. printing commands.
+  /** Helper to convert a Term to an internal Node */
+  static Node termToNode(const api::Term& term);
+  /** Helper to convert a vector of Terms to internal Nodes. */
+  static std::vector<Node> termVectorToNodes(
+      const std::vector<api::Term>& terms);
+  /** Helper to convert a Sort to an internal TypeNode */
+  static TypeNode sortToTypeNode(const api::Sort& sort);
+  /** Helper to convert a vector of Sorts to internal TypeNodes. */
+  static std::vector<TypeNode> sortVectorToTypeNodes(
+      const std::vector<api::Sort>& sorts);
+  /** Helper to convert a Grammar to an internal TypeNode */
+  static TypeNode grammarToTypeNode(api::Grammar* grammar);
+  /** Get original options from the solver (for ResetCommand) */
+  Options& getOriginalOptionsFrom(api::Solver* s);
 }; /* class Command */
 
 /**
