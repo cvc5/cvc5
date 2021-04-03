@@ -21,11 +21,14 @@
 #include "api/cvc4cpp.h"
 #include "expr/symbol_manager.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 
 namespace cvc5 {
 
 class Command;
+
+namespace smt {
+class SmtEngine;
+}
 
 namespace main {
 
