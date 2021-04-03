@@ -21,12 +21,14 @@
 #include "api/cvc4cpp.h"
 #include "expr/symbol_manager.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
 
 namespace cvc5 {
 
 class Command;
+
+namespace smt {
+class SmtEngine;
+}
 
 namespace main {
 
@@ -84,18 +86,19 @@ class CommandExecutor
   SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
   /**
-   * Flushes statistics to a file descriptor.
+   * Prints statistics to an output stream.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  virtual void flushStatistics(std::ostream& out) const;
+  virtual void printStatistics(std::ostream& out) const;
 
   /**
-   * Flushes statistics to a file descriptor.
-   * Safe to use in a signal handler.
+   * Safely prints statistics to a file descriptor.
+   * This method is safe to be used within a signal handler.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  void safeFlushStatistics(int fd) const;
-
-  static void printStatsFilterZeros(std::ostream& out,
-                                    const std::string& statsString);
+  void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
 

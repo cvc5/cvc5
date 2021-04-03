@@ -82,9 +82,9 @@ DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
-StatisticsRegistry* Env::getStatisticsRegistry()
+StatisticsRegistry& Env::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return *d_statisticsRegistry;
 }
 
 const Options& Env::getOptions() const { return d_options; }
