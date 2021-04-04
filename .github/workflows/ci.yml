@@ -108,32 +108,50 @@ jobs:
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
-    - name: Restore Dependencies
-      id: restore-deps
-      uses: actions/cache@v1
+    # The GitHub action for caching currently does not support modifying an
+    # already existing cache. We thus have a few different possibilities:
+    # - If having (partially) outdated data in the cached directory is fine, we
+    #   may want to restore any old cache via `restore-keys`. We should try hard
+    #   to detect that we have (partially) outdated data and make sure that the
+    #   updated data is stored to a new cache key.
+    # - If a cache is updated frequently (i.e. almost with every commit), we
+    #   should use the current commit hash as suffix and use `restore-keys` to
+    #   restore the cache from the previous commit.
+    #
+    # We define three caches: aux-tools, ccache, deps.
+    # - aux-tools (deps/) does not handle outdated contents gracefully. As it is
+    #   not updated frequently, we completely rebuild it whenever it might
+    #   change, which is when the contrib scripts or the CI config changes.
+    # - ccache changes with (almost) every commit and handles outdated contents
+    #   properly. We thus use `restore-keys` and store a new cache for every
+    #   commit.
+    # - deps (build/deps/) does handle outdated contents gracefully, but does
+    #   not change frequently. We thus use `restore-keys` to restore any recent
+    #   cache, but only store a new cache if the cmake or CI config changes.
+    #
+    # All caches are separated by operating system. Both ccache and deps are
+    # additionally separated by `cache-key`, i.e. the CI job type, because they
+    # depend on the configured compiler.
+
+    - name: Restore Auxiliary Tools
+      id: restore-aux-tools
+      uses: actions/cache@v2
       with:
         path: deps/install
-        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
-    - name: Setup Dependencies
-      if: steps.restore-deps.outputs.cache-hit != 'true'
+    - name: Setup Auxiliary Tools
+      if: steps.restore-aux-tools.outputs.cache-hit != 'true'
       run: |
         ./contrib/get-lfsc-checker
 
-    # GitHub actions currently does not support modifying an already existing
-    # cache. Hence, we create a new cache for each commit with key
-    # cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}. This
-    # will result in an initial cache miss. However, restore-keys will search
-    # for the most recent cache with prefix
-    # cache-${{ runner.os }}-${{ matrix.cache-key }}-, and if found uses it as
-    # a base for the new cache.
     - name: Restore ccache
-      id: cache
-      uses: actions/cache@v1
+      id: ccache
+      uses: actions/cache@v2
       with:
         path: ccache-dir
-        key: cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
-        restore-keys: cache-${{ runner.os }}-${{ matrix.cache-key }}-
+        key: ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
+        restore-keys: ccache-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure ccache
       run: |
@@ -142,6 +160,14 @@ jobs:
         ccache --set-config=compression_level=6
         ccache -M 500M
         ccache -z
+
+    - name: Restore Dependencies
+      id: restore-deps
+      uses: actions/cache@v2
+      with:
+        path: build/deps
+        key: deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        restore-keys: deps-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure
       run: |
