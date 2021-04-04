@@ -24,6 +24,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
+#include "expr/proof_checker.h"
 #include "expr/proof_ensure_closed.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -1892,6 +1893,16 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
 void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
   d_resourceManager->spendResource(r);
+}
+
+void TheoryEngine::initializeProofChecker(ProofChecker* pc,
+                                          theory::TheoryId theoryId)
+{
+  ProofRuleChecker* prc = d_theoryTable[theoryId]->getProofChecker();
+  if (prc)
+  {
+    prc->registerTo(pc);
+  }
 }
 
 }  // namespace cvc5

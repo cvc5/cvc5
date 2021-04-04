@@ -46,6 +46,7 @@ namespace cvc5 {
 class ResourceManager;
 class OutputManager;
 class TheoryEngineProofGenerator;
+class ProofChecker;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -321,6 +322,8 @@ class TheoryEngine {
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
+
+  void initializeProofChecker(ProofChecker* pc, theory::TheoryId theoryId);
 
   void setPropEngine(prop::PropEngine* propEngine)
   {

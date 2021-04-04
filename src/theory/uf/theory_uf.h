@@ -111,6 +111,8 @@ private:
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -170,7 +172,7 @@ private:
   bool isHigherOrderType(TypeNode tn);
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
-  UfProofRuleChecker d_ufProofChecker;
+  UfProofRuleChecker d_checker;
   /** A (default) theory state object */
   TheoryState d_state;
   /** A (default) inference manager */

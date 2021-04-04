@@ -29,8 +29,6 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 
-using namespace std;
-
 namespace cvc5 {
 namespace theory {
 namespace booleans {
@@ -43,12 +41,6 @@ TheoryBool::TheoryBool(context::Context* c,
                        ProofNodeManager* pnm)
     : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pnm)
 {
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_bProofChecker.registerTo(pc);
-  }
 }
 
 Theory::PPAssertStatus TheoryBool::ppAssert(
@@ -78,6 +70,15 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   }
 
   return Theory::ppAssert(tin, outSubstitutions);
+}
+
+TheoryRewriter* TheoryBool::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryBool::getProofChecker() { return &d_checker; }
+
+std::string TheoryBool::identify() const
+{
+  return std::string("TheoryBool");
 }
 
 }  // namespace booleans

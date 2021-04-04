@@ -57,12 +57,6 @@ TheoryUF::TheoryUF(context::Context* c,
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
-
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_ufProofChecker.registerTo(pc);
-  }
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -72,6 +66,8 @@ TheoryUF::~TheoryUF() {
 }
 
 TheoryRewriter* TheoryUF::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryUF::getProofChecker() { return &d_checker; }
 
 bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {

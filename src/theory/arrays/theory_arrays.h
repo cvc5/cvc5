@@ -145,6 +145,8 @@ class TheoryArrays : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -349,7 +351,7 @@ class TheoryArrays : public Theory {
   NotifyClass d_notify;
 
   /** The proof checker */
-  ArraysProofRuleChecker d_pchecker;
+  ArraysProofRuleChecker d_checker;
 
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);

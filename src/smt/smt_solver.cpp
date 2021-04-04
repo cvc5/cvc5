@@ -66,6 +66,16 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
   }
 
+  // Add the proof checkers for each theory
+  if (d_pnm)
+  {
+    ProofChecker* pc = d_pnm->getChecker();
+    for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+         ++id)
+    {
+      d_theoryEngine->initializeProofChecker(pc, id);
+    }
+  }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
   /* force destruction of referenced PropEngine to enforce that statistics
    * are unregistered by the obsolete PropEngine object before registered

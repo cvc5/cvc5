@@ -30,6 +30,9 @@
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
+
+class ProofRuleChecker;
+
 namespace theory {
 namespace sets {
 
@@ -53,6 +56,8 @@ class TheorySets : public Theory
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -102,7 +107,7 @@ class TheorySets : public Theory
     void eqNotifyNewClass(TNode t) override;
     void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-    
+
    private:
     TheorySetsPrivate& d_theory;
   };
