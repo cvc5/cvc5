@@ -4074,9 +4074,9 @@ Solver::Solver(Options* opts)
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
 #if CVC4_STATISTICS_ON
   d_stats.reset(new Statistics());
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_consts);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_vars);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_terms);
 #endif
 }
 
