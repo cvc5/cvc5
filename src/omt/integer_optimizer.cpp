@@ -17,9 +17,7 @@
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/smt_engine_subsolver.h"
 
-using namespace cvc5::theory;
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
