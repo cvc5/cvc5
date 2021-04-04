@@ -46,10 +46,6 @@ bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;
 }
 
-bool Configuration::isStatisticsBuild() {
-  return IS_STATISTICS_BUILD;
-}
-
 bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }

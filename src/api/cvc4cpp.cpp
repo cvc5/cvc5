@@ -1087,7 +1087,8 @@ bool Sort::isReal() const
 {
   CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isReal();
+  // notice that we do not expose internal subtyping to the user
+  return d_type->isReal() && !d_type->isInteger();
   ////////
   CVC4_API_TRY_CATCH_END;
 }
@@ -4073,9 +4074,9 @@ Solver::Solver(Options* opts)
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
 #if CVC4_STATISTICS_ON
   d_stats.reset(new Statistics());
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_consts);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_vars);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_terms);
 #endif
 }
 
@@ -4432,7 +4433,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
   }
 
   // Integers are reals, too
-  Assert(t.isReal());
+  Assert(t.d_type->isReal());
   Term res = term;
   if (t.isInteger())
   {

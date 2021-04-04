@@ -48,7 +48,14 @@ public:
 
   static bool isDebugBuild();
 
-  static bool isStatisticsBuild();
+  static constexpr bool isStatisticsBuild()
+  {
+#ifdef CVC4_STATISTICS_ON
+    return true;
+#else
+    return false;
+#endif
+  }
 
   static bool isTracingBuild();
 

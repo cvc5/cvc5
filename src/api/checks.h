@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Check macros for the CVC5 C++ API.
+ ** \brief Check macros for the cvc5 C++ API.
  **
- ** These macros implement guards for the CVC5 C++ API functions.
+ ** These macros implement guards for the cvc5 C++ API functions.
  **/
 
 #include "cvc4_public.h"

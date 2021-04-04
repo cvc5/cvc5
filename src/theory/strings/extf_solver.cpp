@@ -85,7 +85,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   if (d_reduced.find(n)!=d_reduced.end())
   {
     // already sent a reduction lemma
-  Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
   // determine the effort level to process the extf at
@@ -157,8 +157,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   if (effort != r_effort)
   {
-    
-  Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
     // not the right effort level to reduce
     return false;
   }
@@ -720,6 +719,32 @@ bool StringsExtfCallback::getCurrentSubstitution(
     subs.push_back(s);
   }
   return true;
+}
+
+std::string ExtfSolver::debugPrintModel()
+{
+  std::stringstream ss;
+  std::vector<Node> extf;
+  d_extt.getTerms(extf);
+  // each extended function should have at least one annotation below
+  for (const Node& n : extf)
+  {
+    ss << "- " << n;
+    if (!d_extt.isActive(n))
+    {
+      ss << " :extt-inactive";
+    }
+    if (!d_extfInfoTmp[n].d_modelActive)
+    {
+      ss << " :model-inactive";
+    }
+    if (d_reduced.find(n) != d_reduced.end())
+    {
+      ss << " :reduced";
+    }
+    ss << std::endl;
+  }
+  return ss.str();
 }
 
 }  // namespace strings
