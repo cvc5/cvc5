@@ -23,8 +23,8 @@ set(libmain_src_files
 )
 
 #-----------------------------------------------------------------------------#
-# Build object library since we will use the object files for cvc4-bin,
-# pcvc4-bin, and main-test library.
+# Build object library since we will use the object files for cvc4-bin and
+# main-test library.
 
 add_library(main OBJECT ${libmain_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
@@ -32,18 +32,22 @@ if(ENABLE_SHARED)
   set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
-# We can't use target_link_libraries(...) here since this is only supported for
-# cmake version >= 3.12. Hence, we have to manually add the library
-# dependencies for main. As a consequence, include directories from
+# We can't use target_link_libraries(main ...) here since this is only
+# supported for cmake version >= 3.12. Hence, we have to manually add the
+# library dependencies for main. As a consequence, include directories from
 # dependencies are not propagated and we need to manually add the include
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
-get_target_property(LIBCVC4_INCLUDES cvc4 INCLUDE_DIRECTORIES)
-target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
+
+# Note: This should not be required anymore as soon as we get rid of the
+#       smt_engine.h include in src/main. smt_engine.h has transitive includes
+#       of GMP and CLN via sexpr.h and therefore needs GMP/CLN headers.
 if(USE_CLN)
-  target_link_libraries(main PUBLIC CLN)
+  get_target_property(CLN_INCLUDES CLN INTERFACE_INCLUDE_DIRECTORIES)
+  target_include_directories(main PRIVATE ${CLN_INCLUDES})
 endif()
-target_link_libraries(main PUBLIC GMP)
+get_target_property(GMP_INCLUDES GMP INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(main PRIVATE ${GMP_INCLUDES})
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
@@ -70,6 +74,7 @@ if(USE_CLN)
   target_link_libraries(cvc4-bin PUBLIC CLN)
 endif()
 target_link_libraries(cvc4-bin PUBLIC GMP)
+
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>

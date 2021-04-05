@@ -14,6 +14,8 @@
 
 #include "expr/skolem_manager.h"
 
+#include <sstream>
+
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
@@ -38,6 +40,24 @@ struct OriginalFormAttributeId
 {
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
+
+const char* toString(SkolemFunId id)
+{
+  switch (id)
+  {
+    case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
+    case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
+    case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
+    case SkolemFunId::SQRT: return "SQRT";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, SkolemFunId id)
+{
+  out << toString(id);
+  return out;
+}
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
@@ -165,6 +185,23 @@ Node SkolemManager::mkPurifySkolem(Node t,
   Trace("sk-manager-skolem")
       << "skolem: " << k << " purify " << to << std::endl;
   return k;
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
+{
+  std::pair<SkolemFunId, Node> key(id, cacheVal);
+  std::map<std::pair<SkolemFunId, Node>, Node>::iterator it =
+      d_skolemFuns.find(key);
+  if (it == d_skolemFuns.end())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::stringstream ss;
+    ss << "SKOLEM_FUN_" << id;
+    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function");
+    d_skolemFuns[key] = k;
+    return k;
+  }
+  return it->second;
 }
 
 Node SkolemManager::mkBooleanTermVariable(Node t)

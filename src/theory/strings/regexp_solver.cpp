@@ -96,7 +96,6 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   bool addedLemma = false;
   bool changed = false;
   std::vector<Node> processed;
-  std::vector<Node> cprocessed;
 
   Trace("regexp-process") << "Checking Memberships ... " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
@@ -285,23 +284,21 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             }
             InferenceId inf =
                 polarity ? InferenceId::STRINGS_RE_UNFOLD_POS : InferenceId::STRINGS_RE_UNFOLD_NEG;
-            d_im.sendInference(iexp, noExplain, conc, inf);
-            addedLemma = true;
-            if (changed)
+            // in very rare cases, we may find out that the unfolding lemma
+            // for a membership is equivalent to true, in spite of the RE
+            // not being rewritten to true.
+            if (d_im.sendInference(iexp, noExplain, conc, inf))
             {
-              cprocessed.push_back(assertion);
+              addedLemma = true;
+              if (e == 0)
+              {
+                // Remember that we have unfolded a membership for x
+                // notice that we only do this here, after we have definitely
+                // added a lemma.
+                repUnfold.insert(rep);
+              }
             }
-            else
-            {
-              processed.push_back(assertion);
-            }
-            if (e == 0)
-            {
-              // Remember that we have unfolded a membership for x
-              // notice that we only do this here, after we have definitely
-              // added a lemma.
-              repUnfold.insert(rep);
-            }
+            processed.push_back(assertion);
           }
           else
           {
@@ -325,12 +322,6 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         Trace("strings-regexp")
             << "...add " << processed[i] << " to u-cache." << std::endl;
         d_regexp_ucached.insert(processed[i]);
-      }
-      for (unsigned i = 0; i < cprocessed.size(); i++)
-      {
-        Trace("strings-regexp")
-            << "...add " << cprocessed[i] << " to c-cache." << std::endl;
-        d_regexp_ccached.insert(cprocessed[i]);
       }
     }
   }

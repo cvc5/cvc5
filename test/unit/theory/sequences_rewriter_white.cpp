@@ -522,36 +522,6 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
   {
     // Same normal form for:
     //
-    // (str.indexof (str.++ "B" (str.substr "CCC" i j) x "A") "A" 0)
-    //
-    // (+ 1 (str.len (str.substr "CCC" i j))
-    //    (str.indexof (str.++ "A" x y) "A" 0))
-    Node lhs = d_nodeManager->mkNode(
-        kind::STRING_STRIDOF,
-        d_nodeManager->mkNode(
-            kind::STRING_CONCAT,
-            b,
-            d_nodeManager->mkNode(kind::STRING_SUBSTR, ccc, i, j),
-            x,
-            a),
-        a,
-        zero);
-    Node rhs = d_nodeManager->mkNode(
-        kind::PLUS,
-        one,
-        d_nodeManager->mkNode(
-            kind::STRING_LENGTH,
-            d_nodeManager->mkNode(kind::STRING_SUBSTR, ccc, i, j)),
-        d_nodeManager->mkNode(kind::STRING_STRIDOF,
-                              d_nodeManager->mkNode(kind::STRING_CONCAT, x, a),
-                              a,
-                              zero));
-    sameNormalForm(lhs, rhs);
-  }
-
-  {
-    // Same normal form for:
-    //
     // (str.indexof (str.++ "B" "C" "A" x y) "A" 0)
     //
     // (+ 2 (str.indexof (str.++ "A" x y) "A" 0))
@@ -1315,23 +1285,6 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
         abc);
     rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, abc);
     differentNormalForms(lhs, rhs);
-  }
-
-  {
-    // Same normal form for:
-    //
-    // (str.contains (str.++ (str.substr "DEF" n m) x) "AB")
-    //
-    // (str.contains x "AB")
-    lhs = d_nodeManager->mkNode(
-        kind::STRING_STRCTN,
-        d_nodeManager->mkNode(
-            kind::STRING_CONCAT,
-            d_nodeManager->mkNode(kind::STRING_SUBSTR, def, n, m),
-            x),
-        ab);
-    rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, ab);
-    sameNormalForm(lhs, rhs);
   }
 
   {
