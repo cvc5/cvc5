@@ -22,7 +22,7 @@
 #include "expr/term_canonize.h"
 
 namespace cvc5 {
-  
+
 class CDProof;
 
 namespace theory {

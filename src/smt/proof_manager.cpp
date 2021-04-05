@@ -134,7 +134,8 @@ void PfManager::printProof(std::ostream& out,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // if we are in incremental mode, we don't want to invalidate the proof
   // nodes in fp, since these may be reused in further check-sat calls
-  if (options::incrementalSolving() && options::proofFormatMode() != options::ProofFormatMode::NONE)
+  if (options::incrementalSolving()
+      && options::proofFormatMode() != options::ProofFormatMode::NONE)
   {
     fp = d_pnm->clone(fp);
   }

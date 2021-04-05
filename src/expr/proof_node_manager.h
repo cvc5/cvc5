@@ -160,6 +160,7 @@ class ProofNodeManager
   ProofChecker* getChecker() const;
   /** Clone a proof node */
   std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn);
+
  private:
   /** The (optional) proof checker */
   ProofChecker* d_checker;
