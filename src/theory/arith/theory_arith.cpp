@@ -17,8 +17,8 @@
 
 #include "theory/arith/theory_arith.h"
 
-#include "expr/proof_rule.h"
 #include "expr/proof_checker.h"
+#include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"

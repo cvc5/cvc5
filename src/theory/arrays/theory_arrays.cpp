@@ -164,7 +164,6 @@ TheoryRewriter* TheoryArrays::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryArrays::getProofChecker() { return &d_checker; }
 
-
 bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;

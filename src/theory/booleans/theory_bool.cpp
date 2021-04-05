@@ -76,10 +76,7 @@ TheoryRewriter* TheoryBool::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryBool::getProofChecker() { return &d_checker; }
 
-std::string TheoryBool::identify() const
-{
-  return std::string("TheoryBool");
-}
+std::string TheoryBool::identify() const { return std::string("TheoryBool"); }
 
 }  // namespace booleans
 }  // namespace theory

@@ -71,9 +71,14 @@ class TheorySep : public Theory {
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
-  int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited,
-                        std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
-                        bool pol, bool hasPol, bool underSpatial );
+  int processAssertion(
+      Node n,
+      std::map<int, std::map<Node, int> >& visited,
+      std::map<int, std::map<Node, std::vector<Node> > >& references,
+      std::map<int, std::map<Node, bool> >& references_strict,
+      bool pol,
+      bool hasPol,
+      bool underSpatial);
 
  public:
   TheorySep(context::Context* c,
@@ -333,8 +338,15 @@ class TheorySep : public Theory {
   void addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity );
   void mergePto( Node p1, Node p2 );
   void computeLabelModel( Node lbl );
-  Node instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std::map< Node, Node >& visited, std::map< Node, Node >& pto_model,
-                         TypeNode rtn, std::map< Node, bool >& active_lbl, unsigned ind = 0 );
+  Node instantiateLabel(Node n,
+                        Node o_lbl,
+                        Node lbl,
+                        Node lbl_v,
+                        std::map<Node, Node>& visited,
+                        std::map<Node, Node>& pto_model,
+                        TypeNode rtn,
+                        std::map<Node, bool>& active_lbl,
+                        unsigned ind = 0);
   void setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active );
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );

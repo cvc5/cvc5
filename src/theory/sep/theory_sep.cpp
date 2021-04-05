@@ -965,9 +965,15 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
 }
 
 //return cardinality
-int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >& visited,
-                                 std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
-                                 bool pol, bool hasPol, bool underSpatial ) {
+int TheorySep::processAssertion(
+    Node n,
+    std::map<int, std::map<Node, int> >& visited,
+    std::map<int, std::map<Node, std::vector<Node> > >& references,
+    std::map<int, std::map<Node, bool> >& references_strict,
+    bool pol,
+    bool hasPol,
+    bool underSpatial)
+{
   int index = hasPol ? ( pol ? 1 : -1 ) : 0;
   int card = 0;
   std::map< Node, int >::iterator it = visited[index].find( n );
@@ -1220,7 +1226,8 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     }
     //Assert( !d_type_references_all[tn].empty() );
 
-    if( d_bound_kind[tn]!=bound_invalid ){
+    if (d_bound_kind[tn] != bound_invalid)
+    {
       //construct bound
       d_reference_bound_max[tn] = mkUnion( tn, d_type_references_all[tn] );
       Trace("sep-bound") << "overall bound for " << d_base_label[tn] << " : " << d_reference_bound_max[tn] << std::endl;
@@ -1346,8 +1353,16 @@ Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) 
   }
 }
 
-Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std::map< Node, Node >& visited, std::map< Node, Node >& pto_model,
-                                  TypeNode rtn, std::map< Node, bool >& active_lbl, unsigned ind ) {
+Node TheorySep::instantiateLabel(Node n,
+                                 Node o_lbl,
+                                 Node lbl,
+                                 Node lbl_v,
+                                 std::map<Node, Node>& visited,
+                                 std::map<Node, Node>& pto_model,
+                                 TypeNode rtn,
+                                 std::map<Node, bool>& active_lbl,
+                                 unsigned ind)
+{
   Trace("sep-inst-debug") << "Instantiate label " << n << " " << lbl << " " << lbl_v << std::endl;
   if( options::sepMinimalRefine() && lbl!=o_lbl && active_lbl.find( lbl )!=active_lbl.end() ){
     Trace("sep-inst") << "...do not instantiate " << o_lbl << " since it has an active sublabel " << lbl << std::endl;
@@ -1422,7 +1437,8 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
             for( unsigned i=0; i<children.size(); i++ ){
               std::vector< Node > tchildren;
               Node mval = mvals[i];
-              tchildren.push_back( NodeManager::currentNM()->mkNode( kind::SUBSET, mval, lbl ) );
+              tchildren.push_back(
+                  NodeManager::currentNM()->mkNode(kind::SUBSET, mval, lbl));
               tchildren.push_back( children[i] );
               std::vector< Node > rem_children;
               for( unsigned j=0; j<children.size(); j++ ){

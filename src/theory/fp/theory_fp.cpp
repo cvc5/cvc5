@@ -134,7 +134,6 @@ TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
 
-
 bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notification;
@@ -942,7 +941,6 @@ void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
               << std::endl;
   d_im.conflictEqConstantMerge(t1, t2);
 }
-
 
 bool TheoryFp::needsCheckLastEffort()
 {
