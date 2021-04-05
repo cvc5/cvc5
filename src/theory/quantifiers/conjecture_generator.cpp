@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -1089,7 +1090,9 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
 Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
-    TypeNode op_tn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
+    TypeNode op_tn = nm->mkFunctionType( tn, nm->booleanType() );
     Node op = sm->mkDummySkolem(
         "PE", op_tn, "was created by conjecture ground term enumerator.");
     d_typ_pred[tn] = op;

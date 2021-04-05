@@ -30,6 +30,7 @@
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 

@@ -211,6 +211,7 @@ bool CegSingleInv::solve()
   }
   Trace("sygus-si") << "Solve using single invocation..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // Mark the quantified formula with the quantifier elimination attribute to
   // ensure its structure is preserved in the query below.
   Node siq = d_single_inv;

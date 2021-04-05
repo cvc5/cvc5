@@ -27,6 +27,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace std;
@@ -43,6 +44,8 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }else{
     d_proxy_range = r;
@@ -315,6 +318,7 @@ void BoundedIntegers::checkOwnership(Node f)
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
   do{

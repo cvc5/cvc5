@@ -178,6 +178,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                                  std::vector<unsigned>& sub_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;

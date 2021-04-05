@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -90,6 +91,8 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node st =
       sm->mkDummySkolem("star", tn, "skolem created for full-model checking");
   d_type_star[tn] = st;

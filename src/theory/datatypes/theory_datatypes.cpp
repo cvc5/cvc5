@@ -38,6 +38,7 @@
 #include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -830,6 +831,8 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
 
 void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
   if( d_exp_def_skolem[dt].find( sel )==d_exp_def_skolem[dt].end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     std::stringstream ss;
     ss << sel << "_uf";
     d_exp_def_skolem[dt][sel] = sm->mkDummySkolem(
@@ -841,6 +844,8 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
   if( n.getKind()==APPLY_CONSTRUCTOR ){
     NodeMap::const_iterator it = d_term_sk.find( n );
     if( it==d_term_sk.end() ){
+      NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       //add purification unit lemma ( k = n )
       Node k =
           sm->mkDummySkolem("k", n.getType(), "reference skolem for datatypes");
@@ -1400,14 +1405,16 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
 }
 
 Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   int index = pol ? 0 : 1;
   std::map< TypeNode, Node >::iterator it = d_singleton_lemma[index].find( tn );
   if( it==d_singleton_lemma[index].end() ){
     Node a;
     if( pol ){
-      Node v1 = NodeManager::currentNM()->mkBoundVar( tn );
-      Node v2 = NodeManager::currentNM()->mkBoundVar( tn );
-      a = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, v1, v2 ), v1.eqNode( v2 ) );
+      Node v1 = nm->mkBoundVar( tn );
+      Node v2 = nm->mkBoundVar( tn );
+      a = nm->mkNode( FORALL, nm->mkNode( BOUND_VAR_LIST, v1, v2 ), v1.eqNode( v2 ) );
     }else{
       Node v1 = sm->mkDummySkolem("k1", tn);
       Node v2 = sm->mkDummySkolem("k2", tn);

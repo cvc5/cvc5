@@ -21,6 +21,7 @@
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -35,14 +36,13 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
   if (its == d_solve_var.end())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Node k = sm->mkDummySkolem("slv", tn);
     d_solve_var[tn] = k;
     return k;
   }
-  else
-  {
-    return its->second;
-  }
+  return its->second;
 }
 
 /*---------------------------------------------------------------------------*/

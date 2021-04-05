@@ -15,6 +15,7 @@
 #include "theory/quantifiers/dynamic_rewrite.h"
 
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -144,6 +145,8 @@ Node DynamicRewriter::toExternal(Node ai)
 
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> ctypes;
   for (const Node& cn : n)
   {
@@ -173,7 +176,7 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   }
   else
   {
-    utype = NodeManager::currentNM()->mkFunctionType(ctypes);
+    utype = nm->mkFunctionType(ctypes);
   }
   Node f = sm->mkDummySkolem("ufd", utype, "internal op for dynamic_rewriter");
   curr->d_sym = f;
