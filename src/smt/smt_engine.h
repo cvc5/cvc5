@@ -824,13 +824,13 @@ class CVC4_EXPORT SmtEngine
   SExpr getStatistic(std::string name) const;
 
   /** Flush statistics from this SmtEngine and the NodeManager it uses. */
-  void flushStatistics(std::ostream& out) const;
+  void printStatistics(std::ostream& out) const;
 
   /**
    * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
    * use in a signal handler.
    */
-  void safeFlushStatistics(int fd) const;
+  void printStatisticsSafe(int fd) const;
 
   /**
    * Set user attribute.
@@ -906,7 +906,7 @@ class CVC4_EXPORT SmtEngine
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
-  StatisticsRegistry* getStatisticsRegistry();
+  StatisticsRegistry& getStatisticsRegistry();
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
