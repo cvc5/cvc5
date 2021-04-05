@@ -47,6 +47,12 @@ libcvc4_add_sources(
   lib/replacements.h
   lib/strtok_r.c
   lib/strtok_r.h
+  omt/bitvector_optimizer.cpp
+  omt/bitvector_optimizer.h
+  omt/integer_optimizer.cpp
+  omt/integer_optimizer.h
+  omt/omt_optimizer.cpp
+  omt/omt_optimizer.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/passes/ackermann.cpp
