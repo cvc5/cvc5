@@ -37,9 +37,11 @@ bool ProofNodeUpdaterCallback::update(Node res,
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
+                                   bool trackScope,
                                    bool autoSym)
     : d_pnm(pnm),
       d_cb(cb),
+      d_trackScope(trackScope),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
       d_autoSym(autoSym)
@@ -125,16 +127,18 @@ void ProofNodeUpdater::processInternal(
       }
       traversing.push_back(cur);
       visit.push_back(cur);
-      if (d_mergeSubproofs)
+      if (d_mergeSubproofs || d_trackScope)
       {
         // If we are not the top-level proof, we were a scope, or became a
         // scope after updating, we need to make a separate recursive call to
-        // this method. This is not necessary if we are not merging subproofs.
+        // this method. This is not necessary if we are not merging subproofs or
+        // tracking the scopes.
         if (cur->getRule() == PfRule::SCOPE && cur != pf)
         {
           std::vector<Node> nfa;
-          // if we are debugging free assumptions, update the set
-          if (d_debugFreeAssumps)
+          // if we are debugging free assumptions or if we are tracking the
+          // scopes, update the set
+          if (d_debugFreeAssumps || d_trackScope)
           {
             nfa.insert(nfa.end(), fa.begin(), fa.end());
             const std::vector<Node>& args = cur->getArguments();
@@ -180,7 +184,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
                                  bool& continueUpdate)
 {
   // should it be updated?
-  if (!d_cb.shouldUpdate(cur, continueUpdate))
+  if (!d_cb.shouldUpdate(cur, fa, continueUpdate))
   {
     return false;
   }
@@ -196,9 +200,9 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
     // store in the proof
     cpf.addProof(cp);
   }
-  Trace("pf-process-debug")
-      << "Updating (" << cur->getRule() << ")..." << std::endl;
   Node res = cur->getResult();
+  Trace("pf-process-debug")
+      << "Updating (" << cur->getRule() << "): " << res << std::endl;
   // only if the callback updated the node
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
   {
