@@ -25,7 +25,6 @@
 #include "theory/eager_proof_generator.h"
 
 namespace cvc5 {
-
 namespace theory {
 namespace bv {
 

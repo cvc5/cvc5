@@ -32,9 +32,6 @@
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
-
-class ProofRuleChecker;
-
 namespace theory {
 namespace fp {
 

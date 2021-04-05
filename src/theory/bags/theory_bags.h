@@ -28,9 +28,6 @@
 #include "theory/theory_eq_notify.h"
 
 namespace cvc5 {
-
-class ProofRuleChecker;
-
 namespace theory {
 namespace bags {
 

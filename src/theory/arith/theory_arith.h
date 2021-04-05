@@ -25,9 +25,6 @@
 #include "theory/theory.h"
 
 namespace cvc5 {
-
-class ProofRuleChecker;
-
 namespace theory {
 namespace arith {
 namespace nl {

@@ -32,9 +32,6 @@
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
-
-class ProofRuleChecker;
-
 namespace theory {
 
 class TheoryModel;
