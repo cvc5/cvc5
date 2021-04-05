@@ -631,7 +631,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
     needsUf = true;
   }
-  else if (options::preSkolemQuant() && options::preSkolemQuantNested()
+  else if (options::preSkolemQuantNested()
            && options::preSkolemQuantNested.wasSetByUser())
   {
     // if pre-skolem nested is explictly set, then we require UF. If it is
