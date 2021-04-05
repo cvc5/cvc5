@@ -25,6 +25,23 @@ namespace cvc5 {
 
 class ProofGenerator;
 
+/** Skolem function identifier */
+enum class SkolemFunId
+{
+  /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  DIV_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  INT_DIV_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = x mod 0 */
+  MOD_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+  SQRT,
+};
+/** Converts a skolem function name to a string. */
+const char* toString(SkolemFunId id);
+/** Writes a skolem function name to a stream. */
+std::ostream& operator<<(std::ostream& out, SkolemFunId id);
+
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
  * a trusted interface to NodeManager::mkSkolem, where one
@@ -56,6 +73,9 @@ class ProofGenerator;
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
  * case for algorithms that introduce witness, e.g. BV/set instantiation.
+ *
+ * Additionally, we consider a third class of skolems (mkSkolemFunction) which
+ * are for convenience associated with an identifier, and not a witness term.
  */
 class SkolemManager
 {
@@ -176,6 +196,38 @@ class SkolemManager
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
   /**
+   * Make skolem function. This method should be used for creating fixed
+   * skolem functions of the forms described in SkolemFunId. The user of this
+   * method is responsible for providing a proper type for the identifier that
+   * matches the description of id. Skolem functions are useful for modelling
+   * the behavior of partial functions, or for theory-specific inferences that
+   * introduce fresh variables.
+   *
+   * A skolem function is not given a formal semantics in terms of a witness
+   * term, nor is it a purification skolem, thus it does not fall into the two
+   * categories of skolems above. This method is motivated by convenience, as
+   * the user of this method does not require constructing canonical variables
+   * for witness terms.
+   *
+   * The returned skolem is an ordinary skolem variable that can be used
+   * e.g. in APPLY_UF terms when tn is a function type.
+   *
+   * Notice that we do not insist that tn is a function type. A user of this
+   * method may construct a canonical (first-order) skolem using this method
+   * as well.
+   *
+   * @param id The identifier of the skolem function
+   * @param tn The type of the returned skolem function
+   * @param cacheVal A cache value. The returned skolem function will be
+   * unique to the pair (id, cacheVal). This value is required, for instance,
+   * for skolem functions that are in fact families of skolem functions,
+   * e.g. the wrongly applied case of selectors.
+   * @return The skolem function.
+   */
+  Node mkSkolemFunction(SkolemFunId id,
+                        TypeNode tn,
+                        Node cacheVal = Node::null());
+  /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind
    * BOOLEAN_TERM_VARIABLE.
@@ -205,6 +257,10 @@ class SkolemManager
   static Node getOriginalForm(Node n);
 
  private:
+  /**
+   * Cached of skolem functions for mkSkolemFunction above.
+   */
+  std::map<std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
   /**
    * Mapping from witness terms to proof generators.
    */
