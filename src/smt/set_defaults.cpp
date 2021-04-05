@@ -634,7 +634,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   else if (options::preSkolemQuantNested())
   {
     // bv abstraction may require UF
-    Notice() << "Enabling UF because preSkolemQuantNested requires it." << std::endl;
+    Notice() << "Enabling UF because preSkolemQuantNested requires it."
+             << std::endl;
     needsUf = true;
   }
   if (needsUf
