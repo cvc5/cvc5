@@ -16,8 +16,8 @@
 
 #include <sstream>
 
-#include "theory/rewriter.h"
 #include "expr/skolem_manager.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
 
