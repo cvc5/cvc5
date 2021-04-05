@@ -76,7 +76,7 @@ class OperatorElim : public EagerProofGenerator
    * Note that this cache is used only for performance reasons. Conceptually,
    * these skolem functions actually live in SkolemManager.
    */
-  std::map<SkolemFunId, Node> d_arith_skolem;
+  std::map<SkolemFunId, Node> d_arithSkolem;
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar

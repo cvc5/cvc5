@@ -408,8 +408,8 @@ Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
 
 Node OperatorElim::getArithSkolem(SkolemFunId id)
 {
-  std::map<SkolemFunId, Node>::iterator it = d_arith_skolem.find(id);
-  if (it == d_arith_skolem.end())
+  std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
+  if (it == d_arithSkolem.end())
   {
     NodeManager* nm = NodeManager::currentNM();
     TypeNode tn;
@@ -435,7 +435,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
       skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
     }
     // cache it
-    d_arith_skolem[id] = skolem;
+    d_arithSkolem[id] = skolem;
     return skolem;
   }
   return it->second;
