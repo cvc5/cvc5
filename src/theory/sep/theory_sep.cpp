@@ -1163,6 +1163,8 @@ void TheorySep::initializeBounds() {
   if( !d_bounds_init ){
     Trace("sep-bound")  << "Initialize sep bounds..." << std::endl;
     d_bounds_init = true;
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
@@ -1189,12 +1191,13 @@ void TheorySep::initializeBounds() {
 Node TheorySep::getBaseLabel( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_base_label.find( tn );
   if( it==d_base_label.end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     initializeBounds();
     Trace("sep") << "Make base label for " << tn << std::endl;
     std::stringstream ss;
     ss << "__Lb";
-    TypeNode ltn = NodeManager::currentNM()->mkSetType(tn);
-    //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(tn));
+    TypeNode ltn = nm->mkSetType(tn);
     Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "base label");
     d_base_label[tn] = n_lbl;
     //make reference bound
@@ -1312,6 +1315,8 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
 Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   std::map< int, Node >::iterator it = d_label_map[atom][lbl].find( child );
   if( it==d_label_map[atom][lbl].end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     TypeNode refType = getReferenceType( atom );
     std::stringstream ss;
     ss << "__Lc" << child;

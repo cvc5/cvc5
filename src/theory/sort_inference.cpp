@@ -29,6 +29,7 @@
 #include "options/uf_options.h"
 #include "theory/rewriter.h"
 #include "theory/quantifiers/quant_util.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -599,6 +600,8 @@ TypeNode SortInference::getTypeForId( int t ){
 }
 
 Node SortInference::getNewSymbol( Node old, TypeNode tn ){
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // if no sort was inferred for this node, return original
   if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
     return old;
@@ -635,6 +638,8 @@ Node SortInference::simplifyNode(
   if( itv!=visited[n].end() ){
     return itv->second;
   }else{
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("sort-inference-debug2") << "Simplify " << n << ", type context=" << tnn << std::endl;
     std::vector< Node > children;
     std::map< Node, std::map< TypeNode, Node > > new_visited;
@@ -782,6 +787,8 @@ Node SortInference::simplifyNode(
 }
 
 Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
   TypeNode typ = NodeManager::currentNM()->mkFunctionType( tns, tn2 );

@@ -15,8 +15,10 @@
  **/
 
 #include "theory/sets/theory_sets_rels.h"
+
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -369,6 +371,8 @@ void TheorySetsRels::check(Theory::Effort level)
   void TheorySetsRels::applyJoinImageRule( Node mem_rep, Node join_image_term, Node exp ) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** applyJoinImageRule on " << join_image_term
                         << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     if( d_rel_nodes.find( join_image_term ) == d_rel_nodes.end() ) {
       computeMembersForJoinImageTerm( join_image_term );
       d_rel_nodes.insert( join_image_term );

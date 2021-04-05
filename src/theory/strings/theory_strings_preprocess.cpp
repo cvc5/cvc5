@@ -1018,6 +1018,7 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   }
   else
   {
+    SkolemManager* sm = nm->getSkolemManager();
     qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
     // this dummy variable marks that the quantified formula is internal
     qvar.setAttribute(InternalQuantAttribute(), true);

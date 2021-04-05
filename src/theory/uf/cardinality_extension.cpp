@@ -26,6 +26,7 @@
 #include "theory/theory_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -1126,6 +1127,8 @@ void SortModel::debugPrint( const char* c ){
 
 bool SortModel::checkLastCall()
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TheoryModel* m = d_state.getModel();
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;

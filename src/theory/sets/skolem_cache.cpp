@@ -15,6 +15,7 @@
 #include "theory/sets/skolem_cache.h"
 
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -49,6 +50,8 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node n = sm->mkDummySkolem(c, tn, "sets skolem");
   d_allSkolems.insert(n);
   return n;

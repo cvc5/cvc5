@@ -154,6 +154,8 @@ Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
