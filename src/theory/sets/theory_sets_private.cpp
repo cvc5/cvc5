@@ -985,16 +985,18 @@ void TheorySetsPrivate::computeCareGraph()
       {
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
-        // break into index based on operator, and type of second argument (since
-        // some operators are parametric)
+        // break into index based on operator, and the type of the element
+        // type of the proper set, which notice must be safe wrt subtyping.
         TypeNode tn;
         if (k == kind::SINGLETON)
         {
+          // get the type of the singleton set (not the type of its element)
           tn = f1.getType().getSetElementType();
         }
         else
         {
           Assert (k == kind::MEMBER);
+          // get the type of the set (not the type of the element)
           tn = f1[1].getType().getSetElementType();
         }
         std::vector<TNode> reps;
