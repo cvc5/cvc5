@@ -14,9 +14,9 @@
 
 #include "theory/engine_output_channel.h"
 
+#include "expr/skolem_manager.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
-#include "expr/skolem_manager.h"
 #include "theory/theory_engine.h"
 
 using namespace cvc5::kind;
@@ -120,7 +120,7 @@ void EngineOutputChannel::conflict(TNode conflictNode)
 void EngineOutputChannel::demandRestart()
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node restartVar = sm->mkDummySkolem(
       "restartVar",
       nm->booleanType(),

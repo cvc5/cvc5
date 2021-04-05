@@ -16,12 +16,12 @@
 
 #include <algorithm>
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 

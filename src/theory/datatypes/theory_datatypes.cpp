@@ -23,6 +23,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
 #include "expr/proof_node_manager.h"
+#include "expr/skolem_manager.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -38,7 +39,6 @@
 #include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -1412,9 +1412,9 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   if( it==d_singleton_lemma[index].end() ){
     Node a;
     if( pol ){
-      Node v1 = nm->mkBoundVar( tn );
-      Node v2 = nm->mkBoundVar( tn );
-      a = nm->mkNode( FORALL, nm->mkNode( BOUND_VAR_LIST, v1, v2 ), v1.eqNode( v2 ) );
+      Node v1 = nm->mkBoundVar(tn);
+      Node v2 = nm->mkBoundVar(tn);
+      a = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v1, v2), v1.eqNode(v2));
     }else{
       Node v1 = sm->mkDummySkolem("k1", tn);
       Node v2 = sm->mkDummySkolem("k2", tn);

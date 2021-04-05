@@ -15,9 +15,9 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
 #include "expr/attribute.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 

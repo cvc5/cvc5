@@ -18,6 +18,7 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -27,7 +28,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace std;

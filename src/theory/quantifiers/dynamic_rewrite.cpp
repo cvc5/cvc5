@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/dynamic_rewrite.h"
 
-#include "theory/rewriter.h"
 #include "expr/skolem_manager.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::kind;

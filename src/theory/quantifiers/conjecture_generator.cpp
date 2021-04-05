@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 
+#include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
@@ -25,7 +26,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -1091,8 +1091,8 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
-    TypeNode op_tn = nm->mkFunctionType( tn, nm->booleanType() );
+    SkolemManager* sm = nm->getSkolemManager();
+    TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
     Node op = sm->mkDummySkolem(
         "PE", op_tn, "was created by conjecture ground term enumerator.");
     d_typ_pred[tn] = op;

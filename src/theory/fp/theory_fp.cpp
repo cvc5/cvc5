@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "base/configuration.h"
+#include "expr/skolem_manager.h"
 #include "options/fp_options.h"
 #include "smt/logic_exception.h"
 #include "theory/fp/fp_converter.h"
@@ -30,7 +31,6 @@
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 
