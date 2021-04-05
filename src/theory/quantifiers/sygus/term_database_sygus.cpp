@@ -169,6 +169,8 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     Node k;
     if (anyC == -1)
     {
+      NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       k = sm->mkDummySkolem("sy", tn, "sygus proxy");
       SygusPrintProxyAttribute spa;
       k.setAttribute(spa, c);

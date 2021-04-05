@@ -428,6 +428,7 @@ bool TransitionInference::processDisjunct(
       d_func = op;
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
       NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       for (const Node& l : lit)
       {
         Node v =

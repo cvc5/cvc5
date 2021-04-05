@@ -508,6 +508,7 @@ void TheorySep::postCheck(Effort level)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Trace("sep-process") << "Checking heap at full effort..." << std::endl;
   d_label_model.clear();
   d_tmodel.clear();

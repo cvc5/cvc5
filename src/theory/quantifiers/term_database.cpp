@@ -155,6 +155,8 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
       d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     std::stringstream ss;
     ss << language::SetLanguage(options::outputLanguage());
     ss << "e_" << tn;
@@ -168,10 +170,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
     d_type_fv[tn] = k;
     return k;
   }
-  else
-  {
-    return it->second;
-  }
+  return it->second;
 }
 
 Node TermDb::getMatchOperator( Node n ) {
