@@ -199,12 +199,14 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                  << isCollectModel << "..." << std::endl;
   std::map<TypeNode, std::vector<Node> > func_eqcs;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  bool hasFunctions = false;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if (tn.isFunction())
     {
+      hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
       if (tn.isInterpretedFinite() != isCollectModel)
@@ -220,11 +222,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
   {
     // we are not applying extensionality, thus we are incomplete if functions
     // are present
-    if (!func_eqcs.empty())
+    if (hasFunctions)
     {
       d_im.setIncomplete();
     }
-    return;
+    return 0;
   }
 
   for (std::map<TypeNode, std::vector<Node> >::iterator itf = func_eqcs.begin();
