@@ -336,8 +336,10 @@ SmtEngine::~SmtEngine()
     d_asserts.reset(nullptr);
     d_model.reset(nullptr);
 
+    d_abductSolver.reset(nullptr);
+    d_interpolSolver.reset(nullptr);
+    d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
-
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
