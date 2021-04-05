@@ -1216,8 +1216,8 @@ void DeclarePoolCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdDeclarePool(
       out,
       d_func.toString(),
-      d_sort.getTypeNode(),
-      api::Term::termVectorToNodes(d_initValue));
+      sortToTypeNode(d_sort),
+      termVectorToNodes(d_initValue));
 }
 
 /* -------------------------------------------------------------------------- */
