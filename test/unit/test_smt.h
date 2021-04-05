@@ -170,7 +170,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
 
 /* -------------------------------------------------------------------------- */
 
-class DymmyTheoryRewriter : public theory::TheoryRewriter
+class DummyTheoryRewriter : public theory::TheoryRewriter
 {
  public:
   theory::RewriteResponse preRewrite(TNode n) override
@@ -183,6 +183,22 @@ class DymmyTheoryRewriter : public theory::TheoryRewriter
     return theory::RewriteResponse(theory::REWRITE_DONE, n);
   }
 };
+
+class DummyProofRuleChecker : public ProofRuleChecker
+{
+ public:
+  DummyProofRuleChecker() {}
+  ~DummyProofRuleChecker() {}
+  void registerTo(ProofChecker* pc) override {}
+
+ protected:
+  Node checkInternal(PfRule id,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args) override
+  {
+    return Node::null();
+  }
+}
 
 /** Dummy Theory interface.  */
 template <theory::TheoryId theoryId>
@@ -246,8 +262,9 @@ class DummyTheory : public theory::Theory
    */
   std::string d_id;
   /** The theory rewriter for this theory. */
-  DymmyTheoryRewriter d_rewriter;
-  ProofRuleChecker d_checker;
+  DummyTheoryRewriter d_rewriter;
+  /** The proof checker for this theory. */
+  DummyProofRuleChecker d_checker;
 };
 
 /* -------------------------------------------------------------------------- */
