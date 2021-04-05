@@ -172,11 +172,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_previousStatus(Result::SAT_UNKNOWN),
       d_statistics()
 {
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_checker.registerTo(pc);
-  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
@@ -5504,6 +5499,11 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
   }else{
     return make_pair(Node::null(), DeltaRational());
   }
+}
+
+ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
+{
+  return &d_checker;
 }
 
 // InferBoundsResult TheoryArithPrivate::inferUpperBoundSimplex(TNode t, const

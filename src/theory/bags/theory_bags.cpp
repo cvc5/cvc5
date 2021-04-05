@@ -14,6 +14,7 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "expr/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
@@ -49,6 +50,8 @@ TheoryBags::TheoryBags(context::Context* c,
 TheoryBags::~TheoryBags() {}
 
 TheoryRewriter* TheoryBags::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryBags::getProofChecker() { return nullptr; }
 
 bool TheoryBags::needsEqualityEngine(EeSetupInfo& esi)
 {
