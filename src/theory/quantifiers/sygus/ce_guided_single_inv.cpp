@@ -31,6 +31,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -144,6 +145,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   d_single_inv = d_sip->getSingleInvocation();
   d_single_inv = TermUtil::simpleNegate(d_single_inv);
   std::vector<Node> func_vars;

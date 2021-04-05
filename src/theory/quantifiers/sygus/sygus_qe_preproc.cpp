@@ -18,6 +18,7 @@
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -35,6 +36,7 @@ Node SygusQePreproc::preprocess(Node q)
     body = body[0][1];
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;
   quantifiers::SingleInvocationPartition sip;

@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -180,6 +181,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
   d_input_funcs.insert(d_input_funcs.end(), funcs.begin(), funcs.end());

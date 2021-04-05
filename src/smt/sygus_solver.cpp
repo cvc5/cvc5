@@ -28,6 +28,7 @@
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;

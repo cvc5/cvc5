@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -26,6 +27,7 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
                                const std::vector<Node>& builtinVars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
 
   d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
   d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));

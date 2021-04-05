@@ -27,6 +27,7 @@
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
 #include "util/result.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -1369,6 +1370,7 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
   stringstream stream;
   stream << "chooseUf" << setType.getId();

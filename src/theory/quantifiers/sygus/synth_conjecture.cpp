@@ -36,6 +36,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 using namespace std;
@@ -102,6 +103,7 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : assign : " << q << std::endl;
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
 
   // initialize the guard
   d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
@@ -460,6 +462,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
 
   // check the side condition if we constructed a candidate
   if (constructed_cand)

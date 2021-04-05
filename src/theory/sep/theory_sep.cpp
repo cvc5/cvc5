@@ -32,6 +32,7 @@
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -313,6 +314,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
   TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == SEP_LABEL ? atom[1] : TNode::null();
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   if (slbl.isNull())
   {
     Trace("sep-lemma-debug")

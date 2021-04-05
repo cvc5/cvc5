@@ -19,6 +19,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -197,6 +198,7 @@ void TransitionInference::process(Node n, Node f)
 void TransitionInference::process(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   d_complete = true;
   d_trivial = true;
   std::vector<Node> n_check;

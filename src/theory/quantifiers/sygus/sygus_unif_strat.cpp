@@ -22,6 +22,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -172,6 +173,7 @@ void SygusUnifStrategy::registerStrategyPoint(Node et,
 void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   if (d_tinfo.find(tn) == d_tinfo.end())
   {
     // register type

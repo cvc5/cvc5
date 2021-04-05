@@ -18,6 +18,7 @@
 #include "smt/command.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -47,6 +48,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   initialize(stn);
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
 
   /** a set of obligations that are not yet satisfied for each sygus datatype */
   TypeObligationSetMap unsolvedObs;

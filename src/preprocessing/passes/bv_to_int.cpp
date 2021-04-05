@@ -32,6 +32,7 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {

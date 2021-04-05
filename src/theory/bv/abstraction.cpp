@@ -22,6 +22,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::theory;

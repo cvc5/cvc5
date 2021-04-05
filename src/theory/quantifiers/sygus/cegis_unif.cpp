@@ -20,6 +20,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -417,6 +418,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Node new_lit = sm->mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
 
@@ -526,6 +528,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
   // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   for (const Node& e : es)
   {
     Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";

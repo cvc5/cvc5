@@ -23,6 +23,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 

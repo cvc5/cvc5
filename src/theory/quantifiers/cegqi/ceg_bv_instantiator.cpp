@@ -20,6 +20,7 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
+#include "expr/skolem_manager.h"
 #include "util/random.h"
 
 using namespace std;

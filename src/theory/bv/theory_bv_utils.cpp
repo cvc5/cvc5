@@ -20,6 +20,7 @@
 
 #include "options/theory_options.h"
 #include "theory/theory.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {

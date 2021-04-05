@@ -29,6 +29,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {

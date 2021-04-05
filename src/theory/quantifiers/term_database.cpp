@@ -27,6 +27,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -468,6 +469,7 @@ void TermDb::addTermHo(Node n)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Node curr = n;
   std::vector<Node> args;
   while (curr.getKind() == HO_APPLY)
@@ -1224,6 +1226,7 @@ Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
     return ithp->second;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
   Node k = sm->mkDummySkolem("U", ptn, "predicate to force higher-order types");
   d_ho_type_match_pred[tn] = k;

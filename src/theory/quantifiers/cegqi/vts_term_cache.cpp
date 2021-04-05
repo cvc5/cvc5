@@ -18,6 +18,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -60,6 +61,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
       d_vts_delta_free =
@@ -86,6 +88,7 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
     if (d_vts_inf_free[tn].isNull())
     {
       d_vts_inf_free[tn] = sm->mkDummySkolem(

@@ -19,6 +19,7 @@
 #include "options/uf_options.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -66,6 +67,7 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   std::vector<TypeNode> argTypes = tn.getArgTypes();
   std::vector<Node> skolems;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
     Node k =
@@ -120,6 +122,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find(f);

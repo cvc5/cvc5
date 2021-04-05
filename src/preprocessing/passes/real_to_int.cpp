@@ -23,6 +23,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {

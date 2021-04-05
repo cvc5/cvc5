@@ -28,6 +28,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/smt_engine_subsolver.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -433,6 +434,7 @@ Node SygusRepairConst::getFoQuery(Node body,
                                   const std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),

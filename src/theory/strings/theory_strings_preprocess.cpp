@@ -25,6 +25,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -58,6 +59,7 @@ Node StringsPreprocess::reduce(Node t,
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0));
   Node one = nm->mkConst(Rational(1));
   Node negOne = nm->mkConst(Rational(-1));

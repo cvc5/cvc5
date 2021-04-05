@@ -20,6 +20,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 #include "util/random.h"
 
 #include <math.h>
@@ -133,6 +134,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   bool childChanged = false;
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   for (unsigned i = 0; i < size; ++i)
   {
     if (i == 0 && fapp)

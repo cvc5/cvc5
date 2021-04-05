@@ -27,6 +27,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {

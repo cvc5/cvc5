@@ -26,6 +26,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
