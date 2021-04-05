@@ -16,6 +16,7 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/logic_exception.h"
@@ -26,7 +27,6 @@
 #include "theory/theory_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;

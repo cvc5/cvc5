@@ -24,12 +24,12 @@
 #include <sstream>
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers/quant_util.h"
-#include "expr/skolem_manager.h"
+#include "theory/rewriter.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
