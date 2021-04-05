@@ -18,10 +18,10 @@
 #include <iostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/partial_model.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 
@@ -32,7 +32,9 @@ namespace arith {
 inline Node makeIntegerVariable(){
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  return sm->mkDummySkolem("intvar", nm->integerType(), "is an integer variable created by the dio solver");
+  return sm->mkDummySkolem("intvar",
+                           nm->integerType(),
+                           "is an integer variable created by the dio solver");
 }
 
 DioSolver::DioSolver(context::Context* ctxt)

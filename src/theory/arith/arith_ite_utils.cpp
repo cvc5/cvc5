@@ -20,6 +20,7 @@
 #include <ostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
@@ -27,7 +28,6 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 

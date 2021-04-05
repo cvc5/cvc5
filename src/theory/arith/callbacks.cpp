@@ -18,9 +18,9 @@
 #include "theory/arith/callbacks.h"
 
 #include "expr/proof_node.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
