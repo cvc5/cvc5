@@ -92,7 +92,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
   Node mul = d_nodeManager->mkNode(MULT, x, x);
   Node eq1 = d_nodeManager->mkNode(EQUAL, plus, mul);
 
-  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->mkBitVectorType(4));
+  Node y =
+      d_skolemManager->mkDummySkolem("y", d_nodeManager->mkBitVectorType(4));
   Node ext1 = theory::bv::utils::mkExtract(y, 1, 0);
   Node ext2 = theory::bv::utils::mkExtract(y, 3, 2);
   Node eq2 = d_nodeManager->mkNode(EQUAL, ext1, ext2);

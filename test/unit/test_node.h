@@ -40,7 +40,7 @@ class TestNode : public TestInternal
 
   std::unique_ptr<NodeManagerScope> d_scope;
   std::unique_ptr<NodeManager> d_nodeManager;
-  SkolemManager * d_skolemManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<TypeNode> d_boolTypeNode;
   std::unique_ptr<TypeNode> d_bvTypeNode;
   std::unique_ptr<TypeNode> d_intTypeNode;

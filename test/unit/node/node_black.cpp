@@ -597,14 +597,14 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode intType = d_nodeManager->integerType();
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
-  Node x =
-      d_skolemManager->mkDummySkolem("x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node y =
-      d_skolemManager->mkDummySkolem("y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node f =
-      d_skolemManager->mkDummySkolem("f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node g =
-      d_skolemManager->mkDummySkolem("g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node x = d_skolemManager->mkDummySkolem(
+      "x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node y = d_skolemManager->mkDummySkolem(
+      "y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node f = d_skolemManager->mkDummySkolem(
+      "f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+  Node g = d_skolemManager->mkDummySkolem(
+      "g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);

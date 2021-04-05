@@ -41,7 +41,8 @@ class TestTheoryWhiteBagsRewriter : public TestSmt
     std::vector<Node> elements(n);
     for (size_t i = 0; i < n; i++)
     {
-      elements[i] = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
+      elements[i] =
+          d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
     }
     return elements;
   }
@@ -129,7 +130,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, mkBag_constant_element)
 
 TEST_F(TestTheoryWhiteBagsRewriter, mkBag_variable_element)
 {
-  Node skolem = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
+  Node skolem =
+      d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node variable = d_nodeManager->mkBag(d_nodeManager->stringType(),
                                        skolem,
                                        d_nodeManager->mkConst(Rational(-1)));
@@ -160,7 +162,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, mkBag_variable_element)
 TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
 {
   int n = 3;
-  Node skolem = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
+  Node skolem =
+      d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(skolem.getType())));
   Node bag = d_nodeManager->mkBag(
