@@ -75,13 +75,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_pchecker.registerTo(pc);
-  }
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -94,6 +87,8 @@ TheoryDatatypes::~TheoryDatatypes() {
 }
 
 TheoryRewriter* TheoryDatatypes::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryDatatypes::getProofChecker() { return &d_checker; }
 
 bool TheoryDatatypes::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -141,10 +136,10 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
       if( n.getKind()==APPLY_CONSTRUCTOR ){
         ei->d_constructor = n;
       }
-      
+
       //add to selectors
       d_selector_apps[n] = 0;
-      
+
       return ei;
     }else{
       return NULL;
@@ -1018,7 +1013,7 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
     }else{
       d_selector_apps_data[n].push_back( s );
     }
-  
+
     eqc->d_selectors = true;
   }
   if( assertFacts && !eqc->d_constructor.get().isNull() ){
