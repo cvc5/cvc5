@@ -344,6 +344,7 @@ Result PropEngine::checkSat() {
   d_inCheckSat = true;
 
   // TODO This currently ignores conflicts (a dangerous practice).
+  d_decisionEngine->presolve();
   d_theoryEngine->presolve();
 
   if(options::preprocessOnly()) {

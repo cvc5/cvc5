@@ -52,7 +52,11 @@ void JustificationStrategy::finishInit(CDCLTSatSolverInterface* ss,
 
 void JustificationStrategy::presolve()
 {
-  // TODO: reset the dynamic assertion list data
+  d_lastDecisionLit = Node::null();
+  d_currUnderStatus = Node::null();
+  d_currStatusDec = false;
+  // reset the dynamic assertion list data
+  d_assertions.presolve();
 }
 
 SatLiteral JustificationStrategy::getNext(bool& stopSearch)

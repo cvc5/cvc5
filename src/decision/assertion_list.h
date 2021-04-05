@@ -49,6 +49,8 @@ class AssertionList
                 context::Context* ic,
                 bool useDyn = false);
   virtual ~AssertionList() {}
+  /** Presolve, which clears the dynamic assertion order */
+  void presolve();
   /** Add the assertion */
   void addAssertion(TNode n);
   /**
