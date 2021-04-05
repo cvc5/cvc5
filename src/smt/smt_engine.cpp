@@ -72,13 +72,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace CVC5::smt;
-using namespace CVC5::preprocessing;
-using namespace CVC5::prop;
-using namespace CVC5::context;
-using namespace CVC5::theory;
+using namespace cvc5::smt;
+using namespace cvc5::preprocessing;
+using namespace cvc5::prop;
+using namespace cvc5::context;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm)),
@@ -503,7 +503,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   return false;
 }
 
-CVC5::SExpr SmtEngine::getInfo(const std::string& key) const
+cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
 {
   SmtScope smts(this);
 
@@ -511,13 +511,11 @@ CVC5::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    for (StatisticsRegistry::const_iterator i = d_env->getStatisticsRegistry()->begin();
-         i != d_env->getStatisticsRegistry()->end();
-         ++i)
+    for (const auto& s: d_env->getStatisticsRegistry())
     {
       vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
+      v.push_back(s.first);
+      v.push_back(s.second);
       stats.push_back(v);
     }
     return SExpr(stats);
@@ -1393,7 +1391,7 @@ void SmtEngine::checkProof()
   }
 }
 
-StatisticsRegistry* SmtEngine::getStatisticsRegistry()
+StatisticsRegistry& SmtEngine::getStatisticsRegistry()
 {
   return d_env->getStatisticsRegistry();
 }
@@ -1852,22 +1850,22 @@ NodeManager* SmtEngine::getNodeManager() const
 
 Statistics SmtEngine::getStatistics() const
 {
-  return Statistics(*d_env->getStatisticsRegistry());
+  return Statistics(d_env->getStatisticsRegistry());
 }
 
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  return d_env->getStatisticsRegistry()->getStatistic(name);
+  return d_env->getStatisticsRegistry().getStatistic(name);
 }
 
-void SmtEngine::flushStatistics(std::ostream& out) const
+void SmtEngine::printStatistics(std::ostream& out) const
 {
-  d_env->getStatisticsRegistry()->flushInformation(out);
+  d_env->getStatisticsRegistry().flushInformation(out);
 }
 
-void SmtEngine::safeFlushStatistics(int fd) const
+void SmtEngine::printStatisticsSafe(int fd) const
 {
-  d_env->getStatisticsRegistry()->safeFlushInformation(fd);
+  d_env->getStatisticsRegistry().safeFlushInformation(fd);
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
@@ -2027,4 +2025,4 @@ OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 
 theory::Rewriter* SmtEngine::getRewriter() { return d_env->getRewriter(); }
 
-}  // namespace CVC5
+}  // namespace cvc5

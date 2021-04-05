@@ -24,9 +24,9 @@
 
 #include "base/exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
-class LogicException : public CVC5::Exception
+class LogicException : public cvc5::Exception
 {
  public:
   LogicException() :
@@ -43,6 +43,6 @@ class LogicException : public CVC5::Exception
   }
 }; /* class LogicException */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__LOGIC_EXCEPTION_H */

@@ -16,9 +16,9 @@
 
 #include "expr/proof_checker.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 
 ProofStep::ProofStep() : d_rule(PfRule::UNKNOWN) {}
 ProofStep::ProofStep(PfRule r,
@@ -108,4 +108,4 @@ const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const
 
 void ProofStepBuffer::clear() { d_steps.clear(); }
 
-}  // namespace CVC5
+}  // namespace cvc5

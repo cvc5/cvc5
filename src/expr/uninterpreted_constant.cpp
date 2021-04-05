@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 UninterpretedConstant::UninterpretedConstant(const TypeNode& type,
                                              Integer index)
@@ -95,4 +95,4 @@ size_t UninterpretedConstantHashFunction::operator()(
          * IntegerHashFunction()(uc.getIndex());
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

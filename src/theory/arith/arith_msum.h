@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 /** Arithmetic utilities regarding monomial sums.
@@ -183,6 +183,6 @@ class ArithMSum
 };
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__MSUM_H */

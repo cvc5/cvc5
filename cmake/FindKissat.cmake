@@ -45,7 +45,7 @@ if(NOT Kissat_FOUND_SYSTEM)
 
   ExternalProject_Add(
     Kissat-EP
-    PREFIX ${DEPS_PREFIX}
+    ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
     URL http://fmv.jku.at/kissat/kissat-${Kissat_VERSION}.tar.xz
     URL_HASH SHA1=5125efa17d383c7e7c1e6d803e3422b17cebcedb

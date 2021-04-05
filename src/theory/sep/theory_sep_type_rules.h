@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 #define CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sep {
 
@@ -109,6 +109,6 @@ struct SepNilTypeRule {
 
 }  // namespace sep
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H */

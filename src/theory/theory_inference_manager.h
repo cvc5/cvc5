@@ -28,7 +28,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -461,6 +461,6 @@ class TheoryInferenceManager
 };
 
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */

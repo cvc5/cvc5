@@ -18,9 +18,9 @@
 #include "theory/bags/solver_state.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -45,4 +45,4 @@ Node TermRegistry::getEmptyBag(TypeNode tn)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

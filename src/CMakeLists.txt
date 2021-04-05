@@ -47,6 +47,12 @@ libcvc4_add_sources(
   lib/replacements.h
   lib/strtok_r.c
   lib/strtok_r.h
+  omt/bitvector_optimizer.cpp
+  omt/bitvector_optimizer.h
+  omt/integer_optimizer.cpp
+  omt/integer_optimizer.h
+  omt/omt_optimizer.cpp
+  omt/omt_optimizer.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/passes/ackermann.cpp
@@ -1134,8 +1140,7 @@ if(USE_CADICAL)
   target_link_libraries(cvc4 PRIVATE CaDiCaL)
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 PRIVATE ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 PRIVATE CryptoMiniSat)
