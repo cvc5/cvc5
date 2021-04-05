@@ -15,17 +15,17 @@
  ** CVC4's input languages to one of its output languages.
  **/
 
+#include <cvc4/api/cpp/cvc5.h>
+#include <cvc4/cvc4.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
+#include <getopt.h>
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
-
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/expr/expr_iomanip.h>
-#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace cvc5;

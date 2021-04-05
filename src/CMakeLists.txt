@@ -13,9 +13,9 @@
 
 libcvc4_add_sources(
   api/checks.h
-  api/cvc4cpp.cpp
-  api/cvc4cpp.h
-  api/cvc4cppkind.h
+  api/cpp/cvc5.cpp
+  api/cpp/cvc5.h
+  api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
   context/cdhashmap.h
@@ -1182,10 +1182,10 @@ endif()
 # Install public API headers
 
 install(FILES
-          api/cvc4cpp.h
-          api/cvc4cppkind.h
+          api/cpp/cvc5.h
+          api/cpp/cvc5_kind.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api/cpp)
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
         DESTINATION

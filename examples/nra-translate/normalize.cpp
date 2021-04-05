@@ -15,17 +15,17 @@
  ** \todo document this file
  **/
 
+#include <cvc4/api/cpp/cvc5.h>
+#include <cvc4/cvc4.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
+
 #include <cassert>
 #include <iostream>
 #include <map>
 #include <string>
 #include <typeinfo>
 #include <vector>
-
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/expr/expr_iomanip.h>
-#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace cvc5;

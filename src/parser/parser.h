@@ -23,7 +23,7 @@
 #include <set>
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "cvc4_export.h"
 #include "expr/kind.h"
 #include "expr/symbol_manager.h"

@@ -16,7 +16,7 @@
  ** identical.
  **/
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/api/cpp/cvc5.h>
 
 #include <iostream>
 

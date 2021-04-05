@@ -15,14 +15,14 @@
  ** \todo document this file
  **/
 
+#include <cvc4/api/cpp/cvc5.h>
+#include <cvc4/cvc4.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
 #include <typeinfo>
 #include <vector>
-
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
 
 using namespace std;
 using namespace cvc5;

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cppkind.h
+/*! \file cpp/cvc5_kind.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Makai Mann

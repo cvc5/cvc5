@@ -15,17 +15,17 @@
  ** \todo document this file
  **/
 
-#include <boost/algorithm/string.hpp> // include Boost, a C++ library
+#include <cvc4/api/cpp/cvc5.h>
+#include <cvc4/cvc4.h>
+#include <cvc4/options/set_language.h>
+
+#include <boost/algorithm/string.hpp>  // include Boost, a C++ library
 #include <cassert>
 #include <iostream>
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
-
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace cvc5;

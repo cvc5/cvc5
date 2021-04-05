@@ -19,7 +19,7 @@
 #ifndef CVC4__PARSER__CVC_H
 #define CVC4__PARSER__CVC_H
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parser.h"
 
 namespace cvc5 {

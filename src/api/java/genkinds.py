@@ -11,7 +11,7 @@
 #
 
 """
-This script reads CVC4/src/api/cvc4cppkind.h and generates
+This script reads CVC4/src/api/cpp/cvc5_kind.h and generates
 cvc/Kind.java file which declare all the CVC4 kinds.
 """
 

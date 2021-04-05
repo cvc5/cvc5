@@ -10,7 +10,7 @@
 ## directory for licensing information.
 ##
 """
-This script reads CVC4/src/api/cvc4cppkind.h and generates
+This script reads CVC4/src/api/cpp/cvc5_kind.h and generates
 .pxd and .pxi files which declare all the CVC4 kinds and
 implement a Python wrapper for kinds, respectively. The
 default names are kinds.pxd / kinds.pxi, but the name is
@@ -40,13 +40,13 @@ PYCOMMENT           = '#'
 CDEF_KIND = "    cdef Kind "
 
 KINDS_PXD_TOP = \
-r"""cdef extern from "api/cvc4cppkind.h" namespace "cvc5::api":
+r"""cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api":
     cdef cppclass Kind:
         pass
 
 
-# Kind declarations: See cvc4cppkind.h for additional information
-cdef extern from "api/cvc4cppkind.h" namespace "cvc5::api::Kind":
+# Kind declarations: See cpp/cvc5_kind.h for additional information
+cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api::Kind":
 """
 
 KINDS_PXI_TOP = \
