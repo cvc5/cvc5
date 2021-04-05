@@ -38,7 +38,7 @@ CadSolver::CadSolver(InferenceManager& im,
       d_model(model)
 {
   d_ranVariable =
-      NodeManager::currentNM()->mkSkolem("__z",
+      sm->mkDummySkolem("__z",
                                          NodeManager::currentNM()->realType(),
                                          "",
                                          NodeManager::SKOLEM_EXACT_NAME);

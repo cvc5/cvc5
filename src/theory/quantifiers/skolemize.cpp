@@ -202,14 +202,14 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       if (argTypes.empty())
       {
-        s = NodeManager::currentNM()->mkSkolem(
+        s = sm->mkDummySkolem(
             "skv", f[0][i].getType(), "created during skolemization");
       }
       else
       {
         TypeNode typ = NodeManager::currentNM()->mkFunctionType(
             argTypes, f[0][i].getType());
-        Node op = NodeManager::currentNM()->mkSkolem(
+        Node op = sm->mkDummySkolem(
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger

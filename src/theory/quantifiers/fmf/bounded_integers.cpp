@@ -43,7 +43,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
-    d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
+    d_proxy_range = isProxy ? r : sm->mkDummySkolem( "pbir", r.getType() );
   }else{
     d_proxy_range = r;
   }
@@ -484,7 +484,7 @@ void BoundedIntegers::checkOwnership(Node f)
         if (expr::hasBoundVar(r))
         {
           // introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem(
+          Node new_range = sm->mkDummySkolem(
               "bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;

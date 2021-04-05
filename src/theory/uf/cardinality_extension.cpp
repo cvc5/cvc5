@@ -1163,7 +1163,7 @@ bool SortModel::checkLastCall()
       {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = NodeManager::currentNM()->mkSkolem(
+        Node nn = sm->mkDummySkolem(
             ss.str(), d_type, "enumeration to meet negative card constraint");
         d_fresh_aloc_reps.push_back( nn );
       }

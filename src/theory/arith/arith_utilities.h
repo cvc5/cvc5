@@ -50,11 +50,11 @@ inline Node mkBoolNode(bool b){
 }
 
 inline Node mkIntSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->integerType());
+  return sm->mkDummySkolem(name, NodeManager::currentNM()->integerType());
 }
 
 inline Node mkRealSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->realType());
+  return sm->mkDummySkolem(name, NodeManager::currentNM()->realType());
 }
 
 inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){

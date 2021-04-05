@@ -832,7 +832,7 @@ void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
   if( d_exp_def_skolem[dt].find( sel )==d_exp_def_skolem[dt].end() ){
     std::stringstream ss;
     ss << sel << "_uf";
-    d_exp_def_skolem[dt][ sel ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
+    d_exp_def_skolem[dt][ sel ] = sm->mkDummySkolem( ss.str().c_str(),
                                   NodeManager::currentNM()->mkFunctionType( dt, rt ) );
   }
 }
@@ -842,7 +842,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
     NodeMap::const_iterator it = d_term_sk.find( n );
     if( it==d_term_sk.end() ){
       //add purification unit lemma ( k = n )
-      Node k = NodeManager::currentNM()->mkSkolem( "k", n.getType(), "reference skolem for datatypes" );
+      Node k = sm->mkDummySkolem( "k", n.getType(), "reference skolem for datatypes" );
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
@@ -1408,8 +1408,8 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v2 = NodeManager::currentNM()->mkBoundVar( tn );
       a = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, v1, v2 ), v1.eqNode( v2 ) );
     }else{
-      Node v1 = NodeManager::currentNM()->mkSkolem( "k1", tn );
-      Node v2 = NodeManager::currentNM()->mkSkolem( "k2", tn );
+      Node v1 = sm->mkDummySkolem( "k1", tn );
+      Node v2 = sm->mkDummySkolem( "k2", tn );
       a = v1.eqNode( v2 ).negate();
       //send out immediately as lemma
       d_im.lemma(a, InferenceId::DATATYPES_REC_SINGLETON_FORCE_DEQ);

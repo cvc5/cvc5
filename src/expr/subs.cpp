@@ -45,7 +45,7 @@ Node Subs::getSubs(Node v) const
 void Subs::add(Node v)
 {
   // default, use a fresh skolem of the same type
-  Node s = NodeManager::currentNM()->mkSkolem("sk", v.getType());
+  Node s = sm->mkDummySkolem("sk", v.getType());
   add(v, s);
 }
 

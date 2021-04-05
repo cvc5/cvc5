@@ -39,7 +39,7 @@ void SygusDatatype::addConstructor(Node op,
 void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
   // add an "any constant" proxy variable
-  Node av = NodeManager::currentNM()->mkSkolem("_any_constant", tn);
+  Node av = sm->mkDummySkolem("_any_constant", tn);
   // mark that it represents any constant
   SygusAnyConstAttribute saca;
   av.setAttribute(saca, true);

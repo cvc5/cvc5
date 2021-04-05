@@ -173,7 +173,7 @@ void SynthConjecture::assign(Node q)
   {
     vars.push_back(d_embed_quant[0][i]);
     Node e =
-        NodeManager::currentNM()->mkSkolem("e", d_embed_quant[0][i].getType());
+        sm->mkDummySkolem("e", d_embed_quant[0][i].getType());
     d_candidates.push_back(e);
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant

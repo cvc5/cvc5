@@ -39,7 +39,7 @@ Node SortProperties::mkGroundTerm(TypeNode type)
   {
     return type.getAttribute(gta);
   }
-  Node k = NodeManager::currentNM()->mkSkolem(
+  Node k = sm->mkDummySkolem(
       "groundTerm", type, "a ground term created for type " + type.toString());
   type.setAttribute(gta, k);
   return k;

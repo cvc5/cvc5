@@ -69,7 +69,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       else
       {
         // new variable
-        ret = NodeManager::currentNM()->mkSkolem(
+        ret = sm->mkDummySkolem(
             "__purifyNl_var",
             n.getType(),
             "Variable introduced in purifyNl pass");

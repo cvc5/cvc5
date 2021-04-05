@@ -339,7 +339,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           std::stringstream ss;
           ss << "mda_" << op << "";
-          Node v = NodeManager::currentNM()->mkSkolem( ss.str(), n[i].getType(), "created during macro definition recognition" );
+          Node v = sm->mkDummySkolem( ss.str(), n[i].getType(), "created during macro definition recognition" );
           d_macro_basis[op].push_back( v );
         }
         //contains no ops
@@ -392,7 +392,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
                     for( size_t a=0; a<m.getNumChildren(); a++ ){
                       std::stringstream ss;
                       ss << "mda_" << op << "";
-                      Node v = NodeManager::currentNM()->mkSkolem( ss.str(), m[a].getType(), "created during macro definition recognition" );
+                      Node v = sm->mkDummySkolem( ss.str(), m[a].getType(), "created during macro definition recognition" );
                       d_macro_basis[op].push_back( v );
                     }
                   }

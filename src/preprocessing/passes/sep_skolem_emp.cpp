@@ -50,9 +50,9 @@ Node preSkolemEmp(Node n,
       {
         TypeNode tnx = n[0].getType();
         TypeNode tny = n[1].getType();
-        Node x = NodeManager::currentNM()->mkSkolem(
+        Node x = sm->mkDummySkolem(
             "ex", tnx, "skolem location for negated emp");
-        Node y = NodeManager::currentNM()->mkSkolem(
+        Node y = sm->mkDummySkolem(
             "ey", tny, "skolem data for negated emp");
         return NodeManager::currentNM()
             ->mkNode(kind::SEP_STAR,

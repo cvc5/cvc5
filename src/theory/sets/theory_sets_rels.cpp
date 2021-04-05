@@ -397,7 +397,7 @@ void TheorySetsRels::check(Theory::Effort level)
       reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], join_image_term ) );
     }
     for( unsigned int i = 0; i < min_card; i++ ) {
-      Node skolem = NodeManager::currentNM()->mkSkolem( "jig", join_image_rel.getType()[0].getTupleTypes()[0] );
+      Node skolem = sm->mkDummySkolem( "jig", join_image_rel.getType()[0].getTupleTypes()[0] );
       distinct_skolems.push_back( skolem );
       conclusion = NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::MEMBER, RelsUtils::constructPair( join_image_rel, fst_mem_element, skolem ), join_image_rel ) );
     }

@@ -46,7 +46,7 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
   Assert(!isResolved());
   Assert(!selectorType.isNull());
 
-  Node type = NodeManager::currentNM()->mkSkolem(
+  Node type = sm->mkDummySkolem(
       "unresolved_" + selectorName,
       selectorType,
       "is an unresolved selector type placeholder",

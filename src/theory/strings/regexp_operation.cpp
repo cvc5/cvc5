@@ -355,7 +355,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
             }
           }
           if(ret == 0) {
-            Node sk = NodeManager::currentNM()->mkSkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
+            Node sk = sm->mkDummySkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
             retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));

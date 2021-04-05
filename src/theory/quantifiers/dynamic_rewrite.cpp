@@ -175,7 +175,7 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   {
     utype = NodeManager::currentNM()->mkFunctionType(ctypes);
   }
-  Node f = NodeManager::currentNM()->mkSkolem(
+  Node f = sm->mkDummySkolem(
       "ufd", utype, "internal op for dynamic_rewriter");
   curr->d_sym = f;
   return f;

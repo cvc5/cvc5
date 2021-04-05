@@ -493,7 +493,7 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
     hoTypeArgs.push_back(tnf);
     hoTypeArgs.push_back(tna);
     TypeNode tnh = nm->mkFunctionType(hoTypeArgs, tnr);
-    Node k = NodeManager::currentNM()->mkSkolem("ho", tnh);
+    Node k = sm->mkDummySkolem("ho", tnh);
     d_hoApplyUf[tnf] = k;
     return k;
   }

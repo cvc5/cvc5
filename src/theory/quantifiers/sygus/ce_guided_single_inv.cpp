@@ -161,7 +161,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   d_sip->getSingleInvocationVariables(sivars);
   for (unsigned i = 0, size = sivars.size(); i < size; i++)
   {
-    Node v = NodeManager::currentNM()->mkSkolem(
+    Node v = sm->mkDummySkolem(
         "a", sivars[i].getType(), "single invocation arg");
     d_single_inv_arg_sk.push_back(v);
   }
