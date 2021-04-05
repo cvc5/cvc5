@@ -158,8 +158,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
     std::stringstream ss;
     ss << language::SetLanguage(options::outputLanguage());
     ss << "e_" << tn;
-    Node k = sm->mkDummySkolem(
-        ss.str(), tn, "is a termDb fresh variable");
+    Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
                    << std::endl;
     if (options::instMaxLevel() != -1)

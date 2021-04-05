@@ -19,13 +19,13 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -128,7 +128,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node n = sm->mkDummySkolem(
       "unconstrained",
       t,

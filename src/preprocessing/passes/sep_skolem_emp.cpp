@@ -20,10 +20,10 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
@@ -43,7 +43,7 @@ Node preSkolemEmp(Node n,
   if (it == visited[pol].end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
     Node ret = n;
@@ -53,10 +53,9 @@ Node preSkolemEmp(Node n,
       {
         TypeNode tnx = n[0].getType();
         TypeNode tny = n[1].getType();
-        Node x = sm->mkDummySkolem(
-            "ex", tnx, "skolem location for negated emp");
-        Node y = sm->mkDummySkolem(
-            "ey", tny, "skolem data for negated emp");
+        Node x =
+            sm->mkDummySkolem("ex", tnx, "skolem location for negated emp");
+        Node y = sm->mkDummySkolem("ey", tny, "skolem data for negated emp");
         return NodeManager::currentNM()
             ->mkNode(kind::SEP_STAR,
                      NodeManager::currentNM()->mkNode(kind::SEP_PTO, x, y),

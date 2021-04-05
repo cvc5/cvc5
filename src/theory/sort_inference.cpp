@@ -607,7 +607,10 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
       ss << "ic_" << tn << "_" << old;
-      d_const_map[tn][ old ] = sm->mkDummySkolem( ss.str(), tn, "constant created during sort inference" );  //use mkConst???
+      d_const_map[tn][old] = sm->mkDummySkolem(
+          ss.str(),
+          tn,
+          "constant created during sort inference");  // use mkConst???
     }
     return d_const_map[tn][ old ];
   }else if( old.getKind()==kind::BOUND_VARIABLE ){
@@ -617,7 +620,7 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   }else{
     std::stringstream ss;
     ss << "i_" << old;
-    return sm->mkDummySkolem( ss.str(), tn, "created during sort inference" );
+    return sm->mkDummySkolem(ss.str(), tn, "created during sort inference");
   }
 }
 
@@ -733,7 +736,8 @@ Node SortInference::simplifyNode(
           std::stringstream ss;
           ss << "io_" << op;
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
-          d_symbol_map[op] = sm->mkDummySkolem( ss.str(), typ, "op created during sort inference" );
+          d_symbol_map[op] = sm->mkDummySkolem(
+              ss.str(), typ, "op created during sort inference");
           Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
           model_replace_f[op] = d_symbol_map[op];
         }else{
@@ -781,7 +785,8 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
   TypeNode typ = NodeManager::currentNM()->mkFunctionType( tns, tn2 );
-  Node f = sm->mkDummySkolem( "inj", typ, "injection for monotonicity constraint" );
+  Node f =
+      sm->mkDummySkolem("inj", typ, "injection for monotonicity constraint");
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
   Node v1 = NodeManager::currentNM()->mkBoundVar( "?x", tn1 );
   Node v2 = NodeManager::currentNM()->mkBoundVar( "?y", tn1 );

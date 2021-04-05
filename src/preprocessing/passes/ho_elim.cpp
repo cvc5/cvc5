@@ -488,7 +488,7 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
   if (it == d_hoApplyUf.end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
 
     std::vector<TypeNode> hoTypeArgs;
     hoTypeArgs.push_back(tnf);
