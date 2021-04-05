@@ -18,6 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/proof_checker.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
@@ -202,6 +203,7 @@ class DummyTheory : public theory::Theory
   }
 
   theory::TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  ProofRuleChecker* getProofChecker() override { return &d_checker; }
 
   void registerTerm(TNode n)
   {
@@ -245,6 +247,7 @@ class DummyTheory : public theory::Theory
   std::string d_id;
   /** The theory rewriter for this theory. */
   DymmyTheoryRewriter d_rewriter;
+  ProofRuleChecker d_checker;
 };
 
 /* -------------------------------------------------------------------------- */
