@@ -1390,7 +1390,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   }
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node var = sm->mkSkolem(
+  Node var = sm->mkDummySkolem(
       "iteSimp", t, "is a variable resulting from ITE simplification");
   d_simpVars[t] = var;
   return var;

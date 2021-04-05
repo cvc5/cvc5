@@ -23,6 +23,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
@@ -41,6 +42,8 @@ Node preSkolemEmp(Node n,
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
     Node ret = n;

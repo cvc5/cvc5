@@ -18,6 +18,7 @@
 
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -32,6 +33,8 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 std::vector<Node>& var_eq,
                                 bool beneathMult)
 {
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   if (beneathMult)
   {
     NodeMap::iterator find = bcache.find(n);
