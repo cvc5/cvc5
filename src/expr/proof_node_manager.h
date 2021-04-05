@@ -158,6 +158,8 @@ class ProofNodeManager
   bool updateNode(ProofNode* pn, ProofNode* pnr);
   /** Get the underlying proof checker */
   ProofChecker* getChecker() const;
+  /** Clone a proof node */
+  std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn);
 
  private:
   /** The (optional) proof checker */
