@@ -996,7 +996,7 @@ void TheorySetsPrivate::computeCareGraph()
         else
         {
           Assert (k == kind::MEMBER);
-          // get the type of the set (not the type of the element)
+          // get the element type of the set (not the type of the element)
           tn = f1[1].getType().getSetElementType();
         }
         std::vector<TNode> reps;
