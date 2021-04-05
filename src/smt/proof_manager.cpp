@@ -19,7 +19,7 @@
 #include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
-#include "options/smts_options.h"
+#include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
