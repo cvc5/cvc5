@@ -1,3 +1,5 @@
+; REQUIRES: symfpu
+; EXPECT: unsat
 (set-logic AUFBVFPDTNIRA)
 (set-info :status unsat)
 (set-info :smt-lib-version 2.6)
