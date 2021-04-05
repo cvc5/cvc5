@@ -1895,13 +1895,16 @@ void TheoryEngine::spendResource(ResourceManager::Resource r)
   d_resourceManager->spendResource(r);
 }
 
-void TheoryEngine::initializeProofChecker(ProofChecker* pc,
-                                          theory::TheoryId theoryId)
+void TheoryEngine::initializeProofChecker(ProofChecker* pc)
 {
-  ProofRuleChecker* prc = d_theoryTable[theoryId]->getProofChecker();
-  if (prc)
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+       ++id)
   {
-    prc->registerTo(pc);
+    ProofRuleChecker* prc = d_theoryTable[id]->getProofChecker();
+    if (prc)
+    {
+      prc->registerTo(pc);
+    }
   }
 }
 

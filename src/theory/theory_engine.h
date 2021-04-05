@@ -323,7 +323,8 @@ class TheoryEngine {
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
-  void initializeProofChecker(ProofChecker* pc, theory::TheoryId theoryId);
+  /** Register theory proof rule checkers to the given proof checker */
+  void initializeProofChecker(ProofChecker* pc);
 
   void setPropEngine(prop::PropEngine* propEngine)
   {
