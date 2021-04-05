@@ -17,6 +17,7 @@
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::theory;

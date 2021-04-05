@@ -15,6 +15,7 @@
 #include "expr/sygus_datatype.h"
 
 #include <sstream>
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -38,6 +39,8 @@ void SygusDatatype::addConstructor(Node op,
 
 void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // add an "any constant" proxy variable
   Node av = sm->mkDummySkolem("_any_constant", tn);
   // mark that it represents any constant
