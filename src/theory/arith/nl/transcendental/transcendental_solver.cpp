@@ -56,6 +56,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   for (const Node& a : needsMaster)
   {
     // should not have processed this already

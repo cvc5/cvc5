@@ -42,6 +42,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   else
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
     Node ret = n;
     if (n.getNumChildren() > 0)
     {

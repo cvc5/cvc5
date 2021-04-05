@@ -55,6 +55,7 @@ SineSolver::~SineSolver() {}
 void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
   Assert(!d_data->d_pi.isNull());

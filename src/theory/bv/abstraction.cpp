@@ -282,6 +282,7 @@ Node AbstractionModule::getSignatureSkolem(TNode node)
 {
   Assert(node.getMetaKind() == kind::metakind::VARIABLE);
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   unsigned bitwidth = utils::getSize(node);
   if (d_signatureSkolems.find(bitwidth) == d_signatureSkolems.end())
   {
@@ -435,6 +436,7 @@ void AbstractionModule::storeGeneralization(TNode s, TNode t) {
 void AbstractionModule::finalizeSignatures()
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Debug("bv-abstraction")
       << "AbstractionModule::finalizeSignatures num signatures = "
       << d_signatures.size() << "\n";

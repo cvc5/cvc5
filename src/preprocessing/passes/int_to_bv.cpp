@@ -102,13 +102,14 @@ Node intToBV(TNode n, NodeMap& cache)
   AlwaysAssert(size > 0);
   AlwaysAssert(!options::incrementalSolving());
 
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(n, binaryCache);
 
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
-    NodeManager* nm = NodeManager::currentNM();
     if (current.getNumChildren() > 0)
     {
       // Not a leaf

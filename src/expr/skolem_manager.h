@@ -244,7 +244,7 @@ class SkolemManager
    * mkSkolem() behavior
    */
   Node mkDummySkolem(const std::string& prefix, const TypeNode& type,
-                const std::string& comment = "", int flags = SKOLEM_DEFAULT);
+                const std::string& comment = "", int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind

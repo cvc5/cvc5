@@ -205,6 +205,7 @@ Node TheoryFp::minUF(Node node) {
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_minMap.find(t));
 
   Node fun;
@@ -236,6 +237,7 @@ Node TheoryFp::maxUF(Node node) {
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_maxMap.find(t));
 
   Node fun;
@@ -271,6 +273,7 @@ Node TheoryFp::toUBVUF(Node node) {
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ConversionUFMap::const_iterator i(d_toUBVMap.find(p));
 
   Node fun;
@@ -300,6 +303,7 @@ Node TheoryFp::toSBVUF(Node node) {
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ConversionUFMap::const_iterator i(d_toSBVMap.find(p));
 
   Node fun;
@@ -324,6 +328,7 @@ Node TheoryFp::toRealUF(Node node) {
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_toRealMap.find(t));
 
   Node fun;
@@ -348,6 +353,7 @@ Node TheoryFp::abstractRealToFloat(Node node)
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_realToFloatMap.find(t));
 
   Node fun;
@@ -380,6 +386,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_floatToRealMap.find(t));
 
   Node fun;

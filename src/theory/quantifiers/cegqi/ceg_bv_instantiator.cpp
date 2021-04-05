@@ -642,6 +642,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (options::cegqiBvRmExtract())
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;

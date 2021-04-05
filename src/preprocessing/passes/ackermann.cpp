@@ -208,6 +208,7 @@ void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
                        SubstitutionMap& usVarsToBVVars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
 
   for (TNode var : vars)
   {

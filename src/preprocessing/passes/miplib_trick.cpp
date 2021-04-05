@@ -201,6 +201,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
   Node trueNode = nm->mkConst(true);
 

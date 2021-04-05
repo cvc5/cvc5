@@ -261,6 +261,7 @@ void SygusSolver::printSynthSolution(std::ostream& out)
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   Notice() << "SygusSolver::checkSynthSolution(): checking synthesis solution"
            << std::endl;
   std::map<Node, std::map<Node, Node>> sol_map;

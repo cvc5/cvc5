@@ -18,6 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/type_matcher.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -882,6 +883,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   NodeManager* nm = NodeManager::currentNM();
   std::stringstream ss;
   ss << "sel_" << index;
+  SkoleManager * sm = nm->getSkolemManager();
   s = sm->mkDummySkolem(ss.str(),
                    nm->mkSelectorType(dtt, t),
                    "is a shared selector",

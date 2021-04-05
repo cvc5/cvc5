@@ -36,6 +36,7 @@ HoElim::HoElim(PreprocessingPassContext* preprocContext)
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
   std::vector<Node> visit;
   TNode cur;
@@ -151,6 +152,7 @@ Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;

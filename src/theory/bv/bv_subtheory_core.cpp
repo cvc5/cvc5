@@ -537,6 +537,7 @@ bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
 bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   bool sentLemma = false;
   eq::EqualityEngine* ee = d_equalityEngine;
   std::map<Node, Node> op_map;

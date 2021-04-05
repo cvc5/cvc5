@@ -702,6 +702,7 @@ Node BVToInt::translateWithChildren(Node original,
 
 Node BVToInt::translateNoChildren(Node original)
 {
+  SkolemManager * sm = d_nm->getSkolemManager();
   Node translation;
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
@@ -722,7 +723,7 @@ Node BVToInt::translateNoChildren(Node original)
         // New integer variables  that are not bound (symbolic constants)
         // are added together with range constraints induced by the 
         // bit-width of the original bit-vector variables.
-        Node newVar = d_sm->mkDummySkolem("__bvToInt_var",
+        Node newVar = sm->mkDummySkolem("__bvToInt_var",
                                      d_nm->integerType(),
                                      "Variable introduced in bvToInt "
                                      "pass instead of original variable "
@@ -783,9 +784,10 @@ Node BVToInt::translateFunctionSymbol(Node bvUF)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
+  SkolemManager * sm = d_nm->getSkolemManager();
   ostringstream os;
   os << "__bvToInt_fun_" << bvUF << "_int";
-  intUF = d_sm->mkDummySkolem(
+  intUF = sm->mkDummySkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
   // introduce a `define-fun` in the smt-engine to keep
   // the correspondence between the original

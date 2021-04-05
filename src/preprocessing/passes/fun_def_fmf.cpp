@@ -92,6 +92,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
   std::map<int, Node> subs_head;
   // first pass : find defined functions, transform quantifiers
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
     Node n = QuantAttributes::getFunDefHead(assertions[i]);
