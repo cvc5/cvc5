@@ -215,7 +215,7 @@ bool CegSingleInv::solve()
   if (siq.getKind() == FORALL)
   {
     Node n_attr =
-        nm->mkSkolem("qe_si",
+        sm->mkDummySkolem("qe_si",
                      nm->booleanType(),
                      "Auxiliary variable for qe attr for single invocation.");
     QuantElimAttribute qea;

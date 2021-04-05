@@ -53,7 +53,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                   << q << std::endl;
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
-  Node n_attr = nm->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
+  Node n_attr = sm->mkDummySkolem("qe", t, "Auxiliary variable for qe attr.");
   std::vector<Node> node_values;
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);

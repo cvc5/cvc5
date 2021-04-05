@@ -58,7 +58,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
   Assert(a.getKind() == Kind::SINE);
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
   Assert(!d_data->d_pi.isNull());
-  Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
+  Node shift = sm->mkDummySkolem("s", nm->integerType(), "number of shifts");
   // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
   // refinement for constant shifts (cvc4-projects #1284)
   Node lem = nm->mkNode(

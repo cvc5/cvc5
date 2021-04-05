@@ -563,7 +563,7 @@ void TermDbSygus::registerEnumerator(Node e,
   if (isActiveGen || erole == ROLE_ENUM_POOL)
   {
     // make the guard
-    Node ag = nm->mkSkolem("eG", nm->booleanType());
+    Node ag = sm->mkDummySkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving

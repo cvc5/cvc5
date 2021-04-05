@@ -197,7 +197,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     NodeManager* nm = NodeManager::currentNM();
     std::stringstream ss;
     ss << "SKOLEM_FUN_" << id;
-    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function");
+    Node k = sm->mkDummySkolem(ss.str(), tn, "an internal skolem function");
     d_skolemFuns[key] = k;
     return k;
   }
@@ -208,7 +208,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix, const TypeNode& typ
               const std::string& comment, int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkSkolem(prefix, type, comment, flags);
+  return sm->mkDummySkolem(prefix, type, comment, flags);
 }
 
 Node SkolemManager::mkBooleanTermVariable(Node t)
@@ -333,7 +333,7 @@ Node SkolemManager::mkSkolemInternal(Node w,
   }
   else
   {
-    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+    k = sm->mkDummySkolem(prefix, w.getType(), comment, flags);
   }
   // set skolem form attribute for w
   w.setAttribute(sfa, k);

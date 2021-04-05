@@ -276,7 +276,7 @@ void TransitionInference::process(Node n)
       {
         for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild; j++)
         {
-          Node v = nm->mkSkolem(
+          Node v = sm->mkDummySkolem(
               "ir", next[j].getType(), "template inference rev argument");
           d_prime_vars.push_back(v);
         }
@@ -428,7 +428,7 @@ bool TransitionInference::processDisjunct(
       NodeManager* nm = NodeManager::currentNM();
       for (const Node& l : lit)
       {
-        Node v = nm->mkSkolem("i", l.getType(), "template inference argument");
+        Node v = sm->mkDummySkolem("i", l.getType(), "template inference argument");
         d_vars.push_back(v);
         Trace("cegqi-inv-debug") << v << " ";
       }

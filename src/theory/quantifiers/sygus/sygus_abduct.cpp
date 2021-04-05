@@ -166,7 +166,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   Node sc = nm->mkNode(AND, aconj, abdApp);
   Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
   sc = nm->mkNode(EXISTS, vbvl, sc);
-  Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+  Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
   // build in the side condition

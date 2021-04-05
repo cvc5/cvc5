@@ -481,7 +481,7 @@ void TermDb::addTermHo(Node n)
       Node psk;
       if (itp == d_ho_fun_op_purify.end())
       {
-        psk = nm->mkSkolem("pfun",
+        psk = sm->mkDummySkolem("pfun",
                            curr.getType(),
                            "purify for function operator term indexing");
         d_ho_fun_op_purify[curr] = psk;
@@ -1225,7 +1225,7 @@ Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
   }
   NodeManager* nm = NodeManager::currentNM();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
-  Node k = nm->mkSkolem("U", ptn, "predicate to force higher-order types");
+  Node k = sm->mkDummySkolem("U", ptn, "predicate to force higher-order types");
   d_ho_type_match_pred[tn] = k;
   return k;
 }

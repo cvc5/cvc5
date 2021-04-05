@@ -1562,7 +1562,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    Node avar = nm->mkSkolem("id", nm->booleanType());
+    Node avar = sm->mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(kind::INST_ATTRIBUTE, avar));

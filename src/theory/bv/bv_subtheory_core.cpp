@@ -592,7 +592,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
             // congruent modulo 2^( bv width )
             unsigned bvs = n.getType().getBitVectorSize();
             Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-            Node k = nm->mkSkolem(
+            Node k = sm->mkDummySkolem(
                 "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
             t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
           }

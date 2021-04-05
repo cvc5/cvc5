@@ -1144,7 +1144,7 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
     else {
       std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
       if (it == d_skolemCache.end()) {
-        rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model variable for array collectModelInfo");
+        rep = sm->mkDummySkolem("array_collect_model_var", n.getType(), "base model variable for array collectModelInfo");
         d_skolemCache[n] = rep;
       }
       else {

@@ -56,7 +56,7 @@ Node ExprMiner::convertToSkolem(Node n)
       std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
       if (itf == d_fv_to_skolem.end())
       {
-        Node sk = nm->mkSkolem("rrck", v.getType());
+        Node sk = sm->mkDummySkolem("rrck", v.getType());
         d_fv_to_skolem[v] = sk;
         sks.push_back(sk);
       }

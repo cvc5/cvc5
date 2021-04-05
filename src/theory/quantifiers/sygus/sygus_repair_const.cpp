@@ -451,7 +451,7 @@ Node SygusRepairConst::getFoQuery(Node body,
     if (itf == d_sk_to_fo.end())
     {
       TypeNode builtinType = d_tds->sygusToBuiltinType(v.getType());
-      Node sk_fov = nm->mkSkolem("k", builtinType);
+      Node sk_fov = sm->mkDummySkolem("k", builtinType);
       d_sk_to_fo[v] = sk_fov;
       d_fo_to_sk[sk_fov] = v;
       Trace("sygus-repair-const-debug")

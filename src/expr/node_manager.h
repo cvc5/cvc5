@@ -87,7 +87,7 @@ class NodeManager
   friend class api::Solver;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
-  friend class expr::SkolemManager;
+  friend class SkolemManager;
 
   template <unsigned nchild_thresh>
   friend class NodeBuilder;

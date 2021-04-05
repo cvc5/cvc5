@@ -212,7 +212,7 @@ Node TheoryFp::minUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = t;
     args[1] = t;
-    fun = nm->mkSkolem("floatingpoint_min_zero_case",
+    fun = sm->mkDummySkolem("floatingpoint_min_zero_case",
                        nm->mkFunctionType(args,
 #ifdef SYMFPUPROPISBOOL
                                           nm->booleanType()
@@ -243,7 +243,7 @@ Node TheoryFp::maxUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = t;
     args[1] = t;
-    fun = nm->mkSkolem("floatingpoint_max_zero_case",
+    fun = sm->mkDummySkolem("floatingpoint_max_zero_case",
                        nm->mkFunctionType(args,
 #ifdef SYMFPUPROPISBOOL
                                           nm->booleanType()
@@ -278,7 +278,7 @@ Node TheoryFp::toUBVUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = nm->roundingModeType();
     args[1] = source;
-    fun = nm->mkSkolem("floatingpoint_to_ubv_out_of_range_case",
+    fun = sm->mkDummySkolem("floatingpoint_to_ubv_out_of_range_case",
                        nm->mkFunctionType(args, target),
                        "floatingpoint_to_ubv_out_of_range_case",
                        NodeManager::SKOLEM_EXACT_NAME);
@@ -307,7 +307,7 @@ Node TheoryFp::toSBVUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = nm->roundingModeType();
     args[1] = source;
-    fun = nm->mkSkolem("floatingpoint_to_sbv_out_of_range_case",
+    fun = sm->mkDummySkolem("floatingpoint_to_sbv_out_of_range_case",
                        nm->mkFunctionType(args, target),
                        "floatingpoint_to_sbv_out_of_range_case",
                        NodeManager::SKOLEM_EXACT_NAME);
@@ -330,7 +330,7 @@ Node TheoryFp::toRealUF(Node node) {
   if (i == d_toRealMap.end()) {
     std::vector<TypeNode> args(1);
     args[0] = t;
-    fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
+    fun = sm->mkDummySkolem("floatingpoint_to_real_infinity_and_NaN_case",
                        nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_to_real_infinity_and_NaN_case",
                        NodeManager::SKOLEM_EXACT_NAME);
@@ -356,7 +356,7 @@ Node TheoryFp::abstractRealToFloat(Node node)
     std::vector<TypeNode> args(2);
     args[0] = node[0].getType();
     args[1] = node[1].getType();
-    fun = nm->mkSkolem("floatingpoint_abstract_real_to_float",
+    fun = sm->mkDummySkolem("floatingpoint_abstract_real_to_float",
                        nm->mkFunctionType(args, node.getType()),
                        "floatingpoint_abstract_real_to_float",
                        NodeManager::SKOLEM_EXACT_NAME);
@@ -388,7 +388,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
     std::vector<TypeNode> args(2);
     args[0] = t;
     args[1] = nm->realType();
-    fun = nm->mkSkolem("floatingpoint_abstract_float_to_real",
+    fun = sm->mkDummySkolem("floatingpoint_abstract_float_to_real",
                        nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_abstract_float_to_real",
                        NodeManager::SKOLEM_EXACT_NAME);

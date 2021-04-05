@@ -69,7 +69,7 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
     Node k =
-        nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
+        sm->mkDummySkolem("k", argTypes[i], "skolem created for extensionality.");
     skolems.push_back(k);
   }
   Node t[2];
@@ -147,7 +147,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
         newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
         TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
-        new_f = nm->mkSkolem("app_uf", nft);
+        new_f = sm->mkDummySkolem("app_uf", nft);
         for (const Node& v : vs)
         {
           new_f = nm->mkNode(HO_APPLY, new_f, v);
@@ -161,7 +161,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       else
       {
         // introduce skolem to make a standard APPLY_UF
-        new_f = nm->mkSkolem("app_uf", f.getType());
+        new_f = sm->mkDummySkolem("app_uf", f.getType());
         lem = new_f.eqNode(f);
       }
       Trace("uf-ho-lemma")

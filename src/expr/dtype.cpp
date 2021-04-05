@@ -882,7 +882,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   NodeManager* nm = NodeManager::currentNM();
   std::stringstream ss;
   ss << "sel_" << index;
-  s = nm->mkSkolem(ss.str(),
+  s = sm->mkDummySkolem(ss.str(),
                    nm->mkSelectorType(dtt, t),
                    "is a shared selector",
                    NodeManager::SKOLEM_NO_NOTIFY);

@@ -296,7 +296,7 @@ Node AbstractionModule::getSignatureSkolem(TNode node)
   {
     ostringstream os;
     os << "sig_" << bitwidth << "_" << index;
-    skolems.push_back(nm->mkSkolem(os.str(),
+    skolems.push_back(sm->mkDummySkolem(os.str(),
                                    nm->mkBitVectorType(bitwidth),
                                    "skolem for computing signatures"));
   }
@@ -520,7 +520,7 @@ void AbstractionModule::finalizeSignatures()
 
     TypeNode abs_type = nm->mkFunctionType(arg_types, range);
     Node abs_func =
-        nm->mkSkolem("abs_$$", abs_type, "abstraction function for bv theory");
+        sm->mkDummySkolem("abs_$$", abs_type, "abstraction function for bv theory");
     Debug("bv-abstraction") << " abstracted by function " << abs_func << "\n";
 
     // NOTE: signature expression type is BOOLEAN

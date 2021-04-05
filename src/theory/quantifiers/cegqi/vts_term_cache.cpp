@@ -63,7 +63,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
     if (d_vts_delta_free.isNull())
     {
       d_vts_delta_free =
-          nm->mkSkolem("delta_free",
+          sm->mkDummySkolem("delta_free",
                        nm->realType(),
                        "free delta for virtual term substitution");
       Node delta_lem = nm->mkNode(GT, d_vts_delta_free, d_zero);
@@ -71,7 +71,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
     }
     if (d_vts_delta.isNull())
     {
-      d_vts_delta = nm->mkSkolem(
+      d_vts_delta = sm->mkDummySkolem(
           "delta", nm->realType(), "delta for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
@@ -88,13 +88,13 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
     NodeManager* nm = NodeManager::currentNM();
     if (d_vts_inf_free[tn].isNull())
     {
-      d_vts_inf_free[tn] = nm->mkSkolem(
+      d_vts_inf_free[tn] = sm->mkDummySkolem(
           "inf_free", tn, "free infinity for virtual term substitution");
     }
     if (d_vts_inf[tn].isNull())
     {
       d_vts_inf[tn] =
-          nm->mkSkolem("inf", tn, "infinity for virtual term substitution");
+          sm->mkDummySkolem("inf", tn, "infinity for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_inf[tn].setAttribute(vtsa, true);

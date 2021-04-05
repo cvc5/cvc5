@@ -28,7 +28,7 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
   NodeManager* nm = NodeManager::currentNM();
 
   d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
-  d_enumerator->initialize(nm->mkSkolem("sygus_rcons", stn));
+  d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0

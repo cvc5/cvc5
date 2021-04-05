@@ -104,7 +104,7 @@ void SynthConjecture::assign(Node q)
   NodeManager* nm = NodeManager::currentNM();
 
   // initialize the guard
-  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
+  d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
   d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
@@ -540,7 +540,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       for (const Node& v : inst[0][0])
       {
-        Node sk = nm->mkSkolem("rsk", v.getType());
+        Node sk = sm->mkDummySkolem("rsk", v.getType());
         sks.push_back(sk);
         vars.push_back(v);
         Trace("cegqi-check-debug")

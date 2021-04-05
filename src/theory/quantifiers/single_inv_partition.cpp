@@ -194,7 +194,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_si_vars.size() == d_arg_types.size());
   for (const Node& inf : d_input_funcs)
   {
-    Node sk = nm->mkSkolem("_sik", inf.getType());
+    Node sk = sm->mkDummySkolem("_sik", inf.getType());
     d_input_func_sks.push_back(sk);
   }
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;

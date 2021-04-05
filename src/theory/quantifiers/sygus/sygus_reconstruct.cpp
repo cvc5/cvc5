@@ -52,7 +52,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   TypeObligationSetMap unsolvedObs;
 
   // paramaters sol and stn constitute the main obligation to satisfy
-  Node mainOb = nm->mkSkolem("sygus_rcons", stn);
+  Node mainOb = sm->mkDummySkolem("sygus_rcons", stn);
 
   // add the main obligation to the set of obligations that are not yet
   // satisfied
@@ -99,7 +99,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         {
           // if not, create an "artifical" obligation whose solution would be
           // the enumerated term
-          k = nm->mkSkolem("sygus_rcons", pair.first);
+          k = sm->mkDummySkolem("sygus_rcons", pair.first);
           d_obInfo.emplace(k, RConsObligationInfo(builtin));
           d_stnInfo[pair.first].setBuiltinToOb(builtin, k);
         }
@@ -241,7 +241,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
       else
       {
         // otherwise, create a new obligation of the corresponding sygus type
-        newVar = nm->mkSkolem("sygus_rcons", stn);
+        newVar = sm->mkDummySkolem("sygus_rcons", stn);
         d_obInfo.emplace(newVar, candOb.second);
         d_stnInfo[stn].setBuiltinToOb(candOb.second, newVar);
         // if the candidate obligation is a constant and the grammar allows

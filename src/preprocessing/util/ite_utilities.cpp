@@ -353,7 +353,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   else
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node skolem = nm->mkSkolem("compress", nm->booleanType());
+    Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;

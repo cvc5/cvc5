@@ -130,7 +130,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
           d_input_arg_inj[f].push_back(
-              nm->mkSkolem(ssf.str(), typ, "op created during fun def fmf"));
+              sm->mkDummySkolem(ssf.str(), typ, "op created during fun def fmf"));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]

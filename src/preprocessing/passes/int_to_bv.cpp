@@ -208,7 +208,7 @@ Node intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result = nm->mkSkolem("__intToBV_var",
+          result = sm->mkDummySkolem("__intToBV_var",
                                 nm->mkBitVectorType(size),
                                 "Variable introduced in intToBV pass");
         }

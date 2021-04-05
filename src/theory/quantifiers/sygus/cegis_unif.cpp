@@ -417,7 +417,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node new_lit = nm->mkSkolem("G_cost", nm->booleanType());
+  Node new_lit = sm->mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
 
   // allocate an enumerator for each candidate
@@ -425,13 +425,13 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
   {
     Node c = ci.first;
     TypeNode ct = c.getType();
-    Node eu = nm->mkSkolem("eu", ct);
+    Node eu = sm->mkDummySkolem("eu", ct);
     Node ceu;
     if (!d_useCondPool && !ci.second.d_enums[0].empty())
     {
       // make a new conditional enumerator as well, starting the
       // second type around
-      ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
+      ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
     }
     // register the new enumerators
     for (unsigned index = 0; index < 2; index++)
@@ -483,7 +483,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       datatypes.push_back(sdt.getDatatype());
       std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
           datatypes, unresolvedTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
-      d_virtual_enum = nm->mkSkolem("_ve", dtypes[0]);
+      d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
@@ -570,7 +570,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
     // allocate a condition enumerator for each candidate
     for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
     {
-      Node ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
+      Node ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
       setUpEnumerator(ceu, ci.second, 1);
     }
   }

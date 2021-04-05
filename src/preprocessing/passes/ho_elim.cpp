@@ -90,7 +90,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         }
         TypeNode rangeType = cur.getType().getRangeType();
         TypeNode nft = nm->mkFunctionType(ftypes, rangeType);
-        Node nf = nm->mkSkolem("ll", nft);
+        Node nf = sm->mkDummySkolem("ll", nft);
         Trace("ho-elim-ll")
             << "...introduce: " << nf << " of type " << nft << std::endl;
         newLambda[nf] = nlambda;
@@ -187,7 +187,7 @@ Node HoElim::eliminateHo(Node n)
             }
             else
             {
-              ret = nm->mkSkolem("k", ut);
+              ret = sm->mkDummySkolem("k", ut);
             }
             // must get the ho apply to ensure extensionality is applied
             Node hoa = getHoApplyUf(tn);
@@ -260,7 +260,7 @@ Node HoElim::eliminateHo(Node n)
             {
               Assert(!childrent.empty());
               TypeNode newFType = nm->mkFunctionType(childrent, cur.getType());
-              retOp = nm->mkSkolem("rf", newFType);
+              retOp = sm->mkDummySkolem("rf", newFType);
               d_visited_op[op] = retOp;
             }
             else

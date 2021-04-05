@@ -31,6 +31,7 @@
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::theory;
@@ -105,7 +106,8 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    Node skolem = nm->mkSkolem("SKOLEM$$",
+    SkolemManager * sm = nm->getSkolemManager();
+    Node skolem = sm->mkDummySkolem("SKOLEM$$",
                                tn,
                                "is a variable created by the ackermannization "
                                "preprocessing pass");
@@ -211,7 +213,7 @@ void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
   {
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
-    Node skolem = nm->mkSkolem(
+    Node skolem = sm->mkDummySkolem(
         "BVSKOLEM$$",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "

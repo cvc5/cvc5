@@ -178,7 +178,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         else if (n.isVar())
         {
-          ret = nm->mkSkolem("__realToIntInternal_var",
+          ret = sm->mkDummySkolem("__realToIntInternal_var",
                              nm->integerType(),
                              "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));

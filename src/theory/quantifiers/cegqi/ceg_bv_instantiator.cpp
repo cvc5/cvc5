@@ -691,7 +691,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
         Node var =
-            nm->mkSkolem("ek",
+            sm->mkDummySkolem("ek",
                          ex.getType(),
                          "variable to represent disjoint extract region");
         children.push_back(var);

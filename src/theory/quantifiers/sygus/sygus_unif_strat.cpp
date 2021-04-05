@@ -194,7 +194,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
   std::map<EnumRole, Node>::iterator iten = eti.d_enum.find(erole);
   if (iten == eti.d_enum.end())
   {
-    ee = nm->mkSkolem("ee", tn);
+    ee = sm->mkDummySkolem("ee", tn);
     eti.d_enum[erole] = ee;
     Trace("sygus-unif-debug")
         << "...enumerator " << ee << " for " << tn.getDType().getName()
@@ -245,7 +245,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
     {
       TypeNode ttn = dt[j][k].getRangeType();
-      Node kv = nm->mkSkolem("ut", ttn);
+      Node kv = sm->mkDummySkolem("ut", ttn);
       sks.push_back(kv);
       cop_to_sks[cop].push_back(kv);
       sktns.push_back(ttn);
@@ -303,7 +303,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                                    << std::endl;
         Node esk = nm->mkNode(DT_SYGUS_EVAL, echildren);
         vs.push_back(esk);
-        Node tvar = nm->mkSkolem("templ", esk.getType());
+        Node tvar = sm->mkDummySkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
         Trace("sygus-unif-debug2") << "* template inference : looking for "
                                    << tvar << " for arg " << k << std::endl;
@@ -574,7 +574,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
           if (cop_to_child_templ[cop].find(j) != cop_to_child_templ[cop].end())
           {
             // it is templated, allocate a fresh variable
-            et = nm->mkSkolem("et", ct);
+            et = sm->mkDummySkolem("et", ct);
             Trace("sygus-unif-debug") << "...enumerate " << et << " of type "
                                       << ct.getDType().getName();
             Trace("sygus-unif-debug") << " for arg " << j << " of "

@@ -98,7 +98,7 @@ void SygusTemplateInfer::initialize(Node q)
   {
     atn = atn.getRangeType();
   }
-  d_templ_arg[prog] = nm->mkSkolem("I", atn);
+  d_templ_arg[prog] = sm->mkDummySkolem("I", atn);
 
   // construct template
   Node templ;

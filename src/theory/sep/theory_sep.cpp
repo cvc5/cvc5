@@ -434,8 +434,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       else
       {
-        Node kl = nm->mkSkolem("loc", getReferenceType(satom));
-        Node kd = nm->mkSkolem("data", getDataType(satom));
+        Node kl = sm->mkDummySkolem("loc", getReferenceType(satom));
+        Node kd = sm->mkDummySkolem("data", getDataType(satom));
         Node econc = nm->mkNode(
             SEP_LABEL,
             nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, kl, kd), d_true),
@@ -466,7 +466,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     Trace("sep-lemma-debug")
         << "Negated spatial constraint asserted to sep theory: " << fact
         << std::endl;
-    Node g = nm->mkSkolem("G", nm->booleanType());
+    Node g = sm->mkDummySkolem("G", nm->booleanType());
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
         "sep_neg_guard", g, getSatContext(), getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
@@ -850,7 +850,7 @@ void TheorySep::postCheck(Effort level)
         Trace("sep-process") << "Must witness label : " << ll
                              << ", data type is " << data_type << std::endl;
         Node dsk =
-            nm->mkSkolem("dsk", data_type, "pto-data for implicit location");
+            sm->mkDummySkolem("dsk", data_type, "pto-data for implicit location");
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
             IMPLIES,
