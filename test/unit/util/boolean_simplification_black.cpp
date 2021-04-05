@@ -36,20 +36,20 @@ class TestUtilBlackBooleanSimplification : public TestNode
   {
     TestNode::SetUp();
 
-    d_a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
-    d_b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
-    d_c = d_nodeManager->mkSkolem("c", d_nodeManager->booleanType());
-    d_d = d_nodeManager->mkSkolem("d", d_nodeManager->booleanType());
-    d_e = d_nodeManager->mkSkolem("e", d_nodeManager->booleanType());
-    d_f = d_nodeManager->mkSkolem(
+    d_a = d_skolemManager->mkDummySkolem("a", d_nodeManager->booleanType());
+    d_b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
+    d_c = d_skolemManager->mkDummySkolem("c", d_nodeManager->booleanType());
+    d_d = d_skolemManager->mkDummySkolem("d", d_nodeManager->booleanType());
+    d_e = d_skolemManager->mkDummySkolem("e", d_nodeManager->booleanType());
+    d_f = d_skolemManager->mkDummySkolem(
         "f",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));
-    d_g = d_nodeManager->mkSkolem(
+    d_g = d_skolemManager->mkDummySkolem(
         "g",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));
-    d_h = d_nodeManager->mkSkolem(
+    d_h = d_skolemManager->mkDummySkolem(
         "h",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));

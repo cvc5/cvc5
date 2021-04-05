@@ -32,8 +32,8 @@ class TestNodeBlackNodeSelfIterator : public TestNode
 
 TEST_F(TestNodeBlackNodeSelfIterator, iteration)
 {
-  Node x = d_nodeManager->mkSkolem("x", *d_boolTypeNode);
-  Node y = d_nodeManager->mkSkolem("y", *d_boolTypeNode);
+  Node x = d_skolemManager->mkDummySkolem("x", *d_boolTypeNode);
+  Node y = d_skolemManager->mkDummySkolem("y", *d_boolTypeNode);
   Node x_and_y = x.andNode(y);
   NodeSelfIterator i = x_and_y, j = NodeSelfIterator::self(x_and_y);
   ASSERT_NE(i, x_and_y.end());
