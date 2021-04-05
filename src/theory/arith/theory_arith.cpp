@@ -17,6 +17,7 @@
 
 #include "theory/arith/theory_arith.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -64,6 +65,11 @@ TheoryArith::~TheoryArith(){
 }
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryArith::getProofChecker()
+{
+  return d_internal->getProofChecker();
+}
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
