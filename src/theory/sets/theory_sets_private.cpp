@@ -985,9 +985,18 @@ void TheorySetsPrivate::computeCareGraph()
       {
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
-        // break into index based on operator, and type of first argument (since
+        // break into index based on operator, and type of second argument (since
         // some operators are parametric)
-        TypeNode tn = f1[0].getType();
+        TypeNode tn;
+        if (k == kind::SINGLETON)
+        {
+          tn = f1.getType().getSetElementType();
+        }
+        else
+        {
+          Assert (k == kind::MEMBER);
+          tn = f1[1].getType().getSetElementType();
+        }
         std::vector<TNode> reps;
         bool hasCareArg = false;
         for (unsigned j = 0; j < f1.getNumChildren(); j++)
