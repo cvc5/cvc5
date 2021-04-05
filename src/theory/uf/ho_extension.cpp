@@ -216,6 +216,16 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     }
     ++eqcs_i;
   }
+  if (!options::ufHoExt())
+  {
+    // we are not applying extensionality, thus we are incomplete if functions
+    // are present
+    if (!func_eqcs.empty())
+    {
+      d_im.setIncomplete();
+    }
+    return;
+  }
 
   for (std::map<TypeNode, std::vector<Node> >::iterator itf = func_eqcs.begin();
        itf != func_eqcs.end();
@@ -400,17 +410,14 @@ unsigned HoExtension::check()
     }
   } while (num_facts > 0);
 
-  if (options::ufHoExt())
-  {
-    unsigned num_lemmas = 0;
+  unsigned num_lemmas = 0;
 
-    num_lemmas = checkExtensionality();
-    if (num_lemmas > 0)
-    {
-      Trace("uf-ho") << "...extensionality returned " << num_lemmas
-                     << " lemmas." << std::endl;
-      return num_lemmas;
-    }
+  num_lemmas = checkExtensionality();
+  if (num_lemmas > 0)
+  {
+    Trace("uf-ho") << "...extensionality returned " << num_lemmas
+                    << " lemmas." << std::endl;
+    return num_lemmas;
   }
 
   Trace("uf-ho") << "...finished check higher order." << std::endl;
