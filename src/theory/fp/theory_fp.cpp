@@ -132,6 +132,8 @@ TheoryFp::TheoryFp(context::Context* c,
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
 
+ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
+
 bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notification;
@@ -940,12 +942,11 @@ void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
   d_im.conflictEqConstantMerge(t1, t2);
 }
 
-
-bool TheoryFp::needsCheckLastEffort() 
-{ 
+bool TheoryFp::needsCheckLastEffort()
+{
   // only need to check if we have added to the abstraction map, otherwise
   // postCheck below is a no-op.
-  return !d_abstractionMap.empty(); 
+  return !d_abstractionMap.empty();
 }
 
 void TheoryFp::postCheck(Effort level)

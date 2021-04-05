@@ -18,7 +18,6 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
-#include "expr/skolem_manager.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
@@ -265,7 +264,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, divByZeroNum, ret);
       }
@@ -283,7 +282,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node intDivByZeroNum =
-            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
+            getArithSkolemApp(num, SkolemFunId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -300,7 +299,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(num, SkolemFunId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, modZeroNum, ret);
       }
@@ -336,7 +335,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem;
       if (k == SQRT)
       {
-        Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
+        Node skolemApp = getArithSkolemApp(node[0], SkolemFunId::SQRT);
         Node uf = skolemApp.eqNode(var);
         Node nonNeg =
             nm->mkNode(AND, nm->mkNode(MULT, var, var).eqNode(node[0]), uf);
@@ -407,64 +406,44 @@ Node OperatorElim::eliminateOperators(Node node,
 
 Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
 
-Node OperatorElim::getArithSkolem(ArithSkolemId asi)
+Node OperatorElim::getArithSkolem(SkolemFunId id)
 {
-  std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
-  if (it == d_arith_skolem.end())
+  std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
+  if (it == d_arithSkolem.end())
   {
     NodeManager* nm = NodeManager::currentNM();
-
     TypeNode tn;
-    std::string name;
-    std::string desc;
-    switch (asi)
+    if (id == SkolemFunId::DIV_BY_ZERO || id == SkolemFunId::SQRT)
     {
-      case ArithSkolemId::DIV_BY_ZERO:
-        tn = nm->realType();
-        name = std::string("divByZero");
-        desc = std::string("partial real division");
-        break;
-      case ArithSkolemId::INT_DIV_BY_ZERO:
-        tn = nm->integerType();
-        name = std::string("intDivByZero");
-        desc = std::string("partial int division");
-        break;
-      case ArithSkolemId::MOD_BY_ZERO:
-        tn = nm->integerType();
-        name = std::string("modZero");
-        desc = std::string("partial modulus");
-        break;
-      case ArithSkolemId::SQRT:
-        tn = nm->realType();
-        name = std::string("sqrtUf");
-        desc = std::string("partial sqrt");
-        break;
-      default: Unhandled();
+      tn = nm->realType();
     }
-
+    else
+    {
+      tn = nm->integerType();
+    }
     Node skolem;
+    SkolemManager* sm = nm->getSkolemManager();
     if (options::arithNoPartialFun())
     {
-      // partial function: division
-      skolem = nm->mkSkolem(name, tn, desc, NodeManager::SKOLEM_EXACT_NAME);
+      // partial function: division, where we treat the skolem function as
+      // a constant
+      skolem = sm->mkSkolemFunction(id, tn);
     }
     else
     {
       // partial function: division
-      skolem = nm->mkSkolem(name,
-                            nm->mkFunctionType(tn, tn),
-                            desc,
-                            NodeManager::SKOLEM_EXACT_NAME);
+      skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
     }
-    d_arith_skolem[asi] = skolem;
+    // cache it
+    d_arithSkolem[id] = skolem;
     return skolem;
   }
   return it->second;
 }
 
-Node OperatorElim::getArithSkolemApp(Node n, ArithSkolemId asi)
+Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
-  Node skolem = getArithSkolem(asi);
+  Node skolem = getArithSkolem(id);
   if (!options::arithNoPartialFun())
   {
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
