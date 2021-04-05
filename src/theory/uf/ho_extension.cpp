@@ -415,8 +415,8 @@ unsigned HoExtension::check()
   num_lemmas = checkExtensionality();
   if (num_lemmas > 0)
   {
-    Trace("uf-ho") << "...extensionality returned " << num_lemmas
-                    << " lemmas." << std::endl;
+    Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas."
+                   << std::endl;
     return num_lemmas;
   }
 
