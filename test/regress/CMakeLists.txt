@@ -2041,6 +2041,7 @@ set(regress_1_tests
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/issue6191-replace-all.smt2
+  regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
