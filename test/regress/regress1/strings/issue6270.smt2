@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp --nl-ext-tplanes
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun i9 () Int)
