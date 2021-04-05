@@ -33,8 +33,13 @@ namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
-                                                   ProofGenerator* pppg)
-    : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm)
+                                                   ProofGenerator* pppg,
+                                                   bool updateScopedAssumptions)
+    : d_pnm(pnm),
+      d_smte(smte),
+      d_pppg(pppg),
+      d_wfpm(pnm),
+      d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -59,10 +64,12 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     return true;
   }
-  // other than elimination rules, we always update assumptions as long as they
-  // are *not* in scope, i.e., not in fa
+  // other than elimination rules, we always update assumptions as long as
+  // d_updateScopedAssumptions is true or they are *not* in scope, i.e., not in
+  // fa
   if (id != PfRule::ASSUME
-      || std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end())
+      || (!d_updateScopedAssumptions
+          && std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end()))
   {
     Trace("smt-proof-pp-debug")
         << "... not updating in-scope assumption " << pn->getResult() << "\n";
@@ -1160,11 +1167,12 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
-                                     ProofGenerator* pppg)
+                                     ProofGenerator* pppg,
+                                     bool updateScopedAssumptions)
     : d_pnm(pnm),
-      d_cb(pnm, smte, pppg),
-      // the update merges subproofs and tracks scope arguments
-      d_updater(d_pnm, d_cb, true, true),
+      d_cb(pnm, smte, pppg, updateScopedAssumptions),
+      // the update merges subproofs
+      d_updater(d_pnm, d_cb, true),
       d_finalCb(pnm),
       d_finalizer(d_pnm, d_finalCb)
 {
