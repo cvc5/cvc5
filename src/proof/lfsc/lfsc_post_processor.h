@@ -45,6 +45,7 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   /** Should update */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,

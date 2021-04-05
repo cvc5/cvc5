@@ -36,6 +36,7 @@ LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
 }
 
 bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa,
                                                 bool& continueUpdate)
 {
   return pn->getRule() != PfRule::LEAN_RULE;

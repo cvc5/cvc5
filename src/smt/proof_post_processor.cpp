@@ -37,8 +37,6 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
     : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm), d_trrc(pnm)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  // always check whether to update ASSUME
-  d_elimRules.insert(PfRule::ASSUME);
 }
 
 void ProofPostprocessCallback::initializeUpdate()
@@ -53,9 +51,24 @@ void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
-  return d_elimRules.find(pn->getRule()) != d_elimRules.end();
+  PfRule id = pn->getRule();
+  if (d_elimRules.find(id) != d_elimRules.end())
+  {
+    return true;
+  }
+  // other than elimination rules, we always update assumptions as long as they
+  // are *not* in scope, i.e., not in fa
+  if (id != PfRule::ASSUME
+      || std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end())
+  {
+    Trace("smt-proof-pp-debug")
+        << "... not updating in-scope assumption " << pn->getResult() << "\n";
+    return false;
+  }
+  return true;
 }
 
 bool ProofPostprocessCallback::update(Node res,
@@ -1158,6 +1171,7 @@ void ProofPostprocessFinalCallback::initializeUpdate()
 }
 
 bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
   PfRule r = pn->getRule();
@@ -1213,8 +1227,8 @@ ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      ProofGenerator* pppg)
     : d_pnm(pnm),
       d_cb(pnm, smte, pppg),
-      // the update merges subproofs
-      d_updater(d_pnm, d_cb, true),
+      // the update merges subproofs and tracks scope arguments
+      d_updater(d_pnm, d_cb, true, true),
       d_finalCb(pnm),
       d_finalizer(d_pnm, d_finalCb)
 {

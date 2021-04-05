@@ -42,6 +42,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   void initializeUpdate();
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /**
    * This method updates the proof rule application by splitting on the given
