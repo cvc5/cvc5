@@ -1,5 +1,4 @@
 (set-logic AUFBVFPDTNIRA)
-(set-info :status unsat)
 (set-info :smt-lib-version 2.6)
 
 (declare-const dividend Int)
@@ -29,14 +28,13 @@
 
 (declare-fun fxp_div (Int Int) Int)
 
-;; VC unprovable with this order of assertions
-;; to make it provable, comment this assert and uncomment the copy below
-;;(assert
- ;; (forall ((x Int))
-;;  (! (ite (= x 0) (= (of_int x) 0)
- ;;    (ite (< 0 x) (pos_div_relation (of_int x) (* x 1073741824) 1)
-  ;;   (pos_div_relation (- (of_int x)) (* (- x) 1073741824) 1))) :pattern (
- ;; (of_int x)) )))
+;; VC was unprovable in the past when swapping the following two assertions
+(assert
+  (forall ((x Int))
+  (! (ite (= x 0) (= (of_int x) 0)
+     (ite (< 0 x) (pos_div_relation (of_int x) (* x 1073741824) 1)
+     (pos_div_relation (- (of_int x)) (* (- x) 1073741824) 1))) :pattern (
+  (of_int x)) )))
 
 (assert
   (forall ((x Int))
@@ -52,13 +50,6 @@
      (=> (and (< 0 x) (< y 0)) (pos_div_relation (- (fxp_div x y))
      (* (* (* x 1) 1073741824) 1073741824) (* (* (* (- y) 1073741824) 1) 1))))))) :pattern (
   (fxp_div x y)) ))))
-
-(assert
-  (forall ((x Int))
-   (! (ite (= x 0) (= (of_int x) 0)
-      (ite (< 0 x) (pos_div_relation (of_int x) (* x 1073741824) 1)
-     (pos_div_relation (- (of_int x)) (* (- x) 1073741824) 1))) :pattern (
-   (of_int x)) )))
 
 (define-fun in_range2 ((x Int)) Bool
   (and (<= (- 9223372036854775808) x) (<= x 9223372036854775807)))
