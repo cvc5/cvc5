@@ -15,6 +15,7 @@
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -24,7 +25,6 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -464,7 +464,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
     return it->second;
   }
   NodeManager * nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node g = sm->mkDummySkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
   Node ceLit = d_qstate.getValuation().ensureLiteral(g);

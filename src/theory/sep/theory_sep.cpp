@@ -20,6 +20,7 @@
 
 #include "base/map_util.h"
 #include "expr/kind.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -32,7 +33,6 @@
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -314,7 +314,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
   TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == SEP_LABEL ? atom[1] : TNode::null();
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   if (slbl.isNull())
   {
     Trace("sep-lemma-debug")
@@ -851,8 +851,8 @@ void TheorySep::postCheck(Effort level)
       {
         Trace("sep-process") << "Must witness label : " << ll
                              << ", data type is " << data_type << std::endl;
-        Node dsk =
-            sm->mkDummySkolem("dsk", data_type, "pto-data for implicit location");
+        Node dsk = sm->mkDummySkolem(
+            "dsk", data_type, "pto-data for implicit location");
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
             IMPLIES,

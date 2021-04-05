@@ -25,6 +25,7 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -32,7 +33,6 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -703,7 +703,7 @@ Node BVToInt::translateWithChildren(Node original,
 
 Node BVToInt::translateNoChildren(Node original)
 {
-  SkolemManager * sm = d_nm->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   Node translation;
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
@@ -725,10 +725,10 @@ Node BVToInt::translateNoChildren(Node original)
         // are added together with range constraints induced by the 
         // bit-width of the original bit-vector variables.
         Node newVar = sm->mkDummySkolem("__bvToInt_var",
-                                     d_nm->integerType(),
-                                     "Variable introduced in bvToInt "
-                                     "pass instead of original variable "
-                                         + original.toString());
+                                        d_nm->integerType(),
+                                        "Variable introduced in bvToInt "
+                                        "pass instead of original variable "
+                                            + original.toString());
         uint64_t bvsize = original.getType().getBitVectorSize();
         translation = newVar;
         d_rangeAssertions.insert(mkRangeConstraint(newVar, bvsize));
@@ -785,7 +785,7 @@ Node BVToInt::translateFunctionSymbol(Node bvUF)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
-  SkolemManager * sm = d_nm->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   ostringstream os;
   os << "__bvToInt_fun_" << bvUF << "_int";
   intUF = sm->mkDummySkolem(

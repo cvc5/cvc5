@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/term_database.h"
 
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -27,7 +28,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -469,7 +469,7 @@ void TermDb::addTermHo(Node n)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node curr = n;
   std::vector<Node> args;
   while (curr.getKind() == HO_APPLY)
@@ -484,8 +484,8 @@ void TermDb::addTermHo(Node n)
       if (itp == d_ho_fun_op_purify.end())
       {
         psk = sm->mkDummySkolem("pfun",
-                           curr.getType(),
-                           "purify for function operator term indexing");
+                                curr.getType(),
+                                "purify for function operator term indexing");
         d_ho_fun_op_purify[curr] = psk;
         // we do not add it to d_ops since it is an internal operator
       }
@@ -1226,7 +1226,7 @@ Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
     return ithp->second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
   Node k = sm->mkDummySkolem("U", ptn, "predicate to force higher-order types");
   d_ho_type_match_pred[tn] = k;

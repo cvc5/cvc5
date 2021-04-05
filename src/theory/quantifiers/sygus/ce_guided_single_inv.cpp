@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_engine.h"
@@ -31,7 +32,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -145,7 +145,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   d_single_inv = d_sip->getSingleInvocation();
   d_single_inv = TermUtil::simpleNegate(d_single_inv);
   std::vector<Node> func_vars;
@@ -216,10 +216,10 @@ bool CegSingleInv::solve()
   Node siq = d_single_inv;
   if (siq.getKind() == FORALL)
   {
-    Node n_attr =
-        sm->mkDummySkolem("qe_si",
-                     nm->booleanType(),
-                     "Auxiliary variable for qe attr for single invocation.");
+    Node n_attr = sm->mkDummySkolem(
+        "qe_si",
+        nm->booleanType(),
+        "Auxiliary variable for qe attr for single invocation.");
     QuantElimAttribute qea;
     n_attr.setAttribute(qea, true);
     n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);

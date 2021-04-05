@@ -16,13 +16,13 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -173,7 +173,7 @@ void SygusUnifStrategy::registerStrategyPoint(Node et,
 void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   if (d_tinfo.find(tn) == d_tinfo.end())
   {
     // register type

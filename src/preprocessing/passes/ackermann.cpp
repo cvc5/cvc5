@@ -27,11 +27,11 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::theory;
@@ -106,11 +106,12 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    SkolemManager * sm = nm->getSkolemManager();
-    Node skolem = sm->mkDummySkolem("SKOLEM$$",
-                               tn,
-                               "is a variable created by the ackermannization "
-                               "preprocessing pass");
+    SkolemManager* sm = nm->getSkolemManager();
+    Node skolem =
+        sm->mkDummySkolem("SKOLEM$$",
+                          tn,
+                          "is a variable created by the ackermannization "
+                          "preprocessing pass");
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -208,7 +209,7 @@ void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
                        SubstitutionMap& usVarsToBVVars)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
 
   for (TNode var : vars)
   {

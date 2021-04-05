@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/fmf/full_model_check.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
@@ -27,7 +28,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -1350,7 +1350,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   for (const Node& v : q[0])
   {

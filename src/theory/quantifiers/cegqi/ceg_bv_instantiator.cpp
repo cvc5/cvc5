@@ -15,12 +15,12 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-#include "expr/skolem_manager.h"
 #include "util/random.h"
 
 using namespace std;
@@ -643,7 +643,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (options::cegqiBvRmExtract())
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
@@ -694,8 +694,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
         Node var =
             sm->mkDummySkolem("ek",
-                         ex.getType(),
-                         "variable to represent disjoint extract region");
+                              ex.getType(),
+                              "variable to represent disjoint extract region");
         children.push_back(var);
         vars.push_back(var);
       }

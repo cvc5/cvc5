@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/proof.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -27,7 +28,6 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -56,7 +56,7 @@ SineSolver::~SineSolver() {}
 void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
   Assert(!d_data->d_pi.isNull());

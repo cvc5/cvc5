@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/node_self_iterator.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -29,7 +30,6 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -202,7 +202,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
   Node trueNode = nm->mkConst(true);
 

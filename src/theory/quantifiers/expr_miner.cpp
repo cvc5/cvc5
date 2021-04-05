@@ -14,13 +14,13 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -47,7 +47,7 @@ Node ExprMiner::convertToSkolem(Node n)
   std::vector<Node> sks;
   // map to skolems
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0, size = fvs.size(); i < size; i++)
   {
     Node v = fvs[i];

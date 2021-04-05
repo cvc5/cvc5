@@ -441,7 +441,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
         NodeManager* nm = NodeManager::currentNM();
-        SkolemManager * sm = nm->getSkolemManager();
+        SkolemManager* sm = nm->getSkolemManager();
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 

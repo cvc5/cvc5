@@ -18,9 +18,9 @@
 
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/theory_options.h"
 #include "theory/theory.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -279,10 +279,10 @@ Node mkConst(const BitVector& value)
 Node mkVar(unsigned size)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   return sm->mkDummySkolem("BVSKOLEM$$",
-                      nm->mkBitVectorType(size),
-                      "is a variable created by the theory of bitvectors");
+                           nm->mkBitVectorType(size),
+                           "is a variable created by the theory of bitvectors");
 }
 
 /* ------------------------------------------------------------------------- */

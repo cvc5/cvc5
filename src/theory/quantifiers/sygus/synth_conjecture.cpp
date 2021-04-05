@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -29,14 +30,13 @@
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 using namespace std;
@@ -103,7 +103,7 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : assign : " << q << std::endl;
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
 
   // initialize the guard
   d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
@@ -462,7 +462,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
 
   // check the side condition if we constructed a candidate
   if (constructed_cand)

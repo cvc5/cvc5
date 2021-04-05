@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -26,7 +27,6 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -57,15 +57,15 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   for (const Node& a : needsMaster)
   {
     // should not have processed this already
     Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-    Node y =
-        sm->mkDummySkolem("y", nm->realType(), "phase shifted trigonometric arg");
+    Node y = sm->mkDummySkolem(
+        "y", nm->realType(), "phase shifted trigonometric arg");
     Node new_a = nm->mkNode(k, y);
     d_tstate.d_trSlaves[new_a].insert(new_a);
     d_tstate.d_trSlaves[new_a].insert(a);

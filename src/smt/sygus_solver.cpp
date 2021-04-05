@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -28,7 +29,6 @@
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
@@ -262,7 +262,7 @@ void SygusSolver::printSynthSolution(std::ostream& out)
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Notice() << "SygusSolver::checkSynthSolution(): checking synthesis solution"
            << std::endl;
   std::map<Node, std::map<Node, Node>> sol_map;

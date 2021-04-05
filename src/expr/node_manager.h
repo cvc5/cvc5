@@ -395,8 +395,11 @@ class NodeManager
    * @param flags an optional mask of bits from SkolemFlags to control
    * mkSkolem() behavior
    */
-  Node mkSkolem(const std::string& prefix, const TypeNode& type,
-                const std::string& comment = "", int flags = SKOLEM_DEFAULT);
+  Node mkSkolem(const std::string& prefix,
+                const TypeNode& type,
+                const std::string& comment = "",
+                int flags = SKOLEM_DEFAULT);
+
  public:
   explicit NodeManager();
   ~NodeManager();

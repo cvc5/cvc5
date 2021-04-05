@@ -204,8 +204,10 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
   return it->second;
 }
 
-Node SkolemManager::mkDummySkolem(const std::string& prefix, const TypeNode& type,
-              const std::string& comment, int flags)
+Node SkolemManager::mkDummySkolem(const std::string& prefix,
+                                  const TypeNode& type,
+                                  const std::string& comment,
+                                  int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkSkolem(prefix, type, comment, flags);

@@ -19,11 +19,11 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -37,7 +37,7 @@ HoElim::HoElim(PreprocessingPassContext* preprocContext)
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
   std::vector<Node> visit;
   TNode cur;
@@ -153,7 +153,7 @@ Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;

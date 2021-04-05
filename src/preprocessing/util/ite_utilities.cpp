@@ -21,12 +21,12 @@
 
 #include <utility>
 
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/rewrite.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 namespace cvc5 {
@@ -354,7 +354,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   else
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
@@ -1388,8 +1388,8 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  NodeManager * nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node var = sm->mkSkolem(
       "iteSimp", t, "is a variable resulting from ITE simplification");
   d_simpVars[t] = var;

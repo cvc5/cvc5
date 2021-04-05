@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
-#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -44,7 +44,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node, NodeHashFunction> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {

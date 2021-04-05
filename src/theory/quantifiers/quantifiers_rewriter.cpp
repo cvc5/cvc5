@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -30,7 +31,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -1563,7 +1563,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     Node avar = sm->mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);

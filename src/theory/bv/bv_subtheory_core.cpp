@@ -16,6 +16,7 @@
 
 #include "theory/bv/bv_subtheory_core.h"
 
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -23,7 +24,6 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5;
@@ -538,7 +538,7 @@ bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
 bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   bool sentLemma = false;
   eq::EqualityEngine* ee = d_equalityEngine;
   std::map<Node, Node> op_map;

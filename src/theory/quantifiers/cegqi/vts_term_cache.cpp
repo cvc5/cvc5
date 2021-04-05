@@ -15,10 +15,10 @@
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -61,13 +61,13 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
       d_vts_delta_free =
           sm->mkDummySkolem("delta_free",
-                       nm->realType(),
-                       "free delta for virtual term substitution");
+                            nm->realType(),
+                            "free delta for virtual term substitution");
       Node delta_lem = nm->mkNode(GT, d_vts_delta_free, d_zero);
       d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
     }
@@ -88,7 +88,7 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_inf_free[tn].isNull())
     {
       d_vts_inf_free[tn] = sm->mkDummySkolem(
@@ -96,8 +96,8 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
     }
     if (d_vts_inf[tn].isNull())
     {
-      d_vts_inf[tn] =
-          sm->mkDummySkolem("inf", tn, "infinity for virtual term substitution");
+      d_vts_inf[tn] = sm->mkDummySkolem(
+          "inf", tn, "infinity for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_inf[tn].setAttribute(vtsa, true);

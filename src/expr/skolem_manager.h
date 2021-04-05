@@ -243,8 +243,10 @@ class SkolemManager
    * @param flags an optional mask of bits from SkolemFlags to control
    * mkSkolem() behavior
    */
-  Node mkDummySkolem(const std::string& prefix, const TypeNode& type,
-                const std::string& comment = "", int flags = NodeManager::SKOLEM_DEFAULT);
+  Node mkDummySkolem(const std::string& prefix,
+                     const TypeNode& type,
+                     const std::string& comment = "",
+                     int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind

@@ -14,13 +14,13 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 #include "util/random.h"
 
 #include <math.h>
@@ -134,7 +134,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   bool childChanged = false;
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0; i < size; ++i)
   {
     if (i == 0 && fapp)
@@ -185,9 +185,9 @@ Node SygusUnifRl::purifyLemma(Node n,
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
       Node new_f = sm->mkDummySkolem(ss.str(),
-                                nb[0].getType(),
-                                "head of unif evaluation point",
-                                NodeManager::SKOLEM_EXACT_NAME);
+                                     nb[0].getType(),
+                                     "head of unif evaluation point",
+                                     NodeManager::SKOLEM_EXACT_NAME);
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify")
           << "...new enum " << new_f << " for candidate " << nb[0] << "\n";

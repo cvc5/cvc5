@@ -17,6 +17,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
@@ -32,7 +33,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "expr/skolem_manager.h"
 #include "theory/theory_state.h"
 
 using namespace cvc5;
@@ -436,7 +436,7 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
     return itt->second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   types.push_back(tn);
   TypeNode ptn = nm->mkPredicateType(types);
@@ -448,7 +448,7 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 Node SygusExtension::eliminateTraversalPredicates(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::map<Node, Node>::iterator ittb;
@@ -1764,7 +1764,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
   if (d_measure_value.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem =
         nm->mkNode(kind::GEQ, d_measure_value, nm->mkConst(Rational(0)));
@@ -1779,7 +1779,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
   if (mkNew)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConst(Rational(0)));
     d_measure_value_active = new_mt;

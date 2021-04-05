@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
@@ -29,7 +30,6 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -563,7 +563,7 @@ void TermDbSygus::registerEnumerator(Node e,
   // populate a pool of terms, or (some cases) of when it is actively generated.
   if (isActiveGen || erole == ROLE_ENUM_POOL)
   {
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     // make the guard
     Node ag = sm->mkDummySkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here

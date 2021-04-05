@@ -505,7 +505,7 @@ bool DTypeConstructor::resolve(
                      << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
-  SkoleManager * sm = nm->getSkolemManager();
+  SkoleManager* sm = nm->getSkolemManager();
   size_t index = 0;
   std::vector<TypeNode> argTypes;
   Trace("datatypes-init") << "Initialize constructor " << d_name << std::endl;

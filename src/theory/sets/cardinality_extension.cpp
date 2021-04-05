@@ -17,13 +17,13 @@
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -1016,7 +1016,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
-      SkolemManager * sm = nm->getSkolemManager();
+      SkolemManager* sm = nm->getSkolemManager();
       if (elementType.isInterpretedFinite())
       {
         // get all members of this finite type
@@ -1045,8 +1045,8 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(
-              nm->mkSingleton(elementType, sm->mkDummySkolem("msde", elementType)));
+          els.push_back(nm->mkSingleton(
+              elementType, sm->mkDummySkolem("msde", elementType)));
         }
       }
     }

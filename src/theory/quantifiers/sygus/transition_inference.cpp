@@ -16,10 +16,10 @@
 #include "theory/quantifiers/sygus/transition_inference.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -198,7 +198,7 @@ void TransitionInference::process(Node n, Node f)
 void TransitionInference::process(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   d_complete = true;
   d_trivial = true;
   std::vector<Node> n_check;
@@ -430,7 +430,8 @@ bool TransitionInference::processDisjunct(
       NodeManager* nm = NodeManager::currentNM();
       for (const Node& l : lit)
       {
-        Node v = sm->mkDummySkolem("i", l.getType(), "template inference argument");
+        Node v =
+            sm->mkDummySkolem("i", l.getType(), "template inference argument");
         d_vars.push_back(v);
         Trace("cegqi-inv-debug") << v << " ";
       }

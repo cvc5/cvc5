@@ -17,9 +17,9 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -43,7 +43,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
 {
   Assert(!fs.empty());
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   SygusAttribute ca;
   Node sygusVar = sm->mkDummySkolem("sygus", nm->booleanType());
   sygusVar.setAttribute(ca, true);
@@ -67,7 +67,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
 {
   Assert(!fs.empty());
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> iattrs;
   // take existing properties, without the previous solves
   SygusSolutionAttribute ssa;

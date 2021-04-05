@@ -18,6 +18,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -27,7 +28,6 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -463,7 +463,7 @@ Node SygusInst::getCeLiteral(Node q)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
