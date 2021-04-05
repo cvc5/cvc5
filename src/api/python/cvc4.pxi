@@ -736,10 +736,11 @@ cdef class Solver:
         cdef Term term = Term(self)
         if isinstance(size_or_str, int):
             if val is None:
-                term.cterm = self.csolver.mkBitVector(<int> size_or_str)
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str)
             else:
-                term.cterm = self.csolver.mkBitVector(<int> size_or_str,
-                                                      <int> val)
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str,
+                                                      <const string &> str(val).encode(),
+                                                      10)
         elif isinstance(size_or_str, str):
             # handle default value
             if val is None:
@@ -747,7 +748,7 @@ cdef class Solver:
                     <const string &> size_or_str.encode())
             else:
                 term.cterm = self.csolver.mkBitVector(
-                    <const string &> size_or_str.encode(), <int> val)
+                    <const string &> size_or_str.encode(), <uint32_t> val)
         else:
             raise ValueError("Unexpected inputs {} to"
                              " mkBitVector".format((size_or_str, val)))
