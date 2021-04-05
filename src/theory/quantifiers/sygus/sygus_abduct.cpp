@@ -121,7 +121,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     abvl = agtsd.getSygusVarList();
     Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
   }
-  else
+  else if (!varlist.empty())
   {
     // the bound variable list of the abduct-to-synthesize is determined by
     // the variable list above
@@ -164,8 +164,11 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
   Node sc = nm->mkNode(AND, aconj, abdApp);
-  Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  sc = nm->mkNode(EXISTS, vbvl, sc);
+  if (!vars.empty())
+  {
+    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    sc = nm->mkNode(EXISTS, vbvl, sc);
+  }
   Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
