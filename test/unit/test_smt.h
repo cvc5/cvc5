@@ -198,7 +198,7 @@ class DummyProofRuleChecker : public ProofRuleChecker
   {
     return Node::null();
   }
-}
+};
 
 /** Dummy Theory interface.  */
 template <theory::TheoryId theoryId>
