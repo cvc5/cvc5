@@ -20,6 +20,7 @@
 #include "expr/proof_node.h"
 #include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -46,7 +47,9 @@ TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta)
 : d_ta(ta)
 {}
 ArithVar TempVarMalloc::request(){
-  Node skolem = mkRealSkolem("tmpVar");
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node skolem = sm->mkDummySkolem("tmpVar", nm->realType());
   return d_ta.requestArithVar(skolem, false, true);
 }
 void TempVarMalloc::release(ArithVar v){

@@ -21,6 +21,7 @@
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/partial_model.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 
@@ -29,8 +30,9 @@ namespace theory {
 namespace arith {
 
 inline Node makeIntegerVariable(){
-  NodeManager* curr = NodeManager::currentNM();
-  return curr->mkSkolem("intvar", curr->integerType(), "is an integer variable created by the dio solver");
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkDummySkolem("intvar", nm->integerType(), "is an integer variable created by the dio solver");
 }
 
 DioSolver::DioSolver(context::Context* ctxt)

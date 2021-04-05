@@ -19,6 +19,7 @@
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,8 +38,10 @@ CadSolver::CadSolver(InferenceManager& im,
       d_im(im),
       d_model(model)
 {
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   d_ranVariable = sm->mkDummySkolem("__z",
-                                    NodeManager::currentNM()->realType(),
+                                    nm->realType(),
                                     "",
                                     NodeManager::SKOLEM_EXACT_NAME);
 #ifdef CVC4_POLY_IMP
