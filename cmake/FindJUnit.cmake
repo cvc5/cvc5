@@ -9,24 +9,24 @@
 ## directory for licensing information.
 ##
 # Find JUnit
-# JUnit5_FOUND - should be true for testing
-# JUnit5_JAR   - absolute path to JUnit5 jar file
+# JUnit_FOUND - should be true for testing
+# JUnit_JAR   - absolute path to JUnit5 jar file
 
 include(deps-helper)
 
-find_jar(JUnit5_JAR junit-platform-console-standalone-1.7.1.jar)
+find_jar(JUnit_JAR junit-platform-console-standalone-1.7.1.jar)
 
-set(JUnit5_FOUND_SYSTEM FALSE)
-if(JUnit5_JAR)
-  set(JUnit5_FOUND_SYSTEM TRUE)
+set(JUnit_FOUND_SYSTEM FALSE)
+if(JUnit_JAR)
+  set(JUnit_FOUND_SYSTEM TRUE)
 endif()
 
-if(NOT JUnit5_FOUND_SYSTEM)
+if(NOT JUnit_FOUND_SYSTEM)
   include(ExternalProject)
 
   # Download junit generator jar
   ExternalProject_Add(
-    JUnit5
+    JUnit
     PREFIX ${DEPS_PREFIX}
     URL https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.7.1/junit-platform-console-standalone-1.7.1.jar
     URL_HASH SHA1=99245bde65d028a8b8ff604be26e929ab6ff2e58
@@ -39,16 +39,16 @@ if(NOT JUnit5_FOUND_SYSTEM)
     BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
   )
 
-  set(JUnit5_JAR "${DEPS_BASE}/share/java/junit-platform-console-standalone-1.7.1.jar")
+  set(JUnit_JAR "${DEPS_BASE}/share/java/junit-platform-console-standalone-1.7.1.jar")
 endif()
 
-set(JUnit5_FOUND TRUE)
+set(JUnit_FOUND TRUE)
 
-mark_as_advanced(JUnit5_JAR)
-mark_as_advanced(JUnit5_FOUND)
+mark_as_advanced(JUnit_JAR)
+mark_as_advanced(JUnit_FOUND)
 
-if(JUnit5_FOUND_SYSTEM)
-  message(STATUS "Found JUnit5: ${JUnit5_JAR}")
+if(JUnit_FOUND_SYSTEM)
+  message(STATUS "Found JUnit: ${JUnit_JAR}")
 else()
-  message(STATUS "Building JUnit5: ${JUnit5_JAR}")
+  message(STATUS "Building JUnit: ${JUnit_JAR}")
 endif()

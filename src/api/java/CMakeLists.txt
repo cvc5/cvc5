@@ -11,6 +11,7 @@
 
 # create directories
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/jni")
 
 # Generate cvc/Kind.java
 configure_file(genkinds.py.in genkinds.py)
