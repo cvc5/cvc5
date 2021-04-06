@@ -54,7 +54,7 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn,
     return false;
   }
   bool mc = false;
-  if (tn.getCardinalityClass()!=CardinalityClass::INFINITE)
+  if (tn.getCardinalityClass() != CardinalityClass::INFINITE)
   {
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())

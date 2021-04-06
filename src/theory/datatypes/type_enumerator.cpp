@@ -313,7 +313,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        // or other cases
        if (prevSize == d_size_limit
            || (d_size_limit == 0 && d_datatype.isCodatatype())
-           || d_datatype.getCardinalityClass(d_type)==CardinalityClass::INFINITE)
+           || d_datatype.getCardinalityClass(d_type)
+                  == CardinalityClass::INFINITE)
        {
          d_size_limit++;
          d_ctor = 0;

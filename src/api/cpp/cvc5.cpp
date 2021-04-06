@@ -3463,7 +3463,7 @@ bool Datatype::isFinite() const
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_dtype->getCardinalityClass()!=CardinalityClass::INFINITE;
+  return d_dtype->getCardinalityClass() != CardinalityClass::INFINITE;
   ////////
   CVC4_API_TRY_CATCH_END;
 }
