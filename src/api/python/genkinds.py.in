@@ -10,7 +10,7 @@
 ## directory for licensing information.
 ##
 """
-This script reads CVC4/src/api/cvc4cppkind.h and generates
+This script reads CVC4/src/api/cpp/cvc5_kind.h and generates
 .pxd and .pxi files which declare all the CVC4 kinds and
 implement a Python wrapper for kinds, respectively. The
 default names are kinds.pxd / kinds.pxi, but the name is
@@ -40,13 +40,13 @@ PYCOMMENT           = '#'
 CDEF_KIND = "    cdef Kind "
 
 KINDS_PXD_TOP = \
-r"""cdef extern from "api/cvc4cppkind.h" namespace "cvc5::api":
+r"""cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api":
     cdef cppclass Kind:
         pass
 
 
-# Kind declarations: See cvc4cppkind.h for additional information
-cdef extern from "api/cvc4cppkind.h" namespace "cvc5::api::Kind":
+# Kind declarations: See cpp/cvc5_kind.h for additional information
+cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api::Kind":
 """
 
 KINDS_PXI_TOP = \
@@ -132,8 +132,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser('Read a kinds header file and generate a '
                          'corresponding pxd file, with simplified kind names.')
     parser.add_argument('--kinds-header', metavar='<KINDS_HEADER>',
-                        help='The header file to read kinds from',
-                        default=DEFAULT_HEADER)
+                        help='The header file to read kinds from')
     parser.add_argument('--kinds-file-prefix', metavar='<KIND_FILE_PREFIX>',
                         help='The prefix for the .pxd and .pxi files to write '
                         'the Cython declarations to.',

@@ -23,7 +23,7 @@
 #include <memory>
 #include <new>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "cvc4autoconfig.h"
