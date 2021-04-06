@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-#include "cvc4/api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 
 using namespace std;
 using namespace cvc5::api;
