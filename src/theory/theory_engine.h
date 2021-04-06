@@ -502,7 +502,7 @@ class TheoryEngine {
    * Calls ppStaticLearn() on all theories, accumulating their
    * combined contributions in the "learned" builder.
    */
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   /**
    * Calls presolve() on all theories and returns true

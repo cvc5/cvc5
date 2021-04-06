@@ -121,7 +121,7 @@ Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
   }
   // re-build the node with the same kind and new children
   kind::Kind_t k = originalNode.getKind();
-  NodeBuilder<> builder(k);
+  NodeBuilder builder(k);
   // special case for parameterized nodes
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {

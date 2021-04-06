@@ -81,7 +81,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << Node(cache[current.getOperator()]);
       }

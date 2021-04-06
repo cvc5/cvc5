@@ -198,7 +198,7 @@ Node DioSolver::proveIndex(TrailIndex i){
   const Polynomial& proof = d_trail[i].d_proof;
   Assert(!proof.isConstant());
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   for(Polynomial::iterator iter = proof.begin(), end = proof.end(); iter!= end; ++iter){
     Monomial m = (*iter);
     Assert(!m.isConstant());

@@ -116,7 +116,7 @@ Node BVToInt::makeBinary(Node n)
     else if (numChildren > 0)
     {
       // current has children, but we do not binarize it
-      NodeBuilder<> builder(k);
+      NodeBuilder builder(k);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -220,7 +220,7 @@ Node BVToInt::eliminationPass(Node n)
         {
           // The main operator is replaced, and the children
           // are replaced with their eliminated counterparts.
-          NodeBuilder<> builder(current.getKind());
+          NodeBuilder builder(current.getKind());
           if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
           {
             builder << current.getOperator();
@@ -886,7 +886,7 @@ Node BVToInt::reconstructNode(Node originalNode,
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
   kind::Kind_t oldKind = originalNode.getKind();
-  NodeBuilder<> builder(oldKind);
+  NodeBuilder builder(oldKind);
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << originalNode.getOperator();
