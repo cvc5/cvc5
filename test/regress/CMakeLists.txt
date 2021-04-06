@@ -1974,6 +1974,7 @@ set(regress_1_tests
   regress1/sets/issue5309.smt2
   regress1/sets/issue5342.smt2
   regress1/sets/issue5342_difference_version.smt2
+  regress1/sets/issue5942-witness.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
