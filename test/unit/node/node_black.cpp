@@ -44,7 +44,7 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager,
                                    TypeNode type)
 {
   std::vector<Node> skolems;
-  SkolemManager* sm = skolemManager->getSkolemManager();
+  SkolemManager* sm = nodeManager->getSkolemManager();
   for (uint32_t i = 0; i < n; i++)
   {
     skolems.push_back(skolemManager->mkDummySkolem(
