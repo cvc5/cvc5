@@ -108,19 +108,25 @@ bool TypeNode::isOne(bool usortOne)
   {
     ret = usortOne;
   }
+  else if (isBoolean() || isBitVector() || isFloatingPoint()
+           || isRoundingMode() || isString() || isRegExp() || isSequence() || isReal() || isSet() || isBag())
+  {
+    ret = false;
+  }
   else
   {
     if (isDatatype())
     {
       TypeNode tn = *this;
       const DType& dt = getDType();
-      ret = dt.isOne(tn, usortOne);
+      //ret = dt.isOne(tn, usortOne);
+      // FIXME
     }
     else if (isArray())
     {
       // If the consistuent type of the array has cardinality one, then the
       // array type has cardinality one, independent of the index type.
-      ret = tnc.isOne(usortOne);
+      ret = getArrayConstituentType().isOne(usortOne);
     }
     else if (isFunction())
     {
