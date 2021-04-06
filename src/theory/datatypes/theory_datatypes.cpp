@@ -281,7 +281,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                                           // FIXME
+                  // FIXME
                   bool ifin = dt[j].getCardinalityClass(tt)
                               != CardinalityClass::INFINITE;
                   Trace("datatypes-debug") << "...returned " << ifin
@@ -1325,7 +1325,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
       for( unsigned r=0; r<2; r++ ){
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
-            //must try the infinite ones first
+            // must try the infinite ones first
             // FIXME
             bool cfinite =
                 dt[i].getCardinalityClass(tt) != CardinalityClass::INFINITE;
