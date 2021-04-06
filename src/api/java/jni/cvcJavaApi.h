@@ -1,8 +1,6 @@
 #ifndef CVC__JAVA_API_H
 #define CVC__JAVA_API_H
 
-#include <iostream>
-
 #define CVC_JAVA_API_TRY_CATCH_BEGIN \
   try                                \
   {
