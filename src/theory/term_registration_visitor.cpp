@@ -40,7 +40,7 @@ std::string PreRegisterVisitor::toString() const {
  * current. This method is used by PreRegisterVisitor and SharedTermsVisitor
  * below.
  */
-bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
+bool isAlreadyVisited(TheoryEngine * te, TheoryIdSet visitedTheories, TNode current, TNode parent)
 {
   TheoryId currentTheoryId = Theory::theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
@@ -66,7 +66,7 @@ bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
 
   // do we need to consider the type?
   TypeNode type = current.getType();
-  if (currentTheoryId == parentTheoryId && !d_engine->isTypeCardinalityFinite(type))
+  if (currentTheoryId == parentTheoryId && !te->isTypeCardinalityFinite(type))
   {
     // current and parent are the same theory, and we are infinite, return true
     return true;
@@ -99,7 +99,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(visitedTheories, current, parent);
+  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
 }
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
@@ -243,7 +243,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(visitedTheories, current, parent);
+  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
 }
 
 void SharedTermsVisitor::visit(TNode current, TNode parent) {

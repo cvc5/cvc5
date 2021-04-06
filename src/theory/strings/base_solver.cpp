@@ -538,7 +538,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   {
     Assert(tn.isSequence());
     TypeNode etn = tn.getSequenceElementType();
-    if (etn.isInterpretedFinite())
+    if (d_state.isTypeCardinalityFinite(etn))
     {
       // infinite cardinality, we are fine
       return;
