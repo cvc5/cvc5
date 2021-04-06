@@ -24,6 +24,7 @@ namespace cvc5 {
 /** Constructor cardinality type */
 enum class CardinalityClass
 {
+  // the cardinality is unknown
   UNKNOWN,
   // the type has cardinality one in all interpretations
   ONE,
@@ -57,11 +58,11 @@ const char* toString(CardinalityClass c);
 std::ostream& operator<<(std::ostream& out, CardinalityClass c);
 
 /** Get the class of type tn */
-CardinalityClass getClass(TypeNode tn);
+CardinalityClass getCardinalityClass(TypeNode tn);
 /** Take the min class of c1 and c2 */
-CardinalityClass minClass(CardinalityClass c1, CardinalityClass c2);
+CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2);
 /** Take the max class of c1 and c2 */
-CardinalityClass maxClass(CardinalityClass c1, CardinalityClass c2);
+CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2);
 
 }  // namespace cvc5
 

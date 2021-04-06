@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& out, CardinalityClass c)
   return out;
 }
 
-CardinalityClass getClass(TypeNode tn)
+CardinalityClass getCardinalityClass(TypeNode tn)
 {
   if (!tn.isFinite(true))
   {
@@ -58,12 +58,12 @@ CardinalityClass getClass(TypeNode tn)
   return CardinalityClass::ONE;
 }
 
-CardinalityClass minClass(CardinalityClass c1, CardinalityClass c2)
+CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2)
 {
   return c1<c2 ? c1 : c2;
 }
 
-CardinalityClass maxClass(CardinalityClass c1, CardinalityClass c2)
+CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2)
 {
   return c1>c2 ? c1 : c2;
 }

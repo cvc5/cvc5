@@ -23,32 +23,10 @@
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "expr/cardinality_class.h"
 
 namespace cvc5 {
 
-/** Constructor cardinality type */
-enum class CardinalityClass
-{
-  // the constructor has cardinality one
-  ONE,
-  // the constructor has cardinality one, under the assumption that
-  // uninterpreted sorts have cardinality one
-  INTERPRETED_ONE,
-  // the constructor is finite
-  FINITE,
-  // the constructor is interpreted-finite (finite under the assumption that
-  // uninterpreted sorts are finite)
-  INTERPRETED_FINITE,
-  // the constructor is infinte
-  INFINITE
-};
-/** Get the class of type tn */
-CardinalityClass getClass(TypeNode tn);
-/** Take the min class of c1 and c2 */
-CardinalityClass minClass(CardinalityClass c1, CardinalityClass c2);
-/** Take the max class of c1 and c2 */
-CardinalityClass maxClass(CardinalityClass c1, CardinalityClass c2);
-  
 /**
  * The Node-level representation of a constructor for a datatype, which
  * currently resides in the Expr-level DatatypeConstructor class

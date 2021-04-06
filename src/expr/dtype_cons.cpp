@@ -191,41 +191,16 @@ DTypeConstructor::computeCardinalityInfo(TypeNode t) const
                          instTypes.begin(),
                          instTypes.end());
     }
-    if (tc.isOne(false))
+    // get the current cardinality class
+    CardinalityClass cctc = getCardinalityClass(tc);
+    // update ret.first to the max cardinality class
+    ret.first = maxCardinalityClass(ret.first, cctc);
+    if (cctc!=CardinalityClass::INFINITE)
     {
-      // do nothing
+      // if the argument is (interpreted) finite and external, set the flag
+      // for indicating it has a finite external argument
+      ret.second = ret.second || !tc.isDatatype();
     }
-    else if (tc.isOne(true))
-    {
-      if (ret.first == CardinalityClass::ONE)
-      {
-        ret.first = CardinalityClass::INTERPRETED_ONE;
-      }
-    }
-    else if (tc.isFinite(false))
-    {
-      if (ret.first == CardinalityClass::ONE  || ret.first == CardinalityClass::INTERPRETED_ONE)
-      {
-        ret.first = CardinalityClass::FINITE;
-      }
-    }
-    else if (tc.isFinite(true))
-    {
-      if (ret.first == CardinalityClass::ONE || ret.first == CardinalityClass::INTERPRETED_ONE || ret.first == CardinalityClass::FINITE)
-      {
-        // not simply finite, it depends on uninterpreted sorts being finite
-        ret.first = CardinalityClass::INTERPRETED_FINITE;
-      }
-    }
-    else
-    {
-      // infinite implies the constructor is infinite cardinality
-      ret.first = CardinalityClass::INFINITE;
-      continue;
-    }
-    // if the argument is (interpreted) finite and external, set the flag
-    // for indicating it has a finite external argument
-    ret.second = ret.second || !tc.isDatatype();
   }
   d_cardInfo[t] = ret;
   return ret;

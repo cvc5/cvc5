@@ -21,6 +21,8 @@ libcvc4_add_sources(
   bound_var_manager.h
   buffered_proof_generator.cpp
   buffered_proof_generator.h
+  cardinality_class.cpp
+  cardinality_class.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
