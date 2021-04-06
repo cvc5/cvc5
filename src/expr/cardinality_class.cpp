@@ -14,8 +14,6 @@
 
 #include "expr/cardinality_class.h"
 
-#include "expr/type_node.h"
-
 namespace cvc5 {
 
 const char* toString(CardinalityClass c)
@@ -35,27 +33,6 @@ std::ostream& operator<<(std::ostream& out, CardinalityClass c)
 {
   out << toString(c);
   return out;
-}
-
-CardinalityClass getCardinalityClass(TypeNode tn)
-{
-  if (!tn.isFinite(true))
-  {
-    return CardinalityClass::INFINITE;
-  }
-  if (!tn.isFinite(false))
-  {
-    return CardinalityClass::INTERPRETED_FINITE;
-  }
-  if (!tn.isOne(true))
-  {
-    return CardinalityClass::FINITE;
-  }
-  else if (!tn.isOne(false))
-  {
-    return CardinalityClass::INTERPRETED_ONE;
-  }
-  return CardinalityClass::ONE;
 }
 
 CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2)

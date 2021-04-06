@@ -30,6 +30,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/cardinality_class.h"
 #include "util/cardinality.h"
 
 namespace cvc5 {

@@ -19,8 +19,6 @@
 
 #include <iosfwd>
 
-#include "expr/type_node.h"
-
 namespace cvc5 {
 
 /** Constructor cardinality type */
@@ -59,8 +57,6 @@ const char* toString(CardinalityClass c);
  */
 std::ostream& operator<<(std::ostream& out, CardinalityClass c);
 
-/** Get the class of type tn */
-CardinalityClass getCardinalityClass(TypeNode tn);
 /** Take the min class of c1 and c2 */
 CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2);
 /** Take the max class of c1 and c2 */
