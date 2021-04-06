@@ -218,7 +218,7 @@ void TheoryDatatypes::postCheck(Effort level)
             const DType& dt = tt.getDType();
             Trace("datatypes-debug")
                 << "Datatype " << dt.getName() << " is "
-                << dt.isInterpretedFinite(tt) << " "
+                << dt.getCardinalityClass(tt) << " "
                 << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
