@@ -13,6 +13,7 @@
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/cvc")
 
 # Generate cvc/Kind.java
+configure_file(genkinds.py.in genkinds.py)
 add_custom_target(
   gen-java-kinds
   ALL
