@@ -65,7 +65,7 @@ class SymmetryBreaker : public context::ContextNotifyObj {
 
   class Template {
     Node d_template;
-    NodeBuilder<> d_assertions;
+    NodeBuilder d_assertions;
     std::unordered_map<TNode, std::set<TNode>, TNodeHashFunction> d_sets;
     std::unordered_map<TNode, TNode, TNodeHashFunction> d_reps;
 

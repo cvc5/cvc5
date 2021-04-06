@@ -196,7 +196,6 @@ class NodeTemplate {
   friend class TypeNode;
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
   friend class ::cvc5::expr::attr::AttributeManager;
@@ -1291,7 +1290,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1359,7 +1358,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1421,7 +1420,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);

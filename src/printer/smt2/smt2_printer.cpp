@@ -22,7 +22,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"

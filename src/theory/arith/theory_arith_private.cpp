@@ -239,7 +239,7 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   // Assert(uppos < upconf.getNumChildren());
   // Assert(equalUpToNegation(dnconf[dnpos], upconf[uppos]));
 
-  // NodeBuilder<> nb(kind::AND);
+  // NodeBuilder nb(kind::AND);
   // dropPosition(nb, dnconf, dnpos);
   // dropPosition(nb, upconf, uppos);
   // return safeConstructNary(nb);
@@ -1196,13 +1196,12 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
-void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
   d_learner.staticLearning(n, learned);
 }
-
-
 
 ArithVar TheoryArithPrivate::findShortestBasicRow(ArithVar variable){
   ArithVar bestBasic = ARITHVAR_SENTINEL;
@@ -2206,7 +2205,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
 
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   Debug("arith::toSumNode") << "toSumNode() begin" << endl;
-  NodeBuilder<> nb(kind::PLUS);
+  NodeBuilder nb(kind::PLUS);
   NodeManager* nm = NodeManager::currentNM();
   DenseMap<Rational>::const_iterator iter, end;
   iter = sum.begin(), end = sum.end();
@@ -4677,7 +4676,7 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 }
 
 Node flattenImplication(Node imp){
-  NodeBuilder<> nb(kind::OR);
+  NodeBuilder nb(kind::OR);
   std::unordered_set<Node, NodeHashFunction> included;
   Node left = imp[0];
   Node right = imp[1];
@@ -4765,7 +4764,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
-          NodeBuilder<> nb;
+          NodeBuilder nb;
           conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
         }
         // Collect the farkas coefficients, as nodes.
@@ -5269,7 +5268,7 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
 
   Polynomial p = Polynomial::parsePolynomial(tp);
   for(Polynomial::iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
@@ -5454,7 +5453,7 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
   switch(finalState){
   case Inferred:
     {
-      NodeBuilder<> nb(kind::AND);
+      NodeBuilder nb(kind::AND);
       for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
         const Tableau::Entry& e =*ri;
         ArithVar colVar = e.getColVar();
@@ -5667,7 +5666,7 @@ ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
 //   switch(finalState){
 //   case Inferred:
 //     {
-//       NodeBuilder<> nb(kind::AND);
+//       NodeBuilder nb(kind::AND);
 //       for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx);
 //       !ri.atEnd(); ++ri){
 //         const Tableau::Entry& e =*ri;

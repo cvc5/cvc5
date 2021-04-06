@@ -36,7 +36,7 @@ bool RewriteRule<ConcatFlatten>::applies(TNode node) {
 template<> inline
 Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {

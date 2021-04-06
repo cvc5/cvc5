@@ -88,7 +88,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     Assert(childList.size()
            < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
                  * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
-    NodeBuilder<> nb(k);
+    NodeBuilder nb(k);
     ChildList::iterator cur = childList.begin(), next, en = childList.end();
     while (cur != en)
     {
