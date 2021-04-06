@@ -70,7 +70,7 @@ Cardinality TypeNode::getCardinality() const {
 struct TypeCardinalityClassTag
 {
 };
-typedef expr::Attribute<TypeCardinalityClassTag, CardinalityClass>
+typedef expr::Attribute<TypeCardinalityClassTag, uint64_t>
     TypeCardinalityClassAttr;
 
 CardinalityClass TypeNode::getCardinalityClass()
@@ -78,7 +78,7 @@ CardinalityClass TypeNode::getCardinalityClass()
   // check it is already cached
   if (hasAttribute(TypeCardinalityClassAttr()))
   {
-    return getAttribute(TypeCardinalityClassAttr());
+    return static_cast<CardinalityClass>(getAttribute(TypeCardinalityClassAttr()));
   }
   CardinalityClass ret = CardinalityClass::INFINITE;
   if (isSort())
@@ -99,7 +99,7 @@ CardinalityClass TypeNode::getCardinalityClass()
     // recursive case (this may be a parametric sort), we assume infinite for
     // the moment here to prevent infinite loops, which may occur when
     // computing the cardinality of datatype types with foreign types
-    setAttribute(TypeCardinalityClassAttr(), ret);
+    setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
 
     if (isDatatype())
     {
@@ -166,9 +166,9 @@ CardinalityClass TypeNode::getCardinalityClass()
         // otherwise, we may have a larger cardinality class based on the
         // arguments of the function
         std::vector<TypeNode> argTypes = getArgTypes();
-        for (const TypeNode& at : argTypes)
+        for (size_t i=0, nargs = argTypes.size(); i<nargs; i++)
         {
-          CardinalityClass cca = at.getCardinalityClass();
+          CardinalityClass cca = argTypes[i].getCardinalityClass();
           ret = maxCardinalityClass(ret, cca);
         }
       }
@@ -179,7 +179,7 @@ CardinalityClass TypeNode::getCardinalityClass()
       Assert(false);
     }
   }
-  setAttribute(TypeCardinalityClassAttr(), ret);
+  setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
 }
 

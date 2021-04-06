@@ -28,7 +28,7 @@ namespace cvc5 {
  * a type should be considered finite. This includes use cases for when
  * finite model finding is enabled or disabled.
  */
-enum class CardinalityClass
+enum class CardinalityClass : uint64_t
 {
   // the type has cardinality one in all interpretations
   ONE,
