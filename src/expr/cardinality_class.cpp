@@ -14,6 +14,8 @@
 
 #include "expr/cardinality_class.h"
 
+#include <iostream>
+
 namespace cvc5 {
 
 const char* toString(CardinalityClass c)
@@ -25,6 +27,7 @@ const char* toString(CardinalityClass c)
     case CardinalityClass::FINITE: return "FINITE";
     case CardinalityClass::INTERPRETED_FINITE: return "INTERPRETED_FINITE";
     case CardinalityClass::INFINITE: return "INFINITE";
+    case CardinalityClass::UNKNOWN: return "UNKNOWN";
     default: return "?CardinalityClass?";
   }
 }
@@ -53,6 +56,8 @@ bool isCardinalityClassFinite(CardinalityClass c, bool fmfEnabled)
   }
   if (fmfEnabled)
   {
+    // if finite model finding is enabled, interpreted one/finite are also
+    // considered finite.
     return c == CardinalityClass::INTERPRETED_ONE
            || c == CardinalityClass::INTERPRETED_FINITE;
   }

@@ -272,7 +272,13 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn)
+
+bool TheoryEngineModelBuilder::isTypeFinite(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),options::finiteModelFind());
+}
+
+bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
   if (tn.isSort())
   {
@@ -836,7 +842,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         const DType& dt = t.getDType();
         isCorecursive = dt.isCodatatype()
-                        && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
+                        && (!isTypeFinite(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC4_ASSERTIONS
       bool isUSortFiniteRestricted = false;
@@ -913,13 +919,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !t.isFinite(options::finiteModelFind()))
+          else if (t.isSort() || !isTypeFinite(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.
             // Note we also consider uninterpreted sorts to be infinite here
-            // regardless of whether isInterpretedFinite is true (which is true
-            // for uninterpreted sorts iff finite model finding is enabled).
+            // regardless of whether the cardinality class of t is
+            // CardinalityClass::INTERPRETED_FINITE.
             // This is required because the UF solver does not explicitly
             // assign uninterpreted constants to equivalence classes in its
             // collectModelValues method. Doing so would have the same effect

@@ -155,7 +155,7 @@ CardinalityClass TypeNode::getCardinalityClass()
     else if (isFunction())
     {
       ret = CardinalityClass::FINITE;
-      CardinalityClass ccr = getRangeType().getRangeType();
+      CardinalityClass ccr = getRangeType().getCardinalityClass();
       if (ccr == CardinalityClass::INFINITE || ccr == CardinalityClass::ONE
           || ccr == CardinalityClass::INTERPRETED_ONE)
       {
@@ -163,6 +163,8 @@ CardinalityClass TypeNode::getCardinalityClass()
       }
       else
       {
+        // otherwise, we may have a larger cardinality class based on the
+        // arguments of the function
         std::vector<TypeNode> argTypes = getArgTypes();
         for (const TypeNode& at : argTypes)
         {

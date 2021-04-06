@@ -510,40 +510,10 @@ CardinalityClass DType::getCardinalityClass(TypeNode t) const
   d_cardClass[t] = c;
   return c;
 }
-bool DType::isFinite() const
+CardinalityClass DType::getCardinalityClass() const
 {
   Assert(isResolved() && !isParametric());
-  return isFinite(d_self);
-}
-
-bool DType::isInterpretedFinite(TypeNode t) const
-{
-  Trace("datatypes-init") << "DType::isInterpretedFinite " << std::endl;
-  Assert(isResolved());
-  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
-  // is this already in the cache ?
-  if (d_self.getAttribute(DTypeUFiniteComputedAttr()))
-  {
-    return d_self.getAttribute(DTypeUFiniteAttr());
-  }
-  // start by assuming it is not
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
-  {
-    if (!ctor->isInterpretedFinite(t))
-    {
-      return false;
-    }
-  }
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), true);
-  return true;
-}
-bool DType::isInterpretedFinite() const
-{
-  Assert(isResolved() && !isParametric());
-  return isInterpretedFinite(d_self);
+  return getCardinalityClass(d_self);
 }
 
 bool DType::isWellFounded() const

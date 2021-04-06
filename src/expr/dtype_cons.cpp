@@ -163,7 +163,7 @@ bool DTypeConstructor::hasFiniteExternalArgType(TypeNode t) const
   return cinfo.second;
 }
 
-std::pair<DTypeConstructor::CardinalityClass, bool>
+std::pair<CardinalityClass, bool>
 DTypeConstructor::computeCardinalityInfo(TypeNode t) const
 {
   std::map<TypeNode, std::pair<CardinalityClass, bool> >::iterator it =

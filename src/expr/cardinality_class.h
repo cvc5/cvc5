@@ -21,23 +21,30 @@
 
 namespace cvc5 {
 
-/** Constructor cardinality type */
+/**
+ * Cardinality classes.
+ *
+ * The purposes of these classifications is solely to determine whether or not
+ * a type should be considered finite. This includes use cases for when
+ * finite model finding is enabled or disabled.
+ */
 enum class CardinalityClass
 {
-  // the cardinality is unknown
-  UNKNOWN,
   // the type has cardinality one in all interpretations
   ONE,
-  // the type has cardinality one under the assumption that uninterpreted sorts
-  // have cardinality one
+  // the type has cardinality one only under the assumption that uninterpreted
+  // sorts have cardinality one
   INTERPRETED_ONE,
-  // the type is finite in all interpretations
+  // the type is finite in all interpretations, and does not fit any of the
+  // above classifications
   FINITE,
   // the type is finite under the assumption that uninterpreted sorts have
-  // cardinality one
+  // cardinality one, and does not fit any of the above classifications
   INTERPRETED_FINITE,
-  // the type is infinte in all interpretations
-  INFINITE
+  // the type is infinite in all interpretations
+  INFINITE,
+  // the cardinality is unknown
+  UNKNOWN
 };
 
 /**
