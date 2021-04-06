@@ -409,29 +409,25 @@ public:
    */
   Cardinality getCardinality() const;
 
-  /** Does this type have cardinality one? */
-  bool isOne();
-
   /**
-   * Does this type have cardinality one under the assumption that uninterpreted
-   * sorts have cardinality one?
+   * Does this type have cardinality one? If usortOne is true, then we assume
+   * that the cardinality of uninterpreted sorts is one.
+   *
+   * Notice that this will return true for types like (Array Int U) where U
+   * is an uninterpreted sort, regardless of whether usortOne is true or now.
+   * The cardinality of this type is not necessarily one, but it is if U has
+   * cardinality one.
    */
-  bool isInterpretedOne();
+  bool isOne(bool usortOne);
   /**
-   * Is this type finite? This assumes uninterpreted sorts have infinite
-   * cardinality.
-   */
-  bool isFinite();
-
-  /**
-   * Can this type be interpreted as finite, assuming all uninterpreted sorts
-   * are interpreted as finite? 
+   * Is this type finite? If usortFinite is true, we do not assume that
+   * uninterpreted sorts are infinite.
    *
    * Notice that this will return true for types like (Array Int U) where U
    * is an uninterpreted sort. This type is not necessarily finite, but can
    * be finite if U has cardinality one.
    */
-  bool isInterpretedFinite();
+  bool isFinite(bool usortFinite);
 
   /** is closed enumerable type
    *
@@ -723,13 +719,6 @@ public:
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
-
-  /**
-   * Is this type interpreted as finite.
-   * If the flag usortFinite is true, this assumes all uninterpreted sorts
-   *   are interpreted as finite.
-   */
-  bool isFiniteInternal(bool usortFinite);
 
   /**
    * Indents the given stream a given amount of spaces.

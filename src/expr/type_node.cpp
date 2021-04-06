@@ -66,9 +66,62 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
-
-bool TypeNode::isOneInternal(bool usortOne) 
+/** Attribute true for types that have cardinality one */
+struct IsOneTag
 {
+};
+typedef expr::Attribute<IsOneTag, bool> IsOneAttr;
+/** Attribute true for types which we have computed the above attribute */
+struct IsOneComputedTag
+{
+};
+typedef expr::Attribute<IsOneComputedTag, bool> IsOneComputedAttr;
+
+/** Attribute true for types that are interpreted as one */
+struct IsInterpretedOneTag
+{
+};
+typedef expr::Attribute<IsInterpretedOneTag, bool> IsInterpretedOneAttr;
+/** Attribute true for types which we have computed the above attribute */
+struct IsInterpretedOneComputedTag
+{
+};
+typedef expr::Attribute<IsInterpretedOneComputedTag, bool>
+    IsInterpretedOneComputedAttr;
+
+bool TypeNode::isOne(bool usortOne) 
+{
+  // check it is already cached
+  if (usortOne)
+  {
+    if (getAttribute(IsInterpretedOneComputedAttr()))
+    {
+      return getAttribute(IsInterpretedOneAttr());
+    }
+  }
+  else if (getAttribute(IsOneComputedAttr()))
+  {
+    return getAttribute(IsOneAttr());
+  }
+  bool ret = false;
+  if (isSort())
+  {
+    ret = usortOne;
+  }
+  else
+  {
+  }
+  if (usortOne)
+  {
+    setAttribute(IsInterpretedOneAttr(), ret);
+    setAttribute(IsInterpretedOneComputedAttr(), true);
+  }
+  else
+  {
+    setAttribute(IsOneAttr(), ret);
+    setAttribute(IsOneComputedAttr(), true);
+  }
+  return ret;
 }
 
 /** Attribute true for types that are finite */
@@ -94,7 +147,7 @@ struct IsInterpretedFiniteComputedTag
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
     IsInterpretedFiniteComputedAttr;
 
-bool TypeNode::isFiniteInternal(bool usortFinite)
+bool TypeNode::isFinite(bool usortFinite)
 {
   // check it is already cached
   if (usortFinite)
