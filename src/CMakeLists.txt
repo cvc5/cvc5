@@ -1185,11 +1185,11 @@ install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api/cpp)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

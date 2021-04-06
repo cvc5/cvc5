@@ -14,7 +14,7 @@
  **
  **/
 
-#include <cvc4/api/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <cmath>
 #include <iostream>

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cpp/cvc5.cpp
+/*! \file cvc5.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Andres Noetzli

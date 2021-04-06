@@ -14,7 +14,7 @@
  ** An example of using inductive datatypes in CVC4.
  **/
 
-#include <cvc4/api/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 

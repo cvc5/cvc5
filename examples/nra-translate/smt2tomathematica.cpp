@@ -15,7 +15,7 @@
  ** \todo document this file
  **/
 
-#include <cvc4/api/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 #include <cvc4/cvc4.h>
 
 #include <cassert>

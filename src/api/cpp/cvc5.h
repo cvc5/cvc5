@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cpp/cvc5.h
+/*! \file cvc5.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
@@ -16,8 +16,8 @@
 
 #include "cvc4_export.h"
 
-#ifndef CVC4__API__CVC4CPP_H
-#define CVC4__API__CVC4CPP_H
+#ifndef CVC5__API__CVC5_H
+#define CVC5__API__CVC5_H
 
 #include <map>
 #include <memory>
