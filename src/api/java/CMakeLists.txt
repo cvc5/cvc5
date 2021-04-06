@@ -12,9 +12,46 @@
 # create directories
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/")
 
+# Generate cvc/Kind.java
+configure_file(genkinds.py.in genkinds.py)
+add_custom_target(
+  gen-java-kinds
+  ALL
+  COMMAND
+  "${PYTHON_EXECUTABLE}"
+  "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+  --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+  --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
+  DEPENDS
+  "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+  COMMENT
+  "Generate Kind.java"
+)
+
 # find java
 find_package(Java COMPONENTS Development REQUIRED)
 include(UseJava)
+
+# specify java source files
+set(java_files
+  ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiException.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiRecoverableException.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc/Solver.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc/Utils.java
+  ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind.java
+)
+
+# generate jni headers
+add_custom_target(
+  generate-jni-headers
+  ALL
+  COMMAND
+  # generate jni header files
+  ${Java_JAVAC_EXECUTABLE} -h jni ${java_files} -d jni
+  COMMENT "Generate jni headers"
+  VERBATIM
+)
 
 # find jni package
 find_package(JNI REQUIRED)
@@ -29,38 +66,14 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvcjni SHARED jni/cvc_Solver.cpp)
+add_dependencies(cvcjni generate-jni-headers)
 
 target_include_directories(cvcjni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvcjni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvcjni PUBLIC ${CMAKE_BINARY_DIR}/src/)
+target_include_directories(cvcjni PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/jni)
 target_link_libraries(cvcjni ${JNI_LIBRARIES})
 target_link_libraries(cvcjni cvc4)
-
-# Generate cvc/Kind.java
-configure_file(genkinds.py.in genkinds.py)
-add_custom_target(
-  gen-java-kinds
-  ALL
-  COMMAND
-    "${PYTHON_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-  COMMENT
-    "Generate Kind.java"
-)
-
-# Create cvc.jar from all cvc/*.java files
-set(java_files
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiRecoverableException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/IPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/Solver.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/Utils.java
-  ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind.java
-)
 
 set(CVC_JAR "cvc-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar" CACHE STRING "cvc jar" FORCE)
 
