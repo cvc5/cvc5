@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cppkind.h
+/*! \file cvc5_kind.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Makai Mann
@@ -16,8 +16,8 @@
 
 #include "cvc4_export.h"
 
-#ifndef CVC4__API__CVC4CPPKIND_H
-#define CVC4__API__CVC4CPPKIND_H
+#ifndef CVC5__API__CVC5_KIND_H
+#define CVC5__API__CVC5_KIND_H
 
 #include <ostream>
 

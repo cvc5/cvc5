@@ -43,6 +43,7 @@ namespace cvc5 {
 
 class ProofNodeManager;
 class TheoryEngine;
+class ProofRuleChecker;
 
 namespace theory {
 
@@ -316,6 +317,10 @@ class Theory {
    * @return The theory rewriter associated with this theory.
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * @return The proof checker associated with this theory.
+   */
+  virtual ProofRuleChecker* getProofChecker() = 0;
   /**
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
