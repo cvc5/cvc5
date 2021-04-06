@@ -57,6 +57,9 @@ void JustificationStrategy::presolve()
   d_currStatusDec = false;
   // reset the dynamic assertion list data
   d_assertions.presolve();
+  d_skolemAssertions.presolve();
+  // clear the stack
+  d_stack.clear();
 }
 
 SatLiteral JustificationStrategy::getNext(bool& stopSearch)

@@ -47,7 +47,9 @@ AssertionList::AssertionList(context::Context* ac,
 void AssertionList::presolve()
 {
   Trace("jh-status") << "AssertionList::presolve" << std::endl;
+  d_assertionIndex = 0;
   d_dlist.clear();
+  d_dindex = 0;
 }
 
 void AssertionList::addAssertion(TNode n) { d_assertions.push_back(n); }

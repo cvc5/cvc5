@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 ; REQUIRES: symfpu
 (set-logic ALL)
 (set-option :uf-ho true)
