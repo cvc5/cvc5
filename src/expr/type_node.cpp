@@ -78,7 +78,8 @@ CardinalityClass TypeNode::getCardinalityClass()
   // check it is already cached
   if (hasAttribute(TypeCardinalityClassAttr()))
   {
-    return static_cast<CardinalityClass>(getAttribute(TypeCardinalityClassAttr()));
+    return static_cast<CardinalityClass>(
+        getAttribute(TypeCardinalityClassAttr()));
   }
   CardinalityClass ret = CardinalityClass::INFINITE;
   if (isSort())
@@ -166,7 +167,7 @@ CardinalityClass TypeNode::getCardinalityClass()
         // otherwise, we may have a larger cardinality class based on the
         // arguments of the function
         std::vector<TypeNode> argTypes = getArgTypes();
-        for (size_t i=0, nargs = argTypes.size(); i<nargs; i++)
+        for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
           CardinalityClass cca = argTypes[i].getCardinalityClass();
           ret = maxCardinalityClass(ret, cca);
