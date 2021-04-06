@@ -133,7 +133,7 @@ TypeNode TermProcessor::convertType(TypeNode tn)
     {
       // reconstruct using a node builder, which seems to be required for
       // type nodes.
-      NodeBuilder<> nb(cur.getKind());
+      NodeBuilder nb(cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator
