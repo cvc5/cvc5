@@ -286,6 +286,10 @@ void TheorySetsPrivate::fullEffortCheck()
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
+          if (d_im.hasSent())
+          {
+            break;
+          }
           // if we do not handle the kind, set incomplete
           Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
