@@ -14,9 +14,9 @@
  ** A simple demonstration of reasoning about strings with CVC4 via C++ API.
  **/
 
-#include <iostream>
+#include <cvc5/cvc5.h>
 
-#include <cvc4/api/cvc4cpp.h>
+#include <iostream>
 
 using namespace cvc5::api;
 
