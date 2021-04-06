@@ -15,6 +15,8 @@
 
 #include <sstream>
 
+#include <sstream>
+
 #include "rcons_obligation_info.h"
 
 #include "expr/node_algorithm.h"
