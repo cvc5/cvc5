@@ -146,8 +146,7 @@ private:
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
   void presolve() override;
 
   void computeCareGraph() override;

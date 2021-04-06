@@ -401,7 +401,7 @@ Node ITECompressor::compressBooleanITEs(Node toCompress)
     }
   }
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   Node curr = toCompress;
   while (curr.getKind() == kind::ITE
          && (curr[1] == d_false || curr[2] == d_false)
@@ -465,7 +465,7 @@ Node ITECompressor::compressTerm(Node toCompress)
     }
   }
 
-  NodeBuilder<> nb(toCompress.getKind());
+  NodeBuilder nb(toCompress.getKind());
 
   if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -504,7 +504,7 @@ Node ITECompressor::compressBoolean(Node toCompress)
   else
   {
     bool ta = ite::isTheoryAtom(toCompress);
-    NodeBuilder<> nb(toCompress.getKind());
+    NodeBuilder nb(toCompress.getKind());
     if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       nb << (toCompress.getOperator());
@@ -906,7 +906,7 @@ Node ITESimplifier::replaceOver(Node n, Node replaceWith, Node simpVar)
     return d_replaceOverCache[p];
   }
 
-  NodeBuilder<> builder(n.getKind());
+  NodeBuilder builder(n.getKind());
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << n.getOperator();
@@ -1207,7 +1207,7 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
   }
   else
   {
-    NodeBuilder<> nb(kind::OR);
+    NodeBuilder nb(kind::OR);
     NodeVec::const_iterator it = intersection.begin(), end = intersection.end();
     for (; it != end; ++it)
     {
@@ -1332,7 +1332,7 @@ Node ITESimplifier::simpConstants(TNode simpContext,
 
   if (iteNode.getKind() == kind::ITE)
   {
-    NodeBuilder<> builder(kind::ITE);
+    NodeBuilder builder(kind::ITE);
     builder << iteNode[0];
     unsigned i = 1;
     for (; i < iteNode.getNumChildren(); ++i)
@@ -1428,7 +1428,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
     return simpVar;
   }
 
-  NodeBuilder<> builder(c.getKind());
+  NodeBuilder builder(c.getKind());
   if (c.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << c.getOperator();
@@ -1584,7 +1584,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -1731,7 +1731,7 @@ Node ITECareSimplifier::substitute(TNode e,
     return e;
   }
 
-  NodeBuilder<> builder(e.getKind());
+  NodeBuilder builder(e.getKind());
   if (e.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << e.getOperator();

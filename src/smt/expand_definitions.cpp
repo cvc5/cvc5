@@ -294,7 +294,7 @@ TrustNode ExpandDefs::expandDefinitions(
       if (node.getNumChildren() > 0)
       {
         // cout << "cons : " << node << std::endl;
-        NodeBuilder<> nb(node.getKind());
+        NodeBuilder nb(node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
           Debug("expand") << "op   : " << node.getOperator() << std::endl;

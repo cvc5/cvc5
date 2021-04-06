@@ -247,7 +247,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // (index_0 != index_1 & index_0 != index_2 & ... & index_0 != index_n) -> read(store, index_0) = v_0
     TNode write_i, write_j, index_i, index_j;
     Node conc;
-    NodeBuilder<> result(kind::AND);
+    NodeBuilder result(kind::AND);
     int i, j;
     write_i = left;
     for (i = leftWrites-1; i >= 0; --i) {
@@ -257,7 +257,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
       //         ... && index_i /= index_(i+1)] -> read(store, index_i) = v_i
       write_j = left;
       {
-        NodeBuilder<> hyp(kind::AND);
+        NodeBuilder hyp(kind::AND);
         for (j = leftWrites - 1; j > i; --j) {
           index_j = write_j[1];
           if (!ppCheck || !ppDisequal(index_i, index_j)) {
@@ -300,7 +300,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // store(store(...),i,select(a,i)) = a && select(store(...),i)=v
     Node l = left;
     Node tmp;
-    NodeBuilder<> nb(kind::AND);
+    NodeBuilder nb(kind::AND);
     while (right.getKind() == kind::STORE) {
       tmp = nm->mkNode(kind::SELECT, l, right[1]);
       nb << tmp.eqNode(right[2]);
@@ -328,13 +328,14 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     return TrustNode::null();
   }
   d_ppEqualityEngine.addTerm(term);
+  NodeManager* nm = NodeManager::currentNM();
   Node ret;
   switch (term.getKind()) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
       if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
-        ret = NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
+        ret = nm->mkNode(kind::SELECT, term[0][0], term[1]);
       }
       break;
     }
@@ -342,8 +343,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
       // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
       //    IF i != j and j comes before i in the ordering
       if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
-        Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
-        Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
+        Node inner = nm->mkNode(kind::STORE, term[0][0], term[1], term[2]);
+        Node outer = nm->mkNode(kind::STORE, inner, term[0][1], term[0][2]);
         ret = outer;
       }
       break;
@@ -1440,7 +1441,7 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
     }
   }
 
-  NodeBuilder<> conjunction(invert ? kind::OR : kind::AND);
+  NodeBuilder conjunction(invert ? kind::OR : kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {

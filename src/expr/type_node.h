@@ -77,7 +77,6 @@ private:
 
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
   /**
@@ -797,7 +796,7 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);

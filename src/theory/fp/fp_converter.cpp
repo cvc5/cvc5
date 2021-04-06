@@ -648,7 +648,7 @@ symbolicBitVector<false> symbolicBitVector<isSigned>::toUnsigned(void) const
 template <>
 symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 {
-  NodeBuilder<> construct(kind::BITVECTOR_SIGN_EXTEND);
+  NodeBuilder construct(kind::BITVECTOR_SIGN_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorSignExtend>(
                    BitVectorSignExtend(extension))
             << *this;
@@ -659,7 +659,7 @@ symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 template <>
 symbolicBitVector<false> symbolicBitVector<false>::extend(bwt extension) const
 {
-  NodeBuilder<> construct(kind::BITVECTOR_ZERO_EXTEND);
+  NodeBuilder construct(kind::BITVECTOR_ZERO_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorZeroExtend>(
                    BitVectorZeroExtend(extension))
             << *this;
@@ -673,7 +673,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
 {
   Assert(this->getWidth() > reduction);
 
-  NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
                    BitVectorExtract((this->getWidth() - 1) - reduction, 0))
             << *this;
@@ -724,7 +724,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 {
   Assert(upper >= lower);
 
-  NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
                    BitVectorExtract(upper, lower))
             << *this;
