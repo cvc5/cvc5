@@ -38,17 +38,17 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn)
   if (it == d_may_complete.end())
   {
     // cache
-    bool mc = mayComplete(tn, d_cardMax);
+    bool mc = mayComplete(tn, d_cardMax, d_isFmf);
     d_may_complete[tn] = mc;
     return mc;
   }
   return it->second;
 }
 
-bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
+bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard, bool isFmf)
 {
   bool mc = false;
-  if (tn.isClosedEnumerable() && tn.isInterpretedFinite())
+  if (tn.isClosedEnumerable() && tn.isFinite(isFmf))
   {
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())
