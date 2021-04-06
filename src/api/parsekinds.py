@@ -21,9 +21,6 @@ handle nested '#if 0' pairs.
 
 from collections import OrderedDict
 
-#################### Default Filenames ################
-DEFAULT_HEADER = 'cvc4cppkind.h'
-
 ##################### Useful Constants ################
 OCB = '{'
 CCB = '}'
