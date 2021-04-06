@@ -18,6 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "expr/proof_checker.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -43,6 +44,7 @@ class TestSmt : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager());
+    d_skolemManager = d_nodeManager->getSkolemManager();
     d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
     d_smtEngine->finishInit();
@@ -50,6 +52,7 @@ class TestSmt : public TestInternal
 
   std::unique_ptr<NodeManagerScope> d_nmScope;
   std::unique_ptr<NodeManager> d_nodeManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
 
