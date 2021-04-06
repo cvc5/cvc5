@@ -408,26 +408,10 @@ public:
    * @return a finite or infinite cardinality
    */
   Cardinality getCardinality() const;
-
   /**
-   * Does this type have cardinality one? If usortOne is true, then we assume
-   * that the cardinality of uninterpreted sorts is one.
-   *
-   * Notice that this will return true for types like (Array Int U) where U
-   * is an uninterpreted sort, regardless of whether usortOne is true or now.
-   * The cardinality of this type is not necessarily one, but it is if U has
-   * cardinality one.
+   * Get the cardinality class of this type node.
    */
-  bool isOne(bool usortOne);
-  /**
-   * Is this type finite? If usortFinite is true, we do not assume that
-   * uninterpreted sorts are infinite.
-   *
-   * Notice that this will return true for types like (Array Int U) where U
-   * is an uninterpreted sort. This type is not necessarily finite, but can
-   * be finite if U has cardinality one.
-   */
-  bool isFinite(bool usortFinite);
+  CardinalityClass getCardinalityClass();
 
   /** is closed enumerable type
    *

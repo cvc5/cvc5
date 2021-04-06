@@ -648,11 +648,6 @@ class TheoryEngine {
    * based on the assertions.
    */
   bool isTypeCardinalityFinite(TypeNode tn) const;
-  /**
-   * Is the cardinality of type tn (possibly) one? Like above, this method
-   * depends on whether finite model finding is enabled.
-   */
-  bool isTypeCardinalityOne(TypeNode tn) const;
   //---------------------- end information about cardinality of types
  private:
 

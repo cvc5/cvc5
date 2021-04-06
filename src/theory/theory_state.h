@@ -105,12 +105,6 @@ class TheoryState
    * finite model finding is enabled. For details, see theory_engine.h.
    */
   bool isTypeCardinalityFinite(TypeNode tn) const;
-  /**
-   * Is the cardinality of type tn (possibly) one? Like above, this method
-   * depends on whether finite model finding is enabled. For details, see
-   * theory_engine.h.
-   */
-  bool isTypeCardinalityOne(TypeNode tn) const;
 
   /** Get the underlying valuation class */
   Valuation& getValuation();

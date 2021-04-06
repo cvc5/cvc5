@@ -226,10 +226,5 @@ bool Valuation::isTypeCardinalityFinite(TypeNode tn) const
   return d_engine->isTypeCardinalityFinite(tn);
 }
 
-bool Valuation::isTypeCardinalityOne(TypeNode tn) const
-{
-  return d_engine->isTypeCardinalityOne(tn);
-}
-
 }  // namespace theory
 }  // namespace cvc5

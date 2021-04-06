@@ -486,29 +486,28 @@ bool DType::computeCardinalityRecSingleton(
   return true;
 }
 
-bool DType::isFinite(TypeNode t) const
+CardinalityClass DType::getCardinalityClass(TypeNode t) const
 {
   Trace("datatypes-init") << "DType::isFinite " << std::endl;
   Assert(isResolved());
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
   // is this already in the cache ?
-  if (d_self.getAttribute(DTypeFiniteComputedAttr()))
+  std::map<TypeNode, CardinalityClass >::const_iterator it = d_cardClass.find(t);
+  if (it!=d_cardClass.end())
   {
-    return d_self.getAttribute(DTypeFiniteAttr());
+    return it->second;
   }
+  // it is the max cardinality class of a constructor, with base case ONE
+  // if we have one constructor and FINITE otherwise.
+  CardinalityClass c = d_constructors.size()==1 ? CardinalityClass::ONE : CardinalityClass::FINITE;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
-    if (!ctor->isFinite(t))
-    {
-      d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-      d_self.setAttribute(DTypeFiniteAttr(), false);
-      return false;
-    }
+    CardinalityClass cc = ctor->getCardinalityClass(t);
+    c = maxCardinalityClass(c, cc);
   }
-  d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeFiniteAttr(), true);
-  return true;
+  d_cardClass[t] = c;
+  return c;
 }
 bool DType::isFinite() const
 {

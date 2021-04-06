@@ -67,219 +67,104 @@ Cardinality TypeNode::getCardinality() const {
 }
 
 /** Attribute true for types that have cardinality one */
-struct IsOneTag
+struct TypeCardinalityClassTag
 {
 };
-typedef expr::Attribute<IsOneTag, bool> IsOneAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsOneComputedTag
-{
-};
-typedef expr::Attribute<IsOneComputedTag, bool> IsOneComputedAttr;
+typedef expr::Attribute<TypeCardinalityClassTag, CardinalityClass> TypeCardinalityClassAttr;
 
-/** Attribute true for types that are interpreted as one */
-struct IsInterpretedOneTag
-{
-};
-typedef expr::Attribute<IsInterpretedOneTag, bool> IsInterpretedOneAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsInterpretedOneComputedTag
-{
-};
-typedef expr::Attribute<IsInterpretedOneComputedTag, bool>
-    IsInterpretedOneComputedAttr;
-
-bool TypeNode::isOne(bool usortOne)
+CardinalityClass TypeNode::getCardinalityClass()
 {
   // check it is already cached
-  if (usortOne)
+  if (hasAttribute(TypeCardinalityClassAttr()))
   {
-    if (getAttribute(IsInterpretedOneComputedAttr()))
-    {
-      return getAttribute(IsInterpretedOneAttr());
-    }
+    return getAttribute(TypeCardinalityClassAttr());
   }
-  else if (getAttribute(IsOneComputedAttr()))
-  {
-    return getAttribute(IsOneAttr());
-  }
-  bool ret = false;
+  CardinalityClass ret = CardinalityClass::INFINITE;
   if (isSort())
   {
-    ret = usortOne;
-  }
-  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
-           || isString() || isRegExp() || isSequence() || isReal() || isSet()
-           || isBag())
-  {
-    ret = false;
-  }
-  else
-  {
-    if (isDatatype())
-    {
-      TypeNode tn = *this;
-      const DType& dt = getDType();
-      // ret = dt.isOne(tn, usortOne);
-      // FIXME
-    }
-    else if (isArray())
-    {
-      // If the consistuent type of the array has cardinality one, then the
-      // array type has cardinality one, independent of the index type.
-      ret = getArrayConstituentType().isOne(usortOne);
-    }
-    else if (isFunction())
-    {
-      ret = getRangeType().isOne(usortOne);
-    }
-    else
-    {
-      // all types should be handled above
-      Assert(false);
-      // by default, compute the exact cardinality for the type and check
-      // whether it is finite. This should be avoided in general, since
-      // computing cardinalities for types can be highly expensive.
-      ret = getCardinality().isOne();
-    }
-  }
-  if (usortOne)
-  {
-    setAttribute(IsInterpretedOneAttr(), ret);
-    setAttribute(IsInterpretedOneComputedAttr(), true);
-  }
-  else
-  {
-    setAttribute(IsOneAttr(), ret);
-    setAttribute(IsOneComputedAttr(), true);
-  }
-  return ret;
-}
-
-/** Attribute true for types that are finite */
-struct IsFiniteTag
-{
-};
-typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsFiniteComputedTag
-{
-};
-typedef expr::Attribute<IsFiniteComputedTag, bool> IsFiniteComputedAttr;
-
-/** Attribute true for types that are interpreted as finite */
-struct IsInterpretedFiniteTag
-{
-};
-typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsInterpretedFiniteComputedTag
-{
-};
-typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
-    IsInterpretedFiniteComputedAttr;
-
-bool TypeNode::isFinite(bool usortFinite)
-{
-  // check it is already cached
-  if (usortFinite)
-  {
-    if (getAttribute(IsInterpretedFiniteComputedAttr()))
-    {
-      return getAttribute(IsInterpretedFiniteAttr());
-    }
-  }
-  else if (getAttribute(IsFiniteComputedAttr()))
-  {
-    return getAttribute(IsFiniteAttr());
-  }
-  bool ret = false;
-  if (isSort())
-  {
-    ret = usortFinite;
+    ret = CardinalityClass::INTERPRETED_ONE;
   }
   else if (isBoolean() || isBitVector() || isFloatingPoint()
            || isRoundingMode())
   {
-    ret = true;
+    ret = CardinalityClass::FINITE;
   }
-  else if (isString() || isRegExp() || isSequence() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal() || isBag())
   {
-    ret = false;
+    ret = CardinalityClass::INFINITE;
   }
   else
   {
     // recursive case (this may be a parametric sort), we assume infinite for
-    // the moment here to prevent infinite loops
-    if (usortFinite)
-    {
-      setAttribute(IsInterpretedFiniteAttr(), false);
-      setAttribute(IsInterpretedFiniteComputedAttr(), true);
-    }
-    else
-    {
-      setAttribute(IsFiniteAttr(), false);
-      setAttribute(IsFiniteComputedAttr(), true);
-    }
+    // the moment here to prevent infinite loops, which may occur when
+    // computing the cardinality of datatype types with foreign types
+    setAttribute(TypeCardinalityClassAttr(), ret);
+
     if (isDatatype())
     {
       TypeNode tn = *this;
       const DType& dt = getDType();
-      ret = usortFinite ? dt.isInterpretedFinite(tn) : dt.isFinite(tn);
+      ret = dt.getCardinalityClass(tn);
     }
     else if (isArray())
     {
-      TypeNode tnc = getArrayConstituentType();
-      if (!tnc.isFinite(usortFinite))
+      CardinalityClass cce = getArrayConstituentType().getCardinalityClass();
+      if (cce==CardinalityClass::INFINITE || cce==CardinalityClass::ONE || cce==CardinalityClass::INTERPRETED_ONE)
       {
         // arrays with constituent type that is infinite are infinite
-        ret = false;
-      }
-      else if (getArrayIndexType().isFinite(usortFinite))
-      {
-        // arrays with both finite constituent and index types are finite
-        ret = true;
+        // arrays with constituent type that is (interpreted) one are
+        // (interpreted) one
+        ret = cce;
       }
       else
       {
-        // If the consistuent type of the array has cardinality one, then the
-        // array type has cardinality one, independent of the index type.
-        ret = tnc.isOne(true);
+        CardinalityClass cci = getArrayIndexType().getCardinalityClass();
+        if (cci==CardinalityClass::INFINITE)
+        {
+          ret = CardinalityClass::INFINITE;
+        }
+        else
+        {
+          // arrays with both finite constituent and index types are finite,
+          // possibly dependent on uninterpreted sorts
+          ret = maxCardinalityClass(cce, cci);
+        }
       }
     }
     else if (isSet())
     {
-      ret = getSetElementType().isFinite(usortFinite);
-    }
-    else if (isBag())
-    {
-      // there are infinite bags for all element types
-      ret = false;
+      CardinalityClass cc = getSetElementType().getCardinalityClass();
+      if (cc==CardinalityClass::ONE)
+      {
+        // 1 -> 2
+        ret = CardinalityClass::FINITE;
+      }
+      else if (ret==CardinalityClass::INTERPRETED_ONE)
+      {
+        // maybe 1 -> maybe finite
+        ret = CardinalityClass::INTERPRETED_FINITE;
+      }
+      else
+      {
+        // finite or infinite is unchanged
+        ret = cc;
+      }
     }
     else if (isFunction())
     {
-      ret = true;
-      TypeNode tnr = getRangeType();
-      if (!tnr.isFinite(usortFinite))
+      ret = CardinalityClass::FINITE;
+      CardinalityClass ccr = getRangeType().getRangeType();
+      if (ccr==CardinalityClass::INFINITE || ccr==CardinalityClass::ONE || ccr==CardinalityClass::INTERPRETED_ONE)
       {
-        ret = false;
+        ret = ccr;
       }
       else
       {
         std::vector<TypeNode> argTypes = getArgTypes();
-        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+        for (const TypeNode& at : argTypes)
         {
-          if (!argTypes[i].isFinite(usortFinite))
-          {
-            ret = false;
-            break;
-          }
-        }
-        if (!ret)
-        {
-          // similar to arrays, functions are finite if their range type
-          // has cardinality one, regardless of the arguments.
-          ret = tnr.isOne(true);
+          CardinalityClass cca = at.getCardinalityClass();
+          ret = maxCardinalityClass(ret, cca);
         }
       }
     }
@@ -287,22 +172,9 @@ bool TypeNode::isFinite(bool usortFinite)
     {
       // all types should be handled above
       Assert(false);
-      // by default, compute the exact cardinality for the type and check
-      // whether it is finite. This should be avoided in general, since
-      // computing cardinalities for types can be highly expensive.
-      ret = getCardinality().isFinite();
     }
   }
-  if (usortFinite)
-  {
-    setAttribute(IsInterpretedFiniteAttr(), ret);
-    setAttribute(IsInterpretedFiniteComputedAttr(), true);
-  }
-  else
-  {
-    setAttribute(IsFiniteAttr(), ret);
-    setAttribute(IsFiniteComputedAttr(), true);
-  }
+  setAttribute(TypeCardinalityClassAttr(), ret);
   return ret;
 }
 
