@@ -25,6 +25,9 @@
 #include "theory/theory_state.h"
 
 namespace cvc5 {
+
+class ProofRuleChecker;
+
 namespace theory {
 namespace bv {
 
@@ -49,6 +52,8 @@ class TheoryBV : public Theory
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the

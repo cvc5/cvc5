@@ -33,7 +33,7 @@ add_custom_target(
   COMMAND
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
+    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
     --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc4kinds"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
