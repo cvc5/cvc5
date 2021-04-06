@@ -1,9 +1,9 @@
 #include "cvc_Solver.h"
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "cvcJavaApi.h"
 
-using namespace CVC5::api;
+using namespace cvc5::api;
 
 /*
  * Class:     cvc_Solver
