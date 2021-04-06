@@ -647,7 +647,7 @@ class TheoryEngine {
    * if U in the above example currently is entailed to have cardinality >1
    * based on the assertions.
    */
-  bool isTypeCardinalityFinite(TypeNode tn) const;
+  bool isFiniteType(TypeNode tn) const;
   //---------------------- end information about cardinality of types
  private:
 

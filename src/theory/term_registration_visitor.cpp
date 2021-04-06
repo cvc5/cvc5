@@ -69,7 +69,7 @@ bool isAlreadyVisited(TheoryEngine* te,
 
   // do we need to consider the type?
   TypeNode type = current.getType();
-  if (currentTheoryId == parentTheoryId && !te->isTypeCardinalityFinite(type))
+  if (currentTheoryId == parentTheoryId && !te->isFiniteType(type))
   {
     // current and parent are the same theory, and we are infinite, return true
     return true;
@@ -151,7 +151,7 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     // Note that if enclosed by different theories it's shared, for example,
     // in read(a, f(a)), f(a) should be shared with integers.
     TypeNode type = current.getType();
-    if (currentTheoryId != parentTheoryId || te->isTypeCardinalityFinite(type))
+    if (currentTheoryId != parentTheoryId || te->isFiniteType(type))
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);

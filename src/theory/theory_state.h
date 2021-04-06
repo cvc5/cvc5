@@ -104,7 +104,7 @@ class TheoryState
    * Is the cardinality of type tn finite? This method depends on whether
    * finite model finding is enabled. For details, see theory_engine.h.
    */
-  bool isTypeCardinalityFinite(TypeNode tn) const;
+  bool isFiniteType(TypeNode tn) const;
 
   /** Get the underlying valuation class */
   Valuation& getValuation();
