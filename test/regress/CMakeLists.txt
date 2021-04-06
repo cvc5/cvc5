@@ -1198,6 +1198,7 @@ set(regress_0_tests
   regress0/tptp/MGT019+2.p
   regress0/tptp/MGT041-2.p
   regress0/tptp/PUZ131_1.p
+  regress0/tptp/parse-neg-rational.p
   regress0/tptp/SYN000_1.p
   regress0/tptp/SYN000_2.p
   regress0/tptp/SYN000-1.p

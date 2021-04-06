@@ -474,7 +474,7 @@ private:
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
@@ -681,8 +681,7 @@ private:
   bool isImpliedUpperBound(ArithVar var, Node exp);
   bool isImpliedLowerBound(ArithVar var, Node exp);
 
-  void internalExplain(TNode n, NodeBuilder<>& explainBuilder);
-
+  void internalExplain(TNode n, NodeBuilder& explainBuilder);
 
   void asVectors(const Polynomial& p,
                  std::vector<Rational>& coeffs,

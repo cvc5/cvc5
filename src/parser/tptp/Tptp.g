@@ -1764,6 +1764,7 @@ NUMBER
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;
+        ss << ( pos ? "" : "-" );
         ss << AntlrInput::tokenText($num) << "/" << AntlrInput::tokenText($den);
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
       }

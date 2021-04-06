@@ -224,7 +224,7 @@ bool SubstitutionMinimize::findInternal(Node n,
       if (cur.getNumChildren() > 0)
       {
         std::vector<Node> children;
-        NodeBuilder<> nb(cur.getKind());
+        NodeBuilder nb(cur.getKind());
         if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           if (cur.getKind() == APPLY_UF)

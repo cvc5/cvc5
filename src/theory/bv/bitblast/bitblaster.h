@@ -247,7 +247,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
   }
   Assert(node.getType().isBitVector());
 
-  NodeBuilder<> nb(node.getKind());
+  NodeBuilder nb(node.getKind());
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     nb << node.getOperator();

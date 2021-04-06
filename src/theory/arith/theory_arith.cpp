@@ -145,8 +145,8 @@ TrustNode TheoryArith::ppRewriteEq(TNode atom)
     return TrustNode::null();
   }
   Assert(atom[0].getType().isReal());
-  Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
   Node rewritten = Rewriter::rewrite(leq.andNode(geq));
   Debug("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << endl;
@@ -167,7 +167,8 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   d_internal->ppStaticLearn(n, learned);
 }
 
