@@ -1,0 +1,19 @@
+; COMMAND-LINE: --sygus-si=all  --sygus-out=status
+; EXPECT: unsat
+
+(set-logic UF)
+
+(synth-fun f ((p1 Bool) (p2 Bool) (q1 Bool) (q2 Bool)) Bool
+  ((Start Bool))
+  ((Start Bool (true false p1 p2 q1 q2 (not Start) (and Start Start) (or Start Start)))))
+
+(declare-var p1 Bool)
+(declare-var p2 Bool)
+(declare-var p3 Bool)
+(declare-var q2 Bool)
+
+(define-fun eqReduce ((x Bool) (y Bool)) Bool (or (and x y) (and (not x) (not y))))
+
+(constraint (= (f p1 p2 p3 q2) (and (= (and p1 p2) (and p2 p3)) (eqReduce (and p1 p2) (and p2 p3)))))
+
+(check-synth)

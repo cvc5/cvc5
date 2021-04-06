@@ -43,10 +43,12 @@ class RConsObligationInfo
    */
   explicit RConsObligationInfo(Node builtin = Node::null());
 
+  void addBuiltin(Node builtin);
+
   /**
    * @return builtin term to reconstruct for this class' obligation
    */
-  Node getBuiltin() const;
+  std::unordered_set<Node, NodeHashFunction> getBuiltins() const;
 
   /**
    * Add candidate solution to the set of candidate solutions for the
@@ -118,7 +120,7 @@ class RConsObligationInfo
    * To solve the obligation, this builtin term must be reconstructed in the
    * specified grammar (sygus datatype type) of this class' obligation.
    */
-  Node d_builtin;
+  std::unordered_set<Node, NodeHashFunction> d_builtins;
   /** A set of candidate solutions to this class' obligation.
    *
    * Each candidate solution is a sygus datatype term containing skolem subterms
