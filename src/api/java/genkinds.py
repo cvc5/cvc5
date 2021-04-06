@@ -97,8 +97,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser('Read a kinds header file and generate a '
                                      'corresponding java file')
     parser.add_argument('--kinds-header', metavar='<KINDS_HEADER>',
-                        help='The header file to read kinds from',
-                        default=DEFAULT_HEADER)
+                        help='The header file to read kinds from')
     parser.add_argument('--kinds-file-prefix', metavar='<KIND_FILE_PREFIX>',
                         help='The prefix for the generated .java file',
                         default=DEFAULT_PREFIX)

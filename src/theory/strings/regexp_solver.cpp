@@ -265,11 +265,11 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
           // if so, do simple unrolling
           Trace("strings-regexp") << "Simplify on " << atom << std::endl;
           Node conc = d_regexp_opr.simplify(atom, polarity);
-          Trace("strings-regexp") << "...finished" << std::endl;
+          Trace("strings-regexp") << "...finished, got " << conc << std::endl;
           // if simplifying successfully generated a lemma
           if (!conc.isNull())
           {
-            std::vector<Node> iexp = rnfexp;
+            std::vector<Node> iexp;
             std::vector<Node> noExplain;
             iexp.push_back(assertion);
             noExplain.push_back(assertion);
