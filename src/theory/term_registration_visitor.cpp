@@ -40,7 +40,10 @@ std::string PreRegisterVisitor::toString() const {
  * current. This method is used by PreRegisterVisitor and SharedTermsVisitor
  * below.
  */
-bool isAlreadyVisited(TheoryEngine * te, TheoryIdSet visitedTheories, TNode current, TNode parent)
+bool isAlreadyVisited(TheoryEngine* te,
+                      TheoryIdSet visitedTheories,
+                      TNode current,
+                      TNode parent)
 {
   TheoryId currentTheoryId = Theory::theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))

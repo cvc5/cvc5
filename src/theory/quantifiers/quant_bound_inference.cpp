@@ -45,7 +45,9 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn)
   return it->second;
 }
 
-bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard, bool isFmf)
+bool QuantifiersBoundInference::mayComplete(TypeNode tn,
+                                            unsigned maxCard,
+                                            bool isFmf)
 {
   bool mc = false;
   if (tn.isClosedEnumerable() && tn.isFinite(isFmf))

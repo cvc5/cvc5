@@ -202,7 +202,8 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           Trace("sep-model") << "_";
           //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
-          if( d_state.isTypeCardinalityFinite(data_type) ){
+          if (d_state.isTypeCardinalityFinite(data_type))
+          {
             pto_children.push_back( *te_range );
           }else{
             //must enumerate until we find one that is not explicitly pointed to
