@@ -15,6 +15,7 @@
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/proof_checker.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "theory/bv/bv_solver_bitblast.h"
@@ -62,6 +63,15 @@ TheoryBV::TheoryBV(context::Context* c,
 TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryBV::getProofChecker()
+{
+  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  {
+    return static_cast<BVSolverSimple*>(d_internal.get())->getProofChecker();
+  }
+  return nullptr;
+}
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cpp.cpp
+/*! \file cvc5.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
@@ -31,7 +31,7 @@
  ** consistent behavior (see Solver::mkRealFromStrHelper for an example).
  **/
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 #include <cstring>
 #include <sstream>
@@ -2117,7 +2117,7 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
-  if(isCastedReal())
+  if (isCastedReal())
   {
     return 0;
   }
@@ -2551,23 +2551,19 @@ bool isInteger(const Node& node)
 }
 bool isInt32(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::int32_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::int32_t>(getInteger(node));
 }
 bool isUInt32(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::uint32_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::uint32_t>(getInteger(node));
 }
 bool isInt64(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::int64_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::int64_t>(getInteger(node));
 }
 bool isUInt64(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::uint64_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::uint64_t>(getInteger(node));
 }
 }  // namespace detail
 
@@ -4074,9 +4070,9 @@ Solver::Solver(Options* opts)
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
 #if CVC4_STATISTICS_ON
   d_stats.reset(new Statistics());
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
-  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_consts);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_vars);
+  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_terms);
 #endif
 }
 
@@ -6384,8 +6380,8 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
-  return Term(
-      this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
+  return Term(this,
+              d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
   ////////
   CVC4_API_TRY_CATCH_END;
 }

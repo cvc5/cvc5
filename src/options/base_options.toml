@@ -86,18 +86,40 @@ header = "options/base_options.h"
 [[option]]
   name       = "statistics"
   smt_name   = "statistics"
-  category   = "common"
   long       = "stats"
+  category   = "common"
   type       = "bool"
   predicates = ["statsEnabledBuild"]
   read_only  = true
   help       = "give statistics on exit"
 
 [[option]]
-  name       = "statsEveryQuery"
-  category   = "regular"
-  long       = "stats-every-query"
+  name       = "statisticsExpert"
+  smt_name   = "stats-expert"
+  long       = "stats-expert"
+  category   = "expert"
   type       = "bool"
+  predicates = ["statsEnabledBuild"]
+  read_only  = true
+  help       = "print expert (non-public) statistics as well"
+
+[[option]]
+  name       = "statisticsUnset"
+  smt_name   = "stats-unset"
+  long       = "stats-unset"
+  category   = "expert"
+  type       = "bool"
+  predicates = ["statsEnabledBuild"]
+  read_only  = true
+  help       = "print unset statistics as well"
+
+[[option]]
+  name       = "statisticsEveryQuery"
+  smt_name   = "stats-every-query"
+  long       = "stats-every-query"
+  category   = "regular"
+  type       = "bool"
+  predicates = ["statsEnabledBuild"]
   default    = "false"
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
