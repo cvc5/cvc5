@@ -195,7 +195,7 @@ DTypeConstructor::computeCardinalityInfo(TypeNode t) const
     CardinalityClass cctc = getCardinalityClass(tc);
     // update ret.first to the max cardinality class
     ret.first = maxCardinalityClass(ret.first, cctc);
-    if (cctc!=CardinalityClass::INFINITE)
+    if (cctc != CardinalityClass::INFINITE)
     {
       // if the argument is (interpreted) finite and external, set the flag
       // for indicating it has a finite external argument

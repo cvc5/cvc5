@@ -20,7 +20,7 @@ namespace cvc5 {
 
 const char* toString(CardinalityClass c)
 {
-  switch(c)
+  switch (c)
   {
     case CardinalityClass::ONE: return "ONE";
     case CardinalityClass::INTERPRETED_ONE: return "INTERPRETED_ONE";
@@ -60,13 +60,12 @@ CardinalityClass getCardinalityClass(TypeNode tn)
 
 CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2)
 {
-  return c1<c2 ? c1 : c2;
+  return c1 < c2 ? c1 : c2;
 }
 
 CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2)
 {
-  return c1>c2 ? c1 : c2;
+  return c1 > c2 ? c1 : c2;
 }
 
 }  // namespace cvc5
-

@@ -20,10 +20,10 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "expr/cardinality_class.h"
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "expr/cardinality_class.h"
 
 namespace cvc5 {
 
@@ -152,7 +152,7 @@ class DTypeConstructor
    * finite.
    */
   CardinalityClass getCardinalityClass(TypeNode t) const;
-  
+
   /**
    * Has finite external argument type. This returns true if this constructor
    * has an argument type that is not a datatype and is interpreted as a

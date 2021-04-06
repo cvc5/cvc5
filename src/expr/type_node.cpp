@@ -108,8 +108,9 @@ bool TypeNode::isOne(bool usortOne)
   {
     ret = usortOne;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint()
-           || isRoundingMode() || isString() || isRegExp() || isSequence() || isReal() || isSet() || isBag())
+  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
+           || isString() || isRegExp() || isSequence() || isReal() || isSet()
+           || isBag())
   {
     ret = false;
   }
@@ -119,7 +120,7 @@ bool TypeNode::isOne(bool usortOne)
     {
       TypeNode tn = *this;
       const DType& dt = getDType();
-      //ret = dt.isOne(tn, usortOne);
+      // ret = dt.isOne(tn, usortOne);
       // FIXME
     }
     else if (isArray())
