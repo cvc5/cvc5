@@ -89,7 +89,7 @@ struct IsInterpretedOneComputedTag
 typedef expr::Attribute<IsInterpretedOneComputedTag, bool>
     IsInterpretedOneComputedAttr;
 
-bool TypeNode::isOne(bool usortOne) 
+bool TypeNode::isOne(bool usortOne)
 {
   // check it is already cached
   if (usortOne)
