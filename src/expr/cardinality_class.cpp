@@ -45,4 +45,18 @@ CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2)
   return c1 > c2 ? c1 : c2;
 }
 
+bool isCardinalityClassFinite(CardinalityClass c, bool fmfEnabled)
+{
+  if (c == CardinalityClass::ONE || c == CardinalityClass::FINITE)
+  {
+    return true;
+  }
+  if (fmfEnabled)
+  {
+    return c == CardinalityClass::INTERPRETED_ONE
+           || c == CardinalityClass::INTERPRETED_FINITE;
+  }
+  return false;
+}
+
 }  // namespace cvc5

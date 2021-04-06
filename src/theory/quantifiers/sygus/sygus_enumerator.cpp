@@ -775,7 +775,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     // check whether we should terminate, which notice always treats
     // uninterpreted sorts as infinite, since we do not put bounds on them
     // in our enumeration.
-    if (d_tn.isFinite(false))
+    if (isCardinalityClassFinite(d_tn.getCardinalityClass(), false))
     {
       if (ncc == tc.getNumConstructorClasses())
       {

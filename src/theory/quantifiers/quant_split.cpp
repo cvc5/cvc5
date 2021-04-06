@@ -51,6 +51,7 @@ void QuantDSplit::checkOwnership(Node q)
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
+      bool isFinite = d_qstate.isTypeCardinalityFinite(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {
@@ -61,14 +62,14 @@ void QuantDSplit::checkOwnership(Node q)
         if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
-          doSplit = dt.isInterpretedFinite(tn);
+          doSplit = isFinite;
         }
         else if (options::quantDynamicSplit()
                  == options::QuantDSplitMode::DEFAULT)
         {
           if (!qbi.isFiniteBound(q, q[0][i]))
           {
-            if (dt.isInterpretedFinite(tn))
+            if (isFinite)
             {
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort
