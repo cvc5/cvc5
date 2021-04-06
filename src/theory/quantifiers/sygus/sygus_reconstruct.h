@@ -42,12 +42,15 @@ using TypeObligationSetMap =
  * rcons(t_0, T_0) returns g
  * {
  *   Obs: A map from sygus types T to a set of triples to reconstruct into T,
- *        where each triple is of the form (k, t, s), where k is a skolem of
- *        type T, t is a builtin term of the type encoded by T, and s is a
- *        possibly null sygus term of type T representing the solution.
+ *        where each triple is of the form (k, ts, s), where k is a skolem of
+ *        type T, t is a set of builtin terms of the type encoded by T, and s is
+ *        a possibly null sygus term of type T representing the solution.
  *
- *   Sol: A map from skolems k to solutions s in the triples (k, t, s). That is,
- *        Sol[k] = s.
+ *   Sol: A map from skolems k to solutions s in the triples (k, ts, s). That
+ *        is, Sol[k] = s.
+ *
+ *   Terms: A map from skolems k to a set of builtin terms in the triples
+ *          (k, ts, s). That is, Terms[k] = ts
  *
  *   CandSols : A map from a skolem k to a set of possible solutions for its
  *              corresponding obligation. Whenever there is a successful match,
@@ -58,7 +61,7 @@ using TypeObligationSetMap =
  *          for matching against the terms to reconstruct t in (k, t, s).
  *
  *   let k_0 be a fresh skolem of sygus type T_0
- *   Obs[T_0] += (k_0, t_0, null)
+ *   Obs[T_0] += (k_0, [t_0], null)
  *
  *   while Sol[k_0] == null
  *     Obs' = {} // map from T to sets of triples pending addition to Obs
@@ -70,21 +73,21 @@ using TypeObligationSetMap =
  *       builtin = rewrite(toBuiltIn(s[z]))
  *       if (s[z] is ground)
  *         // let X be the theory the solver is invoked with
- *         find (k, t, s) in Obs[T] s.t. |=_X t = builtin
+ *         find (k, ts, s) in Obs[T] s.t. |=_X ts[0] = builtin
  *         if no such triple exists
  *           let k be a new variable of type : T
- *           Obs[T] += (k, builtin, null)
+ *           Obs[T] += (k, [builtin], null)
  *         markSolved(k, s[z])
  *       else if no s' in Pool[T] and matcher sigma s.t.
  *             rewrite(toBuiltIn(s')) * sigma = builtin
  *         Pool[T] += s[z]
- *         for each (k, t, null) in Obs[T]
+ *         for each (k, ts, null) in Obs[T]
  *           Obs' += matchNewObs(k, s[z])
  *     // match phase
  *     while Obs' != {}
  *       Obs'' = {}
- *       for each (k, t, null) in Obs' // s = null for all triples in Obs'
- *         Obs[T] += (k, t, null)
+ *       for each (k, ts, null) in Obs' // s = null for all triples in Obs'
+ *         Obs[T] += (k, ts, null)
  *         for each s[z] in Pool[T]
  *           Obs'' += matchNewObs(k, s[z])
  *       Obs' = Obs''
@@ -95,14 +98,16 @@ using TypeObligationSetMap =
  * matchNewObs(k, s[z]) returns Obs'
  * {
  *   u = rewrite(toBuiltIn(s[z]))
- *   if match(u, t) == {toBuiltin(z) -> t'}
- *     // let X be the theory the solver is invoked with
- *     if forall t' exists (k'', t'', s'') in Obs[T] s.t. |=_X t'' = t'
- *       markSolved(k, s{z -> s''})
- *     else
- *       let k' be a new variable of type : typeOf(z)
- *       CandSol[k] += s{z -> k'}
- *       Obs'[typeOf(z)] += (k', t', null)
+ *   for each t in Terms[k]
+ *     if match(u, t) == {toBuiltin(z) -> ts'}
+ *       // let X be the theory the solver is invoked with
+ *       if exists t' in ts' s.t.
+ *             forall (k'', ts'', s'') in Obs[T] |=_X t''[0] != t'
+ *         let k' be a new variable of type : typeOf(z)
+ *         CandSol[k] += s{z -> k'}
+ *         Obs'[typeOf(z)] += (k', [t'], null)
+ *       else
+ *         markSolved(k, s{z -> s''})
  * }
  *
  * markSolved(k, s)

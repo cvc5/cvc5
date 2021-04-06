@@ -12,6 +12,8 @@
  ** \brief Reconstruct Obligation Info class implementation
  **/
 
+#include <sstream>
+
 #include "rcons_obligation_info.h"
 
 #include "expr/node_algorithm.h"
@@ -21,13 +23,21 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtin(builtin) {}
+RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtins({builtin}) {}
 
-Node RConsObligationInfo::getBuiltin() const { return d_builtin; }
+std::unordered_set<Node, NodeHashFunction> RConsObligationInfo::getBuiltins()
+    const
+{
+  return d_builtins;
+}
 
 void RConsObligationInfo::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
+}
+
+void RConsObligationInfo::addBuiltin(Node builtin) {
+  d_builtins.emplace(builtin);
 }
 
 const std::unordered_set<Node, NodeHashFunction>&
@@ -50,8 +60,13 @@ RConsObligationInfo::getWatchSet() const
 std::string RConsObligationInfo::obToString(Node k,
                                             const RConsObligationInfo& obInfo)
 {
-  return "ob<" + obInfo.getBuiltin().toString() + ", " + k.getType().toString()
-         + ">";
+  std::stringstream ss;
+  ss << "ob<\n";
+  for (Node builtin : obInfo.getBuiltins()) {
+    ss << "  builtin: " << builtin << '\n';
+  }
+  ss << "  Type: " << k.getType() << "\n>" << std::endl;
+  return ss.str();
 }
 
 void RConsObligationInfo::printCandSols(
