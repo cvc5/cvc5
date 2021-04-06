@@ -26,6 +26,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
@@ -43,9 +44,10 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager,
                                    TypeNode type)
 {
   std::vector<Node> skolems;
+  SkolemManager * sm = skolemManager->getSkolemManager();
   for (uint32_t i = 0; i < n; i++)
   {
-    skolems.push_back(nodeManager->mkSkolem(
+    skolems.push_back(skolemManager->mkSkolem(
         "skolem_", type, "Created by makeNSkolemNodes()"));
   }
   return skolems;
@@ -764,8 +766,9 @@ TEST_F(TestNodeBlackNode, isConst)
 namespace {
 Node level0(NodeManager* nm)
 {
+  SkolemManager * sm = nm->getSkolemManager();
   NodeBuilder<> nb(kind::AND);
-  Node x = nm->mkSkolem("x", nm->booleanType());
+  Node x = sm->mkSkolem("x", nm->booleanType());
   nb << x;
   nb << x;
   return Node(nb.constructNode());
