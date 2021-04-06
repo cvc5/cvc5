@@ -16,7 +16,6 @@
  **/
 
 #include <cvc5/cvc5.h>
-#include <cvc4/cvc4.h>
 #include <cvc4/expr/expr_iomanip.h>
 #include <cvc4/options/set_language.h>
 #include <getopt.h>
