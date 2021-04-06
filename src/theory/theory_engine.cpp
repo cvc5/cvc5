@@ -1894,13 +1894,14 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
 bool TheoryEngine::isTypeCardinalityFinite(TypeNode tn) const
 {
   CardinalityClass ct = tn.getCardinalityClass();
-  if (ct==CardinalityClass::ONE || ct==CardinalityClass::FINITE)
+  if (ct == CardinalityClass::ONE || ct == CardinalityClass::FINITE)
   {
     return true;
   }
   if (options::finiteModelFind())
   {
-    return ct == CardinalityClass::INTERPRETED_ONE || ct == CardinalityClass::INTERPRETED_FINITE;
+    return ct == CardinalityClass::INTERPRETED_ONE
+           || ct == CardinalityClass::INTERPRETED_FINITE;
   }
   return false;
 }

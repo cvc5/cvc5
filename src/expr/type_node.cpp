@@ -70,7 +70,8 @@ Cardinality TypeNode::getCardinality() const {
 struct TypeCardinalityClassTag
 {
 };
-typedef expr::Attribute<TypeCardinalityClassTag, CardinalityClass> TypeCardinalityClassAttr;
+typedef expr::Attribute<TypeCardinalityClassTag, CardinalityClass>
+    TypeCardinalityClassAttr;
 
 CardinalityClass TypeNode::getCardinalityClass()
 {
@@ -109,7 +110,8 @@ CardinalityClass TypeNode::getCardinalityClass()
     else if (isArray())
     {
       CardinalityClass cce = getArrayConstituentType().getCardinalityClass();
-      if (cce==CardinalityClass::INFINITE || cce==CardinalityClass::ONE || cce==CardinalityClass::INTERPRETED_ONE)
+      if (cce == CardinalityClass::INFINITE || cce == CardinalityClass::ONE
+          || cce == CardinalityClass::INTERPRETED_ONE)
       {
         // arrays with constituent type that is infinite are infinite
         // arrays with constituent type that is (interpreted) one are
@@ -119,7 +121,7 @@ CardinalityClass TypeNode::getCardinalityClass()
       else
       {
         CardinalityClass cci = getArrayIndexType().getCardinalityClass();
-        if (cci==CardinalityClass::INFINITE)
+        if (cci == CardinalityClass::INFINITE)
         {
           ret = CardinalityClass::INFINITE;
         }
@@ -134,12 +136,12 @@ CardinalityClass TypeNode::getCardinalityClass()
     else if (isSet())
     {
       CardinalityClass cc = getSetElementType().getCardinalityClass();
-      if (cc==CardinalityClass::ONE)
+      if (cc == CardinalityClass::ONE)
       {
         // 1 -> 2
         ret = CardinalityClass::FINITE;
       }
-      else if (ret==CardinalityClass::INTERPRETED_ONE)
+      else if (ret == CardinalityClass::INTERPRETED_ONE)
       {
         // maybe 1 -> maybe finite
         ret = CardinalityClass::INTERPRETED_FINITE;
@@ -154,7 +156,8 @@ CardinalityClass TypeNode::getCardinalityClass()
     {
       ret = CardinalityClass::FINITE;
       CardinalityClass ccr = getRangeType().getRangeType();
-      if (ccr==CardinalityClass::INFINITE || ccr==CardinalityClass::ONE || ccr==CardinalityClass::INTERPRETED_ONE)
+      if (ccr == CardinalityClass::INFINITE || ccr == CardinalityClass::ONE
+          || ccr == CardinalityClass::INTERPRETED_ONE)
       {
         ret = ccr;
       }

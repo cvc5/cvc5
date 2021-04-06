@@ -600,7 +600,7 @@ class DType
   mutable std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >
       d_sharedSel;
   /**  A cache for getCardinalityClass. */
-  mutable std::map<TypeNode, CardinalityClass > d_cardClass;
+  mutable std::map<TypeNode, CardinalityClass> d_cardClass;
 }; /* class DType */
 
 /**
