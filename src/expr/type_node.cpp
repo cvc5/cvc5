@@ -66,6 +66,11 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
+
+bool TypeNode::isOneInternal(bool usortOne) 
+{
+}
+
 /** Attribute true for types that are finite */
 struct IsFiniteTag
 {
@@ -88,13 +93,6 @@ struct IsInterpretedFiniteComputedTag
 };
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
     IsInterpretedFiniteComputedAttr;
-
-bool TypeNode::isFinite() { return isFiniteInternal(false); }
-
-bool TypeNode::isInterpretedFinite()
-{
-  return isFiniteInternal(options::finiteModelFind());
-}
 
 bool TypeNode::isFiniteInternal(bool usortFinite)
 {

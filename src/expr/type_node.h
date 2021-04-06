@@ -409,6 +409,14 @@ public:
    */
   Cardinality getCardinality() const;
 
+  /** Does this type have cardinality one? */
+  bool isOne();
+
+  /**
+   * Does this type have cardinality one under the assumption that uninterpreted
+   * sorts have cardinality one?
+   */
+  bool isInterpretedOne();
   /**
    * Is this type finite? This assumes uninterpreted sorts have infinite
    * cardinality.
@@ -416,9 +424,12 @@ public:
   bool isFinite();
 
   /**
-   * Is this type interpreted as finite.
-   * If finite model finding is enabled, this assumes all uninterpreted sorts
-   *   are interpreted as finite.
+   * Can this type be interpreted as finite, assuming all uninterpreted sorts
+   * are interpreted as finite? 
+   *
+   * Notice that this will return true for types like (Array Int U) where U
+   * is an uninterpreted sort. This type is not necessarily finite, but can
+   * be finite if U has cardinality one.
    */
   bool isInterpretedFinite();
 
