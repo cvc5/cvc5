@@ -272,10 +272,10 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-
 bool TheoryEngineModelBuilder::isTypeFinite(TypeNode tn) const
 {
-  return isCardinalityClassFinite(tn.getCardinalityClass(),options::finiteModelFind());
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  options::finiteModelFind());
 }
 
 bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
