@@ -65,7 +65,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   bool hasCyclesDt(const DType& dt)
   {
     return dt.isRecursiveSingleton(d_type)
-           || dt.getCardinalityClass(d_type)==CardinalityClass::INFINITE;
+           || dt.getCardinalityClass(d_type) == CardinalityClass::INFINITE;
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){

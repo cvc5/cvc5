@@ -1893,7 +1893,8 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
 
 bool TheoryEngine::isTypeCardinalityFinite(TypeNode tn) const
 {
-  return isCardinalityClassFinite(tn.getCardinalityClass(), options::finiteModelFind());
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  options::finiteModelFind());
 }
 
 void TheoryEngine::spendResource(ResourceManager::Resource r)
