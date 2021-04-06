@@ -273,14 +273,14 @@ void TheoryDatatypes::postCheck(Effort level)
               int consIndex = -1;
               int fconsIndex = -1;
               bool needSplit = true;
-              for( unsigned int j=0; j<pcons.size(); j++ ) {
+              for( size_t j=0, psize = pcons.size(); j<psize; j++ ) {
                 if( pcons[j] ) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                  bool ifin = dt[j].isInterpretedFinite(tt);
+                  bool ifin = dt[j].getCardinalityClass(tt)!=CardinalityClass::INFINITE;
                   Trace("datatypes-debug") << "...returned " << ifin
                                            << std::endl;
                   if (!ifin)
@@ -1323,7 +1323,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
             //must try the infinite ones first
-            bool cfinite = dt[ i ].isInterpretedFinite( tt );
+            bool cfinite = dt[ i ].getCardinalityClass( tt )!=CardinalityClass::INFINITE;
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

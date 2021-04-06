@@ -19,6 +19,8 @@
 
 #include <iosfwd>
 
+#include "expr/type_node.h"
+
 namespace cvc5 {
 
 /** Constructor cardinality type */
