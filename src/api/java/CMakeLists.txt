@@ -53,6 +53,8 @@ add_custom_target(
   VERBATIM
 )
 
+add_dependencies(generate-jni-headers gen-java-kinds)
+
 # find jni package
 find_package(JNI REQUIRED)
 message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
