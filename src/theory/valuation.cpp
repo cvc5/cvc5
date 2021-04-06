@@ -221,5 +221,15 @@ context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
   return theory->facts_end();
 }
 
+bool Valuation::isTypeCardinalityFinite(TypeNode tn) const
+{
+  return d_engine->isTypeCardinalityFinite(tn);
+}
+
+bool Valuation::isTypeCardinalityOne(TypeNode tn) const
+{
+  return d_engine->isTypeCardinalityOne(tn);
+}
+
 }  // namespace theory
 }  // namespace cvc5

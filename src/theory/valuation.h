@@ -214,6 +214,17 @@ public:
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
+  /**
+   * Is the cardinality of type tn finite? This method depends on whether
+   * finite model finding is enabled. For details, see theory_engine.h.
+   */
+  bool isTypeCardinalityFinite(TypeNode tn) const;
+  /**
+   * Is the cardinality of type tn (possibly) one? Like above, this method
+   * depends on whether finite model finding is enabled. For details, see
+   * theory_engine.h.
+   */
+  bool isTypeCardinalityOne(TypeNode tn) const;
 };/* class Valuation */
 
 }  // namespace theory

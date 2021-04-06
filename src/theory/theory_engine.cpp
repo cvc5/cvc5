@@ -1891,6 +1891,16 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
   }
 }
 
+bool TheoryEngine::isTypeCardinalityFinite(TypeNode tn) const
+{
+  return tn.isFinite(options::finiteModelFind());
+}
+
+bool TheoryEngine::isTypeCardinalityOne(TypeNode tn) const
+{
+  return tn.isOne(options::finiteModelFind());
+}
+
 void TheoryEngine::spendResource(ResourceManager::Resource r)
 {
   d_resourceManager->spendResource(r);

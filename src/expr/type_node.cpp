@@ -110,6 +110,31 @@ bool TypeNode::isOne(bool usortOne)
   }
   else
   {
+    if (isDatatype())
+    {
+      TypeNode tn = *this;
+      const DType& dt = getDType();
+      ret = dt.isOne(tn, usortOne);
+    }
+    else if (isArray())
+    {
+      // If the consistuent type of the array has cardinality one, then the
+      // array type has cardinality one, independent of the index type.
+      ret = tnc.isOne(usortOne);
+    }
+    else if (isFunction())
+    {
+      ret = getRangeType().isOne(usortOne);
+    }
+    else
+    {
+      // all types should be handled above
+      Assert(false);
+      // by default, compute the exact cardinality for the type and check
+      // whether it is finite. This should be avoided in general, since
+      // computing cardinalities for types can be highly expensive.
+      ret = getCardinality().isOne();
+    }
   }
   if (usortOne)
   {
@@ -198,12 +223,12 @@ bool TypeNode::isFinite(bool usortFinite)
     else if (isArray())
     {
       TypeNode tnc = getArrayConstituentType();
-      if (!tnc.isFiniteInternal(usortFinite))
+      if (!tnc.isFinite(usortFinite))
       {
         // arrays with constituent type that is infinite are infinite
         ret = false;
       }
-      else if (getArrayIndexType().isFiniteInternal(usortFinite))
+      else if (getArrayIndexType().isFinite(usortFinite))
       {
         // arrays with both finite constituent and index types are finite
         ret = true;
@@ -212,12 +237,12 @@ bool TypeNode::isFinite(bool usortFinite)
       {
         // If the consistuent type of the array has cardinality one, then the
         // array type has cardinality one, independent of the index type.
-        ret = tnc.getCardinality().isOne();
+        ret = tnc.isOne(true);
       }
     }
     else if (isSet())
     {
-      ret = getSetElementType().isFiniteInternal(usortFinite);
+      ret = getSetElementType().isFinite(usortFinite);
     }
     else if (isBag())
     {
@@ -228,7 +253,7 @@ bool TypeNode::isFinite(bool usortFinite)
     {
       ret = true;
       TypeNode tnr = getRangeType();
-      if (!tnr.isFiniteInternal(usortFinite))
+      if (!tnr.isFinite(usortFinite))
       {
         ret = false;
       }
@@ -237,7 +262,7 @@ bool TypeNode::isFinite(bool usortFinite)
         std::vector<TypeNode> argTypes = getArgTypes();
         for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
-          if (!argTypes[i].isFiniteInternal(usortFinite))
+          if (!argTypes[i].isFinite(usortFinite))
           {
             ret = false;
             break;
@@ -247,7 +272,7 @@ bool TypeNode::isFinite(bool usortFinite)
         {
           // similar to arrays, functions are finite if their range type
           // has cardinality one, regardless of the arguments.
-          ret = tnr.getCardinality().isOne();
+          ret = tnr.isOne(true);
         }
       }
     }

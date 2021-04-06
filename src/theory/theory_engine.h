@@ -630,7 +630,30 @@ class TheoryEngine {
    * See theory.h for documentation on entailmentCheck().
    */
   std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
-
+  
+  //---------------------- information about cardinality of types
+  /**
+   * Is the cardinality of type tn finite? This method depends on whether
+   * finite model finding is enabled. If finite model finding is enabled, then
+   * we assume that all uninterpreted sorts have finite cardinality.
+   * 
+   * Notice that if finite model finding is enabled, this method returns true
+   * if tn is an uninterpreted sort. It also returns true for the sort
+   * (Array Int U) where U is an uninterpreted sort. This type
+   * is finite if and only if U has cardinality one; for cases like this,
+   * we conservatively return that tn has finite cardinality.
+   * 
+   * This method does *not* depend on the state of the theory engine, e.g.
+   * if U in the above example currently is entailed to have cardinality >1
+   * based on the assertions.
+   */
+  bool isTypeCardinalityFinite(TypeNode tn) const;
+  /**
+   * Is the cardinality of type tn (possibly) one? Like above, this method
+   * depends on whether finite model finding is enabled.
+   */
+  bool isTypeCardinalityOne(TypeNode tn) const;
+  //---------------------- end information about cardinality of types
  private:
 
   /** Dump the assertions to the dump */

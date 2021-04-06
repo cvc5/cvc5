@@ -171,6 +171,16 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
   return d_valuation.factsEnd(tid);
 }
 
+bool TheoryState::isTypeCardinalityFinite(TypeNode tn) const
+{
+  return d_valuation.isTypeCardinalityFinite(tn);
+}
+
+bool TheoryState::isTypeCardinalityOne(TypeNode tn) const
+{
+  return d_valuation.isTypeCardinalityOne(tn);
+}
+
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
