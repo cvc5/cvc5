@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -323,6 +324,8 @@ bool QuantifierMacros::getSubstitution( std::vector< Node >& v_quant, std::map< 
 
 bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Node f ){
   Trace("macros-debug") << "  process " << n << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if( n.getKind()==NOT ){
     return process( n[0], !pol, args, f );
   }else if( n.getKind()==AND || n.getKind()==OR ){
@@ -335,11 +338,14 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
     if( isBoundVarApplyUf( n ) ){
       Node op = n.getOperator();
       if( d_macro_defs.find( op )==d_macro_defs.end() ){
-        Node n_def = NodeManager::currentNM()->mkConst( pol );
+        Node n_def = nm->mkConst(pol);
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
           std::stringstream ss;
           ss << "mda_" << op << "";
-          Node v = NodeManager::currentNM()->mkSkolem( ss.str(), n[i].getType(), "created during macro definition recognition" );
+          Node v =
+              sm->mkDummySkolem(ss.str(),
+                                n[i].getType(),
+                                "created during macro definition recognition");
           d_macro_basis[op].push_back( v );
         }
         //contains no ops
@@ -392,7 +398,10 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
                     for( size_t a=0; a<m.getNumChildren(); a++ ){
                       std::stringstream ss;
                       ss << "mda_" << op << "";
-                      Node v = NodeManager::currentNM()->mkSkolem( ss.str(), m[a].getType(), "created during macro definition recognition" );
+                      Node v = sm->mkDummySkolem(
+                          ss.str(),
+                          m[a].getType(),
+                          "created during macro definition recognition");
                       d_macro_basis[op].push_back( v );
                     }
                   }

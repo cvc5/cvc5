@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/template_infer.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
@@ -84,6 +85,7 @@ void SygusTemplateInfer::initialize(Node q)
   }
   Assert(prog == q[0][0]);
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;
   d_ti.getVariables(prog_templ_vars);
@@ -98,7 +100,7 @@ void SygusTemplateInfer::initialize(Node q)
   {
     atn = atn.getRangeType();
   }
-  d_templ_arg[prog] = nm->mkSkolem("I", atn);
+  d_templ_arg[prog] = sm->mkDummySkolem("I", atn);
 
   // construct template
   Node templ;

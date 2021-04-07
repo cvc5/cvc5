@@ -14,6 +14,7 @@
  **/
 #include "theory/bv/abstraction.h"
 
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
@@ -282,6 +283,7 @@ Node AbstractionModule::getSignatureSkolem(TNode node)
 {
   Assert(node.getMetaKind() == kind::metakind::VARIABLE);
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   unsigned bitwidth = utils::getSize(node);
   if (d_signatureSkolems.find(bitwidth) == d_signatureSkolems.end())
   {
@@ -296,9 +298,9 @@ Node AbstractionModule::getSignatureSkolem(TNode node)
   {
     ostringstream os;
     os << "sig_" << bitwidth << "_" << index;
-    skolems.push_back(nm->mkSkolem(os.str(),
-                                   nm->mkBitVectorType(bitwidth),
-                                   "skolem for computing signatures"));
+    skolems.push_back(sm->mkDummySkolem(os.str(),
+                                        nm->mkBitVectorType(bitwidth),
+                                        "skolem for computing signatures"));
   }
   ++(d_signatureIndices[bitwidth]);
   return skolems[index];
@@ -435,6 +437,7 @@ void AbstractionModule::storeGeneralization(TNode s, TNode t) {
 void AbstractionModule::finalizeSignatures()
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Debug("bv-abstraction")
       << "AbstractionModule::finalizeSignatures num signatures = "
       << d_signatures.size() << "\n";
@@ -519,8 +522,8 @@ void AbstractionModule::finalizeSignatures()
     TypeNode range = nm->mkBitVectorType(1);
 
     TypeNode abs_type = nm->mkFunctionType(arg_types, range);
-    Node abs_func =
-        nm->mkSkolem("abs_$$", abs_type, "abstraction function for bv theory");
+    Node abs_func = sm->mkDummySkolem(
+        "abs_$$", abs_type, "abstraction function for bv theory");
     Debug("bv-abstraction") << " abstracted by function " << abs_func << "\n";
 
     // NOTE: signature expression type is BOOLEAN
