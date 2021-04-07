@@ -241,8 +241,6 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   return true;
 }
 
-void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
-
 void InferenceManager::addToExplanation(Node a,
                                         Node b,
                                         std::vector<Node>& exp) const

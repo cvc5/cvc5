@@ -27,7 +27,23 @@ namespace theory {
  */
 enum class IncompleteId
 {
-
+  // the non-linear arithmetic solver was disabled
+  ARITH_NL_DISABLED,
+  // the non-linear arithmetic solver was incomplete
+  ARITH_NL,
+  // we failed to verify the correctness of a candidate solution in SyGuS
+  QUANTIFIERS_SYGUS_NO_VERIFY,
+  // relations were used in combination with set cardinality constraints
+  SETS_RELS_CARD,
+  // we skipped processing a looping word equation
+  STRINGS_LOOP_SKIP,
+  // we could not simplify a regular expression membership
+  STRINGS_REGEXP_NO_SIMPLIFY,
+  // HO extensionality axiom was disabled
+  UF_HO_EXT_DISABLED,
+  // UF+cardinality solver was disabled
+  UF_CARD_DISABLED,
+  
   //-------------------------------------- unknown
   UNKNOWN
 };

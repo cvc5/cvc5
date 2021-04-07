@@ -141,7 +141,7 @@ void EngineOutputChannel::requirePhase(TNode n, bool phase)
 
 void EngineOutputChannel::setIncomplete(IncompleteId id)
 {
-  Trace("theory") << "setIncomplete()" << std::endl;
+  Trace("theory") << "setIncomplete(" << id << ")" << std::endl;
   d_engine->setIncomplete(d_theory, id);
 }
 

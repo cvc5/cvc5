@@ -227,7 +227,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     // are present
     if (hasFunctions)
     {
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::HO_EXT_DISABLED);
     }
     return 0;
   }
