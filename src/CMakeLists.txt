@@ -12,10 +12,10 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
-  api/checks.h
-  api/cvc4cpp.cpp
-  api/cvc4cpp.h
-  api/cvc4cppkind.h
+  api/cpp/cvc5.cpp
+  api/cpp/cvc5.h
+  api/cpp/cvc5_checks.h
+  api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
   context/cdhashmap.h
@@ -786,6 +786,8 @@ libcvc4_add_sources(
   theory/quantifiers/skolemize.h
   theory/quantifiers/solution_filter.cpp
   theory/quantifiers/solution_filter.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_tuple_enumerator.cpp
   theory/quantifiers/term_tuple_enumerator.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
@@ -1182,14 +1184,14 @@ endif()
 # Install public API headers
 
 install(FILES
-          api/cvc4cpp.h
-          api/cvc4cppkind.h
+          api/cpp/cvc5.h
+          api/cpp/cvc5_kind.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

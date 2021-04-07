@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -417,7 +418,8 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node new_lit = nm->mkSkolem("G_cost", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  Node newLit = sm->mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
 
   // allocate an enumerator for each candidate
@@ -425,13 +427,13 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
   {
     Node c = ci.first;
     TypeNode ct = c.getType();
-    Node eu = nm->mkSkolem("eu", ct);
+    Node eu = sm->mkDummySkolem("eu", ct);
     Node ceu;
     if (!d_useCondPool && !ci.second.d_enums[0].empty())
     {
       // make a new conditional enumerator as well, starting the
       // second type around
-      ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
+      ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
     }
     // register the new enumerators
     for (unsigned index = 0; index < 2; index++)
@@ -452,7 +454,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     {
       Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
                                << " to new size " << new_size << "\n";
-      registerEvalPtAtSize(c, ei, new_lit, new_size);
+      registerEvalPtAtSize(c, ei, newLit, new_size);
     }
   }
   // enforce fairness between number of enumerators and enumerator size
@@ -483,7 +485,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       datatypes.push_back(sdt.getDatatype());
       std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
           datatypes, unresolvedTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
-      d_virtual_enum = nm->mkSkolem("_ve", dtypes[0]);
+      d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
@@ -497,7 +499,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
       Node fair_lemma =
           nm->mkNode(GEQ, size_ve, nm->mkConst(Rational(pow_two - 1)));
-      fair_lemma = nm->mkNode(OR, new_lit, fair_lemma);
+      fair_lemma = nm->mkNode(OR, newLit, fair_lemma);
       Trace("cegis-unif-enum-lemma")
           << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
       // this lemma relates the number of conditions we enumerate and the
@@ -510,7 +512,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     }
   }
 
-  return new_lit;
+  return newLit;
 }
 
 void CegisUnifEnumDecisionStrategy::initialize(
@@ -526,6 +528,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
   // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (const Node& e : es)
   {
     Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";
@@ -570,7 +573,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
     // allocate a condition enumerator for each candidate
     for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
     {
-      Node ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
+      Node ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
       setUpEnumerator(ceu, ci.second, 1);
     }
   }

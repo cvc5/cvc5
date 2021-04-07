@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"

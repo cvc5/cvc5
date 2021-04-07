@@ -500,8 +500,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder<> nb_consts(NodeManager::currentNM(), k);
-        NodeBuilder<> nb_nonconsts(NodeManager::currentNM(), k);
+        NodeBuilder nb_consts(NodeManager::currentNM(), k);
+        NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
         {
           Node nnrw = Rewriter::rewrite(nn);

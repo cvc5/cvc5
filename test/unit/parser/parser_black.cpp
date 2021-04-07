@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
 #include "options/base_options.h"

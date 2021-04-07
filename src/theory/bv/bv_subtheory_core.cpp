@@ -16,6 +16,7 @@
 
 #include "theory/bv/bv_subtheory_core.h"
 
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -537,6 +538,7 @@ bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
 bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   bool sentLemma = false;
   eq::EqualityEngine* ee = d_equalityEngine;
   std::map<Node, Node> op_map;
@@ -592,7 +594,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
             // congruent modulo 2^( bv width )
             unsigned bvs = n.getType().getBitVectorSize();
             Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-            Node k = nm->mkSkolem(
+            Node k = sm->mkDummySkolem(
                 "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
             t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
           }

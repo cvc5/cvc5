@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
@@ -180,6 +181,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
   d_input_funcs.insert(d_input_funcs.end(), funcs.begin(), funcs.end());
@@ -194,7 +196,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_si_vars.size() == d_arg_types.size());
   for (const Node& inf : d_input_funcs)
   {
-    Node sk = nm->mkSkolem("_sik", inf.getType());
+    Node sk = sm->mkDummySkolem("_sik", inf.getType());
     d_input_func_sks.push_back(sk);
   }
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;
