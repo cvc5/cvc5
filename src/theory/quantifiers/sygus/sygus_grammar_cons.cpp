@@ -458,11 +458,14 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         const DType& dt = range.getDType();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
         {
-          for (unsigned j = 0, size_args = dt[i].getNumArgs(); j < size_args;
+          // get the specialized constructor type, which accounts for
+          // parametric datatypes
+          TypeNode ctn = dt[i].getSpecializedConstructorType(range);
+          std::vector<TypeNode> argTypes = ctn.getArgTypes();
+          for (size_t j = 0, nargs = argTypes.size(); j < nargs;
                ++j)
           {
-            TypeNode tn = dt[i][j].getRangeType();
-            collectSygusGrammarTypesFor(tn, types);
+            collectSygusGrammarTypesFor(argTypes[i], types);
           }
         }
       }
@@ -988,10 +991,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
+        TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
         // must specialize if a parametric datatype
         if (dt.isParametric())
         {
-          TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
           cop = nm->mkNode(
               APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cop);
         }
@@ -1003,11 +1006,14 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         }
         std::vector<TypeNode> cargsCons;
         Trace("sygus-grammar-def") << "...add for selectors" << std::endl;
-        for (unsigned j = 0, size_j = dt[l].getNumArgs(); j < size_j; ++j)
+        // iterate over the arguments of the specialized constructor type,
+        // which accounts for parametric datatypes
+        std::vector<TypeNode> tsargs = tspec.getArgTypes();
+        for (unsigned j = 0, size_j = tsargs.size(); j < size_j; ++j)
         {
           Trace("sygus-grammar-def")
               << "...for " << dt[l][j].getName() << std::endl;
-          TypeNode crange = dt[l][j].getRangeType();
+          TypeNode crange = tsargs[j];
           Assert(type_to_unres.find(crange) != type_to_unres.end());
           cargsCons.push_back(type_to_unres[crange]);
           // add to the selector type the selector operator
