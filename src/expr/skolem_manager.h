@@ -228,6 +228,28 @@ class SkolemManager
                         TypeNode tn,
                         Node cacheVal = Node::null());
   /**
+   * Create a skolem constant with the given name, type, and comment. This
+   * should only be used if the definition of the skolem does not matter.
+   * The definition of a skolem matters e.g. when the skolem is used in a
+   * proof.
+   *
+   * @param prefix the name of the new skolem variable is the prefix
+   * appended with a unique ID.  This way a family of skolem variables
+   * can be made with unique identifiers, used in dump, tracing, and
+   * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
+   * a unique ID appended and use prefix as the name.
+   * @param type the type of the skolem variable to create
+   * @param comment a comment for dumping output; if declarations are
+   * being dumped, this is included in a comment before the declaration
+   * and can be quite useful for debugging
+   * @param flags an optional mask of bits from SkolemFlags to control
+   * mkSkolem() behavior
+   */
+  Node mkDummySkolem(const std::string& prefix,
+                     const TypeNode& type,
+                     const std::string& comment = "",
+                     int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind
    * BOOLEAN_TERM_VARIABLE.

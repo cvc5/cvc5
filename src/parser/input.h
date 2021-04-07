@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "cvc4_export.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"

@@ -194,7 +194,7 @@ jobs:
     - name: Install Check
       run: |
         make -j2 install
-        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
+        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
         g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
       working-directory: build
 

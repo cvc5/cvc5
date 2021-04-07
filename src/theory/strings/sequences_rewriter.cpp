@@ -1184,7 +1184,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         Node one = nm->mkConst(Rational(1));
         if (flr == one)
         {
-          NodeBuilder<> nb(AND);
+          NodeBuilder nb(AND);
           for (const Node& xc : x)
           {
             nb << nm->mkNode(STRING_IN_REGEXP, xc, r);
@@ -1926,7 +1926,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> vec = Word::getChars(node[0]);
         Node emp = Word::mkEmptyWord(t.getType());
-        NodeBuilder<> nb(OR);
+        NodeBuilder nb(OR);
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
@@ -1970,7 +1970,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> nc1;
         utils::getConcat(node[0], nc1);
-        NodeBuilder<> nb(OR);
+        NodeBuilder nb(OR);
         for (const Node& ncc : nc1)
         {
           nb << nm->mkNode(STRING_STRCTN, ncc, node[1]);
@@ -2057,7 +2057,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (nc2.size() > 1)
         {
           Node emp = Word::mkEmptyWord(stype);
-          NodeBuilder<> nb2(kind::AND);
+          NodeBuilder nb2(kind::AND);
           for (const Node& n2 : nc2)
           {
             if (n2 == n)
@@ -3283,7 +3283,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
   else if (len.getKind() == PLUS)
   {
     // x + y -> norm(x) + norm(y)
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (const auto& n : len)
     {
       Node sn = canonicalStrForSymbolicLength(n, stype);
@@ -3312,7 +3312,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     }
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
     {
       concatBuilder.append(nRepChildren);

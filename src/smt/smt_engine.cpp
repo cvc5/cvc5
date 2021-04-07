@@ -24,6 +24,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/printer_options.h"

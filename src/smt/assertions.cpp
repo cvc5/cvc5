@@ -18,6 +18,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"

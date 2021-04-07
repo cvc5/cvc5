@@ -100,7 +100,7 @@ using namespace cvc5::parser;
 #include <iterator>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -1764,6 +1764,7 @@ NUMBER
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;
+        ss << ( pos ? "" : "-" );
         ss << AntlrInput::tokenText($num) << "/" << AntlrInput::tokenText($den);
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
       }

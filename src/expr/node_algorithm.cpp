@@ -624,7 +624,7 @@ Node substituteCaptureAvoiding(TNode n,
     else if (it->second.isNull())
     {
       // build node
-      NodeBuilder<> nb(curr.getKind());
+      NodeBuilder nb(curr.getKind());
       if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator

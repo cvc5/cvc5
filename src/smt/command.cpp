@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"

@@ -102,7 +102,7 @@ namespace cvc5 {
 #include <unordered_set>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "options/set_language.h"
 #include "parser/antlr_input.h"

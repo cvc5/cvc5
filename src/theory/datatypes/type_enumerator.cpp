@@ -138,7 +138,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        }
      }
      Debug("dt-enum-debug") << "Get constructor..." << std::endl;
-     NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+     NodeBuilder b(kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
        NodeManager* nm = NodeManager::currentNM();

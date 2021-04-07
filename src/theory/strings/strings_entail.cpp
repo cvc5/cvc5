@@ -842,7 +842,7 @@ Node StringsEntail::getMultisetApproximation(Node a)
   }
   else if (a.getKind() == STRING_CONCAT)
   {
-    NodeBuilder<> nb(STRING_CONCAT);
+    NodeBuilder nb(STRING_CONCAT);
     for (const Node& ac : a)
     {
       nb << getMultisetApproximation(ac);
@@ -974,7 +974,7 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
     cs.push_back(yiLen[0]);
   }
 
-  NodeBuilder<> nb(AND);
+  NodeBuilder nb(AND);
   // (= x (str.++ y1' ... ym'))
   if (!cs.empty())
   {

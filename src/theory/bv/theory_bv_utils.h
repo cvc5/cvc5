@@ -140,7 +140,7 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   for (TNode n : all) { conjunction << n; }
   return conjunction;
 }
@@ -159,7 +159,7 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
 
-  NodeBuilder<> disjunction(kind::OR);
+  NodeBuilder disjunction(kind::OR);
   for (TNode n : all) { disjunction << n; }
   return disjunction;
 }

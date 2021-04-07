@@ -33,7 +33,7 @@
  ** (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
  **/
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
