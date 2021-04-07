@@ -229,7 +229,9 @@ class SkolemManager
                         Node cacheVal = Node::null());
   /**
    * Create a skolem constant with the given name, type, and comment. This
-   * should only be used if the formalization of the skolem does not matter.
+   * should only be used if the definition of the skolem does not matter.
+   * The definition of a skolem matters e.g. when the skolem is used in a
+   * proof.
    *
    * @param prefix the name of the new skolem variable is the prefix
    * appended with a unique ID.  This way a family of skolem variables
