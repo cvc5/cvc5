@@ -43,10 +43,14 @@ include(UseJava)
 
 # specify java source files
 set(JAVA_FILES
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/AbstractPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Sort.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
   ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind.java
 )
@@ -76,7 +80,9 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-add_library(cvc5jni SHARED jni/cvc5_Solver.cpp)
+add_library(cvc5jni SHARED
+  jni/cvc5_Solver.cpp
+  jni/cvc5_Term.cpp)
 add_dependencies(cvc5jni generate-jni-headers)
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
