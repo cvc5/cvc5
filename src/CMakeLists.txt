@@ -12,9 +12,9 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
-  api/checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5.h
+  api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
