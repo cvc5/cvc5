@@ -43,7 +43,7 @@ enum class IncompleteId
   UF_HO_EXT_DISABLED,
   // UF+cardinality solver was disabled
   UF_CARD_DISABLED,
-  
+
   //-------------------------------------- unknown
   UNKNOWN
 };
