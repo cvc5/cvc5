@@ -123,6 +123,7 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
   const DType& dt = DType::datatypeOf(d_constructor);
   if (!dt.isParametric())
   {
+    // if the datatype is not parametric, then no specialization is needed
     return ctn;
   }
   TypeNode dtt = dt.getTypeNode();
