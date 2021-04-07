@@ -140,15 +140,16 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
 {
+  // note this method is static and does not rely on any local caching
   Assert(seqType.isSequence());
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
   std::vector<TypeNode> argTypes;
   argTypes.push_back(seqType);
   argTypes.push_back(nm->integerType());
   TypeNode elemType = seqType.getSequenceElementType();
   TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-  return mkTypedSkolemCached(
-      ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, c);
+  return sm->mkSkolemFunction(SkolemFunId::SEQ_NTH_OOB, ufType);
 }
 
 Node SkolemCache::mkSkolem(const char* c)

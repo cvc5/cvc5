@@ -517,9 +517,11 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
         {
           ret = sel;
         }else{
-          mkExpDefSkolem(selector, ndt, n.getType());
+          SkolemManager * sm = nm->getSkolemManager();
+          TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
+          Node f = sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
           Node sk =
-              nm->mkNode(kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
+              nm->mkNode(kind::APPLY_UF, f, n[0]);
           if (tst == nm->mkConst(false))
           {
             ret = sk;
@@ -829,17 +831,6 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
   }
 }
 
-void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
-  if( d_exp_def_skolem[dt].find( sel )==d_exp_def_skolem[dt].end() ){
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    std::stringstream ss;
-    ss << sel << "_uf";
-    d_exp_def_skolem[dt][sel] =
-        sm->mkDummySkolem(ss.str().c_str(), nm->mkFunctionType(dt, rt));
-  }
-}
-
 Node TheoryDatatypes::getTermSkolemFor( Node n ) {
   if( n.getKind()==APPLY_CONSTRUCTOR ){
     NodeMap::const_iterator it = d_term_sk.find( n );
@@ -847,8 +838,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
       //add purification unit lemma ( k = n )
-      Node k =
-          sm->mkDummySkolem("k", n.getType(), "reference skolem for datatypes");
+      Node k = sm->mkPurifySkolem(n, "kdt");
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
