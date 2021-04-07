@@ -15,26 +15,34 @@ file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/jni")
 
 # Generate cvc5/Kind.java
 configure_file(genkinds.py.in genkinds.py)
-add_custom_target(
-  gen-java-kinds
-  ALL
-  COMMAND
-  "${PYTHON_EXECUTABLE}"
-  "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-  --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-  --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind"
-  DEPENDS
-  "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-  COMMENT
-  "Generate Kind.java"
+
+set(JAVA_KIND_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind.java"
 )
+
+add_custom_command(
+  OUTPUT
+    ${JAVA_KIND_FILE}
+  BYPRODUCTS
+    ${JAVA_KIND_FILE}
+  COMMAND
+    "${PYTHON_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+)
+
+add_custom_target(gen-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
 # find java
 find_package(Java COMPONENTS Development REQUIRED)
 include(UseJava)
 
 # specify java source files
-set(java_files
+set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
@@ -49,7 +57,7 @@ add_custom_target(
   ALL
   COMMAND
   # generate jni header files
-  ${Java_JAVAC_EXECUTABLE} -h jni ${java_files} -d jni
+  ${Java_JAVAC_EXECUTABLE} -h jni ${JAVA_FILES} -d jni
   COMMENT "Generate jni headers"
   VERBATIM
 )
@@ -78,17 +86,17 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/jni)
 target_link_libraries(cvc5jni ${JNI_LIBRARIES})
 target_link_libraries(cvc5jni cvc4)
 
-set(CVC5_JAR "cvc5-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar" CACHE STRING "cvc5 jar" FORCE)
+set(CVC5_JAR "cvc5-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar")
 
 # create cvc5.jar file
 add_jar(cvc5jar
   SOURCES
-  ${java_files}
+  ${JAVA_FILES}
   VERSION ${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}
   OUTPUT_NAME cvc5
 )
 
 add_dependencies(cvc5jar gen-java-kinds cvc5jni cvc4)
 
-set(CVC5_JAR "${CMAKE_CURRENT_BINARY_DIR}/${CVC5_JAR}" CACHE STRING "cvc5 jar" FORCE)
+set(CVC5_JAR_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CVC5_JAR}" CACHE STRING "cvc5 jar" FORCE)
 set(CVC5_JNI_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "cvc5 jni path" FORCE)

@@ -39,8 +39,8 @@ if(NOT JUnit_FOUND_SYSTEM)
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-    <SOURCE_DIR>/../junit-platform-console-standalone-1.7.1.jar
-    <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
+      <SOURCE_DIR>/../junit-platform-console-standalone-1.7.1.jar
+      <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
     BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
   )
 
@@ -55,5 +55,5 @@ mark_as_advanced(JUnit_FOUND)
 if(JUnit_FOUND_SYSTEM)
   message(STATUS "Found JUnit: ${JUnit_JAR}")
 else()
-  message(STATUS "Building JUnit: ${JUnit_JAR}")
+  message(STATUS "Downloading JUnit: ${JUnit_JAR}")
 endif()
