@@ -36,7 +36,7 @@
 #include <cstring>
 #include <sstream>
 
-#include "api/checks.h"
+#include "api/cpp/cvc5_checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/dtype.h"
