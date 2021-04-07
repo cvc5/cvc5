@@ -121,7 +121,7 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
       << returnType;
   TypeNode ctn = d_constructor.getType();
   const DType& dt = DType::datatypeOf(d_constructor);
-  if(!dt.isParametric())
+  if (!dt.isParametric())
   {
     return ctn;
   }

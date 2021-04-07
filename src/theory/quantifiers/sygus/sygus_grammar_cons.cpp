@@ -462,8 +462,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
           // parametric datatypes
           TypeNode ctn = dt[i].getSpecializedConstructorType(range);
           std::vector<TypeNode> argTypes = ctn.getArgTypes();
-          for (size_t j = 0, nargs = argTypes.size(); j < nargs;
-               ++j)
+          for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
           {
             collectSygusGrammarTypesFor(argTypes[i], types);
           }
