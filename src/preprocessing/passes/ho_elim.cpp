@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
@@ -36,6 +37,7 @@ HoElim::HoElim(PreprocessingPassContext* preprocContext)
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
   std::vector<Node> visit;
   TNode cur;
@@ -90,7 +92,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         }
         TypeNode rangeType = cur.getType().getRangeType();
         TypeNode nft = nm->mkFunctionType(ftypes, rangeType);
-        Node nf = nm->mkSkolem("ll", nft);
+        Node nf = sm->mkDummySkolem("ll", nft);
         Trace("ho-elim-ll")
             << "...introduce: " << nf << " of type " << nft << std::endl;
         newLambda[nf] = nlambda;
@@ -151,6 +153,7 @@ Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;
@@ -187,7 +190,7 @@ Node HoElim::eliminateHo(Node n)
             }
             else
             {
-              ret = nm->mkSkolem("k", ut);
+              ret = sm->mkDummySkolem("k", ut);
             }
             // must get the ho apply to ensure extensionality is applied
             Node hoa = getHoApplyUf(tn);
@@ -260,7 +263,7 @@ Node HoElim::eliminateHo(Node n)
             {
               Assert(!childrent.empty());
               TypeNode newFType = nm->mkFunctionType(childrent, cur.getType());
-              retOp = nm->mkSkolem("rf", newFType);
+              retOp = sm->mkDummySkolem("rf", newFType);
               d_visited_op[op] = retOp;
             }
             else
@@ -485,12 +488,13 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
   if (it == d_hoApplyUf.end())
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
 
     std::vector<TypeNode> hoTypeArgs;
     hoTypeArgs.push_back(tnf);
     hoTypeArgs.push_back(tna);
     TypeNode tnh = nm->mkFunctionType(hoTypeArgs, tnr);
-    Node k = NodeManager::currentNM()->mkSkolem("ho", tnh);
+    Node k = sm->mkDummySkolem("ho", tnh);
     d_hoApplyUf[tnf] = k;
     return k;
   }

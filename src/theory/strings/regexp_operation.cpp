@@ -274,6 +274,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
   int ret = 1;
   retNode = d_emptyRegexp;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -355,7 +356,8 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
             }
           }
           if(ret == 0) {
-            Node sk = NodeManager::currentNM()->mkSkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
+            Node sk =
+                sm->mkDummySkolem("rsp", nm->stringType(), "Split RegExp");
             retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));
