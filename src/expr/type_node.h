@@ -28,10 +28,10 @@
 #include <vector>
 
 #include "base/check.h"
-#include "expr/cardinality_class.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/cardinality.h"
+#include "util/cardinality_class.h"
 
 namespace cvc5 {
 

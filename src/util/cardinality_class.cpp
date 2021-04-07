@@ -12,7 +12,7 @@
  ** \brief Utilities for cardinality classes
  **/
 
-#include "expr/cardinality_class.h"
+#include "util/cardinality_class.h"
 
 #include <iostream>
 
