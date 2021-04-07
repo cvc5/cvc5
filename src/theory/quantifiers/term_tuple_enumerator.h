@@ -22,6 +22,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class TermPools;
 class QuantifiersState;
 class TermDb;
 class RelevantDomain;
@@ -91,6 +92,10 @@ TermTupleEnumeratorInterface* mkTermTupleEnumerator(
 /** Same as above, but draws terms from the relevant domain utility (rd). */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
     Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd);
+
+/** Make term pool enumerator */
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node p);
 
 }  // namespace quantifiers
 }  // namespace theory

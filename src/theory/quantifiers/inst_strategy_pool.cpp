@@ -157,7 +157,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
     {
       Trace("pool-inst") << "Fail with " << terms << std::endl;
       // notify the enumerator of the failure
-      /// enumerator->failureReason(failMask);
+      enumerator->failureReason(failMask);
     }
   }
   return false;
