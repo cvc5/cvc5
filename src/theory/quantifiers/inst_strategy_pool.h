@@ -26,8 +26,8 @@ namespace quantifiers {
 /**
  * Pool-based instantiation. This implements a strategy for instantiating
  * quantifiers based on user-provided pool annotations.
- * 
- * When check is invoked, this strategy instantiates considers each 
+ *
+ * When check is invoked, this strategy instantiates considers each
  * INST_POOL annotation on quantified formulas. For each annotation, it
  * instantiates the associated quantified formula with the Cartesian
  * product of terms currently in the pool, using efficient techniques for
