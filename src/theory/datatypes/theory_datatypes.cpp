@@ -835,8 +835,8 @@ void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
     SkolemManager* sm = nm->getSkolemManager();
     std::stringstream ss;
     ss << sel << "_uf";
-    d_exp_def_skolem[dt][sel] = sm->mkDummySkolem(
-        ss.str().c_str(), NodeManager::currentNM()->mkFunctionType(dt, rt));
+    d_exp_def_skolem[dt][sel] =
+        sm->mkDummySkolem(ss.str().c_str(), nm->mkFunctionType(dt, rt));
   }
 }
 

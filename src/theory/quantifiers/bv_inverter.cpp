@@ -36,8 +36,7 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
   if (its == d_solve_var.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     Node k = sm->mkDummySkolem("slv", tn);
     d_solve_var[tn] = k;
     return k;

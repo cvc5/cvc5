@@ -209,8 +209,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkSkolem(prefix, type, comment, flags);
+  return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
 }
 
 Node SkolemManager::mkBooleanTermVariable(Node t)

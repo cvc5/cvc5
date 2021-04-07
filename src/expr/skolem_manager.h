@@ -234,7 +234,7 @@ class SkolemManager
    * @param prefix the name of the new skolem variable is the prefix
    * appended with a unique ID.  This way a family of skolem variables
    * can be made with unique identifiers, used in dump, tracing, and
-   * debugging output.  Use SKOLEM_EXECT_NAME flag if you don't want
+   * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
    * a unique ID appended and use prefix as the name.
    * @param type the type of the skolem variable to create
    * @param comment a comment for dumping output; if declarations are
