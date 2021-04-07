@@ -31,17 +31,28 @@ namespace cvc5 {
 enum class CardinalityClass : uint64_t
 {
   // the type has cardinality one in all interpretations
+  //
+  // Examples: unit datatypes, arrays with unit datatype elements
   ONE,
-  // the type has cardinality one only under the assumption that uninterpreted
+  // the type has cardinality one under the assumption that uninterpreted
   // sorts have cardinality one
+  //
+  // Examples: uninterpreted sorts, arrays with uninterpreted sort elements
   INTERPRETED_ONE,
   // the type is finite in all interpretations, and does not fit any of the
   // above classifications
+  //
+  // Examples: Booleans, bitvectors, floating points, sets of Bools
   FINITE,
   // the type is finite under the assumption that uninterpreted sorts have
   // cardinality one, and does not fit any of the above classifications
+  //
+  // Examples: sets of uninterpreted sorts, arrays whose index types are
+  // uninterpreted sorts and element sorts are finite
   INTERPRETED_FINITE,
   // the type is infinite in all interpretations
+  //
+  // Examples: integers, reals, strings, sequences, bags
   INFINITE,
   // the cardinality is unknown
   UNKNOWN
