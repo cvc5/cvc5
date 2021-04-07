@@ -208,10 +208,13 @@ Building the API documentation of CVC4 requires the following dependencies:
 * [Doxygen](https://www.doxygen.nl)
 * [Sphinx](https://www.sphinx-doc.org)
 * [Breathe](https://breathe.readthedocs.io)
+
 To build the documentation, configure CVC4 with `./configure.sh --docs`.
 Building CVC4 will then include building the API documentation.
+
 To only build the documentation, change to the build directory and call
 `make Sphinx`.
+
 The documentation can then be found at `<build_dir>/docs/sphinx/index.html`.
 
 ## Building the Examples
