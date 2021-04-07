@@ -517,11 +517,11 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
         {
           ret = sel;
         }else{
-          SkolemManager * sm = nm->getSkolemManager();
+          SkolemManager* sm = nm->getSkolemManager();
           TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
-          Node f = sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
-          Node sk =
-              nm->mkNode(kind::APPLY_UF, f, n[0]);
+          Node f =
+              sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
+          Node sk = nm->mkNode(kind::APPLY_UF, f, n[0]);
           if (tst == nm->mkConst(false))
           {
             ret = sk;

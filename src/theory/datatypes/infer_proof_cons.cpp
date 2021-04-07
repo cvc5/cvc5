@@ -226,7 +226,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {});
       success = true;
     }
-      break;
+    break;
     // inferences currently not supported
     case InferenceId::DATATYPES_LABEL_EXH:
     case InferenceId::DATATYPES_BISIMILAR:

@@ -143,7 +143,7 @@ Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
   // note this method is static and does not rely on any local caching
   Assert(seqType.isSequence());
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> argTypes;
   argTypes.push_back(seqType);
   argTypes.push_back(nm->integerType());
