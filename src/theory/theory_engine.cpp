@@ -1455,8 +1455,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
   }
 }
 
-
-void TheoryEngine::setIncomplete(theory::TheoryId theory, IncompleteId id) {
+void TheoryEngine::setIncomplete(theory::TheoryId theory, IncompleteId id)
+{
   d_incomplete = true;
   d_incompleteId = id;
 }

@@ -22,12 +22,12 @@
 namespace cvc5 {
 namespace theory {
 
-/** 
+/**
  * Reasons for incompleteness in CVC4.
  */
 enum class IncompleteId
 {
-  
+
   //-------------------------------------- unknown
   UNKNOWN
 };

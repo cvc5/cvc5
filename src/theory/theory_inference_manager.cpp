@@ -517,7 +517,10 @@ void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
   d_out.safePoint(r);
 }
 
-void TheoryInferenceManager::setIncomplete(IncompleteId id) { d_out.setIncomplete(id); }
+void TheoryInferenceManager::setIncomplete(IncompleteId id)
+{
+  d_out.setIncomplete(id);
+}
 
 }  // namespace theory
 }  // namespace cvc5

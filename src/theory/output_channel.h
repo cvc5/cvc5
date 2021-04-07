@@ -19,9 +19,9 @@
 #ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
 #define CVC4__THEORY__OUTPUT_CHANNEL_H
 
+#include "theory/incomplete_id.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
-#include "theory/incomplete_id.h"
 
 namespace cvc5 {
 namespace theory {
