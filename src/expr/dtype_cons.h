@@ -20,10 +20,10 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "expr/cardinality_class.h"
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/cardinality_class.h"
 
 namespace cvc5 {
 
