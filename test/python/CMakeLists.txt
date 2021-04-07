@@ -12,22 +12,7 @@
 # Add Python bindings API tests
 
 # Check if the pytest Python module is installed.
-execute_process(
-  COMMAND
-  ${PYTHON_EXECUTABLE} -c "import pytest"
-  RESULT_VARIABLE
-    RET_PYTEST
-  ERROR_QUIET
-)
-
-if(RET_PYTEST)
-  message(FATAL_ERROR
-      "Could not find pytest for Python "
-      "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
-      "Make sure to install pytest for this Python version "
-      "via \n`${PYTHON_EXECUTABLE} -m pip install pytest'.\nNote: You need to "
-      "have pip installed for this Python version.")
-endif()
+check_python_module("pytest")
 
 macro(cvc4_add_python_api_test name filename)
 

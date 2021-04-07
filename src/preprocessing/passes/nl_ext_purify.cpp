@@ -16,6 +16,7 @@
 
 #include "preprocessing/passes/nl_ext_purify.h"
 
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
@@ -32,6 +33,8 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 std::vector<Node>& var_eq,
                                 bool beneathMult)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if (beneathMult)
   {
     NodeMap::iterator find = bcache.find(n);
@@ -69,10 +72,9 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       else
       {
         // new variable
-        ret = NodeManager::currentNM()->mkSkolem(
-            "__purifyNl_var",
-            n.getType(),
-            "Variable introduced in purifyNl pass");
+        ret = sm->mkDummySkolem("__purifyNl_var",
+                                n.getType(),
+                                "Variable introduced in purifyNl pass");
         Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
         var_eq.push_back(np.eqNode(ret));
         Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np
@@ -92,7 +94,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+        ret = nm->mkNode(n.getKind(), children);
       }
     }
   }

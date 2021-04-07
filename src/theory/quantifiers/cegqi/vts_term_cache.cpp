@@ -15,6 +15,7 @@
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
@@ -60,18 +61,19 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
       d_vts_delta_free =
-          nm->mkSkolem("delta_free",
-                       nm->realType(),
-                       "free delta for virtual term substitution");
+          sm->mkDummySkolem("delta_free",
+                            nm->realType(),
+                            "free delta for virtual term substitution");
       Node delta_lem = nm->mkNode(GT, d_vts_delta_free, d_zero);
       d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
     }
     if (d_vts_delta.isNull())
     {
-      d_vts_delta = nm->mkSkolem(
+      d_vts_delta = sm->mkDummySkolem(
           "delta", nm->realType(), "delta for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
@@ -86,15 +88,16 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
   if (create)
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_inf_free[tn].isNull())
     {
-      d_vts_inf_free[tn] = nm->mkSkolem(
+      d_vts_inf_free[tn] = sm->mkDummySkolem(
           "inf_free", tn, "free infinity for virtual term substitution");
     }
     if (d_vts_inf[tn].isNull())
     {
-      d_vts_inf[tn] =
-          nm->mkSkolem("inf", tn, "infinity for virtual term substitution");
+      d_vts_inf[tn] = sm->mkDummySkolem(
+          "inf", tn, "infinity for virtual term substitution");
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_inf[tn].setAttribute(vtsa, true);

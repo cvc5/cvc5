@@ -14,6 +14,7 @@
 
 #include "theory/engine_output_channel.h"
 
+#include "expr/skolem_manager.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
@@ -118,10 +119,11 @@ void EngineOutputChannel::conflict(TNode conflictNode)
 
 void EngineOutputChannel::demandRestart()
 {
-  NodeManager* curr = NodeManager::currentNM();
-  Node restartVar = curr->mkSkolem(
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node restartVar = sm->mkDummySkolem(
       "restartVar",
-      curr->booleanType(),
+      nm->booleanType(),
       "A boolean variable asserted to be true to force a restart");
   Trace("theory::restart") << "EngineOutputChannel<" << d_theory
                            << ">::restart(" << restartVar << ")" << std::endl;
