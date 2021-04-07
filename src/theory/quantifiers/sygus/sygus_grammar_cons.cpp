@@ -1008,6 +1008,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // iterate over the arguments of the specialized constructor type,
         // which accounts for parametric datatypes
         std::vector<TypeNode> tsargs = tspec.getArgTypes();
+        TypeNode selDomain = type_to_unres[types[i]];
         for (unsigned j = 0, size_j = tsargs.size(); j < size_j; ++j)
         {
           Trace("sygus-grammar-def")
@@ -1020,11 +1021,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           Assert(std::find(types.begin(), types.end(), crange) != types.end());
           unsigned i_selType = std::distance(
               types.begin(), std::find(types.begin(), types.end(), crange));
-          TypeNode arg_type = dt[l][j].getType();
-          arg_type = arg_type.getSelectorDomainType();
-          Assert(type_to_unres.find(arg_type) != type_to_unres.end());
           std::vector<TypeNode> cargsSel;
-          cargsSel.push_back(type_to_unres[arg_type]);
+          cargsSel.push_back(selDomain);
           Node sel = dt[l][j].getSelector();
           sdts[i_selType].addConstructor(sel, dt[l][j].getName(), cargsSel);
         }
