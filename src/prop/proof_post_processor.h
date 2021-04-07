@@ -54,6 +54,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * cancelled, i.e., continueUpdate is set to false.
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application.
    *

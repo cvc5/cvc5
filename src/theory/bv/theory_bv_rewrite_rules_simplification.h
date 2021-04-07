@@ -558,10 +558,10 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
   Kind kind = node.getKind();
   TNode concat;
   Node x, y, z, c;
-  NodeBuilder<> xb(kind);
-  NodeBuilder<> yb(kind::BITVECTOR_CONCAT);
-  NodeBuilder<> zb(kind::BITVECTOR_CONCAT);
-  NodeBuilder<> res(kind::BITVECTOR_CONCAT);
+  NodeBuilder xb(kind);
+  NodeBuilder yb(kind::BITVECTOR_CONCAT);
+  NodeBuilder zb(kind::BITVECTOR_CONCAT);
+  NodeBuilder res(kind::BITVECTOR_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
 
   for (const TNode& child : node)
@@ -1680,13 +1680,13 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
                            .d_zeroExtendAmount;
     if (amount2 == 0)
     {
-      NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
+      NodeBuilder nb(kind::BITVECTOR_SIGN_EXTEND);
       Node op = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(amount1));
       nb << op << node[0][0];
       Node res = nb;
       return res;
     }
-    NodeBuilder<> nb(kind::BITVECTOR_ZERO_EXTEND);
+    NodeBuilder nb(kind::BITVECTOR_ZERO_EXTEND);
     Node op = nm->mkConst<BitVectorZeroExtend>(
         BitVectorZeroExtend(amount1 + amount2));
     nb << op << node[0][0];
@@ -2246,7 +2246,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   Node zero_t = utils::mkZero(utils::getSize(t));
   Node zero_a = utils::mkZero(utils::getSize(a));
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   Kind k = is_sext ? kind::BITVECTOR_SLT : kind::BITVECTOR_ULT;
   nb << t.eqNode(zero_t).notNode();
   nb << a.eqNode(zero_a).notNode();

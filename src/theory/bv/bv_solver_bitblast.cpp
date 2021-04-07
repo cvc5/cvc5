@@ -256,7 +256,7 @@ Node BVSolverBitblast::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder<> nb(cur.getKind());
+      NodeBuilder nb(cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

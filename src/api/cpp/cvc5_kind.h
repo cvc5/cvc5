@@ -1,23 +1,21 @@
-/*********************                                                        */
-/*! \file cvc4cppkind.h
- ** \verbatim
+/***
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Makai Mann
- ** This file is part of the CVC4 project.
+ ** This file is part of the cvc5 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The term kinds of the CVC4 C++ API.
- **
- ** The term kinds of the CVC4 C++ API.
- **/
+ ** directory for licensing information.
+ */
+
+/**
+ * The term kinds of the cvc5 C++ API.
+ */
 
 #include "cvc4_export.h"
 
-#ifndef CVC4__API__CVC4CPPKIND_H
-#define CVC4__API__CVC4CPPKIND_H
+#ifndef CVC5__API__CVC5_KIND_H
+#define CVC5__API__CVC5_KIND_H
 
 #include <ostream>
 
@@ -152,7 +150,9 @@ enum CVC4_EXPORT Kind : int32_t
    * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
    * that satisfies F. But if such x exists, the witness operator does not
    * enforce the axiom that ensures uniqueness up to logical equivalence:
-   * forall x. F \equiv G => witness x. F =  witness x. G
+   * \verbatim
+   *   forall x. F \equiv G => witness x. F =  witness x. G
+   * \endverbatim
    *
    * For example if there are 2 elements of type T that satisfy F, then the
    * following formula is satisfiable:
@@ -1564,7 +1564,9 @@ enum CVC4_EXPORT Kind : int32_t
   CONST_ARRAY,
   /**
    * Equality over arrays a and b over a given range [i,j], i.e.,
-   * \forall k . i <= k <= j --> a[k] = b[k]
+   * \verbatim
+   *   \forall k . i <= k <= j --> a[k] = b[k]
+   * \endverbatim
    *
    * Parameters: 4
    *   -[1]: First array
@@ -1956,7 +1958,9 @@ enum CVC4_EXPORT Kind : int32_t
    * A set comprehension is specified by a bound variable list x1 ... xn,
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
-   * forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+   * \verbatim
+   *  forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+   * \endverbatim
    * where y ranges over the element type of the (set) type of the
    * comprehension. If t[x1..xn] is not provided, it is equivalent to y in the
    * above formula.

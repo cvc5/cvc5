@@ -774,6 +774,7 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
+  regress0/proofs/scope.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -1198,6 +1199,7 @@ set(regress_0_tests
   regress0/tptp/MGT019+2.p
   regress0/tptp/MGT041-2.p
   regress0/tptp/PUZ131_1.p
+  regress0/tptp/parse-neg-rational.p
   regress0/tptp/SYN000_1.p
   regress0/tptp/SYN000_2.p
   regress0/tptp/SYN000-1.p
@@ -1760,6 +1762,8 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4328-nqe.smt2
+  regress1/quantifiers/issue4420-order-sensitive.smt2
+  regress1/quantifiers/issue4412-cegqi-type.smt2
   regress1/quantifiers/issue4433-nqe.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
@@ -1968,11 +1972,14 @@ set(regress_1_tests
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
   regress1/sets/issue4124-need-check.smt2
+  regress1/sets/issue4370-2-lemma-ee-iter.smt2
+  regress1/sets/issue4370-4-lemma-ee-iter.smt2
   regress1/sets/issue4391-card-lasso.smt2
   regress1/sets/issue5271.smt2
   regress1/sets/issue5309.smt2
   regress1/sets/issue5342.smt2
   regress1/sets/issue5342_difference_version.smt2
+  regress1/sets/issue5942-witness.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -2046,6 +2053,8 @@ set(regress_1_tests
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
   regress1/strings/issue6270.smt2
+  regress1/strings/issue6271-rnf.smt2
+  regress1/strings/issue6271-2-rnf.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
