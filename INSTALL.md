@@ -215,7 +215,7 @@ Building CVC4 will then include building the API documentation.
 The API documentation can then be found at `<build_dir>/docs/sphinx/index.html`.
 
 To only build the documentation, change to the build directory and call
-`make Sphinx`.
+`make docs`.
 
 
 ## Building the Examples
