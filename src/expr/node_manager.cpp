@@ -601,7 +601,8 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     }
     if (nameResolutions.find(dtp->getName()) != nameResolutions.end())
     {
-      throw TypeCheckingExceptionPrivate("cannot construct two datatypes at the same time with the same name");
+      throw TypeCheckingExceptionPrivate(
+          "cannot construct two datatypes at the same time with the same name");
     }
     nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);
@@ -625,9 +626,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     std::string name = ut.getAttribute(expr::VarNameAttr());
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
-    if(resolver == nameResolutions.end())
+    if (resolver == nameResolutions.end())
     {
-      throw TypeCheckingExceptionPrivate("cannot resolve type " + name+ "; it's not among the datatypes being defined");
+      throw TypeCheckingExceptionPrivate(
+          "cannot resolve type " + name
+          + "; it's not among the datatypes being defined");
     }
     // We will instruct the Datatype to substitute "ut" (the
     // unresolved SortType used as a placeholder in complex types)
@@ -683,7 +686,8 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // cvc5::DType class, but this actually needs to be checked.
         if (selectorType.getRangeType().isFunctionLike())
         {
-          throw TypeCheckingExceptionPrivate("cannot put function-like things in datatypes");
+          throw TypeCheckingExceptionPrivate(
+              "cannot put function-like things in datatypes");
         }
       }
     }
