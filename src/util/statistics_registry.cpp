@@ -96,9 +96,13 @@ void StatisticsRegistry::printSafe(int fd) const
       safe_print(fd, s.first);
       safe_print(fd, " = ");
       if (s.second->hasValue())
+      {
         s.second->printSafe(fd);
+      }
       else
+      {
         safe_print(fd, "<unset>");
+      }
       safe_print(fd, '\n');
     }
   }
