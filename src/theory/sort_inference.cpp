@@ -579,7 +579,7 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
       //must create new type
       std::stringstream ss;
       ss << "it_" << t << "_" << pref;
-      retType = nm->mkSort(ss.str());
+      retType = NodeManager::currentNM()->mkSort(ss.str());
     }
     Trace("sort-inference") << "-> Make type " << retType << " to correspond to ";
     printSort("sort-inference", t );
