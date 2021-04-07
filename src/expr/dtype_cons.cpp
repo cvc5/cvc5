@@ -15,6 +15,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 
@@ -45,8 +46,8 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
   // create the proper selector type)
   Assert(!isResolved());
   Assert(!selectorType.isNull());
-
-  Node type = NodeManager::currentNM()->mkSkolem(
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node type = sm->mkDummySkolem(
       "unresolved_" + selectorName,
       selectorType,
       "is an unresolved selector type placeholder",
@@ -505,6 +506,7 @@ bool DTypeConstructor::resolve(
                      << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   size_t index = 0;
   std::vector<TypeNode> argTypes;
   Trace("datatypes-init") << "Initialize constructor " << d_name << std::endl;
@@ -523,7 +525,7 @@ bool DTypeConstructor::resolve(
       {
         Trace("datatypes-init") << "  ...self selector" << std::endl;
         range = self;
-        arg->d_selector = nm->mkSkolem(
+        arg->d_selector = sm->mkDummySkolem(
             argName,
             nm->mkSelectorType(self, self),
             "is a selector",
@@ -544,7 +546,7 @@ bool DTypeConstructor::resolve(
         {
           Trace("datatypes-init") << "  ...resolved selector" << std::endl;
           range = (*j).second;
-          arg->d_selector = nm->mkSkolem(
+          arg->d_selector = sm->mkDummySkolem(
               argName,
               nm->mkSelectorType(self, range),
               "is a selector",
@@ -574,7 +576,7 @@ bool DTypeConstructor::resolve(
       }
       Trace("datatypes-init")
           << "  ...range after parametric substitution " << range << std::endl;
-      arg->d_selector = nm->mkSkolem(
+      arg->d_selector = sm->mkDummySkolem(
           argName,
           nm->mkSelectorType(self, range),
           "is a selector",
@@ -603,12 +605,12 @@ bool DTypeConstructor::resolve(
   // The name of the tester variable does not matter, it is only used
   // internally.
   std::string testerName("is_" + d_name);
-  d_tester = nm->mkSkolem(
+  d_tester = sm->mkDummySkolem(
       testerName,
       nm->mkTesterType(self),
       "is a tester",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-  d_constructor = nm->mkSkolem(
+  d_constructor = sm->mkDummySkolem(
       getName(),
       nm->mkConstructorType(argTypes, self),
       "is a constructor",

@@ -20,6 +20,7 @@
 
 #include "base/map_util.h"
 #include "expr/kind.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -313,6 +314,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
   TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == SEP_LABEL ? atom[1] : TNode::null();
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if (slbl.isNull())
   {
     Trace("sep-lemma-debug")
@@ -434,8 +436,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       else
       {
-        Node kl = nm->mkSkolem("loc", getReferenceType(satom));
-        Node kd = nm->mkSkolem("data", getDataType(satom));
+        Node kl = sm->mkDummySkolem("loc", getReferenceType(satom));
+        Node kd = sm->mkDummySkolem("data", getDataType(satom));
         Node econc = nm->mkNode(
             SEP_LABEL,
             nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, kl, kd), d_true),
@@ -466,7 +468,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     Trace("sep-lemma-debug")
         << "Negated spatial constraint asserted to sep theory: " << fact
         << std::endl;
-    Node g = nm->mkSkolem("G", nm->booleanType());
+    Node g = sm->mkDummySkolem("G", nm->booleanType());
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
         "sep_neg_guard", g, getSatContext(), getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
@@ -506,6 +508,7 @@ void TheorySep::postCheck(Effort level)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Trace("sep-process") << "Checking heap at full effort..." << std::endl;
   d_label_model.clear();
   d_tmodel.clear();
@@ -849,8 +852,8 @@ void TheorySep::postCheck(Effort level)
       {
         Trace("sep-process") << "Must witness label : " << ll
                              << ", data type is " << data_type << std::endl;
-        Node dsk =
-            nm->mkSkolem("dsk", data_type, "pto-data for implicit location");
+        Node dsk = sm->mkDummySkolem(
+            "dsk", data_type, "pto-data for implicit location");
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
             IMPLIES,
@@ -1160,6 +1163,8 @@ void TheorySep::initializeBounds() {
   if( !d_bounds_init ){
     Trace("sep-bound")  << "Initialize sep bounds..." << std::endl;
     d_bounds_init = true;
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
@@ -1174,7 +1179,8 @@ void TheorySep::initializeBounds() {
       Trace("sep-bound") << "Type reference size : " << d_type_references[tn].size() << std::endl;
       Trace("sep-bound") << "Constructing " << n_emp << " cardinality constants." << std::endl;
       for( unsigned r=0; r<n_emp; r++ ){
-        Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
+        Node e =
+            sm->mkDummySkolem("e", tn, "cardinality bound element for seplog");
         d_type_references_card[tn].push_back( e );
         d_type_ref_card_id[e] = r;
       }
@@ -1185,19 +1191,20 @@ void TheorySep::initializeBounds() {
 Node TheorySep::getBaseLabel( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_base_label.find( tn );
   if( it==d_base_label.end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     initializeBounds();
     Trace("sep") << "Make base label for " << tn << std::endl;
     std::stringstream ss;
     ss << "__Lb";
-    TypeNode ltn = NodeManager::currentNM()->mkSetType(tn);
-    //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(tn));
-    Node n_lbl = NodeManager::currentNM()->mkSkolem( ss.str(), ltn, "base label" );
+    TypeNode ltn = nm->mkSetType(tn);
+    Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "base label");
     d_base_label[tn] = n_lbl;
     //make reference bound
     Trace("sep") << "Make reference bound label for " << tn << std::endl;
     std::stringstream ss2;
     ss2 << "__Lu";
-    d_reference_bound[tn] = NodeManager::currentNM()->mkSkolem( ss2.str(), ltn, "" );
+    d_reference_bound[tn] = sm->mkDummySkolem(ss2.str(), ltn, "");
     d_type_references_all[tn].insert( d_type_references_all[tn].end(), d_type_references[tn].begin(), d_type_references[tn].end() );
 
     //check whether monotonic (elements can be added to tn without effecting satisfiability)
@@ -1308,12 +1315,14 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
 Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   std::map< int, Node >::iterator it = d_label_map[atom][lbl].find( child );
   if( it==d_label_map[atom][lbl].end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     TypeNode refType = getReferenceType( atom );
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
     //TypeNode ltn = NodeManager::currentNM()->mkSetType(NodeManager::currentNM()->mkRefType(refType));
-    Node n_lbl = NodeManager::currentNM()->mkSkolem( ss.str(), ltn, "sep label" );
+    Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "sep label");
     d_label_map[atom][lbl][child] = n_lbl;
     d_label_map_parent[n_lbl] = lbl;
     return n_lbl;
