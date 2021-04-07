@@ -140,7 +140,9 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
 {
-  // note this method is static and does not rely on any local caching
+  // Note this method is static and does not rely on any local caching.
+  // It is used by expand definitions and by (dynamic) reductions, thus
+  // it is centrally located here.
   Assert(seqType.isSequence());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
