@@ -180,7 +180,7 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qim.getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
-  if (!d_embedSideCondition.isNull())
+  if (!d_embedSideCondition.isNull() && !vars.empty())
   {
     d_embedSideCondition = d_embedSideCondition.substitute(
         vars.begin(), vars.end(), d_candidates.begin(), d_candidates.end());
@@ -641,8 +641,12 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 {
   if (!d_embedSideCondition.isNull())
   {
-    Node sc = d_embedSideCondition.substitute(
+    Node sc = d_embedSideCondition;
+    if (!cvals.empty())
+    {
+      sc = sc.substitute(
         d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
+    }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     Result r = checkWithSubsolver(sc);
