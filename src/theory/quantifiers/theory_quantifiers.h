@@ -47,6 +47,8 @@ class TheoryQuantifiers : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /** finish initialization */
   void finishInit() override;
   /** needs equality engine */
@@ -83,7 +85,7 @@ class TheoryQuantifiers : public Theory {
   /** The theory rewriter for this theory. */
   QuantifiersRewriter d_rewriter;
   /** The proof rule checker */
-  QuantifiersProofRuleChecker d_qChecker;
+  QuantifiersProofRuleChecker d_checker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
   /** The quantifiers registry */

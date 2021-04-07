@@ -18,6 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/proof_checker.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
@@ -169,7 +170,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
 
 /* -------------------------------------------------------------------------- */
 
-class DymmyTheoryRewriter : public theory::TheoryRewriter
+class DummyTheoryRewriter : public theory::TheoryRewriter
 {
  public:
   theory::RewriteResponse preRewrite(TNode n) override
@@ -180,6 +181,22 @@ class DymmyTheoryRewriter : public theory::TheoryRewriter
   theory::RewriteResponse postRewrite(TNode n) override
   {
     return theory::RewriteResponse(theory::REWRITE_DONE, n);
+  }
+};
+
+class DummyProofRuleChecker : public ProofRuleChecker
+{
+ public:
+  DummyProofRuleChecker() {}
+  ~DummyProofRuleChecker() {}
+  void registerTo(ProofChecker* pc) override {}
+
+ protected:
+  Node checkInternal(PfRule id,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args) override
+  {
+    return Node::null();
   }
 };
 
@@ -202,6 +219,7 @@ class DummyTheory : public theory::Theory
   }
 
   theory::TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  ProofRuleChecker* getProofChecker() override { return &d_checker; }
 
   void registerTerm(TNode n)
   {
@@ -244,7 +262,9 @@ class DummyTheory : public theory::Theory
    */
   std::string d_id;
   /** The theory rewriter for this theory. */
-  DymmyTheoryRewriter d_rewriter;
+  DummyTheoryRewriter d_rewriter;
+  /** The proof checker for this theory. */
+  DummyProofRuleChecker d_checker;
 };
 
 /* -------------------------------------------------------------------------- */

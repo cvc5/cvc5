@@ -160,7 +160,7 @@ Node SubstitutionEx::internalApply(TNode node) {
 
     // children already processed
     if (head.childrenAdded) {
-      NodeBuilder<> nb(current.getKind());
+      NodeBuilder nb(current.getKind());
       std::vector<Node> reasons;
 
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -512,7 +512,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
       return changed;
     }
 
-    NodeBuilder<> nb(kind::BITVECTOR_XOR);
+    NodeBuilder nb(kind::BITVECTOR_XOR);
     for (unsigned i = 1; i < left.getNumChildren(); ++i) {
       nb << left[i];
     }
@@ -848,7 +848,7 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
       Node sk = utils::mkVar(size);
       skolems.push_back(sk);
     }
-    NodeBuilder<> skolem_nb(kind::BITVECTOR_CONCAT);
+    NodeBuilder skolem_nb(kind::BITVECTOR_CONCAT);
 
     for (int i = skolems.size() - 1; i >= 0; --i) {
       skolem_nb << skolems[i];
@@ -975,7 +975,7 @@ Node mergeExplanations(const std::vector<Node>& expls) {
     return *literals.begin();
   }
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
 
   for (TNodeSet::const_iterator it = literals.begin(); it!= literals.end(); ++it) {
     nb << *it;

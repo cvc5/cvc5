@@ -286,7 +286,7 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
   if(amount == 1) {
     return a; 
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   for(unsigned i = 0; i < amount; ++i) {
     result << node[0]; 
   }

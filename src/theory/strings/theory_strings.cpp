@@ -84,12 +84,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
 
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_sProofChecker.registerTo(pc);
-  }
   // use the state object as the official theory state
   d_theoryState = &d_state;
   // use the inference manager as the official inference manager
@@ -101,6 +95,8 @@ TheoryStrings::~TheoryStrings() {
 }
 
 TheoryRewriter* TheoryStrings::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryStrings::getProofChecker() { return &d_checker; }
 
 bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
 {

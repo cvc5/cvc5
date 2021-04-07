@@ -320,7 +320,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     if (stackHead.children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -396,7 +396,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
   Node newTerm = term;
   if (!term.isClosure())
   {
-    NodeBuilder<> newNode(term.getKind());
+    NodeBuilder newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       newNode << term.getOperator();

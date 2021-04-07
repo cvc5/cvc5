@@ -11,15 +11,6 @@ header = "options/strings_options.h"
   help       = "experimental features in the theory of strings"
 
 [[option]]
-  name       = "stdPrintASCII"
-  category   = "regular"
-  long       = "strings-print-ascii"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "the alphabet contains only printable characters from the standard extended ASCII"
-
-[[option]]
   name       = "stringFMF"
   category   = "regular"
   long       = "strings-fmf"

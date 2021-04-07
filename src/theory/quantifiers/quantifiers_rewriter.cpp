@@ -104,7 +104,8 @@ bool QuantifiersRewriter::isLiteral( Node n ){
   return true;
 }
 
-void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
+void QuantifiersRewriter::addNodeToOrBuilder(Node n, NodeBuilder& t)
+{
   if( n.getKind()==OR ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
       t << n[i];
@@ -1596,7 +1597,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
-      NodeBuilder<> t(kind::AND);
+      NodeBuilder t(kind::AND);
       std::vector<Node> argsc;
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
@@ -1645,8 +1646,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
       // aggressive miniscoping implies that free variable miniscoping should
       // be applied first
       Node newBody = body;
-      NodeBuilder<> body_split(kind::OR);
-      NodeBuilder<> tb(kind::OR);
+      NodeBuilder body_split(kind::OR);
+      NodeBuilder tb(kind::OR);
       for (const Node& trm : body)
       {
         if (expr::hasSubterm(trm, args))

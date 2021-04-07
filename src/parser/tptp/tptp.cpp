@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "options/options.h"
 #include "parser/parser.h"
