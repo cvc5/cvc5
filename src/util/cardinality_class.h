@@ -22,7 +22,8 @@
 namespace cvc5 {
 
 /**
- * Cardinality classes.
+ * Cardinality classes. A type has exactly one cardinality class. The
+ * cardinality class of a type is independent of the state of solver.
  *
  * The purposes of these classifications is solely to determine whether or not
  * a type should be considered finite. This includes use cases for when
