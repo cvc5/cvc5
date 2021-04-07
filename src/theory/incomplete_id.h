@@ -31,8 +31,12 @@ enum class IncompleteId
   ARITH_NL_DISABLED,
   // the non-linear arithmetic solver was incomplete
   ARITH_NL,
+  // incomplete due to lack of a complete quantifiers strategy
+  QUANTIFIERS,
   // we failed to verify the correctness of a candidate solution in SyGuS
   QUANTIFIERS_SYGUS_NO_VERIFY,
+  // incomplete due to finite model finding not being complete
+  QUANTIFIERS_FMF,
   // relations were used in combination with set cardinality constraints
   SETS_RELS_CARD,
   // we skipped processing a looping word equation

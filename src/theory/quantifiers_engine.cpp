@@ -205,6 +205,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   d_qim.reset();
   bool setIncomplete = false;
+  IncompleteId setIncompleteId = InferenceId::QUANTIFIERS;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
@@ -372,7 +373,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
               //check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
               {
-                if (!mdl->checkComplete())
+                if (!mdl->checkComplete(setIncompleteId))
                 {
                   Trace("quant-engine-debug")
                       << "Set incomplete because module "
@@ -447,7 +448,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      d_qim.setIncomplete();
+      d_qim.setIncomplete(setIncompleteId);
     }
     //output debug stats
     d_qim.getInstantiate()->debugPrintModel();

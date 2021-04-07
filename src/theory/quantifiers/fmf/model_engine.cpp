@@ -112,8 +112,13 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool ModelEngine::checkComplete() {
-  return !d_incomplete_check;
+bool ModelEngine::checkComplete(IncompleteId& incId) {
+  if (d_incomplete_check)
+  {
+    incId = IncompleteId::QUANTIFIERS_FMF;
+    return false;
+  }
+  return true;
 }
 
 bool ModelEngine::checkCompleteFor( Node q ) {
