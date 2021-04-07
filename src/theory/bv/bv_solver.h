@@ -90,7 +90,7 @@ class BVSolver
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
 
-  virtual void ppStaticLearn(TNode in, NodeBuilder<>& learned){};
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned){};
 
   virtual void presolve(){};
 

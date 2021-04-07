@@ -43,6 +43,7 @@ namespace cvc5 {
 
 class ProofNodeManager;
 class TheoryEngine;
+class ProofRuleChecker;
 
 namespace theory {
 
@@ -316,6 +317,10 @@ class Theory {
    * @return The theory rewriter associated with this theory.
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * @return The proof checker associated with this theory.
+   */
+  virtual ProofRuleChecker* getProofChecker() = 0;
   /**
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
@@ -686,7 +691,7 @@ class Theory {
    * *never* clear it.  It is a conjunction to add to the formula at
    * the top-level and may contain other theories' contributions.
    */
-  virtual void ppStaticLearn(TNode in, NodeBuilder<>& learned) { }
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
 
   enum PPAssertStatus {
     /** Atom has been solved  */

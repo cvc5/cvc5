@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cpp.cpp
+/*! \file cvc5.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
@@ -31,7 +31,7 @@
  ** consistent behavior (see Solver::mkRealFromStrHelper for an example).
  **/
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 #include <cstring>
 #include <sstream>
@@ -46,6 +46,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
@@ -2117,7 +2118,7 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
-  if(isCastedReal())
+  if (isCastedReal())
   {
     return 0;
   }
@@ -2551,23 +2552,19 @@ bool isInteger(const Node& node)
 }
 bool isInt32(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::int32_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::int32_t>(getInteger(node));
 }
 bool isUInt32(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::uint32_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::uint32_t>(getInteger(node));
 }
 bool isInt64(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::int64_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::int64_t>(getInteger(node));
 }
 bool isUInt64(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::uint64_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::uint64_t>(getInteger(node));
 }
 }  // namespace detail
 
@@ -3960,7 +3957,7 @@ Term Grammar::purifySygusGTerm(
   if (term.d_node->getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     // it's an indexed operator so we should provide the op
-    NodeBuilder<> nb(term.d_node->getKind());
+    NodeBuilder nb(term.d_node->getKind());
     nb << term.d_node->getOperator();
     nb.append(Term::termVectorToNodes(pchildren));
     nret = nb.constructNode();
@@ -4348,7 +4345,7 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   const cvc5::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = Term::termVectorToNodes(children);
 
-  NodeBuilder<> nb(int_kind);
+  NodeBuilder nb(int_kind);
   nb << *op.d_node;
   nb.append(echildren);
   Node res = nb.constructNode();
@@ -5547,7 +5544,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 
   Sort s = mkTupleSortHelper(sorts);
   Datatype dt = s.getDatatype();
-  NodeBuilder<> nb(extToIntKind(APPLY_CONSTRUCTOR));
+  NodeBuilder nb(extToIntKind(APPLY_CONSTRUCTOR));
   nb << *dt[0].getConstructorTerm().d_node;
   nb.append(args);
   Node res = nb.constructNode();
@@ -6384,8 +6381,8 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
-  return Term(
-      this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
+  return Term(this,
+              d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
   ////////
   CVC4_API_TRY_CATCH_END;
 }

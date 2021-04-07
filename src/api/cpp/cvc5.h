@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cpp.h
+/*! \file cvc5.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
@@ -16,10 +16,8 @@
 
 #include "cvc4_export.h"
 
-#ifndef CVC4__API__CVC4CPP_H
-#define CVC4__API__CVC4CPP_H
-
-#include "api/cvc4cppkind.h"
+#ifndef CVC5__API__CVC5_H
+#define CVC5__API__CVC5_H
 
 #include <map>
 #include <memory>
@@ -29,6 +27,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "api/cpp/cvc5_kind.h"
 
 namespace cvc5 {
 
@@ -3541,7 +3541,6 @@ class CVC4_EXPORT Solver
    * @param out the output stream
    */
   void printSynthSolution(std::ostream& out) const;
-
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!

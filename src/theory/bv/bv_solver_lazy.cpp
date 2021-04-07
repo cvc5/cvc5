@@ -741,7 +741,7 @@ EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {

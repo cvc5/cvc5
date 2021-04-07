@@ -48,13 +48,6 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
 
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add the proof rules
-    d_qChecker.registerTo(pc);
-  }
-
   // Finish initializing the term registry by hooking it up to the inference
   // manager. This is required due to a cyclic dependency between the term
   // database and the instantiate module. Term database needs inference manager
@@ -82,6 +75,9 @@ TheoryQuantifiers::~TheoryQuantifiers() {
 }
 
 TheoryRewriter* TheoryQuantifiers::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryQuantifiers::getProofChecker() { return &d_checker; }
+
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
