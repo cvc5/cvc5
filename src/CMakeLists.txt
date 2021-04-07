@@ -12,9 +12,9 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
-  api/checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5.h
+  api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
@@ -811,6 +811,8 @@ libcvc4_add_sources(
   theory/quantifiers/skolemize.h
   theory/quantifiers/solution_filter.cpp
   theory/quantifiers/solution_filter.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_tuple_enumerator.cpp
   theory/quantifiers/term_tuple_enumerator.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
