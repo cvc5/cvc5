@@ -189,8 +189,8 @@ Node SkolemManager::mkPurifySkolem(Node t,
 
 Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
 {
-  std::pair<SkolemFunId, Node> key(id, cacheVal);
-  std::map<std::pair<SkolemFunId, Node>, Node>::iterator it =
+  std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {

@@ -282,7 +282,7 @@ class SkolemManager
   /**
    * Cached of skolem functions for mkSkolemFunction above.
    */
-  std::map<std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
   /**
    * Mapping from witness terms to proof generators.
    */
