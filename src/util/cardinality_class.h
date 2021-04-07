@@ -34,7 +34,7 @@ enum class CardinalityClass : uint64_t
   //
   // Examples: unit datatypes, arrays with unit datatype elements
   ONE,
-  // the type has cardinality one only under the assumption that uninterpreted
+  // the type has cardinality one under the assumption that uninterpreted
   // sorts have cardinality one
   //
   // Examples: uninterpreted sorts, arrays with uninterpreted sort elements
