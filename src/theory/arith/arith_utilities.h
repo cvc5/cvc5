@@ -49,20 +49,6 @@ inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
 }
 
-inline Node mkIntSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->integerType());
-}
-
-inline Node mkRealSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->realType());
-}
-
-inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
-  NodeManager* currNM = NodeManager::currentNM();
-  TypeNode functionType = currNM->mkFunctionType(dom, range);
-  return currNM->mkSkolem(name, functionType);
-}
-
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
 inline bool isRelationOperator(Kind k){
   using namespace kind;

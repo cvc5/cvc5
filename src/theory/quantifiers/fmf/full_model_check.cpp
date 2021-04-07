@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/fmf/full_model_check.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
@@ -1349,6 +1350,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   for (const Node& v : q[0])
   {
@@ -1363,7 +1365,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     types.push_back(tn);
   }
   TypeNode typ = nm->mkFunctionType(types, nm->booleanType());
-  Node op = nm->mkSkolem("qfmc", typ, "op for full-model checking");
+  Node op = sm->mkDummySkolem("qfmc", typ, "op for full-model checking");
   d_quant_cond[q] = op;
 }
 

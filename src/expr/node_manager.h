@@ -87,6 +87,7 @@ class NodeManager
   friend class api::Solver;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
+  friend class SkolemManager;
 
   friend class NodeBuilder;
   friend class NodeManagerScope;
@@ -366,7 +367,7 @@ class NodeManager
    * lookup is done on the name.  If you mkVar("a", type) and then
    * mkVar("a", type) again, you have two variables.  The NodeManager
    * version of this is private to avoid internal uses of mkVar() from
-   * within CVC4.  Such uses should employ mkSkolem() instead.
+   * within CVC4.  Such uses should employ SkolemManager::mkSkolem() instead.
    */
   Node mkVar(const std::string& name, const TypeNode& type);
   Node* mkVarPtr(const std::string& name, const TypeNode& type);
@@ -374,6 +375,19 @@ class NodeManager
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type);
   Node* mkVarPtr(const TypeNode& type);
+
+  /**
+   * Create a skolem constant with the given name, type, and comment. For
+   * details, see SkolemManager::mkDummySkolem, which calls this method.
+   *
+   * This method is intentionally private. To create skolems, one should
+   * call a method from SkolemManager for allocating a skolem in a standard
+   * way, or otherwise use SkolemManager::mkDummySkolem.
+   */
+  Node mkSkolem(const std::string& prefix,
+                const TypeNode& type,
+                const std::string& comment = "",
+                int flags = SKOLEM_DEFAULT);
 
  public:
   explicit NodeManager();
@@ -577,27 +591,6 @@ class NodeManager
     SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
     SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
   };                         /* enum SkolemFlags */
-
-  /**
-   * Create a skolem constant with the given name, type, and comment.
-   *
-   * @param prefix the name of the new skolem variable is the prefix
-   * appended with a unique ID.  This way a family of skolem variables
-   * can be made with unique identifiers, used in dump, tracing, and
-   * debugging output.  Use SKOLEM_EXECT_NAME flag if you don't want
-   * a unique ID appended and use prefix as the name.
-   *
-   * @param type the type of the skolem variable to create
-   *
-   * @param comment a comment for dumping output; if declarations are
-   * being dumped, this is included in a comment before the declaration
-   * and can be quite useful for debugging
-   *
-   * @param flags an optional mask of bits from SkolemFlags to control
-   * mkSkolem() behavior
-   */
-  Node mkSkolem(const std::string& prefix, const TypeNode& type,
-                const std::string& comment = "", int flags = SKOLEM_DEFAULT);
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
