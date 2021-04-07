@@ -17,6 +17,7 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_matcher.h"
 
 using namespace cvc5::kind;
@@ -882,10 +883,11 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   NodeManager* nm = NodeManager::currentNM();
   std::stringstream ss;
   ss << "sel_" << index;
-  s = nm->mkSkolem(ss.str(),
-                   nm->mkSelectorType(dtt, t),
-                   "is a shared selector",
-                   NodeManager::SKOLEM_NO_NOTIFY);
+  SkolemManager* sm = nm->getSkolemManager();
+  s = sm->mkDummySkolem(ss.str(),
+                        nm->mkSelectorType(dtt, t),
+                        "is a shared selector",
+                        NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

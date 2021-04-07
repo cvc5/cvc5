@@ -25,6 +25,7 @@ General options;
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --docs                   build Api documentation
 
 
 Features:
@@ -117,6 +118,7 @@ coverage=default
 cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
+docs=default
 dumping=default
 glpk=default
 gpl=default
@@ -237,6 +239,9 @@ do
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
+
+    --docs) docs=ON;;
+    --no-docs) docs=OFF;;
 
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
@@ -379,6 +384,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
 [ $python2 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
+[ $docs != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $java_bindings != default ] \

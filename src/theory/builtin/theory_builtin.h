@@ -37,7 +37,10 @@ class TheoryBuiltin : public Theory
                 const LogicInfo& logicInfo,
                 ProofNodeManager* pnm = nullptr);
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
   std::string identify() const override;
 
@@ -48,7 +51,7 @@ class TheoryBuiltin : public Theory
   /** The theory rewriter for this theory. */
   TheoryBuiltinRewriter d_rewriter;
   /** Proof rule checker */
-  BuiltinProofRuleChecker d_bProofChecker;
+  BuiltinProofRuleChecker d_checker;
 }; /* class TheoryBuiltin */
 
 }  // namespace builtin

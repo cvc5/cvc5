@@ -24,6 +24,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_pools.h"
 
 namespace cvc5 {
 namespace theory {
@@ -67,6 +68,15 @@ class TermRegistry
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
+  /**
+   * Declare pool p with initial value initValue.
+   */
+  void declarePool(Node p, const std::vector<Node>& initValue);
+  /**
+   * Process instantiation
+   */
+  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processSkolemization(Node q, const std::vector<Node>& skolems);
 
   /** Whether we use the full model check builder and corresponding model */
   bool useFmcModel() const;
@@ -77,6 +87,8 @@ class TermRegistry
   TermDbSygus* getTermDatabaseSygus() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
+  /** get the term pools utility */
+  TermPools* getTermPools() const;
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -89,6 +101,8 @@ class TermRegistry
   NodeSet d_presolveCache;
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
+  /** term enumeration utility */
+  std::unique_ptr<TermPools> d_termPools;
   /** term database */
   std::unique_ptr<TermDb> d_termDb;
   /** sygus term database */

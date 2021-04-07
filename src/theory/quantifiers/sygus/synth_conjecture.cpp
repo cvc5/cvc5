@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -29,9 +30,9 @@
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -102,9 +103,10 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : assign : " << q << std::endl;
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   // initialize the guard
-  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
+  d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
   d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
@@ -170,8 +172,7 @@ void SynthConjecture::assign(Node q)
   for (unsigned i = 0; i < d_embed_quant[0].getNumChildren(); i++)
   {
     vars.push_back(d_embed_quant[0][i]);
-    Node e =
-        NodeManager::currentNM()->mkSkolem("e", d_embed_quant[0][i].getType());
+    Node e = sm->mkDummySkolem("e", d_embed_quant[0][i].getType());
     d_candidates.push_back(e);
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
@@ -179,7 +180,7 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qim.getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
-  if (!d_embedSideCondition.isNull())
+  if (!d_embedSideCondition.isNull() && !vars.empty())
   {
     d_embedSideCondition = d_embedSideCondition.substitute(
         vars.begin(), vars.end(), d_candidates.begin(), d_candidates.end());
@@ -460,6 +461,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   // check the side condition if we constructed a candidate
   if (constructed_cand)
@@ -540,7 +542,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       for (const Node& v : inst[0][0])
       {
-        Node sk = nm->mkSkolem("rsk", v.getType());
+        Node sk = sm->mkDummySkolem("rsk", v.getType());
         sks.push_back(sk);
         vars.push_back(v);
         Trace("cegqi-check-debug")
@@ -639,8 +641,12 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 {
   if (!d_embedSideCondition.isNull())
   {
-    Node sc = d_embedSideCondition.substitute(
+    Node sc = d_embedSideCondition;
+    if (!cvals.empty())
+    {
+      sc = sc.substitute(
         d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
+    }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     Result r = checkWithSubsolver(sc);

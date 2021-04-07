@@ -14,11 +14,12 @@
 
 #include "theory/arith/nl/cad_solver.h"
 
-#include "theory/inference_id.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/inference_id.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,11 +38,10 @@ CadSolver::CadSolver(InferenceManager& im,
       d_im(im),
       d_model(model)
 {
-  d_ranVariable =
-      NodeManager::currentNM()->mkSkolem("__z",
-                                         NodeManager::currentNM()->realType(),
-                                         "",
-                                         NodeManager::SKOLEM_EXACT_NAME);
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  d_ranVariable = sm->mkDummySkolem(
+      "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
 #ifdef CVC4_POLY_IMP
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)

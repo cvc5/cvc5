@@ -42,7 +42,7 @@
  ** (define-fun id4 ((x Int)) Int (+ x (+ x (- x))))
  **/
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 

@@ -185,7 +185,7 @@ Node RePairAssocCommutativeOperators::case_other(TNode n){
     return n;
   }
 
-  NodeBuilder<> nb(n.getKind());
+  NodeBuilder nb(n.getKind());
 
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << n.getOperator();
