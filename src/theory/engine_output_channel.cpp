@@ -139,10 +139,10 @@ void EngineOutputChannel::requirePhase(TNode n, bool phase)
   d_engine->getPropEngine()->requirePhase(n, phase);
 }
 
-void EngineOutputChannel::setIncomplete()
+void EngineOutputChannel::setIncomplete(IncompleteId id)
 {
   Trace("theory") << "setIncomplete()" << std::endl;
-  d_engine->setIncomplete(d_theory);
+  d_engine->setIncomplete(d_theory, id);
 }
 
 void EngineOutputChannel::spendResource(ResourceManager::Resource r)

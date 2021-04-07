@@ -21,6 +21,7 @@
 
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
+#include "theory/incomplete_id.h"
 
 namespace cvc5 {
 namespace theory {
@@ -150,7 +151,7 @@ class OutputChannel {
    * this context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setIncomplete() = 0;
+  virtual void setIncomplete(IncompleteId id) = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
