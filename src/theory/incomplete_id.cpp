@@ -12,7 +12,7 @@
  ** \brief Implementation of incompleteness enumeration.
  **/
 
-#include "theory/inference_id.h"
+#include "theory/incomplete_id.h"
 
 #include <iostream>
 

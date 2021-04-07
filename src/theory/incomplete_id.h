@@ -14,10 +14,10 @@
 
 #include "cvc4_private.h"
 
-#include <iosfwd>
-
 #ifndef CVC4__THEORY__INCOMPLETE_ID_H
 #define CVC4__THEORY__INCOMPLETE_ID_H
+
+#include <iosfwd>
 
 namespace cvc5 {
 namespace theory {
