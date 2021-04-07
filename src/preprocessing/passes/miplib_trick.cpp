@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/node_self_iterator.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -57,7 +58,7 @@ size_t removeFromConjunction(Node& n,
         || (sub.getKind() == kind::AND
             && (subremovals = removeFromConjunction(sub, toRemove)) > 0))
     {
-      NodeBuilder<> b(kind::AND);
+      NodeBuilder b(kind::AND);
       b.append(n.begin(), j);
       if (subremovals > 0)
       {
@@ -201,6 +202,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
   Node trueNode = nm->mkConst(true);
 
@@ -522,7 +524,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               stringstream ss;
               ss << "mipvar_" << *ii;
-              Node newVar = nm->mkSkolem(
+              Node newVar = sm->mkDummySkolem(
                   ss.str(),
                   nm->integerType(),
                   "a variable introduced due to scrubbing a miplib encoding",
@@ -559,7 +561,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Node sum;
           if (pos.getKind() == kind::AND)
           {
-            NodeBuilder<> sumb(kind::PLUS);
+            NodeBuilder sumb(kind::PLUS);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
               sumb << nm->mkNode(

@@ -108,8 +108,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder<> leftSum(Kind::PLUS);
-      NodeBuilder<> rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::PLUS);
+      NodeBuilder rightSum(Kind::PLUS);
       for (size_t i = 0; i < children.size(); ++i)
       {
         // Adjust strictness
@@ -163,8 +163,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder<> leftSum(Kind::PLUS);
-      NodeBuilder<> rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::PLUS);
+      NodeBuilder rightSum(Kind::PLUS);
       for (size_t i = 0; i < children.size(); ++i)
       {
         Rational scalar = args[i].getConst<Rational>();

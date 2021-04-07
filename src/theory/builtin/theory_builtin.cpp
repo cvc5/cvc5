@@ -22,8 +22,6 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
-using namespace std;
-
 namespace cvc5 {
 namespace theory {
 namespace builtin {
@@ -36,13 +34,11 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              ProofNodeManager* pnm)
     : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
 {
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_bProofChecker.registerTo(pc);
-  }
 }
+
+TheoryRewriter* TheoryBuiltin::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryBuiltin::getProofChecker() { return &d_checker; }
 
 std::string TheoryBuiltin::identify() const
 {
