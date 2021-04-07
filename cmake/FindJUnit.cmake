@@ -14,7 +14,12 @@
 
 include(deps-helper)
 
-find_jar(JUnit_JAR junit-platform-console-standalone-1.7.1.jar)
+find_jar(JUnit_JAR junit-platform-console-standalone
+  PATHS
+    ${DEPS_BASE}/share/java
+    $ENV{PATH} $ENV{HOME} $ENV{CLASSPATH} $ENV{JUNIT_HOME}
+  VERSIONS 1.7.1
+)
 
 set(JUnit_FOUND_SYSTEM FALSE)
 if(JUnit_JAR)
