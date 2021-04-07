@@ -992,9 +992,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         if (dt.isParametric())
         {
           TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
-          cop = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                                  nm->mkConst(AscriptionType(tspec)),
-                                  cop);
+          cop = nm->mkNode(
+              APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cop);
         }
         if (dt[l].getNumArgs() == 0)
         {
