@@ -2,7 +2,7 @@
 ## CMakeLists.txt
 ## Top contributors (to current version):
 ##   Mudathir Mohamed
-## This file is part of the CVC4 project.
+## This file is part of the CVC5 project.
 ## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
@@ -15,7 +15,7 @@ find_package(JUnit REQUIRED)
 
 # specify source files for junit tests
 set(java_test_src_files
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc/SolverTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/SolverTest.java
 )
 
 # build junit tests
@@ -24,14 +24,14 @@ add_custom_target(
   ALL
   COMMAND
     ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
-    -cp ${JUnit_JAR}:${CVC_JAR} # add JUnit and cvc jar files to the class path
+    -cp ${JUnit_JAR}:${CVC5_JAR} # add JUnit and cvc5 jar files to the class path
     -d . # specify the output directory for the generated .class files
   COMMENT "Build junit tests"
   VERBATIM
 )
 
 # make sure cvc.jar file is built first
-add_dependencies(build-junit-tests cvcjar)
+add_dependencies(build-junit-tests cvc5jar)
 
 # run junit tests
 add_custom_target(
@@ -40,10 +40,10 @@ add_custom_target(
   COMMAND
     # run junit tests
     ${Java_JAVA_EXECUTABLE}
-    -Djava.library.path=${CVC_JNI_PATH}
+    -Djava.library.path=${CVC5_JNI_PATH}
     -jar ${JUnit_JAR}
-    -cp ${JUnit_JAR}:${CVC_JAR}:.
-    -select-package cvc
+    -cp ${JUnit_JAR}:${CVC5_JAR}:.
+    -select-package cvc5
   COMMENT "Run junit tests"
   VERBATIM
 )

@@ -1,4 +1,4 @@
-package cvc;
+package cvc5;
 
 import java.io.IOException;
 
@@ -35,14 +35,14 @@ public class Solver implements IPointer
    * SMT-LIB: ( set-logic <symbol> )
    *
    * @param logic
-   * @throws CVCApiException
+   * @throws CVC5ApiException
    */
-  public void setLogic(String logic) throws CVCApiException
+  public void setLogic(String logic) throws CVC5ApiException
   {
     setLogic(pointer, logic);
   }
 
-  private native void setLogic(long solverPointer, String logic) throws CVCApiException;
+  private native void setLogic(long solverPointer, String logic) throws CVC5ApiException;
 
   // endregion
 }

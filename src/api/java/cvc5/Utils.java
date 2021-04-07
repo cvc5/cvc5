@@ -1,4 +1,4 @@
-package cvc;
+package cvc5;
 
 import java.io.IOException;
 
@@ -10,10 +10,10 @@ class Utils
   }
 
   /**
-   * load cvc jni library
+   * load cvc5 jni library
    */
   public static void loadLibraries()
   {
-    System.loadLibrary("cvcjni");
+    System.loadLibrary("cvc5jni");
   }
 }

@@ -1,4 +1,4 @@
-package cvc;
+package cvc5;
 
 interface IPointer
 {

@@ -1,27 +1,27 @@
-#include "cvc_Solver.h"
+#include "cvc5_Solver.h"
 
 #include "api/cpp/cvc5.h"
-#include "cvcJavaApi.h"
+#include "cvc5JavaApi.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc_Solver
+ * Class:     cvc5_Solver
  * Method:    newSolver
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_cvc_Solver_newSolver(JNIEnv*, jobject)
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv*, jobject)
 {
   Solver* solver = new Solver();
   return ((jlong)solver);
 }
 
 /*
- * Class:     cvc_Solver
+ * Class:     cvc5_Solver
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc_Solver_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv*,
                                                      jclass,
                                                      jlong pointer)
 {
@@ -29,20 +29,20 @@ JNIEXPORT void JNICALL Java_cvc_Solver_deletePointer(JNIEnv*,
 }
 
 /*
- * Class:     cvc_Solver
+ * Class:     cvc5_Solver
  * Method:    setLogic
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_cvc_Solver_setLogic(JNIEnv* env,
+JNIEXPORT void JNICALL Java_cvc5_Solver_setLogic(JNIEnv* env,
                                                 jobject,
                                                 jlong solverPointer,
                                                 jstring jLogic)
 {
-  CVC_JAVA_API_TRY_CATCH_BEGIN;
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
   Solver* solver = (Solver*)solverPointer;
   const char* cLogic = env->GetStringUTFChars(jLogic, nullptr);
   solver->setLogic(std::string(cLogic));
 
-  CVC_JAVA_API_TRY_CATCH_END(env);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
 }

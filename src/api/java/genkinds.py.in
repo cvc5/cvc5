@@ -3,7 +3,7 @@
 ## genkinds.py
 ## Top contributors (to current version):
 ##   Mudathir Mohamed
-## This file is part of the CVC4 project.
+## This file is part of the CVC5 project.
 ## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
@@ -11,15 +11,15 @@
 ##
 
 """
-This script reads CVC4/src/api/cpp/cvc5_kind.h and generates
-cvc/Kind.java file which declare all the CVC4 kinds.
+This script reads CVC5/src/api/cpp/cvc5_kind.h and generates
+cvc5/Kind.java file which declare all the CVC5 kinds.
 """
 
 import argparse
 import os
 import sys
 
-# get access to CVC4/src/api/parsekinds.py
+# get access to CVC5/src/api/parsekinds.py
 sys.path.insert(0, os.path.abspath('${CMAKE_SOURCE_DIR}/src/api'))
 
 from parsekinds import *
@@ -30,7 +30,7 @@ DEFAULT_PREFIX = 'Kind'
 # Code Blocks
 
 KINDS_JAVA_TOP = \
-    r"""package cvc;
+    r"""package cvc5;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,11 +58,11 @@ KINDS_JAVA_BOTTOM = \
     }
   }
 
-  public static Kind fromInt(int value) throws CVCApiException
+  public static Kind fromInt(int value) throws CVC5ApiException
   {
     if (value < INTERNAL_KIND.value || value > LAST_KIND.value)
     {
-      throw new CVCApiException("Kind value " + value + " is outside the valid range ["
+      throw new CVC5ApiException("Kind value " + value + " is outside the valid range ["
           + INTERNAL_KIND.value + "," + LAST_KIND.value + "]");
     }
     return kindMap.get(value);

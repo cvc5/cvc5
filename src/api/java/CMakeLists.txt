@@ -2,7 +2,7 @@
 ## CMakeLists.txt
 ## Top contributors (to current version):
 ##   Mudathir Mohamed
-## This file is part of the CVC4 project.
+## This file is part of the CVC5 project.
 ## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
@@ -10,10 +10,10 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/jni")
 
-# Generate cvc/Kind.java
+# Generate cvc5/Kind.java
 configure_file(genkinds.py.in genkinds.py)
 add_custom_target(
   gen-java-kinds
@@ -22,7 +22,7 @@ add_custom_target(
   "${PYTHON_EXECUTABLE}"
   "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
   --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-  --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
+  --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind"
   DEPENDS
   "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
   COMMENT
@@ -35,12 +35,12 @@ include(UseJava)
 
 # specify java source files
 set(java_files
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/CVCApiRecoverableException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/IPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/Solver.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc/Utils.java
-  ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
+  ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind.java
 )
 
 # generate jni headers
@@ -68,27 +68,27 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-add_library(cvcjni SHARED jni/cvc_Solver.cpp)
-add_dependencies(cvcjni generate-jni-headers)
+add_library(cvc5jni SHARED jni/cvc5_Solver.cpp)
+add_dependencies(cvc5jni generate-jni-headers)
 
-target_include_directories(cvcjni PUBLIC ${JNI_INCLUDE_DIRS})
-target_include_directories(cvcjni PUBLIC ${PROJECT_SOURCE_DIR}/src)
-target_include_directories(cvcjni PUBLIC ${CMAKE_BINARY_DIR}/src/)
-target_include_directories(cvcjni PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/jni)
-target_link_libraries(cvcjni ${JNI_LIBRARIES})
-target_link_libraries(cvcjni cvc4)
+target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
+target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
+target_include_directories(cvc5jni PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/jni)
+target_link_libraries(cvc5jni ${JNI_LIBRARIES})
+target_link_libraries(cvc5jni cvc4)
 
-set(CVC_JAR "cvc-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar" CACHE STRING "cvc jar" FORCE)
+set(CVC5_JAR "cvc5-${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}.jar" CACHE STRING "cvc5 jar" FORCE)
 
-# create cvc.jar file
-add_jar(cvcjar
+# create cvc5.jar file
+add_jar(cvc5jar
   SOURCES
   ${java_files}
   VERSION ${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}
-  OUTPUT_NAME cvc
+  OUTPUT_NAME cvc5
 )
 
-add_dependencies(cvcjar gen-java-kinds cvcjni cvc4)
+add_dependencies(cvc5jar gen-java-kinds cvc5jni cvc4)
 
-set(CVC_JAR "${CMAKE_CURRENT_BINARY_DIR}/${CVC_JAR}" CACHE STRING "cvc jar" FORCE)
-set(CVC_JNI_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "cvc jni path" FORCE)
+set(CVC5_JAR "${CMAKE_CURRENT_BINARY_DIR}/${CVC5_JAR}" CACHE STRING "cvc5 jar" FORCE)
+set(CVC5_JNI_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "cvc5 jni path" FORCE)
