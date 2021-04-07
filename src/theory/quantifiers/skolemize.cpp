@@ -208,7 +208,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
       }
       else
       {
-        TypeNode typ = NodeManager::currentNM()->mkFunctionType(
+        TypeNode typ = nm->mkFunctionType(
             argTypes, f[0][i].getType());
         Node op = sm->mkDummySkolem(
             "skop", typ, "op created during pre-skolemization");
@@ -217,7 +217,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
         std::vector<Node> funcArgs;
         funcArgs.push_back(op);
         funcArgs.insert(funcArgs.end(), fvs.begin(), fvs.end());
-        s = NodeManager::currentNM()->mkNode(kind::APPLY_UF, funcArgs);
+        s = nm->mkNode(kind::APPLY_UF, funcArgs);
       }
       sk.push_back(s);
     }
@@ -267,25 +267,25 @@ Node Skolemize::mkSkolemizedBody(Node f,
         }
         disj.push_back(conj.size() == 1
                            ? conj[0]
-                           : NodeManager::currentNM()->mkNode(OR, conj));
+                           : nm->mkNode(OR, conj));
       }
       Assert(!disj.empty());
       n_str_ind = disj.size() == 1
                       ? disj[0]
-                      : NodeManager::currentNM()->mkNode(AND, disj);
+                      : nm->mkNode(AND, disj);
     }
     else if (options::intWfInduction() && tn.isInteger())
     {
-      Node icond = NodeManager::currentNM()->mkNode(
-          GEQ, k, NodeManager::currentNM()->mkConst(Rational(0)));
+      Node icond = nm->mkNode(
+          GEQ, k, nm->mkConst(Rational(0)));
       Node iret =
           ret.substitute(
                  ind_vars[0],
-                 NodeManager::currentNM()->mkNode(
-                     MINUS, k, NodeManager::currentNM()->mkConst(Rational(1))))
+                 nm->mkNode(
+                     MINUS, k, nm->mkConst(Rational(1))))
               .negate();
-      n_str_ind = NodeManager::currentNM()->mkNode(OR, icond.negate(), iret);
-      n_str_ind = NodeManager::currentNM()->mkNode(AND, icond, n_str_ind);
+      n_str_ind = nm->mkNode(OR, icond.negate(), iret);
+      n_str_ind = nm->mkNode(AND, icond, n_str_ind);
     }
     else
     {
@@ -300,17 +300,17 @@ Node Skolemize::mkSkolemizedBody(Node f,
         rem_ind_vars.end(), ind_vars.begin() + 1, ind_vars.end());
     if (!rem_ind_vars.empty())
     {
-      Node bvl = NodeManager::currentNM()->mkNode(BOUND_VAR_LIST, rem_ind_vars);
-      nret = NodeManager::currentNM()->mkNode(FORALL, bvl, nret);
+      Node bvl = nm->mkNode(BOUND_VAR_LIST, rem_ind_vars);
+      nret = nm->mkNode(FORALL, bvl, nret);
       nret = Rewriter::rewrite(nret);
       sub = nret;
       sub_vars.insert(
           sub_vars.end(), ind_var_indicies.begin() + 1, ind_var_indicies.end());
-      n_str_ind = NodeManager::currentNM()
+      n_str_ind = nm
                       ->mkNode(FORALL, bvl, n_str_ind.negate())
                       .negate();
     }
-    ret = NodeManager::currentNM()->mkNode(OR, nret, n_str_ind);
+    ret = nm->mkNode(OR, nret, n_str_ind);
   }
   Trace("quantifiers-sk-debug") << "mkSkolem body for " << f
                                 << " returns : " << ret << std::endl;

@@ -419,7 +419,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node new_lit = sm->mkDummySkolem("G_cost", nm->booleanType());
+  Node newLit = sm->mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
 
   // allocate an enumerator for each candidate
@@ -454,7 +454,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     {
       Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
                                << " to new size " << new_size << "\n";
-      registerEvalPtAtSize(c, ei, new_lit, new_size);
+      registerEvalPtAtSize(c, ei, newLit, new_size);
     }
   }
   // enforce fairness between number of enumerators and enumerator size
@@ -499,7 +499,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
       Node fair_lemma =
           nm->mkNode(GEQ, size_ve, nm->mkConst(Rational(pow_two - 1)));
-      fair_lemma = nm->mkNode(OR, new_lit, fair_lemma);
+      fair_lemma = nm->mkNode(OR, newLit, fair_lemma);
       Trace("cegis-unif-enum-lemma")
           << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
       // this lemma relates the number of conditions we enumerate and the
@@ -512,7 +512,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     }
   }
 
-  return new_lit;
+  return newLit;
 }
 
 void CegisUnifEnumDecisionStrategy::initialize(

@@ -579,7 +579,7 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
       //must create new type
       std::stringstream ss;
       ss << "it_" << t << "_" << pref;
-      retType = NodeManager::currentNM()->mkSort( ss.str() );
+      retType = nm->mkSort( ss.str() );
     }
     Trace("sort-inference") << "-> Make type " << retType << " to correspond to ";
     printSort("sort-inference", t );
@@ -619,12 +619,11 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   }else if( old.getKind()==kind::BOUND_VARIABLE ){
     std::stringstream ss;
     ss << "b_" << old;
-    return NodeManager::currentNM()->mkBoundVar( ss.str(), tn );
-  }else{
-    std::stringstream ss;
-    ss << "i_" << old;
-    return sm->mkDummySkolem(ss.str(), tn, "created during sort inference");
+    return nm->mkBoundVar( ss.str(), tn );
   }
+  std::stringstream ss;
+  ss << "i_" << old;
+  return sm->mkDummySkolem(ss.str(), tn, "created during sort inference");
 }
 
 Node SortInference::simplifyNode(
@@ -654,7 +653,7 @@ Node SortInference::simplifyNode(
         new_children.push_back( v );
         var_bound[ n[0][i] ] = v;
       }
-      children.push_back( NodeManager::currentNM()->mkNode( n[0].getKind(), new_children ) );
+      children.push_back( nm->mkNode( n[0].getKind(), new_children ) );
       use_new_visited = true;
     }
 
@@ -709,7 +708,7 @@ Node SortInference::simplifyNode(
         Trace("sort-inference-debug2") << "Remove bound for " << n[0][i] << std::endl;
         var_bound.erase( n[0][i] );
       }
-      ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      ret = nm->mkNode( n.getKind(), children );
     }else if( n.getKind()==kind::EQUAL ){
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
@@ -718,7 +717,7 @@ Node SortInference::simplifyNode(
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);
       }
-      ret = NodeManager::currentNM()->mkNode( kind::EQUAL, children );
+      ret = nm->mkNode( kind::EQUAL, children );
     }
     else if (isHandledApplyUf(n.getKind()))
     {
@@ -740,7 +739,7 @@ Node SortInference::simplifyNode(
         if( opChanged ){
           std::stringstream ss;
           ss << "io_" << op;
-          TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
+          TypeNode typ = nm->mkFunctionType( argTypes, retType );
           d_symbol_map[op] = sm->mkDummySkolem(
               ss.str(), typ, "op created during sort inference");
           Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
@@ -761,7 +760,7 @@ Node SortInference::simplifyNode(
           Assert(false);
         }
       }
-      ret = NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
+      ret = nm->mkNode( kind::APPLY_UF, children );
     }else{
       std::map< Node, Node >::iterator it = var_bound.find( n );
       if( it!=var_bound.end() ){
@@ -776,7 +775,7 @@ Node SortInference::simplifyNode(
         //type is determined by context
         ret = getNewSymbol( n, tnn );
       }else if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        ret = nm->mkNode( n.getKind(), children );
       }else{
         ret = n;
       }
@@ -791,16 +790,16 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   SkolemManager* sm = nm->getSkolemManager();
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
-  TypeNode typ = NodeManager::currentNM()->mkFunctionType( tns, tn2 );
+  TypeNode typ = nm->mkFunctionType( tns, tn2 );
   Node f =
       sm->mkDummySkolem("inj", typ, "injection for monotonicity constraint");
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
-  Node v1 = NodeManager::currentNM()->mkBoundVar( "?x", tn1 );
-  Node v2 = NodeManager::currentNM()->mkBoundVar( "?y", tn1 );
-  Node ret = NodeManager::currentNM()->mkNode( kind::FORALL,
-               NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, v1, v2 ),
-               NodeManager::currentNM()->mkNode( kind::OR,
-                 NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v1 ).eqNode( NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v2 ) ).negate(),
+  Node v1 = nm->mkBoundVar( "?x", tn1 );
+  Node v2 = nm->mkBoundVar( "?y", tn1 );
+  Node ret = nm->mkNode( kind::FORALL,
+               nm->mkNode( kind::BOUND_VAR_LIST, v1, v2 ),
+               nm->mkNode( kind::OR,
+                 nm->mkNode( kind::APPLY_UF, f, v1 ).eqNode( nm->mkNode( kind::APPLY_UF, f, v2 ) ).negate(),
                  v1.eqNode( v2 ) ) );
   ret = theory::Rewriter::rewrite( ret );
   return ret;

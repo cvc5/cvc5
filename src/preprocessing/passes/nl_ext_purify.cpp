@@ -94,7 +94,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+        ret = nm->mkNode(n.getKind(), children);
       }
     }
   }

@@ -56,10 +56,10 @@ Node preSkolemEmp(Node n,
         Node x =
             sm->mkDummySkolem("ex", tnx, "skolem location for negated emp");
         Node y = sm->mkDummySkolem("ey", tny, "skolem data for negated emp");
-        return NodeManager::currentNM()
+        return nm
             ->mkNode(kind::SEP_STAR,
-                     NodeManager::currentNM()->mkNode(kind::SEP_PTO, x, y),
-                     NodeManager::currentNM()->mkConst(true))
+                     nm->mkNode(kind::SEP_PTO, x, y),
+                     nm->mkConst(true))
             .negate();
       }
     }
@@ -85,7 +85,7 @@ Node preSkolemEmp(Node n,
       }
       if (childChanged)
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
+        return nm->mkNode(n.getKind(), children);
       }
     }
     visited[pol][n] = ret;

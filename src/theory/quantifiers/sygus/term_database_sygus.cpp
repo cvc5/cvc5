@@ -166,10 +166,10 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   {
     SygusTypeInfo& ti = getTypeInfo(tn);
     int anyC = ti.getAnyConstantConsNum();
+    NodeManager* nm = NodeManager::currentNM();
     Node k;
     if (anyC == -1)
     {
-      NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
       k = sm->mkDummySkolem("sy", tn, "sygus proxy");
       SygusPrintProxyAttribute spa;
@@ -178,7 +178,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     else
     {
       const DType& dt = tn.getDType();
-      k = NodeManager::currentNM()->mkNode(
+      k = nm->mkNode(
           APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
     }
     d_proxy_vars[tn][c] = k;
