@@ -192,7 +192,7 @@ std::pair<CardinalityClass, bool> DTypeConstructor::computeCardinalityInfo(
                          instTypes.end());
     }
     // get the current cardinality class
-    CardinalityClass cctc = getCardinalityClass(tc);
+    CardinalityClass cctc = tc.getCardinalityClass();
     // update ret.first to the max cardinality class
     ret.first = maxCardinalityClass(ret.first, cctc);
     if (cctc != CardinalityClass::INFINITE)

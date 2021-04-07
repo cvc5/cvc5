@@ -110,29 +110,16 @@ CardinalityClass TypeNode::getCardinalityClass()
     }
     else if (isArray())
     {
-      CardinalityClass cce = getArrayConstituentType().getCardinalityClass();
-      if (cce == CardinalityClass::INFINITE || cce == CardinalityClass::ONE
-          || cce == CardinalityClass::INTERPRETED_ONE)
-      {
-        // arrays with constituent type that is infinite are infinite
-        // arrays with constituent type that is (interpreted) one are
-        // (interpreted) one
-        ret = cce;
-      }
-      else
+      ret = getArrayConstituentType().getCardinalityClass();
+      if (ret == CardinalityClass::FINITE || ret == CardinalityClass::INTERPRETED_FINITE)
       {
         CardinalityClass cci = getArrayIndexType().getCardinalityClass();
-        if (cci == CardinalityClass::INFINITE)
-        {
-          ret = CardinalityClass::INFINITE;
-        }
-        else
-        {
-          // arrays with both finite constituent and index types are finite,
-          // possibly dependent on uninterpreted sorts
-          ret = maxCardinalityClass(cce, cci);
-        }
+        // arrays with both finite element types, we take the max with its
+        // index type.
+        ret = maxCardinalityClass(ret, cci);
       }
+      // else, array types whose element type is INFINITE, ONE, or
+      // INTERPRETED_ONE have the same cardinality class as their range.
     }
     else if (isSet())
     {
@@ -155,16 +142,10 @@ CardinalityClass TypeNode::getCardinalityClass()
     }
     else if (isFunction())
     {
-      ret = CardinalityClass::FINITE;
-      CardinalityClass ccr = getRangeType().getCardinalityClass();
-      if (ccr == CardinalityClass::INFINITE || ccr == CardinalityClass::ONE
-          || ccr == CardinalityClass::INTERPRETED_ONE)
+      ret = getRangeType().getCardinalityClass();
+      if (ret == CardinalityClass::FINITE || ret == CardinalityClass::INTERPRETED_FINITE)
       {
-        ret = ccr;
-      }
-      else
-      {
-        // otherwise, we may have a larger cardinality class based on the
+        // we may have a larger cardinality class based on the
         // arguments of the function
         std::vector<TypeNode> argTypes = getArgTypes();
         for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
@@ -173,10 +154,16 @@ CardinalityClass TypeNode::getCardinalityClass()
           ret = maxCardinalityClass(ret, cca);
         }
       }
+      // else, function types whose range type is INFINITE, ONE, or
+      // INTERPRETED_ONE have the same cardinality class as their range.
+    }
+    else if (isConstructor())
+    {
+      ret = CardinalityClass::ONE;
     }
     else
     {
-      // all types should be handled above
+      // all types we care about should be handled above
       Assert(false);
     }
   }
