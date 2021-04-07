@@ -1,5 +1,6 @@
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
+check_python_module(breathe)
 
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
