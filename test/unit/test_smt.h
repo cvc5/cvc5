@@ -137,7 +137,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   }
 
   void requirePhase(TNode, bool) override {}
-  void setIncomplete() override {}
+  void setIncomplete(IncompleteId id) override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
   void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }

@@ -234,6 +234,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_inSatMode(false),
       d_hasShutDown(false),
       d_incomplete(context, false),
+      d_incompleteTheory(context, THEORY_BUILTIN),
       d_incompleteId(context, IncompleteId::UNKNOWN),
       d_propagationMap(context),
       d_propagationMapTimestamp(context, 0),
@@ -1455,9 +1456,10 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
   }
 }
 
-void TheoryEngine::setIncomplete(theory::TheoryId theory, IncompleteId id)
+void TheoryEngine::setIncomplete(theory::TheoryId theory, theory::IncompleteId id)
 {
   d_incomplete = true;
+  d_incompleteTheory = theory;
   d_incompleteId = id;
 }
 
