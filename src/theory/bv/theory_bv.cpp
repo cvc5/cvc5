@@ -233,7 +233,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   d_internal->ppStaticLearn(in, learned);
 }

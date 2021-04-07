@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
@@ -78,7 +78,7 @@ class TestNodeBlackNode : public TestNode
 
   void testNaryExpForSize(Kind k, uint32_t n)
   {
-    NodeBuilder<> nbz(k);
+    NodeBuilder nbz(k);
     Node trueNode = d_nodeManager->mkConst(true);
     for (uint32_t i = 0; i < n; ++i)
     {
@@ -461,7 +461,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 
 TEST_F(TestNodeBlackNode, iterator)
 {
-  NodeBuilder<> b;
+  NodeBuilder b;
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
@@ -520,8 +520,8 @@ TEST_F(TestNodeBlackNode, toString)
       "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder<>() << w << x << kind::OR;
-  Node n = NodeBuilder<>() << m << y << z << kind::AND;
+  Node m = NodeBuilder() << w << x << kind::OR;
+  Node n = NodeBuilder() << m << y << z << kind::AND;
 
   ASSERT_EQ(n.toString(), "(AND (OR w x) y z)");
 }
@@ -538,9 +538,9 @@ TEST_F(TestNodeBlackNode, toStream)
       "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder<>() << x << y << kind::OR;
-  Node n = NodeBuilder<>() << w << m << z << kind::AND;
-  Node o = NodeBuilder<>() << n << n << kind::XOR;
+  Node m = NodeBuilder() << x << y << kind::OR;
+  Node n = NodeBuilder() << w << m << z << kind::AND;
+  Node o = NodeBuilder() << n << n << kind::XOR;
 
   std::stringstream sstr;
   sstr << Node::dag(false);
@@ -767,7 +767,7 @@ namespace {
 Node level0(NodeManager* nm)
 {
   SkolemManager* sm = nm->getSkolemManager();
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   Node x = sm->mkDummySkolem("x", nm->booleanType());
   nb << x;
   nb << x;

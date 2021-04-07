@@ -80,7 +80,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else
     {
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -188,7 +188,7 @@ Node intToBV(TNode n, NodeMap& cache)
           }
         }
       }
-      NodeBuilder<> builder(newKind);
+      NodeBuilder builder(newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }

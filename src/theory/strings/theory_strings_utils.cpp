@@ -33,11 +33,6 @@ namespace utils {
 
 uint32_t getAlphabetCardinality()
 {
-  if (options::stdPrintASCII())
-  {
-    Assert(128 <= String::num_codes());
-    return 128;
-  }
   // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
   Assert(196608 <= String::num_codes());
   return 196608;

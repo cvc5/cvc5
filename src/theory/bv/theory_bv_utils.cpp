@@ -385,7 +385,7 @@ Node mkConcat(TNode node, unsigned repeat)
   {
     return node;
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   for (unsigned i = 0; i < repeat; ++i)
   {
     result << node;
@@ -504,7 +504,7 @@ Node eliminateInt2Bv(TNode node)
   {
     return v[0];
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   result.append(v.rbegin(), v.rend());
   return Node(result);
 }

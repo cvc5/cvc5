@@ -657,7 +657,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
       }
     }
   }
-  NodeBuilder<> nb(range.getKind());
+  NodeBuilder nb(range.getKind());
   for (size_t i = 0, csize = children.size(); i < csize; ++i)
   {
     nb << children[i];

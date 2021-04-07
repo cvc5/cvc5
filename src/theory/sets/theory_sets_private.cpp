@@ -286,6 +286,10 @@ void TheorySetsPrivate::fullEffortCheck()
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
+          if (d_im.hasSent())
+          {
+            break;
+          }
           // if we do not handle the kind, set incomplete
           Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
@@ -1221,7 +1225,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end)

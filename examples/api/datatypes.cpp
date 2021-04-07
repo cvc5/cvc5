@@ -14,9 +14,9 @@
  ** An example of using inductive datatypes in CVC4.
  **/
 
-#include <iostream>
+#include <cvc5/cvc5.h>
 
-#include <cvc4/api/cvc4cpp.h>
+#include <iostream>
 
 using namespace cvc5::api;
 

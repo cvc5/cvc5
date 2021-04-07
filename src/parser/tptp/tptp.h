@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "util/hash.h"

@@ -38,6 +38,7 @@ libcvc4_add_sources(
   node.h
   node_algorithm.cpp
   node_algorithm.h
+  node_builder.cpp
   node_builder.h
   node_manager.cpp
   node_manager.h

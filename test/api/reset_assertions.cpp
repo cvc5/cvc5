@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 using namespace cvc5::api;
 

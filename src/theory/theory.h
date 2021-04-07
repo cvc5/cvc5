@@ -691,7 +691,7 @@ class Theory {
    * *never* clear it.  It is a conjunction to add to the formula at
    * the top-level and may contain other theories' contributions.
    */
-  virtual void ppStaticLearn(TNode in, NodeBuilder<>& learned) { }
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
 
   enum PPAssertStatus {
     /** Atom has been solved  */
