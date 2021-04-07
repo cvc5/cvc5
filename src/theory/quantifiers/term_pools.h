@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
