@@ -389,23 +389,32 @@ void TheorySetsRels::check(Theory::Effort level)
         }
       }
     }
-    NodeManager * nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Node reason = exp;
     Node conclusion = d_trueNode;
     std::vector< Node > distinct_skolems;
     Node fst_mem_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
 
     if( exp[1] != join_image_term ) {
-      reason = nm->mkNode( AND, reason, nm->mkNode( EQUAL, exp[1], join_image_term ) );
+      reason =
+          nm->mkNode(AND, reason, nm->mkNode(EQUAL, exp[1], join_image_term));
     }
     for( unsigned int i = 0; i < min_card; i++ ) {
-      Node skolem = sm->mkDummySkolem( "jig", join_image_rel.getType()[0].getTupleTypes()[0] );
+      Node skolem = sm->mkDummySkolem(
+          "jig", join_image_rel.getType()[0].getTupleTypes()[0]);
       distinct_skolems.push_back( skolem );
-      conclusion = nm->mkNode( AND, conclusion, nm->mkNode( MEMBER, RelsUtils::constructPair( join_image_rel, fst_mem_element, skolem ), join_image_rel ) );
+      conclusion = nm->mkNode(
+          AND,
+          conclusion,
+          nm->mkNode(
+              MEMBER,
+              RelsUtils::constructPair(join_image_rel, fst_mem_element, skolem),
+              join_image_rel));
     }
     if( distinct_skolems.size() >= 2 ) {
-      conclusion =  nm->mkNode( AND, conclusion, nm->mkNode( DISTINCT, distinct_skolems ) );
+      conclusion =
+          nm->mkNode(AND, conclusion, nm->mkNode(DISTINCT, distinct_skolems));
     }
     sendInfer(conclusion, InferenceId::SETS_RELS_JOIN_IMAGE_DOWN, reason);
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
