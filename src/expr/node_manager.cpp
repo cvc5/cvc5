@@ -601,7 +601,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     }
     if (nameResolutions.find(dtp->getName()) != nameResolutions.end())
     {
-      throw TypeCheckingExceptionPrivate(
+      throw Exception(
           "cannot construct two datatypes at the same time with the same name");
     }
     nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
@@ -628,7 +628,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         nameResolutions.find(name);
     if (resolver == nameResolutions.end())
     {
-      throw TypeCheckingExceptionPrivate(
+      throw Exception(
           "cannot resolve type " + name
           + "; it's not among the datatypes being defined");
     }
@@ -686,7 +686,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // cvc5::DType class, but this actually needs to be checked.
         if (selectorType.getRangeType().isFunctionLike())
         {
-          throw TypeCheckingExceptionPrivate(
+          throw Exception(
               "cannot put function-like things in datatypes");
         }
       }
