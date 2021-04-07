@@ -28,6 +28,9 @@ namespace cvc5 {
  * The purposes of these classifications is solely to determine whether or not
  * a type should be considered finite. This includes use cases for when
  * finite model finding is enabled or disabled.
+ *
+ * Note that the order of this enum is important for the implementation of
+ * minCardinalityClass and maxCardinalityClass below.
  */
 enum class CardinalityClass : uint64_t
 {
