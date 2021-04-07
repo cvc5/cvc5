@@ -1,18 +1,16 @@
-/*********************                                                        */
-/*! \file cvc5.h
- ** \verbatim
+/***
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
+ ** This file is part of the cvc5 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The CVC4 C++ API.
- **
- ** The CVC4 C++ API.
- **/
+ ** directory for licensing information.
+ */
+
+/**
+ * The cvc5 C++ API.
+ */
 
 #include "cvc4_export.h"
 
@@ -199,7 +197,7 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_EXPORT;
 /**
  * Serialize an UnknownExplanation to given stream.
  * @param out the output stream
- * @param r the explanation to be serialized to the given output stream
+ * @param e the explanation to be serialized to the given output stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
@@ -1732,7 +1730,7 @@ class CVC4_EXPORT DatatypeConstructor
      * Constructor.
      * @param slv the associated Solver object
      * @param ctor the internal datatype constructor to iterate over
-     * @param true if this is a begin() iterator
+     * @param begin true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
                    const cvc5::DTypeConstructor& ctor,
@@ -1770,6 +1768,7 @@ class CVC4_EXPORT DatatypeConstructor
  private:
   /**
    * Constructor.
+   * @param slv the associated solver instance
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
@@ -1955,7 +1954,7 @@ class CVC4_EXPORT Datatype
      * Constructor.
      * @param slv the associated Solver object
      * @param dtype the internal datatype to iterate over
-     * @param true if this is a begin() iterator
+     * @param begin true if this is a begin() iterator
      */
     const_iterator(const Solver* slv, const cvc5::DType& dtype, bool begin);
 
@@ -1991,6 +1990,7 @@ class CVC4_EXPORT Datatype
  private:
   /**
    * Constructor.
+   * @param slv the associated solver instance
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
@@ -2048,12 +2048,13 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<DatatypeConstructorDecl>& vector);
+                         const std::vector<DatatypeConstructorDecl>& vector)
+    CVC4_EXPORT;
 
 /**
  * Serialize a datatype to given stream.
  * @param out the output stream
- * @param dtdecl the datatype to be serialized to given stream
+ * @param dtype the datatype to be serialized to given stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_EXPORT;
@@ -2070,7 +2071,7 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * Serialize a datatype selector to given stream.
  * @param out the output stream
- * @param ctor the datatype selector to be serialized to given stream
+ * @param stor the datatype selector to be serialized to given stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
@@ -2090,28 +2091,28 @@ class CVC4_EXPORT Grammar
 
  public:
   /**
-   * Add <rule> to the set of rules corresponding to <ntSymbol>.
+   * Add \p rule to the set of rules corresponding to \p ntSymbol.
    * @param ntSymbol the non-terminal to which the rule is added
    * @param rule the rule to add
    */
   void addRule(const Term& ntSymbol, const Term& rule);
 
   /**
-   * Add <rules> to the set of rules corresponding to <ntSymbol>.
+   * Add \p rules to the set of rules corresponding to \p ntSymbol.
    * @param ntSymbol the non-terminal to which the rules are added
-   * @param rule the rules to add
+   * @param rules the rules to add
    */
   void addRules(const Term& ntSymbol, const std::vector<Term>& rules);
 
   /**
-   * Allow <ntSymbol> to be an arbitrary constant.
+   * Allow \p ntSymbol to be an arbitrary constant.
    * @param ntSymbol the non-terminal allowed to be any constant
    */
   void addAnyConstant(const Term& ntSymbol);
 
   /**
-   * Allow <ntSymbol> to be any input variable to corresponding
-   * synth-fun/synth-inv with the same sort as <ntSymbol>.
+   * Allow \p ntSymbol to be any input variable to corresponding
+   * synth-fun/synth-inv with the same sort as \p ntSymbol.
    * @param ntSymbol the non-terminal allowed to be any input constant
    */
   void addAnyVariable(const Term& ntSymbol);
@@ -2145,13 +2146,13 @@ class CVC4_EXPORT Grammar
   /**
    * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
    *
-   * <ntsToUnres> contains a mapping from non-terminal symbols to the
+   * \p ntsToUnres contains a mapping from non-terminal symbols to the
    * unresolved sorts they correspond to. This map indicates how the argument
    * <term> should be interpreted (instances of symbols from the domain of
-   * <ntsToUnres> correspond to constructor arguments).
+   * \p ntsToUnres correspond to constructor arguments).
    *
    * The sygus operator that is actually added to <dt> corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of <ntsToUnres>
+   * each occurrence of non-terminal symbols from the domain of \p ntsToUnres
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
@@ -2168,13 +2169,13 @@ class CVC4_EXPORT Grammar
    * Purify SyGuS grammar term.
    *
    * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of <ntsToUnres>) are replaced by fresh variables. For
+   * in the domain of \p ntsToUnres) are replaced by fresh variables. For
    * each variable replaced in this way, we add the fresh variable it is
-   * replaced with to <args>, and the unresolved sorts corresponding to the
-   * non-terminal symbol to <cargs> (constructor args). In other words, <args>
-   * contains the free variables in the term returned by this method (which
-   * should be bound by a lambda), and <cargs> contains the sorts of the
-   * arguments of the sygus constructor.
+   * replaced with to \p args, and the unresolved sorts corresponding to the
+   * non-terminal symbol to \p cargs (constructor args). In other words,
+   * \p args contains the free variables in the term returned by this method
+   * (which should be bound by a lambda), and \p cargs contains the sorts of
+   * the arguments of the sygus constructor.
    *
    * @param term the term to purify
    * @param args the free variables in the term returned by this method
@@ -2189,9 +2190,9 @@ class CVC4_EXPORT Grammar
       const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
 
   /**
-   * This adds constructors to <dt> for sygus variables in <d_sygusVars> whose
-   * sort is argument <sort>. This method should be called when the sygus
-   * grammar term (Variable sort) is encountered.
+   * This adds constructors to \p dt for sygus variables in \p d_sygusVars
+   * whose sort is argument \p sort. This method should be called when the
+   * sygus grammar term (Variable sort) is encountered.
    *
    * @param dt the non-terminal's datatype to which the constructors are added
    * @param sort the sort of the sygus variables to add
@@ -2199,10 +2200,10 @@ class CVC4_EXPORT Grammar
   void addSygusConstructorVariables(DatatypeDecl& dt, const Sort& sort) const;
 
   /**
-   * Check if <rule> contains variables that are neither parameters of
+   * Check if \p rule contains variables that are neither parameters of
    * the corresponding synthFun/synthInv nor non-terminals.
    * @param rule the non-terminal allowed to be any constant
-   * @return <true> if <rule> contains free variables and <false> otherwise
+   * @return true if \p rule contains free variables and false otherwise
    */
   bool containsFreeVariables(const Term& rule) const;
 
@@ -2234,7 +2235,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
-/**
+/*!
  * A CVC4 floating point rounding mode.
  */
 enum CVC4_EXPORT RoundingMode
@@ -2537,7 +2538,7 @@ class CVC4_EXPORT Solver
   /**
    * Create nullary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param the operator
+   * @param op the operator
    * @return the Term
    */
   Term mkTerm(const Op& op) const;
@@ -2545,8 +2546,8 @@ class CVC4_EXPORT Solver
   /**
    * Create unary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param the operator
-   * @child the child of the term
+   * @param op the operator
+   * @param child the child of the term
    * @return the Term
    */
   Term mkTerm(const Op& op, const Term& child) const;
@@ -2554,9 +2555,9 @@ class CVC4_EXPORT Solver
   /**
    * Create binary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param the operator
-   * @child1 the first child of the term
-   * @child2 the second child of the term
+   * @param op the operator
+   * @param child1 the first child of the term
+   * @param child2 the second child of the term
    * @return the Term
    */
   Term mkTerm(const Op& op, const Term& child1, const Term& child2) const;
@@ -2564,10 +2565,10 @@ class CVC4_EXPORT Solver
   /**
    * Create ternary term of given kind from a given operator.
    * Create operators with mkOp().
-   * @param the operator
-   * @child1 the first child of the term
-   * @child2 the second child of the term
-   * @child3 the third child of the term
+   * @param op the operator
+   * @param child1 the first child of the term
+   * @param child2 the second child of the term
+   * @param child3 the third child of the term
    * @return the Term
    */
   Term mkTerm(const Op& op,
@@ -2579,7 +2580,7 @@ class CVC4_EXPORT Solver
    * Create n-ary term of given kind from a given operator.
    * Create operators with mkOp().
    * @param op the operator
-   * @children the children of the term
+   * @param children the children of the term
    * @return the Term
    */
   Term mkTerm(const Op& op, const std::vector<Term>& children) const;
@@ -2660,6 +2661,7 @@ class CVC4_EXPORT Solver
    *   - TUPLE_PROJECT
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
+   * @param args the arguments (indices) of the operator
    */
   Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
 
@@ -2902,8 +2904,8 @@ class CVC4_EXPORT Solver
 
   /**
    * Create uninterpreted constant.
-   * @param arg1 Sort of the constant
-   * @param arg2 Index of the constant
+   * @param sort Sort of the constant
+   * @param index Index of the constant
    */
   Term mkUninterpretedConst(const Sort& sort, int32_t index) const;
 
@@ -2934,8 +2936,11 @@ class CVC4_EXPORT Solver
 
   /**
    * Create (first-order) constant (0-arity function symbol).
-   * SMT-LIB: ( declare-const <symbol> <sort> )
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( declare-const <symbol> <sort> )
+   *   ( declare-fun <symbol> ( ) <sort> )
+   * \endverbatim
    *
    * @param sort the sort of the constant
    * @param symbol the name of the constant
@@ -3019,21 +3024,30 @@ class CVC4_EXPORT Solver
 
   /**
    * Assert a formula.
-   * SMT-LIB: ( assert <term> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( assert <term> )
+   * \endverbatim
    * @param term the formula to assert
    */
   void assertFormula(const Term& term) const;
 
   /**
    * Check satisfiability.
-   * SMT-LIB: ( check-sat )
+   * SMT-LIB:
+   * \verbatim
+   *   ( check-sat )
+   * \endverbatim
    * @return the result of the satisfiability check.
    */
   Result checkSat() const;
 
   /**
    * Check satisfiability assuming the given formula.
-   * SMT-LIB: ( check-sat-assuming ( <prop_literal> ) )
+   * SMT-LIB:
+   * \verbatim
+   *   ( check-sat-assuming ( <prop_literal> ) )
+   * \endverbatim
    * @param assumption the formula to assume
    * @return the result of the satisfiability check.
    */
@@ -3041,7 +3055,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Check satisfiability assuming the given formulas.
-   * SMT-LIB: ( check-sat-assuming ( <prop_literal>+ ) )
+   * SMT-LIB:
+   * \verbatim
+   *   ( check-sat-assuming ( <prop_literal>+ ) )
+   * \endverbatim
    * @param assumptions the formulas to assume
    * @return the result of the satisfiability check.
    */
@@ -3064,7 +3081,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Create datatype sort.
-   * SMT-LIB: ( declare-datatype <symbol> <datatype_decl> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( declare-datatype <symbol> <datatype_decl> )
+   * \endverbatim
    * @param symbol the name of the datatype sort
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort
@@ -3074,7 +3094,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Declare n-ary function symbol.
-   * SMT-LIB: ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * \endverbatim
    * @param symbol the name of the function
    * @param sorts the sorts of the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3086,7 +3109,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Declare uninterpreted sort.
-   * SMT-LIB: ( declare-sort <symbol> <numeral> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( declare-sort <symbol> <numeral> )
+   * \endverbatim
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -3095,7 +3121,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Define n-ary function.
-   * SMT-LIB: ( define-fun <function_def> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( define-fun <function_def> )
+   * \endverbatim
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3111,7 +3140,10 @@ class CVC4_EXPORT Solver
                  bool global = false) const;
   /**
    * Define n-ary function.
-   * SMT-LIB: ( define-fun <function_def> )
+   * SMT-LIB:
+   * \verbatim
+   * ( define-fun <function_def> )
+   * \endverbatim
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
@@ -3127,7 +3159,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Define recursive function.
-   * SMT-LIB: ( define-fun-rec <function_def> )
+   * SMT-LIB:
+   * \verbatim
+   * ( define-fun-rec <function_def> )
+   * \endverbatim
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3144,7 +3179,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Define recursive function.
-   * SMT-LIB: ( define-fun-rec <function_def> )
+   * SMT-LIB:
+   * \verbatim
+   * ( define-fun-rec <function_def> )
+   * \endverbatim
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
@@ -3160,11 +3198,14 @@ class CVC4_EXPORT Solver
 
   /**
    * Define recursive functions.
-   * SMT-LIB: ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+   * SMT-LIB:
+   * \verbatim
+   *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+   * \endverbatim
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
-   * @param term the list of function bodies of the functions
+   * @param terms the list of function bodies of the functions
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
    * @return the function
@@ -3176,7 +3217,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Echo a given string to the given output stream.
-   * SMT-LIB: ( echo <std::string> )
+   * SMT-LIB:
+   * \verbatim
+   * ( echo <std::string> )
+   * \endverbatim
    * @param out the output stream
    * @param str the string to echo
    */
@@ -3184,21 +3228,27 @@ class CVC4_EXPORT Solver
 
   /**
    * Get the list of asserted formulas.
-   * SMT-LIB: ( get-assertions )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-assertions )
+   * \endverbatim
    * @return the list of asserted formulas
    */
   std::vector<Term> getAssertions() const;
 
   /**
    * Get info from the solver.
-   * SMT-LIB: ( get-info <info_flag> )
+   * SMT-LIB: \verbatim( get-info <info_flag> )\verbatim
    * @return the info
    */
   std::string getInfo(const std::string& flag) const;
 
   /**
    * Get the value of a given option.
-   * SMT-LIB: ( get-option <keyword> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-option <keyword> )
+   * \endverbatim
    * @param option the option for which the value is queried
    * @return a string representation of the option value
    */
@@ -3206,7 +3256,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Get the set of unsat ("failed") assumptions.
-   * SMT-LIB: ( get-unsat-assumptions )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-unsat-assumptions )
+   * \endverbatim
    * Requires to enable option 'produce-unsat-assumptions'.
    * @return the set of unsat assumptions.
    */
@@ -3214,7 +3267,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Get the unsatisfiable core.
-   * SMT-LIB: ( get-unsat-core )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-unsat-core )
+   * \endverbatim
    * Requires to enable option 'produce-unsat-cores'.
    * @return a set of terms representing the unsatisfiable core
    */
@@ -3222,14 +3278,20 @@ class CVC4_EXPORT Solver
 
   /**
    * Get the value of the given term.
-   * SMT-LIB: ( get-value ( <term> ) )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-value ( <term> ) )
+   * \endverbatim
    * @param term the term for which the value is queried
    * @return the value of the given term
    */
   Term getValue(const Term& term) const;
   /**
    * Get the values of the given terms.
-   * SMT-LIB: ( get-value ( <term>+ ) )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-value ( <term>+ ) )
+   * \endverbatim
    * @param terms the terms for which the value is queried
    * @return the values of the given terms
    */
@@ -3237,7 +3299,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Do quantifier elimination.
-   * SMT-LIB: ( get-qe <q> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-qe <q> )
+   * \endverbatim
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
    * @param q a quantified formula of the form:
@@ -3254,7 +3319,10 @@ class CVC4_EXPORT Solver
   /**
    * Do partial quantifier elimination, which can be used for incrementally
    * computing the result of a quantifier elimination.
-   * SMT-LIB: ( get-qe-disjunct <q> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-qe-disjunct <q> )
+   * \endverbatim
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
    * @param q a quantified formula of the form:
@@ -3300,14 +3368,20 @@ class CVC4_EXPORT Solver
 
   /**
    * Pop (a) level(s) from the assertion stack.
-   * SMT-LIB: ( pop <numeral> )
+   * SMT-LIB:
+   * \verbatim
+   * ( pop <numeral> )
+   * \endverbatim
    * @param nscopes the number of levels to pop
    */
   void pop(uint32_t nscopes = 1) const;
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <conj> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-interpol <conj> )
+   * \endverbatim
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -3318,7 +3392,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <conj> <g> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-interpol <conj> <g> )
+   * \endverbatim
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
@@ -3330,7 +3407,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Get an abduct.
-   * SMT-LIB: ( get-abduct <conj> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-abduct <conj> )
+   * \endverbatim
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
    * @param output a term C such that A^C is satisfiable, and A^~B^C is
@@ -3342,7 +3422,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Get an abduct.
-   * SMT-LIB: ( get-abduct <conj> <g> )
+   * SMT-LIB:
+   * \verbatim
+   * ( get-abduct <conj> <g> )
+   * \endverbatim
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
@@ -3356,7 +3439,10 @@ class CVC4_EXPORT Solver
   /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
-   * SMT-LIB: ( block-model )
+   * SMT-LIB:
+   * \verbatim
+   * ( block-model )
+   * \endverbatim
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    */
@@ -3365,7 +3451,10 @@ class CVC4_EXPORT Solver
   /**
    * Block the current model values of (at least) the values in terms. Can be
    * called only if immediately preceded by a SAT or NOT_ENTAILED query.
-   * SMT-LIB: ( block-model-values ( <terms>+ ) )
+   * SMT-LIB:
+   * \verbatim
+   * ( block-model-values ( <terms>+ ) )
+   * \endverbatim
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    */
@@ -3379,20 +3468,29 @@ class CVC4_EXPORT Solver
 
   /**
    * Push (a) level(s) to the assertion stack.
-   * SMT-LIB: ( push <numeral> )
+   * SMT-LIB:
+   * \verbatim
+   * ( push <numeral> )
+   * \endverbatim
    * @param nscopes the number of levels to push
    */
   void push(uint32_t nscopes = 1) const;
 
   /**
    * Remove all assertions.
-   * SMT-LIB: ( reset-assertions )
+   * SMT-LIB:
+   * \verbatim
+   * ( reset-assertions )
+   * \endverbatim
    */
   void resetAssertions() const;
 
   /**
    * Set info.
-   * SMT-LIB: ( set-info <attribute> )
+   * SMT-LIB:
+   * \verbatim
+   * ( set-info <attribute> )
+   * \endverbatim
    * @param keyword the info flag
    * @param value the value of the info flag
    */
@@ -3400,14 +3498,20 @@ class CVC4_EXPORT Solver
 
   /**
    * Set logic.
-   * SMT-LIB: ( set-logic <symbol> )
+   * SMT-LIB:
+   * \verbatim
+   * ( set-logic <symbol> )
+   * \endverbatim
    * @param logic the logic to set
    */
   void setLogic(const std::string& logic) const;
 
   /**
    * Set option.
-   * SMT-LIB: ( set-option <option> )
+   * SMT-LIB:
+   * \verbatim
+   *   ( set-option <option> )
+   * \endverbatim
    * @param option the option name
    * @param value the option value
    */
@@ -3417,14 +3521,18 @@ class CVC4_EXPORT Solver
    * If needed, convert this term to a given sort. Note that the sort of the
    * term must be convertible into the target sort. Currently only Int to Real
    * conversions are supported.
+   * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
    */
   Term ensureTermSort(const Term& t, const Sort& s) const;
 
   /**
-   * Append <symbol> to the current list of universal variables.
-   * SyGuS v2: ( declare-var <symbol> <sort> )
+   * Append \p symbol to the current list of universal variables.
+   * SyGuS v2:
+   * \verbatim
+   *   ( declare-var <symbol> <sort> )
+   * \endverbatim
    * @param sort the sort of the universal variable
    * @param symbol the name of the universal variable
    * @return the universal variable
@@ -3445,7 +3553,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Synthesize n-ary function.
-   * SyGuS v2: ( synth-fun <symbol> ( <boundVars>* ) <sort> )
+   * SyGuS v2:
+   * \verbatim
+   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> )
+   * \endverbatim
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3457,7 +3568,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
-   * SyGuS v2: ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
+   * SyGuS v2:
+   * \verbatim
+   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
+   * \endverbatim
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3471,10 +3585,12 @@ class CVC4_EXPORT Solver
 
   /**
    * Synthesize invariant.
-   * SyGuS v2: ( synth-inv <symbol> ( <boundVars>* ) )
+   * SyGuS v2:
+   * \verbatim
+   *   ( synth-inv <symbol> ( <boundVars>* ) )
+   * \endverbatim
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
-   * @param sort the sort of the return value of this invariant
    * @return the invariant
    */
   Term synthInv(const std::string& symbol,
@@ -3482,10 +3598,12 @@ class CVC4_EXPORT Solver
 
   /**
    * Synthesize invariant following specified syntactic constraints.
-   * SyGuS v2: ( synth-inv <symbol> ( <boundVars>* ) <g> )
+   * SyGuS v2:
+   * \verbatim
+   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
+   * \endverbatim
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
-   * @param sort the sort of the return value of this invariant
    * @param grammar the syntactic constraints
    * @return the invariant
    */
@@ -3495,7 +3613,10 @@ class CVC4_EXPORT Solver
 
   /**
    * Add a forumla to the set of Sygus constraints.
-   * SyGuS v2: ( constraint <term> )
+   * SyGuS v2:
+   * \verbatim
+   *   ( constraint <term> )
+   * \endverbatim
    * @param term the formula to add as a constraint
    */
   void addSygusConstraint(const Term& term) const;
@@ -3503,7 +3624,10 @@ class CVC4_EXPORT Solver
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
-   * SyGuS v2: ( inv-constraint <inv> <pre> <trans> <post> )
+   * SyGuS v2:
+   * \verbatim
+   *   ( inv-constraint <inv> <pre> <trans> <post> )
+   * \endverbatim
    * @param inv the function-to-synthesize
    * @param pre the pre-condition
    * @param trans the transition relation
@@ -3515,7 +3639,10 @@ class CVC4_EXPORT Solver
    * Try to find a solution for the synthesis conjecture corresponding to the
    * current list of functions-to-synthesize, universal variables and
    * constraints.
-   * SyGuS v2: ( check-synth )
+   * SyGuS v2:
+   * \verbatim
+   *   ( check-synth )
+   * \endverbatim
    * @return the result of the synthesis conjecture.
    */
   Result checkSynth() const;
@@ -3619,12 +3746,15 @@ class CVC4_EXPORT Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
-   * SMT-LIB: ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
+   * SMT-LIB:
+   * \verbatim
+   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
+   * \endverbatim
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param isInv determines whether this is synth-fun or synth-inv
-   * @param g the syntactic constraints
+   * @param grammar the syntactic constraints
    * @return the function
    */
   Term synthFunHelper(const std::string& symbol,

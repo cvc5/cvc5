@@ -16,6 +16,7 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -92,6 +93,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
   std::map<int, Node> subs_head;
   // first pass : find defined functions, transform quantifiers
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
     Node n = QuantAttributes::getFunDefHead(assertions[i]);
@@ -129,8 +131,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(
-              nm->mkSkolem(ssf.str(), typ, "op created during fun def fmf"));
+          d_input_arg_inj[f].push_back(sm->mkDummySkolem(
+              ssf.str(), typ, "op created during fun def fmf"));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]

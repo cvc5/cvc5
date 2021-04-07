@@ -92,7 +92,7 @@ TEST_F(TestNodeBlackNodeBuilder, getKind)
   NodeBuilder noKind;
   ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
 
-  Node x(d_nodeManager->mkSkolem("x", *d_intTypeNode));
+  Node x(d_skolemManager->mkDummySkolem("x", *d_intTypeNode));
   noKind << x << x;
   ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
 
@@ -112,7 +112,7 @@ TEST_F(TestNodeBlackNodeBuilder, getKind)
 
 TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
 {
-  Node x(d_nodeManager->mkSkolem("x", *d_intTypeNode));
+  Node x(d_skolemManager->mkDummySkolem("x", *d_intTypeNode));
 
   NodeBuilder nb;
 #ifdef CVC4_ASSERTIONS
@@ -300,16 +300,16 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_node)
 
 TEST_F(TestNodeBlackNodeBuilder, append)
 {
-  Node x = d_nodeManager->mkSkolem("x", *d_boolTypeNode);
-  Node y = d_nodeManager->mkSkolem("y", *d_boolTypeNode);
-  Node z = d_nodeManager->mkSkolem("z", *d_boolTypeNode);
+  Node x = d_skolemManager->mkDummySkolem("x", *d_boolTypeNode);
+  Node y = d_skolemManager->mkDummySkolem("y", *d_boolTypeNode);
+  Node z = d_skolemManager->mkDummySkolem("z", *d_boolTypeNode);
   Node m = d_nodeManager->mkNode(AND, y, z, x);
   Node n = d_nodeManager->mkNode(OR, d_nodeManager->mkNode(NOT, x), y, z);
   Node o = d_nodeManager->mkNode(XOR, y, x);
 
-  Node r = d_nodeManager->mkSkolem("r", *d_realTypeNode);
-  Node s = d_nodeManager->mkSkolem("s", *d_realTypeNode);
-  Node t = d_nodeManager->mkSkolem("t", *d_realTypeNode);
+  Node r = d_skolemManager->mkDummySkolem("r", *d_realTypeNode);
+  Node s = d_skolemManager->mkDummySkolem("s", *d_realTypeNode);
+  Node t = d_skolemManager->mkDummySkolem("t", *d_realTypeNode);
 
   Node p = d_nodeManager->mkNode(
       EQUAL,
@@ -389,13 +389,13 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
 {
   NodeBuilder nb;
 
-  Node a = d_nodeManager->mkSkolem("a", *d_boolTypeNode);
+  Node a = d_skolemManager->mkDummySkolem("a", *d_boolTypeNode);
 
-  Node b = d_nodeManager->mkSkolem("b", *d_boolTypeNode);
-  Node c = d_nodeManager->mkSkolem("c", *d_boolTypeNode);
+  Node b = d_skolemManager->mkDummySkolem("b", *d_boolTypeNode);
+  Node c = d_skolemManager->mkDummySkolem("c", *d_boolTypeNode);
 
-  Node d = d_nodeManager->mkSkolem("d", *d_realTypeNode);
-  Node e = d_nodeManager->mkSkolem("e", *d_realTypeNode);
+  Node d = d_skolemManager->mkDummySkolem("d", *d_realTypeNode);
+  Node e = d_skolemManager->mkDummySkolem("e", *d_realTypeNode);
 
   nb << a << NOT << b << c << OR << c << a << AND << d << e << ITE;
 
