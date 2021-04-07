@@ -112,7 +112,8 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool ModelEngine::checkComplete(IncompleteId& incId) {
+bool ModelEngine::checkComplete(IncompleteId& incId)
+{
   if (d_incomplete_check)
   {
     incId = IncompleteId::QUANTIFIERS_FMF;
