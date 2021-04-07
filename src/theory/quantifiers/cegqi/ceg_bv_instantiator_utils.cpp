@@ -17,9 +17,9 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace utils {
@@ -66,7 +66,7 @@ Node normalizePvMult(
   bool neg, neg_coeff = false;
   bool found_pv = false;
   NodeManager* nm;
-  NodeBuilder<> nb(BITVECTOR_MULT);
+  NodeBuilder nb(BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
   nm = NodeManager::currentNM();
@@ -168,8 +168,8 @@ Node normalizePvPlus(
     std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   NodeManager* nm;
-  NodeBuilder<> nb_c(BITVECTOR_PLUS);
-  NodeBuilder<> nb_l(BITVECTOR_PLUS);
+  NodeBuilder nb_c(BITVECTOR_PLUS);
+  NodeBuilder nb_l(BITVECTOR_PLUS);
   BvLinearAttribute is_linear;
   bool neg;
 
@@ -342,4 +342,4 @@ Node normalizePvEqual(
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

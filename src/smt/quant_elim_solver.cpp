@@ -23,10 +23,10 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC5::theory;
-using namespace CVC5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
@@ -45,6 +45,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
         "Expecting a quantified formula as argument to get-qe.");
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // ensure the body is rewritten
   q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary
@@ -53,7 +54,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                   << q << std::endl;
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
-  Node n_attr = nm->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
+  Node n_attr = sm->mkDummySkolem("qe", t, "Auxiliary variable for qe attr.");
   std::vector<Node> node_values;
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);
@@ -130,4 +131,4 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5

@@ -18,6 +18,8 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/proof_checker.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
@@ -29,7 +31,7 @@
 #include "util/resource_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace test {
 
 /* -------------------------------------------------------------------------- */
@@ -42,6 +44,7 @@ class TestSmt : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager());
+    d_skolemManager = d_nodeManager->getSkolemManager();
     d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
     d_smtEngine->finishInit();
@@ -49,6 +52,7 @@ class TestSmt : public TestInternal
 
   std::unique_ptr<NodeManagerScope> d_nmScope;
   std::unique_ptr<NodeManager> d_nodeManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
 
@@ -58,12 +62,14 @@ class TestSmtNoFinishInit : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager());
+    d_skolemManager = d_nodeManager->getSkolemManager();
     d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
   }
 
   std::unique_ptr<NodeManagerScope> d_nmScope;
   std::unique_ptr<NodeManager> d_nodeManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
 
@@ -99,7 +105,7 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
-class DummyOutputChannel : public CVC5::theory::OutputChannel
+class DummyOutputChannel : public cvc5::theory::OutputChannel
 {
  public:
   DummyOutputChannel() {}
@@ -169,7 +175,7 @@ class DummyOutputChannel : public CVC5::theory::OutputChannel
 
 /* -------------------------------------------------------------------------- */
 
-class DymmyTheoryRewriter : public theory::TheoryRewriter
+class DummyTheoryRewriter : public theory::TheoryRewriter
 {
  public:
   theory::RewriteResponse preRewrite(TNode n) override
@@ -180,6 +186,22 @@ class DymmyTheoryRewriter : public theory::TheoryRewriter
   theory::RewriteResponse postRewrite(TNode n) override
   {
     return theory::RewriteResponse(theory::REWRITE_DONE, n);
+  }
+};
+
+class DummyProofRuleChecker : public ProofRuleChecker
+{
+ public:
+  DummyProofRuleChecker() {}
+  ~DummyProofRuleChecker() {}
+  void registerTo(ProofChecker* pc) override {}
+
+ protected:
+  Node checkInternal(PfRule id,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args) override
+  {
+    return Node::null();
   }
 };
 
@@ -202,6 +224,7 @@ class DummyTheory : public theory::Theory
   }
 
   theory::TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  ProofRuleChecker* getProofChecker() override { return &d_checker; }
 
   void registerTerm(TNode n)
   {
@@ -244,10 +267,12 @@ class DummyTheory : public theory::Theory
    */
   std::string d_id;
   /** The theory rewriter for this theory. */
-  DymmyTheoryRewriter d_rewriter;
+  DummyTheoryRewriter d_rewriter;
+  /** The proof checker for this theory. */
+  DummyProofRuleChecker d_checker;
 };
 
 /* -------------------------------------------------------------------------- */
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5
 #endif

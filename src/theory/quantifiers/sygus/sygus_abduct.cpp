@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -29,9 +30,9 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -43,6 +44,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node, NodeHashFunction> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
@@ -166,7 +168,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   Node sc = nm->mkNode(AND, aconj, abdApp);
   Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
   sc = nm->mkNode(EXISTS, vbvl, sc);
-  Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+  Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
   // build in the side condition
@@ -187,4 +189,4 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

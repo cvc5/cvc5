@@ -41,11 +41,12 @@
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ResourceManager;
 class OutputManager;
 class TheoryEngineProofGenerator;
+class ProofChecker;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -322,6 +323,9 @@ class TheoryEngine {
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
+  /** Register theory proof rule checkers to the given proof checker */
+  void initializeProofChecker(ProofChecker* pc);
+
   void setPropEngine(prop::PropEngine* propEngine)
   {
     d_propEngine = propEngine;
@@ -498,7 +502,7 @@ class TheoryEngine {
    * Calls ppStaticLearn() on all theories, accumulating their
    * combined contributions in the "learned" builder.
    */
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   /**
    * Calls presolve() on all theories and returns true
@@ -668,6 +672,6 @@ private:
   void checkTheoryAssertionsWithModel(bool hardFailure);
 };/* class TheoryEngine */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_ENGINE_H */

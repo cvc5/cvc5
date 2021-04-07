@@ -27,7 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Sort.h"
 #include "prop/bvminisat/utils/System.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -48,7 +48,7 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 //=================================================================================================
 // Constructor/Destructor:
 
-SimpSolver::SimpSolver(CVC5::context::Context* context)
+SimpSolver::SimpSolver(cvc5::context::Context* context)
     : Solver(context),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
@@ -57,9 +57,9 @@ SimpSolver::SimpSolver(CVC5::context::Context* context)
       use_asymm(opt_use_asymm),
       use_rcheck(opt_use_rcheck),
       use_elim(opt_use_elim
-               && CVC5::options::bitblastMode()
-                      == CVC5::options::BitblastMode::EAGER
-               && !CVC5::options::produceModels()),
+               && cvc5::options::bitblastMode()
+                      == cvc5::options::BitblastMode::EAGER
+               && !cvc5::options::produceModels()),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
@@ -94,7 +94,7 @@ SimpSolver::SimpSolver(CVC5::context::Context* context)
 
 SimpSolver::~SimpSolver()
 {
-  //  CVC5::StatisticsRegistry::unregisterStat(&total_eliminate_time);
+  //  cvc5::StatisticsRegistry::unregisterStat(&total_eliminate_time);
 }
 
 
@@ -644,7 +644,7 @@ void SimpSolver::extendModel()
 
 bool SimpSolver::eliminate(bool turn_off_elim)
 {
-  //  CVC5::TimerStat::CodeTimer codeTimer(total_eliminate_time);
+  //  cvc5::TimerStat::CodeTimer codeTimer(total_eliminate_time);
 
   if (!simplify())
     return false;
@@ -809,4 +809,4 @@ void SimpSolver::garbageCollect()
 }
 
 }  // namespace BVMinisat
-}  // namespace CVC5
+}  // namespace cvc5

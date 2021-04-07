@@ -57,7 +57,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -65,7 +65,7 @@ class SymmetryBreaker : public context::ContextNotifyObj {
 
   class Template {
     Node d_template;
-    NodeBuilder<> d_assertions;
+    NodeBuilder d_assertions;
     std::unordered_map<TNode, std::set<TNode>, TNodeHashFunction> d_sets;
     std::unordered_map<TNode, TNode, TNodeHashFunction> d_reps;
 
@@ -175,8 +175,8 @@ private:
 
 std::ostream& operator<<(
     std::ostream& out,
-    const ::CVC5::theory::uf::SymmetryBreaker::Permutation& p);
+    const ::cvc5::theory::uf::SymmetryBreaker::Permutation& p);
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__UF__SYMMETRY_BREAKER_H */

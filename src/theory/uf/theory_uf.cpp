@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -57,12 +57,6 @@ TheoryUF::TheoryUF(context::Context* c,
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
-
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_ufProofChecker.registerTo(pc);
-  }
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -72,6 +66,8 @@ TheoryUF::~TheoryUF() {
 }
 
 TheoryRewriter* TheoryUF::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryUF::getProofChecker() { return &d_checker; }
 
 bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -112,7 +108,7 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
@@ -347,7 +343,8 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: end presolve()" << endl;
 }
 
-void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
   vector<TNode> workList;
@@ -466,7 +463,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   if(options::ufSymmetryBreaker()) {
     d_symb.assertFormula(n);
   }
-}/* TheoryUF::ppStaticLearn() */
+} /* TheoryUF::ppStaticLearn() */
 
 EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
@@ -693,4 +690,4 @@ bool TheoryUF::isHigherOrderType(TypeNode tn)
 
 }  // namespace uf
 }  // namespace theory
-} // namespace CVC5
+}  // namespace cvc5

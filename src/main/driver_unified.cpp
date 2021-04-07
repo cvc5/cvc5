@@ -23,11 +23,10 @@
 #include <memory>
 #include <new>
 
-#include "cvc4autoconfig.h"
-
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "base/output.h"
+#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
@@ -38,14 +37,15 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC5;
-using namespace CVC5::parser;
-using namespace CVC5::main;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::main;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace main {
 /** Global options variable */
 thread_local Options* pOptions;
@@ -57,7 +57,7 @@ const char* progPath;
 const std::string* progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
-std::unique_ptr<CVC5::main::CommandExecutor> pExecutor;
+std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
 /** The time point the binary started, accessible to signal handlers */
 std::unique_ptr<TotalTimer> totalTime;
@@ -73,7 +73,7 @@ TotalTimer::~TotalTimer()
     }
 
     }  // namespace main
-    }  // namespace CVC5
+    }  // namespace cvc5
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
@@ -175,12 +175,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC5::null_os);
-    TraceChannel.setStream(&CVC5::null_os);
-    NoticeChannel.setStream(&CVC5::null_os);
-    ChatChannel.setStream(&CVC5::null_os);
-    MessageChannel.setStream(&CVC5::null_os);
-    WarningChannel.setStream(&CVC5::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   }
 
   // important even for muzzled builds (to get result output right)

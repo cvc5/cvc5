@@ -31,7 +31,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -51,6 +51,8 @@ class TheoryFp : public Theory
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -189,6 +191,6 @@ class TheoryFp : public Theory
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_H */

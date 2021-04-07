@@ -27,7 +27,7 @@ ${includes}$
 
 ${holder_spec}$
 
-namespace CVC5 {
+namespace cvc5 {
 namespace options {
 
 ${modes}$
@@ -42,7 +42,7 @@ namespace options {
 ${inls}$
 
 }  // namespace options
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__OPTIONS__${id}$_H */
 //clang-format on

@@ -25,13 +25,13 @@
 #include <unordered_map>
 #include <utility>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 
@@ -430,6 +430,6 @@ class Smt2 : public Parser
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__SMT2_H */

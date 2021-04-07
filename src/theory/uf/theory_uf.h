@@ -29,7 +29,7 @@
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -111,6 +111,8 @@ private:
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -144,8 +146,7 @@ private:
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
   void presolve() override;
 
   void computeCareGraph() override;
@@ -170,7 +171,7 @@ private:
   bool isHigherOrderType(TypeNode tn);
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
-  UfProofRuleChecker d_ufProofChecker;
+  UfProofRuleChecker d_checker;
   /** A (default) theory state object */
   TheoryState d_state;
   /** A (default) inference manager */
@@ -183,6 +184,6 @@ private:
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__UF__THEORY_UF_H */

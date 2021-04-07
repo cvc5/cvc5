@@ -65,8 +65,8 @@ options {
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_input.h"
 
-using namespace CVC5;
-using namespace CVC5::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
@@ -100,7 +100,7 @@ using namespace CVC5::parser;
 #include <iterator>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -108,8 +108,8 @@ using namespace CVC5::parser;
 #include "util/integer.h"
 #include "util/rational.h"
 
-using namespace CVC5;
-using namespace CVC5::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
@@ -127,10 +127,10 @@ using namespace CVC5::parser;
 
 /**
  * Parses an expression.
- * @return the parsed expression, or the Null CVC5::api::Term if we've reached
+ * @return the parsed expression, or the Null cvc5::api::Term if we've reached
  * the end of the input
  */
-parseExpr returns [CVC5::parser::tptp::myExpr expr]
+parseExpr returns [cvc5::parser::tptp::myExpr expr]
   : cnfFormula[expr]
   | EOF
   ;
@@ -139,9 +139,9 @@ parseExpr returns [CVC5::parser::tptp::myExpr expr]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [CVC5::Command* cmd = NULL]
+parseCommand returns [cvc5::Command* cmd = NULL]
 @declarations {
-  CVC5::api::Term expr;
+  cvc5::api::Term expr;
   Tptp::FormulaRole fr;
   std::string name, inclSymbol;
   ParseOp p;
@@ -159,7 +159,7 @@ parseCommand returns [CVC5::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      CVC5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
+      cvc5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
         SYM_MAN->setExpressionName(aexpr, name, true);
@@ -171,7 +171,7 @@ parseCommand returns [CVC5::Command* cmd = NULL]
     { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      CVC5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      cvc5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
         SYM_MAN->setExpressionName(aexpr, name, true);
@@ -185,7 +185,7 @@ parseCommand returns [CVC5::Command* cmd = NULL]
       { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        CVC5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        cvc5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
           SYM_MAN->setExpressionName(aexpr, name, true);
@@ -207,7 +207,7 @@ parseCommand returns [CVC5::Command* cmd = NULL]
           PARSER_STATE->parseError("Top level expression must be a formula");
         }
         expr = p.d_expr;
-        CVC5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
+        cvc5::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
@@ -242,7 +242,7 @@ parseCommand returns [CVC5::Command* cmd = NULL]
     {
       CommandSequence* seq = new CommandSequence();
       // assert that all distinct constants are distinct
-      CVC5::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
+      cvc5::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
         seq->addCommand(new AssertCommand(aexpr, false));
@@ -268,7 +268,7 @@ parseCommand returns [CVC5::Command* cmd = NULL]
   ;
 
 /* Parse a formula Role */
-formulaRole[CVC5::parser::Tptp::FormulaRole& role]
+formulaRole[cvc5::parser::Tptp::FormulaRole& role]
   : LOWER_WORD
     {
       std::string r = AntlrInput::tokenText($LOWER_WORD);
@@ -296,12 +296,12 @@ formulaRole[CVC5::parser::Tptp::FormulaRole& role]
 /* It can parse a little more than the cnf grammar: false and true can appear.
  * Normally only false can appear and only at top level. */
 
-cnfFormula[CVC5::api::Term& expr]
+cnfFormula[cvc5::api::Term& expr]
   : LPAREN_TOK cnfDisjunction[expr] RPAREN_TOK
   | cnfDisjunction[expr]
 ;
 
-cnfDisjunction[CVC5::api::Term& expr]
+cnfDisjunction[cvc5::api::Term& expr]
 @declarations {
   std::vector<api::Term> args;
 }
@@ -313,16 +313,16 @@ cnfDisjunction[CVC5::api::Term& expr]
     }
 ;
 
-cnfLiteral[CVC5::api::Term& expr]
+cnfLiteral[cvc5::api::Term& expr]
   : atomicFormula[expr]
   | NOT_TOK atomicFormula[expr] { expr = MK_TERM(api::NOT, expr); }
   ;
 
-atomicFormula[CVC5::api::Term& expr]
+atomicFormula[cvc5::api::Term& expr]
 @declarations {
-  CVC5::api::Term expr2;
+  cvc5::api::Term expr2;
   std::string name;
-  std::vector<CVC5::api::Term> args;
+  std::vector<cvc5::api::Term> args;
   bool equal;
   ParseOp p;
 }
@@ -386,11 +386,11 @@ atomicFormula[CVC5::api::Term& expr]
   | definedProp[expr]
   ;
 
-thfAtomicFormula[CVC5::ParseOp& p]
+thfAtomicFormula[cvc5::ParseOp& p]
 @declarations {
-  CVC5::api::Term expr2;
+  cvc5::api::Term expr2;
   std::string name;
-  std::vector<CVC5::api::Term> args;
+  std::vector<cvc5::api::Term> args;
   bool equal;
 }
   : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
@@ -432,12 +432,12 @@ thfAtomicFormula[CVC5::ParseOp& p]
 //%----Using <plain_term> removes a reduce/reduce ambiguity in lex/yacc.
 //%----Note: "defined" means a word starting with one $ and "system" means $$.
 
-definedProp[CVC5::api::Term& expr]
+definedProp[cvc5::api::Term& expr]
   : TRUE_TOK { expr = SOLVER->mkTrue(); }
   | FALSE_TOK  { expr = SOLVER->mkFalse(); }
   ;
 
-definedPred[CVC5::ParseOp& p]
+definedPred[cvc5::ParseOp& p]
   : '$less'
     {
       p.d_kind = api::LT;
@@ -497,7 +497,7 @@ definedPred[CVC5::ParseOp& p]
     }
   ;
 
-thfDefinedPred[CVC5::ParseOp& p]
+thfDefinedPred[cvc5::ParseOp& p]
   : '$less'
      {
        p.d_kind = api::LT;
@@ -561,7 +561,7 @@ thfDefinedPred[CVC5::ParseOp& p]
     RPAREN_TOK
   ;
 
-definedFun[CVC5::ParseOp& p]
+definedFun[cvc5::ParseOp& p]
 @declarations {
   bool remainder = false;
 }
@@ -724,16 +724,16 @@ equalOp[bool& equal]
   | DISEQUAL_TOK { equal = false; }
   ;
 
-term[CVC5::api::Term& expr]
+term[cvc5::api::Term& expr]
   : functionTerm[expr]
   | conditionalTerm[expr]
   | simpleTerm[expr]
   | letTerm[expr]
   ;
 
-letTerm[CVC5::api::Term& expr]
+letTerm[cvc5::api::Term& expr]
 @declarations {
-  CVC5::api::Term lhs, rhs;
+  cvc5::api::Term lhs, rhs;
 }
   : '$let_ft' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
@@ -752,14 +752,14 @@ letTerm[CVC5::api::Term& expr]
   ;
 
 /* Not an application */
-simpleTerm[CVC5::api::Term& expr]
+simpleTerm[cvc5::api::Term& expr]
   : variable[expr]
   | NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT { expr = PARSER_STATE->convertStrToUnsorted(AntlrInput::tokenText($DISTINCT_OBJECT)); }
   ;
 
 /* Not an application */
-thfSimpleTerm[CVC5::api::Term& expr]
+thfSimpleTerm[cvc5::api::Term& expr]
   : NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT
     {
@@ -768,9 +768,9 @@ thfSimpleTerm[CVC5::api::Term& expr]
     }
   ;
 
-functionTerm[CVC5::api::Term& expr]
+functionTerm[cvc5::api::Term& expr]
 @declarations {
-  std::vector<CVC5::api::Term> args;
+  std::vector<cvc5::api::Term> args;
   ParseOp p;
 }
   : plainTerm[expr]
@@ -780,15 +780,15 @@ functionTerm[CVC5::api::Term& expr]
     }
   ;
 
-conditionalTerm[CVC5::api::Term& expr]
+conditionalTerm[cvc5::api::Term& expr]
 @declarations {
-  CVC5::api::Term expr2, expr3;
+  cvc5::api::Term expr2, expr3;
 }
   : '$ite_t' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK term[expr2] COMMA_TOK term[expr3] RPAREN_TOK
     { expr = MK_TERM(api::ITE, expr, expr2, expr3); }
   ;
 
-plainTerm[CVC5::api::Term& expr]
+plainTerm[cvc5::api::Term& expr]
 @declarations {
   std::string name;
   std::vector<api::Term> args;
@@ -801,15 +801,15 @@ plainTerm[CVC5::api::Term& expr]
     }
   ;
 
-arguments[std::vector<CVC5::api::Term>& args]
+arguments[std::vector<cvc5::api::Term>& args]
 @declarations {
-  CVC5::api::Term expr;
+  cvc5::api::Term expr;
 }
   :
   term[expr] { args.push_back(expr); } ( COMMA_TOK term[expr] { args.push_back(expr); } )*
   ;
 
-variable[CVC5::api::Term& expr]
+variable[cvc5::api::Term& expr]
   : UPPER_WORD
     {
       std::string name = AntlrInput::tokenText($UPPER_WORD);
@@ -824,13 +824,13 @@ variable[CVC5::api::Term& expr]
 
 /*******/
 /* FOF */
-fofFormula[CVC5::api::Term& expr] : fofLogicFormula[expr] ;
+fofFormula[cvc5::api::Term& expr] : fofLogicFormula[expr] ;
 
-fofLogicFormula[CVC5::api::Term& expr]
+fofLogicFormula[cvc5::api::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< CVC5::api::Term > args;
-  CVC5::api::Term expr2;
+  std::vector< cvc5::api::Term > args;
+  cvc5::api::Term expr2;
 }
   : fofUnitaryFormula[expr]
     ( // Non-associative: <=> <~> ~& ~|
@@ -870,10 +870,10 @@ fofLogicFormula[CVC5::api::Term& expr]
     )?
   ;
 
-fofUnitaryFormula[CVC5::api::Term& expr]
+fofUnitaryFormula[cvc5::api::Term& expr]
 @declarations {
   api::Kind kind;
-  std::vector< CVC5::api::Term > bv;
+  std::vector< cvc5::api::Term > bv;
 }
   : atomicFormula[expr]
   | LPAREN_TOK fofLogicFormula[expr] RPAREN_TOK
@@ -888,14 +888,14 @@ fofUnitaryFormula[CVC5::api::Term& expr]
     }
   ;
 
-bindvariable[CVC5::api::Term& expr]
+bindvariable[cvc5::api::Term& expr]
   : UPPER_WORD
     { std::string name = AntlrInput::tokenText($UPPER_WORD);
       expr = PARSER_STATE->bindBoundVar(name, PARSER_STATE->d_unsorted);
     }
   ;
 
-fofBinaryNonAssoc[CVC5::parser::tptp::NonAssoc& na]
+fofBinaryNonAssoc[cvc5::parser::tptp::NonAssoc& na]
   : IFF_TOK      { na = tptp::NA_IFF; }
   | REVIFF_TOK   { na = tptp::NA_REVIFF; }
   | REVOR_TOK    { na = tptp::NA_REVOR; }
@@ -904,7 +904,7 @@ fofBinaryNonAssoc[CVC5::parser::tptp::NonAssoc& na]
   | REVIMPLIES_TOK { na = tptp::NA_REVIMPLIES; }
   ;
 
-folQuantifier[CVC5::api::Kind& kind]
+folQuantifier[cvc5::api::Kind& kind]
   : FORALL_TOK { kind = api::FORALL; }
   | EXISTS_TOK { kind = api::EXISTS; }
   ;
@@ -912,7 +912,7 @@ folQuantifier[CVC5::api::Kind& kind]
 /*******/
 /* THF */
 
-thfQuantifier[CVC5::api::Kind& kind]
+thfQuantifier[cvc5::api::Kind& kind]
   : FORALL_TOK { kind = api::FORALL; }
   | EXISTS_TOK { kind = api::EXISTS; }
   | LAMBDA_TOK { kind = api::LAMBDA; }
@@ -930,11 +930,11 @@ thfQuantifier[CVC5::api::Kind& kind]
     }
   ;
 
-thfAtomTyping[CVC5::Command*& cmd]
+thfAtomTyping[cvc5::Command*& cmd]
 // for now only supports mapping types (i.e. no applied types)
 @declarations {
-  CVC5::api::Term expr;
-  CVC5::api::Sort type;
+  cvc5::api::Term expr;
+  cvc5::api::Sort type;
   std::string name;
 }
   : LPAREN_TOK thfAtomTyping[cmd] RPAREN_TOK
@@ -988,7 +988,7 @@ thfAtomTyping[CVC5::Command*& cmd]
         else
         {
           // as of yet, it's undeclared
-          CVC5::api::Term freshExpr;
+          cvc5::api::Term freshExpr;
           if (type.isFunction())
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
@@ -1003,12 +1003,12 @@ thfAtomTyping[CVC5::Command*& cmd]
     )
   ;
 
-thfLogicFormula[CVC5::ParseOp& p]
+thfLogicFormula[cvc5::ParseOp& p]
 @declarations {
   tptp::NonAssoc na;
-  std::vector<CVC5::api::Term> args;
+  std::vector<cvc5::api::Term> args;
   std::vector<ParseOp> p_args;
-  CVC5::api::Term expr2;
+  cvc5::api::Term expr2;
   bool equal;
   ParseOp p1;
 }
@@ -1194,7 +1194,7 @@ thfLogicFormula[CVC5::ParseOp& p]
     )?
   ;
 
-thfTupleForm[std::vector<CVC5::api::Term>& args]
+thfTupleForm[std::vector<cvc5::api::Term>& args]
 @declarations {
   ParseOp p;
 }
@@ -1217,11 +1217,11 @@ thfTupleForm[std::vector<CVC5::api::Term>& args]
    )+
 ;
 
-thfUnitaryFormula[CVC5::ParseOp& p]
+thfUnitaryFormula[cvc5::ParseOp& p]
 @declarations {
   api::Kind kind;
-  std::vector< CVC5::api::Term > bv;
-  CVC5::api::Term expr;
+  std::vector< cvc5::api::Term > bv;
+  cvc5::api::Term expr;
   bool equal;
   ParseOp p1;
 }
@@ -1289,12 +1289,12 @@ thfUnitaryFormula[CVC5::ParseOp& p]
 
 /*******/
 /* TFF */
-tffFormula[CVC5::api::Term& expr] : tffLogicFormula[expr];
+tffFormula[cvc5::api::Term& expr] : tffLogicFormula[expr];
 
-tffTypedAtom[CVC5::Command*& cmd]
+tffTypedAtom[cvc5::Command*& cmd]
 @declarations {
-  CVC5::api::Term expr;
-  CVC5::api::Sort type;
+  cvc5::api::Term expr;
+  cvc5::api::Sort type;
   std::string name;
 }
   : LPAREN_TOK tffTypedAtom[cmd] RPAREN_TOK
@@ -1327,18 +1327,18 @@ tffTypedAtom[CVC5::Command*& cmd]
           }
         } else {
           // as yet, it's undeclared
-          CVC5::api::Term aexpr = PARSER_STATE->bindVar(name, type);
+          cvc5::api::Term aexpr = PARSER_STATE->bindVar(name, type);
           cmd = new DeclareFunctionCommand(name, aexpr, type);
         }
       }
     )
   ;
 
-tffLogicFormula[CVC5::api::Term& expr]
+tffLogicFormula[cvc5::api::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< CVC5::api::Term > args;
-  CVC5::api::Term expr2;
+  std::vector< cvc5::api::Term > args;
+  cvc5::api::Term expr2;
 }
   : tffUnitaryFormula[expr]
     ( // Non Assoc <=> <~> ~& ~|
@@ -1378,11 +1378,11 @@ tffLogicFormula[CVC5::api::Term& expr]
     )?
   ;
 
-tffUnitaryFormula[CVC5::api::Term& expr]
+tffUnitaryFormula[cvc5::api::Term& expr]
 @declarations {
   api::Kind kind;
-  std::vector< CVC5::api::Term > bv;
-  CVC5::api::Term lhs, rhs;
+  std::vector< cvc5::api::Term > bv;
+  cvc5::api::Term lhs, rhs;
 }
   : atomicFormula[expr]
   | LPAREN_TOK tffLogicFormula[expr] RPAREN_TOK
@@ -1413,17 +1413,17 @@ tffUnitaryFormula[CVC5::api::Term& expr]
     RPAREN_TOK
   ;
 
-tffLetTermDefn[CVC5::api::Term& lhs, CVC5::api::Term& rhs]
+tffLetTermDefn[cvc5::api::Term& lhs, cvc5::api::Term& rhs]
 @declarations {
-  std::vector<CVC5::api::Term> bvlist;
+  std::vector<cvc5::api::Term> bvlist;
 }
   : (FORALL_TOK LBRACK_TOK tffVariableList[bvlist] RBRACK_TOK COLON_TOK)*
     tffLetTermBinding[bvlist, lhs, rhs]
   ;
 
-tffLetTermBinding[std::vector<CVC5::api::Term> & bvlist,
-                  CVC5::api::Term& lhs,
-                  CVC5::api::Term& rhs]
+tffLetTermBinding[std::vector<cvc5::api::Term> & bvlist,
+                  cvc5::api::Term& lhs,
+                  cvc5::api::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
   {
     PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
@@ -1438,17 +1438,17 @@ tffLetTermBinding[std::vector<CVC5::api::Term> & bvlist,
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
-tffLetFormulaDefn[CVC5::api::Term& lhs, CVC5::api::Term& rhs]
+tffLetFormulaDefn[cvc5::api::Term& lhs, cvc5::api::Term& rhs]
 @declarations {
-  std::vector<CVC5::api::Term> bvlist;
+  std::vector<cvc5::api::Term> bvlist;
 }
   : (FORALL_TOK LBRACK_TOK tffVariableList[bvlist] RBRACK_TOK COLON_TOK)*
     tffLetFormulaBinding[bvlist, lhs, rhs]
   ;
 
-tffLetFormulaBinding[std::vector<CVC5::api::Term> & bvlist,
-                     CVC5::api::Term& lhs,
-                     CVC5::api::Term& rhs]
+tffLetFormulaBinding[std::vector<cvc5::api::Term> & bvlist,
+                     cvc5::api::Term& lhs,
+                     cvc5::api::Term& rhs]
 
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
   {
@@ -1464,10 +1464,10 @@ tffLetFormulaBinding[std::vector<CVC5::api::Term> & bvlist,
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
-thfBindVariable[CVC5::api::Term& expr]
+thfBindVariable[cvc5::api::Term& expr]
 @declarations {
   std::string name;
-  CVC5::api::Sort type = PARSER_STATE->d_unsorted;
+  cvc5::api::Sort type = PARSER_STATE->d_unsorted;
 }
   : UPPER_WORD
     { name = AntlrInput::tokenText($UPPER_WORD); }
@@ -1478,9 +1478,9 @@ thfBindVariable[CVC5::api::Term& expr]
   ;
 
 
-tffbindvariable[CVC5::api::Term& expr]
+tffbindvariable[cvc5::api::Term& expr]
 @declarations {
-  CVC5::api::Sort type = PARSER_STATE->d_unsorted;
+  cvc5::api::Sort type = PARSER_STATE->d_unsorted;
 }
   : UPPER_WORD
     ( COLON_TOK parseType[type] )?
@@ -1491,18 +1491,18 @@ tffbindvariable[CVC5::api::Term& expr]
 
 // bvlist is accumulative; it can already contain elements
 // on the way in, which are left undisturbed
-tffVariableList[std::vector<CVC5::api::Term>& bvlist]
+tffVariableList[std::vector<cvc5::api::Term>& bvlist]
 @declarations {
-  CVC5::api::Term e;
+  cvc5::api::Term e;
 }
   : tffbindvariable[e] { bvlist.push_back(e); }
     ( COMMA_TOK tffbindvariable[e] { bvlist.push_back(e); } )*
   ;
 
-parseThfType[CVC5::api::Sort& type]
+parseThfType[cvc5::api::Sort& type]
 // assumes only mapping types (arrows), no tuple type
 @declarations {
-  std::vector<CVC5::api::Sort> sorts;
+  std::vector<cvc5::api::Sort> sorts;
 }
   : thfType[type] { sorts.push_back(type); }
     (
@@ -1522,17 +1522,17 @@ parseThfType[CVC5::api::Sort& type]
     }
   ;
 
-thfType[CVC5::api::Sort& type]
+thfType[cvc5::api::Sort& type]
 // assumes only mapping types (arrows), no tuple type
   : simpleType[type]
     | LPAREN_TOK parseThfType[type] RPAREN_TOK
     | LBRACK_TOK { UNSUPPORTED("Tuple types"); } parseThfType[type] RBRACK_TOK
   ;
 
-parseType[CVC5::api::Sort & type]
+parseType[cvc5::api::Sort & type]
 @declarations
 {
-  std::vector<CVC5::api::Sort> v;
+  std::vector<cvc5::api::Sort> v;
 }
   : simpleType[type]
   | ( simpleType[type] { v.push_back(type); }
@@ -1546,7 +1546,7 @@ parseType[CVC5::api::Sort & type]
   ;
 
 // non-function types
-simpleType[CVC5::api::Sort& type]
+simpleType[cvc5::api::Sort& type]
 @declarations {
   std::string name;
 }
@@ -1764,6 +1764,7 @@ NUMBER
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;
+        ss << ( pos ? "" : "-" );
         ss << AntlrInput::tokenText($num) << "/" << AntlrInput::tokenText($den);
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
       }

@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "options/options.h"
 #include "parser/parser.h"
@@ -28,7 +28,7 @@
 #undef true
 #undef false
 
-namespace CVC5 {
+namespace cvc5 {
 namespace parser {
 
 Tptp::Tptp(api::Solver* solver,
@@ -202,7 +202,7 @@ void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist,
   {
     parseError("malformed let: LHS must be formula");
   }
-  for (const CVC5::api::Term& var : vars)
+  for (const cvc5::api::Term& var : vars)
   {
     if (var.hasOp())
     {
@@ -339,6 +339,18 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     if (kind == api::MINUS && args.size() == 1)
     {
       return d_solver->mkTerm(api::UMINUS, args[0]);
+    }
+    if (kind == api::TO_REAL)
+    {
+      // If the type is real, this is a no-op. We require this special
+      // case in the TPTP parser since TO_REAL is designed to match the
+      // SMT-LIB operator, meaning it can only be applied to integers, whereas
+      // the TPTP to_real / to_rat do not have the same semantics.
+      api::Sort s = args[0].getSort();
+      if (s.isReal())
+      {
+        return args[0];
+      }
     }
     return d_solver->mkTerm(kind, args);
   }
@@ -569,4 +581,4 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
 }
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5

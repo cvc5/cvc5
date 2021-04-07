@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 
 struct substitution_stack_element {
@@ -81,7 +81,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << Node(cache[current.getOperator()]);
       }
@@ -223,4 +223,4 @@ std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::itera
   return out << "[CDMap-iterator]";
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

@@ -41,9 +41,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory.h"
 
-using namespace CVC5::theory;
+using namespace cvc5::theory;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace smt {
 
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
@@ -629,6 +629,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     // bv abstraction may require UF
     Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
+    needsUf = true;
+  }
+  else if (options::preSkolemQuantNested()
+           && options::preSkolemQuantNested.wasSetByUser())
+  {
+    // if pre-skolem nested is explictly set, then we require UF. If it is
+    // not explicitly set, it is disabled below if UF is not present.
+    Notice() << "Enabling UF because preSkolemQuantNested requires it."
+             << std::endl;
     needsUf = true;
   }
   if (needsUf
@@ -1480,4 +1489,4 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 }
 
 }  // namespace smt
-}  // namespace CVC5
+}  // namespace cvc5

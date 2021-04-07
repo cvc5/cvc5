@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 
+#include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
@@ -26,13 +27,13 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-using namespace CVC5;
-using namespace CVC5::kind;
-using namespace CVC5::theory;
-using namespace CVC5::theory::quantifiers;
+using namespace cvc5;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 struct sortConjectureScore {
   std::vector< int > d_scores;
@@ -1089,8 +1090,11 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
 Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
-    TypeNode op_tn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node op = NodeManager::currentNM()->mkSkolem( "PE", op_tn, "was created by conjecture ground term enumerator." );
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
+    Node op = sm->mkDummySkolem(
+        "PE", op_tn, "was created by conjecture ground term enumerator.");
     d_typ_pred[tn] = op;
     return op;
   }else{
@@ -2260,4 +2264,4 @@ unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 
-}  // namespace CVC5
+}  // namespace cvc5

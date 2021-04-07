@@ -93,7 +93,7 @@
 #include "theory/trust_node.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -571,8 +571,7 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  std::shared_ptr<ProofNode> externalExplainByAssertions(
-      NodeBuilder<>& nb) const
+  std::shared_ptr<ProofNode> externalExplainByAssertions(NodeBuilder& nb) const
   {
     return externalExplain(nb, AssertionOrderSentinel);
   }
@@ -876,7 +875,7 @@ class Constraint {
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
    */
-  std::shared_ptr<ProofNode> externalExplain(NodeBuilder<>& nb,
+  std::shared_ptr<ProofNode> externalExplain(NodeBuilder& nb,
                                              AssertionOrder order) const;
 
   static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
@@ -1168,7 +1167,7 @@ private:
    */
   TrustNode eeExplain(ConstraintCP c) const;
   /** Get an explanation for this constraint from the equality engine */
-  void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
+  void eeExplain(ConstraintCP c, NodeBuilder& nb) const;
 
   /**
    * Returns a constraint with the variable v, the constraint type t, and a value
@@ -1277,6 +1276,6 @@ private:
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__CONSTRAINT_H */

@@ -177,3 +177,24 @@ macro(libcvc4_add_sources)
     set(${_append_to} ${${_append_to}} PARENT_SCOPE)
   endif()
 endmacro()
+
+# Check if given Python module is installed and raises a FATAL_ERROR error
+# if the module cannot be found.
+function(check_python_module module)
+  execute_process(
+    COMMAND
+    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    RESULT_VARIABLE
+      RET_MODULE_TEST
+    ERROR_QUIET
+  )
+
+  if(RET_MODULE_TEST)
+    message(FATAL_ERROR
+        "Could not find module ${module} for Python "
+        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "Make sure to install ${module} for this Python version "
+        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module}'.\n"
+        "Note: You need to have pip installed for this Python version.")
+  endif()
+endfunction()

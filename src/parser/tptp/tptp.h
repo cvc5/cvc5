@@ -22,12 +22,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "util/hash.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 
@@ -218,12 +218,12 @@ namespace tptp {
  * Just exists to provide the uintptr_t constructor that ANTLR
  * requires.
  */
-struct myExpr : public CVC5::api::Term
+struct myExpr : public cvc5::api::Term
 {
-  myExpr() : CVC5::api::Term() {}
-  myExpr(void*) : CVC5::api::Term() {}
-  myExpr(const CVC5::api::Term& e) : CVC5::api::Term(e) {}
-  myExpr(const myExpr& e) : CVC5::api::Term(e) {}
+  myExpr() : cvc5::api::Term() {}
+  myExpr(void*) : cvc5::api::Term() {}
+  myExpr(const cvc5::api::Term& e) : cvc5::api::Term(e) {}
+  myExpr(const myExpr& e) : cvc5::api::Term(e) {}
 }; /* struct myExpr*/
 
 enum NonAssoc {
@@ -238,6 +238,6 @@ enum NonAssoc {
 }  // namespace tptp
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__TPTP_INPUT_H */

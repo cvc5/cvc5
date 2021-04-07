@@ -12,9 +12,9 @@
  ** \brief Test for issue #4889
  **/
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
-using namespace CVC5::api;
+using namespace cvc5::api;
 
 int main()
 {

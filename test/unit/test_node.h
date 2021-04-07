@@ -16,11 +16,12 @@
 #define CVC4__TEST__UNIT__TEST_NODE_H
 
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace test {
 
 class TestNode : public TestInternal
@@ -29,6 +30,7 @@ class TestNode : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager());
+    d_skolemManager = d_nodeManager->getSkolemManager();
     d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));
@@ -38,6 +40,7 @@ class TestNode : public TestInternal
 
   std::unique_ptr<NodeManagerScope> d_scope;
   std::unique_ptr<NodeManager> d_nodeManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<TypeNode> d_boolTypeNode;
   std::unique_ptr<TypeNode> d_bvTypeNode;
   std::unique_ptr<TypeNode> d_intTypeNode;
@@ -45,5 +48,5 @@ class TestNode : public TestInternal
 };
 
 }  // namespace test
-}  // namespace CVC5
+}  // namespace cvc5
 #endif

@@ -25,12 +25,12 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "cvc4_export.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
 
@@ -177,6 +177,6 @@ class CVC4_EXPORT Input
 }; /* class Input */
 
 }  // namespace parser
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__ANTLR_INPUT_H */

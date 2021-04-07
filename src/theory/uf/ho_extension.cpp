@@ -16,14 +16,15 @@
 #include "theory/uf/ho_extension.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/uf_options.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -66,10 +67,11 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   std::vector<TypeNode> argTypes = tn.getArgTypes();
   std::vector<Node> skolems;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
-    Node k =
-        nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
+    Node k = sm->mkDummySkolem(
+        "k", argTypes[i], "skolem created for extensionality.");
     skolems.push_back(k);
   }
   Node t[2];
@@ -120,6 +122,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find(f);
@@ -147,7 +150,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
         newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
         TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
-        new_f = nm->mkSkolem("app_uf", nft);
+        new_f = sm->mkDummySkolem("app_uf", nft);
         for (const Node& v : vs)
         {
           new_f = nm->mkNode(HO_APPLY, new_f, v);
@@ -161,7 +164,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       else
       {
         // introduce skolem to make a standard APPLY_UF
-        new_f = nm->mkSkolem("app_uf", f.getType());
+        new_f = sm->mkDummySkolem("app_uf", f.getType());
         lem = new_f.eqNode(f);
       }
       Trace("uf-ho-lemma")
@@ -455,4 +458,4 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

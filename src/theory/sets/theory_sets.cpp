@@ -22,9 +22,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC5::kind;
+using namespace cvc5::kind;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -54,6 +54,8 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
 {
   return d_internal->getTheoryRewriter();
 }
+
+ProofRuleChecker* TheorySets::getProofChecker() { return nullptr; }
 
 bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -238,4 +240,4 @@ void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

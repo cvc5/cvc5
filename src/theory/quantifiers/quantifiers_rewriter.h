@@ -22,7 +22,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/trust_node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -140,7 +140,7 @@ class QuantifiersRewriter : public TheoryRewriter
                                 Kind k,
                                 std::map<Node, bool>& lit_pol,
                                 bool& childrenChanged);
-  static void addNodeToOrBuilder(Node n, NodeBuilder<>& t);
+  static void addNodeToOrBuilder(Node n, NodeBuilder& t);
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
@@ -303,6 +303,6 @@ public:
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

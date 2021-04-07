@@ -28,7 +28,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -47,20 +47,6 @@ inline Node mkRationalNode(const Rational& q){
 
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
-}
-
-inline Node mkIntSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->integerType());
-}
-
-inline Node mkRealSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->realType());
-}
-
-inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
-  NodeManager* currNM = NodeManager::currentNM();
-  TypeNode functionType = currNM->mkFunctionType(dom, range);
-  return currNM->mkSkolem(name, functionType);
 }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
@@ -194,17 +180,18 @@ inline Kind negateKind(Kind k){
 
 inline Node negateConjunctionAsClause(TNode conjunction){
   Assert(conjunction.getKind() == kind::AND);
-  NodeBuilder<> orBuilder(kind::OR);
+  NodeBuilder orBuilder(kind::OR);
 
   for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
     TNode child = *i;
-    Node negatedChild = NodeBuilder<1>(kind::NOT)<<(child);
+    Node negatedChild = NodeBuilder(kind::NOT) << (child);
     orBuilder << negatedChild;
   }
   return orBuilder;
 }
 
-inline Node maybeUnaryConvert(NodeBuilder<>& builder){
+inline Node maybeUnaryConvert(NodeBuilder& builder)
+{
   Assert(builder.getKind() == kind::OR || builder.getKind() == kind::AND
          || builder.getKind() == kind::PLUS || builder.getKind() == kind::MULT);
   Assert(builder.getNumChildren() >= 1);
@@ -247,7 +234,8 @@ inline Node getIdentity(Kind k){
   }
 }
 
-inline Node safeConstructNary(NodeBuilder<>& nb) {
+inline Node safeConstructNary(NodeBuilder& nb)
+{
   switch (nb.getNumChildren()) {
     case 0:
       return getIdentity(nb.getKind());
@@ -344,6 +332,6 @@ Node negateProofLiteral(TNode n);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__ARITH_UTILITIES_H */

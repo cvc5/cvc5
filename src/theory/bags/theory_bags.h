@@ -27,7 +27,7 @@
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -46,6 +46,8 @@ class TheoryBags : public Theory
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -114,6 +116,6 @@ class TheoryBags : public Theory
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAGS__THEORY_BAGS_H */

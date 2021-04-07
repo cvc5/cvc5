@@ -18,15 +18,17 @@
 #include <iosfwd>
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class Command;
+
+namespace smt {
+class SmtEngine;
+}
 
 namespace main {
 
@@ -65,9 +67,9 @@ class CommandExecutor
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(CVC5::Command* cmd);
+  bool doCommand(cvc5::Command* cmd);
 
-  bool doCommand(std::unique_ptr<CVC5::Command>& cmd)
+  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
   {
     return doCommand(cmd.get());
   }
@@ -84,24 +86,25 @@ class CommandExecutor
   SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
   /**
-   * Flushes statistics to a file descriptor.
+   * Prints statistics to an output stream.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  virtual void flushStatistics(std::ostream& out) const;
+  virtual void printStatistics(std::ostream& out) const;
 
   /**
-   * Flushes statistics to a file descriptor.
-   * Safe to use in a signal handler.
+   * Safely prints statistics to a file descriptor.
+   * This method is safe to be used within a signal handler.
+   * Checks whether statistics should be printed according to the options.
+   * Thus, this method can always be called without checking the options.
    */
-  void safeFlushStatistics(int fd) const;
-
-  static void printStatsFilterZeros(std::ostream& out,
-                                    const std::string& statsString);
+  void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
 
 protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(CVC5::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::Command* cmd);
 
 private:
   CommandExecutor();
@@ -114,6 +117,6 @@ bool solverInvoke(api::Solver* solver,
                   std::ostream* out);
 
 }  // namespace main
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif  /* CVC4__MAIN__COMMAND_EXECUTOR_H */

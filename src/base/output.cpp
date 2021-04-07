@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 /* Definitions of the declared globals from output.h... */
 
@@ -41,4 +41,4 @@ TraceC TraceChannel(&cout);
 std::ostream DumpOutC::dump_cout(cout.rdbuf());// copy cout stream buffer
 DumpOutC DumpOutChannel(&DumpOutC::dump_cout);
 
-}  // namespace CVC5
+}  // namespace cvc5

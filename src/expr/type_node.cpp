@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 
 TypeNode TypeNode::s_null( &expr::NodeValue::null() );
 
@@ -39,7 +39,7 @@ TypeNode TypeNode::substitute(const TypeNode& type,
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
@@ -499,7 +499,7 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   Assert(!t0.isNull());
@@ -717,4 +717,4 @@ TypeNode TypeNode::getBagElementType() const
   return (*this)[0];
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

@@ -19,11 +19,12 @@
 #include "base/configuration.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
+#include "options/option_exception.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 #if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
 
@@ -58,13 +59,13 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 DumpC DumpChannel;
 
 std::ostream& DumpC::setStream(std::ostream* os) {
-  ::CVC5::DumpOutChannel.setStream(os);
+  ::cvc5::DumpOutChannel.setStream(os);
   return *os;
 }
-std::ostream& DumpC::getStream() { return ::CVC5::DumpOutChannel.getStream(); }
+std::ostream& DumpC::getStream() { return ::cvc5::DumpOutChannel.getStream(); }
 std::ostream* DumpC::getStreamPointer()
 {
-  return ::CVC5::DumpOutChannel.getStreamPointer();
+  return ::cvc5::DumpOutChannel.getStreamPointer();
 }
 
 void DumpC::setDumpFromString(const std::string& optarg) {
@@ -243,4 +244,4 @@ pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
 to a file.\n\
 ";
 
-}  // namespace CVC5
+}  // namespace cvc5

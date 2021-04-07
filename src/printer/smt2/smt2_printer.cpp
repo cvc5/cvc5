@@ -22,7 +22,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
@@ -46,7 +46,7 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace printer {
 namespace smt2 {
 
@@ -292,7 +292,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else
       {
-        out << CVC5::quoteSymbol(dt.getName());
+        out << cvc5::quoteSymbol(dt.getName());
       }
       break;
     }
@@ -437,7 +437,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '(';
     }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << CVC5::quoteSymbol(name);
+      out << cvc5::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
@@ -509,7 +509,7 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << CVC5::quoteSymbol(s);
+      out << cvc5::quoteSymbol(s);
     }
     else
     {
@@ -1334,7 +1334,7 @@ static bool tryToStream(std::ostream& out, const Command* c, Variant v);
 static std::string quoteSymbol(TNode n) {
   std::stringstream ss;
   ss << n;
-  return CVC5::quoteSymbol(ss.str());
+  return cvc5::quoteSymbol(ss.str());
 }
 
 template <class T>
@@ -1364,7 +1364,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
     const std::vector<std::string>& cnames = core.getCoreNames();
     for (const std::string& cn : cnames)
     {
-      out << CVC5::quoteSymbol(cn) << std::endl;
+      out << cvc5::quoteSymbol(cn) << std::endl;
     }
   }
   else
@@ -1582,7 +1582,7 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
 {
-  out << "(declare-fun " << CVC5::quoteSymbol(id) << " (";
+  out << "(declare-fun " << cvc5::quoteSymbol(id) << " (";
   if (type.isFunction())
   {
     const vector<TypeNode> argTypes = type.getArgTypes();
@@ -1702,7 +1702,7 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
   std::stringstream id;
   id << type;
   size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
-  out << "(declare-sort " << CVC5::quoteSymbol(id.str()) << " " << arity << ")"
+  out << "(declare-sort " << cvc5::quoteSymbol(id.str()) << " " << arity << ")"
       << std::endl;
 }
 
@@ -1711,7 +1711,7 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
                                         const std::vector<TypeNode>& params,
                                         TypeNode t) const
 {
-  out << "(define-sort " << CVC5::quoteSymbol(id) << " (";
+  out << "(define-sort " << cvc5::quoteSymbol(id) << " (";
   if (params.size() > 0)
   {
     copy(
@@ -1811,7 +1811,7 @@ void Smt2Printer::toStream(std::ostream& out, const DType& dt) const
     {
       out << " ";
     }
-    out << "(" << CVC5::quoteSymbol(cons.getName());
+    out << "(" << cvc5::quoteSymbol(cons.getName());
     for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
     {
       const DTypeSelector& arg = cons[j];
@@ -1844,7 +1844,7 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
   {
     Assert(t.isDatatype());
     const DType& d = t.getDType();
-    out << "(" << CVC5::quoteSymbol(d.getName());
+    out << "(" << cvc5::quoteSymbol(d.getName());
     out << " " << d.getNumParameters() << ")";
   }
   out << ") (";
@@ -1986,7 +1986,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   std::stringstream sym;
   sym << f;
   out << '(' << (isInv ? "synth-inv " : "synth-fun ")
-      << CVC5::quoteSymbol(sym.str()) << ' ';
+      << cvc5::quoteSymbol(sym.str()) << ' ';
   out << '(';
   if (!vars.empty())
   {
@@ -2139,4 +2139,4 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
 
 }  // namespace smt2
 }  // namespace printer
-}  // namespace CVC5
+}  // namespace cvc5

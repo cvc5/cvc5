@@ -13,9 +13,9 @@
 
 libcvc4_add_sources(
   api/checks.h
-  api/cvc4cpp.cpp
-  api/cvc4cpp.h
-  api/cvc4cppkind.h
+  api/cpp/cvc5.cpp
+  api/cpp/cvc5.h
+  api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
   context/cdhashmap.h
@@ -47,6 +47,12 @@ libcvc4_add_sources(
   lib/replacements.h
   lib/strtok_r.c
   lib/strtok_r.h
+  omt/bitvector_optimizer.cpp
+  omt/bitvector_optimizer.h
+  omt/integer_optimizer.cpp
+  omt/integer_optimizer.h
+  omt/omt_optimizer.cpp
+  omt/omt_optimizer.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/passes/ackermann.cpp
@@ -1136,8 +1142,7 @@ if(USE_CADICAL)
   target_link_libraries(cvc4 PRIVATE CaDiCaL)
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 PRIVATE ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 PRIVATE CryptoMiniSat)
@@ -1179,14 +1184,14 @@ endif()
 # Install public API headers
 
 install(FILES
-          api/cvc4cpp.h
-          api/cvc4cppkind.h
+          api/cpp/cvc5.h
+          api/cpp/cvc5_kind.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

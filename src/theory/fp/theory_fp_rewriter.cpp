@@ -37,7 +37,7 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -110,8 +110,7 @@ namespace rewrite {
 
     size_t children = node.getNumChildren();
     if (children > 2) {
-
-      NodeBuilder<> conjunction(kind::AND);
+      NodeBuilder conjunction(kind::AND);
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {
@@ -1421,4 +1420,4 @@ TheoryFpRewriter::TheoryFpRewriter()
 
   }  // namespace fp
   }  // namespace theory
-  }  // namespace CVC5
+  }  // namespace cvc5

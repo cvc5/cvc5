@@ -14,9 +14,10 @@
 
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
+#include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -26,9 +27,10 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
                                const std::vector<Node>& builtinVars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
-  d_enumerator->initialize(nm->mkSkolem("sygus_rcons", stn));
+  d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0
@@ -69,4 +71,4 @@ Node RConsTypeInfo::builtinToOb(Node builtin) { return d_ob[builtin]; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

@@ -16,6 +16,7 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/logic_exception.h"
@@ -28,10 +29,10 @@
 #include "theory/uf/theory_uf.h"
 
 using namespace std;
-using namespace CVC5::kind;
-using namespace CVC5::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -1126,6 +1127,8 @@ void SortModel::debugPrint( const char* c ){
 
 bool SortModel::checkLastCall()
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TheoryModel* m = d_state.getModel();
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
@@ -1163,7 +1166,7 @@ bool SortModel::checkLastCall()
       {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = NodeManager::currentNM()->mkSkolem(
+        Node nn = sm->mkDummySkolem(
             ss.str(), d_type, "enumeration to meet negative card constraint");
         d_fresh_aloc_reps.push_back( nn );
       }
@@ -1184,8 +1187,7 @@ bool SortModel::checkLastCall()
           }
         }
         Node cl = getCardinalityLiteral( d_maxNegCard );
-        Node lem = NodeManager::currentNM()->mkNode(
-            OR, cl, NodeManager::currentNM()->mkAnd(force_cl));
+        Node lem = nm->mkNode(OR, cl, nm->mkAnd(force_cl));
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
         d_im.lemma(lem, InferenceId::UF_CARD_ENFORCE_NEGATIVE);
         return false;
@@ -1766,4 +1768,4 @@ CardinalityExtension::Statistics::~Statistics()
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

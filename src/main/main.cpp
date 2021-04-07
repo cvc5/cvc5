@@ -34,9 +34,9 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC5;
-using namespace CVC5::main;
-using namespace CVC5::language;
+using namespace cvc5;
+using namespace cvc5::main;
+using namespace cvc5::language;
 
 /**
  * CVC4's main() routine is just an exception-safe wrapper around CVC4.
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     if (opts.getStatistics() && pExecutor != nullptr)
     {
       totalTime.reset();
-      pExecutor->flushStatistics(*opts.getErr());
+      pExecutor->printStatistics(*opts.getErr());
     }
   }
   exit(1);

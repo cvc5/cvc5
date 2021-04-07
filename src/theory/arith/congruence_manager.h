@@ -32,7 +32,7 @@
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -212,7 +212,7 @@ private:
   void enableSharedTerms();
   void dequeueLiterals();
 
-  void enqueueIntoNB(const std::set<TNode> all, NodeBuilder<>& nb);
+  void enqueueIntoNB(const std::set<TNode> all, NodeBuilder& nb);
 
   /**
    * Determine an explaination for `internal`. That is a conjunction of theory
@@ -251,7 +251,7 @@ private:
    */
   TrustNode explain(TNode literal);
 
-  void explain(TNode lit, NodeBuilder<>& out);
+  void explain(TNode lit, NodeBuilder& out);
 
   void addWatchedPair(ArithVar s, TNode x, TNode y);
 
@@ -299,4 +299,4 @@ std::vector<Node> andComponents(TNode an);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

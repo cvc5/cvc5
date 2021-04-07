@@ -22,7 +22,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -36,6 +36,6 @@ class TheoryBoolRewriter : public TheoryRewriter
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H */

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -26,10 +27,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC5::kind;
-using namespace CVC5::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -463,7 +464,8 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
     return it->second;
   }
   NodeManager * nm = NodeManager::currentNM();
-  Node g = nm->mkSkolem("g", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  Node g = sm->mkDummySkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
   Node ceLit = d_qstate.getValuation().ensureLiteral(g);
   d_ce_lit[q] = ceLit;
@@ -546,4 +548,4 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

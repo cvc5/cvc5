@@ -22,10 +22,10 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/valuation.h"
 
-using namespace CVC5::kind;
-using namespace CVC5::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -47,13 +47,6 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-inst-max-level", this );
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
-
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add the proof rules
-    d_qChecker.registerTo(pc);
-  }
 
   // Finish initializing the term registry by hooking it up to the inference
   // manager. This is required due to a cyclic dependency between the term
@@ -82,6 +75,9 @@ TheoryQuantifiers::~TheoryQuantifiers() {
 }
 
 TheoryRewriter* TheoryQuantifiers::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryQuantifiers::getProofChecker() { return &d_checker; }
+
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
@@ -184,4 +180,4 @@ void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::v
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5

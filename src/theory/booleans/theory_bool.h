@@ -24,7 +24,7 @@
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -37,22 +37,25 @@ class TheoryBool : public Theory {
              const LogicInfo& logicInfo,
              ProofNodeManager* pnm = nullptr);
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
 
-  std::string identify() const override { return std::string("TheoryBool"); }
+  std::string identify() const override;
 
  private:
   /** The theory rewriter for this theory. */
   TheoryBoolRewriter d_rewriter;
   /** Proof rule checker */
-  BoolProofRuleChecker d_bProofChecker;
+  BoolProofRuleChecker d_checker;
 };/* class TheoryBool */
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BOOLEANS__THEORY_BOOL_H */

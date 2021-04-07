@@ -32,7 +32,7 @@
 #include "expr/metakind.h"
 #include "util/cardinality.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 class NodeManager;
 class DType;
@@ -77,7 +77,6 @@ private:
 
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
   /**
@@ -749,11 +748,11 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
 
 typedef TypeNode::HashFunction TypeNodeHashFunction;
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #include "expr/node_manager.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
@@ -797,7 +796,7 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
@@ -860,7 +859,7 @@ template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
@@ -869,7 +868,7 @@ template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
@@ -877,7 +876,7 @@ hasAttribute(const AttrKind&) const {
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
@@ -886,7 +885,7 @@ template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC5::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
@@ -1069,6 +1068,6 @@ static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
 }
 #endif /* CVC4_DEBUG */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__NODE_H */

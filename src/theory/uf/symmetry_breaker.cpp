@@ -48,11 +48,11 @@
 
 using namespace std;
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
-using namespace ::CVC5::context;
+using namespace ::cvc5::context;
 
 SymmetryBreaker::Template::Template() :
   d_template(),
@@ -525,7 +525,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
           Debug("ufsymm") << "UFSYMM p == " << p << endl;
           if(i != p.end() || p.size() != cts.size()) {
             Debug("ufsymm") << "UFSYMM cts != p" << endl;
-            NodeBuilder<> disj(kind::OR);
+            NodeBuilder disj(kind::OR);
             NodeManager* nm = NodeManager::currentNM();
             for (const Node& nn : cts)
             {
@@ -816,4 +816,4 @@ std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::P
   return out;
 }
 
-}  // namespace CVC5
+}  // namespace cvc5

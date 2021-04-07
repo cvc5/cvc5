@@ -24,7 +24,10 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
 
-namespace CVC5 {
+namespace cvc5 {
+
+class ProofRuleChecker;
+
 namespace theory {
 namespace bv {
 
@@ -49,6 +52,8 @@ class TheoryBV : public Theory
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -92,7 +97,7 @@ class TheoryBV : public Theory
 
   TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
 
@@ -124,6 +129,6 @@ class TheoryBV : public Theory
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__THEORY_BV_H */

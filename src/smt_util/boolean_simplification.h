@@ -25,7 +25,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC5 {
+namespace cvc5 {
 
 /**
  * A class to contain a number of useful functions for simple
@@ -82,7 +82,7 @@ class BooleanSimplification {
       return buffer[0];
     }
 
-    NodeBuilder<> nb(kind::AND);
+    NodeBuilder nb(kind::AND);
     nb.append(buffer);
     return nb;
   }
@@ -108,7 +108,7 @@ class BooleanSimplification {
       return buffer[0];
     }
 
-    NodeBuilder<> nb(kind::OR);
+    NodeBuilder nb(kind::OR);
     nb.append(buffer);
     return nb;
   }
@@ -128,7 +128,7 @@ class BooleanSimplification {
     TNode right = implication[1];
 
     Node notLeft = negate(left);
-    Node clause = NodeBuilder<2>(kind::OR) << notLeft << right;
+    Node clause = NodeBuilder(kind::OR) << notLeft << right;
 
     return simplifyClause(clause);
   }
@@ -223,6 +223,6 @@ class BooleanSimplification {
 
 };/* class BooleanSimplification */
 
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC4__BOOLEAN_SIMPLIFICATION_H */

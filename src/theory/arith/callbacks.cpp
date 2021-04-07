@@ -18,10 +18,11 @@
 #include "theory/arith/callbacks.h"
 
 #include "expr/proof_node.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
 
-namespace CVC5 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -46,7 +47,9 @@ TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta)
 : d_ta(ta)
 {}
 ArithVar TempVarMalloc::request(){
-  Node skolem = mkRealSkolem("tmpVar");
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node skolem = sm->mkDummySkolem("tmpVar", nm->realType());
   return d_ta.requestArithVar(skolem, false, true);
 }
 void TempVarMalloc::release(ArithVar v){
@@ -196,4 +199,4 @@ BoundCounts BoundCountingLookup::hasBounds(ArithVar basic) const {
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
