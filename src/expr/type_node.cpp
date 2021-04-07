@@ -111,7 +111,8 @@ CardinalityClass TypeNode::getCardinalityClass()
     else if (isArray())
     {
       ret = getArrayConstituentType().getCardinalityClass();
-      if (ret == CardinalityClass::FINITE || ret == CardinalityClass::INTERPRETED_FINITE)
+      if (ret == CardinalityClass::FINITE
+          || ret == CardinalityClass::INTERPRETED_FINITE)
       {
         CardinalityClass cci = getArrayIndexType().getCardinalityClass();
         // arrays with both finite element types, we take the max with its
@@ -143,7 +144,8 @@ CardinalityClass TypeNode::getCardinalityClass()
     else if (isFunction())
     {
       ret = getRangeType().getCardinalityClass();
-      if (ret == CardinalityClass::FINITE || ret == CardinalityClass::INTERPRETED_FINITE)
+      if (ret == CardinalityClass::FINITE
+          || ret == CardinalityClass::INTERPRETED_FINITE)
       {
         // we may have a larger cardinality class based on the
         // arguments of the function
