@@ -41,10 +41,12 @@ class ProofNodeUpdaterCallback
   /** Should proof pn be updated?
    *
    * @param pn the proof node that maybe should be updated
+   * @param fa the assumptions in scope
    * @param continueUpdate whether we should continue recursively updating pn
    * @return whether we should run the update method on pn
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                            const std::vector<Node>& fa,
                             bool& continueUpdate) = 0;
   /**
    * Update the proof rule application, store steps in cdp. Return true if

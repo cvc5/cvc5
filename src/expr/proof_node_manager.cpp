@@ -299,6 +299,55 @@ Node ProofNodeManager::checkInternal(
 
 ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
 
+std::shared_ptr<ProofNode> ProofNodeManager::clone(
+    std::shared_ptr<ProofNode> pn)
+{
+  const ProofNode* orig = pn.get();
+  std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>> visited;
+  std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>>::iterator it;
+  std::vector<const ProofNode*> visit;
+  std::shared_ptr<ProofNode> cloned;
+  visit.push_back(orig);
+  const ProofNode* cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited[cur] = nullptr;
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& cp : children)
+      {
+        visit.push_back(cp.get());
+      }
+      continue;
+    }
+    visit.pop_back();
+    if (it->second.get() == nullptr)
+    {
+      std::vector<std::shared_ptr<ProofNode>> cchildren;
+      const std::vector<std::shared_ptr<ProofNode>>& children =
+          cur->getChildren();
+      for (const std::shared_ptr<ProofNode>& cp : children)
+      {
+        it = visited.find(cp.get());
+        Assert(it != visited.end());
+        Assert(it->second != nullptr);
+        cchildren.push_back(it->second);
+      }
+      cloned = std::make_shared<ProofNode>(
+          cur->getRule(), cchildren, cur->getArguments());
+      visited[cur] = cloned;
+      // we trust the above cloning does not change what is proven
+      cloned->d_proven = cur->d_proven;
+    }
+  }
+  Assert(visited.find(orig) != visited.end());
+  return visited[orig];
+}
+
 bool ProofNodeManager::updateNodeInternal(
     ProofNode* pn,
     PfRule id,

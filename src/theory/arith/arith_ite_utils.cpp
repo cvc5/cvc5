@@ -20,6 +20,7 @@
 #include <ostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
@@ -441,10 +442,11 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
         NodeManager* nm = NodeManager::currentNM();
+        SkolemManager* sm = nm->getSkolemManager();
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 
-        Node sk = nm->mkSkolem("deor", nm->booleanType());
+        Node sk = sm->mkDummySkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
         addSubstitution(sel, ite);
