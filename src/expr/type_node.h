@@ -410,7 +410,11 @@ public:
    */
   Cardinality getCardinality() const;
   /**
-   * Get the cardinality class of this type node.
+   * Get the cardinality class of this type node. The cardinality class
+   * is static for each type node and does not depend on the state of the
+   * solver. For details on cardinality classes, see util/cardinality_class.h
+   *
+   * @return the cardinality class
    */
   CardinalityClass getCardinalityClass();
 
