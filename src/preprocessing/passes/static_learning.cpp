@@ -37,7 +37,7 @@ PreprocessingPassResult StaticLearning::applyInternal(
 
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    NodeBuilder<> learned(kind::AND);
+    NodeBuilder learned(kind::AND);
     learned << (*assertionsToPreprocess)[i];
     d_preprocContext->getTheoryEngine()->ppStaticLearn(
         (*assertionsToPreprocess)[i], learned);

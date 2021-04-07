@@ -140,7 +140,7 @@ class QuantifiersRewriter : public TheoryRewriter
                                 Kind k,
                                 std::map<Node, bool>& lit_pol,
                                 bool& childrenChanged);
-  static void addNodeToOrBuilder(Node n, NodeBuilder<>& t);
+  static void addNodeToOrBuilder(Node n, NodeBuilder& t);
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,

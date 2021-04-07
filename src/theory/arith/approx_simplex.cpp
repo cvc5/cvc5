@@ -1785,7 +1785,7 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
 
 // Node explainSet(const set<ConstraintP>& inp){
 //   Assert(!inp.empty());
-//   NodeBuilder<> nb(kind::AND);
+//   NodeBuilder nb(kind::AND);
 //   set<ConstraintP>::const_iterator iter, end;
 //   for(iter = inp.begin(), end = inp.end(); iter != end; ++iter){
 //     const ConstraintP c = *iter;

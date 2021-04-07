@@ -235,7 +235,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
               if( num==1 ){
                 return RewriteResponse(REWRITE_AGAIN, base);
               }else{
-                NodeBuilder<> nb(kind::MULT);
+                NodeBuilder nb(kind::MULT);
                 for(unsigned i=0; i < num; ++i){
                   nb << base;
                 }

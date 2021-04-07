@@ -14,10 +14,10 @@
  **
  **/
 
-#include <iostream>
-#include <cmath>
+#include <cvc5/cvc5.h>
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 using namespace cvc5::api;

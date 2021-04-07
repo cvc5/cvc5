@@ -91,7 +91,7 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
   } else {
     // \todo see bv::utils::flattenAnd
 
-    NodeBuilder<> conjunction(kind::AND);
+    NodeBuilder conjunction(kind::AND);
     for (std::vector<TNode>::const_iterator it = assumptions.begin();
          it != assumptions.end(); ++it) {
       conjunction << *it;
@@ -131,6 +131,8 @@ TheoryFp::TheoryFp(context::Context* c,
 } /* TheoryFp::TheoryFp() */
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
 
 bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -940,12 +942,11 @@ void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
   d_im.conflictEqConstantMerge(t1, t2);
 }
 
-
-bool TheoryFp::needsCheckLastEffort() 
-{ 
+bool TheoryFp::needsCheckLastEffort()
+{
   // only need to check if we have added to the abstraction map, otherwise
   // postCheck below is a no-op.
-  return !d_abstractionMap.empty(); 
+  return !d_abstractionMap.empty();
 }
 
 void TheoryFp::postCheck(Effort level)

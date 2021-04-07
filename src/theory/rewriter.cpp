@@ -89,7 +89,7 @@ struct RewriteStackElement {
   /** Index of the child this node is done rewriting */
   unsigned d_nextChild : 32;
   /** Builder for this node */
-  NodeBuilder<> d_builder;
+  NodeBuilder d_builder;
 };
 
 RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n)
