@@ -35,7 +35,7 @@ add_custom_command(
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
 )
 
-add_custom_target(gen-java-kinds DEPENDS ${JAVA_KIND_FILE})
+add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
 # find java
 find_package(Java COMPONENTS Development REQUIRED)
@@ -51,18 +51,29 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind.java
 )
 
+# specify generated jni headers
+set(JNI_HEADERS
+  ${CMAKE_CURRENT_BINARY_DIR}/jni/cvc5_Solver.h
+)
+
 # generate jni headers
-add_custom_target(
-  generate-jni-headers
+add_custom_command(
+  OUTPUT
+    ${JNI_HEADERS}
+  BYPRODUCTS
+    ${JNI_HEADERS}
   ALL
   COMMAND
-  # generate jni header files
-  ${Java_JAVAC_EXECUTABLE} -h jni ${JAVA_FILES} -d jni
+    # generate jni header files
+    ${Java_JAVAC_EXECUTABLE} -h jni ${JAVA_FILES} -d jni
+  DEPENDS
+    ${JAVA_FILES}
   COMMENT "Generate jni headers"
   VERBATIM
 )
 
-add_dependencies(generate-jni-headers gen-java-kinds)
+add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
+add_dependencies(generate-jni-headers generate-java-kinds)
 
 # find jni package
 find_package(JNI REQUIRED)
@@ -96,7 +107,7 @@ add_jar(cvc5jar
   OUTPUT_NAME cvc5
 )
 
-add_dependencies(cvc5jar gen-java-kinds cvc5jni cvc4)
+add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc4)
 
 set(CVC5_JAR_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CVC5_JAR}" CACHE STRING "cvc5 jar" FORCE)
 set(CVC5_JNI_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "cvc5 jni path" FORCE)
