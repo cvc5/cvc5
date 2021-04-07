@@ -988,6 +988,14 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
+        // must specialize if a parametric datatype
+        if (dt.isParametric())
+        {
+          TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
+          cop = nm->mkNode(APPLY_TYPE_ASCRIPTION,
+                                  nm->mkConst(AscriptionType(tspec)),
+                                  cop);
+        }
         if (dt[l].getNumArgs() == 0)
         {
           // Nullary constructors are interpreted as terms, not operators.
