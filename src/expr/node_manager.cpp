@@ -628,9 +628,8 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         nameResolutions.find(name);
     if (resolver == nameResolutions.end())
     {
-      throw Exception(
-          "cannot resolve type " + name
-          + "; it's not among the datatypes being defined");
+      throw Exception("cannot resolve type " + name
+                      + "; it's not among the datatypes being defined");
     }
     // We will instruct the Datatype to substitute "ut" (the
     // unresolved SortType used as a placeholder in complex types)
@@ -686,8 +685,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // cvc5::DType class, but this actually needs to be checked.
         if (selectorType.getRangeType().isFunctionLike())
         {
-          throw Exception(
-              "cannot put function-like things in datatypes");
+          throw Exception("cannot put function-like things in datatypes");
         }
       }
     }
