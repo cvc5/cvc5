@@ -44,8 +44,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }else{
     d_proxy_range = r;

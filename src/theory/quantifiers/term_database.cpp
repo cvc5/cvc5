@@ -155,8 +155,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
       d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
     ss << language::SetLanguage(options::outputLanguage());
     ss << "e_" << tn;

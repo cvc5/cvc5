@@ -50,8 +50,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Node n = sm->mkDummySkolem(c, tn, "sets skolem");
   d_allSkolems.insert(n);
   return n;
