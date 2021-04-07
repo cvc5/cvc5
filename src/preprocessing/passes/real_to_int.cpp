@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_msum.h"
@@ -42,6 +43,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   else
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
@@ -178,9 +180,10 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         else if (n.isVar())
         {
-          ret = nm->mkSkolem("__realToIntInternal_var",
-                             nm->integerType(),
-                             "Variable introduced in realToIntInternal pass");
+          ret = sm->mkDummySkolem(
+              "__realToIntInternal_var",
+              nm->integerType(),
+              "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
           // ensure that the original variable is defined to be the returned
           // one, which is important for models and for incremental solving.
