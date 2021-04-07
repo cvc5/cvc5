@@ -302,7 +302,7 @@ class TheoryEngineModelBuilder
    * Is the given type constrained to be finite? This depends on whether
    * finite model finding is enabled.
    */
-  bool isTypeFinite(TypeNode tn) const;
+  bool isFiniteType(TypeNode tn) const;
   //---------------------------------for debugging finite model finding
   /** does type tn involve an uninterpreted sort? */
   bool involvesUSort(TypeNode tn) const;

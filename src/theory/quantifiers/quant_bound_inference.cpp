@@ -38,7 +38,7 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn)
   if (it == d_may_complete.end())
   {
     // cache
-    bool mc = mayComplete(tn, d_cardMax, d_isFmf);
+    bool mc = mayComplete(tn, d_cardMax);
     d_may_complete[tn] = mc;
     return mc;
   }
@@ -46,15 +46,16 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn)
 }
 
 bool QuantifiersBoundInference::mayComplete(TypeNode tn,
-                                            unsigned maxCard,
-                                            bool isFmf)
+                                            unsigned maxCard)
 {
   if (!tn.isClosedEnumerable())
   {
     return false;
   }
   bool mc = false;
-  if (tn.getCardinalityClass() != CardinalityClass::INFINITE)
+  // we cannot use FMF to complete interpreted types, thus we pass
+  // false for fmfEnabled here
+  if (isCardinalityClassFinite(tn.getCardinalityClass(), false))
   {
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())

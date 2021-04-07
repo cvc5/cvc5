@@ -77,7 +77,7 @@ class QuantifiersBoundInference
    * Static version of the above method where maximum cardinality is
    * configurable.
    */
-  static bool mayComplete(TypeNode tn, unsigned cardMax, bool isFmf);
+  static bool mayComplete(TypeNode tn, unsigned cardMax);
   /** does variable v of quantified formula q have a finite bound? */
   bool isFiniteBound(Node q, Node v);
   /** get bound var type

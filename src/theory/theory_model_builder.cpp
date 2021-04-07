@@ -272,7 +272,7 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-bool TheoryEngineModelBuilder::isTypeFinite(TypeNode tn) const
+bool TheoryEngineModelBuilder::isFiniteType(TypeNode tn) const
 {
   return isCardinalityClassFinite(tn.getCardinalityClass(),
                                   options::finiteModelFind());
@@ -842,7 +842,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         const DType& dt = t.getDType();
         isCorecursive = dt.isCodatatype()
-                        && (!isTypeFinite(t) || dt.isRecursiveSingleton(t));
+                        && (!isFiniteType(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC4_ASSERTIONS
       bool isUSortFiniteRestricted = false;
@@ -919,7 +919,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !isTypeFinite(t))
+          else if (t.isSort() || !isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.
