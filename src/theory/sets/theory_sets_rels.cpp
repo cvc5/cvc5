@@ -362,52 +362,75 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for JoinImage Term" << join_image_term << "*********** " << std::endl;
   }
 
-  
-/* JOIN-IMAGE DOWN  : (x) IS_IN (R JOIN_IMAGE n)
-*                     -------------------------------------------------------
-*                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ... , xn)
-*
-*/
-void TheorySetsRels::applyJoinImageRule( Node mem_rep, Node join_image_term, Node exp ) {
-  Trace("rels-debug") << "\n[Theory::Rels] *********** applyJoinImageRule on " << join_image_term
-                      << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node join_image_rel = join_image_term[0];
-  Node join_image_rel_rep = getRepresentative( join_image_rel );
-  MEM_IT rel_mem_it = d_rReps_memberReps_cache.find( join_image_rel_rep );
-  unsigned int min_card = join_image_term[1].getConst<Rational>().getNumerator().getUnsignedInt();
+  /* JOIN-IMAGE DOWN  : (x) IS_IN (R JOIN_IMAGE n)
+   *                     -------------------------------------------------------
+   *                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ...
+   * , xn)
+   *
+   */
+  void TheorySetsRels::applyJoinImageRule(Node mem_rep,
+                                          Node join_image_term,
+                                          Node exp)
+  {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** applyJoinImageRule on "
+                        << join_image_term << " with mem_rep = " << mem_rep
+                        << " and exp = " << exp << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node join_image_rel = join_image_term[0];
+    Node join_image_rel_rep = getRepresentative(join_image_rel);
+    MEM_IT rel_mem_it = d_rReps_memberReps_cache.find(join_image_rel_rep);
+    unsigned int min_card =
+        join_image_term[1].getConst<Rational>().getNumerator().getUnsignedInt();
 
-  if( rel_mem_it != d_rReps_memberReps_cache.end() ) {
-    if( d_membership_trie.find( join_image_rel_rep ) != d_membership_trie.end() ) {
-      computeTupleReps( mem_rep );
-      if( d_membership_trie[join_image_rel_rep].findSuccessors(d_tuple_reps[mem_rep]).size() >= min_card ) {
-        return;
+    if (rel_mem_it != d_rReps_memberReps_cache.end())
+    {
+      if (d_membership_trie.find(join_image_rel_rep) != d_membership_trie.end())
+      {
+        computeTupleReps(mem_rep);
+        if (d_membership_trie[join_image_rel_rep]
+                .findSuccessors(d_tuple_reps[mem_rep])
+                .size()
+            >= min_card)
+        {
+          return;
+        }
       }
     }
-  }
 
-  Node reason = exp;
-  Node conclusion = d_trueNode;
-  std::vector< Node > distinct_skolems;
-  Node fst_mem_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
+    Node reason = exp;
+    Node conclusion = d_trueNode;
+    std::vector<Node> distinct_skolems;
+    Node fst_mem_element = RelsUtils::nthElementOfTuple(exp[0], 0);
 
-  if( exp[1] != join_image_term ) {
-    reason = nm->mkNode( AND, reason, nm->mkNode( EQUAL, exp[1], join_image_term ) );
+    if (exp[1] != join_image_term)
+    {
+      reason =
+          nm->mkNode(AND, reason, nm->mkNode(EQUAL, exp[1], join_image_term));
+    }
+    for (unsigned int i = 0; i < min_card; i++)
+    {
+      Node skolem = sm->mkDummySkolem(
+          "jig", join_image_rel.getType()[0].getTupleTypes()[0]);
+      distinct_skolems.push_back(skolem);
+      conclusion = nm->mkNode(
+          AND,
+          conclusion,
+          nm->mkNode(
+              MEMBER,
+              RelsUtils::constructPair(join_image_rel, fst_mem_element, skolem),
+              join_image_rel));
+    }
+    if (distinct_skolems.size() >= 2)
+    {
+      conclusion =
+          nm->mkNode(AND, conclusion, nm->mkNode(DISTINCT, distinct_skolems));
+    }
+    sendInfer(conclusion, InferenceId::SETS_RELS_JOIN_IMAGE_DOWN, reason);
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Done with "
+                           "applyJoinImageRule ***********"
+                        << std::endl;
   }
-  for( unsigned int i = 0; i < min_card; i++ ) {
-    Node skolem = sm->mkDummySkolem(
-        "jig", join_image_rel.getType()[0].getTupleTypes()[0]);
-    distinct_skolems.push_back( skolem );
-    conclusion = nm->mkNode( AND, conclusion, nm->mkNode( MEMBER, RelsUtils::constructPair( join_image_rel, fst_mem_element, skolem ), join_image_rel ) );
-  }
-  if( distinct_skolems.size() >= 2 ) {
-    conclusion =  nm->mkNode( AND, conclusion, nm->mkNode( DISTINCT, distinct_skolems ) );
-  }
-  sendInfer(conclusion, InferenceId::SETS_RELS_JOIN_IMAGE_DOWN, reason);
-  Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
-}
-
 
   /* IDENTITY-DOWN  : (x, y) IS_IN IDEN(R)
   *               -------------------------------------------------------

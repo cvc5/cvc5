@@ -178,8 +178,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
     else
     {
       const DType& dt = tn.getDType();
-      k = nm->mkNode(
-          APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
+      k = nm->mkNode(APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
     }
     d_proxy_vars[tn][c] = k;
     return k;

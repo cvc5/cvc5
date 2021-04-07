@@ -208,8 +208,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
       }
       else
       {
-        TypeNode typ = nm->mkFunctionType(
-            argTypes, f[0][i].getType());
+        TypeNode typ = nm->mkFunctionType(argTypes, f[0][i].getType());
         Node op = sm->mkDummySkolem(
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
@@ -265,25 +264,17 @@ Node Skolemize::mkSkolemizedBody(Node f,
         {
           conj.push_back(ret.substitute(ind_vars[0], selfSel[j]).negate());
         }
-        disj.push_back(conj.size() == 1
-                           ? conj[0]
-                           : nm->mkNode(OR, conj));
+        disj.push_back(conj.size() == 1 ? conj[0] : nm->mkNode(OR, conj));
       }
       Assert(!disj.empty());
-      n_str_ind = disj.size() == 1
-                      ? disj[0]
-                      : nm->mkNode(AND, disj);
+      n_str_ind = disj.size() == 1 ? disj[0] : nm->mkNode(AND, disj);
     }
     else if (options::intWfInduction() && tn.isInteger())
     {
-      Node icond = nm->mkNode(
-          GEQ, k, nm->mkConst(Rational(0)));
-      Node iret =
-          ret.substitute(
-                 ind_vars[0],
-                 nm->mkNode(
-                     MINUS, k, nm->mkConst(Rational(1))))
-              .negate();
+      Node icond = nm->mkNode(GEQ, k, nm->mkConst(Rational(0)));
+      Node iret = ret.substitute(ind_vars[0],
+                                 nm->mkNode(MINUS, k, nm->mkConst(Rational(1))))
+                      .negate();
       n_str_ind = nm->mkNode(OR, icond.negate(), iret);
       n_str_ind = nm->mkNode(AND, icond, n_str_ind);
     }
@@ -306,9 +297,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
       sub = nret;
       sub_vars.insert(
           sub_vars.end(), ind_var_indicies.begin() + 1, ind_var_indicies.end());
-      n_str_ind = nm
-                      ->mkNode(FORALL, bvl, n_str_ind.negate())
-                      .negate();
+      n_str_ind = nm->mkNode(FORALL, bvl, n_str_ind.negate()).negate();
     }
     ret = nm->mkNode(OR, nret, n_str_ind);
   }
