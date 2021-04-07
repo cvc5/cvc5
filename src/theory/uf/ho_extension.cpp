@@ -202,12 +202,14 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                  << isCollectModel << "..." << std::endl;
   std::map<TypeNode, std::vector<Node> > func_eqcs;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  bool hasFunctions = false;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if (tn.isFunction())
     {
+      hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
       if (tn.isInterpretedFinite() != isCollectModel)
@@ -218,6 +220,16 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       }
     }
     ++eqcs_i;
+  }
+  if (!options::ufHoExt())
+  {
+    // we are not applying extensionality, thus we are incomplete if functions
+    // are present
+    if (hasFunctions)
+    {
+      d_im.setIncomplete();
+    }
+    return 0;
   }
 
   for (std::map<TypeNode, std::vector<Node> >::iterator itf = func_eqcs.begin();
@@ -403,17 +415,14 @@ unsigned HoExtension::check()
     }
   } while (num_facts > 0);
 
-  if (options::ufHoExt())
-  {
-    unsigned num_lemmas = 0;
+  unsigned num_lemmas = 0;
 
-    num_lemmas = checkExtensionality();
-    if (num_lemmas > 0)
-    {
-      Trace("uf-ho") << "...extensionality returned " << num_lemmas
-                     << " lemmas." << std::endl;
-      return num_lemmas;
-    }
+  num_lemmas = checkExtensionality();
+  if (num_lemmas > 0)
+  {
+    Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas."
+                   << std::endl;
+    return num_lemmas;
   }
 
   Trace("uf-ho") << "...finished check higher order." << std::endl;
