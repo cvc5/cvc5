@@ -237,8 +237,11 @@ enum class InferenceId
   // ---------------------------------- end datatypes theory
 
   //-------------------------------------- floating point theory
+  // a lemma sent during TheoryFp::ppRewrite
   FP_PREPROCESS,
+  // a lemma sent during TheoryFp::convertAndEquateTerm
   FP_EQUATE_TERM,
+  // a lemma sent during TheoryFp::registerTerm
   FP_REGISTER_TERM,
   //-------------------------------------- end floating point theory
 
