@@ -23,6 +23,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
 #include "expr/proof_node_manager.h"
+#include "expr/skolem_manager.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -317,7 +318,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     Node test = utils::mkTester(n, consIndex, dt);
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
                     test = Rewriter::rewrite( test );
-                    NodeBuilder<> nb(kind::OR);
+                    NodeBuilder nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
                     d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
@@ -538,7 +539,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
     {
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
-      NodeBuilder<> b(APPLY_CONSTRUCTOR);
+      NodeBuilder b(APPLY_CONSTRUCTOR);
       b << dt[0].getConstructor();
       size_t size, updateIndex;
       if (n.getKind() == TUPLE_UPDATE)
@@ -830,10 +831,12 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
 
 void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
   if( d_exp_def_skolem[dt].find( sel )==d_exp_def_skolem[dt].end() ){
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     std::stringstream ss;
     ss << sel << "_uf";
-    d_exp_def_skolem[dt][ sel ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
-                                  NodeManager::currentNM()->mkFunctionType( dt, rt ) );
+    d_exp_def_skolem[dt][sel] =
+        sm->mkDummySkolem(ss.str().c_str(), nm->mkFunctionType(dt, rt));
   }
 }
 
@@ -841,8 +844,11 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
   if( n.getKind()==APPLY_CONSTRUCTOR ){
     NodeMap::const_iterator it = d_term_sk.find( n );
     if( it==d_term_sk.end() ){
+      NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       //add purification unit lemma ( k = n )
-      Node k = NodeManager::currentNM()->mkSkolem( "k", n.getType(), "reference skolem for datatypes" );
+      Node k =
+          sm->mkDummySkolem("k", n.getType(), "reference skolem for datatypes");
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
@@ -952,7 +958,7 @@ void TheoryDatatypes::addTester(
           Assert(testerIndex != -1);
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
-          NodeBuilder<> nb(kind::AND);
+          NodeBuilder nb(kind::AND);
           for (unsigned i = 0; i < n_lbl; i++)
           {
             Node ti = d_labels_data[n][i];
@@ -1399,17 +1405,19 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
 }
 
 Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   int index = pol ? 0 : 1;
   std::map< TypeNode, Node >::iterator it = d_singleton_lemma[index].find( tn );
   if( it==d_singleton_lemma[index].end() ){
     Node a;
     if( pol ){
-      Node v1 = NodeManager::currentNM()->mkBoundVar( tn );
-      Node v2 = NodeManager::currentNM()->mkBoundVar( tn );
-      a = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, v1, v2 ), v1.eqNode( v2 ) );
+      Node v1 = nm->mkBoundVar(tn);
+      Node v2 = nm->mkBoundVar(tn);
+      a = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v1, v2), v1.eqNode(v2));
     }else{
-      Node v1 = NodeManager::currentNM()->mkSkolem( "k1", tn );
-      Node v2 = NodeManager::currentNM()->mkSkolem( "k2", tn );
+      Node v1 = sm->mkDummySkolem("k1", tn);
+      Node v2 = sm->mkDummySkolem("k2", tn);
       a = v1.eqNode( v2 ).negate();
       //send out immediately as lemma
       d_im.lemma(a, InferenceId::DATATYPES_REC_SINGLETON_FORCE_DEQ);

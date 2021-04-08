@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/theory_options.h"
 #include "theory/theory.h"
 
@@ -278,10 +279,10 @@ Node mkConst(const BitVector& value)
 Node mkVar(unsigned size)
 {
   NodeManager* nm = NodeManager::currentNM();
-
-  return nm->mkSkolem("BVSKOLEM$$",
-                      nm->mkBitVectorType(size),
-                      "is a variable created by the theory of bitvectors");
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkDummySkolem("BVSKOLEM$$",
+                           nm->mkBitVectorType(size),
+                           "is a variable created by the theory of bitvectors");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -384,7 +385,7 @@ Node mkConcat(TNode node, unsigned repeat)
   {
     return node;
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   for (unsigned i = 0; i < repeat; ++i)
   {
     result << node;
@@ -503,7 +504,7 @@ Node eliminateInt2Bv(TNode node)
   {
     return v[0];
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   result.append(v.rbegin(), v.rend());
   return Node(result);
 }

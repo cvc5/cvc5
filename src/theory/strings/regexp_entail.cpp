@@ -639,7 +639,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
   }
   else if (n.getKind() == REGEXP_CONCAT)
   {
-    NodeBuilder<> nb(PLUS);
+    NodeBuilder nb(PLUS);
     for (const Node& nc : n)
     {
       Node flc = getFixedLengthForRegexp(nc);

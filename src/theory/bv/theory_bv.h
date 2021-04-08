@@ -97,7 +97,7 @@ class TheoryBV : public Theory
 
   TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
 

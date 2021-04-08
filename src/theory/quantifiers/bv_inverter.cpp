@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/bv_inverter_utils.h"
@@ -35,14 +36,12 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
   if (its == d_solve_var.end())
   {
-    Node k = NodeManager::currentNM()->mkSkolem("slv", tn);
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    Node k = sm->mkDummySkolem("slv", tn);
     d_solve_var[tn] = k;
     return k;
   }
-  else
-  {
-    return its->second;
-  }
+  return its->second;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -202,7 +201,7 @@ static Node dropChild(Node n, unsigned index)
   if (nchildren < 2) return Node::null();
 
   Kind k = n.getKind();
-  NodeBuilder<> nb(k);
+  NodeBuilder nb(k);
   for (unsigned i = 0; i < nchildren; ++i)
   {
     if (i == index) continue;
@@ -350,7 +349,7 @@ Node BvInverter::solveBvLit(Node sv,
         unsigned upper, lower;
         upper = bv::utils::getSize(t) - 1;
         lower = 0;
-        NodeBuilder<> nb(BITVECTOR_CONCAT);
+        NodeBuilder nb(BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
           if (i < index)

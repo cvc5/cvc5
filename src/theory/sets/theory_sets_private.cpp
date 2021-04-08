@@ -286,6 +286,10 @@ void TheorySetsPrivate::fullEffortCheck()
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
+          if (d_im.hasSent())
+          {
+            break;
+          }
           // if we do not handle the kind, set incomplete
           Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
@@ -1221,7 +1225,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end)
@@ -1369,11 +1373,12 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
   stringstream stream;
   stream << "chooseUf" << setType.getId();
   string name = stream.str();
-  Node chooseSkolem = nm->mkSkolem(
+  Node chooseSkolem = sm->mkDummySkolem(
       name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
   d_chooseFunctions[setType] = chooseSkolem;
   return chooseSkolem;

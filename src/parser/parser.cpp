@@ -23,7 +23,7 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"

@@ -97,7 +97,7 @@ class BVSolverLazy : public BVSolver
 
   TrustNode ppRewrite(TNode t) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
 

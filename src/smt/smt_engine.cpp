@@ -24,6 +24,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/printer_options.h"
@@ -336,8 +337,10 @@ SmtEngine::~SmtEngine()
     d_asserts.reset(nullptr);
     d_model.reset(nullptr);
 
+    d_abductSolver.reset(nullptr);
+    d_interpolSolver.reset(nullptr);
+    d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
-
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);

@@ -39,7 +39,7 @@ TypeNode TypeNode::substitute(const TypeNode& type,
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);

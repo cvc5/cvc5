@@ -36,7 +36,7 @@ namespace cvc5 {
 
 template <bool ref_count> class NodeTemplate;
 class TypeNode;
-template <unsigned N> class NodeBuilder;
+class NodeBuilder;
 class NodeManager;
 
 namespace expr {
@@ -65,7 +65,6 @@ class NodeValue
   template <bool>
   friend class ::cvc5::NodeTemplate;
   friend class ::cvc5::TypeNode;
-  template <unsigned nchild_thresh>
   friend class ::cvc5::NodeBuilder;
   friend class ::cvc5::NodeManager;
 
