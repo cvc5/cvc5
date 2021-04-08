@@ -25,6 +25,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
+  pc->registerChecker(PfRule::MACRO_RESOLUTION_TRUST, this);
   pc->registerChecker(PfRule::MACRO_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
@@ -298,6 +299,12 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                ? nm->mkConst(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
+  }
+  if (id == PfRule::MACRO_RESOLUTION_TRUST)
+  {
+    Assert(children.size() > 1);
+    Assert(args.size() == 2 * (children.size() - 1) + 1);
+    return args[0];
   }
   if (id == PfRule::MACRO_RESOLUTION)
   {

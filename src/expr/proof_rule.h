@@ -320,6 +320,8 @@ enum class PfRule : uint32_t
   //   The result of the chain resolution is C, which is equal, in its set
   //   representation, to C_n'
   MACRO_RESOLUTION,
+  // As above but not checked
+  MACRO_RESOLUTION_TRUST,
 
   // ======== Split
   // Children: none
