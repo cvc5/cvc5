@@ -284,8 +284,9 @@ void TheoryDatatypes::postCheck(Effort level)
                                            << std::endl;
                   // Notice that we split here on all datatypes except the
                   // truly infinite ones. It is possible to also not split
-                  // on those that are interpreted-finite, but as a heuristic
-                  // we choose to split on those too.
+                  // on those that are interpreted-finite when finite model
+                  // finding is disabled, but as a heuristic we choose to split
+                  // on those too.
                   bool ifin = dt[j].getCardinalityClass(tt)
                               != CardinalityClass::INFINITE;
                   Trace("datatypes-debug") << "...returned " << ifin
