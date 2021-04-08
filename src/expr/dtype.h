@@ -255,8 +255,7 @@ class DType
   Cardinality getCardinality() const;
 
   /**
-   * Return true iff this DType has finite cardinality. If the
-   * datatype is not well-founded, this method returns false. The
+   * Return the cardinality class of the datatype. The
    * DType must be resolved or an assertion is violated.
    *
    * The version of this method that takes type t is required

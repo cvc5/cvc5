@@ -163,9 +163,9 @@ CardinalityClass TypeNode::getCardinalityClass()
     {
       // notice that we require computing the cardinality class of the
       // constructor type, which is equivalent to asking how many
-      // constructor applications of the given constructor exist? This
+      // constructor applications of the given constructor exist. This
       // is used in several places in the decision procedure for datatypes.
-      // starts with one
+      // The cardinality starts with one.
       ret = CardinalityClass::ONE;
       // we may have a larger cardinality class based on the
       // arguments of the constructor

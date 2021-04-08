@@ -147,9 +147,12 @@ class DTypeConstructor
   Cardinality getCardinality(TypeNode t) const;
 
   /**
-   * Return the cardinality type, which indicates if the type has cardinality
-   * one or is finite, possibly dependent on uninterpreted sorts being
+   * Return the cardinality class, which indicates if the type has cardinality
+   * one, is finite or infinite, possibly dependent on uninterpreted sorts being
    * finite.
+   *
+   * Note that the cardinality of a constructor is equivalent to asking how
+   * many applications of this constructor exist.
    */
   CardinalityClass getCardinalityClass(TypeNode t) const;
 
