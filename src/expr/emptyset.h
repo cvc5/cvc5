@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andres Noetzli, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,11 +23,11 @@
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
-class CVC4_PUBLIC EmptySet
+class EmptySet
 {
  public:
   /**
@@ -53,13 +53,13 @@ class CVC4_PUBLIC EmptySet
   std::unique_ptr<TypeNode> d_type;
 }; /* class EmptySet */
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptySet& es);
 
-struct CVC4_PUBLIC EmptySetHashFunction
+struct EmptySetHashFunction
 {
   size_t operator()(const EmptySet& es) const;
 }; /* struct EmptySetHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EMPTY_SET_H */

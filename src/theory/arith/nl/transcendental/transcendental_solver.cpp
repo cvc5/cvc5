@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,16 +19,18 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -55,14 +57,15 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (const Node& a : needsMaster)
   {
     // should not have processed this already
     Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-    Node y =
-        nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
+    Node y = sm->mkDummySkolem(
+        "y", nm->realType(), "phase shifted trigonometric arg");
     Node new_a = nm->mkNode(k, y);
     d_tstate.d_trSlaves[new_a].insert(new_a);
     d_tstate.d_trSlaves[new_a].insert(a);
@@ -437,4 +440,4 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

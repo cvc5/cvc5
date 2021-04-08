@@ -2,9 +2,9 @@
 /*! \file var_match_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,21 +14,19 @@
 #include "theory/quantifiers/ematching/var_match_generator.h"
 
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(
-    Node var,
-    Node subs,
-    quantifiers::QuantifiersState& qs,
-    quantifiers::QuantifiersInferenceManager& qim)
-    : InstMatchGenerator(Node::null(), qs, qim),
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Trigger* tparent,
+                                                     Node var,
+                                                     Node subs)
+    : InstMatchGenerator(tparent, Node::null()),
       d_var(var),
       d_subs(subs),
       d_rm_prev(false)
@@ -37,16 +35,13 @@ VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(
   d_var_type = d_var.getType();
 }
 
-bool VarMatchGeneratorTermSubs::reset(Node eqc, QuantifiersEngine* qe)
+bool VarMatchGeneratorTermSubs::reset(Node eqc)
 {
   d_eq_class = eqc;
   return true;
 }
 
-int VarMatchGeneratorTermSubs::getNextMatch(Node q,
-                                            InstMatch& m,
-                                            QuantifiersEngine* qe,
-                                            Trigger* tparent)
+int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
 {
   int ret_val = -1;
   if (!d_eq_class.isNull())
@@ -61,13 +56,14 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
     d_eq_class = Node::null();
     // if( s.getType().isSubtypeOf( d_var_type ) ){
     d_rm_prev = m.get(d_children_types[0]).isNull();
-    if (!m.set(qe->getState(), d_children_types[0], s))
+    if (!m.set(d_qstate, d_children_types[0], s))
     {
       return -1;
     }
     else
     {
-      ret_val = continueNextMatch(q, m, qe, tparent);
+      ret_val = continueNextMatch(
+          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
       if (ret_val > 0)
       {
         return ret_val;
@@ -83,5 +79,6 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

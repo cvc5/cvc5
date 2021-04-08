@@ -2,9 +2,9 @@
 /*! \file minisat.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Tim King
+ **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,7 @@
 #include "proof/sat_proof.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 //// DPllMinisatSatSolver
@@ -160,7 +160,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
   // FIXME: to be deleted when we kill old proof code for unsat cores
-  Assert(!options::unsatCores() || options::proof()
+  Assert(!options::unsatCores() || options::produceProofs()
          || clause_id != ClauseIdError);
   return clause_id;
 }
@@ -289,31 +289,32 @@ MinisatSatSolver::Statistics::~Statistics() {
 }
 
 void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
-  d_statStarts.setData(minisat->starts);
-  d_statDecisions.setData(minisat->decisions);
-  d_statRndDecisions.setData(minisat->rnd_decisions);
-  d_statPropagations.setData(minisat->propagations);
-  d_statConflicts.setData(minisat->conflicts);
-  d_statClausesLiterals.setData(minisat->clauses_literals);
-  d_statLearntsLiterals.setData(minisat->learnts_literals);
-  d_statMaxLiterals.setData(minisat->max_literals);
-  d_statTotLiterals.setData(minisat->tot_literals);
+  d_statStarts.set(minisat->starts);
+  d_statDecisions.set(minisat->decisions);
+  d_statRndDecisions.set(minisat->rnd_decisions);
+  d_statPropagations.set(minisat->propagations);
+  d_statConflicts.set(minisat->conflicts);
+  d_statClausesLiterals.set(minisat->clauses_literals);
+  d_statLearntsLiterals.set(minisat->learnts_literals);
+  d_statMaxLiterals.set(minisat->max_literals);
+  d_statTotLiterals.set(minisat->tot_literals);
 }
 
-} /* namespace CVC4::prop */
-} /* namespace CVC4 */
+}  // namespace prop
+}  // namespace cvc5
 
-
-namespace CVC4 {
-template<>
-prop::SatLiteral toSatLiteral< CVC4::Minisat::Solver>(Minisat::Solver::TLit lit) {
+namespace cvc5 {
+template <>
+prop::SatLiteral toSatLiteral<cvc5::Minisat::Solver>(Minisat::Solver::TLit lit)
+{
   return prop::MinisatSatSolver::toSatLiteral(lit);
 }
 
-template<>
-void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& minisat_cl,
-                                      prop::SatClause& sat_cl) {
+template <>
+void toSatClause<cvc5::Minisat::Solver>(
+    const cvc5::Minisat::Solver::TClause& minisat_cl, prop::SatClause& sat_cl)
+{
   prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

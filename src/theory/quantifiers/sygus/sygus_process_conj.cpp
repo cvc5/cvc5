@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 
+#include <sstream>
 #include <stack>
 
 #include "options/quantifiers_options.h"
@@ -21,10 +22,10 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -36,11 +37,10 @@ void SynthConjectureProcessFun::init(Node f)
   // initialize the arguments
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
       type_to_init_deq_id;
-  std::vector<Type> argTypes =
-      static_cast<FunctionType>(f.getType().toType()).getArgTypes();
+  std::vector<TypeNode> argTypes = f.getType().getArgTypes();
   for (unsigned j = 0; j < argTypes.size(); j++)
   {
-    TypeNode atn = TypeNode::fromType(argTypes[j]);
+    TypeNode atn = argTypes[j];
     std::stringstream ss;
     ss << "a" << j;
     Node k = NodeManager::currentNM()->mkBoundVar(ss.str(), atn);
@@ -520,7 +520,7 @@ void SynthConjectureProcessFun::getIrrelevantArgs(
   }
 }
 
-SynthConjectureProcess::SynthConjectureProcess(QuantifiersEngine* qe) {}
+SynthConjectureProcess::SynthConjectureProcess() {}
 SynthConjectureProcess::~SynthConjectureProcess() {}
 Node SynthConjectureProcess::preSimplify(Node q)
 {
@@ -802,6 +802,6 @@ void SynthConjectureProcess::getComponentVector(Kind k,
   }
 }
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 bool ExtTheoryCallback::getCurrentSubstitution(
@@ -557,5 +557,5 @@ std::vector<Node> ExtTheory::getActive(Kind k) const
 
 void ExtTheory::clearCache() { d_gst_cache.clear(); }
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

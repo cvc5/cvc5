@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,10 +18,11 @@
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
@@ -98,6 +99,16 @@ bool ModelManager::buildModel()
 
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
+
+  if (Trace.isOn("model-builder"))
+  {
+    Trace("model-builder") << "Final model:" << std::endl;
+    Trace("model-builder") << d_model->debugPrintModelEqc() << std::endl;
+  }
+
+  Trace("model-builder") << "ModelManager: model built success is "
+                         << d_modelBuiltSuccess << std::endl;
+
   return d_modelBuiltSuccess;
 }
 
@@ -228,4 +239,4 @@ void ModelManager::collectTerms(TheoryId tid,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

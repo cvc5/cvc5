@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,14 +42,17 @@
 #include <cstring>
 #include <string>
 
-namespace CVC4 {
+#include "cvc4_export.h"
+
+namespace cvc5 {
 
 /**
  * Prints arrays of chars (e.g. string literals) of length N. Safe to use in a
  * signal handler.
  */
 template <size_t N>
-void CVC4_PUBLIC safe_print(int fd, const char (&msg)[N]) {
+void CVC4_EXPORT safe_print(int fd, const char (&msg)[N])
+{
   ssize_t nb = N - 1;
   if (write(fd, msg, nb) != nb) {
     abort();
@@ -92,7 +95,7 @@ auto toStringImpl(const T& obj, int) -> decltype(toString(obj))
  * @param obj The object to print
  */
 template <typename T>
-void CVC4_PUBLIC safe_print(int fd, const T& obj)
+void CVC4_EXPORT safe_print(int fd, const T& obj)
 {
   const char* s =
       toStringImpl(obj, /* prefer the method that uses `toString()` */ 0);
@@ -104,25 +107,25 @@ void CVC4_PUBLIC safe_print(int fd, const T& obj)
 }
 
 template <>
-void CVC4_PUBLIC safe_print(int fd, const std::string& msg);
+void CVC4_EXPORT safe_print(int fd, const std::string& msg);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const int64_t& _i);
+void CVC4_EXPORT safe_print(int fd, const int64_t& _i);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const int32_t& i);
+void CVC4_EXPORT safe_print(int fd, const int32_t& i);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const uint64_t& _i);
+void CVC4_EXPORT safe_print(int fd, const uint64_t& _i);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const uint32_t& i);
+void CVC4_EXPORT safe_print(int fd, const uint32_t& i);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const double& _d);
+void CVC4_EXPORT safe_print(int fd, const double& _d);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const float& f);
+void CVC4_EXPORT safe_print(int fd, const float& f);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const bool& b);
+void CVC4_EXPORT safe_print(int fd, const bool& b);
 template <>
-void CVC4_PUBLIC safe_print(int fd, void* const& addr);
+void CVC4_EXPORT safe_print(int fd, void* const& addr);
 template <>
-void CVC4_PUBLIC safe_print(int fd, const timespec& t);
+void CVC4_EXPORT safe_print(int fd, const timespec& t);
 
 /** Prints an integer in hexadecimal. Safe to use in a signal handler. */
 void safe_print_hex(int fd, uint64_t i);
@@ -133,6 +136,6 @@ void safe_print_hex(int fd, uint64_t i);
  */
 void safe_print_right_aligned(int fd, uint64_t i, ssize_t width);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__SAFE_PRINT_H */

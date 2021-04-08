@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "options/options.h"
 #include "options/expr_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
@@ -122,6 +122,5 @@ std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
   return out;
 }
 
-
-}/* namespace CVC4::expr */
-}/* namespace CVC4 */
+}  // namespace expr
+}  // namespace cvc5

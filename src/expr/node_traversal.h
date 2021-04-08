@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Enum that represents an order in which nodes are visited.
@@ -144,6 +144,6 @@ class NodeDfsIterable
   std::function<bool(TNode)> d_skipIf;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  // CVC4__EXPR__NODE_TRAVERSAL_H

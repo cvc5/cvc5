@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,11 +24,12 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -56,8 +57,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model),
-      d_builtModel(containing.getSatContext(), false)
+      d_iandSlv(d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -243,9 +243,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 
 void NonlinearExtension::check(Theory::Effort e)
 {
+  d_im.reset();
   Trace("nl-ext") << std::endl;
-  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
-                  << ", built model = " << d_builtModel.get() << std::endl;
+  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
   if (e == Theory::EFFORT_FULL)
   {
     d_extTheory.clearCache();
@@ -276,7 +276,6 @@ void NonlinearExtension::check(Theory::Effort e)
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
-      d_im.reset();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
@@ -300,7 +299,7 @@ void NonlinearExtension::check(Theory::Effort e)
   }
 }
 
-bool NonlinearExtension::modelBasedRefinement()
+Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -316,8 +315,18 @@ bool NonlinearExtension::modelBasedRefinement()
   Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
+  std::vector<Node> xtsAll;
+  d_extTheory.getTerms(xtsAll);
+  // only consider those that are currently relevant based on the current
+  // assertions, i.e. those contained in termSet
   std::vector<Node> xts;
-  d_extTheory.getTerms(xts);
+  for (const Node& x : xtsAll)
+  {
+    if (termSet.find(x) != termSet.end())
+    {
+      xts.push_back(x);
+    }
+  }
 
   if (Trace.isOn("nl-ext-debug"))
   {
@@ -392,7 +401,7 @@ bool NonlinearExtension::modelBasedRefinement()
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
-        return true;
+        return Result::Sat::UNSAT;
       }
     }
     Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -413,7 +422,7 @@ bool NonlinearExtension::modelBasedRefinement()
       if (d_im.hasUsed())
       {
         d_im.clearWaitingLemmas();
-        return true;
+        return Result::Sat::UNSAT;
       }
     }
 
@@ -427,7 +436,7 @@ bool NonlinearExtension::modelBasedRefinement()
         d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
-        return true;
+        return Result::Sat::UNSAT;
       }
       // resort to splitting on shared terms with their model value
       // if we did not add any lemmas
@@ -453,7 +462,7 @@ bool NonlinearExtension::modelBasedRefinement()
             d_im.flushWaitingLemmas();
             Trace("nl-ext") << "...added " << d_im.numPendingLemmas()
                             << " shared term value split lemmas." << std::endl;
-            return true;
+            return Result::Sat::UNSAT;
           }
         }
         else
@@ -481,21 +490,18 @@ bool NonlinearExtension::modelBasedRefinement()
                            "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete();
+        return Result::Sat::SAT_UNKNOWN;
       }
-    }
-    else
-    {
-      // we have built a model
-      d_builtModel = true;
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
-  return false;
+  return Result::Sat::SAT;
 }
 
-void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
+void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
+                                        const std::set<Node>& termSet)
 {
   if (!needsCheckLastEffort())
   {
@@ -505,12 +511,9 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
-  if (!d_builtModel.get())
-  {
-    Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement();
-  }
-  if (d_builtModel.get())
+  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
+  Result::Sat res = modelBasedRefinement(termSet);
+  if (res == Result::Sat::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     d_approximations.clear();
@@ -523,7 +526,6 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
-  d_builtModel = false;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
@@ -620,4 +622,4 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

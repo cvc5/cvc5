@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,6 @@
 #define CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
-#include <list>
 
 #include "base/output.h"
 #include "expr/node.h"
@@ -29,8 +28,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/rational.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -422,7 +420,7 @@ public:
 
 template <class GetNodeIterator>
 inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
-  NodeBuilder<> nb(k);
+  NodeBuilder nb(k);
 
   while(start != end) {
     nb << (*start).getNode();
@@ -1404,8 +1402,8 @@ public:
 
 };/* class Comparison */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NORMAL_FORM_H */

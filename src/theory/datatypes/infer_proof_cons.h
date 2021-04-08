@@ -2,9 +2,9 @@
 /*! \file infer_proof_cons.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,14 +17,15 @@
 #ifndef CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H
 #define CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H
 
-#include <vector>
-
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "theory/datatypes/inference.h"
-#include "theory/theory_proof_step_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNodeManager;
+
 namespace theory {
 namespace datatypes {
 
@@ -94,6 +95,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H */

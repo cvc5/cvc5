@@ -2,9 +2,9 @@
 /*! \file proof_checker.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,8 +22,9 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
@@ -92,7 +93,7 @@ class ProofCheckerStatistics
   ProofCheckerStatistics();
   ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleChecks;
+  IntegralHistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
   IntStat d_totalRuleChecks;
 };
@@ -201,6 +202,6 @@ class ProofChecker
                      bool enableOutput);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_CHECKER_H */

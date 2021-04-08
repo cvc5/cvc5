@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,16 +17,12 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 
-#include <map>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class SynthConjecture;
@@ -54,8 +50,8 @@ class QuantifiersInferenceManager;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe,
-              QuantifiersInferenceManager& qim,
+  SygusModule(QuantifiersInferenceManager& qim,
+              TermDbSygus* tds,
               SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
@@ -151,8 +147,6 @@ class SygusModule
   virtual bool usingRepairConst() { return false; }
 
  protected:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
@@ -161,8 +155,8 @@ class SygusModule
   SynthConjecture* d_parent;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H */

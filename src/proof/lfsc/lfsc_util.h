@@ -21,8 +21,9 @@
 #include <map>
 
 #include "expr/node.h"
+#include "proof/proof_letify.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 /**
@@ -57,14 +58,18 @@ enum class LfscRule : uint32_t
   AND_INTRO2,
   // needed as a helper for SCOPE
   NOT_AND_REV,
+  PROCESS_SCOPE,
+  // arithmetic
+  ARITH_SUM_UB,
 
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,
   SKOLEMIZE,
-  EXISTS_INTRO,
 
   // a lambda with argument
   LAMBDA,
+  // a proof-let "plet"
+  PLET,
   //----------- unknown
   UNKNOWN,
 };
@@ -92,7 +97,14 @@ LfscRule getLfscRule(Node n);
 bool getLfscRule(Node n, LfscRule& lr);
 Node mkLfscRuleNode(LfscRule r);
 
+/** Helper class used for letifying LFSC proofs. */
+class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
+{
+ public:
+  bool shouldTraverse(const ProofNode* pn) override;
+};
+
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

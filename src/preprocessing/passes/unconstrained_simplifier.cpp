@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
@@ -26,12 +27,12 @@
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
@@ -126,7 +127,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  Node n = NodeManager::currentNM()->mkSkolem(
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(
       "unconstrained",
       t,
       "a new var introduced because of unconstrained variable "
@@ -364,8 +366,6 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_ASHR:
         case kind::BITVECTOR_UDIV:
         case kind::BITVECTOR_UREM:
-        case kind::BITVECTOR_UDIV_TOTAL:
-        case kind::BITVECTOR_UREM_TOTAL:
         case kind::BITVECTOR_SDIV:
         case kind::BITVECTOR_SREM:
         case kind::BITVECTOR_SMOD:
@@ -882,4 +882,4 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

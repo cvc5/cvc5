@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY_BOOL_TYPE_RULES_H
 #define CVC4__THEORY_BOOL_TYPE_RULES_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace boolean {
 
@@ -70,8 +70,8 @@ public:
   }
 };/* class IteTypeRule */
 
-}/* CVC4::theory::boolean namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace boolean
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_BOOL_TYPE_RULES_H */

@@ -2,9 +2,9 @@
 /*! \file prop_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,11 +27,12 @@
 #include "theory/trust_node.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ResourceManager;
 class DecisionEngine;
 class OutputManager;
+class ProofNodeManager;
 class TheoryEngine;
 
 namespace prop {
@@ -40,6 +41,7 @@ class CnfStream;
 class CDCLTSatSolverInterface;
 class ProofCnfStream;
 class PropPfManager;
+class TheoryProxy;
 
 /**
  * PropEngine is the abstraction of a Sat Solver, providing methods for
@@ -61,7 +63,7 @@ class PropEngine
   /**
    * Destructor.
    */
-  CVC4_PUBLIC ~PropEngine();
+  ~PropEngine();
 
   /**
    * Finish initialize. Call this after construction just before we are
@@ -218,6 +220,10 @@ class PropEngine
    * another skolem introduced by term formula removal, then calling this
    * method on (P k1) will include both k1 and k2 in sks, and their definitions
    * in skAsserts.
+   *
+   * Notice that this method is not frequently used. It is used for algorithms
+   * that explicitly care about knowing which skolems occur in the preprocessed
+   * form of a term, recursively.
    */
   Node getPreprocessedTerm(TNode n,
                            std::vector<Node>& skAsserts,
@@ -375,6 +381,6 @@ class PropEngine
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PROP_ENGINE_H */

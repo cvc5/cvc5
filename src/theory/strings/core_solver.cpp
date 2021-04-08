@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,16 +18,18 @@
 
 #include "base/configuration.h"
 #include "options/strings_options.h"
+#include "smt/logic_exception.h"
+#include "theory/rewriter.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -1939,7 +1941,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     SkolemCache* skc = d_termReg.getSkolemCache();
     Node sk_w = skc->mkSkolem("w_loop");
     Node sk_y = skc->mkSkolem("y_loop");
-    d_termReg.registerTermAtomic(sk_y, LENGTH_GEQ_ONE);
+    iinfo.d_skolems[LENGTH_GEQ_ONE].push_back(sk_y);
     Node sk_z = skc->mkSkolem("z_loop");
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));
@@ -2647,6 +2649,6 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   return true;
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

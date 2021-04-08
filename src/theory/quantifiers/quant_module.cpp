@@ -2,9 +2,9 @@
 /*! \file quant_module.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,22 +13,18 @@
  **/
 
 #include "theory/quantifiers/quant_module.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 QuantifiersModule::QuantifiersModule(
     quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersInferenceManager& qim,
     quantifiers::QuantifiersRegistry& qr,
-    QuantifiersEngine* qe)
-    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr)
+    quantifiers::TermRegistry& tr)
+    : d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 
@@ -57,14 +53,9 @@ TNode QuantifiersModule::getRepresentative(TNode n) const
   return d_qstate.getRepresentative(n);
 }
 
-QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const
-{
-  return d_quantEngine;
-}
-
 quantifiers::TermDb* QuantifiersModule::getTermDatabase() const
 {
-  return d_quantEngine->getTermDatabase();
+  return d_treg.getTermDatabase();
 }
 
 quantifiers::QuantifiersState& QuantifiersModule::getState()
@@ -84,4 +75,4 @@ quantifiers::QuantifiersRegistry& QuantifiersModule::getQuantifiersRegistry()
 }
 
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

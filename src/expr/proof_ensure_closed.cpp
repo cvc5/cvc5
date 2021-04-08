@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Ensure closed with respect to assumptions, internal version, which
@@ -36,7 +36,7 @@ void ensureClosedWrtInternal(Node proven,
                              const char* ctx,
                              bool reqGen)
 {
-  if (!options::proof())
+  if (!options::produceProofs())
   {
     // proofs not enabled, do not do check
     return;
@@ -179,4 +179,4 @@ void pfnEnsureClosedWrt(ProofNode* pn,
   ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

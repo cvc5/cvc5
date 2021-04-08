@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 
 ${rewriter_includes}
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
@@ -77,7 +77,7 @@ for (size_t i = 0; i < theory::THEORY_LAST; ++i)
 }
 
 void Rewriter::clearCachesInternal() {
-  typedef CVC4::expr::attr::AttributeUniqueId AttributeUniqueId;
+  typedef cvc5::expr::attr::AttributeUniqueId AttributeUniqueId;
   std::vector<AttributeUniqueId> preids;
   ${pre_rewrite_attribute_ids}
 
@@ -94,5 +94,5 @@ void Rewriter::clearCachesInternal() {
   NodeManager::currentNM()->deleteAttributes(allids);
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

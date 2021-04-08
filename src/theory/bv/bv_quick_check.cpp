@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,9 +21,9 @@
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4::prop;
+using namespace cvc5::prop;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -347,7 +347,7 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   // if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
   //   d_period = d_period * 2;
   // }
-  d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
+  d_statistics.d_avgMinimizationRatio << minimization_ratio;
   return utils::mkAnd(minimized); 
 }
 
@@ -381,4 +381,4 @@ QuickXPlain::Statistics::~Statistics() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

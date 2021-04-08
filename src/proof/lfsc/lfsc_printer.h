@@ -27,7 +27,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 class LfscPrintChannel;
@@ -81,7 +81,7 @@ class LfscPrinter
    * Print proof internal, after term lets and proofs for assumptions have
    * been computed.
    */
-  void printProofLetify(std::ostream& out,
+  void printProofLetify(LfscPrintChannel* out,
                         const ProofNode* pn,
                         const LetBinding& lbind,
                         const std::vector<const ProofNode*>& pletList,
@@ -98,22 +98,30 @@ class LfscPrinter
   /**
    * Get the arguments for the proof node application
    */
-  bool computeProofArgs(const ProofNode* pn,
-                        std::vector<PExpr>& pargs,
-                        std::map<Node, size_t>& passumeMap,
-                        std::unordered_set<const ProofNode*>& noBind);
+  bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
+  /**
+   * Compute proof letification for proof node pn.
+   */
+  void computeProofLetification(const ProofNode* pn,
+
+                                std::vector<const ProofNode*>& pletList,
+                                std::map<const ProofNode*, size_t>& pletMap);
   //------------------------------ end printing proofs
 
   /** The term processor */
   LfscTermProcessor& d_tproc;
+  /** The proof traversal callback */
+  LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */
   Node d_tt;
   Node d_ff;
+  /** Boolean type */
+  TypeNode d_boolType;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

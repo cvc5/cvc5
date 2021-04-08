@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,11 +24,13 @@
 #include <sstream>
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
-class CVC4_PUBLIC ParserException : public Exception {
+class CVC4_EXPORT ParserException : public Exception
+{
  public:
   // Constructors
   ParserException() : d_filename(), d_line(0), d_column(0) {}
@@ -74,9 +76,10 @@ class CVC4_PUBLIC ParserException : public Exception {
   std::string d_filename;
   unsigned long d_line;
   unsigned long d_column;
-};/* class ParserException */
+}; /* class ParserException */
 
-class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
+class ParserEndOfFileException : public ParserException
+{
  public:
   // Constructors same as ParserException's
 
@@ -94,9 +97,9 @@ class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
   {
   }
 
-};/* class ParserEndOfFileException */
+}; /* class ParserEndOfFileException */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__PARSER_EXCEPTION_H */

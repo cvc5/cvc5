@@ -4,14 +4,13 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief counterexample-guided quantifier instantiation
  **/
-
 
 #include "cvc4_private.h"
 
@@ -27,7 +26,7 @@
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -69,10 +68,10 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe,
-                    QuantifiersState& qs,
+  InstStrategyCegqi(QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
-                    QuantifiersRegistry& qr);
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */
@@ -123,8 +122,6 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /** Add pending lemma lem via the inference manager of this class. */
-  bool addPendingLemma(Node lem) const;
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
@@ -218,6 +215,6 @@ class InstStrategyCegqi : public QuantifiersModule
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

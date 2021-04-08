@@ -2,9 +2,9 @@
 /*! \file proof_step_buffer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 
@@ -92,6 +92,6 @@ class ProofStepBuffer
   std::vector<std::pair<Node, ProofStep>> d_steps;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_STEP_BUFFER_H */

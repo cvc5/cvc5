@@ -2,9 +2,9 @@
 /*! \file theory_proxy.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Kshitij Bansal
+ **   Andrew Reynolds, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,12 +29,13 @@
 #include "expr/node.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "prop/skolem_def_manager.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DecisionEngine;
 class TheoryEngine;
@@ -61,6 +62,12 @@ class TheoryProxy : public Registrar
 
   /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
+
+  /** Notify (preprocessed) assertions. */
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+
+  /** Notify a lemma, possibly corresponding to a skolem definition */
+  void notifyAssertion(Node lem, TNode skolem = TNode::null());
 
   void theoryCheck(theory::Theory::Effort effort);
 
@@ -124,7 +131,7 @@ class TheoryProxy : public Registrar
    * fixed point is reached.
    */
   void getSkolems(TNode node,
-                  std::vector<theory::TrustNode>& skAsserts,
+                  std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
   /** Preregister term */
   void preRegister(Node n) override;
@@ -153,10 +160,13 @@ class TheoryProxy : public Registrar
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
+
+  /** The skolem definition manager */
+  std::unique_ptr<SkolemDefManager> d_skdm;
 }; /* class TheoryProxy */
 
-}/* CVC4::prop namespace */
+}  // namespace prop
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__SAT_H */

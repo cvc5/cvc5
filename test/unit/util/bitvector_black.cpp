@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::BitVector
+ ** \brief Black box testing of cvc5::BitVector
  **
- ** Black box testing of CVC4::BitVector.
+ ** Black box testing of cvc5::BitVector.
  **/
 
 #include <sstream>
@@ -19,7 +19,7 @@
 #include "test.h"
 #include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackBitVector : public TestInternal
@@ -28,7 +28,7 @@ class TestUtilBlackBitVector : public TestInternal
   void SetUp() override
   {
     d_zero = BitVector(4);
-    d_one = d_zero.setBit(0, true);
+    d_one = BitVector::mkOne(4);
     d_two = BitVector("0010", 2);
     d_neg_one = BitVector(4, Integer(-1));
     d_ones = BitVector::mkOnes(4);
@@ -83,12 +83,19 @@ TEST_F(TestUtilBlackBitVector, conversions)
 
 TEST_F(TestUtilBlackBitVector, setBit_getBit)
 {
-  ASSERT_EQ(d_one.setBit(1, true).setBit(2, true).setBit(3, true), d_ones);
-  ASSERT_EQ(d_ones.setBit(0, false).setBit(1, false).setBit(2, false).setBit(
-                3, false),
-            d_zero);
-  ASSERT_EQ(d_ones.setBit(0, false).setBit(0, true), d_ones);
-  ASSERT_EQ(d_ones.setBit(0, false), ~BitVector::mkOne(d_one.getSize()));
+  BitVector ones(d_one);
+  ASSERT_EQ(ones.setBit(1, true).setBit(2, true).setBit(3, true), d_ones);
+
+  BitVector zero(d_ones);
+  ASSERT_EQ(
+      zero.setBit(0, false).setBit(1, false).setBit(2, false).setBit(3, false),
+      d_zero);
+
+  ones = d_ones;
+  ASSERT_EQ(ones.setBit(0, false).setBit(0, true), d_ones);
+
+  BitVector not_one(d_ones);
+  ASSERT_EQ(not_one.setBit(0, false), ~BitVector::mkOne(d_one.getSize()));
 
   ASSERT_TRUE(d_ones.isBitSet(3));
   ASSERT_FALSE(d_two.isBitSet(3));
@@ -196,4 +203,4 @@ TEST_F(TestUtilBlackBitVector, static_helpers)
   ASSERT_EQ(BitVector::mkMaxSigned(4).toSignedInteger(), Integer(7));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

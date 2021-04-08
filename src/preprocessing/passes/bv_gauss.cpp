@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,11 +28,11 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace cvc5;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -164,7 +164,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_UREM_TOTAL:
+        case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
         {
@@ -213,7 +213,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
 
         default:
         {
-          /* BITVECTOR_UDIV_TOTAL (since x / 0 = -1)
+          /* BITVECTOR_UDIV (since x / 0 = -1)
            * BITVECTOR_NOT
            * BITVECTOR_NEG
            * BITVECTOR_SHL */
@@ -500,8 +500,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder<> nb_consts(NodeManager::currentNM(), k);
-        NodeBuilder<> nb_nonconsts(NodeManager::currentNM(), k);
+        NodeBuilder nb_consts(NodeManager::currentNM(), k);
+        NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
         {
           Node nnrw = Rewriter::rewrite(nn);
@@ -704,7 +704,7 @@ PreprocessingPassResult BVGauss::applyInternal(
   {
     Node a = assertions.back();
     assertions.pop_back();
-    CVC4::Kind k = a.getKind();
+    cvc5::Kind k = a.getKind();
 
     if (k == kind::AND)
     {
@@ -800,4 +800,4 @@ PreprocessingPassResult BVGauss::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

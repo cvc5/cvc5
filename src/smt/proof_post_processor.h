@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,8 +24,9 @@
 #include "smt/theory_rewrite_rcons.h"
 #include "smt/witness_form.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -40,7 +41,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   ProofPostprocessCallback(ProofNodeManager* pnm,
                            SmtEngine* smte,
-                           ProofGenerator* pppg);
+                           ProofGenerator* pppg,
+                           bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -56,6 +58,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
@@ -82,6 +85,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  /** Whether we post-process assumptions in scope. */
+  bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
   /** Mapping assumptions to their proof from preprocessing */
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
@@ -246,13 +251,14 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   /** Should proof pn be updated? Returns false, adds to stats. */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
 
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
+  IntegralHistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */
@@ -276,9 +282,18 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 class ProofPostproccess
 {
  public:
+  /**
+   * @param pnm The proof node manager we are using
+   * @param smte The SMT engine whose proofs are being post-processed
+   * @param pppg The proof generator for pre-processing proofs
+   * @param updateScopedAssumptions Whether we post-process assumptions in
+   * scope. Since doing so is sound and only problematic depending on who is
+   * consuming the proof, it's true by default.
+   */
   ProofPostproccess(ProofNodeManager* pnm,
                     SmtEngine* smte,
-                    ProofGenerator* pppg);
+                    ProofGenerator* pppg,
+                    bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
@@ -308,6 +323,6 @@ class ProofPostproccess
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

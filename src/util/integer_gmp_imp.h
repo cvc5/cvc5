@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,13 +25,15 @@
 #include <iosfwd>
 #include <string>
 
-namespace CVC4 {
+#include "cvc4_export.h"  // remove when Cvc language support is removed
+
+namespace cvc5 {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC4_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::Rational;
 
  public:
   /**
@@ -112,11 +114,8 @@ class CVC4_PUBLIC Integer
   /** Return this*(2^pow). */
   Integer multiplyByPow2(uint32_t pow) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
@@ -331,7 +330,7 @@ class CVC4_PUBLIC Integer
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  inline size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)
@@ -339,6 +338,6 @@ inline std::ostream& operator<<(std::ostream& os, const Integer& n)
   return os << n.toString();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__INTEGER_H */

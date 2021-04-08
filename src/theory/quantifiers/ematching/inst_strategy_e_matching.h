@@ -2,9 +2,9 @@
 /*! \file inst_strategy_e_matching.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -85,10 +85,11 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   std::map<Node, bool> d_hasUserPatterns;
 
  public:
-  InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+  InstStrategyAutoGenTriggers(inst::TriggerDatabase& td,
                               QuantifiersState& qs,
                               QuantifiersInferenceManager& qim,
                               QuantifiersRegistry& qr,
+                              TermRegistry& tr,
                               QuantRelevance* qrlv);
   ~InstStrategyAutoGenTriggers() {}
 
@@ -110,7 +111,7 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   QuantRelevance* d_quant_rel;
 }; /* class InstStrategyAutoGenTriggers */
 }
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

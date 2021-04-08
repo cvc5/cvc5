@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 
 #include "expr/sequence.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -340,14 +340,6 @@ public:
       if(ch[0] > ch[1]) {
         throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
       }
-      unsigned maxCh = options::stdPrintASCII() ? 127 : 255;
-      if (ch[1] > maxCh)
-      {
-        std::stringstream ss;
-        ss << "expecting characters whose code point is less than or equal to "
-           << maxCh;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
     }
     return nodeManager->regExpType();
   }
@@ -424,8 +416,8 @@ struct SequenceProperties
   }
 }; /* struct SequenceProperties */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */

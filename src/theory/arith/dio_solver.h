@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,18 +24,19 @@
 #include <utility>
 #include <vector>
 
-#include "base/output.h"
 #include "context/cdlist.h"
 #include "context/cdmaybe.h"
 #include "context/cdo.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/partial_model.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
+namespace context {
+class Context;
+}
 namespace theory {
 namespace arith {
 
@@ -420,8 +421,8 @@ public:
   Statistics d_statistics;
 };/* class DioSolver */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__DIO_SOLVER_H */

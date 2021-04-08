@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,14 +31,15 @@
 #include <string>
 
 #include "base/exception.h"
+#include "cvc4_export.h"  // remove when Cvc language support is removed
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC4_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::Rational;
 
  public:
   /**
@@ -131,11 +132,8 @@ class CVC4_PUBLIC Integer
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /**
    * Returns the integer with the binary representation of 'size' bits
@@ -382,11 +380,11 @@ class CVC4_PUBLIC Integer
 
 struct IntegerHashFunction
 {
-  size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__INTEGER_H */

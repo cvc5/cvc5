@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A flexible let binding class. This class provides functionalities for
@@ -69,6 +69,19 @@ namespace CVC4 {
  * d_letList[i] does not contain subterm d_letList[j] for j>i.
  * It is intended that d_letList contains only unique nodes. Each node
  * in d_letList is mapped to a unique identifier in d_letMap.
+ *
+ * Notice that this class will *not* use introduced let symbols when converting
+ * the bodies of quantified formulas. Consider the formula:
+ * (let ((Q (forall ((x Int)) (= x (+ a a))))) (and (= (+ a a) (+ a a)) Q Q))
+ * where "let" above is from the user. When this is letified by this class,
+ * note that (+ a a) occurs as a subterm of Q, however it is not seen until
+ * after we have seen Q twice, since we traverse in reverse topological order.
+ * Since we do not traverse underneath quantified formulas, this means that Q
+ * may be marked as a term-to-letify before (+ a a), which leads to violation
+ * of the above invariant concerning containment. Thus, when converting, if
+ * a let symbol is introduced for (+ a a), we will not replace the occurence
+ * of (+ a a) within Q. Instead, the user of this class is responsible for
+ * letifying the bodies of quantified formulas independently.
  */
 class LetBinding
 {
@@ -144,6 +157,6 @@ class LetBinding
   NodeIdMap d_letMap;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,16 +17,18 @@
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/logic_exception.h"
+#include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -559,7 +561,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         {
           // split on empty
           Trace("sets-nf") << "Split empty : " << n << std::endl;
-          d_im.split(n.eqNode(emp_set), InferenceId::UNKNOWN, 1);
+          d_im.split(n.eqNode(emp_set), InferenceId::SETS_CARD_SPLIT_EMPTY, 1);
         }
         Assert(d_im.hasSent());
         return;
@@ -1014,6 +1016,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       if (elementType.isInterpretedFinite())
       {
         // get all members of this finite type
@@ -1033,7 +1036,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // slack elements for the leaves without worrying about conflicts with
           // the current members of this finite type.
 
-          Node slack = nm->mkSkolem("slack", elementType);
+          Node slack = sm->mkDummySkolem("slack", elementType);
           Node singleton = nm->mkSingleton(elementType, slack);
           els.push_back(singleton);
           d_finite_type_slack_elements[elementType].push_back(slack);
@@ -1042,8 +1045,8 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(
-              nm->mkSingleton(elementType, nm->mkSkolem("msde", elementType)));
+          els.push_back(nm->mkSingleton(
+              elementType, sm->mkDummySkolem("msde", elementType)));
         }
       }
     }
@@ -1113,4 +1116,4 @@ const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

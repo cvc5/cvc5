@@ -21,7 +21,7 @@
 #include <vector>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 enum class DslPfRule : uint32_t
@@ -104,6 +104,6 @@ class RewriteProofRule
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__REWRITE_PROOF_RULE__H */

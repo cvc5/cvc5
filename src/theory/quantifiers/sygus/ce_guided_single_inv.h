@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,13 +22,14 @@
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/sygus/sygus_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
+class SygusReconstruct;
 
 // this class infers whether a conjecture is single invocation (Reynolds et al CAV 2015), and sets up the
 // counterexample-guided quantifier instantiation utility (d_cinst), and methods for solution
@@ -49,12 +50,10 @@ class CegSingleInv
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
-  // solution reconstruction
-  CegSingleInvSol* d_sol;
+  /** solution reconstruction */
+  std::unique_ptr<SygusReconstruct> d_srcons;
 
   // list of skolems for each argument of programs
   std::vector<Node> d_single_inv_arg_sk;
@@ -91,7 +90,7 @@ class CegSingleInv
   Node d_single_inv;
   
  public:
-  CegSingleInv(QuantifiersEngine* qe);
+  CegSingleInv(TermRegistry& tr, SygusStatistics& s);
   ~CegSingleInv();
 
   // get simplified conjecture
@@ -132,11 +131,13 @@ class CegSingleInv
    */
   Node getSolution(size_t sol_index,
                    TypeNode stn,
-                   int& reconstructed,
+                   int8_t& reconstructed,
                    bool rconsSygus = true);
   //reconstruct to syntax
-  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
-                            bool rconsSygus = true );
+  Node reconstructToSyntax(Node s,
+                           TypeNode stn,
+                           int8_t& reconstructed,
+                           bool rconsSygus = true);
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   /** preregister conjecture */
@@ -161,6 +162,8 @@ class CegSingleInv
    * calls to the above method getSolutionFromInst.
    */
   void setSolution();
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** The conjecture */
   Node d_quant;
   //-------------- decomposed conjecture
@@ -173,8 +176,8 @@ class CegSingleInv
   //-------------- end decomposed conjecture
 };
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

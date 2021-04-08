@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -37,7 +37,10 @@ class TheoryBuiltin : public Theory
                 const LogicInfo& logicInfo,
                 ProofNodeManager* pnm = nullptr);
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
   std::string identify() const override;
 
@@ -48,11 +51,11 @@ class TheoryBuiltin : public Theory
   /** The theory rewriter for this theory. */
   TheoryBuiltinRewriter d_rewriter;
   /** Proof rule checker */
-  BuiltinProofRuleChecker d_bProofChecker;
+  BuiltinProofRuleChecker d_checker;
 }; /* class TheoryBuiltin */
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -95,9 +95,9 @@ public:
         kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
   }     
     
-};             
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+};
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

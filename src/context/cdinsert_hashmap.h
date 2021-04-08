@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,6 @@
  ** - Supports insertAtContextLevelZero() if the element is not in the map.
  **/
 
-
 #include "cvc4_private.h"
 
 #include <deque>
@@ -46,7 +45,7 @@
 
 #pragma once
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 
@@ -407,5 +406,5 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

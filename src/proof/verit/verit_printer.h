@@ -22,7 +22,7 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -74,6 +74,6 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn, bool
 
 }  // namespace proof
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

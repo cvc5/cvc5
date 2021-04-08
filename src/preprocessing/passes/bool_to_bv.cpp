@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Makai Mann, Yoni Zohar, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,10 +26,10 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bool-to-bv"), d_statistics()
@@ -356,7 +356,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 {
   Kind k = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
-  NodeBuilder<> builder(new_kind);
+  NodeBuilder builder(new_kind);
 
   Debug("bool-to-bv") << "BoolToBV::rebuildNode with " << n
                       << " and new_kind = " << kindToString(new_kind)
@@ -422,4 +422,4 @@ BoolToBV::Statistics::~Statistics()
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

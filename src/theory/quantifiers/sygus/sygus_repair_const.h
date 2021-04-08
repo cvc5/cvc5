@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,16 +19,14 @@
 
 #include <unordered_set>
 #include "expr/node.h"
-#include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class LogicInfo;
+
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
-class CegConjecture;
 class TermDbSygus;
 
 /** SygusRepairConst
@@ -49,7 +47,7 @@ class TermDbSygus;
 class SygusRepairConst
 {
  public:
-  SygusRepairConst(QuantifiersEngine* qe);
+  SygusRepairConst(TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *
@@ -106,8 +104,6 @@ class SygusRepairConst
   static bool mustRepair(Node n);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /**
@@ -211,8 +207,8 @@ class SygusRepairConst
   bool getFitToLogicExcludeVar(LogicInfo& logic, Node n, Node& exvar);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

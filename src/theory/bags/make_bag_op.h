@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -52,11 +52,11 @@ std::ostream& operator<<(std::ostream& out, const MakeBagOp& op);
 /**
  * Hash function for the MakeBagOpHashFunction objects.
  */
-struct CVC4_PUBLIC MakeBagOpHashFunction
+struct MakeBagOpHashFunction
 {
   size_t operator()(const MakeBagOp& op) const;
 }; /* struct MakeBagOpHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__MAKE_BAG_OP_H */

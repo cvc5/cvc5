@@ -2,9 +2,9 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Mudathir Mohamed, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,10 +24,10 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -794,6 +794,6 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-} /* CVC4::theory::datatypes namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5

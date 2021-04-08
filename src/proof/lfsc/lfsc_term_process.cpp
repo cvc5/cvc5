@@ -20,9 +20,9 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 LfscTermProcessor::LfscTermProcessor()
@@ -63,9 +63,13 @@ Node LfscTermProcessor::runConvert(Node n)
     // v is (skolem W) where W is the original or witness form of v
     Node on = SkolemManager::getOriginalForm(n);
     Node wi = on == n ? SkolemManager::getWitnessForm(n) : on;
-    if (wi != n)
+    Assert(!wi.isNull()) << "Missing skolem definition for " << n;
+    if (!wi.isNull() && wi != n)
     {
+      Trace("lfsc-term-process-debug") << "...witness form " << wi << std::endl;
       wi = convert(wi);
+      Trace("lfsc-term-process-debug")
+          << "...converted witness for " << wi << std::endl;
       TypeNode ftype = nm->mkFunctionType(tn, tn, false);
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return nm->mkNode(APPLY_UF, skolemOp, wi);
@@ -116,33 +120,22 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == CONST_STRING)
   {
-    // "" is emptystr
-    // "A" is (char 65)
-    // "ABC" is (str.++ (char 65) (str.++ (char 66) (char 67)))
-    const std::vector<unsigned>& vec = n.getConst<String>().getVec();
-    if (vec.size() == 0)
+    //"" is emptystr
+    //"A" is (char 65)
+    //"ABC" is (str.++ (char 65) (str.++ (char 66) (str.++ (char 67) emptystr)))
+    std::vector<Node> charVec;
+    getCharVectorInternal(n, charVec);
+    Assert(!charVec.empty());
+    if (charVec.size() == 1)
     {
-      return getSymbolInternalFor(n, "emptystr");
+      // handles empty string and singleton character
+      return charVec[0];
     }
-    if (vec.size() == 1)
+    std::reverse(charVec.begin(), charVec.end());
+    Node ret = runConvert(getNullTerminator(STRING_CONCAT));
+    for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      TypeNode tnc = nm->mkFunctionType(nm->integerType(), tn);
-      Node aconstf = getSymbolInternal(k, tnc, "char");
-      return nm->mkNode(APPLY_UF, aconstf, nm->mkConst(Rational(vec[0])));
-    }
-    std::vector<unsigned> v(vec.begin(), vec.end());
-    std::reverse(v.begin(), v.end());
-    std::vector<unsigned> tmp;
-    tmp.push_back(v[0]);
-    Node ret = runConvert(nm->mkConst(String(tmp)));
-    tmp.pop_back();
-    for (unsigned i = 1, size = v.size(); i < size; i++)
-    {
-      tmp.push_back(v[i]);
-      // also convert internal
-      ret =
-          nm->mkNode(STRING_CONCAT, runConvert(nm->mkConst(String(tmp))), ret);
-      tmp.pop_back();
+      ret = nm->mkNode(STRING_CONCAT, charVec[i], ret);
     }
     return ret;
   }
@@ -196,13 +189,12 @@ Node LfscTermProcessor::runConvert(Node n)
     Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
   }
-  else if (ExprManager::isNAryKind(k) && n.getNumChildren() >= 2)
+  else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
     size_t nchild = n.getNumChildren();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
     // convert all n-ary applications to binary
     std::vector<Node> children(n.begin(), n.end());
-    std::reverse(children.begin(), children.end());
     // distinct is special case
     if (k == DISTINCT)
     {
@@ -222,6 +214,7 @@ Node LfscTermProcessor::runConvert(Node n)
                                        << "ret: " << ret << std::endl;
       return ret;
     }
+    std::reverse(children.begin(), children.end());
     // Add the null-terminator. This is done to disambiguate the number
     // of children for term with n-ary operators. In particular note that
     // (or A B C (or D E)) has representation:
@@ -232,11 +225,11 @@ Node LfscTermProcessor::runConvert(Node n)
     Node nullTerm = getNullTerminator(k);
     // Most operators simply get binarized
     Node ret;
-    size_t i = 0;
+    size_t istart = 0;
     if (nullTerm.isNull())
     {
       ret = children[0];
-      i = 1;
+      istart = 1;
     }
     else
     {
@@ -257,7 +250,7 @@ Node LfscTermProcessor::runConvert(Node n)
       ck = APPLY_UF;
     }
     // now, iterate over children and make binary conversion
-    for (; i < nchild; i++)
+    for (size_t i = istart, npchild = children.size(); i < npchild; i++)
     {
       if (!opc.isNull())
       {
@@ -371,6 +364,26 @@ Node LfscTermProcessor::getSymbolInternal(Kind k,
   return sym;
 }
 
+void LfscTermProcessor::getCharVectorInternal(Node c, std::vector<Node>& chars)
+{
+  Assert(c.getKind() == CONST_STRING);
+  NodeManager* nm = NodeManager::currentNM();
+  const std::vector<unsigned>& vec = c.getConst<String>().getVec();
+  if (vec.size() == 0)
+  {
+    Node ec = getSymbolInternalFor(c, "emptystr");
+    chars.push_back(ec);
+    return;
+  }
+  TypeNode tnc = nm->mkFunctionType(nm->integerType(), c.getType());
+  Node aconstf = getSymbolInternal(CONST_STRING, tnc, "char");
+  for (unsigned i = 0, size = vec.size(); i < size; i++)
+  {
+    Node cc = nm->mkNode(APPLY_UF, aconstf, nm->mkConst(Rational(vec[i])));
+    chars.push_back(cc);
+  }
+}
+
 Node LfscTermProcessor::getNullTerminator(Kind k)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -408,7 +421,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   }
   Kind k = n.getKind();
   // we only use binary operators
-  if (ExprManager::isNAryKind(k))
+  if (NodeManager::isNAryKind(k))
   {
     argTypes.resize(2);
   }
@@ -461,4 +474,4 @@ size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

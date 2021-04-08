@@ -14,7 +14,7 @@
 
 #include "proof/verit/verit_post_processor.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -31,6 +31,7 @@ void VeritProofPostprocessCallback::initializeUpdate(bool extended)
 }
 
 bool VeritProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
   if(pn->getRule() == PfRule::VERIT_RULE){
@@ -2600,4 +2601,4 @@ void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 
 }  // namespace proof
 
-}  // namespace CVC4
+}  // namespace cvc5

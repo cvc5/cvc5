@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,13 +14,14 @@
 
 #include "theory/arith/nl/cad_solver.h"
 
-#include "theory/inference_id.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/inference_id.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -37,11 +38,10 @@ CadSolver::CadSolver(InferenceManager& im,
       d_im(im),
       d_model(model)
 {
-  d_ranVariable =
-      NodeManager::currentNM()->mkSkolem("__z",
-                                         NodeManager::currentNM()->realType(),
-                                         "",
-                                         NodeManager::SKOLEM_EXACT_NAME);
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  d_ranVariable = sm->mkDummySkolem(
+      "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
 #ifdef CVC4_POLY_IMP
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
@@ -212,4 +212,4 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

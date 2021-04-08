@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 
 #include "expr/term_context_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A stack for term-context-sensitive terms. Its main advantage is that
@@ -68,6 +68,6 @@ class TCtxStack
   const TermContext* d_tctx;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__TERM_CONTEXT_STACK_H */

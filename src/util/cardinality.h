@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,13 +24,14 @@
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Representation for a Beth number, used only to construct
  * Cardinality objects.
  */
-class CVC4_PUBLIC CardinalityBeth {
+class CardinalityBeth
+{
   Integer d_index;
 
  public:
@@ -43,7 +44,8 @@ class CVC4_PUBLIC CardinalityBeth {
 /**
  * Representation for an unknown cardinality.
  */
-class CVC4_PUBLIC CardinalityUnknown {
+class CardinalityUnknown
+{
  public:
   CardinalityUnknown() {}
   ~CardinalityUnknown() {}
@@ -54,7 +56,8 @@ class CVC4_PUBLIC CardinalityUnknown {
  * arbitrary-precision integer for finite cardinalities, and we
  * distinguish infinite cardinalities represented as Beth numbers.
  */
-class CVC4_PUBLIC Cardinality {
+class Cardinality
+{
   /** Cardinality of the integers */
   static const Integer s_intCard;
 
@@ -90,7 +93,8 @@ class CVC4_PUBLIC Cardinality {
   static const Cardinality UNKNOWN_CARD;
 
   /** Used as a result code for Cardinality::compare(). */
-  enum CVC4_PUBLIC CardinalityComparison {
+  enum CardinalityComparison
+  {
     LESS,
     EQUAL,
     GREATER,
@@ -216,11 +220,11 @@ class CVC4_PUBLIC Cardinality {
 }; /* class Cardinality */
 
 /** Print an element of the InfiniteCardinality enumeration. */
-std::ostream& operator<<(std::ostream& out, CardinalityBeth b) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, CardinalityBeth b);
 
 /** Print a cardinality in a human-readable fashion. */
-std::ostream& operator<<(std::ostream& out, const Cardinality& c) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Cardinality& c);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__CARDINALITY_H */

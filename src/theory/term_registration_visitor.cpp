@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,11 +17,12 @@
 
 #include "base/configuration.h"
 #include "options/quantifiers_options.h"
+#include "smt/logic_exception.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::string PreRegisterVisitor::toString() const {
   std::stringstream ss;
@@ -112,8 +113,9 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   TheoryIdSet visitedTheories = d_visited[current];
 
   // call the preregistration on current, parent or type theories and update
-  // visitedTheories.
-  preRegister(d_engine, visitedTheories, current, parent);
+  // visitedTheories. The set of preregistering theories coincides with
+  // visitedTheories here.
+  preRegister(d_engine, visitedTheories, current, parent, visitedTheories);
 
   Debug("register::internal")
       << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -128,17 +130,20 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
 void PreRegisterVisitor::preRegister(TheoryEngine* te,
                                      TheoryIdSet& visitedTheories,
                                      TNode current,
-                                     TNode parent)
+                                     TNode parent,
+                                     TheoryIdSet preregTheories)
 {
   // Preregister with the current theory, if necessary
   TheoryId currentTheoryId = Theory::theoryOf(current);
-  preRegisterWithTheory(te, visitedTheories, currentTheoryId, current, parent);
+  preRegisterWithTheory(
+      te, visitedTheories, currentTheoryId, current, parent, preregTheories);
 
   if (current != parent)
   {
     // preregister with parent theory, if necessary
     TheoryId parentTheoryId = Theory::theoryOf(parent);
-    preRegisterWithTheory(te, visitedTheories, parentTheoryId, current, parent);
+    preRegisterWithTheory(
+        te, visitedTheories, parentTheoryId, current, parent, preregTheories);
 
     // Note that if enclosed by different theories it's shared, for example,
     // in read(a, f(a)), f(a) should be shared with integers.
@@ -147,7 +152,8 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
-      preRegisterWithTheory(te, visitedTheories, typeTheoryId, current, parent);
+      preRegisterWithTheory(
+          te, visitedTheories, typeTheoryId, current, parent, preregTheories);
     }
   }
 }
@@ -155,11 +161,18 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
                                                TheoryIdSet& visitedTheories,
                                                TheoryId id,
                                                TNode current,
-                                               TNode parent)
+                                               TNode parent,
+                                               TheoryIdSet preregTheories)
 {
   if (TheoryIdSetUtil::setContains(id, visitedTheories))
   {
-    // already registered
+    // already visited
+    return;
+  }
+  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
+  if (TheoryIdSetUtil::setContains(id, preregTheories))
+  {
+    // already pregregistered
     return;
   }
   if (Configuration::isAssertionBuild())
@@ -191,7 +204,6 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     }
   }
   // call the theory's preRegisterTerm method
-  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
   Theory* th = te->theoryOf(id);
   th->preRegisterTerm(current);
 }
@@ -241,12 +253,18 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
     Debug("register::internal") << toString() << std::endl;
   }
   TheoryIdSet visitedTheories = d_visited[current];
+  TheoryIdSet preregTheories = d_preregistered[current];
 
   // preregister the term with the current, parent or type theories, as needed
-  PreRegisterVisitor::preRegister(d_engine, visitedTheories, current, parent);
+  PreRegisterVisitor::preRegister(
+      d_engine, visitedTheories, current, parent, preregTheories);
 
   // Record the new theories that we visited
   d_visited[current] = visitedTheories;
+
+  // add visited theories to those who have preregistered
+  d_preregistered[current] =
+      TheoryIdSetUtil::setUnion(preregTheories, visitedTheories);
 
   // If there is more than two theories and a new one has been added notify the shared terms database
   TheoryId currentTheoryId = Theory::theoryOf(current);
@@ -274,4 +292,4 @@ void SharedTermsVisitor::clear() {
   d_visited.clear();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

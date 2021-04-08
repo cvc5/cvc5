@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
@@ -110,4 +110,4 @@ bool NodeTemplate<ref_count>::isConst() const {
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
-}/* CVC4 namespace */
+}  // namespace cvc5

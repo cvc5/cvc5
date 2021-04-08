@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Yoni Zohar, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,17 +24,18 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
 
@@ -79,7 +80,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else
     {
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -102,13 +103,14 @@ Node intToBV(TNode n, NodeMap& cache)
   AlwaysAssert(size > 0);
   AlwaysAssert(!options::incrementalSolving());
 
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(n, binaryCache);
 
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
-    NodeManager* nm = NodeManager::currentNM();
     if (current.getNumChildren() > 0)
     {
       // Not a leaf
@@ -163,9 +165,9 @@ Node intToBV(TNode n, NodeMap& cache)
           case kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
-              throw TypeCheckingException(
-                current.toExpr(),
-                string("Cannot translate to BV: ") + current.toString());
+              throw TypeCheckingExceptionPrivate(
+                  current,
+                  string("Cannot translate to BV: ") + current.toString());
             }
             break;
         }
@@ -186,7 +188,7 @@ Node intToBV(TNode n, NodeMap& cache)
           }
         }
       }
-      NodeBuilder<> builder(newKind);
+      NodeBuilder builder(newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -208,9 +210,9 @@ Node intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result = nm->mkSkolem("__intToBV_var",
-                                nm->mkBitVectorType(size),
-                                "Variable introduced in intToBV pass");
+          result = sm->mkDummySkolem("__intToBV_var",
+                                     nm->mkBitVectorType(size),
+                                     "Variable introduced in intToBV pass");
         }
       }
       else if (current.isConst())
@@ -225,8 +227,8 @@ Node intToBV(TNode n, NodeMap& cache)
               BitVector bv(size, constant.getNumerator());
               if (bv.toSignedInteger() != constant.getNumerator())
               {
-                throw TypeCheckingException(
-                    current.toExpr(),
+                throw TypeCheckingExceptionPrivate(
+                    current,
                     string("Not enough bits for constant in intToBV: ")
                         + current.toString());
               }
@@ -239,9 +241,8 @@ Node intToBV(TNode n, NodeMap& cache)
       }
       else
       {
-        throw TypeCheckingException(
-            current.toExpr(),
-            string("Cannot translate to BV: ") + current.toString());
+        throw TypeCheckingExceptionPrivate(
+            current, string("Cannot translate to BV: ") + current.toString());
       }
       cache[current] = result;
     }
@@ -268,4 +269,4 @@ PreprocessingPassResult IntToBV::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

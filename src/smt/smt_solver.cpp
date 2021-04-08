@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,12 +21,13 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
+#include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 SmtSolver::SmtSolver(SmtEngine& smt,
@@ -64,7 +65,11 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   {
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
   }
-
+  // Add the proof checkers for each theory
+  if (d_pnm)
+  {
+    d_theoryEngine->initializeProofChecker(d_pnm->getChecker());
+  }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
   /* force destruction of referenced PropEngine to enforce that statistics
    * are unregistered by the obsolete PropEngine object before registered
@@ -286,4 +291,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

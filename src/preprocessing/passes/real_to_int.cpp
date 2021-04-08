@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,18 +18,19 @@
 
 #include <string>
 
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
 {
@@ -42,6 +43,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   else
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
@@ -116,8 +118,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 }
                 else
                 {
-                  throw TypeCheckingException(
-                      v.toExpr(),
+                  throw TypeCheckingExceptionPrivate(
+                      v,
                       std::string("Cannot translate to Int: ") + v.toString());
                 }
               }
@@ -171,16 +173,17 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           // cannot change the type of quantified variables, since this leads
           // to incompleteness.
-          throw TypeCheckingException(
-              n.toExpr(),
+          throw TypeCheckingExceptionPrivate(
+              n,
               std::string("Cannot translate bound variable to Int: ")
                   + n.toString());
         }
         else if (n.isVar())
         {
-          ret = nm->mkSkolem("__realToIntInternal_var",
-                             nm->integerType(),
-                             "Variable introduced in realToIntInternal pass");
+          ret = sm->mkDummySkolem(
+              "__realToIntInternal_var",
+              nm->integerType(),
+              "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
           // ensure that the original variable is defined to be the returned
           // one, which is important for models and for incremental solving.
@@ -213,4 +216,4 @@ PreprocessingPassResult RealToInt::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

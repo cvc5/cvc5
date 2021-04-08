@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,26 +18,22 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-namespace CVC4 {
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-using namespace kind;
-using namespace context;
-
+namespace cvc5 {
 namespace theory {
-
-using namespace inst;
-
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
-                                   QuantifiersState& qs,
+InstStrategyEnum::InstStrategyEnum(QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
+                                   TermRegistry& tr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(qs, qim, qr, qe), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(qs, qim, qr, tr), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
@@ -111,7 +107,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   // at effort level r=0 but another quantified formula does). We prefer
   // this stratification since effort level r=1 may be highly expensive in the
   // case where we have a quantified formula with many entailed instances.
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::map<Node, bool> alreadyProc;
   for (unsigned r = rstart; r <= rend; r++)
@@ -175,189 +171,53 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
+bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 {
-  // ignore if constant true (rare case of non-standard quantifier whose body is
-  // rewritten to true)
-  if (f[1].isConst() && f[1].getConst<bool>())
+  // ignore if constant true (rare case of non-standard quantifier whose body
+  // is rewritten to true)
+  if (quantifier[1].isConst() && quantifier[1].getConst<bool>())
   {
     return false;
   }
-  unsigned final_max_i = 0;
-  std::vector<unsigned> maxs;
-  std::vector<bool> max_zero;
-  bool has_zero = false;
-  std::map<TypeNode, std::vector<Node> > term_db_list;
-  std::vector<TypeNode> ftypes;
-  TermDb* tdb = d_quantEngine->getTermDatabase();
-  QuantifiersState& qs = d_quantEngine->getState();
-  // iterate over substitutions for variables
-  for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+
+  TermTupleEnumeratorEnv ttec;
+  ttec.d_fullEffort = fullEffort;
+  ttec.d_increaseSum = options::fullSaturateSum();
+  // make the enumerator, which is either relevant domain or term database
+  // based on the flag isRd.
+  std::unique_ptr<TermTupleEnumeratorInterface> enumerator(
+      isRd ? mkTermTupleEnumeratorRd(quantifier, &ttec, d_rd)
+           : mkTermTupleEnumerator(
+                 quantifier, &ttec, d_qstate, d_treg.getTermDatabase()));
+  std::vector<Node> terms;
+  std::vector<bool> failMask;
+  Instantiate* ie = d_qim.getInstantiate();
+  for (enumerator->init(); enumerator->hasNext();)
   {
-    TypeNode tn = f[0][i].getType();
-    ftypes.push_back(tn);
-    unsigned ts;
-    if (isRd)
+    if (d_qstate.isInConflict())
     {
-      ts = d_rd->getRDomain(f, i)->d_terms.size();
+      // could be conflicting for an internal reason
+      return false;
+    }
+    enumerator->next(terms);
+    // try instantiation
+    failMask.clear();
+    /* if (ie->addInstantiation(quantifier, terms)) */
+    if (ie->addInstantiationExpFail(
+            quantifier, terms, failMask, InferenceId::QUANTIFIERS_INST_ENUM))
+    {
+      Trace("inst-alg-rd") << "Success!" << std::endl;
+      return true;
     }
     else
     {
-      ts = tdb->getNumTypeGroundTerms(tn);
-      std::map<TypeNode, std::vector<Node> >::iterator ittd =
-          term_db_list.find(tn);
-      if (ittd == term_db_list.end())
-      {
-        std::map<Node, Node> reps_found;
-        for (unsigned j = 0; j < ts; j++)
-        {
-          Node gt = tdb->getTypeGroundTerm(ftypes[i], j);
-          if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
-          {
-            Node rep = qs.getRepresentative(gt);
-            if (reps_found.find(rep) == reps_found.end())
-            {
-              reps_found[rep] = gt;
-              term_db_list[tn].push_back(gt);
-            }
-          }
-        }
-        ts = term_db_list[tn].size();
-      }
-      else
-      {
-        ts = ittd->second.size();
-      }
-    }
-    // consider a default value if at full effort
-    max_zero.push_back(fullEffort && ts == 0);
-    ts = (fullEffort && ts == 0) ? 1 : ts;
-    Trace("inst-alg-rd") << "Variable " << i << " has " << ts
-                         << " in relevant domain." << std::endl;
-    if (ts == 0)
-    {
-      has_zero = true;
-      break;
-    }
-    maxs.push_back(ts);
-    if (ts > final_max_i)
-    {
-      final_max_i = ts;
+      enumerator->failureReason(failMask);
     }
   }
-  if (!has_zero)
-  {
-    Trace("inst-alg-rd") << "Will do " << final_max_i
-                         << " stages of instantiation." << std::endl;
-    unsigned max_i = 0;
-    bool success;
-    Instantiate* ie = d_quantEngine->getInstantiate();
-    while (max_i <= final_max_i)
-    {
-      Trace("inst-alg-rd") << "Try stage " << max_i << "..." << std::endl;
-      std::vector<unsigned> childIndex;
-      int index = 0;
-      do
-      {
-        while (index >= 0 && index < (int)f[0].getNumChildren())
-        {
-          if (index == static_cast<int>(childIndex.size()))
-          {
-            childIndex.push_back(-1);
-          }
-          else
-          {
-            Assert(index == static_cast<int>(childIndex.size()) - 1);
-            unsigned nv = childIndex[index] + 1;
-            if (nv < maxs[index] && nv <= max_i)
-            {
-              childIndex[index] = nv;
-              index++;
-            }
-            else
-            {
-              childIndex.pop_back();
-              index--;
-            }
-          }
-        }
-        success = index >= 0;
-        if (success)
-        {
-          if (Trace.isOn("inst-alg-rd"))
-          {
-            Trace("inst-alg-rd") << "Try instantiation { ";
-            for (unsigned i : childIndex)
-            {
-              Trace("inst-alg-rd") << i << " ";
-            }
-            Trace("inst-alg-rd") << "}" << std::endl;
-          }
-          // try instantiation
-          std::vector<Node> terms;
-          for (unsigned i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
-          {
-            if (max_zero[i])
-            {
-              // no terms available, will report incomplete instantiation
-              terms.push_back(Node::null());
-              Trace("inst-alg-rd") << "  null" << std::endl;
-            }
-            else if (isRd)
-            {
-              terms.push_back(d_rd->getRDomain(f, i)->d_terms[childIndex[i]]);
-              Trace("inst-alg-rd")
-                  << "  (rd) " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
-                  << std::endl;
-            }
-            else
-            {
-              Assert(childIndex[i] < term_db_list[ftypes[i]].size());
-              terms.push_back(term_db_list[ftypes[i]][childIndex[i]]);
-              Trace("inst-alg-rd")
-                  << "  " << term_db_list[ftypes[i]][childIndex[i]]
-                  << std::endl;
-            }
-            Assert(terms[i].isNull()
-                   || terms[i].getType().isComparableTo(ftypes[i]))
-                << "Incompatible type " << f << ", " << terms[i].getType()
-                << ", " << ftypes[i] << std::endl;
-          }
-          std::vector<bool> failMask;
-          if (ie->addInstantiationExpFail(f, terms, failMask, false))
-          {
-            Trace("inst-alg-rd") << "Success!" << std::endl;
-            ++(d_quantEngine->d_statistics.d_instantiations_guess);
-            return true;
-          }
-          else
-          {
-            index--;
-            // currently, we use the failmask only for backtracking, although
-            // more could be learned here (wishue #81).
-            Assert(failMask.size() == terms.size());
-            while (!failMask.empty() && !failMask.back())
-            {
-              failMask.pop_back();
-              childIndex.pop_back();
-              index--;
-            }
-          }
-          if (d_qstate.isInConflict())
-          {
-            // could be conflicting for an internal reason (such as term
-            // indices computed in above calls)
-            return false;
-          }
-        }
-      } while (success);
-      max_i++;
-    }
-  }
-  // TODO : term enumerator instantiation?
   return false;
+  // TODO : term enumerator instantiation?
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

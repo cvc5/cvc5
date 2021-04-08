@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 class SmtEngine;
 class TheoryEngine;
 namespace theory::booleans {
@@ -69,14 +69,8 @@ class PreprocessingPassContext
   /** Get the current logic info of the SmtEngine */
   const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
 
-  /* Widen the logic to include the given theory. */
-  void widenLogic(theory::TheoryId id);
-
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
-
-  /* Enable Integers. */
-  void enableIntegers();
 
   /** Record symbols in assertions
    *
@@ -112,6 +106,6 @@ class PreprocessingPassContext
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */

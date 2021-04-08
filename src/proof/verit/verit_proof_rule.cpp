@@ -15,7 +15,7 @@
 #include "proof/verit/verit_proof_rule.h"
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -128,4 +128,4 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
 
 }  // namespace proof
 
-}  // namespace CVC4
+}  // namespace cvc5

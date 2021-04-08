@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,17 +26,16 @@
 #include <string>
 #include <utility>
 
+#include "cvc4_export.h"
 #include "util/sexpr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Stat;
 
-class CVC4_PUBLIC StatisticsBase {
-protected:
-
-  static std::string s_regDelim;
-
+class CVC4_EXPORT StatisticsBase
+{
+ protected:
   /** A helper class for comparing two statistics */
   struct StatCmp {
     bool operator()(const Stat* s1, const Stat* s2) const;
@@ -44,8 +43,6 @@ protected:
 
   /** A type for a set of statistics */
   typedef std::set< Stat*, StatCmp > StatSet;
-
-  std::string d_prefix;
 
   /** The set of statistics in this object */
   StatSet d_stats;
@@ -58,7 +55,9 @@ public:
 
   virtual ~StatisticsBase() { }
 
-  class CVC4_PUBLIC iterator : public std::iterator< std::input_iterator_tag, std::pair<std::string, SExpr> > {
+  class iterator : public std::iterator<std::input_iterator_tag,
+                                        std::pair<std::string, SExpr> >
+  {
     StatSet::iterator d_it;
 
     iterator(StatSet::iterator it) : d_it(it) { }
@@ -73,13 +72,10 @@ public:
     iterator operator++(int) { iterator old = *this; ++d_it; return old; }
     bool operator==(const iterator& i) const { return d_it == i.d_it; }
     bool operator!=(const iterator& i) const { return d_it != i.d_it; }
-  };/* class StatisticsBase::iterator */
+  }; /* class StatisticsBase::iterator */
 
   /** An iterator type over a set of statistics. */
   typedef iterator const_iterator;
-
-  /** Set the output prefix for this set of statistics. */
-  virtual void setPrefix(const std::string& prefix);
 
   /** Flush all statistics to the given output stream. */
   void flushInformation(std::ostream& out) const;
@@ -104,9 +100,10 @@ public:
    */
   const_iterator end() const;
 
-};/* class StatisticsBase */
+}; /* class StatisticsBase */
 
-class CVC4_PUBLIC Statistics : public StatisticsBase {
+class Statistics : public StatisticsBase
+{
   void clear();
   void copyFrom(const StatisticsBase&);
 
@@ -128,8 +125,8 @@ public:
   Statistics& operator=(const StatisticsBase& stats);
   Statistics& operator=(const Statistics& stats);
 
-};/* class Statistics */
+}; /* class Statistics */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__STATISTICS_H */

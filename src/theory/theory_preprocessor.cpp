@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,13 +16,14 @@
 
 #include "expr/lazy_proof.h"
 #include "expr/skolem_manager.h"
+#include "smt/logic_exception.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
@@ -163,6 +164,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   {
     tret = TrustNode::mkTrustRewrite(node, ppNode, nullptr);
   }
+
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
   Trace("tpp") << "TheoryPreprocessor::preprocess: return " << tret.getNode()
@@ -202,13 +204,14 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
   {
     Assert(d_lp != nullptr);
     // add the original proof to the lazy proof
-    d_lp->addLazyStep(node.getProven(), node.getGenerator());
+    d_lp->addLazyStep(
+        node.getProven(), node.getGenerator(), PfRule::THEORY_PREPROCESS_LEMMA);
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
       d_lp->addLazyStep(tplemma.getProven(),
                         tplemma.getGenerator(),
-                        PfRule::PREPROCESS_LEMMA,
+                        PfRule::THEORY_PREPROCESS,
                         true,
                         "TheoryEngine::lemma_pp");
       // ---------- from node -------------- from theory preprocess
@@ -317,7 +320,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     if (stackHead.children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -393,7 +396,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
   Node newTerm = term;
   if (!term.isClosure())
   {
-    NodeBuilder<> newNode(term.getKind());
+    NodeBuilder newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       newNode << term.getOperator();
@@ -517,4 +520,4 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

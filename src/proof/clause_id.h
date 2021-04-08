@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Paul Meng, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 #ifndef CVC4__PROOF__CLAUSE_ID_H
 #define CVC4__PROOF__CLAUSE_ID_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A ClauseId is a shared identifier between the proofs module and the sat
@@ -35,6 +35,6 @@ const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__PROOF__CLAUSE_ID_H */

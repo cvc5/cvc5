@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -153,6 +153,12 @@ class ExtfSolver
    */
   std::vector<Node> getActive(Kind k) const;
   //---------------------------------- end information about ExtTheory
+  /**
+   * Print the relevant information regarding why we have a model, return as a
+   * string.
+   */
+  std::string debugPrintModel();
+
  private:
   /** do reduction
    *
@@ -227,6 +233,6 @@ class StringsExtfCallback : public ExtTheoryCallback
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__EXTF_SOLVER_H */

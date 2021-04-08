@@ -2,9 +2,9 @@
 /*! \file trigger_term_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,10 +16,11 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 void TriggerTermInfo::init(Node q, Node n, int reqPol, Node reqPolEq)
@@ -111,5 +112,6 @@ int32_t TriggerTermInfo::getTriggerWeight(Node n)
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

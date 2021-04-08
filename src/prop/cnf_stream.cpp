@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Haniel Barbosa, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 CnfStream::CnfStream(SatSolver* satSolver,
@@ -76,7 +76,7 @@ bool CnfStream::assertClause(TNode node, SatClause& c)
     else
     {
       Assert(c.size() > 1);
-      NodeBuilder<> b(kind::OR);
+      NodeBuilder b(kind::OR);
       for (unsigned i = 0; i < c.size(); ++i)
       {
         b << getNode(c[i]);
@@ -787,5 +787,5 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

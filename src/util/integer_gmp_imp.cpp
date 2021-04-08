@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Integer::Integer(const char* s, unsigned base)
   : d_value(s, base)
@@ -142,18 +142,16 @@ Integer Integer::multiplyByPow2(uint32_t pow) const
   return Integer(result);
 }
 
-Integer Integer::setBit(uint32_t i, bool value) const
+void Integer::setBit(uint32_t i, bool value)
 {
-  mpz_class res = d_value;
   if (value)
   {
-    mpz_setbit(res.get_mpz_t(), i);
+    mpz_setbit(d_value.get_mpz_t(), i);
   }
   else
   {
-    mpz_clrbit(res.get_mpz_t(), i);
+    mpz_clrbit(d_value.get_mpz_t(), i);
   }
-  return Integer(res);
 }
 
 bool Integer::isBitSet(uint32_t i) const
@@ -485,4 +483,4 @@ const Integer& Integer::max(const Integer& a, const Integer& b)
   return (a >= b) ? a : b;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

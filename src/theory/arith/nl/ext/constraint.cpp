@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,10 +16,11 @@
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/ext/monomial.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -122,4 +123,4 @@ bool ConstraintDb::isMaximal(Node atom, Node x) const
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

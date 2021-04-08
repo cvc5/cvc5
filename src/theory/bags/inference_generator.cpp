@@ -2,9 +2,9 @@
 /*! \file inference_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Mudathir Mohamed, Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,9 +17,11 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
+#include "theory/bags/inference_manager.h"
+#include "theory/bags/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -268,4 +270,4 @@ Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

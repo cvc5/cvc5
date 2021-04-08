@@ -2,7 +2,7 @@
 /*! \file proof_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -17,7 +17,7 @@
 
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -84,4 +84,4 @@ bool BBProof::collectModelValues(TheoryModel* m,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

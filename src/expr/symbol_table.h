@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,8 +24,9 @@
 #include <vector>
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -33,14 +34,17 @@ class Sort;
 class Term;
 }  // namespace api
 
-class CVC4_PUBLIC ScopeException : public Exception {};
+class CVC4_EXPORT ScopeException : public Exception
+{
+};
 
 /**
  * A convenience class for handling scoped declarations. Implements the usual
  * nested scoping rules for declarations, with separate bindings for expressions
  * and types.
  */
-class CVC4_PUBLIC SymbolTable {
+class CVC4_EXPORT SymbolTable
+{
  public:
   /** Create a symbol table. */
   SymbolTable();
@@ -206,6 +210,6 @@ class CVC4_PUBLIC SymbolTable {
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SYMBOL_TABLE_H */

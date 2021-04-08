@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,19 +20,16 @@
 #ifndef CVC4__THEORY__UF__THEORY_UF_H
 #define CVC4__THEORY__UF__THEORY_UF_H
 
-#include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -114,6 +111,8 @@ private:
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -147,8 +146,7 @@ private:
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
   void presolve() override;
 
   void computeCareGraph() override;
@@ -165,20 +163,27 @@ private:
                     const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
-
+  /**
+   * Is t a higher order type? A higher-order type is a function type having
+   * an argument type that is also a function type. This is used for checking
+   * logic exceptions.
+   */
+  bool isHigherOrderType(TypeNode tn);
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
-  UfProofRuleChecker d_ufProofChecker;
+  UfProofRuleChecker d_checker;
   /** A (default) theory state object */
   TheoryState d_state;
   /** A (default) inference manager */
   TheoryInferenceManager d_im;
   /** The notify class */
   NotifyClass d_notify;
+  /** Cache for isHigherOrderType */
+  std::map<TypeNode, bool> d_isHoType;
 };/* class TheoryUF */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__UF__THEORY_UF_H */

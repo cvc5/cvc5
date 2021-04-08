@@ -2,9 +2,9 @@
 /*! \file utility.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Aina Niemetz
+ **   Andres Noetzli, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,8 +24,7 @@
 #include <memory>
 #include <string>
 
-namespace CVC4 {
-
+namespace cvc5 {
 
 /**
  * Using std::find_if(), finds the first iterator in [first,last)
@@ -78,6 +77,6 @@ void container_to_stream(std::ostream& out,
  */
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__UTILITY_H */

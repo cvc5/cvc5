@@ -21,20 +21,19 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_SimpSolver_h
 #define Minisat_SimpSolver_h
 
+#include "base/check.h"
 #include "cvc4_private.h"
-
 #include "proof/clause_id.h"
-#include "prop/minisat/mtl/Queue.h"
 #include "prop/minisat/core/Solver.h"
+#include "prop/minisat/mtl/Queue.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
   class TheoryProxy;
 }
-}
+}  // namespace cvc5
 
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -43,12 +42,12 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-  SimpSolver(CVC4::prop::TheoryProxy* proxy,
-             CVC4::context::Context* context,
-             CVC4::context::UserContext* userContext,
+  SimpSolver(cvc5::prop::TheoryProxy* proxy,
+             cvc5::context::Context* context,
+             cvc5::context::UserContext* userContext,
              ProofNodeManager* pnm,
              bool enableIncremental = false);
-  CVC4_PUBLIC ~SimpSolver();
+  ~SimpSolver();
 
   // Problem specification:
   //
@@ -204,11 +203,12 @@ class SimpSolver : public Solver {
 
 inline bool SimpSolver::isEliminated (Var v) const { return eliminated[v]; }
 inline void SimpSolver::updateElimHeap(Var v) {
-    assert(use_simplification);
-    // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
-    if (elim_heap.inHeap(v) || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
-        elim_heap.update(v); }
-
+  Assert(use_simplification);
+  // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
+  if (elim_heap.inHeap(v)
+      || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
+    elim_heap.update(v);
+}
 
 inline bool SimpSolver::addClause(const vec<Lit>& ps, bool removable, ClauseId& id)
 { ps.copyTo(add_tmp); return addClause_(add_tmp, removable, id); }
@@ -270,7 +270,7 @@ inline lbool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool t
  }
 
  //=================================================================================================
-} /* CVC4::Minisat namespace */
-} /* CVC4 namespace */
+ }  // namespace Minisat
+ }  // namespace cvc5
 
 #endif

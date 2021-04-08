@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,14 +14,11 @@
 
 #include "theory/quantifiers/inst_match.h"
 
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-namespace inst {
+namespace quantifiers {
 
 InstMatch::InstMatch(TNode q)
 {
@@ -93,7 +90,7 @@ void InstMatch::setValue(size_t i, TNode n)
   Assert(i < d_vals.size());
   d_vals[i] = n;
 }
-bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
+bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
 {
   Assert(i < d_vals.size());
   if( !d_vals[i].isNull() ){
@@ -103,6 +100,6 @@ bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
   return true;
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

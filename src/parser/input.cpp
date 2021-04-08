@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,11 +25,11 @@
 
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 InputStreamException::InputStreamException(const std::string& msg) :
@@ -79,5 +79,5 @@ Input* Input::newStringInput(InputLanguage lang,
   return AntlrInput::newInput(lang, *inputStream);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

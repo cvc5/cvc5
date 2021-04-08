@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,6 @@
  ** and allows to use eager bit-blasting in the BV solver.
  **/
 
-
 #include "preprocessing/passes/bv_eager_atoms.h"
 
 #include "preprocessing/assertion_pipeline.h"
@@ -23,7 +22,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -48,4 +47,4 @@ PreprocessingPassResult BvEagerAtoms::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

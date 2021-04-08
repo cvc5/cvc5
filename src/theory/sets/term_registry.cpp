@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,11 +15,12 @@
 #include "theory/sets/term_registry.h"
 
 #include "expr/emptyset.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -116,7 +117,8 @@ Node TermRegistry::getTypeConstraintSkolem(Node n, TypeNode tn)
   std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
   if (it == d_tc_skolem[n].end())
   {
-    Node k = NodeManager::currentNM()->mkSkolem("tc_k", tn);
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    Node k = sm->mkDummySkolem("tc_k", tn);
     d_tc_skolem[n][tn] = k;
     return k;
   }
@@ -151,4 +153,4 @@ void TermRegistry::debugPrintSet(Node s, const char* c) const
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

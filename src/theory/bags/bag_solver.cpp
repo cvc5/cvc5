@@ -2,9 +2,9 @@
 /*! \file bag_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,13 +17,17 @@
 #include "theory/bags/bag_solver.h"
 
 #include "theory/bags/inference_generator.h"
+#include "theory/bags/inference_manager.h"
+#include "theory/bags/normal_form.h"
+#include "theory/bags/solver_state.h"
+#include "theory/bags/term_registry.h"
 #include "theory/uf/equality_engine_iterator.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -208,4 +212,4 @@ void BagSolver::checkDisequalBagTerms()
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

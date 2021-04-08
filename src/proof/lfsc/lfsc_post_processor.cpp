@@ -22,9 +22,9 @@
 #include "expr/proof_node_updater.h"
 #include "options/proof_options.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
@@ -36,6 +36,7 @@ LfscProofPostprocessCallback::LfscProofPostprocessCallback(
 void LfscProofPostprocessCallback::initializeUpdate() { d_firstTime = true; }
 
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa,
                                                 bool& continueUpdate)
 {
   return pn->getRule() != PfRule::LFSC_RULE;
@@ -64,6 +65,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         // Note that we do not want to modify the top-most SCOPE
         return false;
       }
+      Assert(children.size() == 1);
       // (SCOPE P :args (F1 ... Fn))
       // becomes
       // (scope _ _ (\ X1 ... (scope _ _ (\ Xn P)) ... ))
@@ -77,10 +79,11 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
         // we use a chained implication (=> F1 ... (=> Fn C)) which avoids
         // aliasing.
-        Node next = nm->mkNode(IMPLIES, args[ii], curr);
+        Node next = nm->mkNode(OR, args[ii].notNode(), curr);
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
+      // TODO: this can be unified to the latter case
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
@@ -96,10 +99,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       {
         // we have that C != false
         // convert to (=> (and F1 (and F2 ... (and Fn true) ... )) C)
-        // FIXME
-        return false;
+        addLfscRule(cdp, res, {curr}, LfscRule::PROCESS_SCOPE, {children[0]});
       }
-      return true;
     }
     break;
     case PfRule::CHAIN_RESOLUTION:
@@ -113,7 +114,6 @@ bool LfscProofPostprocessCallback::update(Node res,
         cur = d_pc->checkDebug(PfRule::RESOLUTION, newChildren, newArgs);
         cdp->addStep(cur, PfRule::RESOLUTION, newChildren, newArgs);
       }
-      return true;
     }
     break;
     case PfRule::SYMM:
@@ -125,24 +125,23 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       // must use alternate SYMM rule for disequality
       addLfscRule(cdp, res, {children[0]}, LfscRule::NEG_SYMM, {});
-      return true;
     }
     break;
     case PfRule::TRANS:
     {
-      if (children.size() > 2)
+      if (children.size() <= 2)
       {
-        // turn into binary
-        Node cur = children[0];
-        for (size_t i = 1, size = children.size(); i < size; i++)
-        {
-          std::vector<Node> newChildren{cur, children[i]};
-          cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
-          cdp->addStep(cur, PfRule::TRANS, newChildren, {});
-        }
-        return true;
+        // no need to change
+        return false;
       }
-      return false;
+      // turn into binary
+      Node cur = children[0];
+      for (size_t i = 1, size = children.size(); i < size; i++)
+      {
+        std::vector<Node> newChildren{cur, children[i]};
+        cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
+        cdp->addStep(cur, PfRule::TRANS, newChildren, {});
+      }
     }
     break;
     case PfRule::CONG:
@@ -167,7 +166,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // is a binary operator and we must apply congruence in a special way.
       // Note we use the first block of code if we have more than 2 children,
       // or if we have a null terminator.
-      if (ExprManager::isNAryKind(k) && (nchildren > 2 || !nullTerm.isNull()))
+      if (NodeManager::isNAryKind(k) && (nchildren > 2 || !nullTerm.isNull()))
       {
         // get the null terminator for the kind, which may mean we are doing
         // a special kind of congruence for n-ary kinds whose base is a REFL
@@ -235,7 +234,6 @@ bool LfscProofPostprocessCallback::update(Node res,
           currEq = nextEq;
         }
       }
-      return true;
     }
     break;
     case PfRule::AND_ELIM:
@@ -287,6 +285,30 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
+    case PfRule::ARITH_SUM_UB:
+    {
+      // proof of null terminator base 0 = 0
+      Node zero = LfscTermProcessor::getNullTerminator(PLUS);
+      Node cur = zero.eqNode(zero);
+      cdp->addStep(cur, PfRule::REFL, {}, {zero});
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        size_t ii = (children.size() - 1) - i;
+        std::vector<Node> newChildren{children[ii], cur};
+        if (ii == 0)
+        {
+          // final rule must be the real conclusion
+          addLfscRule(cdp, res, newChildren, LfscRule::ARITH_SUM_UB, {});
+        }
+        else
+        {
+          // rules build an n-ary chain of + on both sides
+          cur = d_pc->checkDebug(PfRule::ARITH_SUM_UB, newChildren, {});
+          addLfscRule(cdp, cur, newChildren, LfscRule::ARITH_SUM_UB, {});
+        }
+      }
+    }
+    break;
     case PfRule::SKOLEMIZE:
       // TODO: convert to curried
       return false;
@@ -297,6 +319,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       break;
     default: return false; break;
   }
+  AlwaysAssert(cdp->getProofFor(res)->getRule() != PfRule::ASSUME);
   return true;
 }
 
@@ -339,7 +362,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
 Node LfscProofPostprocessCallback::mkDummyPredicate()
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkSkolem("dummy", nm->booleanType());
+  return nm->mkBoundVar(nm->booleanType());
 }
 
 LfscProofPostprocess::LfscProofPostprocess(LfscTermProcessor& ltp,
@@ -353,9 +376,9 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   d_cb->initializeUpdate();
   // do not automatically add symmetry steps, since this leads to
   // non-termination for example on policy_variable.smt2
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
+  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false, false);
   updater.process(pf);
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

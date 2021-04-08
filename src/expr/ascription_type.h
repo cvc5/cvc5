@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -33,7 +33,8 @@ class TypeNode;
  * AscriptionType payload.  (Essentially, all of this is a way to
  * coerce a Type into the expression tree.)
  */
-class CVC4_PUBLIC AscriptionType {
+class AscriptionType
+{
  public:
   AscriptionType(TypeNode t);
   ~AscriptionType();
@@ -46,18 +47,19 @@ class CVC4_PUBLIC AscriptionType {
  private:
   /** The type */
   std::unique_ptr<TypeNode> d_type;
-};/* class AscriptionType */
+}; /* class AscriptionType */
 
 /**
  * A hash function for type ascription operators.
  */
-struct CVC4_PUBLIC AscriptionTypeHashFunction {
+struct AscriptionTypeHashFunction
+{
   size_t operator()(const AscriptionType& at) const;
-};/* struct AscriptionTypeHashFunction */
+}; /* struct AscriptionTypeHashFunction */
 
 /** An output routine for AscriptionTypes */
-std::ostream& operator<<(std::ostream& out, AscriptionType at) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, AscriptionType at);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__ASCRIPTION_TYPE_H */

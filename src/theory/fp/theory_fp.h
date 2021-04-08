@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Martin Brain, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,10 +27,11 @@
 #include "context/cdo.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -50,6 +51,8 @@ class TheoryFp : public Theory
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -142,7 +145,7 @@ class TheoryFp : public Theory
   void convertAndEquateTerm(TNode node);
 
   /** Interaction with the rest of the solver **/
-  void handleLemma(Node node);
+  void handleLemma(Node node, InferenceId id = InferenceId::UNKNOWN);
   /**
    * Called when literal node is inferred by the equality engine. This
    * propagates node on the output channel.
@@ -168,7 +171,6 @@ class TheoryFp : public Theory
   Node abstractFloatToReal(Node);
 
  private:
-  context::CDO<Node> d_conflictNode;
 
   ComparisonUFMap d_minMap;
   ComparisonUFMap d_maxMap;
@@ -183,10 +185,12 @@ class TheoryFp : public Theory
   TheoryFpRewriter d_rewriter;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
 }; /* class TheoryFp */
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_H */

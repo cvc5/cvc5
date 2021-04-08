@@ -140,9 +140,9 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
-  name       = "proof"
+  name       = "produceProofs"
   category   = "regular"
-  long       = "proof"
+  long       = "produce-proofs"
   type       = "bool"
   default    = "true"
   help       = "produce proofs, support check-proofs and get-proof"
@@ -207,7 +207,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
-  predicates = ["proofEnabledBuild"]
   help       = "turn on unsat core generation"
 
 [[option]]
@@ -247,7 +246,6 @@ header = "options/smt_options.h"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  predicates = ["proofEnabledBuild"]
   read_only  = true
   help       = "turn on unsat assumptions generation"
 

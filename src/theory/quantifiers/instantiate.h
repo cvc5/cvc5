@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,24 +20,25 @@
 #include <map>
 
 #include "context/cdhashset.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof.h"
+#include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class LazyCDProof;
+
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
-class TermDb;
+class TermRegistry;
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
+class FirstOrderModel;
 
 /** Instantiation rewriter
  *
@@ -68,6 +69,15 @@ class InstantiationRewriter
                                          bool doVts) = 0;
 };
 
+/** Context-dependent list of nodes */
+class InstLemmaList
+{
+ public:
+  InstLemmaList(context::Context* c) : d_list(c) {}
+  /** The list */
+  context::CDList<Node> d_list;
+};
+
 /** Instantiate
  *
  * This class is used for generating instantiation lemmas.  It maintains an
@@ -89,13 +99,14 @@ class InstantiationRewriter
  */
 class Instantiate : public QuantifiersUtil
 {
-  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
+  using NodeInstListMap = context::
+      CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction>;
 
  public:
-  Instantiate(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  Instantiate(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
+              TermRegistry& tr,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -124,12 +135,16 @@ class Instantiate : public QuantifiersUtil
    * This function returns true if the instantiation lemma for quantified
    * formula q for the substitution specified by terms is successfully enqueued
    * via a call to QuantifiersInferenceManager::addPendingLemma.
-   *   mkRep : whether to take the representatives of the terms in the range of
-   *           the substitution m,
-   *   modEq : whether to check for duplication modulo equality in instantiation
-   *           tries (for performance),
-   *   doVts : whether we must apply virtual term substitution to the
-   *           instantiation lemma.
+   * @param q the quantified formula to instantiate
+   * @param terms the terms to instantiate with
+   * @param id the identifier of the instantiation lemma sent via the inference
+   * manager
+   * @param mkRep whether to take the representatives of the terms in the
+   * range of the substitution m,
+   * @param modEq whether to check for duplication modulo equality in
+   * instantiation tries (for performance),
+   * @param doVts whether we must apply virtual term substitution to the
+   * instantiation lemma.
    *
    * This call may fail if it can be determined that the instantiation is not
    * relevant or legal in the current context. This happens if:
@@ -145,6 +160,7 @@ class Instantiate : public QuantifiersUtil
    */
   bool addInstantiation(Node q,
                         std::vector<Node>& terms,
+                        InferenceId id,
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
@@ -174,19 +190,20 @@ class Instantiate : public QuantifiersUtil
   bool addInstantiationExpFail(Node q,
                                std::vector<Node>& terms,
                                std::vector<bool>& failMask,
+                               InferenceId id,
                                bool mkRep = false,
                                bool modEq = false,
                                bool doVts = false,
                                bool expFull = true);
   /** record instantiation
    *
-   * Explicitly record that q has been instantiated with terms. This is the
-   * same as addInstantiation, but does not enqueue an instantiation lemma.
+   * Explicitly record that q has been instantiated with terms, with virtual
+   * term substitution if doVts is true. This is the same as addInstantiation,
+   * but does not enqueue an instantiation lemma.
    */
-  bool recordInstantiation(Node q,
+  void recordInstantiation(Node q,
                            std::vector<Node>& terms,
-                           bool modEq = false,
-                           bool addedLem = true);
+                           bool doVts = false);
   /** exists instantiation
    *
    * Returns true if and only if the instantiation already was added or
@@ -216,17 +233,6 @@ class Instantiate : public QuantifiersUtil
    * Same as above but with vars equal to the bound variables of q.
    */
   Node getInstantiation(Node q, std::vector<Node>& terms, bool doVts = false);
-  /** get term for type
-   *
-   * This returns an arbitrary term for type tn.
-   * This term is chosen heuristically to be the best
-   * term for instantiation. Currently, this
-   * heuristic enumerates the first term of the
-   * type if the type is closed enumerable, otherwise
-   * an existing ground term from the term database if
-   * one exists, or otherwise a fresh variable.
-   */
-  Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
   /**
@@ -244,7 +250,7 @@ class Instantiate : public QuantifiersUtil
    * Get the list of quantified formulas that were instantiated in the current
    * user context, store them in qs.
    */
-  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
+  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const;
   /** get instantiation term vectors
    *
    * Get term vectors corresponding to for all instantiations lemmas added in
@@ -259,6 +265,11 @@ class Instantiate : public QuantifiersUtil
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node> > >& insts);
+  /**
+   * Get instantiations for quantified formula q. If q is (forall ((x T)) (P
+   * x)), this is a list of the form (P t1) ... (P tn) for ground terms ti.
+   */
+  void getInstantiations(Node q, std::vector<Node>& insts);
   //--------------------------------------end user-level interface utilities
 
   /** Are proofs enabled for this object? */
@@ -285,15 +296,12 @@ class Instantiate : public QuantifiersUtil
  private:
   /** record instantiation, return true if it was not a duplicate
    *
-   * addedLem : whether an instantiation lemma was added for the vector we are
-   *            recording. If this is false, we bookkeep the vector.
    * modEq : whether to check for duplication modulo equality in instantiation
    *         tries (for performance),
    */
   bool recordInstantiationInternal(Node q,
                                    std::vector<Node>& terms,
-                                   bool modEq = false,
-                                   bool addedLem = true);
+                                   bool modEq = false);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
   /**
@@ -301,24 +309,35 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
+  /** Get or make the instantiation list for quantified formula q */
+  InstLemmaList* getOrMkInstLemmaList(TNode q);
 
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /** cache of term database for quantifiers engine */
-  TermDb* d_term_db;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
-  /** statistics for debugging total instantiations per quantifier */
-  NodeUIntMap d_total_inst_debug;
+  /**
+   * The list of all instantiation lemma bodies per quantifier. This is used
+   * for debugging and for quantifier elimination.
+   */
+  NodeInstListMap d_insts;
+  /** explicitly recorded instantiations
+   *
+   * Sometimes an instantiation is recorded internally but not sent out as a
+   * lemma, for instance, for partial quantifier elimination. This is a map
+   * of these instantiations, for each quantified formula. This map is cleared
+   * on presolve, e.g. it is local to a check-sat call.
+   */
+  std::map<Node, std::vector<Node> > d_recordedInst;
   /** statistics for debugging total instantiations per quantifier per round */
   std::map<Node, uint32_t> d_temp_inst_debug;
 
@@ -327,29 +346,21 @@ class Instantiate : public QuantifiersUtil
    * We store context (dependent, independent) versions. If incremental solving
    * is disabled, we use d_inst_match_trie for performance reasons.
    */
-  std::map<Node, inst::InstMatchTrie> d_inst_match_trie;
-  std::map<Node, inst::CDInstMatchTrie*> d_c_inst_match_trie;
+  std::map<Node, InstMatchTrie> d_inst_match_trie;
+  std::map<Node, CDInstMatchTrie*> d_c_inst_match_trie;
   /**
    * The list of quantified formulas for which the domain of d_c_inst_match_trie
    * is valid.
    */
   context::CDHashSet<Node, NodeHashFunction> d_c_inst_match_trie_dom;
-
-  /** explicitly recorded instantiations
-   *
-   * Sometimes an instantiation is recorded internally but not sent out as a
-   * lemma, for instance, for partial quantifier elimination. This is a map
-   * of these instantiations, for each quantified formula.
-   */
-  std::vector<std::pair<Node, std::vector<Node> > > d_recorded_inst;
   /**
    * A CDProof storing instantiation steps.
    */
   std::unique_ptr<CDProof> d_pfInst;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H */

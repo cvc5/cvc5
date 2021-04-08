@@ -2,9 +2,9 @@
 /*! \file memory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andres Noetzli
+ **   Tim King, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,7 @@
  **
  ** Use it like this (for example):
  **
- **   CVC4::test::WithLimitedMemory wlm(amount);
+ **   cvc5::test::WithLimitedMemory wlm(amount);
  **   TS_ASSERT_THROWS( foo(), bad_alloc );
  **
  ** The WithLimitedMemory destructor will re-establish the previous limit.
@@ -53,7 +53,7 @@
 #  endif
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 #ifndef CVC4_MEMORY_LIMITING_DISABLED
@@ -86,9 +86,8 @@ class WithLimitedMemory {
 }; /* class WithLimitedMemory */
 #endif
 
-} /* CVC4::test namespace */
-} /* CVC4 namespace */
-
+}  // namespace test
+}  // namespace cvc5
 
 // Remove CVC4_MEMORY_LIMITING_DISABLED_REASON if it is defined.
 #ifdef CVC4_MEMORY_LIMITING_DISABLED_REASON

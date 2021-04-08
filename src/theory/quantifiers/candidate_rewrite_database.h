@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,15 +17,13 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 #define CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 
-#include <map>
-#include <memory>
-#include <unordered_set>
 #include <vector>
+
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -60,24 +58,22 @@ class CandidateRewriteDatabase : public ExprMiner
                            bool filterPairs = true);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
-  void initialize(const std::vector<Node>& var,
-                  SygusSampler* ss = nullptr) override;
+  void initialize(const std::vector<Node>& var, SygusSampler* ss) override;
   /**  Initialize this class
    *
    * Serves the same purpose as the above function, but we will be using
    * sygus to enumerate terms and generate samples.
    *
-   * qe : pointer to quantifiers engine. We use the sygus term database of this
-   * quantifiers engine, and the extended rewriter of the corresponding term
+   * tds : pointer to sygus term database. We use the extended rewriter of this
    * database when computing candidate rewrites,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f. This is the
    * "candidate variable" CegConjecture::d_candidates.
    */
   void initializeSygus(const std::vector<Node>& vars,
-                       QuantifiersEngine* qe,
+                       TermDbSygus* tds,
                        Node f,
-                       SygusSampler* ss = nullptr);
+                       SygusSampler* ss);
   /** add term
    *
    * Notifies this class that the solution sol was enumerated. This may
@@ -105,8 +101,6 @@ class CandidateRewriteDatabase : public ExprMiner
   void setExtendedRewriter(ExtendedRewriter* er);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** an extended rewriter object */
@@ -132,8 +126,8 @@ class CandidateRewriteDatabase : public ExprMiner
   std::unordered_map<Node, Node, NodeHashFunction> d_add_term_cache;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H */

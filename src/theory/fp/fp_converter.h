@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,11 +23,9 @@
 #ifndef CVC4__THEORY__FP__FP_CONVERTER_H
 #define CVC4__THEORY__FP__FP_CONVERTER_H
 
-#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/node_builder.h"
 #include "expr/type_node.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
@@ -47,7 +45,7 @@
 #include "theory/rewriter.h"
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -99,7 +97,7 @@ class traits
 typedef traits::bwt bwt;
 
 /**
- * Wrap the CVC4::Node types so that we can debug issues with this back-end
+ * Wrap the cvc5::Node types so that we can debug issues with this back-end
  */
 class nodeWrapper : public Node
 {
@@ -354,6 +352,6 @@ class FpConverter
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_H */

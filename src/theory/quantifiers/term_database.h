@@ -2,9 +2,9 @@
 /*! \file term_database.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
-#include <unordered_set>
+#include <unordered_map>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -28,11 +28,8 @@
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class QuantifiersState;
@@ -67,7 +64,6 @@ class DbList
  * lazily for performance reasons.
  */
 class TermDb : public QuantifiersUtil {
-  friend class ::CVC4::theory::QuantifiersEngine;
   using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
@@ -78,9 +74,10 @@ class TermDb : public QuantifiersUtil {
 
  public:
   TermDb(QuantifiersState& qs,
-         QuantifiersInferenceManager& qim,
          QuantifiersRegistry& qr);
   ~TermDb();
+  /** Finish init, which sets the inference manager */
+  void finishInit(QuantifiersInferenceManager* qim);
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
@@ -294,8 +291,8 @@ class TermDb : public QuantifiersUtil {
  private:
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
-  /** The quantifiers inference manager */
-  QuantifiersInferenceManager& d_qim;
+  /** Pointer to the quantifiers inference manager */
+  QuantifiersInferenceManager* d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** A context for the data structures below, when not context-dependent */
@@ -423,8 +420,8 @@ class TermDb : public QuantifiersUtil {
   //------------------------------end higher-order term indexing
 };/* class TermDb */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_algebraic.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Tim King
+ **   Liana Hadarean, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,14 +28,15 @@
 #include "theory/bv/bv_quick_check.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::context;
-using namespace CVC4::prop;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5::context;
+using namespace cvc5::prop;
+using namespace cvc5::theory::bv::utils;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -159,7 +160,7 @@ Node SubstitutionEx::internalApply(TNode node) {
 
     // children already processed
     if (head.childrenAdded) {
-      NodeBuilder<> nb(current.getKind());
+      NodeBuilder nb(current.getKind());
       std::vector<Node> reasons;
 
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -511,7 +512,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
       return changed;
     }
 
-    NodeBuilder<> nb(kind::BITVECTOR_XOR);
+    NodeBuilder nb(kind::BITVECTOR_XOR);
     for (unsigned i = 1; i < left.getNumChildren(); ++i) {
       nb << left[i];
     }
@@ -667,7 +668,7 @@ bool AlgebraicSolver::useHeuristic() {
     return true;
 
   double success_rate = double(d_numSolved)/double(d_numCalls);
-  d_statistics.d_useHeuristic.setData(success_rate);
+  d_statistics.d_useHeuristic.set(success_rate);
   return success_rate > 0.8;
 }
 
@@ -781,9 +782,10 @@ AlgebraicSolver::Statistics::~Statistics() {
 }
 
 bool hasExpensiveBVOperatorsRec(TNode fact, TNodeSet& seen) {
-  if (fact.getKind() == kind::BITVECTOR_MULT ||
-      fact.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
-      fact.getKind() == kind::BITVECTOR_UREM_TOTAL) {
+  if (fact.getKind() == kind::BITVECTOR_MULT
+      || fact.getKind() == kind::BITVECTOR_UDIV
+      || fact.getKind() == kind::BITVECTOR_UREM)
+  {
     return true;
   }
 
@@ -846,7 +848,7 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
       Node sk = utils::mkVar(size);
       skolems.push_back(sk);
     }
-    NodeBuilder<> skolem_nb(kind::BITVECTOR_CONCAT);
+    NodeBuilder skolem_nb(kind::BITVECTOR_CONCAT);
 
     for (int i = skolems.size() - 1; i >= 0; --i) {
       skolem_nb << skolems[i];
@@ -973,7 +975,7 @@ Node mergeExplanations(const std::vector<Node>& expls) {
     return *literals.begin();
   }
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
 
   for (TNodeSet::const_iterator it = literals.begin(); it!= literals.end(); ++it) {
     nb << *it;
@@ -988,6 +990,6 @@ Node mergeExplanations(TNode expl1, TNode expl2) {
   return mergeExplanations(expls);
 }
 
-} /* namespace CVC4::theory::bv */
+}  // namespace bv
 } /* namespace CVc4::theory */
-} /* namespace CVC4 */
+}  // namespace cvc5

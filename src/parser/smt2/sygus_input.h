@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,10 @@
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
 
-// extern void Smt2ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
+// extern void Smt2ParserSetAntlrParser(cvc5::parser::AntlrParser*
+// newAntlrParser);
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -80,7 +81,7 @@ class SygusInput : public AntlrInput {
 
 };/* class SygusInput */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__SYGUS_INPUT_H */

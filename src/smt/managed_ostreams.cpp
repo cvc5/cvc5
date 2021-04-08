@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,7 @@
 #include "options/smt_options.h"
 #include "smt/update_ostream.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ManagedOstream::ManagedOstream() : d_managed(NULL) {}
 
@@ -164,4 +164,4 @@ void ManagedDiagnosticOutputChannel::addSpecialCases(OstreamOpener* opener)
   opener->addSpecialCase("stderr", &std::cerr);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

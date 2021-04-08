@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,7 @@
 
 #include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
     : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
@@ -73,4 +73,4 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   return h[0];
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

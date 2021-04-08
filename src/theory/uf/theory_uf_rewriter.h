@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -208,8 +208,8 @@ public: //conversion between HO_APPLY AND APPLY_UF
   }
 }; /* class TheoryUfRewriter */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__UF__THEORY_UF_REWRITER_H */

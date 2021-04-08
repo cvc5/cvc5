@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,13 +17,11 @@
 #ifndef CVC4__THEORY__DATATYPES__INFERENCE_MANAGER_H
 #define CVC4__THEORY__DATATYPES__INFERENCE_MANAGER_H
 
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/datatypes/infer_proof_cons.h"
-#include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class EagerProofGenerator;
@@ -74,11 +72,6 @@ class InferenceManager : public InferenceManagerBuffered
    * Send conflict immediately on the output channel
    */
   void sendDtConflict(const std::vector<Node>& conf, InferenceId id);
-  /**
-   * Send lemmas with property NONE on the output channel immediately.
-   * Returns true if any lemma was sent.
-   */
-  bool sendLemmas(const std::vector<Node>& lemmas, InferenceId id);
 
  private:
   /** Are proofs enabled? */
@@ -116,6 +109,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

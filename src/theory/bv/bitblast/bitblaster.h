@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -160,10 +160,8 @@ void TBitblaster<T>::initTermBBStrategies()
   d_termBBStrategies[kind::BITVECTOR_PLUS] = DefaultPlusBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SUB] = DefaultSubBB<T>;
   d_termBBStrategies[kind::BITVECTOR_NEG] = DefaultNegBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV_TOTAL] = DefaultUdivBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM_TOTAL] = DefaultUremBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_UDIV] = DefaultUdivBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_UREM] = DefaultUremBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SDIV] = UndefinedTermBBStrategy<T>;
   d_termBBStrategies[kind::BITVECTOR_SREM] = UndefinedTermBBStrategy<T>;
   d_termBBStrategies[kind::BITVECTOR_SMOD] = UndefinedTermBBStrategy<T>;
@@ -249,7 +247,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
   }
   Assert(node.getType().isBitVector());
 
-  NodeBuilder<> nb(node.getKind());
+  NodeBuilder nb(node.getKind());
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     nb << node.getOperator();
@@ -270,6 +268,6 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__BITBLAST__BITBLASTER_H */

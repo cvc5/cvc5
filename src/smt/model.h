@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream&, const Model&);
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
-  friend class ::CVC4::SmtEngine;
+  friend class ::cvc5::SmtEngine;
 
  public:
   /** construct */
@@ -118,6 +118,6 @@ class Model {
 };
 
 }  // namespace smt
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif  /* CVC4__MODEL_H */

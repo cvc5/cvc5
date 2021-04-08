@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #ifndef CVC4__PROP__REGISTRAR_H
 #define CVC4__PROP__REGISTRAR_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class Registrar {
@@ -39,7 +39,7 @@ public:
 
 };/* class NullRegistrar */
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5
 
 #endif /* CVC4__PROP__REGISTRAR_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
@@ -46,12 +46,9 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace smt2 {
-
-/** returns whether the variant is smt-lib 2.6 or greater */
-bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
@@ -235,11 +232,7 @@ void Smt2Printer::toStream(std::ostream& out,
       for(size_t i = 0; i < s.size(); ++i) {
         char c = s[i];
         if(c == '"') {
-          if(d_variant == smt2_0_variant) {
-            out << "\\\"";
-          } else {
-            out << "\"\"";
-          }
+          out << "\"\"";
         } else {
           out << c;
         }
@@ -299,7 +292,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else
       {
-        out << CVC4::quoteSymbol(dt.getName());
+        out << cvc5::quoteSymbol(dt.getName());
       }
       break;
     }
@@ -351,51 +344,59 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPIEEEBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPFloatingPoint>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPReal>().d_fp_size.exponentWidth()
+          << n.getConst<FloatingPointToFPReal>().getSize().exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPReal>().d_fp_size.significandWidth()
+          << n.getConst<FloatingPointToFPReal>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPSignedBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
       out << "(_ to_fp_unsigned "
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
-                 .d_fp_size.exponentWidth()
+                 .getSize()
+                 .exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
-                 .d_fp_size.significandWidth()
+                 .getSize()
+                 .significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
       out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.exponentWidth()
+          << n.getConst<FloatingPointToFPGeneric>().getSize().exponentWidth()
           << ' '
-          << n.getConst<FloatingPointToFPGeneric>().d_fp_size.significandWidth()
+          << n.getConst<FloatingPointToFPGeneric>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
@@ -436,7 +437,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '(';
     }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << CVC4::quoteSymbol(name);
+      out << cvc5::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
@@ -508,7 +509,7 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << CVC4::quoteSymbol(s);
+      out << cvc5::quoteSymbol(s);
     }
     else
     {
@@ -749,13 +750,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_SUB: out << "bvsub "; break;
   case kind::BITVECTOR_NEG: out << "bvneg "; break;
   case kind::BITVECTOR_UDIV: out << "bvudiv "; break;
-  case kind::BITVECTOR_UDIV_TOTAL:
-    out << (isVariant_2_6(d_variant) ? "bvudiv " : "bvudiv_total ");
-    break;
   case kind::BITVECTOR_UREM: out << "bvurem "; break;
-  case kind::BITVECTOR_UREM_TOTAL:
-    out << (isVariant_2_6(d_variant) ? "bvurem " : "bvurem_total ");
-    break;
   case kind::BITVECTOR_SDIV: out << "bvsdiv "; break;
   case kind::BITVECTOR_SREM: out << "bvsrem "; break;
   case kind::BITVECTOR_SMOD: out << "bvsmod "; break;
@@ -944,20 +939,36 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::WITNESS:
   {
     out << smtKindString(k, d_variant) << " ";
-    toStream(out, n[0], toDepth, lbind);
+    // do not letify the bound variable list
+    toStream(out, n[0], toDepth, nullptr);
     out << " ";
+    std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
-      out << "(! ";
+      annot << " ";
+      for (const Node& nc : n[2])
+      {
+        if (nc.getKind() == kind::INST_PATTERN)
+        {
+          out << "(! ";
+          annot << ":pattern ";
+          toStream(annot, nc, toDepth, nullptr);
+          annot << ") ";
+        }
+        else if (nc.getKind() == kind::INST_NO_PATTERN)
+        {
+          out << "(! ";
+          annot << ":no-pattern ";
+          toStream(annot, nc, toDepth, nullptr);
+          annot << ") ";
+        }
+      }
     }
-    toStreamWithLetify(out, n[1], toDepth - 1, lbind);
-    if (n.getNumChildren() == 3)
-    {
-      out << " ";
-      toStream(out, n[2], toDepth, lbind);
-      out << ")";
-    }
-    out << ")";
+    // Use a fresh let binder, since using existing let symbols may violate
+    // scoping issues for let-bound variables, see explanation in let_binding.h.
+    size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
+    toStream(out, n[1], toDepth - 1, dag);
+    out << annot.str() << ")";
     return;
     break;
   }
@@ -980,23 +991,8 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   case kind::INST_PATTERN:
-  case kind::INST_NO_PATTERN: break;
-  case kind::INST_PATTERN_LIST:
-  {
-    for (const Node& nc : n)
-    {
-      if (nc.getKind() == kind::INST_PATTERN)
-      {
-        out << ":pattern " << nc;
-      }
-      else if (nc.getKind() == kind::INST_NO_PATTERN)
-      {
-        out << ":no-pattern " << nc[0];
-      }
-    }
-    return;
-    break;
-  }
+  case kind::INST_NO_PATTERN:
+  case kind::INST_PATTERN_LIST: break;
   default:
     // fall back on however the kind prints itself; this probably
     // won't be SMT-LIB v2 compliant, but it will be clear from the
@@ -1008,21 +1004,13 @@ void Smt2Printer::toStream(std::ostream& out,
     if(toDepth != 0) {
       if (n.getKind() == kind::APPLY_TESTER)
       {
-        unsigned cindex = DType::indexOf(n.getOperator().toExpr());
-        const DType& dt = DType::datatypeOf(n.getOperator().toExpr());
-        if (isVariant_2_6(d_variant))
-        {
-          out << "(_ is ";
-          toStream(out,
-                   dt[cindex].getConstructor(),
-                   toDepth < 0 ? toDepth : toDepth - 1);
-          out << ")";
-        }else{
-          out << "is-";
-          toStream(out,
-                   dt[cindex].getConstructor(),
-                   toDepth < 0 ? toDepth : toDepth - 1);
-        }
+        unsigned cindex = DType::indexOf(n.getOperator());
+        const DType& dt = DType::datatypeOf(n.getOperator());
+        out << "(_ is ";
+        toStream(out,
+                 dt[cindex].getConstructor(),
+                 toDepth < 0 ? toDepth : toDepth - 1);
+        out << ")";
       }else{
         toStream(
             out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
@@ -1163,9 +1151,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_PLUS: return "bvadd";
   case kind::BITVECTOR_SUB: return "bvsub";
   case kind::BITVECTOR_NEG: return "bvneg";
-  case kind::BITVECTOR_UDIV_TOTAL:
   case kind::BITVECTOR_UDIV: return "bvudiv";
-  case kind::BITVECTOR_UREM_TOTAL:
   case kind::BITVECTOR_UREM: return "bvurem";
   case kind::BITVECTOR_SDIV: return "bvsdiv";
   case kind::BITVECTOR_SREM: return "bvsrem";
@@ -1348,7 +1334,7 @@ static bool tryToStream(std::ostream& out, const Command* c, Variant v);
 static std::string quoteSymbol(TNode n) {
   std::stringstream ss;
   ss << n;
-  return CVC4::quoteSymbol(ss.str());
+  return cvc5::quoteSymbol(ss.str());
 }
 
 template <class T>
@@ -1378,7 +1364,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
     const std::vector<std::string>& cnames = core.getCoreNames();
     for (const std::string& cn : cnames)
     {
-      out << CVC4::quoteSymbol(cn) << std::endl;
+      out << cvc5::quoteSymbol(cn) << std::endl;
     }
   }
   else
@@ -1434,14 +1420,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   std::vector<Node> elements = tm->getDomainElements(tn);
   if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum)
   {
-    if (isVariant_2_6(d_variant))
-    {
-      out << "(declare-datatypes ((" << tn << " 0)) (";
-    }
-    else
-    {
-      out << "(declare-datatypes () ((" << tn << " ";
-    }
+    out << "(declare-datatypes ((" << tn << " 0)) (";
     for (const Node& type_ref : elements)
     {
       out << "(" << type_ref << ")";
@@ -1561,14 +1540,7 @@ void Smt2Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 {
   if (!n.isNull())
   {
-    if (d_variant == smt2_0_variant)
-    {
-      toStreamCmdCheckSat(out, BooleanSimplification::negate(n));
-    }
-    else
-    {
-      toStreamCmdCheckSatAssuming(out, {n});
-    }
+    toStreamCmdCheckSatAssuming(out, {n});
   }
   else
   {
@@ -1610,7 +1582,7 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
 {
-  out << "(declare-fun " << CVC4::quoteSymbol(id) << " (";
+  out << "(declare-fun " << cvc5::quoteSymbol(id) << " (";
   if (type.isFunction())
   {
     const vector<TypeNode> argTypes = type.getArgTypes();
@@ -1730,7 +1702,7 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
   std::stringstream id;
   id << type;
   size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
-  out << "(declare-sort " << CVC4::quoteSymbol(id.str()) << " " << arity << ")"
+  out << "(declare-sort " << cvc5::quoteSymbol(id.str()) << " " << arity << ")"
       << std::endl;
 }
 
@@ -1739,7 +1711,7 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
                                         const std::vector<TypeNode>& params,
                                         TypeNode t) const
 {
-  out << "(define-sort " << CVC4::quoteSymbol(id) << " (";
+  out << "(define-sort " << cvc5::quoteSymbol(id) << " (";
   if (params.size() > 0)
   {
     copy(
@@ -1839,7 +1811,7 @@ void Smt2Printer::toStream(std::ostream& out, const DType& dt) const
     {
       out << " ";
     }
-    out << "(" << CVC4::quoteSymbol(cons.getName());
+    out << "(" << cvc5::quoteSymbol(cons.getName());
     for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
     {
       const DTypeSelector& arg = cons[j];
@@ -1867,99 +1839,37 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
     out << "co";
   }
   out << "datatypes";
-  if (isVariant_2_6(d_variant))
+  out << " (";
+  for (const TypeNode& t : datatypes)
   {
-    out << " (";
-    for (const TypeNode& t : datatypes)
-    {
-      Assert(t.isDatatype());
-      const DType& d = t.getDType();
-      out << "(" << CVC4::quoteSymbol(d.getName());
-      out << " " << d.getNumParameters() << ")";
-    }
-    out << ") (";
-    for (const TypeNode& t : datatypes)
-    {
-      Assert(t.isDatatype());
-      const DType& d = t.getDType();
-      if (d.isParametric())
-      {
-        out << "(par (";
-        for (unsigned p = 0, nparam = d.getNumParameters(); p < nparam; p++)
-        {
-          out << (p > 0 ? " " : "") << d.getParameter(p);
-        }
-        out << ")";
-      }
-      out << "(";
-      toStream(out, d);
-      out << ")";
-      if (d.isParametric())
-      {
-        out << ")";
-      }
-    }
-    out << ")";
+    Assert(t.isDatatype());
+    const DType& d = t.getDType();
+    out << "(" << cvc5::quoteSymbol(d.getName());
+    out << " " << d.getNumParameters() << ")";
   }
-  else
+  out << ") (";
+  for (const TypeNode& t : datatypes)
   {
-    out << " (";
-    // Can only print if all datatypes in this block have the same parameters.
-    // In theory, given input language 2.6 and output language 2.5, it could
-    // be impossible to print a datatype block where datatypes were given
-    // different parameter lists.
-    bool success = true;
-    unsigned nparam = d0.getNumParameters();
-    for (unsigned j = 1, ndt = datatypes.size(); j < ndt; j++)
+    Assert(t.isDatatype());
+    const DType& d = t.getDType();
+    if (d.isParametric())
     {
-      Assert(datatypes[j].isDatatype());
-      const DType& dj = datatypes[j].getDType();
-      if (dj.getNumParameters() != nparam)
+      out << "(par (";
+      for (unsigned p = 0, nparam = d.getNumParameters(); p < nparam; p++)
       {
-        success = false;
+        out << (p > 0 ? " " : "") << d.getParameter(p);
       }
-      else
-      {
-        // must also have identical parameter lists
-        for (unsigned k = 0; k < nparam; k++)
-        {
-          if (dj.getParameter(k) != d0.getParameter(k))
-          {
-            success = false;
-            break;
-          }
-        }
-      }
-      if (!success)
-      {
-        break;
-      }
-    }
-    if (success)
-    {
-      for (unsigned j = 0; j < nparam; j++)
-      {
-        out << (j > 0 ? " " : "") << d0.getParameter(j);
-      }
-    }
-    else
-    {
-      out << std::endl;
-      out << "ERROR: datatypes in each block must have identical parameter "
-             "lists.";
-      out << std::endl;
-    }
-    out << ") (";
-    for (const TypeNode& t : datatypes)
-    {
-      Assert(t.isDatatype());
-      const DType& dt = t.getDType();
-      out << "(" << CVC4::quoteSymbol(dt.getName()) << " ";
-      toStream(out, dt);
       out << ")";
     }
+    out << "(";
+    toStream(out, d);
     out << ")";
+    if (d.isParametric())
+    {
+      out << ")";
+    }
   }
+  out << ")";
   out << ")" << std::endl;
 }
 
@@ -1970,7 +1880,7 @@ void Smt2Printer::toStreamCmdComment(std::ostream& out,
   size_t pos = 0;
   while ((pos = s.find_first_of('"', pos)) != string::npos)
   {
-    s.replace(pos, 1, d_variant == smt2_0_variant ? "\\\"" : "\"\"");
+    s.replace(pos, 1, "\"\"");
     pos += 2;
   }
   out << "(set-info :notes \"" << s << "\")" << std::endl;
@@ -1997,7 +1907,7 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
   size_t pos = 0;
   while ((pos = s.find('"', pos)) != string::npos)
   {
-    s.replace(pos, 1, d_variant == smt2_0_variant ? "\\\"" : "\"\"");
+    s.replace(pos, 1, "\"\"");
     pos += 2;
   }
   out << "(echo \"" << s << "\")" << std::endl;
@@ -2076,7 +1986,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   std::stringstream sym;
   sym << f;
   out << '(' << (isInv ? "synth-inv " : "synth-fun ")
-      << CVC4::quoteSymbol(sym.str()) << ' ';
+      << cvc5::quoteSymbol(sym.str()) << ' ';
   out << '(';
   if (!vars.empty())
   {
@@ -2202,7 +2112,7 @@ static void errorToStream(std::ostream& out, std::string message, Variant v) {
   // escape all double-quotes
   size_t pos = 0;
   while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
+    message.replace(pos, 1, "\"\"");
     pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
@@ -2227,6 +2137,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
   return false;
 }
 
-}/* CVC4::printer::smt2 namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace smt2
+}  // namespace printer
+}  // namespace cvc5

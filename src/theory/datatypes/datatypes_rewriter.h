@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,9 @@
 #ifndef CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 #define CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
-#include "expr/node_manager_attributes.h"
 #include "theory/theory_rewriter.h"
-#include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -144,8 +142,8 @@ class DatatypesRewriter : public TheoryRewriter
                               unsigned depth);
 }; /* class DatatypesRewriter */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */

@@ -14,9 +14,11 @@
 
 #include "proof/lfsc/lfsc_print_channel.h"
 
+#include <sstream>
+
 #include "proof/lfsc/lfsc_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
@@ -41,7 +43,18 @@ void LfscPrintChannelOut::printOpenRule(const ProofNode* pn)
   printRule(d_out, pn);
 }
 
-void LfscPrintChannelOut::printCloseRule() { d_out << ")"; }
+void LfscPrintChannelOut::printOpenLfscRule(LfscRule lr)
+{
+  d_out << std::endl << "(" << lr;
+}
+
+void LfscPrintChannelOut::printCloseRule(size_t nparen)
+{
+  for (size_t i = 0; i < nparen; i++)
+  {
+    d_out << ")";
+  }
+}
 
 void LfscPrintChannelOut::printProofId(size_t id)
 {
@@ -53,6 +66,8 @@ void LfscPrintChannelOut::printAssumeId(size_t id)
   d_out << " ";
   printAssumeId(d_out, id);
 }
+
+void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
 
 void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
 {
@@ -105,4 +120,4 @@ void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Yoni Zohar, Justin Xu
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,10 +59,10 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
-using namespace CVC4::preprocessing::passes;
+using namespace cvc5::preprocessing::passes;
 
 PreprocessingPassRegistry& PreprocessingPassRegistry::getInstance()
 {
@@ -158,4 +158,4 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

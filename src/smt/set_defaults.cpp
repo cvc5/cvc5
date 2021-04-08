@@ -2,9 +2,9 @@
 /*! \file set_defaults.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,8 @@
  **/
 
 #include "smt/set_defaults.h"
+
+#include <sstream>
 
 #include "base/output.h"
 #include "options/arith_options.h"
@@ -39,18 +41,18 @@
 #include "smt/logic_exception.h"
 #include "theory/theory.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
   // TEMPORARY for testing
-  if (options::proofReq() && !options::proof())
+  if (options::proofReq() && !options::produceProofs())
   {
     AlwaysAssert(false) << "Fail due to --proof-req "
-                        << options::proof.wasSetByUser();
+                        << options::produceProofs.wasSetByUser();
   }
 
   // implied options
@@ -80,9 +82,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  if (options::checkUnsatCoresNew())
+  if (options::checkProofs() || options::checkUnsatCoresNew()
+      || options::dumpProofs())
   {
-    options::proof.set(true);
+    Notice() << "SmtEngine: setting proof" << std::endl;
+    options::produceProofs.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -270,21 +274,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  //!!!!!!!!!!!! temporary on proof, whether it is ok to disable proof
-  bool disableProofNewOk = false;
+  // whether we must disable proofs
+  bool disableProofs = false;
   if (options::globalNegate())
   {
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
-    disableProofNewOk = true;
+    disableProofs = true;
   }
-  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
-  // with new proof system
+  // !!! must disable proofs if using the old unsat core infrastructure
+  // TODO (#project 37) remove this
   if (options::unsatCores() && !options::checkUnsatCoresNew())
   {
-    // set proofReq/proofEagerChecking/checkProofs to false, since we
-    // don't want CI failures
-    disableProofNewOk = true;
+    disableProofs = true;
   }
 
   if (options::arraysExp())
@@ -332,14 +334,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       // When sygus answers "unsat", it is not due to showing a set of
       // formulas is unsat in the standard way. Thus, proofs do not apply.
-      disableProofNewOk = true;
+      disableProofs = true;
     }
   }
 
-  //!!!!!!!!!!!! temporary on proof
-  if (disableProofNewOk && options::proof())
+  // if we requiring disabling proofs, disable them now
+  if (disableProofs && options::produceProofs())
   {
-    options::proof.set(false);
+    if (options::produceProofs())
+    {
+      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+    }
+    options::produceProofs.set(false);
     options::proofReq.set(false);
     options::checkProofs.set(false);
     options::proofEagerChecking.set(false);
@@ -356,7 +362,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE
-       || options::proof())
+       || options::produceProofs())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -629,6 +635,21 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = log;
     logic.lock();
   }
+  if (options::bvAbstraction())
+  {
+    // bv abstraction may require UF
+    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
+    needsUf = true;
+  }
+  else if (options::preSkolemQuantNested()
+           && options::preSkolemQuantNested.wasSetByUser())
+  {
+    // if pre-skolem nested is explictly set, then we require UF. If it is
+    // not explicitly set, it is disabled below if UF is not present.
+    Notice() << "Enabling UF because preSkolemQuantNested requires it."
+             << std::endl;
+    needsUf = true;
+  }
   if (needsUf
       // Arrays, datatypes and sets permit Boolean terms and thus require UF
       || logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -650,9 +671,25 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
       LogicInfo log(logic.getUnlockedCopy());
-      Notice() << "Enabling UF because " << logic << " requires it."
-               << std::endl;
+      if (!needsUf)
+      {
+        Notice() << "Enabling UF because " << logic << " requires it."
+                 << std::endl;
+      }
       log.enableTheory(THEORY_UF);
+      logic = log;
+      logic.lock();
+    }
+  }
+  if (options::arithMLTrick())
+  {
+    if (!logic.areIntegersUsed())
+    {
+      // enable integers
+      LogicInfo log(logic.getUnlockedCopy());
+      Notice() << "Enabling integers because arithMLTrick requires it."
+               << std::endl;
+      log.enableIntegers();
       logic = log;
       logic.lock();
     }
@@ -729,7 +766,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !options::unsatCores();
-    // TODO && !options::unsatCores() && !options::proof();
+    // TODO && !options::unsatCores() && !options::produceProofs();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
@@ -824,7 +861,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
-                 // ALL
+                  // ALL
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -1463,4 +1500,4 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

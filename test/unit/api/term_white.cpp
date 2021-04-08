@@ -2,7 +2,7 @@
 /*! \file term_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Makai Mann, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -14,7 +14,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -81,4 +81,4 @@ TEST_F(TestApiWhiteTerm, getOp)
   ASSERT_EQ(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

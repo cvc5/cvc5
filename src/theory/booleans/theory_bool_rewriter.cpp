@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Dejan Jovanovic, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "expr/node_value.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -88,7 +88,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     Assert(childList.size()
            < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
                  * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
-    NodeBuilder<> nb(k);
+    NodeBuilder nb(k);
     ChildList::iterator cur = childList.begin(), next, en = childList.end();
     while (cur != en)
     {
@@ -429,6 +429,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-}/* CVC4::theory::booleans namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace booleans
+}  // namespace theory
+}  // namespace cvc5

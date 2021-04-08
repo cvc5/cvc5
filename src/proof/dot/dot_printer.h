@@ -21,7 +21,7 @@
 
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 class DotPrinter
@@ -69,6 +69,6 @@ class DotPrinter
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

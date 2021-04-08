@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,6 +38,7 @@
 #include <ostream>
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
 // Define CVC4_NO_RETURN macro replacement for [[noreturn]].
 #if defined(SWIG)
@@ -74,7 +75,7 @@
 #define CVC4_FALLTHROUGH
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Implementation notes:
 // To understand FatalStream and OStreamVoider, it is useful to understand
@@ -91,7 +92,7 @@ namespace CVC4 {
 
 // Class that provides an ostream and whose destructor aborts! Direct usage of
 // this class is discouraged.
-class FatalStream
+class CVC4_EXPORT FatalStream
 {
  public:
   FatalStream(const char* function, const char* file, int line);
@@ -158,7 +159,7 @@ class OstreamVoider
 #else
 #define Assert(cond) \
   CVC4_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#endif /* CVC4_DEBUG */
+#endif
 
 class AssertArgumentException : public Exception
 {
@@ -205,11 +206,11 @@ class AssertArgumentException : public Exception
 #define InternalError() CVC4_FATAL() << "Internal error detected"
 
 #define IllegalArgument(arg, msg...)      \
-  throw ::CVC4::IllegalArgumentException( \
+  throw ::cvc5::IllegalArgumentException( \
       "",                                 \
       #arg,                               \
       __PRETTY_FUNCTION__,                \
-      ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str());
+      ::cvc5::IllegalArgumentException::formatVariadic(msg).c_str());
 // This cannot use check argument directly as this forces
 // CheckArgument to use a va_list. This is unsupported in Swig.
 #define PrettyCheckArgument(cond, arg, msg...)                            \
@@ -217,11 +218,11 @@ class AssertArgumentException : public Exception
   {                                                                       \
     if (__builtin_expect((!(cond)), false))                               \
     {                                                                     \
-      throw ::CVC4::IllegalArgumentException(                             \
+      throw ::cvc5::IllegalArgumentException(                             \
           #cond,                                                          \
           #arg,                                                           \
           __PRETTY_FUNCTION__,                                            \
-          ::CVC4::IllegalArgumentException::formatVariadic(msg).c_str()); \
+          ::cvc5::IllegalArgumentException::formatVariadic(msg).c_str()); \
     }                                                                     \
   } while (0)
 #define AlwaysAssertArgument(cond, arg, msg...)                         \
@@ -229,7 +230,7 @@ class AssertArgumentException : public Exception
   {                                                                     \
     if (__builtin_expect((!(cond)), false))                             \
     {                                                                   \
-      throw ::CVC4::AssertArgumentException(                            \
+      throw ::cvc5::AssertArgumentException(                            \
           #cond, #arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ##msg); \
     }                                                                   \
   } while (0)
@@ -244,6 +245,6 @@ class AssertArgumentException : public Exception
     cond, arg, msg...) /*__builtin_expect( ( cond ), true )*/
 #endif                 /* CVC4_ASSERTIONS */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__CHECK_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,11 +37,13 @@
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class TheoryEngine;
+class ProofRuleChecker;
 
 namespace theory {
 
@@ -57,7 +59,7 @@ class TrustSubstitutionMap;
 
 namespace eq {
   class EqualityEngine;
-}/* CVC4::theory::eq namespace */
+  }  // namespace eq
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -94,7 +96,7 @@ namespace eq {
  * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
-  friend class ::CVC4::TheoryEngine;
+  friend class ::cvc5::TheoryEngine;
 
  private:
   // Disallow default construction, copy, assignment.
@@ -316,6 +318,10 @@ class Theory {
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
   /**
+   * @return The proof checker associated with this theory.
+   */
+  virtual ProofRuleChecker* getProofChecker() = 0;
+  /**
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
    *
@@ -457,13 +463,6 @@ class Theory {
   }
 
   /**
-   * Set the output channel associated to this theory.
-   */
-  void setOutputChannel(OutputChannel& out) {
-    d_out = &out;
-  }
-
-  /**
    * Get the output channel associated to this theory.
    */
   OutputChannel& getOutputChannel() {
@@ -486,9 +485,6 @@ class Theory {
   QuantifiersEngine* getQuantifiersEngine() {
     return d_quantEngine;
   }
-
-  /** Get the decision manager associated to this theory. */
-  DecisionManager* getDecisionManager() { return d_decManager; }
 
   /**
    * @return The theory state associated with this theory.
@@ -695,7 +691,7 @@ class Theory {
    * *never* clear it.  It is a conjunction to add to the formula at
    * the top-level and may contain other theories' contributions.
    */
-  virtual void ppStaticLearn(TNode in, NodeBuilder<>& learned) { }
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
 
   enum PPAssertStatus {
     /** Atom has been solved  */
@@ -731,6 +727,17 @@ class Theory {
    * preprocessing pass, where n is an equality from the input formula,
    * and in theory preprocessing, where n is a (non-equality) term occurring
    * in the input or generated in a lemma.
+   *
+   * @param n the node to preprocess-rewrite.
+   * @param lems a set of lemmas that should be added as a consequence of
+   * preprocessing n. These are in the form of "skolem lemmas". For example,
+   * calling this method on (div x n), we return a trust node proving:
+   *   (= (div x n) k_div)
+   * for fresh skolem k, and add the skolem lemma for k that indicates that
+   * it is the division of x and n.
+   *
+   * Note that ppRewrite should not return WITNESS terms, since the internal
+   * calculus works in "original forms" and not "witness forms".
    */
   virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   {
@@ -914,7 +921,8 @@ inline theory::Assertion Theory::get() {
 }
 
 inline std::ostream& operator<<(std::ostream& out,
-                                const CVC4::theory::Theory& theory) {
+                                const cvc5::theory::Theory& theory)
+{
   return out << theory.identify();
 }
 
@@ -932,7 +940,7 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   return out;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__THEORY_H */

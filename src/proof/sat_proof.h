@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,13 +31,14 @@
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 // Forward declarations.
-namespace CVC4 {
+namespace cvc5 {
 class CnfProof;
-} /* namespace CVC4 */
+}  // namespace cvc5
 
-namespace CVC4 {
+namespace cvc5 {
 /**
  * Helper debugging functions
  */
@@ -285,10 +286,10 @@ class TSatProof {
     IntStat d_numLearnedInProof;
     IntStat d_numLemmasInProof;
     AverageStat d_avgChainLength;
-    HistogramStat<uint64_t> d_resChainLengths;
-    HistogramStat<uint64_t> d_usedResChainLengths;
-    HistogramStat<uint64_t> d_clauseGlue;
-    HistogramStat<uint64_t> d_usedClauseGlue;
+    IntegralHistogramStat<uint64_t> d_resChainLengths;
+    IntegralHistogramStat<uint64_t> d_usedResChainLengths;
+    IntegralHistogramStat<uint64_t> d_clauseGlue;
+    IntegralHistogramStat<uint64_t> d_usedClauseGlue;
     Statistics(const std::string& name);
     ~Statistics();
   };
@@ -368,6 +369,6 @@ template <class Solver>
 void toSatClause(const typename Solver::TClause& minisat_cl,
                  prop::SatClause& sat_cl);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__SAT__PROOF_H */

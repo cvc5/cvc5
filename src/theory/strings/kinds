@@ -4,11 +4,11 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_STRINGS ::CVC4::theory::strings::TheoryStrings "theory/strings/theory_strings.h"
+theory THEORY_STRINGS ::cvc5::theory::strings::TheoryStrings "theory/strings/theory_strings.h"
 
 properties check parametric presolve
 
-rewriter ::CVC4::theory::strings::SequencesRewriter "theory/strings/sequences_rewriter.h"
+rewriter ::cvc5::theory::strings::SequencesRewriter "theory/strings/sequences_rewriter.h"
 
 typechecker "theory/strings/theory_strings_type_rules.h"
 
@@ -42,7 +42,7 @@ operator STRING_REV 1 "string reverse"
 sort STRING_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-    "NodeManager::currentNM()->mkConst(::CVC4::String())" \
+    "NodeManager::currentNM()->mkConst(::cvc5::String())" \
     "util/string.h" \
     "String type"
 
@@ -54,31 +54,31 @@ sort REGEXP_TYPE \
     "RegExp type"
 
 enumerator STRING_TYPE \
-    "::CVC4::theory::strings::StringEnumerator" \
+    "::cvc5::theory::strings::StringEnumerator" \
     "theory/strings/type_enumerator.h"
 
 constant CONST_STRING \
-    ::CVC4::String \
-    ::CVC4::strings::StringHashFunction \
+    ::cvc5::String \
+    ::cvc5::strings::StringHashFunction \
     "util/string.h" \
     "a string of characters"
 
 # the type
 operator SEQUENCE_TYPE 1 "seuence type, takes as parameter the type of the elements"
 cardinality SEQUENCE_TYPE \
-    "::CVC4::theory::strings::SequenceProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::strings::SequenceProperties::computeCardinality(%TYPE%)" \
     "theory/strings/theory_strings_type_rules.h"
 well-founded SEQUENCE_TYPE \
-    "::CVC4::theory::strings::SequenceProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)" \
+    "::cvc5::theory::strings::SequenceProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)" \
     "theory/strings/theory_strings_type_rules.h"
 enumerator SEQUENCE_TYPE \
-    "::CVC4::theory::strings::SequenceEnumerator" \
+    "::cvc5::theory::strings::SequenceEnumerator" \
     "theory/strings/type_enumerator.h"
 
 constant CONST_SEQUENCE \
-    ::CVC4::Sequence \
-    ::CVC4::SequenceHashFunction \
+    ::cvc5::Sequence \
+    ::cvc5::SequenceHashFunction \
     "expr/sequence.h" \
     "a sequence of characters"
 
@@ -102,17 +102,17 @@ operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
 
 constant REGEXP_REPEAT_OP \
-	::CVC4::RegExpRepeat \
-	::CVC4::RegExpRepeatHashFunction \
+	::cvc5::RegExpRepeat \
+	::cvc5::RegExpRepeatHashFunction \
 	"util/regexp.h" \
-	"operator for regular expression repeat; payload is an instance of the CVC4::RegExpRepeat class"
+	"operator for regular expression repeat; payload is an instance of the cvc5::RegExpRepeat class"
 parameterized REGEXP_REPEAT REGEXP_REPEAT_OP 1 "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
 
 constant REGEXP_LOOP_OP \
-	::CVC4::RegExpLoop \
-	::CVC4::RegExpLoopHashFunction \
+	::cvc5::RegExpLoop \
+	::cvc5::RegExpLoopHashFunction \
 	"util/regexp.h" \
-	"operator for regular expression loop; payload is an instance of the CVC4::RegExpLoop class"
+	"operator for regular expression loop; payload is an instance of the cvc5::RegExpLoop class"
 parameterized REGEXP_LOOP REGEXP_LOOP_OP 1 "regular expression loop; first parameter is a REGEXP_LOOP_OP, second is a regular expression term"
 
 #internal
@@ -128,7 +128,7 @@ typerule REGEXP_DIFF "SimpleTypeRuleVar<RRegExp, ARegExp>"
 typerule REGEXP_STAR "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_PLUS "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_OPT "SimpleTypeRule<RRegExp, ARegExp>"
-typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
+typerule REGEXP_RANGE ::cvc5::theory::strings::RegExpRangeTypeRule
 typerule REGEXP_REPEAT_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule REGEXP_REPEAT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_LOOP_OP "SimpleTypeRule<RBuiltinOperator>"
@@ -141,18 +141,18 @@ typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 
 ### operators that apply to both strings and sequences
 
-typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
-typerule STRING_LENGTH ::CVC4::theory::strings::StringStrToIntTypeRule
-typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
-typerule STRING_UPDATE ::CVC4::theory::strings::StringUpdateTypeRule
-typerule STRING_CHARAT ::CVC4::theory::strings::StringAtTypeRule
-typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
-typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
-typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
-typerule STRING_STRREPLALL ::CVC4::theory::strings::StringReplaceTypeRule
-typerule STRING_PREFIX ::CVC4::theory::strings::StringStrToBoolTypeRule
-typerule STRING_SUFFIX ::CVC4::theory::strings::StringStrToBoolTypeRule
-typerule STRING_REV ::CVC4::theory::strings::StringStrToStrTypeRule
+typerule STRING_CONCAT ::cvc5::theory::strings::StringConcatTypeRule
+typerule STRING_LENGTH ::cvc5::theory::strings::StringStrToIntTypeRule
+typerule STRING_SUBSTR ::cvc5::theory::strings::StringSubstrTypeRule
+typerule STRING_UPDATE ::cvc5::theory::strings::StringUpdateTypeRule
+typerule STRING_CHARAT ::cvc5::theory::strings::StringAtTypeRule
+typerule STRING_STRCTN ::cvc5::theory::strings::StringRelationTypeRule
+typerule STRING_STRIDOF ::cvc5::theory::strings::StringIndexOfTypeRule
+typerule STRING_STRREPL ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_STRREPLALL ::cvc5::theory::strings::StringReplaceTypeRule
+typerule STRING_PREFIX ::cvc5::theory::strings::StringStrToBoolTypeRule
+typerule STRING_SUFFIX ::cvc5::theory::strings::StringStrToBoolTypeRule
+typerule STRING_REV ::cvc5::theory::strings::StringStrToStrTypeRule
 
 ### string specific operators
 
@@ -169,9 +169,9 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 
 ### sequence specific operators
 
-typerule CONST_SEQUENCE ::CVC4::theory::strings::ConstSequenceTypeRule
-typerule SEQ_UNIT ::CVC4::theory::strings::SeqUnitTypeRule
-typerule SEQ_NTH ::CVC4::theory::strings::SeqNthTypeRule
-typerule SEQ_NTH_TOTAL ::CVC4::theory::strings::SeqNthTypeRule
+typerule CONST_SEQUENCE ::cvc5::theory::strings::ConstSequenceTypeRule
+typerule SEQ_UNIT ::cvc5::theory::strings::SeqUnitTypeRule
+typerule SEQ_NTH ::cvc5::theory::strings::SeqNthTypeRule
+typerule SEQ_NTH_TOTAL ::cvc5::theory::strings::SeqNthTypeRule
 
 endtheory

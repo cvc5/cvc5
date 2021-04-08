@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Yoni Zohar, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,12 +30,12 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-bool"),
@@ -220,7 +220,7 @@ Node BVToBool::convertBvTerm(TNode node)
     default: Unhandled();
   }
 
-  NodeBuilder<> builder(new_kind);
+  NodeBuilder builder(new_kind);
   for (unsigned i = 0; i < node.getNumChildren(); ++i)
   {
     builder << convertBvTerm(node[i]);
@@ -254,7 +254,7 @@ Node BVToBool::liftNode(TNode current)
     }
     else
     {
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -310,4 +310,4 @@ BVToBool::Statistics::~Statistics()
 
 }  // passes
 }  // Preprocessing
-}  // CVC4
+}  // namespace cvc5

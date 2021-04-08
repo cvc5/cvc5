@@ -2,9 +2,9 @@
 /*! \file decision_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Mathias Preiner
+ **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,10 +28,10 @@
 #include "prop/sat_solver_types.h"
 #include "util/result.h"
 
-using namespace CVC4::prop;
-using namespace CVC4::decision;
+using namespace cvc5::prop;
+using namespace cvc5::decision;
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DecisionEngine {
 
@@ -160,6 +160,6 @@ class DecisionEngine {
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
 };/* DecisionEngine class */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__DECISION__DECISION_ENGINE_H */

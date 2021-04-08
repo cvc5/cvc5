@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -99,6 +99,6 @@ std::ostream& operator<<(std::ostream& os, const ContractionOriginManager& com);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

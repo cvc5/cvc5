@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 FloatingPointSize::FloatingPointSize(uint32_t exp_size, uint32_t sig_size)
     : d_exp_size(exp_size), d_sig_size(sig_size)
@@ -31,4 +31,4 @@ FloatingPointSize::FloatingPointSize(const FloatingPointSize& old)
   Assert(validSignificandSize(d_sig_size));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/sygus/cegis.h"
+
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -20,22 +21,23 @@
 #include "theory/quantifiers/sygus/example_min_eval.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe,
-             QuantifiersInferenceManager& qim,
+Cegis::Cegis(QuantifiersInferenceManager& qim,
+             TermDbSygus* tds,
              SynthConjecture* p)
-    : SygusModule(qe, qim, p), d_eval_unfold(nullptr), d_usingSymCons(false)
+    : SygusModule(qim, tds, p),
+      d_eval_unfold(tds->getEvalUnfold()),
+      d_usingSymCons(false)
 {
-  d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }
 
 bool Cegis::initialize(Node conj,
@@ -702,6 +704,6 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   return false;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

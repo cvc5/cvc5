@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@
 #include "lib/strtok_r.h"
 #include "options/parser_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 OstreamOpener::OstreamOpener(const char* channelName)
     : d_channelName(channelName)
@@ -98,4 +98,4 @@ std::string cvc4_errno_failreason() {
 #endif /* HAVE_STRERROR_R */
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

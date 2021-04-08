@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,14 +14,16 @@
 
 #include "expr/term_conversion_proof_generator.h"
 
+#include <sstream>
+
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
@@ -586,4 +588,4 @@ std::string TConvProofGenerator::toStringDebug() const
   return ss.str();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

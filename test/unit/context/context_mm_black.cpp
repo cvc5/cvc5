@@ -2,16 +2,16 @@
 /*! \file context_mm_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Aina Niemetz, Andres Noetzli
+ **   Aina Niemetz, Dejan Jovanovic, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::context::ContextMemoryManager.
+ ** \brief Black box testing of cvc5::context::ContextMemoryManager.
  **
- ** Black box testing of CVC4::context::ContextMemoryManager.
+ ** Black box testing of cvc5::context::ContextMemoryManager.
  **/
 
 #include <cstring>
@@ -21,20 +21,20 @@
 #include "context/context_mm.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
 namespace test {
 
-class TestContextMMBlack : public TestInternal
+class TestContextBlackMM : public TestInternal
 {
  protected:
   void SetUp() override { d_cmm.reset(new ContextMemoryManager()); }
   std::unique_ptr<ContextMemoryManager> d_cmm;
 };
 
-TEST_F(TestContextMMBlack, push_pop)
+TEST_F(TestContextBlackMM, push_pop)
 {
 #ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 #warning "Using the debug context memory manager, omitting unit tests"
@@ -104,4 +104,4 @@ TEST_F(TestContextMMBlack, push_pop)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

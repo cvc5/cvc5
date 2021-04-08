@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Abdalrhman Mohamed, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -38,13 +38,12 @@
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::string sexprToString(api::Term sexpr)
 {
@@ -238,6 +237,36 @@ void Command::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
+Node Command::termToNode(const api::Term& term) { return term.getNode(); }
+
+std::vector<Node> Command::termVectorToNodes(
+    const std::vector<api::Term>& terms)
+{
+  return api::Term::termVectorToNodes(terms);
+}
+
+TypeNode Command::sortToTypeNode(const api::Sort& sort)
+{
+  return sort.getTypeNode();
+}
+
+std::vector<TypeNode> Command::sortVectorToTypeNodes(
+    const std::vector<api::Sort>& sorts)
+{
+  return api::Sort::sortVectorToTypeNodes(sorts);
+}
+
+TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
+{
+  return grammar == nullptr ? TypeNode::null()
+                            : sortToTypeNode(grammar->resolve());
+}
+
+Options& Command::getOriginalOptionsFrom(api::Solver* s)
+{
+  return *s->d_originalOptions.get();
+}
+
 /* -------------------------------------------------------------------------- */
 /* class EmptyCommand                                                         */
 /* -------------------------------------------------------------------------- */
@@ -311,7 +340,7 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->getSmtEngine()->assertFormula(d_term.getNode(), d_inUnsatCore);
+    solver->getSmtEngine()->assertFormula(termToNode(d_term), d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -336,7 +365,7 @@ void AssertCommand::toStream(std::ostream& out,
                              size_t dag,
                              OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdAssert(out, d_term.getNode());
+  Printer::getPrinter(language)->toStreamCmdAssert(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -457,7 +486,7 @@ void CheckSatCommand::toStream(std::ostream& out,
                                size_t dag,
                                OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSat(out, d_term.getNode());
+  Printer::getPrinter(language)->toStreamCmdCheckSat(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -532,7 +561,7 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
                                        OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdCheckSatAssuming(
-      out, api::Term::termVectorToNodes(d_terms));
+      out, termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -585,7 +614,7 @@ void QueryCommand::toStream(std::ostream& out,
                             size_t dag,
                             OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdQuery(out, d_term.getNode());
+  Printer::getPrinter(language)->toStreamCmdQuery(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -623,7 +652,7 @@ void DeclareSygusVarCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareVar(
-      out, d_var.getNode(), d_sort.getTypeNode());
+      out, termToNode(d_var), sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -678,14 +707,13 @@ void SynthFunCommand::toStream(std::ostream& out,
                                size_t dag,
                                OutputLanguage language) const
 {
-  std::vector<Node> nodeVars = api::Term::termVectorToNodes(d_vars);
+  std::vector<Node> nodeVars = termVectorToNodes(d_vars);
   Printer::getPrinter(language)->toStreamCmdSynthFun(
       out,
-      d_fun.getNode(),
+      termToNode(d_fun),
       nodeVars,
       d_isInv,
-      d_grammar == nullptr ? TypeNode::null()
-                           : d_grammar->resolve().getTypeNode());
+      d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -726,7 +754,7 @@ void SygusConstraintCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdConstraint(out, d_term.getNode());
+  Printer::getPrinter(language)->toStreamCmdConstraint(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -783,10 +811,10 @@ void SygusInvConstraintCommand::toStream(std::ostream& out,
 {
   Printer::getPrinter(language)->toStreamCmdInvConstraint(
       out,
-      d_predicates[0].getNode(),
-      d_predicates[1].getNode(),
-      d_predicates[2].getNode(),
-      d_predicates[3].getNode());
+      termToNode(d_predicates[0]),
+      termToNode(d_predicates[1]),
+      termToNode(d_predicates[2]),
+      termToNode(d_predicates[3]));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -866,7 +894,15 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    solver->getSmtEngine()->reset();
+    Options opts;
+    opts.copyValues(getOriginalOptionsFrom(solver));
+    // This reconstructs a new solver object at the same memory location as the
+    // current one. Note that this command does not own the solver object!
+    // It may be safer to instead make the ResetCommand a special case in the
+    // CommandExecutor such that this reconstruction can be done within the
+    // CommandExecutor, who actually owns the solver.
+    solver->~Solver();
+    new (solver) api::Solver(&opts);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1129,7 +1165,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareFunction(
-      out, d_func.toString(), d_sort.getTypeNode());
+      out, d_func.toString(), sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1168,7 +1204,7 @@ void DeclareSortCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareType(out,
-                                                        d_sort.getTypeNode());
+                                                        sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1211,10 +1247,7 @@ void DefineSortCommand::toStream(std::ostream& out,
                                  OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDefineType(
-      out,
-      d_symbol,
-      api::Sort::sortVectorToTypeNodes(d_params),
-      d_sort.getTypeNode());
+      out, d_symbol, sortVectorToTypeNodes(d_params), sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1289,9 +1322,9 @@ void DefineFunctionCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
       d_func.toString(),
-      api::Term::termVectorToNodes(d_formals),
-      d_func.getNode().getType().getRangeType(),
-      d_formula.getNode());
+      termVectorToNodes(d_formals),
+      termToNode(d_func).getType().getRangeType(),
+      termToNode(d_formula));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1369,14 +1402,11 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
   formals.reserve(d_formals.size());
   for (const std::vector<api::Term>& formal : d_formals)
   {
-    formals.push_back(api::Term::termVectorToNodes(formal));
+    formals.push_back(termVectorToNodes(formal));
   }
 
   Printer::getPrinter(language)->toStreamCmdDefineFunctionRec(
-      out,
-      api::Term::termVectorToNodes(d_funcs),
-      formals,
-      api::Term::termVectorToNodes(d_formulas));
+      out, termVectorToNodes(d_funcs), formals, termVectorToNodes(d_formulas));
 }
 /* -------------------------------------------------------------------------- */
 /* class DeclareHeapCommand                                                   */
@@ -1410,7 +1440,7 @@ void DeclareHeapCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclareHeap(
-      out, d_locSort.getTypeNode(), d_dataSort.getTypeNode());
+      out, sortToTypeNode(d_locSort), sortToTypeNode(d_dataSort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1453,11 +1483,10 @@ void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     if (!d_term.isNull())
     {
-      solver->getSmtEngine()->setUserAttribute(
-          d_attr,
-          d_term.getNode(),
-          api::Term::termVectorToNodes(d_termValues),
-          d_strValue);
+      solver->getSmtEngine()->setUserAttribute(d_attr,
+                                               termToNode(d_term),
+                                               termVectorToNodes(d_termValues),
+                                               d_strValue);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1483,7 +1512,7 @@ void SetUserAttributeCommand::toStream(std::ostream& out,
                                        OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdSetUserAttribute(
-      out, d_attr, d_term.getNode());
+      out, d_attr, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1536,7 +1565,7 @@ void SimplifyCommand::toStream(std::ostream& out,
                                size_t dag,
                                OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdSimplify(out, d_term.getNode());
+  Printer::getPrinter(language)->toStreamCmdSimplify(out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1617,7 +1646,7 @@ void GetValueCommand::toStream(std::ostream& out,
                                OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetValue(
-      out, api::Term::termVectorToNodes(d_terms));
+      out, termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1641,15 +1670,15 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     // of whether terms is empty.
     std::vector<api::Term> values = solver->getValue(terms);
     Assert(values.size() == names.size());
-    std::vector<SExpr> sexprs;
+    std::vector<api::Term> sexprs;
     for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
     {
-      std::vector<SExpr> ss;
-      ss.emplace_back(SExpr::Keyword(names[i]));
-      ss.emplace_back(SExpr::Keyword(values[i].toString()));
-      sexprs.emplace_back(ss);
+      // Treat the expression name as a variable name as opposed to a string
+      // constant to avoid printing double quotes around the name.
+      api::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
+      sexprs.push_back(solver->mkTerm(api::SEXPR, name, values[i]));
     }
-    d_result = SExpr(sexprs);
+    d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException& e)
@@ -1666,7 +1695,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-SExpr GetAssignmentCommand::getResult() const { return d_result; }
+api::Term GetAssignmentCommand::getResult() const { return d_result; }
 void GetAssignmentCommand::printResult(std::ostream& out,
                                        uint32_t verbosity) const
 {
@@ -1715,12 +1744,12 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
     std::vector<api::Sort> declareSorts = sm->getModelDeclareSorts();
     for (const api::Sort& s : declareSorts)
     {
-      d_result->addDeclarationSort(s.getTypeNode());
+      d_result->addDeclarationSort(sortToTypeNode(s));
     }
     std::vector<api::Term> declareTerms = sm->getModelDeclareTerms();
     for (const api::Term& t : declareTerms)
     {
-      d_result->addDeclarationTerm(t.getNode());
+      d_result->addDeclarationTerm(termToNode(t));
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1870,7 +1899,7 @@ void BlockModelValuesCommand::toStream(std::ostream& out,
                                        OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdBlockModelValues(
-      out, api::Term::termVectorToNodes(d_terms));
+      out, termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2113,7 +2142,7 @@ void GetInterpolCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpol(
-      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
+      out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2198,7 +2227,7 @@ void GetAbductCommand::toStream(std::ostream& out,
                                 OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAbduct(
-      out, d_name, d_conj.getNode(), d_sygus_grammar->resolve().getTypeNode());
+      out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2274,7 +2303,7 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out,
                                                OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
-      out, d_term.getNode());
+      out, termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2374,7 +2403,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
     if (options::dumpUnsatCoresFull())
     {
       // use the assertions
-      UnsatCore ucr(api::Term::termVectorToNodes(d_result));
+      UnsatCore ucr(termVectorToNodes(d_result));
       ucr.toStream(out);
     }
     else
@@ -2809,7 +2838,7 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out,
                                           OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDatatypeDeclaration(
-      out, api::Sort::sortVectorToTypeNodes(d_datatypes));
+      out, sortVectorToTypeNodes(d_datatypes));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

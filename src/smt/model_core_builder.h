@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "options/smt_options.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A utility for building model cores.
@@ -59,6 +59,6 @@ class ModelCoreBuilder
                            options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__MODEL_CORE_BUILDER_H */

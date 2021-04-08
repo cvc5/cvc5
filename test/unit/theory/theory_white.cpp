@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::theory::Theory.
+ ** \brief Black box testing of cvc5::theory::Theory.
  **
- ** Black box testing of CVC4::theory::Theory.
+ ** Black box testing of cvc5::theory::Theory.
  **/
 
 #include <memory>
@@ -24,7 +24,7 @@
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace expr;
@@ -97,24 +97,6 @@ TEST_F(TestTheoryWhite, done)
   ASSERT_TRUE(d_dummy_theory->done());
 }
 
-TEST_F(TestTheoryWhite, outputChannel_accessors)
-{
-  /* void setOutputChannel(OutputChannel& out)  */
-  /* OutputChannel& getOutputChannel() */
-
-  DummyOutputChannel theOtherChannel;
-
-  ASSERT_EQ(&(d_dummy_theory->getOutputChannel()), &d_outputChannel);
-
-  d_dummy_theory->setOutputChannel(theOtherChannel);
-
-  ASSERT_EQ(&(d_dummy_theory->getOutputChannel()), &theOtherChannel);
-
-  const OutputChannel& oc = d_dummy_theory->getOutputChannel();
-
-  ASSERT_EQ(&oc, &theOtherChannel);
-}
-
 TEST_F(TestTheoryWhite, outputChannel)
 {
   Node n = d_atom0.orNode(d_atom1);
@@ -127,4 +109,4 @@ TEST_F(TestTheoryWhite, outputChannel)
   d_outputChannel.d_callHistory.clear();
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

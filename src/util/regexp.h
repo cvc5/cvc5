@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,9 +19,9 @@
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
-struct CVC4_PUBLIC RegExpRepeat
+struct RegExpRepeat
 {
   RegExpRepeat(uint32_t repeatAmount);
 
@@ -30,7 +30,7 @@ struct CVC4_PUBLIC RegExpRepeat
   uint32_t d_repeatAmount;
 };
 
-struct CVC4_PUBLIC RegExpLoop
+struct RegExpLoop
 {
   RegExpLoop(uint32_t l, uint32_t h);
 
@@ -48,7 +48,7 @@ struct CVC4_PUBLIC RegExpLoop
 /*
  * Hash function for the RegExpRepeat constants.
  */
-struct CVC4_PUBLIC RegExpRepeatHashFunction
+struct RegExpRepeatHashFunction
 {
   size_t operator()(const RegExpRepeat& r) const;
 };
@@ -56,7 +56,7 @@ struct CVC4_PUBLIC RegExpRepeatHashFunction
 /**
  * Hash function for the RegExpLoop objects.
  */
-struct CVC4_PUBLIC RegExpLoopHashFunction
+struct RegExpLoopHashFunction
 {
   size_t operator()(const RegExpLoop& r) const;
 };
@@ -65,10 +65,10 @@ struct CVC4_PUBLIC RegExpLoopHashFunction
  ** Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv);
 
-std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__UTIL__REGEXP_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,7 @@
 #include "theory/bags/theory_bags_type_rules.h"
 #include "theory/strings/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -33,7 +33,7 @@ class TestTheoryWhiteBagsTypeRule : public TestSmt
   std::vector<Node> getNStrings(size_t n)
   {
     std::vector<Node> elements(n);
-    CVC4::theory::strings::StringEnumerator enumerator(
+    cvc5::theory::strings::StringEnumerator enumerator(
         d_nodeManager->stringType());
 
     for (size_t i = 0; i < n; i++)
@@ -110,4 +110,4 @@ TEST_F(TestTheoryWhiteBagsTypeRule, to_set_operator)
   ASSERT_TRUE(d_nodeManager->mkNode(BAG_TO_SET, bag).getType().isSet());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

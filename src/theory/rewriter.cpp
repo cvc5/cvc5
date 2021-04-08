@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Attribute true for nodes that have been rewritten with proofs enabled */
@@ -89,7 +89,7 @@ struct RewriteStackElement {
   /** Index of the child this node is done rewriting */
   unsigned d_nextChild : 32;
   /** Builder for this node */
-  NodeBuilder<> d_builder;
+  NodeBuilder d_builder;
 };
 
 RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n)
@@ -511,5 +511,5 @@ void Rewriter::clearCaches() {
   rewriter->clearCachesInternal();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

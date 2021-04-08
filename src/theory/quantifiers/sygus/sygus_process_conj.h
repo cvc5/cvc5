@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,11 +26,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /** This file contains techniques that compute
@@ -276,7 +273,7 @@ struct SynthConjectureProcessFun
 class SynthConjectureProcess
 {
  public:
-  SynthConjectureProcess(QuantifiersEngine* qe);
+  SynthConjectureProcess();
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
    * Returns a formula that is equivalent to q.
@@ -359,8 +356,8 @@ class SynthConjectureProcess
   void getComponentVector(Kind k, Node n, std::vector<Node>& args);
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

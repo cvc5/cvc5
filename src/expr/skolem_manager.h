@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,9 +21,26 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
+
+/** Skolem function identifier */
+enum class SkolemFunId
+{
+  /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  DIV_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  INT_DIV_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = x mod 0 */
+  MOD_BY_ZERO,
+  /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+  SQRT,
+};
+/** Converts a skolem function name to a string. */
+const char* toString(SkolemFunId id);
+/** Writes a skolem function name to a stream. */
+std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
@@ -51,11 +68,14 @@ class ProofGenerator;
  * unintended consequences e.g. variable shadowing. In contrast, converting to
  * original form does not have these complications. Furthermore, having original
  * form greatly simplifies reasoning in the proof, in particular, it avoids the
- * need to reason about variable identifiers for the introduced binders x.
+ * need to reason about identifiers for introduced variables x.
  *
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
  * case for algorithms that introduce witness, e.g. BV/set instantiation.
+ *
+ * Additionally, we consider a third class of skolems (mkSkolemFunction) which
+ * are for convenience associated with an identifier, and not a witness term.
  */
 class SkolemManager
 {
@@ -127,7 +147,11 @@ class SkolemManager
    *   (witness ((x Int)) (exists ((y Int)) (P x y)))
    *   (witness ((y Int)) (P w1 y))
    * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is *not* renamed in the witness form of w1.
+   * Notice that y is *not* renamed in the witness form of w1. This is not
+   * necessary since w1 is skolem. Although its witness form contains
+   * quantification on y, we never construct a term where the witness form
+   * of w1 is expanded in the witness form of w2. This avoids variable
+   * shadowing.
    *
    * In contrast to mkSkolem, the proof generator is for the *entire*
    * existentially quantified formula q, which may have multiple variables in
@@ -157,11 +181,74 @@ class SkolemManager
    *
    * Notice that a purification skolem is trivial to justify, and hence it
    * does not require a proof generator.
+   *
+   * Notice that in very rare cases, two different terms may have the
+   * same purification skolem. For example, let k be the skolem introduced to
+   * eliminate (ite A B C). Then, the pair of terms:
+   *  (ite (ite A B C) D E) and (ite k D E)
+   * have the same purification skolem. In the implementation, this is a result
+   * of the fact that the above terms have the same original form. It is sound
+   * to use the same skolem to purify these two terms, since they are
+   * definitionally equivalent.
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
+   * Make skolem function. This method should be used for creating fixed
+   * skolem functions of the forms described in SkolemFunId. The user of this
+   * method is responsible for providing a proper type for the identifier that
+   * matches the description of id. Skolem functions are useful for modelling
+   * the behavior of partial functions, or for theory-specific inferences that
+   * introduce fresh variables.
+   *
+   * A skolem function is not given a formal semantics in terms of a witness
+   * term, nor is it a purification skolem, thus it does not fall into the two
+   * categories of skolems above. This method is motivated by convenience, as
+   * the user of this method does not require constructing canonical variables
+   * for witness terms.
+   *
+   * The returned skolem is an ordinary skolem variable that can be used
+   * e.g. in APPLY_UF terms when tn is a function type.
+   *
+   * Notice that we do not insist that tn is a function type. A user of this
+   * method may construct a canonical (first-order) skolem using this method
+   * as well.
+   *
+   * @param id The identifier of the skolem function
+   * @param tn The type of the returned skolem function
+   * @param cacheVal A cache value. The returned skolem function will be
+   * unique to the pair (id, cacheVal). This value is required, for instance,
+   * for skolem functions that are in fact families of skolem functions,
+   * e.g. the wrongly applied case of selectors.
+   * @return The skolem function.
+   */
+  Node mkSkolemFunction(SkolemFunId id,
+                        TypeNode tn,
+                        Node cacheVal = Node::null());
+  /**
+   * Create a skolem constant with the given name, type, and comment. This
+   * should only be used if the definition of the skolem does not matter.
+   * The definition of a skolem matters e.g. when the skolem is used in a
+   * proof.
+   *
+   * @param prefix the name of the new skolem variable is the prefix
+   * appended with a unique ID.  This way a family of skolem variables
+   * can be made with unique identifiers, used in dump, tracing, and
+   * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
+   * a unique ID appended and use prefix as the name.
+   * @param type the type of the skolem variable to create
+   * @param comment a comment for dumping output; if declarations are
+   * being dumped, this is included in a comment before the declaration
+   * and can be quite useful for debugging
+   * @param flags an optional mask of bits from SkolemFlags to control
+   * mkSkolem() behavior
+   */
+  Node mkDummySkolem(const std::string& prefix,
+                     const TypeNode& type,
+                     const std::string& comment = "",
+                     int flags = NodeManager::SKOLEM_DEFAULT);
   /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind
@@ -193,6 +280,10 @@ class SkolemManager
 
  private:
   /**
+   * Cached of skolem functions for mkSkolemFunction above.
+   */
+  std::map<std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
+  /**
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
@@ -221,6 +312,6 @@ class SkolemManager
                  int flags = NodeManager::SKOLEM_DEFAULT);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__PROOF_SKOLEM_CACHE_H */

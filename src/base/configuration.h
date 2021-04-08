@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Francois Bobot, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,13 +23,16 @@
 
 #include <string>
 
-namespace CVC4 {
+#include "cvc4_export.h"
+
+namespace cvc5 {
 
 /**
  * Represents the (static) configuration of CVC4.
  */
-class CVC4_PUBLIC Configuration {
-private:
+class CVC4_EXPORT Configuration
+{
+ private:
   /** Private default ctor: Disallow construction of this class */
   Configuration();
 
@@ -45,7 +48,14 @@ public:
 
   static bool isDebugBuild();
 
-  static bool isStatisticsBuild();
+  static constexpr bool isStatisticsBuild()
+  {
+#ifdef CVC4_STATISTICS_ON
+    return true;
+#else
+    return false;
+#endif
+  }
 
   static bool isTracingBuild();
 
@@ -54,8 +64,6 @@ public:
   static bool isMuzzledBuild();
 
   static bool isAssertionBuild();
-
-  static bool isProofBuild();
 
   static bool isCoverageBuild();
 
@@ -103,11 +111,7 @@ public:
 
   static bool isBuiltWithKissat();
 
-  static bool isBuiltWithDrat2Er();
-
   static bool isBuiltWithEditline();
-
-  static bool isBuiltWithLfsc();
 
   static bool isBuiltWithPoly();
 
@@ -136,8 +140,8 @@ public:
   static std::string getCompiler();
   static std::string getCompiledDateTime();
 
-};/* class Configuration */
+}; /* class Configuration */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__CONFIGURATION_H */

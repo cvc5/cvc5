@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 string Configuration::getName() {
   return CVC4_PACKAGE_NAME;
@@ -44,10 +44,6 @@ string Configuration::getName() {
 
 bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;
-}
-
-bool Configuration::isStatisticsBuild() {
-  return IS_STATISTICS_BUILD;
 }
 
 bool Configuration::isTracingBuild() {
@@ -64,10 +60,6 @@ bool Configuration::isMuzzledBuild() {
 
 bool Configuration::isAssertionBuild() {
   return IS_ASSERTIONS_BUILD;
-}
-
-bool Configuration::isProofBuild() {
-  return IS_PROOFS_BUILD;
 }
 
 bool Configuration::isCoverageBuild() {
@@ -144,8 +136,7 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
-      || Configuration::isBuiltWithCadical()
+  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithSymFPU()
@@ -156,11 +147,6 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithAbc()) {
       ss << "  ABC - A System for Sequential Synthesis and Verification\n"
          << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
-         << "  licensing information.\n\n";
-    }
-    if (Configuration::isBuiltWithLfsc()) {
-      ss << "  LFSC Proof Checker\n"
-         << "  See http://github.com/CVC4/LFSC for copyright and\n"
          << "  licensing information.\n\n";
     }
     if (Configuration::isBuiltWithCadical())
@@ -282,13 +268,7 @@ bool Configuration::isBuiltWithCryptominisat() {
 
 bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
-bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
-
 bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
-
-bool Configuration::isBuiltWithLfsc() {
-  return IS_LFSC_BUILD;
-}
 
 bool Configuration::isBuiltWithPoly()
 {
@@ -391,7 +371,8 @@ std::string Configuration::getGitId() {
 
   stringstream ss;
   ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
-     << ( ::CVC4::Configuration::hasGitModifications() ? " (with modifications)" : "" );
+     << (::cvc5::Configuration::hasGitModifications() ? " (with modifications)"
+                                                      : "");
   return ss.str();
 }
 
@@ -414,4 +395,4 @@ std::string Configuration::getCompiledDateTime() {
   return __DATE__ " " __TIME__;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

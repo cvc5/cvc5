@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "smt/assertions.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 
@@ -189,6 +189,6 @@ class SygusSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__SYGUS_SOLVER_H */

@@ -17,7 +17,7 @@
 #include <sstream>
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 void DotPrinter::cleanQuotes(std::string& s)
@@ -49,13 +49,13 @@ void DotPrinter::printInternal(std::ostream& out,
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
 
   out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \""
-      << pn->getRule() << "(";
+      << pn->getRule();
 
   // guarantee that arguments do not have unescaped quotes
   std::string astring = currentArguments.str();
   cleanQuotes(astring);
 
-  out << astring << ")\"];\n\t\"" << currentRuleID
+  out << astring << "\"];\n\t\"" << currentRuleID
       << "c\" [ shape = \"ellipse\", label = \"";
 
   // guarantee that conclusion does not have unescaped quotes
@@ -78,17 +78,17 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
                                const ProofNode* pn)
 {
   const std::vector<Node>& args = pn->getArguments();
-
-  if (args.size())
+  if (!args.size())
   {
-    currentArguments << args[0];
+    return;
   }
-
+  currentArguments << " :args (" << args[0];
   for (size_t i = 1, size = args.size(); i < size; i++)
   {
     currentArguments << ", " << args[i];
   }
+  currentArguments << ")";
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Aina Niemetz, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,10 +22,11 @@
 #ifdef CVC4_USE_CADICAL
 
 #include "prop/sat_solver.h"
+#include "util/stats_timer.h"
 
 #include <cadical.hpp>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class CadicalSolver : public SatSolver
@@ -102,7 +103,7 @@ class CadicalSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif  // CVC4_USE_CADICAL
 #endif  // CVC4__PROP__CADICAL_H

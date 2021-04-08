@@ -2,9 +2,9 @@
 /*! \file sygus_datatype_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,10 +27,10 @@
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -124,15 +124,7 @@ Kind getEliminateKind(Kind ok)
   Kind nk = ok;
   // We also must ensure that builtin operators which are eliminated
   // during expand definitions are replaced by the proper operator.
-  if (ok == BITVECTOR_UDIV)
-  {
-    nk = BITVECTOR_UDIV_TOTAL;
-  }
-  else if (ok == BITVECTOR_UREM)
-  {
-    nk = BITVECTOR_UREM_TOTAL;
-  }
-  else if (ok == DIVISION)
+  if (ok == DIVISION)
   {
     nk = DIVISION_TOTAL;
   }
@@ -785,4 +777,4 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -2,9 +2,9 @@
 /*! \file first_order_model_fmc.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,21 +14,32 @@
 
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
+#include "expr/attribute.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
-                                       QuantifiersState& qs,
+/**
+ * Marks that a term represents the entire domain of quantified formula for
+ * the finite model finding fmc algorithm.
+ */
+struct IsStarAttributeId
+{
+};
+using IsStarAttribute = expr::Attribute<IsStarAttributeId, bool>;
+
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
+                                       TermRegistry& tr,
                                        std::string name)
-    : FirstOrderModel(qe, qs, qr, name)
+    : FirstOrderModel(qs, qr, tr, name)
 {
 }
 
@@ -80,8 +91,9 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
-  Node st = NodeManager::currentNM()->mkSkolem(
-      "star", tn, "skolem created for full-model checking");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node st =
+      sm->mkDummySkolem("star", tn, "skolem created for full-model checking");
   d_type_star[tn] = st;
   st.setAttribute(IsStarAttribute(), true);
   return st;
@@ -146,4 +158,4 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

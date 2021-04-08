@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,8 +22,9 @@
 #include "expr/node.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** InstMatchGeneratorMultiLinear class
@@ -68,25 +69,22 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
 
  public:
   /** Reset. */
-  bool reset(Node eqc, QuantifiersEngine* qe) override;
+  bool reset(Node eqc) override;
   /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m,
-                   QuantifiersEngine* qe,
-                   Trigger* tparent) override;
+  int getNextMatch(Node q, InstMatch& m) override;
 
  protected:
   /** reset the children of this generator */
-  int resetChildren(QuantifiersEngine* qe);
+  int resetChildren();
   /** constructor */
-  InstMatchGeneratorMultiLinear(Node q,
-                                std::vector<Node>& pats,
-                                quantifiers::QuantifiersState& qs,
-                                quantifiers::QuantifiersInferenceManager& qim);
+  InstMatchGeneratorMultiLinear(Trigger* tparent,
+                                Node q,
+                                std::vector<Node>& pats);
 };
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

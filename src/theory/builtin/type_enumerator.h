@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,11 +22,10 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
-#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/type_enumerator.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -105,8 +104,8 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
   Node d_bvl;
 }; /* class FunctionEnumerator */
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN_TYPE_ENUMERATOR_H */

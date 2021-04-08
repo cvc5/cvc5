@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,19 +22,13 @@
 
 #include "base/configuration.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 #ifdef CVC4_DEBUG
 #  define IS_DEBUG_BUILD true
 #else /* CVC4_DEBUG */
 #  define IS_DEBUG_BUILD false
 #endif /* CVC4_DEBUG */
-
-#ifdef CVC4_STATISTICS_ON
-#  define IS_STATISTICS_BUILD true
-#else /* CVC4_STATISTICS_ON */
-#  define IS_STATISTICS_BUILD false
-#endif /* CVC4_STATISTICS_ON */
 
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true
@@ -59,12 +53,6 @@ namespace CVC4 {
 #else /* CVC4_ASSERTIONS */
 #  define IS_ASSERTIONS_BUILD false
 #endif /* CVC4_ASSERTIONS */
-
-#ifdef CVC4_PROOF
-#  define IS_PROOFS_BUILD true
-#else  /* CVC4_PROOF */
-#  define IS_PROOFS_BUILD false
-#endif /* CVC4_PROOF */
 
 #ifdef CVC4_COVERAGE
 #  define IS_COVERAGE_BUILD true
@@ -120,23 +108,11 @@ namespace CVC4 {
 #  define IS_CRYPTOMINISAT_BUILD false
 #endif /* CVC4_USE_CRYPTOMINISAT */
 
-#if CVC4_USE_DRAT2ER
-#  define IS_DRAT2ER_BUILD true
-#else /* CVC4_USE_DRAT2ER */
-#  define IS_DRAT2ER_BUILD false
-#endif /* CVC4_USE_DRAT2ER */
-
 #if CVC4_USE_KISSAT
 #define IS_KISSAT_BUILD true
 #else /* CVC4_USE_KISSAT */
 #define IS_KISSAT_BUILD false
 #endif /* CVC4_USE_KISSAT */
-
-#if CVC4_USE_LFSC
-#define IS_LFSC_BUILD true
-#else /* CVC4_USE_LFSC */
-#define IS_LFSC_BUILD false
-#endif /* CVC4_USE_LFSC */
 
 #if CVC4_USE_POLY
 #define IS_POLY_BUILD true
@@ -200,6 +176,6 @@ namespace CVC4 {
 #endif /* __has_feature(thread_sanitizer) */
 #endif /* defined(__has_feature) */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__CONFIGURATION_PRIVATE_H */

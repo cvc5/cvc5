@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 #include <antlr3interfaces.h>
 #include "parser/bounded_token_factory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 static pANTLR3_COMMON_TOKEN
@@ -140,5 +140,5 @@ setInputStream  (pANTLR3_TOKEN_FACTORY factory, pANTLR3_INPUT_STREAM input)
     }
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 
 #include "options/option_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace options {
 
 template <template <class U> class Cmp>
@@ -80,7 +80,7 @@ struct not_equal : public comparator<std::not_equal_to> {
   not_equal(double d) : comparator<std::not_equal_to>(d) {}
 };/* struct not_equal_to */
 
-}/* CVC4::options namespace */
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace cvc5
 
 #endif /* CVC4__BASE_HANDLERS_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,12 +15,14 @@
  **/
 #include "theory/bv/slicer.h"
 
+#include <sstream>
+
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-using namespace std; 
+using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -81,4 +83,4 @@ std::string Base::debugPrint() const {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

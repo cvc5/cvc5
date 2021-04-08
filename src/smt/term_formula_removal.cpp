@@ -2,9 +2,9 @@
 /*! \file term_formula_removal.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ **   Andrew Reynolds, Dejan Jovanovic, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,13 +28,12 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
                                        ProofNodeManager* pnm)
     : d_tfCache(u),
       d_skolem_cache(u),
-      d_lemmaCache(u),
       d_pnm(pnm),
       d_tpg(nullptr),
       d_lp(nullptr)
@@ -292,6 +291,12 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
           "a variable introduced due to term-level ITE removal");
       d_skolem_cache.insert(node, skolem);
 
+      // Notice that in very rare cases, two different terms may have the
+      // same purification skolem (see SkolemManager::mkPurifySkolem) For such
+      // cases, for simplicity, we repeat the work of constructing the
+      // assertion and proofs below. This is so that the proof for the new form
+      // of the lemma is used.
+
       // The new assertion
       newAssertion = nodeManager->mkNode(
           kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
@@ -497,9 +502,6 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
 
       newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
-      // store in the lemma cache
-      d_lemmaCache.insert(skolem, newLem);
-
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
       newLem.debugCheckClosed("rtf-proof-debug",
                               "RemoveTermFormulas::run:new_assert");
@@ -524,110 +526,6 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
   return Node::null();
 }
 
-struct HasSkolemTag
-{
-};
-struct HasSkolemComputedTag
-{
-};
-/** Attribute true for nodes with skolems in them */
-typedef expr::Attribute<HasSkolemTag, bool> HasSkolemAttr;
-/** Attribute true for nodes where we have computed the above attribute */
-typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
-
-bool RemoveTermFormulas::hasSkolems(TNode n) const
-{
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    if (cur.getAttribute(HasSkolemComputedAttr()))
-    {
-      visit.pop_back();
-      // already computed
-      continue;
-    }
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.getNumChildren() == 0)
-      {
-        visit.pop_back();
-        bool hasSkolem = false;
-        if (cur.isVar())
-        {
-          hasSkolem = (d_lemmaCache.find(cur) != d_lemmaCache.end());
-        }
-        cur.setAttribute(HasSkolemAttr(), hasSkolem);
-        cur.setAttribute(HasSkolemComputedAttr(), true);
-      }
-      else
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-    else
-    {
-      visit.pop_back();
-      bool hasSkolem = false;
-      for (TNode i : cur)
-      {
-        Assert(i.getAttribute(HasSkolemComputedAttr()));
-        if (i.getAttribute(HasSkolemAttr()))
-        {
-          hasSkolem = true;
-          break;
-        }
-      }
-      cur.setAttribute(HasSkolemAttr(), hasSkolem);
-      cur.setAttribute(HasSkolemComputedAttr(), true);
-    }
-  } while (!visit.empty());
-  Assert(n.getAttribute(HasSkolemComputedAttr()));
-  return n.getAttribute(HasSkolemAttr());
-}
-
-void RemoveTermFormulas::getSkolems(
-    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
-{
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (!hasSkolems(cur))
-    {
-      // does not have skolems, continue
-      continue;
-    }
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.isVar())
-      {
-        if (d_lemmaCache.find(cur) != d_lemmaCache.end())
-        {
-          skolems.insert(cur);
-        }
-      }
-      else
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-  } while (!visit.empty());
-}
-
 Node RemoveTermFormulas::getAxiomFor(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -639,17 +537,6 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
   return Node::null();
 }
 
-theory::TrustNode RemoveTermFormulas::getLemmaForSkolem(TNode n) const
-{
-  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>::
-      const_iterator it = d_lemmaCache.find(n);
-  if (it == d_lemmaCache.end())
-  {
-    return theory::TrustNode::null();
-  }
-  return (*it).second;
-}
-
 ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 {
   return d_tpg.get();
@@ -657,4 +544,4 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 
 bool RemoveTermFormulas::isProofEnabled() const { return d_pnm != nullptr; }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

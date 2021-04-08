@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,12 +18,11 @@
 #ifndef CVC4__THEORY__DECISION_STRATEGY__H
 #define CVC4__THEORY__DECISION_STRATEGY__H
 
-#include <map>
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -141,6 +140,6 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DECISION_STRATEGY__H */

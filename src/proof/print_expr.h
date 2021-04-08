@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 /** A term or a proof */
@@ -69,6 +69,6 @@ class PExprStream
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

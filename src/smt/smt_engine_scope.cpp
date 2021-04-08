@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "base/output.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 thread_local SmtEngine* s_smtEngine_current = NULL;
@@ -35,14 +35,8 @@ SmtEngine* currentSmtEngine() {
 bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 
 ProofManager* currentProofManager() {
-#if IS_PROOFS_BUILD
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->getProofManager();
-#else  /* IS_PROOFS_BUILD */
-  InternalError()
-      << "proofs/unsat cores are not on, but ProofManager requested";
-  return NULL;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ResourceManager* currentResourceManager()
@@ -51,7 +45,7 @@ ResourceManager* currentResourceManager()
 }
 
 SmtScope::SmtScope(const SmtEngine* smt)
-    : NodeManagerScope(smt->d_nodeManager),
+    : NodeManagerScope(smt->getNodeManager()),
       d_oldSmtEngine(s_smtEngine_current),
       d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
 {
@@ -68,8 +62,8 @@ SmtScope::~SmtScope() {
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->getStatisticsRegistry();
+  return &(s_smtEngine_current->getStatisticsRegistry());
 }
 
-}/* CVC4::smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace cvc5

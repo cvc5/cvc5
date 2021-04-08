@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "options/language.h"
 #include "options/options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace language {
 
 const int SetLanguage::s_iosIndex = std::ios_base::xalloc();
@@ -78,5 +78,5 @@ std::ostream& operator<<(std::ostream& out, SetLanguage l) {
   return out;
 }
 
-}/* CVC4::language namespace */
-}/* CVC4 namespace */
+}  // namespace language
+}  // namespace cvc5

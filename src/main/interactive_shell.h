@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "options/options.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Options;
@@ -33,11 +33,11 @@ class Solver;
 
 namespace parser {
   class Parser;
-}/* CVC4::parser namespace */
+  }  // namespace parser
 
 class SymbolManager;
 
-class CVC4_PUBLIC InteractiveShell
+class InteractiveShell
 {
   const Options& d_options;
   std::istream& d_in;
@@ -72,6 +72,6 @@ public:
 
 };/* class InteractiveShell */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__INTERACTIVE_SHELL_H */

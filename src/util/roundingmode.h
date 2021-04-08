@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Martin Brain, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,14 +18,14 @@
 
 #include <fenv.h>
 
-namespace CVC4 {
+namespace cvc5 {
 
 #define CVC4_NUM_ROUNDING_MODES 5
 
 /**
  * A concrete instance of the rounding mode sort
  */
-enum CVC4_PUBLIC RoundingMode
+enum RoundingMode
 {
   ROUND_NEAREST_TIES_TO_EVEN = FE_TONEAREST,
   ROUND_TOWARD_POSITIVE = FE_UPWARD,
@@ -40,11 +40,11 @@ enum CVC4_PUBLIC RoundingMode
 /**
  * Hash function for rounding mode values.
  */
-struct CVC4_PUBLIC RoundingModeHashFunction
+struct RoundingModeHashFunction
 {
   inline size_t operator()(const RoundingMode& rm) const { return size_t(rm); }
 }; /* struct RoundingModeHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

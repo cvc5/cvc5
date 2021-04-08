@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -1411,6 +1411,6 @@ void LinearEqualityModule::directlyAddToCoefficient(ArithVar row, ArithVar col, 
   d_tableau.directlyAddToCoefficient(row, col, mult, d_trackCallback);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

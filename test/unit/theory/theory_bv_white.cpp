@@ -2,9 +2,9 @@
 /*! \file theory_bv_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ **   Aina Niemetz, Abdalrhman Mohamed, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace theory::bv;
@@ -86,11 +86,11 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
         kind::DISTINCT, mkExtract(mul, 2 * w - 1, w), mkZero(w));
     Node rhs = mkUmulo(x, y);
     Node eq = d_nodeManager->mkNode(kind::DISTINCT, lhs, rhs);
-    d_smtEngine->assertFormula(eq.toExpr());
+    d_smtEngine->assertFormula(eq);
     Result res = d_smtEngine->checkSat();
     ASSERT_EQ(res.isSat(), Result::UNSAT);
     d_smtEngine->pop();
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

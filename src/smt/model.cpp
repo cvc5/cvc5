@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 Model::Model(theory::TheoryModel* tm) : d_isKnownSat(false), d_tmodel(tm)
@@ -68,4 +68,4 @@ const std::vector<Node>& Model::getDeclaredTerms() const
 }
 
 }  // namespace smt
-}/* CVC4 namespace */
+}  // namespace cvc5

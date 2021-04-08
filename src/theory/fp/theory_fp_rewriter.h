@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Martin Brain, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -51,8 +51,8 @@ class TheoryFpRewriter : public TheoryRewriter
   RewriteFunction d_constantFoldTable[kind::LAST_KIND];
 }; /* class TheoryFpRewriter */
 
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fp
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__FP__THEORY_FP_REWRITER_H */

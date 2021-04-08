@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,24 +20,29 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
-                                                   ProofGenerator* pppg)
-    : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm), d_trrc(pnm)
+                                                   ProofGenerator* pppg,
+                                                   bool updateScopedAssumptions)
+    : d_pnm(pnm),
+      d_smte(smte),
+      d_pppg(pppg),
+      d_wfpm(pnm),
+      d_trrc(pnm),
+      d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  // always check whether to update ASSUME
-  d_elimRules.insert(PfRule::ASSUME);
 }
 
 void ProofPostprocessCallback::initializeUpdate()
@@ -52,9 +57,26 @@ void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
-  return d_elimRules.find(pn->getRule()) != d_elimRules.end();
+  PfRule id = pn->getRule();
+  if (d_elimRules.find(id) != d_elimRules.end())
+  {
+    return true;
+  }
+  // other than elimination rules, we always update assumptions as long as
+  // d_updateScopedAssumptions is true or they are *not* in scope, i.e., not in
+  // fa
+  if (id != PfRule::ASSUME
+      || (!d_updateScopedAssumptions
+          && std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end()))
+  {
+    Trace("smt-proof-pp-debug")
+        << "... not updating in-scope assumption " << pn->getResult() << "\n";
+    return false;
+  }
+  return true;
 }
 
 bool ProofPostprocessCallback::update(Node res,
@@ -986,6 +1008,58 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     // otherwise no update
   }
+  else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
+  {
+    Debug("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
+    if (Debug.isOn("macro::arith"))
+    {
+      for (const auto& child : children)
+      {
+        Debug("macro::arith") << "  child: " << child << std::endl;
+      }
+      Debug("macro::arith") << "   args: " << args << std::endl;
+    }
+    Assert(args.size() == children.size());
+    NodeManager* nm = NodeManager::currentNM();
+    ProofStepBuffer steps{d_pnm->getChecker()};
+
+    // Scale all children, accumulating
+    std::vector<Node> scaledRels;
+    for (size_t i = 0; i < children.size(); ++i)
+    {
+      TNode child = children[i];
+      TNode scalar = args[i];
+      bool isPos = scalar.getConst<Rational>() > 0;
+      Node scalarCmp =
+          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConst(Rational(0)));
+      // (= scalarCmp true)
+      Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
+      Assert(!scalarCmpOrTrue.isNull());
+      // scalarCmp
+      steps.addStep(PfRule::TRUE_ELIM, {scalarCmpOrTrue}, {}, scalarCmp);
+      // (and scalarCmp relation)
+      Node scalarCmpAndRel =
+          steps.tryStep(PfRule::AND_INTRO, {scalarCmp, child}, {});
+      Assert(!scalarCmpAndRel.isNull());
+      // (=> (and scalarCmp relation) scaled)
+      Node impl =
+          steps.tryStep(isPos ? PfRule::ARITH_MULT_POS : PfRule::ARITH_MULT_NEG,
+                        {},
+                        {scalar, child});
+      Assert(!impl.isNull());
+      // scaled
+      Node scaled =
+          steps.tryStep(PfRule::MODUS_PONENS, {scalarCmpAndRel, impl}, {});
+      Assert(!scaled.isNull());
+      scaledRels.emplace_back(std::move(scaled));
+    }
+
+    Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
+    cdp->addSteps(steps);
+    Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
+                          << std::endl;
+    return sumBounds;
+  }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
 
@@ -1105,6 +1179,7 @@ void ProofPostprocessFinalCallback::initializeUpdate()
 }
 
 bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
   PfRule r = pn->getRule();
@@ -1157,9 +1232,10 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
-                                     ProofGenerator* pppg)
+                                     ProofGenerator* pppg,
+                                     bool updateScopedAssumptions)
     : d_pnm(pnm),
-      d_cb(pnm, smte, pppg),
+      d_cb(pnm, smte, pppg, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(d_pnm, d_cb, true),
       d_finalCb(pnm),
@@ -1205,4 +1281,4 @@ void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

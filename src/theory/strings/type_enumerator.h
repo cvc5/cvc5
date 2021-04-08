@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -159,7 +159,7 @@ class SeqEnumLen : public SEnumLen
   /** an enumerator for the elements' type */
   std::unique_ptr<TypeEnumerator> d_elementEnumerator;
   /** The domain */
-  std::vector<Expr> d_elementDomain;
+  std::vector<Node> d_elementDomain;
   /** Make the current term from d_data */
   void mkCurr();
 };
@@ -197,8 +197,8 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
   SeqEnumLen d_wenum;
 }; /* class SequenceEnumerator */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H */

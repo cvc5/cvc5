@@ -2,9 +2,9 @@
 /*! \file prop_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,7 +42,7 @@
 #include "util/resource_manager.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 /** Keeps a boolean flag scoped */
@@ -174,14 +174,15 @@ theory::TrustNode PropEngine::removeItes(
 void PropEngine::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions)
 {
-  // notify the theory engine of preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  // notify the theory proxy of preprocessed assertions
+  d_theoryProxy->notifyPreprocessedAssertions(assertions);
 }
 
 void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_decisionEngine->addAssertion(node);
+  // NOTE: we do not notify the theory proxy here, since we've already
+  // notified the theory proxy during notifyPreprocessedAssertions
   assertInternal(node, false, false, true);
 }
 
@@ -189,7 +190,7 @@ void PropEngine::assertSkolemDefinition(TNode node, TNode skolem)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_decisionEngine->addSkolemDefinition(node, skolem);
+  d_theoryProxy->notifyAssertion(node, skolem);
   assertInternal(node, false, false, true);
 }
 
@@ -281,13 +282,13 @@ void PropEngine::assertLemmasInternal(
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_decisionEngine->addAssertion(trn.getProven());
+      d_theoryProxy->notifyAssertion(trn.getProven());
     }
     Assert(ppSkolems.size() == ppLemmas.size());
     for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
     {
       Node lem = ppLemmas[i].getProven();
-      d_decisionEngine->addSkolemDefinition(lem, ppSkolems[i]);
+      d_theoryProxy->notifyAssertion(ppLemmas[i].getProven(), ppSkolems[i]);
     }
   }
 }
@@ -462,14 +463,14 @@ Node PropEngine::getPreprocessedTerm(TNode n,
   // get the preprocessed form of the term
   Node pn = getPreprocessedTerm(n);
   // initialize the set of skolems and assertions to process
-  std::vector<theory::TrustNode> toProcessAsserts;
+  std::vector<Node> toProcessAsserts;
   std::vector<Node> toProcess;
   d_theoryProxy->getSkolems(pn, toProcessAsserts, toProcess);
   size_t index = 0;
   // until fixed point is reached
   while (index < toProcess.size())
   {
-    theory::TrustNode ka = toProcessAsserts[index];
+    Node ka = toProcessAsserts[index];
     Node k = toProcess[index];
     index++;
     if (std::find(sks.begin(), sks.end(), k) != sks.end())
@@ -478,7 +479,7 @@ Node PropEngine::getPreprocessedTerm(TNode n,
       continue;
     }
     // must preprocess lemmas as well
-    Node kap = getPreprocessedTerm(ka.getProven());
+    Node kap = getPreprocessedTerm(ka);
     skAsserts.push_back(kap);
     sks.push_back(k);
     // get the skolems in the preprocessed form of the lemma ka
@@ -615,4 +616,4 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

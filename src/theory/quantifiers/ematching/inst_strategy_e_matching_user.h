@@ -2,9 +2,9 @@
 /*! \file inst_strategy_e_matching_user.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -34,10 +34,11 @@ namespace quantifiers {
 class InstStrategyUserPatterns : public InstStrategy
 {
  public:
-  InstStrategyUserPatterns(QuantifiersEngine* qe,
+  InstStrategyUserPatterns(inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr);
+                           QuantifiersRegistry& qr,
+                           TermRegistry& tr);
   ~InstStrategyUserPatterns();
   /** add pattern */
   void addUserPattern(Node q, Node pat);
@@ -63,6 +64,6 @@ class InstStrategyUserPatterns : public InstStrategy
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

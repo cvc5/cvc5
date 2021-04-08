@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
+#include "expr/proof_checker.h"
 #include "expr/proof_ensure_closed.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -32,12 +33,14 @@
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
+#include "theory/shared_solver.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_id.h"
@@ -48,10 +51,9 @@
 
 using namespace std;
 
-using namespace CVC4::preprocessing;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 
@@ -64,19 +66,19 @@ namespace theory {
  */
 
 #define CVC4_FOR_EACH_THEORY                                     \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BUILTIN)   \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BOOL)      \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_UF)        \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_ARITH)     \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BV)        \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_FP)        \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_ARRAYS)    \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_DATATYPES) \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_SEP)       \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_SETS)      \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BAGS)      \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_STRINGS)   \
-  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_QUANTIFIERS)
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BUILTIN)   \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BOOL)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_UF)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_ARITH)     \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BV)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_FP)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_ARRAYS)    \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_DATATYPES) \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_SEP)       \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_SETS)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_BAGS)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_STRINGS)   \
+  CVC4_FOR_EACH_THEORY_STATEMENT(cvc5::theory::THEORY_QUANTIFIERS)
 
 }  // namespace theory
 
@@ -166,17 +168,18 @@ void TheoryEngine::finishInit()
     d_quantEngine = d_theoryTable[THEORY_QUANTIFIERS]->getQuantifiersEngine();
     Assert(d_quantEngine != nullptr);
   }
+  // finish initializing the quantifiers engine, which must come before
+  // initializing theory combination, since quantifiers engine may have a
+  // special model builder object
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->finishInit(this);
+  }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.
   d_tc->finishInit();
   // get pointer to the shared solver
   d_sharedSolver = d_tc->getSharedSolver();
-
-  // finish initializing the quantifiers engine
-  if (d_logicInfo.isQuantified())
-  {
-    d_quantEngine->finishInit(this, d_decManager.get());
-  }
 
   // finish initializing the theories by linking them with the appropriate
   // utilities and then calling their finishInit method.
@@ -725,7 +728,8 @@ void TheoryEngine::notifyRestart() {
   CVC4_FOR_EACH_THEORY;
 }
 
-void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
+void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder& learned)
+{
   // Reset the interrupt flag
   d_interrupted = false;
 
@@ -1636,7 +1640,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   }
   else
   {
-    NodeBuilder<> conjunction(kind::AND);
+    NodeBuilder conjunction(kind::AND);
     std::set<TNode>::const_iterator it = exp.begin();
     std::set<TNode>::const_iterator it_end = exp.end();
     while (it != it_end)
@@ -1892,4 +1896,17 @@ void TheoryEngine::spendResource(ResourceManager::Resource r)
   d_resourceManager->spendResource(r);
 }
 
-}/* CVC4 namespace */
+void TheoryEngine::initializeProofChecker(ProofChecker* pc)
+{
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+       ++id)
+  {
+    ProofRuleChecker* prc = d_theoryTable[id]->getProofChecker();
+    if (prc)
+    {
+      prc->registerTo(pc);
+    }
+  }
+}
+
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "smt/logic_exception.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -28,7 +29,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -52,6 +53,8 @@ class TheorySets : public Theory
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -101,7 +104,7 @@ class TheorySets : public Theory
     void eqNotifyNewClass(TNode t) override;
     void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-    
+
    private:
     TheorySetsPrivate& d_theory;
   };
@@ -117,8 +120,8 @@ class TheorySets : public Theory
   NotifyClass d_notify;
 }; /* class TheorySets */
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_H */

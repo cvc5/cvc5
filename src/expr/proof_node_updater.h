@@ -2,9 +2,9 @@
 /*! \file proof_node_updater.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 class ProofNode;
@@ -41,10 +41,12 @@ class ProofNodeUpdaterCallback
   /** Should proof pn be updated?
    *
    * @param pn the proof node that maybe should be updated
+   * @param fa the assumptions in scope
    * @param continueUpdate whether we should continue recursively updating pn
    * @return whether we should run the update method on pn
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                            const std::vector<Node>& fa,
                             bool& continueUpdate) = 0;
   /**
    * Update the proof rule application, store steps in cdp. Return true if
@@ -84,12 +86,14 @@ class ProofNodeUpdater
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
+   * @param trackScope Whether to track the current assumptions in scope
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
                    bool mergeSubproofs = false,
+                   bool trackScope = false,
                    bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
@@ -143,6 +147,8 @@ class ProofNodeUpdater
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache);
+  /** Are we tracking the scope assumptions? */
+  bool d_trackScope;
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */
@@ -156,6 +162,6 @@ class ProofNodeUpdater
   bool d_autoSym;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

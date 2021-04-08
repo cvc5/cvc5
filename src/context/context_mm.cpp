@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,11 +14,12 @@
  ** Implementation of Context Memory Manager
  **/
 
-
 #include <cstdlib>
-#include <vector>
 #include <deque>
+#include <limits>
 #include <new>
+#include <ostream>
+#include <vector>
 
 #ifdef CVC4_VALGRIND
 #include <valgrind/memcheck.h>
@@ -28,7 +29,7 @@
 #include "base/output.h"
 #include "context/context_mm.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 #ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
@@ -167,8 +168,14 @@ void ContextMemoryManager::pop() {
     d_freeChunks.pop_front();
   }
 }
+#else
+
+unsigned ContextMemoryManager::getMaxAllocationSize()
+{
+  return std::numeric_limits<unsigned>::max();
+}
 
 #endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
 
-} /* CVC4::context namespace */
-} /* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

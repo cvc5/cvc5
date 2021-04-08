@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,12 +26,13 @@
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * The structure representing the divisibility-by-k predicate.
  */
-struct CVC4_PUBLIC Divisible {
+struct Divisible
+{
   const Integer k;
 
   Divisible(const Integer& n);
@@ -43,22 +44,23 @@ struct CVC4_PUBLIC Divisible {
   bool operator!=(const Divisible& d) const {
     return !(*this == d);
   }
-};/* struct Divisible */
+}; /* struct Divisible */
 
 /**
  * Hash function for the Divisible objects.
  */
-struct CVC4_PUBLIC DivisibleHashFunction {
+struct DivisibleHashFunction
+{
   size_t operator()(const Divisible& d) const {
     return d.k.hash();
   }
-};/* struct DivisibleHashFunction */
+}; /* struct DivisibleHashFunction */
 
-inline std::ostream& operator <<(std::ostream& os, const Divisible& d) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const Divisible& d);
 inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
   return os << "divisible-by-" << d.k;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__DIVISIBLE_H */

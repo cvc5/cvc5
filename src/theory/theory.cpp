@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
@@ -75,7 +75,6 @@ Theory::Theory(TheoryId id,
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(nullptr),
-      d_decManager(nullptr),
       d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
@@ -127,9 +126,11 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 
 void Theory::setDecisionManager(DecisionManager* dm)
 {
-  Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
-  d_decManager = dm;
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setDecisionManager(dm);
+  }
 }
 
 void Theory::finishInitStandalone()
@@ -563,5 +564,5 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

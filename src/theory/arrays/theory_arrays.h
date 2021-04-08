@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,10 +33,9 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -146,6 +145,8 @@ class TheoryArrays : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -350,7 +351,7 @@ class TheoryArrays : public Theory {
   NotifyClass d_notify;
 
   /** The proof checker */
-  ArraysProofRuleChecker d_pchecker;
+  ArraysProofRuleChecker d_checker;
 
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
@@ -489,8 +490,8 @@ class TheoryArrays : public Theory {
   void computeRelevantTerms(std::set<Node>& termSet) override;
 };/* class TheoryArrays */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */

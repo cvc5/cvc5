@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,11 +21,12 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
+#include "theory/arith/linear_equality.h"
 
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -272,6 +273,6 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
   return false;
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

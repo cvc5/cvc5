@@ -2,9 +2,9 @@
 /*! \file inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,9 @@
 #include "theory/theory_state.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -94,20 +94,6 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
     prepareDtInference(d_false, exp, id, d_ipc.get());
   }
   conflictExp(id, conf, d_ipc.get());
-}
-
-bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas,
-                                  InferenceId id)
-{
-  bool ret = false;
-  for (const Node& lem : lemmas)
-  {
-    if (lemma(lem, id))
-    {
-      ret = true;
-    }
-  }
-  return ret;
 }
 
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
@@ -185,4 +171,4 @@ Node InferenceManager::prepareDtInference(Node conc,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

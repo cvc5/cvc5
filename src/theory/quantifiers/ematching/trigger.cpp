@@ -2,9 +2,9 @@
 /*! \file trigger.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,35 +15,38 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "expr/skolem_manager.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
-#include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/valuation.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** trigger class constructor */
-Trigger::Trigger(QuantifiersEngine* qe,
-                 quantifiers::QuantifiersState& qs,
-                 quantifiers::QuantifiersInferenceManager& qim,
-                 quantifiers::QuantifiersRegistry& qr,
+Trigger::Trigger(QuantifiersState& qs,
+                 QuantifiersInferenceManager& qim,
+                 QuantifiersRegistry& qr,
+                 TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr), d_quant(q)
+    : d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
@@ -55,7 +58,7 @@ Trigger::Trigger(QuantifiersEngine* qe,
   }
   if (Trace.isOn("trigger"))
   {
-    quantifiers::QuantAttributes& qa = d_qreg.getQuantAttributes();
+    QuantAttributes& qa = d_qreg.getQuantAttributes();
     Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
                      << std::endl;
     for (const Node& n : d_nodes)
@@ -63,22 +66,21 @@ Trigger::Trigger(QuantifiersEngine* qe,
       Trace("trigger") << "   " << n << std::endl;
     }
   }
+  QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
-      d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qs, qim, qe);
-      ++(qe->d_statistics.d_triggers);
+      d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
+      ++(stats.d_triggers);
     }else{
-      d_mg =
-          InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qs, qim, qe);
-      ++(qe->d_statistics.d_simple_triggers);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
+      ++(stats.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti(q, d_nodes, qs, qim, qe);
+      d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(
-          q, d_nodes, qs, qim, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))
     {
@@ -88,7 +90,7 @@ Trigger::Trigger(QuantifiersEngine* qe,
         Trace("multi-trigger") << "   " << nc << std::endl;
       }
     }
-    ++(qe->d_statistics.d_multi_triggers);
+    ++(stats.d_multi_triggers);
   }
 
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
@@ -98,13 +100,9 @@ Trigger::~Trigger() {
   delete d_mg;
 }
 
-void Trigger::resetInstantiationRound(){
-  d_mg->resetInstantiationRound( d_quantEngine );
-}
+void Trigger::resetInstantiationRound() { d_mg->resetInstantiationRound(); }
 
-void Trigger::reset( Node eqc ){
-  d_mg->reset( eqc, d_quantEngine );
-}
+void Trigger::reset(Node eqc) { d_mg->reset(eqc); }
 
 bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
@@ -135,7 +133,7 @@ uint64_t Trigger::addInstantiations()
       }
     }
   }
-  uint64_t addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
+  uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
   if (Debug.isOn("inst-trigger"))
   {
     if (addedLemmas > 0)
@@ -147,170 +145,17 @@ uint64_t Trigger::addInstantiations()
   return gtAddedLemmas + addedLemmas;
 }
 
-bool Trigger::sendInstantiation(InstMatch& m)
+bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
+  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
 }
 
-bool Trigger::mkTriggerTerms(Node q,
-                             std::vector<Node>& nodes,
-                             size_t nvars,
-                             std::vector<Node>& trNodes)
+bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
 {
-  //only take nodes that contribute variables to the trigger when added
-  std::vector< Node > temp;
-  temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-  std::map< Node, bool > vars;
-  std::map< Node, std::vector< Node > > patterns;
-  size_t varCount = 0;
-  std::map< Node, std::vector< Node > > varContains;
-  for (const Node& pat : temp)
-  {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(
-        q, pat, varContains[pat]);
-  }
-  for (const Node& t : temp)
-  {
-    const std::vector<Node>& vct = varContains[t];
-    bool foundVar = false;
-    for (const Node& v : vct)
-    {
-      Assert(quantifiers::TermUtil::getInstConstAttr(v) == q);
-      if( vars.find( v )==vars.end() ){
-        varCount++;
-        vars[ v ] = true;
-        foundVar = true;
-      }
-    }
-    if( foundVar ){
-      trNodes.push_back(t);
-      for (const Node& v : vct)
-      {
-        patterns[v].push_back(t);
-      }
-    }
-    if (varCount == nvars)
-    {
-      break;
-    }
-  }
-  if (varCount < nvars)
-  {
-    Trace("trigger-debug") << "Don't consider trigger since it does not contain specified number of variables." << std::endl;
-    Trace("trigger-debug") << nodes << std::endl;
-    //do not generate multi-trigger if it does not contain all variables
-    return false;
-  }
-  // now, minimize the trigger
-  for (size_t i = 0, tsize = trNodes.size(); i < tsize; i++)
-  {
-    bool keepPattern = false;
-    Node n = trNodes[i];
-    const std::vector<Node>& vcn = varContains[n];
-    for (const Node& v : vcn)
-    {
-      if (patterns[v].size() == 1)
-      {
-        keepPattern = true;
-        break;
-      }
-    }
-    if (!keepPattern)
-    {
-      // remove from pattern vector
-      for (const Node& v : vcn)
-      {
-        std::vector<Node>& pv = patterns[v];
-        for (size_t k = 0, pvsize = pv.size(); k < pvsize; k++)
-        {
-          if (pv[k] == n)
-          {
-            pv.erase(pv.begin() + k, pv.begin() + k + 1);
-            break;
-          }
-        }
-      }
-      // remove from trigger nodes
-      trNodes.erase(trNodes.begin() + i, trNodes.begin() + i + 1);
-      i--;
-    }
-  }
-  return true;
+  return sendInstantiation(m.d_vals, id);
 }
 
-Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                            quantifiers::QuantifiersRegistry& qr,
-                            Node f,
-                            std::vector<Node>& nodes,
-                            bool keepAll,
-                            int trOption,
-                            size_t useNVars)
-{
-  std::vector< Node > trNodes;
-  if( !keepAll ){
-    size_t nvars = useNVars == 0 ? f[0].getNumChildren() : useNVars;
-    if (!mkTriggerTerms(f, nodes, nvars, trNodes))
-    {
-      return nullptr;
-    }
-  }else{
-    trNodes.insert( trNodes.begin(), nodes.begin(), nodes.end() );
-  }
-
-  //check for duplicate?
-  if( trOption!=TR_MAKE_NEW ){
-    Trigger* t = qe->getTriggerDatabase()->getTrigger( trNodes );
-    if( t ){
-      if( trOption==TR_GET_OLD ){
-        //just return old trigger
-        return t;
-      }else{
-        return nullptr;
-      }
-    }
-  }
-
-  // check if higher-order
-  Trace("trigger-debug") << "Collect higher-order variable triggers..."
-                         << std::endl;
-  std::map<Node, std::vector<Node> > ho_apps;
-  HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
-  Trace("trigger-debug") << "...got " << ho_apps.size()
-                         << " higher-order applications." << std::endl;
-  Trigger* t;
-  if (!ho_apps.empty())
-  {
-    t = new HigherOrderTrigger(qe, qs, qim, qr, f, trNodes, ho_apps);
-  }
-  else
-  {
-    t = new Trigger(qe, qs, qim, qr, f, trNodes);
-  }
-
-  qe->getTriggerDatabase()->addTrigger( trNodes, t );
-  return t;
-}
-
-Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                            quantifiers::QuantifiersRegistry& qr,
-                            Node f,
-                            Node n,
-                            bool keepAll,
-                            int trOption,
-                            size_t useNVars)
-{
-  std::vector< Node > nodes;
-  nodes.push_back( n );
-  return mkTrigger(qe, qs, qim, qr, f, nodes, keepAll, trOption, useNVars);
-}
-
-int Trigger::getActiveScore() {
-  return d_mg->getActiveScore( d_quantEngine );
-}
+int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
 
 Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,
@@ -333,7 +178,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
       {
         visited[cur] = cur;
       }
-      else if (!quantifiers::TermUtil::hasInstConstAttr(cur))
+      else if (!TermUtil::hasInstConstAttr(cur))
       {
         // cur has no INST_CONSTANT, thus is ground.
         Node vcur = val.getPreprocessedTerm(cur);
@@ -381,6 +226,7 @@ void Trigger::debugPrint(const char* c) const
   Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

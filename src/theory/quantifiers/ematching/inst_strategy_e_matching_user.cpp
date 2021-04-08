@@ -2,9 +2,9 @@
 /*! \file inst_strategy_e_matching_user.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,29 +15,30 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory::inst;
+using namespace cvc5::kind;
+using namespace cvc5::theory::quantifiers::inst;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 InstStrategyUserPatterns::InstStrategyUserPatterns(
-    QuantifiersEngine* ie,
+    inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-    QuantifiersRegistry& qr)
-    : InstStrategy(ie, qs, qim, qr)
+    QuantifiersRegistry& qr,
+    TermRegistry& tr)
+    : InstStrategy(td, qs, qim, qr, tr)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
 
 size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
 {
-  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it =
+  std::map<Node, std::vector<Trigger*> >::const_iterator it =
       d_user_gen.find(q);
   if (it == d_user_gen.end())
   {
@@ -46,10 +47,9 @@ size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
   return it->second.size();
 }
 
-inst::Trigger* InstStrategyUserPatterns::getUserGenerator(Node q,
-                                                          size_t i) const
+Trigger* InstStrategyUserPatterns::getUserGenerator(Node q, size_t i) const
 {
-  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it =
+  std::map<Node, std::vector<Trigger*> >::const_iterator it =
       d_user_gen.find(q);
   if (it == d_user_gen.end())
   {
@@ -107,14 +107,8 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     std::vector<std::vector<Node> >& ugw = d_user_gen_wait[q];
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
-      Trigger* t = Trigger::mkTrigger(d_quantEngine,
-                                      d_qstate,
-                                      d_qim,
-                                      d_qreg,
-                                      q,
-                                      ugw[i],
-                                      true,
-                                      Trigger::TR_RETURN_NULL);
+      Trigger* t =
+          d_td.mkTrigger(q, ugw[i], true, TriggerDatabase::TR_RETURN_NULL);
       if (t)
       {
         d_user_gen[q].push_back(t);
@@ -123,7 +117,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     ugw.clear();
   }
 
-  std::vector<inst::Trigger*>& ug = d_user_gen[q];
+  std::vector<Trigger*>& ug = d_user_gen[q];
   for (Trigger* t : ug)
   {
     if (Trace.isOn("process-trigger"))
@@ -135,11 +129,6 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     unsigned numInst = t->addInstantiations();
     Trace("process-trigger")
         << "  Done, numInst = " << numInst << "." << std::endl;
-    d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
-    if (t->isMultiTrigger())
-    {
-      d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-    }
     if (d_qstate.isInConflict())
     {
       // we are already in conflict
@@ -172,14 +161,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     d_user_gen_wait[q].push_back(nodes);
     return;
   }
-  Trigger* t = Trigger::mkTrigger(d_quantEngine,
-                                  d_qstate,
-                                  d_qim,
-                                  d_qreg,
-                                  q,
-                                  nodes,
-                                  true,
-                                  Trigger::TR_MAKE_NEW);
+  Trigger* t = d_td.mkTrigger(q, nodes, true, TriggerDatabase::TR_MAKE_NEW);
   if (t)
   {
     d_user_gen[q].push_back(t);
@@ -193,4 +175,4 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

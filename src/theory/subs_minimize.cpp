@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,9 +20,9 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 SubstitutionMinimize::SubstitutionMinimize() {}
@@ -224,7 +224,7 @@ bool SubstitutionMinimize::findInternal(Node n,
       if (cur.getNumChildren() > 0)
       {
         std::vector<Node> children;
-        NodeBuilder<> nb(cur.getKind());
+        NodeBuilder nb(cur.getKind());
         if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           if (cur.getKind() == APPLY_UF)
@@ -426,8 +426,8 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV_TOTAL
-      || k == BITVECTOR_UREM_TOTAL
+  if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV
+      || k == BITVECTOR_UREM
       || (arg == 0
           && (k == BITVECTOR_SHL || k == BITVECTOR_LSHR
               || k == BITVECTOR_ASHR)))
@@ -466,4 +466,4 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 bool hasSubterm(TNode n, TNode t, bool strict)
@@ -624,7 +624,7 @@ Node substituteCaptureAvoiding(TNode n,
     else if (it->second.isNull())
     {
       // build node
-      NodeBuilder<> nb(curr.getKind());
+      NodeBuilder nb(curr.getKind());
       if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator
@@ -764,4 +764,4 @@ bool match(Node x,
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

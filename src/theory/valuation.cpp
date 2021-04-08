@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,12 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
+#include "theory/assertion.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, EqualityStatus s)
@@ -220,5 +221,5 @@ context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
   return theory->facts_end();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

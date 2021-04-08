@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,14 +21,14 @@
 
 #include "base/output.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class NodeCommand;
 
 #if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
 
-class CVC4_PUBLIC CVC4dumpstream
+class CVC4dumpstream
 {
  public:
   CVC4dumpstream() : d_os(nullptr) {}
@@ -53,7 +53,7 @@ class CVC4_PUBLIC CVC4dumpstream
  * Dummy implementation of the dump stream when dumping is disabled or the
  * build is muzzled.
  */
-class CVC4_PUBLIC CVC4dumpstream
+class CVC4dumpstream
 {
  public:
   CVC4dumpstream() {}
@@ -65,7 +65,7 @@ class CVC4_PUBLIC CVC4dumpstream
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 
 /** The dump class */
-class CVC4_PUBLIC DumpC
+class DumpC
 {
  public:
   CVC4dumpstream operator()(const char* tag) {
@@ -108,10 +108,10 @@ class CVC4_PUBLIC DumpC
 };/* class DumpC */
 
 /** The dump singleton */
-extern DumpC DumpChannel CVC4_PUBLIC;
+extern DumpC DumpChannel;
 
-#define Dump ::CVC4::DumpChannel
+#define Dump ::cvc5::DumpChannel
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__DUMP_H */

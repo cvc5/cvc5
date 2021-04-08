@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Francois Bobot, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
  ** size_t for tracking the previous size of the list.
  **/
 
-
 #include "cvc4_private.h"
 
 #ifndef CVC4__CONTEXT__CDQUEUE_H
@@ -29,7 +28,7 @@
 #include "context/context.h"
 #include "context/cdlist.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
@@ -163,7 +162,7 @@ public:
 
 };/* class CDQueue<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
 #endif /* CVC4__CONTEXT__CDQUEUE_H */

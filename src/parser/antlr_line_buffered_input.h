@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,7 @@
 
 #include "parser/line_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 typedef struct ANTLR3_LINE_BUFFERED_INPUT_STREAM {
@@ -44,7 +44,7 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
                                                  pANTLR3_UINT8 name,
                                                  LineBuffer* line_buffer);
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H */

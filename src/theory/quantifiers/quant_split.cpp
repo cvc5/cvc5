@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,22 +17,20 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "options/quantifiers_options.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5::kind;
 
-QuantDSplit::QuantDSplit(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
+
+QuantDSplit::QuantDSplit(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe), d_added_split(qs.getUserContext())
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr), d_added_split(qs.getUserContext())
 {
 }
 
@@ -48,6 +46,7 @@ void QuantDSplit::checkOwnership(Node q)
   }
   bool takeOwnership = false;
   bool doSplit = false;
+  QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
@@ -67,7 +66,7 @@ void QuantDSplit::checkOwnership(Node q)
         else if (options::quantDynamicSplit()
                  == options::QuantDSplitMode::DEFAULT)
         {
-          if (!d_quantEngine->isFiniteBound(q, q[0][i]))
+          if (!qbi.isFiniteBound(q, q[0][i]))
           {
             if (dt.isInterpretedFinite(tn))
             {
@@ -133,7 +132,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  FirstOrderModel* m = d_quantEngine->getModel();
+  FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
   for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
@@ -201,8 +200,11 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   for (const Node& lem : lemmas)
   {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT);
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

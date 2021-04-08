@@ -2,9 +2,9 @@
 /*! \file bv_to_int.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar
+ **   Yoni Zohar, Gereon Kremer, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -73,7 +73,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/arith/nl/iand_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -285,6 +285,6 @@ class BVToInt : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H */

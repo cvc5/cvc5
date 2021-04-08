@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,21 +18,21 @@
 #define CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory_model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class FirstOrderModel;
+class QuantifiersState;
+class QuantifiersRegistry;
+class QuantifiersInferenceManager;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
  protected:
-  //quantifiers engine
-  QuantifiersEngine* d_qe;
   // must call preProcessBuildModelStd
   bool preProcessBuildModel(TheoryModel* m) override;
   bool preProcessBuildModelStd(TheoryModel* m);
@@ -41,7 +41,9 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs);
+  QModelBuilder(QuantifiersState& qs,
+                QuantifiersRegistry& qr,
+                QuantifiersInferenceManager& qim);
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
@@ -59,12 +61,18 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
 
  protected:
+  /** Pointer to quantifiers engine */
+  QuantifiersEngine* d_qe;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
+  /** Reference to the quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

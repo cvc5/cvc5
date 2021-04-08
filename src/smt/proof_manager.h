@@ -2,9 +2,9 @@
 /*! \file proof_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,8 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-// FIXME: remove
-#include "proof/lean/lean_post_processor.h"
-#include "proof/verit/verit_post_processor.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
@@ -119,8 +116,7 @@ class PfManager
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;
-  std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
-  std::unique_ptr<proof::VeritProofPostprocess> d_vpfpp;
+
   /**
    * The final proof produced by the SMT engine.
    * Combines the proofs of preprocessing, prop engine and theory engine, to be
@@ -130,6 +126,6 @@ class PfManager
 }; /* class SmtEngine */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__PROOF_MANAGER_H */

@@ -2,9 +2,9 @@
 /*! \file operator_elim.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,36 +14,47 @@
 
 #include "theory/arith/operator_elim.h"
 
+#include <sstream>
+
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
-#include "expr/skolem_manager.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
 /**
  * Attribute used for constructing unique bound variables that are binders
- * for witness terms below.
+ * for witness terms below. In other words, this attribute maps nodes to
+ * the bound variable of a witness term for eliminating that node.
+ *
+ * Notice we use the same attribute for most bound variables below, since using
+ * a node itself is a sufficient cache key for constructing a bound variable.
+ * The exception is to_int / is_int, which share a skolem based on their
+ * argument.
  */
 struct ArithWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ArithWitnessVarAttributeId, Node>
-    ArithWitnessVarAttribute;
-/** Similar to above, shared for to_int and is_int */
+using ArithWitnessVarAttribute = expr::Attribute<ArithWitnessVarAttributeId, Node>;
+/**
+ * Similar to above, shared for to_int and is_int. This is used for introducing
+ * an integer bound variable used to construct the witness term for t in the
+ * contexts (to_int t) and (is_int t).
+ */
 struct ToIntWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ToIntWitnessVarAttributeId, Node>
-    ToIntWitnessVarAttribute;
+using ToIntWitnessVarAttribute
+ = expr::Attribute<ToIntWitnessVarAttributeId, Node>;
 
 OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
     : EagerProofGenerator(pnm), d_info(info)
@@ -253,7 +264,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, divByZeroNum, ret);
       }
@@ -271,7 +282,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node intDivByZeroNum =
-            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
+            getArithSkolemApp(num, SkolemFunId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -288,7 +299,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(num, SkolemFunId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, modZeroNum, ret);
       }
@@ -324,7 +335,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem;
       if (k == SQRT)
       {
-        Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
+        Node skolemApp = getArithSkolemApp(node[0], SkolemFunId::SQRT);
         Node uf = skolemApp.eqNode(var);
         Node nonNeg =
             nm->mkNode(AND, nm->mkNode(MULT, var, var).eqNode(node[0]), uf);
@@ -395,64 +406,44 @@ Node OperatorElim::eliminateOperators(Node node,
 
 Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
 
-Node OperatorElim::getArithSkolem(ArithSkolemId asi)
+Node OperatorElim::getArithSkolem(SkolemFunId id)
 {
-  std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
-  if (it == d_arith_skolem.end())
+  std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
+  if (it == d_arithSkolem.end())
   {
     NodeManager* nm = NodeManager::currentNM();
-
     TypeNode tn;
-    std::string name;
-    std::string desc;
-    switch (asi)
+    if (id == SkolemFunId::DIV_BY_ZERO || id == SkolemFunId::SQRT)
     {
-      case ArithSkolemId::DIV_BY_ZERO:
-        tn = nm->realType();
-        name = std::string("divByZero");
-        desc = std::string("partial real division");
-        break;
-      case ArithSkolemId::INT_DIV_BY_ZERO:
-        tn = nm->integerType();
-        name = std::string("intDivByZero");
-        desc = std::string("partial int division");
-        break;
-      case ArithSkolemId::MOD_BY_ZERO:
-        tn = nm->integerType();
-        name = std::string("modZero");
-        desc = std::string("partial modulus");
-        break;
-      case ArithSkolemId::SQRT:
-        tn = nm->realType();
-        name = std::string("sqrtUf");
-        desc = std::string("partial sqrt");
-        break;
-      default: Unhandled();
+      tn = nm->realType();
     }
-
+    else
+    {
+      tn = nm->integerType();
+    }
     Node skolem;
+    SkolemManager* sm = nm->getSkolemManager();
     if (options::arithNoPartialFun())
     {
-      // partial function: division
-      skolem = nm->mkSkolem(name, tn, desc, NodeManager::SKOLEM_EXACT_NAME);
+      // partial function: division, where we treat the skolem function as
+      // a constant
+      skolem = sm->mkSkolemFunction(id, tn);
     }
     else
     {
       // partial function: division
-      skolem = nm->mkSkolem(name,
-                            nm->mkFunctionType(tn, tn),
-                            desc,
-                            NodeManager::SKOLEM_EXACT_NAME);
+      skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
     }
-    d_arith_skolem[asi] = skolem;
+    // cache it
+    d_arithSkolem[id] = skolem;
     return skolem;
   }
   return it->second;
 }
 
-Node OperatorElim::getArithSkolemApp(Node n, ArithSkolemId asi)
+Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
-  Node skolem = getArithSkolem(asi);
+  Node skolem = getArithSkolem(id);
   if (!options::arithNoPartialFun())
   {
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
@@ -471,22 +462,20 @@ Node OperatorElim::mkWitnessTerm(Node v,
   // we mark that we should send a lemma
   Node k =
       sm->mkSkolem(v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this);
-  TNode tv = v;
-  TNode tk = k;
-  Node lem = pred.substitute(tv, tk);
   if (d_pnm != nullptr)
   {
+    Node lem = SkolemLemma::getSkolemLemmaFor(k);
     TrustNode tlem =
         mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
     lems.push_back(SkolemLemma(tlem, k));
   }
   else
   {
-    lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(lem), k));
+    lems.push_back(SkolemLemma(k, nullptr));
   }
   return k;
 }
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

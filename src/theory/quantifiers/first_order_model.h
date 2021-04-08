@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,50 +18,45 @@
 #define CVC4__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
-#include "expr/attribute.h"
+#include "theory/quantifiers/equality_query.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
 
-struct ModelBasisAttributeId
-{
-};
-typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
-//                     0 : term has no direct child with model basis attribute.
-struct ModelBasisArgAttributeId
-{
-};
-typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
-    ModelBasisArgAttribute;
-
 namespace quantifiers {
 
-class TermDb;
 class QuantifiersState;
+class TermRegistry;
 class QuantifiersRegistry;
-
-namespace fmcheck {
-  class FirstOrderModelFmc;
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-
-struct IsStarAttributeId {};
-typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
 // TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {
  public:
-  FirstOrderModel(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  FirstOrderModel(QuantifiersState& qs,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   std::string name);
 
-  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
+  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+  /** finish initialize */
+  void finishInit(QuantifiersEngine* qe);
+  /** get internal representative
+   *
+   * Choose a term that is equivalent to a in the current context that is the
+   * best term for instantiating the index^th variable of quantified formula q.
+   * If no legal term can be found, we return null. This can occur if:
+   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
+  Node getInternalRepresentative(Node a, Node q, size_t index);
+
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -132,12 +127,22 @@ class FirstOrderModel : public TheoryModel
    * has all representatives of type tn.
    */
   bool initializeRepresentativesForType(TypeNode tn);
+  /**
+   * Has the term been marked as a model basis term?
+   */
+  static bool isModelBasis(TNode n);
+  /** Get the equality query */
+  EqualityQuery* getEqualityQuery();
 
  protected:
-  /** quant engine */
+  //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
   QuantifiersEngine* d_qe;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
+  /** equality query class */
+  EqualityQuery d_eq_query;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 
@@ -189,8 +194,8 @@ class FirstOrderModel : public TheoryModel
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__FIRST_ORDER_MODEL_H */

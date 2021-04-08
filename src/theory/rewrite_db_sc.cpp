@@ -14,9 +14,9 @@
 
 #include "theory/rewrite_db_sc.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 RewriteDbSc::RewriteDbSc() {}
@@ -34,4 +34,4 @@ Node RewriteDbSc::evaluate(Node f, const std::vector<Node>& args)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

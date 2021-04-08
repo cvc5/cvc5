@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,10 +24,11 @@
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class CVC4_PUBLIC ModalException : public CVC4::Exception {
-public:
+class ModalException : public cvc5::Exception
+{
+ public:
   ModalException() :
     Exception("Feature used while operating in "
               "incorrect state") {
@@ -40,7 +41,7 @@ public:
   ModalException(const char* msg) :
     Exception(msg) {
   }
-};/* class ModalException */
+}; /* class ModalException */
 
 /**
  * Special case of ModalException that allows the execution of the solver to
@@ -49,13 +50,14 @@ public:
  * TODO(#1108): This exception should not be needed anymore in future versions
  * of the public API.
  */
-class CVC4_PUBLIC RecoverableModalException : public CVC4::ModalException {
+class RecoverableModalException : public cvc5::ModalException
+{
  public:
   RecoverableModalException(const std::string& msg) : ModalException(msg) {}
 
   RecoverableModalException(const char* msg) : ModalException(msg) {}
 }; /* class RecoverableModalException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__SMT__MODAL_EXCEPTION_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,11 +22,11 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_cache(preprocContext->getUserContext()){};
@@ -121,7 +121,7 @@ Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
   }
   // re-build the node with the same kind and new children
   kind::Kind_t k = originalNode.getKind();
-  NodeBuilder<> builder(k);
+  NodeBuilder builder(k);
   // special case for parameterized nodes
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -149,4 +149,4 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

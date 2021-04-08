@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::theory
+ ** \brief Black box testing of cvc5::theory
  **
- ** Black box testing of CVC4::theory
+ ** Black box testing of cvc5::theory
  **/
 
 #include <sstream>
@@ -23,7 +23,7 @@
 #include "test_smt.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace context;
@@ -129,4 +129,4 @@ TEST_F(TestTheoryBlack, array_const)
   ASSERT_TRUE(arr2.isConst());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

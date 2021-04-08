@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 signed int Integer::s_fastSignedIntMin = -(1 << 29);
 signed int Integer::s_fastSignedIntMax = (1 << 29) - 1;
@@ -142,13 +142,19 @@ bool Integer::isBitSet(uint32_t i) const
   return !extractBitRange(1, i).isZero();
 }
 
-Integer Integer::setBit(uint32_t i, bool value) const
+void Integer::setBit(uint32_t i, bool value)
 {
   cln::cl_I mask(1);
   mask = mask << i;
-  if (value) return Integer(cln::logior(d_value, mask));
-  mask = cln::lognot(mask);
-  return Integer(cln::logand(d_value, mask));
+  if (value)
+  {
+    d_value = cln::logior(d_value, mask);
+  }
+  else
+  {
+    mask = cln::lognot(mask);
+    d_value = cln::logand(d_value, mask);
+  }
 }
 
 Integer Integer::oneExtend(uint32_t size, uint32_t amount) const
@@ -562,4 +568,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n)
 {
   return os << n.toString();
 }
-} /* namespace CVC4 */
+}  // namespace cvc5

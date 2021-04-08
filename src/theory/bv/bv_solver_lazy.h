@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@
 #include "theory/bv/theory_bv.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -97,7 +97,7 @@ class BVSolverLazy : public BVSolver
 
   TrustNode ppRewrite(TNode t) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
 
@@ -229,6 +229,6 @@ class BVSolverLazy : public BVSolver
 }  // namespace bv
 }  // namespace theory
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__BV_SOLVER_LAZY_H */

@@ -2,9 +2,9 @@
 /*! \file skolem_cache.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,9 @@
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -62,6 +62,8 @@ Node SkolemCache::mkTypedSkolemCached(
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
+  // do not rewrite beforehand if we are not using optimizations, this is so
+  // that the proof checker does not depend on the rewriter.
   if (d_useOpts)
   {
     a = a.isNull() ? a : Rewriter::rewrite(a);
@@ -152,7 +154,8 @@ Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  Node n = NodeManager::currentNM()->mkSkolem(c, d_strType, "string skolem");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
 }
@@ -289,4 +292,4 @@ Node SkolemCache::mkIndexVar(Node t)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

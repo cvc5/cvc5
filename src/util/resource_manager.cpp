@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 bool WallClockTimer::on() const
 {
@@ -185,7 +185,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_options(options)
 
 {
-  d_statistics->d_resourceUnitsUsed.setData(d_cumulativeResourceUsed);
+  d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
 }
 
 ResourceManager::~ResourceManager() {}
@@ -243,7 +243,7 @@ void ResourceManager::spendResource(unsigned amount)
   {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
     Trace("limit") << "          on call "
-                   << d_statistics->d_spendResourceCalls.getData() << std::endl;
+                   << d_statistics->d_spendResourceCalls.get() << std::endl;
     if (outOfTime())
     {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"
@@ -420,4 +420,4 @@ void ResourceManager::registerListener(Listener* listener)
   return d_listeners.push_back(listener);
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

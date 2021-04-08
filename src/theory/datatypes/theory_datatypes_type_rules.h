@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,7 @@
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -277,7 +277,7 @@ struct RecordUpdateTypeRule {
     TypeNode recordType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
     if (check) {
-      if (!recordType.toType().isRecord())
+      if (!recordType.isRecord())
       {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
@@ -626,8 +626,8 @@ class TupleProjectTypeRule
   }
 }; /* class TupleProjectTypeRule */
 
-} /* CVC4::theory::datatypes namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */

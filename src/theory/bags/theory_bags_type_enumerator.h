@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -86,6 +86,6 @@ class BagEnumerator : public TypeEnumeratorBase<BagEnumerator>
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BAGS__TYPE_ENUMERATOR_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,13 +27,13 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
+SequencesRewriter::SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics)
     : d_statistics(statistics), d_stringsEntail(*this)
 {
 }
@@ -309,7 +309,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         }
 
         // (= "" (str.replace x "A" "")) ---> (str.prefix x "A")
-        if (StringsEntail::checkLengthOne(ne[1]) && ne[2] == empty)
+        if (StringsEntail::checkLengthOne(ne[1], true) && ne[2] == empty)
         {
           Node ret = nm->mkNode(STRING_PREFIX, ne[0], ne[1]);
           return returnRewrite(node, ret, Rewrite::STR_EMP_REPL_EMP);
@@ -1028,7 +1028,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
   }
   NodeManager* nm = NodeManager::currentNM();
-  CVC4::Rational rMaxInt(String::maxSize());
+  cvc5::Rational rMaxInt(String::maxSize());
   uint32_t l = utils::getLoopMinOccurrences(node);
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
@@ -1141,7 +1141,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   else if (x.isConst() && RegExpEntail::isConstRegExp(r))
   {
     // test whether x in node[1]
-    CVC4::String s = x.getConst<String>();
+    cvc5::String s = x.getConst<String>();
     bool test = RegExpEntail::testConstStringInRegExp(s, 0, r);
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
@@ -1184,7 +1184,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         Node one = nm->mkConst(Rational(1));
         if (flr == one)
         {
-          NodeBuilder<> nb(AND);
+          NodeBuilder nb(AND);
           for (const Node& xc : x)
           {
             nb << nm->mkNode(STRING_IN_REGEXP, xc, r);
@@ -1571,7 +1571,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     if (node[1].isConst() && node[2].isConst())
     {
       Node s = node[0];
-      CVC4::Rational rMaxInt(String::maxSize());
+      cvc5::Rational rMaxInt(String::maxSize());
       uint32_t start;
       if (node[1].getConst<Rational>() > rMaxInt)
       {
@@ -1628,7 +1628,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Node zero = nm->mkConst(CVC4::Rational(0));
+  Node zero = nm->mkConst(cvc5::Rational(0));
 
   // if entailed non-positive length or negative start point
   if (ArithEntail::check(zero, node[1], true))
@@ -1858,7 +1858,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     // rewriting for constant arguments
     if (node[1].isConst())
     {
-      CVC4::Rational rMaxInt(String::maxSize());
+      cvc5::Rational rMaxInt(String::maxSize());
       if (node[1].getConst<Rational>() > rMaxInt)
       {
         // start beyond the maximum size of strings
@@ -1926,7 +1926,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> vec = Word::getChars(node[0]);
         Node emp = Word::mkEmptyWord(t.getType());
-        NodeBuilder<> nb(OR);
+        NodeBuilder nb(OR);
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
@@ -1970,7 +1970,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> nc1;
         utils::getConcat(node[0], nc1);
-        NodeBuilder<> nb(OR);
+        NodeBuilder nb(OR);
         for (const Node& ncc : nc1)
         {
           nb << nm->mkNode(STRING_STRCTN, ncc, node[1]);
@@ -2057,7 +2057,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (nc2.size() > 1)
         {
           Node emp = Word::mkEmptyWord(stype);
-          NodeBuilder<> nb2(kind::AND);
+          NodeBuilder nb2(kind::AND);
           for (const Node& n2 : nc2)
           {
             if (n2 == n)
@@ -2266,7 +2266,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   utils::getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC4::Rational rMaxInt(CVC4::String::maxSize());
+    cvc5::Rational rMaxInt(cvc5::String::maxSize());
     if (node[2].getConst<Rational>() > rMaxInt)
     {
       // We know that, due to limitations on the size of string constants
@@ -2862,7 +2862,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       // str.contains( z, w ) ----> false implies
       // str.replace( x, w, str.replace( z, x, y ) ) ---> str.replace( x, w, z )
-      Node cmp_con2 = d_stringsEntail.checkContains(node[1], node[2][0]);
+      Node cmp_con2 = d_stringsEntail.checkContains(node[2][0], node[1]);
       if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
       {
         Node res =
@@ -3230,7 +3230,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node val;
   if (isPrefix)
   {
-    val = NodeManager::currentNM()->mkConst(::CVC4::Rational(0));
+    val = NodeManager::currentNM()->mkConst(::cvc5::Rational(0));
   }
   else
   {
@@ -3283,7 +3283,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
   else if (len.getKind() == PLUS)
   {
     // x + y -> norm(x) + norm(y)
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (const auto& n : len)
     {
       Node sn = canonicalStrForSymbolicLength(n, stype);
@@ -3312,7 +3312,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     }
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
     {
       concatBuilder.append(nRepChildren);
@@ -3396,4 +3396,4 @@ Node SequencesRewriter::returnRewrite(Node node, Node ret, Rewrite r)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

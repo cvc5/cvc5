@@ -2,9 +2,9 @@
 /*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 const char* toString(PfRule id)
 {
@@ -133,6 +133,7 @@ const char* toString(PfRule id)
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
+    case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
     case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
@@ -156,7 +157,9 @@ const char* toString(PfRule id)
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case PfRule::STRING_TRUST: return "STRING_TRUST";
     //================================================= Arith rules
-    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+      return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
@@ -216,4 +219,4 @@ size_t PfRuleHashFunction::operator()(PfRule id) const
   return static_cast<size_t>(id);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

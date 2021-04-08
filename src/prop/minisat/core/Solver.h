@@ -21,12 +21,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
-#include "cvc4_private.h"
-
 #include <iosfwd>
 
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context.h"
+#include "cvc4_private.h"
 #include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
 #include "prop/minisat/core/SolverTypes.h"
@@ -38,17 +38,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 template <class Solver> class TSatProof;
 
 namespace prop {
 class PropEngine;
 class TheoryProxy;
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
 
 //=================================================================================================
@@ -57,12 +56,12 @@ namespace Minisat {
 class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
-  friend class CVC4::prop::PropEngine;
-  friend class CVC4::prop::TheoryProxy;
-  friend class CVC4::prop::SatProofManager;
-  friend class CVC4::TSatProof<Minisat::Solver>;
+  friend class cvc5::prop::PropEngine;
+  friend class cvc5::prop::TheoryProxy;
+  friend class cvc5::prop::SatProofManager;
+  friend class cvc5::TSatProof<Minisat::Solver>;
 
-public:
+ public:
   static CRef TCRef_Undef;
   static CRef TCRef_Lazy;
 
@@ -74,10 +73,10 @@ public:
 
  protected:
   /** The pointer to the proxy that provides interfaces to the SMT engine */
-  CVC4::prop::TheoryProxy* d_proxy;
+  cvc5::prop::TheoryProxy* d_proxy;
 
   /** The context from the SMT solver */
-  CVC4::context::Context* d_context;
+  cvc5::context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -89,7 +88,7 @@ public:
   Var varFalse;
 
   /** The resolution proof manager */
-  std::unique_ptr<CVC4::prop::SatProofManager> d_pfManager;
+  std::unique_ptr<cvc5::prop::SatProofManager> d_pfManager;
 
  public:
   /** Returns the current user assertion level */
@@ -106,7 +105,7 @@ public:
   vec<bool> lemmas_removable;
 
   /** Nodes being converted to CNF */
-  std::vector<CVC4::Node> lemmas_cnf_assertion;
+  std::vector<cvc5::Node> lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -135,12 +134,12 @@ public:
 
     // Constructor/Destructor:
     //
- Solver(CVC4::prop::TheoryProxy* proxy,
-        CVC4::context::Context* context,
-        CVC4::context::UserContext* userContext,
+ Solver(cvc5::prop::TheoryProxy* proxy,
+        cvc5::context::Context* context,
+        cvc5::context::UserContext* userContext,
         ProofNodeManager* pnm,
         bool enableIncremental = false);
- CVC4_PUBLIC virtual ~Solver();
+ virtual ~Solver();
 
  // Problem specification:
  //
@@ -154,7 +153,7 @@ public:
  Var falseVar() const { return varFalse; }
 
  /** Retrive the SAT proof manager */
- CVC4::prop::SatProofManager* getProofManager();
+ cvc5::prop::SatProofManager* getProofManager();
 
  /** Retrive the refutation proof */
  std::shared_ptr<ProofNode> getProof();
@@ -438,7 +437,9 @@ protected:
     CRef     propagate        (TheoryCheckType type);                                  // Perform Boolean and Theory. Returns possibly conflicting clause.
     CRef     propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
     void     propagateTheory  ();                                                      // Perform Theory propagation.
-    void     theoryCheck      (CVC4::theory::Theory::Effort effort);                   // Perform a theory satisfiability check. Adds lemmas.
+    void theoryCheck(
+        cvc5::theory::Theory::Effort
+            effort);  // Perform a theory satisfiability check. Adds lemmas.
     CRef     updateLemmas     ();                                                      // Add the lemmas, backtraking if necessary and return a conflict if there is one
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
@@ -534,31 +535,32 @@ inline bool Solver::isDecision(Var x) const
 
 inline int Solver::level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_level;
 }
 
 inline int Solver::user_level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_user_level;
 }
 
 inline int Solver::intro_level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_intro_level;
 }
 
 inline int Solver::trail_index(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_trail_index;
 }
 
 inline void Solver::insertVarOrder(Var x) {
-    assert(x < vardata.size());
-    if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
+  Assert(x < vardata.size());
+  if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x);
+}
 
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
@@ -607,8 +609,16 @@ inline void Solver::newDecisionLevel()
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
-inline lbool    Solver::value         (Var x) const   { assert(x < nVars()); return assigns[x]; }
-inline lbool    Solver::value         (Lit p) const   { assert(var(p) < nVars()); return assigns[var(p)] ^ sign(p); }
+inline lbool Solver::value(Var x) const
+{
+  Assert(x < nVars());
+  return assigns[x];
+}
+inline lbool Solver::value(Lit p) const
+{
+  Assert(var(p) < nVars());
+  return assigns[var(p)] ^ sign(p);
+}
 inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
 inline lbool    Solver::modelValue    (Lit p) const   { return model[var(p)] ^ sign(p); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }
@@ -655,7 +665,7 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-} /* CVC4::Minisat namespace */
-} /* CVC4 namespace */
+}  // namespace Minisat
+}  // namespace cvc5
 
 #endif

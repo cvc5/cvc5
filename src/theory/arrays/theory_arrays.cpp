@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -131,11 +131,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
 
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_pchecker.registerTo(pc);
-  }
   // indicate we are using the default theory state object, and the arrays
   // inference manager
   d_theoryState = &d_state;
@@ -166,6 +161,8 @@ TheoryArrays::~TheoryArrays() {
 }
 
 TheoryRewriter* TheoryArrays::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryArrays::getProofChecker() { return &d_checker; }
 
 bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -250,7 +247,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // (index_0 != index_1 & index_0 != index_2 & ... & index_0 != index_n) -> read(store, index_0) = v_0
     TNode write_i, write_j, index_i, index_j;
     Node conc;
-    NodeBuilder<> result(kind::AND);
+    NodeBuilder result(kind::AND);
     int i, j;
     write_i = left;
     for (i = leftWrites-1; i >= 0; --i) {
@@ -260,7 +257,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
       //         ... && index_i /= index_(i+1)] -> read(store, index_i) = v_i
       write_j = left;
       {
-        NodeBuilder<> hyp(kind::AND);
+        NodeBuilder hyp(kind::AND);
         for (j = leftWrites - 1; j > i; --j) {
           index_j = write_j[1];
           if (!ppCheck || !ppDisequal(index_i, index_j)) {
@@ -303,7 +300,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // store(store(...),i,select(a,i)) = a && select(store(...),i)=v
     Node l = left;
     Node tmp;
-    NodeBuilder<> nb(kind::AND);
+    NodeBuilder nb(kind::AND);
     while (right.getKind() == kind::STORE) {
       tmp = nm->mkNode(kind::SELECT, l, right[1]);
       nb << tmp.eqNode(right[2]);
@@ -331,13 +328,14 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     return TrustNode::null();
   }
   d_ppEqualityEngine.addTerm(term);
+  NodeManager* nm = NodeManager::currentNM();
   Node ret;
   switch (term.getKind()) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
       if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
-        ret = NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
+        ret = nm->mkNode(kind::SELECT, term[0][0], term[1]);
       }
       break;
     }
@@ -345,8 +343,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
       // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
       //    IF i != j and j comes before i in the ordering
       if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
-        Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
-        Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
+        Node inner = nm->mkNode(kind::STORE, term[0][0], term[1], term[2]);
+        Node outer = nm->mkNode(kind::STORE, inner, term[0][1], term[0][2]);
         ret = outer;
       }
       break;
@@ -1184,7 +1182,7 @@ void TheoryArrays::presolve()
   {
     d_dstratInit = true;
     // add the decision strategy, which is user-context-independent
-    getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_ARRAYS,
         d_dstrat.get(),
         DecisionManager::STRAT_SCOPE_CTX_INDEPENDENT);
@@ -1443,7 +1441,7 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
     }
   }
 
-  NodeBuilder<> conjunction(invert ? kind::OR : kind::AND);
+  NodeBuilder conjunction(invert ? kind::OR : kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
@@ -2269,6 +2267,6 @@ void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
   } while (changed);
 }
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5

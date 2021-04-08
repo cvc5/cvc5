@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 #include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -100,6 +100,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__INFERENCE_MANAGER_H */

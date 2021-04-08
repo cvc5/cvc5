@@ -41,7 +41,7 @@ can be found in `<build_dir>/lib`.
 
 ## Build dependencies
 
-The following tools and libraries are required to build and run CVC4.  
+The following tools and libraries are required to build and run CVC4.
 Versions given are minimum versions; more recent versions should be
 compatible.
 
@@ -95,7 +95,7 @@ want and should use.
 is an implementation of SMT-LIB/IEEE-754 floating-point operations in terms
 of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and
-can be installed using the `contrib/get-symfpu` script.  
+can be installed using the `contrib/get-symfpu` script.
 Configure CVC4 with `configure.sh --symfpu` to build with this dependency.
 
 ### CaDiCaL (Optional SAT solver)
@@ -103,7 +103,7 @@ Configure CVC4 with `configure.sh --symfpu` to build with this dependency.
 [CaDiCaL](https://github.com/arminbiere/cadical)
 is a SAT solver that can be used for solving non-incremental bit-vector
 problems with eager bit-blasting. This dependency may improve performance.
-It can be installed using the `contrib/get-cadical script`.  
+It can be installed using the `contrib/get-cadical script`.
 Configure CVC4 with `configure.sh --cadical` to build with this dependency.
 
 ### CryptoMiniSat (Optional SAT solver)
@@ -111,7 +111,7 @@ Configure CVC4 with `configure.sh --cadical` to build with this dependency.
 [CryptoMinisat](https://github.com/msoos/cryptominisat)
 is a SAT solver that can be used for solving bit-vector problems with eager
 bit-blasting. This dependency may improve performance.
-It can be installed using the `contrib/get-cryptominisat` script.  
+It can be installed using the `contrib/get-cryptominisat` script.
 Configure CVC4 with `configure.sh --cryptominisat` to build with this
 dependency.
 
@@ -120,15 +120,9 @@ dependency.
 [Kissat](https://github.com/arminbiere/kissat)
 is a SAT solver that can be used for solving bit-vector problems with eager
 bit-blasting. This dependency may improve performance.
-It can be installed using the `contrib/get-kissat` script.  
+It can be installed using the `contrib/get-kissat` script.
 Configure CVC4 with `configure.sh --kissat` to build with this
 dependency.
-
-### LFSC (The LFSC Proof Checker)
-
-[LFSC](https://github.com/CVC4/LFSC) is required to check proofs internally
-with --check-proofs. It can be installed using the `contrib/get-lfsc` script.  
-Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 
 ### LibPoly (Optional polynomial library)
 
@@ -140,7 +134,7 @@ Configure CVC4 with `configure.sh --poly` to build with this dependency.
 
 [CLN](http://www.ginac.de/CLN)
 is an alternative multiprecision arithmetic package that may offer better
-performance and memory footprint than GMP.  
+performance and memory footprint than GMP.
 Configure CVC4 with `configure.sh --cln` to build with this dependency.
 
 Note that CLN is covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
@@ -158,7 +152,7 @@ implementation in CVC4. (This is not recommended for most users.)
 
 glpk-cut-log can be installed using the `contrib/get-glpk-cut-log` script.
 Note that the only installation option is manual installation via this script.
-CVC4 is no longer compatible with the main GLPK library.  
+CVC4 is no longer compatible with the main GLPK library.
 Configure CVC4 with `configure.sh --glpk` to build with this dependency.
 
 Note that GLPK and glpk-cut-log are covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
@@ -174,7 +168,7 @@ logic circuits. This dependency may improve performance of the eager
 bit-vector solver. When enabled, the bit-blasted formula is encoded into
 and-inverter-graphs (AIG) and ABC is used to simplify these AIGs.
 
-ABC can be installed using the `contrib/get-abc` script.  
+ABC can be installed using the `contrib/get-abc` script.
 Configure CVC4 with `configure.sh --abc` to build with this dependency.
 
 ### Editline library (Improved Interactive Experience)
@@ -192,7 +186,7 @@ provided with CVC4.
 ### Google Test Unit Testing Framework (Unit Tests)
 
 [Google Test](https://github.com/google/googletest) is required to optionally
-run CVC4's unit tests (included with the distribution). 
+run CVC4's unit tests (included with the distribution).
 See [Testing CVC4](#Testing-CVC4) below for more details.
 
 ## Language bindings
@@ -206,6 +200,23 @@ bindings for `<lang>`.
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.
+
+
+## Building the API Documentation
+
+Building the API documentation of CVC4 requires the following dependencies:
+* [Doxygen](https://www.doxygen.nl)
+* [Sphinx](https://www.sphinx-doc.org)
+* [Breathe](https://breathe.readthedocs.io)
+
+To build the documentation, configure CVC4 with `./configure.sh --docs`.
+Building CVC4 will then include building the API documentation.
+
+The API documentation can then be found at `<build_dir>/docs/sphinx/index.html`.
+
+To only build the documentation, change to the build directory and call
+`make docs`.
+
 
 ## Building the Examples
 
@@ -245,7 +256,7 @@ The system tests are not built by default.
 All system test binaries are built into `<build_dir>/bin/test/system`.
 
 We use prefix `api/` + `<api_test>` (for `<api_test>` in `test/api`)
-as test target name.  
+as test target name.
 
     make ouroborous                       # build test/api/ouroborous.cpp
     ctest -R ouroborous                   # run all tests that match '*ouroborous*'
@@ -268,7 +279,7 @@ assertions enabled.
 All unit test binaries are built into `<build_dir>/bin/test/unit`.
 
 We use prefix `unit/` + `<subdir>/` + `<unit_test>` (for `<unit_test>` in
-`test/unit/<subdir>`) as test target name.  
+`test/unit/<subdir>`) as test target name.
 
     make map_util_black                   # build test/unit/base/map_util_black.cpp
     ctest -R map_util_black               # run all tests that match '*map_util_black*'
@@ -281,7 +292,7 @@ We use prefix `unit/` + `<subdir>/` + `<unit_test>` (for `<unit_test>` in
 ### Testing Regression Tests
 
 We use prefix `regressN/` + `<subdir>/` + `<regress_test>` (for `<regress_test>`
-in level `N` in `test/regress/regressN/<subdir>`) as test target name.  
+in level `N` in `test/regress/regressN/<subdir>`) as test target name.
 
     ctest -L regress                      # run all regression tests
     ctest -L regress0                     # run all regression tests in level 0
@@ -295,23 +306,23 @@ in level `N` in `test/regress/regressN/<subdir>`) as test target name.
 
 All custom test targets build and run a preconfigured set of tests.
 
-- `make check [-jN] [ARGS=-jN]`  
+- `make check [-jN] [ARGS=-jN]`
   The default build-and-test target for CVC4, builds and runs all examples,
   all system and unit tests, and regression tests from levels 0 to 2.
 
-- `make systemtests [-jN] [ARGS=-jN]`  
+- `make systemtests [-jN] [ARGS=-jN]`
   Build and run all system tests.
 
-- `make units [-jN] [ARGS=-jN]`  
+- `make units [-jN] [ARGS=-jN]`
   Build and run all unit tests.
 
-- `make regress [-jN] [ARGS=-jN]`  
+- `make regress [-jN] [ARGS=-jN]`
   Build and run regression tests from levels 0 to 2.
 
-- `make runexamples [-jN] [ARGS=-jN]`  
+- `make runexamples [-jN] [ARGS=-jN]`
   Build and run all examples.
 
-- `make coverage [-jN] [ARGS=-jN]`  
+- `make coverage [-jN] [ARGS=-jN]`
   Build and run all tests (system and unit tests, regression tests level 0-4)
   with gcov to determine code coverage.
 

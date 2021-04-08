@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,15 +21,18 @@
 
 #include "expr/term_canonize.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class CDProof;
+
 namespace theory {
 namespace quantifiers {
 
 /**
- * This trie stores a trie of the above form for each multi-set of types. For
- * each term t registered to this node, we store t in the appropriate
- * AlphaEquivalenceNode trie. For example, if t contains 2 free variables
- * of type T1 and 3 free variables of type T2, then it is stored at
+ * This trie stores a trie for each multi-set of types. For each term t
+ * registered to this node, we store t in the appropriate
+ * AlphaEquivalenceTypeNode trie. For example, if t contains 2 free variables of
+ * type T1 and 3 free variables of type T2, then it is stored at
  * d_children[T1][2].d_children[T2][3].
  */
 class AlphaEquivalenceTypeNode {
@@ -58,7 +61,10 @@ public:
 class AlphaEquivalenceDb
 {
  public:
-  AlphaEquivalenceDb(expr::TermCanonize* tc) : d_tc(tc) {}
+  AlphaEquivalenceDb(expr::TermCanonize* tc, bool sortCommChildren)
+      : d_tc(tc), d_sortCommutativeOpChildren(sortCommChildren)
+  {
+  }
   /** adds quantified formula q to this database
    *
    * This function returns a quantified formula q' that is alpha-equivalent to
@@ -72,6 +78,8 @@ class AlphaEquivalenceDb
   AlphaEquivalenceTypeNode d_ae_typ_trie;
   /** pointer to the term canonize utility */
   expr::TermCanonize* d_tc;
+  /** whether to sort children of commutative operators during canonization. */
+  bool d_sortCommutativeOpChildren;
 };
 
 /**
@@ -81,26 +89,34 @@ class AlphaEquivalenceDb
 class AlphaEquivalence
 {
  public:
-  AlphaEquivalence(QuantifiersEngine* qe);
+  AlphaEquivalence(ProofNodeManager* pnm = nullptr);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
-   * If non-null, its return value is lemma justifying why q is reducible.
-   * This is of the form ( q = q' ) where q' is a quantified formula that
-   * was previously registered to this class via a call to reduceQuantifier,
-   * and q and q' are alpha-equivalent.
+   * If non-null, its return value is a trust node containing the lemma
+   * justifying why q is reducible.  This lemma is of the form ( q = q' ) where
+   * q' is a quantified formula that was previously registered to this class via
+   * a call to reduceQuantifier, and q and q' are alpha-equivalent.
    */
-  Node reduceQuantifier( Node q );
+  TrustNode reduceQuantifier(Node q);
 
  private:
   /** a term canonizer */
   expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */
   AlphaEquivalenceDb d_aedb;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /**
+   * A CDProof storing alpha equivalence steps.
+   */
+  std::unique_ptr<CDProof> d_pfAlpha;
+  /** Are proofs enabled for this object? */
+  bool isProofEnabled() const;
 };
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

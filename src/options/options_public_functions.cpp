@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,7 +36,7 @@
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Get accessor functions.
 InputLanguage Options::getInputLanguage() const {
@@ -126,11 +126,11 @@ bool Options::getSemanticChecks() const{
 
 bool Options::getStatistics() const{
   // statsEveryQuery enables stats
-  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
+  return (*this)[options::statistics] || (*this)[options::statisticsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
-  return (*this)[options::statsEveryQuery];
+  return (*this)[options::statisticsEveryQuery];
 }
 
 bool Options::getStatsHideZeros() const{
@@ -238,4 +238,4 @@ void Options::flushOut() {
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

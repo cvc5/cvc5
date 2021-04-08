@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,9 @@
 #ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 #define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
-#include "theory/theory.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -118,8 +117,8 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node getArrayRepresentationForLambda(TNode n);
 }; /* class TheoryBuiltinRewriter */
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -97,7 +97,7 @@ class RegExpEntail
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExp(CVC4::String& s,
+  static bool testConstStringInRegExp(cvc5::String& s,
                                       unsigned index_start,
                                       TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
@@ -127,6 +127,6 @@ class RegExpEntail
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__STRINGS__REGEXP_ENTAIL_H */

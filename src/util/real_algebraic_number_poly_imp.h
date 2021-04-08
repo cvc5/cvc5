@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Represents a real algebraic number based on poly::AlgebraicNumber.
@@ -40,7 +40,7 @@ namespace CVC4 {
  * Note that the interval representation uses dyadic rationals (denominators are
  * only powers of two).
  */
-class CVC4_PUBLIC RealAlgebraicNumber
+class RealAlgebraicNumber
 {
  public:
   /** Construct as zero. */
@@ -103,58 +103,51 @@ class CVC4_PUBLIC RealAlgebraicNumber
 }; /* class RealAlgebraicNumber */
 
 /** Stream a real algebraic number to an output stream. */
-CVC4_PUBLIC std::ostream& operator<<(std::ostream& os,
-                                     const RealAlgebraicNumber& ran);
+std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran);
 
 /** Compare two real algebraic numbers. */
-CVC4_PUBLIC bool operator==(const RealAlgebraicNumber& lhs,
-                            const RealAlgebraicNumber& rhs);
+bool operator==(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 /** Compare two real algebraic numbers. */
-CVC4_PUBLIC bool operator!=(const RealAlgebraicNumber& lhs,
-                            const RealAlgebraicNumber& rhs);
+bool operator!=(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 /** Compare two real algebraic numbers. */
-CVC4_PUBLIC bool operator<(const RealAlgebraicNumber& lhs,
-                           const RealAlgebraicNumber& rhs);
+bool operator<(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 /** Compare two real algebraic numbers. */
-CVC4_PUBLIC bool operator<=(const RealAlgebraicNumber& lhs,
-                            const RealAlgebraicNumber& rhs);
+bool operator<=(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 /** Compare two real algebraic numbers. */
-CVC4_PUBLIC bool operator>(const RealAlgebraicNumber& lhs,
-                           const RealAlgebraicNumber& rhs);
+bool operator>(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 /** Compare two real algebraic numbers. */
-CVC4_PUBLIC bool operator>=(const RealAlgebraicNumber& lhs,
-                            const RealAlgebraicNumber& rhs);
+bool operator>=(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 
 /** Add two real algebraic numbers. */
-CVC4_PUBLIC RealAlgebraicNumber operator+(const RealAlgebraicNumber& lhs,
-                                          const RealAlgebraicNumber& rhs);
+RealAlgebraicNumber operator+(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs);
 /** Subtract two real algebraic numbers. */
-CVC4_PUBLIC RealAlgebraicNumber operator-(const RealAlgebraicNumber& lhs,
-                                          const RealAlgebraicNumber& rhs);
+RealAlgebraicNumber operator-(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs);
 /** Negate a real algebraic number. */
-CVC4_PUBLIC RealAlgebraicNumber operator-(const RealAlgebraicNumber& ran);
+RealAlgebraicNumber operator-(const RealAlgebraicNumber& ran);
 /** Multiply two real algebraic numbers. */
-CVC4_PUBLIC RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
-                                          const RealAlgebraicNumber& rhs);
+RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs);
 
 /** Add and assign two real algebraic numbers. */
-CVC4_PUBLIC RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
-                                            const RealAlgebraicNumber& rhs);
+RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
+                                const RealAlgebraicNumber& rhs);
 /** Subtract and assign two real algebraic numbers. */
-CVC4_PUBLIC RealAlgebraicNumber& operator-=(RealAlgebraicNumber& lhs,
-                                            const RealAlgebraicNumber& rhs);
+RealAlgebraicNumber& operator-=(RealAlgebraicNumber& lhs,
+                                const RealAlgebraicNumber& rhs);
 /** Multiply and assign two real algebraic numbers. */
-CVC4_PUBLIC RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
-                                            const RealAlgebraicNumber& rhs);
+RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
+                                const RealAlgebraicNumber& rhs);
 
 /** Compute the sign of a real algebraic number. */
-CVC4_PUBLIC int sgn(const RealAlgebraicNumber& ran);
+int sgn(const RealAlgebraicNumber& ran);
 
 /** Check whether a real algebraic number is zero. */
-CVC4_PUBLIC bool isZero(const RealAlgebraicNumber& ran);
+bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
-CVC4_PUBLIC bool isOne(const RealAlgebraicNumber& ran);
+bool isOne(const RealAlgebraicNumber& ran);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__REAL_ALGEBRAIC_NUMBER_H */

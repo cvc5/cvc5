@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "expr/proof_node_updater.h"
 #include "prop/proof_cnf_stream.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace prop {
 
@@ -54,6 +54,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * cancelled, i.e., continueUpdate is set to false.
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application.
    *
@@ -107,6 +108,6 @@ class ProofPostproccess
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

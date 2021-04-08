@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,13 +21,11 @@
 #define CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 
 #include "theory/theory_rewriter.h"
-#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
-struct AllRewriteRules;
 typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
 class TheoryBVRewriter : public TheoryRewriter
@@ -105,8 +103,8 @@ class TheoryBVRewriter : public TheoryRewriter
   RewriteFunction d_rewriteTable[kind::LAST_KIND];
 }; /* class TheoryBVRewriter */
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BV__THEORY_BV_REWRITER_H */

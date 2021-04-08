@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,9 +22,7 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
-using namespace std;
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -36,13 +34,11 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              ProofNodeManager* pnm)
     : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
 {
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_bProofChecker.registerTo(pc);
-  }
 }
+
+TheoryRewriter* TheoryBuiltin::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryBuiltin::getProofChecker() { return &d_checker; }
 
 std::string TheoryBuiltin::identify() const
 {
@@ -62,4 +58,4 @@ void TheoryBuiltin::finishInit()
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

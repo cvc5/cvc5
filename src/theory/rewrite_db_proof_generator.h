@@ -26,7 +26,7 @@
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class RewriteDbProofCons : public ProofGenerator
@@ -94,6 +94,6 @@ class RewriteDbProofCons : public ProofGenerator
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__REWRITE_DB_PROOF_GENERATOR__H */

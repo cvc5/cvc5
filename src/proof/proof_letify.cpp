@@ -14,13 +14,19 @@
 
 #include "proof/proof_letify.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
+
+bool ProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
+{
+  return pn->getRule() != PfRule::SCOPE;
+}
 
 void ProofLetify::computeProofLet(const ProofNode* pn,
                                   std::vector<const ProofNode*>& pletList,
                                   std::map<const ProofNode*, size_t>& pletMap,
-                                  size_t thresh)
+                                  size_t thresh,
+                                  ProofLetifyTraverseCallback* pltc)
 {
   Assert(pletList.empty() && pletMap.empty());
   if (thresh == 0)
@@ -30,14 +36,24 @@ void ProofLetify::computeProofLet(const ProofNode* pn,
   }
   std::vector<const ProofNode*> visitList;
   std::map<const ProofNode*, size_t> pcount;
-  computeProofCounts(pn, visitList, pcount);
+  if (pltc == nullptr)
+  {
+    // use default callback
+    ProofLetifyTraverseCallback defaultPltc;
+    computeProofCounts(pn, visitList, pcount, &defaultPltc);
+  }
+  else
+  {
+    computeProofCounts(pn, visitList, pcount, pltc);
+  }
   // Now populate the pletList and pletMap
   convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
 void ProofLetify::computeProofCounts(const ProofNode* pn,
                                      std::vector<const ProofNode*>& visitList,
-                                     std::map<const ProofNode*, size_t>& pcount)
+                                     std::map<const ProofNode*, size_t>& pcount,
+                                     ProofLetifyTraverseCallback* pltc)
 {
   std::map<const ProofNode*, size_t>::iterator it;
   std::vector<const ProofNode*> visit;
@@ -50,9 +66,9 @@ void ProofLetify::computeProofCounts(const ProofNode* pn,
     if (it == pcount.end())
     {
       pcount[cur] = 0;
-      // do not letify under scope?
-      if (cur->getRule() == PfRule::SCOPE)
+      if (!pltc->shouldTraverse(cur))
       {
+        // callback indicated we should not traverse
         continue;
       }
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
@@ -93,7 +109,7 @@ void ProofLetify::convertProofCountToLet(
   {
     itc = pcount.find(pn);
     Assert(itc != pcount.end());
-    if (itc->second >= thresh)
+    if (itc->second >= thresh && pn->getRule() != PfRule::ASSUME)
     {
       pletList.push_back(pn);
       // start with id 1
@@ -104,4 +120,4 @@ void ProofLetify::convertProofCountToLet(
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,9 +1,9 @@
 #####################
 ## CMakeLists.txt
 ## Top contributors (to current version):
-##   Aina Niemetz, Mathias Preiner, Alex Ozdemir
+##   Aina Niemetz, Mathias Preiner, Gereon Kremer
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -37,17 +37,17 @@ macro(cvc4_add_unit_test is_white name output_dir)
   add_executable(${name} ${test_src})
   target_compile_definitions(${name} PRIVATE ${CVC4_UNIT_TEST_FLAGS_BLACK})
   gtest_add_tests(TARGET ${name})
-  target_link_libraries(${name} main-test)
-  target_link_libraries(${name} GTest::GTest)
-  target_link_libraries(${name} GTest::Main)
-  if(USE_LFSC)
-    # We don't link against LFSC, because CVC4 is already linked against it.
-    target_include_directories(${name} PRIVATE ${LFSC_INCLUDE_DIR})
+  target_link_libraries(${name} PUBLIC main-test)
+  target_link_libraries(${name} PUBLIC GTest::Main)
+  target_link_libraries(${name} PUBLIC GTest::GTest)
+
+  if(USE_CLN)
+    target_link_libraries(${name} PUBLIC CLN)
   endif()
   if(USE_POLY)
-    # We don't link against libpoly, because CVC4 is already linked against it.
-    target_include_directories(${name} PRIVATE ${POLY_INCLUDE_DIR})
+    target_link_libraries(${name} PUBLIC Polyxx)
   endif()
+  target_link_libraries(${name} PUBLIC GMP)
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()
@@ -84,7 +84,7 @@ endmacro()
 add_subdirectory(api)
 add_subdirectory(base)
 add_subdirectory(context)
-add_subdirectory(expr)
+add_subdirectory(node)
 add_subdirectory(main)
 add_subdirectory(parser)
 add_subdirectory(printer)

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Yoni Zohar, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -286,7 +286,7 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
   if(amount == 1) {
     return a; 
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   for(unsigned i = 0; i < amount; ++i) {
     result << node[0]; 
   }
@@ -464,7 +464,7 @@ inline Node RewriteRule<SdivEliminate>::apply(TNode node)
   Node abs_b =
       nm->mkNode(kind::ITE, b_lt_0, nm->mkNode(kind::BITVECTOR_NEG, b), b);
 
-  Node a_udiv_b = nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, abs_a, abs_b);
+  Node a_udiv_b = nm->mkNode(kind::BITVECTOR_UDIV, abs_a, abs_b);
   Node neg_result = nm->mkNode(kind::BITVECTOR_NEG, a_udiv_b);
 
   Node condition = nm->mkNode(kind::XOR, a_lt_0, b_lt_0);
@@ -502,7 +502,7 @@ inline Node RewriteRule<SdivEliminateFewerBitwiseOps>::apply(TNode node)
   Node abs_b =
       nm->mkNode(kind::ITE, b_lt_0, nm->mkNode(kind::BITVECTOR_NEG, b), b);
 
-  Node a_udiv_b = nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, abs_a, abs_b);
+  Node a_udiv_b = nm->mkNode(kind::BITVECTOR_UDIV, abs_a, abs_b);
   Node neg_result = nm->mkNode(kind::BITVECTOR_NEG, a_udiv_b);
 
   Node result = nm->mkNode(kind::ITE, a_lt_0.xorNode(b_lt_0), neg_result, a_udiv_b);
@@ -536,7 +536,7 @@ inline Node RewriteRule<SremEliminate>::apply(TNode node)
   Node abs_b =
       nm->mkNode(kind::ITE, b_lt_0, nm->mkNode(kind::BITVECTOR_NEG, b), b);
 
-  Node a_urem_b = nm->mkNode(kind::BITVECTOR_UREM_TOTAL, abs_a, abs_b);
+  Node a_urem_b = nm->mkNode(kind::BITVECTOR_UREM, abs_a, abs_b);
   Node neg_result = nm->mkNode(kind::BITVECTOR_NEG, a_urem_b);
 
   Node result = nm->mkNode(kind::ITE, a_lt_0, neg_result, a_urem_b);
@@ -571,7 +571,7 @@ inline Node RewriteRule<SremEliminateFewerBitwiseOps>::apply(TNode node)
       nm->mkNode(kind::ITE, a_lt_0, nm->mkNode(kind::BITVECTOR_NEG, a), a);
   Node abs_b =
       nm->mkNode(kind::ITE, b_lt_0, nm->mkNode(kind::BITVECTOR_NEG, b), b);
-  Node a_urem_b = nm->mkNode(kind::BITVECTOR_UREM_TOTAL, abs_a, abs_b);
+  Node a_urem_b = nm->mkNode(kind::BITVECTOR_UREM, abs_a, abs_b);
   Node neg_result = nm->mkNode(kind::BITVECTOR_NEG, a_urem_b);
 
   Node result = nm->mkNode(kind::ITE, a_lt_0, neg_result, a_urem_b);
@@ -788,4 +788,4 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 
 }
 }
-}
+}  // namespace cvc5

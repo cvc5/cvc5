@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include <vector>
 #include "context/cdo.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <class T> class List;
 template <class T> class List_iterator;
@@ -217,6 +217,6 @@ template <class T> void Backtracker<T>::checkConsistency() {
   Assert(curr_level == pop_level);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__UTIL__BACKTRACKABLE_H */

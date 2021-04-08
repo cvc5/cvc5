@@ -19,7 +19,7 @@
 #ifndef CVC4__PROOF__VERIT_PROOF_RULE_H
 #define CVC4__PROOF__VERIT_PROOF_RULE_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -218,6 +218,6 @@ enum class VeritRule : uint32_t
 const char* veritRuletoString(VeritRule id);  // TODO: COMMENT
 }  // namespace proof
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PROOF__VERIT_PROOF_RULE_H */

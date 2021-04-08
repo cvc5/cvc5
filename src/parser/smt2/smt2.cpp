@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@
 #undef true
 #undef false
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
@@ -180,26 +180,12 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_UNIT, "seq.unit");
     addOperator(api::SEQ_NTH, "seq.nth");
   }
-  // at the moment, we only use this syntax for smt2.6
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-      || getLanguage() == language::input::LANG_SYGUS_V2)
-  {
-    addOperator(api::STRING_FROM_INT, "str.from_int");
-    addOperator(api::STRING_TO_INT, "str.to_int");
-    addOperator(api::STRING_IN_REGEXP, "str.in_re");
-    addOperator(api::STRING_TO_REGEXP, "str.to_re");
-    addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
-  }
-  else
-  {
-    addOperator(api::STRING_FROM_INT, "int.to.str");
-    addOperator(api::STRING_TO_INT, "str.to.int");
-    addOperator(api::STRING_IN_REGEXP, "str.in.re");
-    addOperator(api::STRING_TO_REGEXP, "str.to.re");
-    addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
-  }
+  addOperator(api::STRING_FROM_INT, "str.from_int");
+  addOperator(api::STRING_TO_INT, "str.to_int");
+  addOperator(api::STRING_IN_REGEXP, "str.in_re");
+  addOperator(api::STRING_TO_REGEXP, "str.to_re");
+  addOperator(api::STRING_TO_CODE, "str.to_code");
+  addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
 
   addOperator(api::REGEXP_CONCAT, "re.++");
   addOperator(api::REGEXP_UNION, "re.union");
@@ -656,15 +642,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-        || getLanguage() == language::input::LANG_SYGUS_V2)
-    {
-      defineVar("re.none", d_solver->mkRegexpEmpty());
-    }
-    else
-    {
-      defineVar("re.nostr", d_solver->mkRegexpEmpty());
-    }
+    defineVar("re.none", d_solver->mkRegexpEmpty());
     defineVar("re.allchar", d_solver->mkRegexpSigma());
 
     // Boolean is a placeholder
@@ -858,7 +836,7 @@ bool Smt2::isAbstractValue(const std::string& name)
 
 api::Term Smt2::mkAbstractValue(const std::string& name)
 {
-  assert(isAbstractValue(name));
+  Assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
 }
@@ -935,7 +913,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
   {
     expr = getExpressionForName(p.d_name);
   }
-  assert(!expr.isNull());
+  Assert(!expr.isNull());
   return expr;
 }
 
@@ -1231,4 +1209,4 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
 }
 
 }  // namespace parser
-}/* CVC4 namespace */
+}  // namespace cvc5

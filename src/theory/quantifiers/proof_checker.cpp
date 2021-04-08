@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,9 +18,9 @@
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -31,6 +31,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
+  pc->registerChecker(PfRule::ALPHA_EQUIV, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -116,6 +117,22 @@ Node QuantifiersProofRuleChecker::checkInternal(
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
   }
+  if (id == PfRule::ALPHA_EQUIV)
+  {
+    Assert(children.empty());
+    if (args[0].getKind() != kind::FORALL
+        || args.size() != args[0][0].getNumChildren() + 1)
+    {
+      return Node::null();
+    }
+    Node body = args[0][1];
+    std::vector<Node> vars{args[0][0].begin(), args[0][0].end()};
+    std::vector<Node> newVars{args.begin() + 1, args.end()};
+    Node renamedBody = body.substitute(
+        vars.begin(), vars.end(), newVars.begin(), newVars.end());
+    return args[0].eqNode(nm->mkNode(
+        kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, newVars), renamedBody));
+  }
 
   // no rule
   return Node::null();
@@ -123,4 +140,4 @@ Node QuantifiersProofRuleChecker::checkInternal(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -14,22 +14,24 @@
 
 #include "proof/lfsc/lfsc_printer.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"
-#include "proof/proof_letify.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
 {
   NodeManager* nm = NodeManager::currentNM();
+  d_boolType = nm->booleanType();
   // used for the `flag` type in LFSC
-  d_tt = d_tproc.mkInternalSymbol("tt", nm->booleanType());
-  d_ff = d_tproc.mkInternalSymbol("ff", nm->booleanType());
+  d_tt = d_tproc.mkInternalSymbol("tt", d_boolType);
+  d_ff = d_tproc.mkInternalSymbol("ff", d_boolType);
 }
 
 void LfscPrinter::print(std::ostream& out,
@@ -77,7 +79,7 @@ void LfscPrinter::print(std::ostream& out,
   // [2] compute the proof letification
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, size_t> pletMap;
-  ProofLetify::computeProofLet(pnBody, pletList, pletMap);
+  computeProofLetification(pnBody, pletList, pletMap);
 
   // [3] print the check command and term lets
   out << "(check" << std::endl;
@@ -134,59 +136,65 @@ void LfscPrinter::print(std::ostream& out,
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
-  printProofLetify(out, pnBody, lbind, pletList, pletMap, passumeMap);
+  LfscPrintChannelOut lout(out);
+  printProofLetify(&lout, pnBody, lbind, pletList, pletMap, passumeMap);
 
   out << cparen.str() << std::endl;
 }
 
 void LfscPrinter::printProofLetify(
-    std::ostream& out,
+    LfscPrintChannel* out,
     const ProofNode* pn,
     const LetBinding& lbind,
     const std::vector<const ProofNode*>& pletList,
     std::map<const ProofNode*, size_t>& pletMap,
     std::map<Node, size_t>& passumeMap)
 {
-  LfscPrintChannelOut lout(out);
-
   // closing parentheses
-  std::stringstream cparen;
+  size_t cparen = 0;
 
   // define the let proofs
   if (!pletList.empty())
   {
-    out << "; Let proofs:" << std::endl;
     std::map<const ProofNode*, size_t>::iterator itp;
     for (const ProofNode* p : pletList)
     {
       itp = pletMap.find(p);
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
-      out << "(plet _ _ ";
+      // print (plet _ _
+      out->printOpenLfscRule(LfscRule::PLET);
+      cparen++;
+      out->printHole();
+      out->printHole();
+      out->printEndLine();
+      // print the letified proof
       pletMap.erase(p);
-      printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+      printProofInternal(out, p, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
-      out << " (\\ ";
-      LfscPrintChannelOut::printProofId(out, pid);
+      // print the lambda (\ __pX
+      out->printOpenLfscRule(LfscRule::LAMBDA);
+      cparen++;
+      out->printProofId(pid);
       // debugging
       if (Trace.isOn("lfsc-print-debug"))
       {
-        out << "; proves " << p->getResult();
+        // out << "; proves " << p->getResult();
       }
-      out << std::endl;
-      cparen << "))";
+      out->printEndLine();
     }
-    out << std::endl;
+    out->printEndLine();
   }
 
   // [2] print the proof body
-  printProofInternal(&lout, pn, lbind, pletMap, passumeMap);
+  printProofInternal(out, pn, lbind, pletMap, passumeMap);
   Trace("lfsc-print-debug2")
-      << "node count print " << lout.d_nodeCount << std::endl;
+      << "node count print " << out->d_nodeCount << std::endl;
   Trace("lfsc-print-debug2")
-      << "trust count print " << lout.d_trustCount << std::endl;
+      << "trust count print " << out->d_trustCount << std::endl;
 
-  out << cparen.str() << std::endl;
+  // print the closing parenthesis
+  out->printCloseRule(cparen);
 }
 
 void LfscPrinter::printProofInternal(
@@ -196,14 +204,12 @@ void LfscPrinter::printProofInternal(
     const std::map<const ProofNode*, size_t>& pletMap,
     std::map<Node, size_t>& passumeMap)
 {
-  std::unordered_set<const ProofNode*> noBind;
-  std::unordered_set<const ProofNode*>::iterator itnb;
   // the stack
   std::vector<PExpr> visit;
   // whether we have process children
-  std::map<const ProofNode*, bool> processedChildren;
+  std::unordered_set<const ProofNode*> processingChildren;
   // helper iterators
-  std::map<const ProofNode*, bool>::iterator pit;
+  std::unordered_set<const ProofNode*>::iterator pit;
   std::map<const ProofNode*, size_t>::const_iterator pletIt;
   std::map<Node, size_t>::iterator passumeIt;
   Node curn;
@@ -220,31 +226,90 @@ void LfscPrinter::printProofInternal(
     if (cur != nullptr)
     {
       PfRule r = cur->getRule();
-      pit = processedChildren.find(cur);
-      if (pit == processedChildren.end())
+      // maybe it is letified
+      pletIt = pletMap.find(cur);
+      if (pletIt != pletMap.end())
       {
-        // maybe it is letified
-        pletIt = pletMap.find(cur);
-        if (pletIt != pletMap.end())
+        // a letified proof
+        out->printProofId(pletIt->second);
+        continue;
+      }
+      pit = processingChildren.find(cur);
+      if (pit == processingChildren.end())
+      {
+        bool isLambda = false;
+        if (r == PfRule::LFSC_RULE)
         {
-          // a letified proof
-          out->printProofId(pletIt->second);
+          Assert(!cur->getArguments().empty());
+          LfscRule lr = getLfscRule(cur->getArguments()[0]);
+          isLambda = (lr == LfscRule::LAMBDA);
         }
-        else if (r == PfRule::ASSUME)
+        if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
           out->printAssumeId(passumeIt->second);
         }
+        else if (isLambda)
+        {
+          Assert(cur->getArguments().size() == 3);
+          // lambdas are handled specially. We print in a self contained way
+          // here.
+          bool didBind = false;
+          // allocate an assumption, if necessary
+          size_t pid;
+          Node assumption = cur->getArguments()[2];
+          passumeIt = passumeMap.find(assumption);
+          if (passumeIt == passumeMap.end())
+          {
+            // mark that we bound the assumption
+            didBind = true;
+            pid = passumeMap.size();
+            passumeMap[assumption] = pid;
+          }
+          else
+          {
+            pid = passumeIt->second;
+          }
+          // make the node whose name is the assumption id, where notice that
+          // the type of this node does not matter
+          std::stringstream pidNodeName;
+          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
+          // must be an internal symbol so that it is not turned into (bvar ...)
+          Node pidNode =
+              d_tproc.mkInternalSymbol(pidNodeName.str(), d_boolType);
+          // print "(\ "
+          out->printOpenRule(cur);
+          // print the identifier
+          out->printNode(pidNode);
+          // Print the body of the proof with a fresh proof letification. We can
+          // keep the assumption map and the let binding (for terms).
+          std::vector<const ProofNode*> pletListNested;
+          std::map<const ProofNode*, size_t> pletMapNested;
+          const ProofNode* curBody = cur->getChildren()[0].get();
+          computeProofLetification(curBody, pletListNested, pletMapNested);
+          printProofLetify(
+              out, curBody, lbind, pletListNested, pletMapNested, passumeMap);
+          // unbind the assumption if necessary
+          if (didBind)
+          {
+            Assert(passumeMap.find(assumption) != passumeMap.end());
+            passumeMap.erase(assumption);
+          }
+          // print ")"
+          out->printCloseRule();
+        }
         else
         {
+          // assert that we should traverse cur when letifying
+          Assert(d_lpltc.shouldTraverse(cur));
           // a normal rule application, compute the proof arguments, which
           // notice in the case of PI also may modify our passumeMap.
           std::vector<PExpr> args;
-          if (computeProofArgs(cur, args, passumeMap, noBind))
+          if (computeProofArgs(cur, args))
           {
-            processedChildren[cur] = false;
+            processingChildren.insert(cur);
             // will revisit this proof node to close parentheses
             visit.push_back(PExpr(cur));
             std::reverse(args.begin(), args.end());
@@ -254,7 +319,6 @@ void LfscPrinter::printProofInternal(
           }
           else
           {
-            processedChildren[cur] = true;
             // could not print the rule, trust for now
             Node res = d_tproc.convert(cur->getResult());
             res = lbind.convert(res, "__t", true);
@@ -268,44 +332,16 @@ void LfscPrinter::printProofInternal(
           }
         }
       }
-      else if (!pit->second)
-      {
-        processedChildren[cur] = true;
-        out->printCloseRule();
-        if (r == PfRule::LFSC_RULE)
-        {
-          const std::vector<Node>& cargs = cur->getArguments();
-          Assert(!cargs.empty());
-          LfscRule lr = getLfscRule(cargs[0]);
-          if (lr == LfscRule::LAMBDA)
-          {
-            itnb = noBind.find(cur);
-            if (itnb == noBind.end())
-            {
-              Assert(cargs.size() == 3);
-              // Remove argument from assumption binding, only if it was bound
-              // by this call. This is not the case if the assumption is
-              // shadowing.
-              Assert(passumeMap.find(cargs[2]) != passumeMap.end());
-              passumeMap.erase(cargs[2]);
-            }
-            else
-            {
-              noBind.erase(cur);
-            }
-          }
-        }
-      }
       else
       {
-        // this would imply that our proof was not properly letified?
-        Assert(false) << "already processed children";
+        processingChildren.erase(cur);
+        out->printCloseRule();
       }
     }
     // case 2: printing a node
     else if (!curn.isNull())
     {
-      // it has already been converted to internal form
+      // it has already been converted to internal form, we letify it here
       Node curni = lbind.convert(curn, "__t", true);
       out->printNode(curni);
     }
@@ -323,9 +359,7 @@ void LfscPrinter::printProofInternal(
 }
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
-                                   std::vector<PExpr>& pargs,
-                                   std::map<Node, size_t>& passumeMap,
-                                   std::unordered_set<const ProofNode*>& noBind)
+                                   std::vector<PExpr>& pargs)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   std::vector<const ProofNode*> cs;
@@ -333,7 +367,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     cs.push_back(c.get());
   }
-  NodeManager* nm = NodeManager::currentNM();
   PfRule r = pn->getRule();
   const std::vector<Node>& args = pn->getArguments();
   std::vector<Node> as;
@@ -415,18 +448,28 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::FALSE_INTRO:
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
+    // arithmetic
+    case PfRule::ARITH_MULT_POS: pf << h << as[0] << as[1]; break;
+    case PfRule::ARITH_MULT_NEG: pf << h << as[0] << as[1]; break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
+    case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
+    case PfRule::CONCAT_EQ:
+      pf << h << h << h << args[0].getConst<bool>() << cs[0];
+      break;
+    case PfRule::CONCAT_CSPLIT:
+      pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
+      break;
+      break;
     /*
     case PfRule::RE_UNFOLD_POS:
       Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " <<
     d_tproc.convert(pn->getResult()) << std::endl; pf << h << h << h << cs[0];
       break;
       */
-    case PfRule::STRING_REDUCTION: { pf << h << as[0];
-    }
-    break;
+    case PfRule::STRING_EAGER_REDUCTION:
+    case PfRule::STRING_REDUCTION: pf << h << as[0]; break;
     // quantifiers
     case PfRule::SKOLEM_INTRO:
     {
@@ -437,36 +480,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
+      // lambda should be processed elsewhere
+      Assert(lr != LfscRule::LAMBDA);
       // Note that `args` has 2 builtin arguments, thus the first real argument
       // begins at index 2
       switch (lr)
       {
-        case LfscRule::LAMBDA:
-        {
-          // allocate an assumption, if necessary
-          size_t pid;
-          std::map<Node, size_t>::iterator itp = passumeMap.find(args[2]);
-          if (itp == passumeMap.end())
-          {
-            pid = passumeMap.size();
-            passumeMap[args[2]] = pid;
-          }
-          else
-          {
-            // mark that it did *not* bind its assumption
-            noBind.insert(pn);
-            pid = itp->second;
-          }
-          // make the node whose name is the assumption id, where notice that
-          // the type of this node does not matter
-          std::stringstream pidNodeName;
-          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
-          // must be an internal symbol so that it is not turned into (bvar ...)
-          Node pidNode =
-              d_tproc.mkInternalSymbol(pidNodeName.str(), nm->booleanType());
-          pf << pidNode << cs[0];
-        }
-        break;
         case LfscRule::SCOPE: pf << h << as[2] << cs[0]; break;
         case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
@@ -474,8 +493,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::AND_ELIM1:
         case LfscRule::AND_ELIM2:
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
+        case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
-        // ---------- arguments of translated rules go here
+        case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
         default: return false; break;
       }
       break;
@@ -487,6 +507,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     }
   }
   return true;
+}
+
+void LfscPrinter::computeProofLetification(
+    const ProofNode* pn,
+    std::vector<const ProofNode*>& pletList,
+    std::map<const ProofNode*, size_t>& pletMap)
+{
+  // use callback to specify to stop at LAMBDA
+  ProofLetify::computeProofLet(pn, pletList, pletMap, 2, &d_lpltc);
 }
 
 void LfscPrinter::print(std::ostream& out, Node n)
@@ -558,4 +587,4 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

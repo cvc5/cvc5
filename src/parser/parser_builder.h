@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,10 +21,11 @@
 
 #include <string>
 
+#include "cvc4_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -42,7 +43,8 @@ class Parser;
  * called any number of times on an instance and will generate a fresh
  * parser each time.
  */
-class CVC4_PUBLIC ParserBuilder {
+class CVC4_EXPORT ParserBuilder
+{
   enum InputType {
     FILE_INPUT,
     LINE_BUFFERED_STREAM_INPUT,
@@ -184,9 +186,9 @@ class CVC4_PUBLIC ParserBuilder {
 
   /** Set the parser to use the given logic string. */
   ParserBuilder& withForcedLogic(const std::string& logic);
-};/* class ParserBuilder */
+}; /* class ParserBuilder */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC4__PARSER__PARSER_BUILDER_H */

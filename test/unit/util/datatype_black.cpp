@@ -4,34 +4,32 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::DType
+ ** \brief Black box testing of cvc5::DType
  **
- ** Black box testing of CVC4::DType.
+ ** Black box testing of cvc5::DType.
  **/
 
 #include <sstream>
 
-#include "api/cvc4cpp.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/expr.h"
 #include "expr/type_node.h"
-#include "test_expr.h"
+#include "test_smt.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
-class TestUtilBlackDatatype : public TestExprBlack
+class TestUtilBlackDatatype : public TestSmt
 {
  public:
   void SetUp() override
   {
-    TestExprBlack::SetUp();
+    TestSmt::SetUp();
     Debug.on("datatypes");
     Debug.on("groundterms");
   }
@@ -497,4 +495,4 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

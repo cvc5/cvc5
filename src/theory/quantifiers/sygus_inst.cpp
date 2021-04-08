@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -26,9 +27,9 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -182,11 +183,11 @@ void addSpecialValues(
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+SygusInst::SygusInst(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
-                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                     QuantifiersRegistry& qr,
+                     TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),
       d_notified_assertions(qs.getUserContext())
@@ -208,7 +209,7 @@ void SygusInst::reset_round(Theory::Effort e)
   d_active_quant.clear();
   d_inactive_quant.clear();
 
-  FirstOrderModel* model = d_quantEngine->getModel();
+  FirstOrderModel* model = d_treg.getModel();
   uint32_t nasserted = model->getNumAssertedQuantifiers();
 
   for (uint32_t i = 0; i < nasserted; ++i)
@@ -244,9 +245,9 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
   if (quant_e != QEFFORT_STANDARD) return;
 
-  FirstOrderModel* model = d_quantEngine->getModel();
-  Instantiate* inst = d_quantEngine->getInstantiate();
-  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
+  FirstOrderModel* model = d_treg.getModel();
+  Instantiate* inst = d_qim.getInstantiate();
+  TermDbSygus* db = d_treg.getTermDatabaseSygus();
   SygusExplain syexplain(db);
   NodeManager* nm = NodeManager::currentNM();
   options::SygusInstMode mode = options::sygusInstMode();
@@ -285,7 +286,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
     if (mode == options::SygusInstMode::PRIORITY_INST)
     {
-      if (!inst->addInstantiation(q, terms))
+      if (!inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI))
       {
         sendEvalUnfoldLemmas(eval_unfold_lemmas);
       }
@@ -294,13 +295,13 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     {
       if (!sendEvalUnfoldLemmas(eval_unfold_lemmas))
       {
-        inst->addInstantiation(q, terms);
+        inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI);
       }
     }
     else
     {
       Assert(mode == options::SygusInstMode::INTERLEAVE);
-      inst->addInstantiation(q, terms);
+      inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI);
       sendEvalUnfoldLemmas(eval_unfold_lemmas);
     }
   }
@@ -312,7 +313,8 @@ bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
   for (const Node& lem : lemmas)
   {
     Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-    added_lemma |= d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+    added_lemma |=
+        d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD);
   }
   return added_lemma;
 }
@@ -461,7 +463,8 @@ Node SygusInst::getCeLiteral(Node q)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  Node sk = nm->mkSkolem("CeLiteral", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
   return lit;
@@ -478,7 +481,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
-  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
+  TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
   /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
    * instantiation constant ic_i with type types[i] and wrap each ic_i in
@@ -524,7 +527,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
       "CeLiteral", lit, d_qstate.getSatContext(), d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
-  d_quantEngine->getDecisionManager()->registerStrategy(
+  d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, ds);
 
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
@@ -545,11 +548,11 @@ void SygusInst::addCeLemma(Node q)
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
 
   Node lem = d_ce_lemmas[q];
-  d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+  d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYQI_CEX);
   d_ce_lemma_added.insert(q);
   Trace("sygus-inst") << "Add CE Lemma: " << lem << std::endl;
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

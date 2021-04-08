@@ -8,6 +8,8 @@
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
+ **
+ ** \brief a class for TupleProjectOp operator
  **/
 
 #include "tuple_project_op.h"
@@ -16,7 +18,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const TupleProjectOp& op)
 {
@@ -51,4 +53,4 @@ bool TupleProjectOp::operator==(const TupleProjectOp& op) const
   return d_indices == op.d_indices;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

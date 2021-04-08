@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,12 +19,11 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
-#include "theory/decision_manager.h"
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -462,8 +461,8 @@ class CardinalityExtension
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */

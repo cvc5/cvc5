@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 
 #include "theory/arith/theory_arith.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -25,11 +26,13 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -45,15 +48,15 @@ TheoryArith::TheoryArith(context::Context* c,
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
-      d_inferenceManager(*this, d_astate, pnm),
+      d_im(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
-      d_arithPreproc(d_astate, d_inferenceManager, pnm, logicInfo)
+      d_arithPreproc(d_astate, d_im, pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
-  d_inferManager = &d_inferenceManager;
+  d_inferManager = &d_im;
 }
 
 TheoryArith::~TheoryArith(){
@@ -62,6 +65,11 @@ TheoryArith::~TheoryArith(){
 }
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryArith::getProofChecker()
+{
+  return d_internal->getProofChecker();
+}
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -137,8 +145,8 @@ TrustNode TheoryArith::ppRewriteEq(TNode atom)
     return TrustNode::null();
   }
   Assert(atom[0].getType().isReal());
-  Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
   Node rewritten = Rewriter::rewrite(leq.andNode(geq));
   Debug("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << endl;
@@ -159,7 +167,8 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   d_internal->ppStaticLearn(n, learned);
 }
 
@@ -197,7 +206,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_inferenceManager.setIncomplete();
+      d_im.setIncomplete();
     }
   }
 }
@@ -246,7 +255,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel);
+    d_nonlinearExtension->interceptModel(arithModel, termSet);
   }
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : arithModel)
@@ -268,7 +277,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_out->lemma(lem);
+      bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
+      AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
     }
     return false;
   }
@@ -305,9 +315,9 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 }
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
-  return d_inferenceManager.getProofEqEngine();
+  return d_im.getProofEqEngine();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

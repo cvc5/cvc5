@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,14 +19,13 @@
 #pragma once
 
 #include <set>
-#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include "expr/node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -141,7 +140,7 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   for (TNode n : all) { conjunction << n; }
   return conjunction;
 }
@@ -160,7 +159,7 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
 
-  NodeBuilder<> disjunction(kind::OR);
+  NodeBuilder disjunction(kind::OR);
   for (TNode n : all) { disjunction << n; }
   return disjunction;
 }
@@ -227,4 +226,4 @@ Node eliminateInt2Bv(TNode node);
 }
 }
 }
-}
+}  // namespace cvc5

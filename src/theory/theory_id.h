@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,9 +20,9 @@
 #ifndef CVC4__THEORY__THEORY_ID_H
 #define CVC4__THEORY__THEORY_ID_H
 
-#include <iostream>
+#include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -52,11 +52,11 @@ enum TheoryId
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
 const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
-TheoryId& operator++(TheoryId& id) CVC4_PUBLIC;
+TheoryId& operator++(TheoryId& id);
 
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
 
-std::string getStatsPrefix(TheoryId theoryId) CVC4_PUBLIC;
+std::string getStatsPrefix(TheoryId theoryId);
 
 /**
  * A set of theories. Utilities for TheoryIdSet can be found below.
@@ -106,5 +106,5 @@ class TheoryIdSetUtil
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

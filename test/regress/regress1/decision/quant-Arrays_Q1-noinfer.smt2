@@ -6,7 +6,7 @@
   Boogie/Spec# benchmarks.
   This benchmark was translated by Michal Moskal.
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun InRange (Int Int) Bool)

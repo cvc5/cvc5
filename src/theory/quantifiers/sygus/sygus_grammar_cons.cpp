@@ -4,16 +4,17 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief implementation of class for constructing inductive datatypes that correspond to
- ** grammars that encode syntactic restrictions for SyGuS.
+ ** \brief implementation of class for constructing inductive datatypes that
+ ** correspond to grammars that encode syntactic restrictions for SyGuS.
  **/
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
+#include <sstream>
 #include <stack>
 
 #include "expr/dtype_cons.h"
@@ -26,11 +27,12 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -427,9 +429,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isFloatingPoint())
   {
-    FloatingPointType fp_type = static_cast<FloatingPointType>(type.toType());
-    FloatingPointSize fp_size(FloatingPointType(fp_type).getExponentSize(),
-                              FloatingPointType(fp_type).getSignificandSize());
+    FloatingPointSize fp_size(type.getFloatingPointExponentSize(),
+                              type.getFloatingPointSignificandSize());
     ops.push_back(nm->mkConst(FloatingPoint::makeNaN(fp_size)));
     ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, true)));
     ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
@@ -457,11 +458,13 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         const DType& dt = range.getDType();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
         {
-          for (unsigned j = 0, size_args = dt[i].getNumArgs(); j < size_args;
-               ++j)
+          // get the specialized constructor type, which accounts for
+          // parametric datatypes
+          TypeNode ctn = dt[i].getSpecializedConstructorType(range);
+          std::vector<TypeNode> argTypes = ctn.getArgTypes();
+          for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
           {
-            TypeNode tn = dt[i][j].getRangeType();
-            collectSygusGrammarTypesFor(tn, types);
+            collectSygusGrammarTypesFor(argTypes[j], types);
           }
         }
       }
@@ -523,10 +526,8 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> opLArgs;
-  std::vector<Expr> opLArgsExpr;
   // get the builtin type
   opLArgs.push_back(nm->mkBoundVar(bArgType));
-  opLArgsExpr.push_back(opLArgs.back().toExpr());
   // build zarg
   Node zarg;
   Assert(bArgType.isReal() || bArgType.isBitVector());
@@ -817,8 +818,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
                                      BITVECTOR_PLUS,
                                      BITVECTOR_SUB,
                                      BITVECTOR_MULT,
-                                     BITVECTOR_UDIV_TOTAL,
-                                     BITVECTOR_UREM_TOTAL,
+                                     BITVECTOR_UDIV,
+                                     BITVECTOR_UREM,
                                      BITVECTOR_SDIV,
                                      BITVECTOR_SREM,
                                      BITVECTOR_SHL,
@@ -989,6 +990,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
+        TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
+        // must specialize if a parametric datatype
+        if (dt.isParametric())
+        {
+          cop = nm->mkNode(
+              APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cop);
+        }
         if (dt[l].getNumArgs() == 0)
         {
           // Nullary constructors are interpreted as terms, not operators.
@@ -997,11 +1005,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         }
         std::vector<TypeNode> cargsCons;
         Trace("sygus-grammar-def") << "...add for selectors" << std::endl;
-        for (unsigned j = 0, size_j = dt[l].getNumArgs(); j < size_j; ++j)
+        // iterate over the arguments of the specialized constructor type,
+        // which accounts for parametric datatypes
+        std::vector<TypeNode> tsargs = tspec.getArgTypes();
+        TypeNode selDomain = type_to_unres[types[i]];
+        for (unsigned j = 0, size_j = tsargs.size(); j < size_j; ++j)
         {
           Trace("sygus-grammar-def")
               << "...for " << dt[l][j].getName() << std::endl;
-          TypeNode crange = dt[l][j].getRangeType();
+          TypeNode crange = tsargs[j];
           Assert(type_to_unres.find(crange) != type_to_unres.end());
           cargsCons.push_back(type_to_unres[crange]);
           // add to the selector type the selector operator
@@ -1009,11 +1021,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           Assert(std::find(types.begin(), types.end(), crange) != types.end());
           unsigned i_selType = std::distance(
               types.begin(), std::find(types.begin(), types.end(), crange));
-          TypeNode arg_type = dt[l][j].getType();
-          arg_type = arg_type.getSelectorDomainType();
-          Assert(type_to_unres.find(arg_type) != type_to_unres.end());
           std::vector<TypeNode> cargsSel;
-          cargsSel.push_back(type_to_unres[arg_type]);
+          cargsSel.push_back(selDomain);
           Node sel = dt[l][j].getSelector();
           sdts[i_selType].addConstructor(sel, dt[l][j].getName(), cargsSel);
         }
@@ -1621,6 +1630,6 @@ bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
   return true;
 }
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

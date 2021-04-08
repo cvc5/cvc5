@@ -21,11 +21,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_SimpSolver_h
 #define BVMinisat_SimpSolver_h
 
+#include "base/check.h"
 #include "proof/clause_id.h"
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/bvminisat/mtl/Queue.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace context {
 class Context;
@@ -40,7 +41,7 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-  SimpSolver(CVC4::context::Context* context);
+  SimpSolver(cvc5::context::Context* context);
   ~SimpSolver();
 
   // Problem specification:
@@ -114,9 +115,9 @@ class SimpSolver : public Solver {
     int     merges;
     int     asymm_lits;
     int     eliminated_vars;
-  //    CVC4::TimerStat total_eliminate_time;
+    //    cvc5::TimerStat total_eliminate_time;
 
- protected:
+   protected:
 
     // Helper structures:
     //
@@ -188,11 +189,12 @@ class SimpSolver : public Solver {
 
 inline bool SimpSolver::isEliminated (Var v) const { return eliminated[v]; }
 inline void SimpSolver::updateElimHeap(Var v) {
-    assert(use_simplification);
-    // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
-    if (elim_heap.inHeap(v) || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
-        elim_heap.update(v); }
-
+  Assert(use_simplification);
+  // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
+  if (elim_heap.inHeap(v)
+      || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
+    elim_heap.update(v);
+}
 
 inline bool SimpSolver::addClause    (const vec<Lit>& ps, ClauseId& id)    { ps.copyTo(add_tmp); return addClause_(add_tmp, id); }
 inline bool SimpSolver::addEmptyClause()                     { add_tmp.clear(); ClauseId id; return addClause_(add_tmp, id); }
@@ -235,8 +237,7 @@ inline lbool SimpSolver::solveLimited (bool do_simp, bool turn_off_simp){
     return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
-
+}  // namespace BVMinisat
+}  // namespace cvc5
 
 #endif

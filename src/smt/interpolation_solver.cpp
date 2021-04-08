@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Ying Sheng, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,9 @@
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent)
@@ -57,7 +57,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   {
     if (options::checkInterpols())
     {
-      checkInterpol(interpol.toExpr(), axioms, conj);
+      checkInterpol(interpol, axioms, conj);
     }
     return true;
   }
@@ -83,8 +83,8 @@ void InterpolationSolver::checkInterpol(Node interpol,
   {
     if (j == 1)
     {
-      Trace("check-interpol") << "SmtEngine::checkInterpol: conjecture is "
-                              << conj.toExpr() << std::endl;
+      Trace("check-interpol")
+          << "SmtEngine::checkInterpol: conjecture is " << conj << std::endl;
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": make new SMT engine" << std::endl;
@@ -136,4 +136,4 @@ void InterpolationSolver::checkInterpol(Node interpol,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

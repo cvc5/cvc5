@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,16 +17,21 @@
 
 #include "expr/node.h"
 #include "expr/proof_set.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 class CDProof;
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 /**
@@ -273,6 +278,6 @@ struct TranscendentalState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

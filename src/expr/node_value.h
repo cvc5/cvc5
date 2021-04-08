@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,11 +32,11 @@
 #include "expr/kind.h"
 #include "options/language.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <bool ref_count> class NodeTemplate;
 class TypeNode;
-template <unsigned N> class NodeBuilder;
+class NodeBuilder;
 class NodeManager;
 
 namespace expr {
@@ -45,15 +45,15 @@ namespace expr {
 
 namespace kind {
   namespace metakind {
-    template < ::CVC4::Kind k, bool pool >
-    struct NodeValueConstCompare;
+  template < ::cvc5::Kind k, bool pool>
+  struct NodeValueConstCompare;
 
-    struct NodeValueCompare;
-    struct NodeValueConstPrinter;
+  struct NodeValueCompare;
+  struct NodeValueConstPrinter;
 
-    void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
-  }/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
+  void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv);
+  }  // namespace metakind
+  }  // namespace kind
 
 namespace expr {
 
@@ -63,19 +63,18 @@ namespace expr {
 class NodeValue
 {
   template <bool>
-  friend class ::CVC4::NodeTemplate;
-  friend class ::CVC4::TypeNode;
-  template <unsigned nchild_thresh>
-  friend class ::CVC4::NodeBuilder;
-  friend class ::CVC4::NodeManager;
+  friend class ::cvc5::NodeTemplate;
+  friend class ::cvc5::TypeNode;
+  friend class ::cvc5::NodeBuilder;
+  friend class ::cvc5::NodeManager;
 
   template <Kind k, bool pool>
-  friend struct ::CVC4::kind::metakind::NodeValueConstCompare;
+  friend struct ::cvc5::kind::metakind::NodeValueConstCompare;
 
-  friend struct ::CVC4::kind::metakind::NodeValueCompare;
-  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
+  friend struct ::cvc5::kind::metakind::NodeValueCompare;
+  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
 
-  friend void ::CVC4::kind::metakind::deleteNodeValueConstant(NodeValue* nv);
+  friend void ::cvc5::kind::metakind::deleteNodeValueConstant(NodeValue* nv);
 
   friend class RefCountGuard;
 
@@ -395,12 +394,12 @@ struct NodeValueIDEquality {
 
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5
 
 #include "expr/node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 inline NodeValue::NodeValue(int) :
@@ -496,12 +495,12 @@ inline NodeValue* NodeValue::getChild(int i) const {
   return d_children[i];
 }
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 template <typename T>
@@ -517,7 +516,7 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   return out;
 }
 
-}/* CVC4::expr namespace */
+}  // namespace expr
 
 #ifdef CVC4_DEBUG
 /**
@@ -545,6 +544,6 @@ static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* 
 }
 #endif /* CVC4_DEBUG */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__NODE_VALUE_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,14 +21,14 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -696,11 +696,7 @@ bool ArithInstantiator::needsPostProcessInstantiationForVariable(
 }
 
 bool ArithInstantiator::postProcessInstantiationForVariable(
-    CegInstantiator* ci,
-    SolvedForm& sf,
-    Node pv,
-    CegInstEffort effort,
-    std::vector<Node>& lemmas)
+    CegInstantiator* ci, SolvedForm& sf, Node pv, CegInstEffort effort)
 {
   Assert(std::find(sf.d_non_basic.begin(), sf.d_non_basic.end(), pv)
          != sf.d_non_basic.end());
@@ -1040,4 +1036,4 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

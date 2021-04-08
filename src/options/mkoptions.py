@@ -2,9 +2,9 @@
 #####################
 ## mkoptions.py
 ## Top contributors (to current version):
-##   Mathias Preiner
+##   Mathias Preiner, Everett Maus
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -168,23 +168,23 @@ TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
 
 
 TPL_OPTION_STRUCT_RW = \
-"""extern struct CVC4_PUBLIC {name}__option_t
+"""extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
   bool wasSetByUser() const;
   void set(const type& v);
   const char* getName() const;
-}} thread_local {name} CVC4_PUBLIC;"""
+}} thread_local {name};"""
 
 TPL_OPTION_STRUCT_RO = \
-"""extern struct CVC4_PUBLIC {name}__option_t
+"""extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
   bool wasSetByUser() const;
   const char* getName() const;
-}} thread_local {name} CVC4_PUBLIC;"""
+}} thread_local {name};"""
 
 
 TPL_DECL_SET = \
@@ -258,9 +258,9 @@ enum class {type}
 TPL_DECL_MODE_FUNC = \
 """
 std::ostream&
-operator<<(std::ostream& os, {type} mode) CVC4_PUBLIC;"""
+operator<<(std::ostream& os, {type} mode);"""
 
-TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(" CVC4_PUBLIC;")] + \
+TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 """
 {{
   os << "{type}::";

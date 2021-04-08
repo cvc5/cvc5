@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,14 +19,16 @@
 
 #include "expr/node.h"
 #include "theory/output_channel.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
 namespace theory {
+
+class Theory;
 
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine
@@ -106,6 +108,6 @@ class EngineOutputChannel : public theory::OutputChannel
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H */

@@ -2,9 +2,9 @@
 /*! \file signal_handlers.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Gereon Kremer
+ **   Morgan Deters, Gereon Kremer, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,14 +38,12 @@
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 #include "util/safe_print.h"
-#include "util/statistics.h"
 
-using CVC4::Exception;
+using cvc5::Exception;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 /**
@@ -59,13 +57,10 @@ namespace signal_handlers {
 
 void print_statistics()
 {
-  if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
+  if (pExecutor != nullptr)
   {
-    if (pTotalTime != NULL && pTotalTime->running())
-    {
-      pTotalTime->stop();
-    }
-    pExecutor->safeFlushStatistics(STDERR_FILENO);
+    totalTime.reset();
+    pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }
 
@@ -347,4 +342,4 @@ void cleanup() noexcept
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace CVC4
+}  // namespace cvc5

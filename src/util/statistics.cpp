@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,7 @@
 #include "util/safe_print.h"
 #include "util/statistics_registry.h" // for details about class Stat
 
-
-namespace CVC4 {
-
-std::string StatisticsBase::s_regDelim("::");
+namespace cvc5 {
 
 bool StatisticsBase::StatCmp::operator()(const Stat* s1, const Stat* s2) const {
   return s1->getName() < s2->getName();
@@ -34,17 +31,14 @@ StatisticsBase::iterator::value_type StatisticsBase::iterator::operator*() const
 }
 
 StatisticsBase::StatisticsBase() :
-  d_prefix(),
   d_stats() {
 }
 
 StatisticsBase::StatisticsBase(const StatisticsBase& stats) :
-  d_prefix(stats.d_prefix),
   d_stats() {
 }
 
 StatisticsBase& StatisticsBase::operator=(const StatisticsBase& stats) {
-  d_prefix = stats.d_prefix;
   return *this;
 }
 
@@ -106,10 +100,8 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
       i != d_stats.end();
       ++i) {
     Stat* s = *i;
-    if(d_prefix != "") {
-      out << d_prefix << s_regDelim;
-    }
-    s->flushStat(out);
+    out << s->getName() << ", ";
+    s->flushInformation(out);
     out << std::endl;
   }
 #endif /* CVC4_STATISTICS_ON */
@@ -119,11 +111,9 @@ void StatisticsBase::safeFlushInformation(int fd) const {
 #ifdef CVC4_STATISTICS_ON
   for (StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
     Stat* s = *i;
-    if (d_prefix.size() != 0) {
-      safe_print(fd, d_prefix);
-      safe_print(fd, s_regDelim);
-    }
-    s->safeFlushStat(fd);
+    safe_print(fd, s->getName());
+    safe_print(fd, ", ");
+    s->safeFlushInformation(fd);
     safe_print(fd, "\n");
   }
 #endif /* CVC4_STATISTICS_ON */
@@ -140,8 +130,4 @@ SExpr StatisticsBase::getStatistic(std::string name) const {
   }
 }
 
-void StatisticsBase::setPrefix(const std::string& prefix) {
-  d_prefix = prefix;
-}
-
-}/* CVC4 namespace */
+}  // namespace cvc5

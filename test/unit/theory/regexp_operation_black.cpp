@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,7 @@
 #include <memory>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine_scope.h"
@@ -27,7 +27,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -144,4 +144,4 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

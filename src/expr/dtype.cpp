@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,11 +17,12 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_matcher.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 DType::DType(std::string name, bool isCo)
     : d_name(name),
@@ -882,10 +883,11 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   NodeManager* nm = NodeManager::currentNM();
   std::stringstream ss;
   ss << "sel_" << index;
-  s = nm->mkSkolem(ss.str(),
-                   nm->mkSelectorType(dtt, t),
-                   "is a shared selector",
-                   NodeManager::SKOLEM_NO_NOTIFY);
+  SkolemManager* sm = nm->getSkolemManager();
+  s = sm->mkDummySkolem(ss.str(),
+                        nm->mkSelectorType(dtt, t),
+                        "is a shared selector",
+                        NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
@@ -954,4 +956,4 @@ std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
   return out << "index_" << dic.getIndex();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

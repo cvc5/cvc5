@@ -61,6 +61,9 @@
 /* Define if `strtok_r' is supported by the platform. */
 #cmakedefine HAVE_STRTOK_R
 
+/* Define if `setitimer` is supported by the platform. */
+#cmakedefine01 HAVE_SETITIMER
+
 /* Define to 1 if the <unistd.h> header file is available. */
 #cmakedefine01 HAVE_UNISTD_H
 

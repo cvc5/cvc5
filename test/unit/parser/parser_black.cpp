@@ -4,23 +4,21 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Christopher L. Conway, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::parser::Parser for CVC and SMT-LIBv2
+ ** \brief Black box testing of cvc5::parser::Parser for CVC and SMT-LIBv2
  ** inputs.
  **
- ** Black box testing of CVC4::parser::Parser for CVC and SMT-LIbv2 inputs.
+ ** Black box testing of cvc5::parser::Parser for CVC and SMT-LIbv2 inputs.
  **/
 
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"
@@ -31,7 +29,7 @@
 #include "smt/command.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace parser;
 using namespace language::input;
@@ -50,7 +48,7 @@ class TestParserBlackParser : public TestInternal
     TestInternal::SetUp();
     d_options.set(options::parseOnly, true);
     d_symman.reset(nullptr);
-    d_solver.reset(new CVC4::api::Solver(&d_options));
+    d_solver.reset(new cvc5::api::Solver(&d_options));
   }
 
   void TearDown() override
@@ -188,7 +186,7 @@ class TestParserBlackParser : public TestInternal
 
   Options d_options;
   InputLanguage d_lang;
-  std::unique_ptr<CVC4::api::Solver> d_solver;
+  std::unique_ptr<cvc5::api::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };
 
@@ -394,4 +392,4 @@ TEST_F(TestParserBlackSmt2Parser, bad_exprs)
 #endif
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

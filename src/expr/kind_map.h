@@ -2,9 +2,9 @@
 /*! \file kind_map.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Mathias Preiner
+ **   Gereon Kremer, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /** A very simple bitmap for Kinds */
 class KindMap
@@ -51,6 +51,6 @@ class KindMap
   std::bitset<kind::LAST_KIND> d_bits;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__KIND_MAP_H */

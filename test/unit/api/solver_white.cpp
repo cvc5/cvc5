@@ -2,7 +2,7 @@
 /*! \file solver_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Makai Mann, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -17,7 +17,7 @@
 #include "base/configuration.h"
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -54,4 +54,4 @@ TEST_F(TestApiWhiteSolver, getOp)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

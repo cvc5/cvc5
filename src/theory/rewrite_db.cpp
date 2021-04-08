@@ -16,9 +16,9 @@
 
 #include "theory/rewrite_db_term_process.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 RewriteDb::RewriteDb() : d_idCounter(DslPfRule::USER_START)
@@ -120,4 +120,4 @@ const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(Node eq) const
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

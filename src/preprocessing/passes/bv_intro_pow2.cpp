@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,12 +25,12 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 namespace {
 
@@ -100,8 +100,7 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+}  // namespace passes
+}  // namespace preprocessing
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-
-}/* CVC4 namespace */
+}  // namespace cvc5

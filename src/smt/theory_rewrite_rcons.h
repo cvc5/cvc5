@@ -24,7 +24,7 @@
 #include "expr/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -50,6 +50,6 @@ class TheoryRewriteRCons
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -167,8 +167,6 @@ class TheorySetsPrivate {
 
   void preRegisterTerm(TNode node);
 
-  /** ppRewrite, which expands choose.  */
-  TrustNode expandDefinition(Node n);
   /** ppRewrite, which expands choose and is_singleton.  */
   TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
 
@@ -204,7 +202,8 @@ class TheorySetsPrivate {
    */
   Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node);
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */
@@ -235,9 +234,8 @@ class TheorySetsPrivate {
   std::map<Node, Node> d_isSingletonNodes;
 };/* class TheorySetsPrivate */
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,13 +22,15 @@
 #include "expr/node.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -45,6 +47,8 @@ class TheoryQuantifiers : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /** finish initialization */
   void finishInit() override;
   /** needs equality engine */
@@ -81,17 +85,21 @@ class TheoryQuantifiers : public Theory {
   /** The theory rewriter for this theory. */
   QuantifiersRewriter d_rewriter;
   /** The proof rule checker */
-  QuantifiersProofRuleChecker d_qChecker;
+  QuantifiersProofRuleChecker d_checker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
+  /** The quantifiers registry */
+  QuantifiersRegistry d_qreg;
+  /** The term registry */
+  TermRegistry d_treg;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
-  QuantifiersEngine d_qengine;
+  std::unique_ptr<QuantifiersEngine> d_qengine;
 };/* class TheoryQuantifiers */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */

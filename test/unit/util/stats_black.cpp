@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Aina Niemetz, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Stat and associated classes
+ ** \brief Black box testing of cvc5::Stat and associated classes
  **
- ** Black box testing of CVC4::Stat and associated classes.
+ ** Black box testing of cvc5::Stat and associated classes.
  **/
 
 #include <fcntl.h>
@@ -24,22 +24,11 @@
 #include "lib/clock_gettime.h"
 #include "test.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
+#include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
-
-/**
- * This is a duplicate of operator== in statistics_registry.h.
- * This is duplicated here to try to avoid polluting top namepsace.
- *
- * If operator== is in the CVC4 namespace, there are some circumstances
- * where clang does not find this operator.
- */
-bool operator==(const timespec& a, const timespec& b)
-{
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
-}
 
 class TestUtilBlackStats : public TestInternal
 {
@@ -58,16 +47,9 @@ TEST_F(TestUtilBlackStats, stats)
   BackedStat<double> backedDoubleNoDec("backedDoubleNoDec", 2.0);
   BackedStat<bool> backedBool("backedBool", true);
   BackedStat<void*> backedAddr("backedDouble", (void*)0xDEADBEEF);
-  HistogramStat<int64_t> histStat("hist");
-  histStat << 5;
-  histStat << 6;
-  histStat << 5;
-  histStat << 10;
-  histStat << 10;
-  histStat << 0;
   IntegralHistogramStat<std::int64_t> histIntStat("hist-int");
   histIntStat << 15 << 16 << 15 << 14 << 16;
-  IntegralHistogramStat<CVC4::PfRule> histPfRuleStat("hist-pfrule");
+  IntegralHistogramStat<cvc5::PfRule> histPfRuleStat("hist-pfrule");
   histPfRuleStat << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
   // A statistic with no safe_print support
@@ -84,22 +66,22 @@ TEST_F(TestUtilBlackStats, stats)
   ASSERT_EQ(histIntStat.getName(), "hist-int");
   ASSERT_EQ(histPfRuleStat.getName(), "hist-pfrule");
 
-  ASSERT_EQ(refStr.getData(), empty);
-  ASSERT_EQ(refStr2.getData(), bar);
+  ASSERT_EQ(refStr.get(), empty);
+  ASSERT_EQ(refStr2.get(), bar);
   empty = "a different string";
   bar += " and with an addition";
-  ASSERT_EQ(refStr.getData(), empty);
-  ASSERT_EQ(refStr2.getData(), bar);
+  ASSERT_EQ(refStr.get(), empty);
+  ASSERT_EQ(refStr2.get(), bar);
 
-  ASSERT_EQ(backedStr.getData(), "baz");
+  ASSERT_EQ(backedStr.get(), "baz");
   baz = "something else";
-  ASSERT_EQ(backedStr.getData(), "baz");
+  ASSERT_EQ(backedStr.get(), "baz");
 
-  ASSERT_EQ(sInt.getData(), 10);
-  sInt.setData(100);
-  ASSERT_EQ(sInt.getData(), 100);
+  ASSERT_EQ(sInt.get(), 10);
+  sInt.set(100);
+  ASSERT_EQ(sInt.get(), 100);
 
-  ASSERT_TRUE(sTimer.getData() == timespec());
+  ASSERT_TRUE(sTimer.get() == std::chrono::nanoseconds());
 
   std::stringstream sstr;
 
@@ -142,8 +124,6 @@ TEST_F(TestUtilBlackStats, stats)
   safe_print(fd, "\n");
   backedBool.safeFlushInformation(fd);
   safe_print(fd, "\n");
-  histStat.safeFlushInformation(fd);
-  safe_print(fd, "\n");
   histIntStat.safeFlushInformation(fd);
   safe_print(fd, "\n");
   histPfRuleStat.safeFlushInformation(fd);
@@ -170,7 +150,6 @@ TEST_F(TestUtilBlackStats, stats)
       "2.0\n"
       "0xdeadbeef\n"
       "true\n"
-      "[(0 : 1), (5 : 2), (6 : 1), (10 : 2)]\n"
       "[(14 : 1), (15 : 2), (16 : 2)]\n"
       "[(ASSUME : 2), (SCOPE : 1)]\n"
       "<unsupported>";
@@ -182,4 +161,4 @@ TEST_F(TestUtilBlackStats, stats)
 #endif
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

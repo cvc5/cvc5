@@ -4,20 +4,20 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Configuration.
+ ** \brief Black box testing of cvc5::Configuration.
  **
- ** Black box testing of CVC4::Configuration.
+ ** Black box testing of cvc5::Configuration.
  **/
 
 #include "base/configuration.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackConfiguration : public TestInternal
@@ -96,4 +96,4 @@ TEST_F(TestUtilBlackConfiguration, about)
   Configuration::about();
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

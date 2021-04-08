@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/sets/normal_form.h"
@@ -28,9 +29,9 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -285,6 +286,10 @@ void TheorySetsPrivate::fullEffortCheck()
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
+          if (d_im.hasSent())
+          {
+            break;
+          }
           // if we do not handle the kind, set incomplete
           Kind nk0 = n[0].getKind();
           // some kinds of cardinality we cannot handle
@@ -984,9 +989,20 @@ void TheorySetsPrivate::computeCareGraph()
       {
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
-        // break into index based on operator, and type of first argument (since
-        // some operators are parametric)
-        TypeNode tn = f1[0].getType();
+        // break into index based on operator, and the type of the element
+        // type of the proper set, which notice must be safe wrt subtyping.
+        TypeNode tn;
+        if (k == kind::SINGLETON)
+        {
+          // get the type of the singleton set (not the type of its element)
+          tn = f1.getType().getSetElementType();
+        }
+        else
+        {
+          Assert (k == kind::MEMBER);
+          // get the element type of the set (not the type of the element)
+          tn = f1[1].getType().getSetElementType();
+        }
         std::vector<TNode> reps;
         bool hasCareArg = false;
         for (unsigned j = 0; j < f1.getNumChildren(); j++)
@@ -1209,7 +1225,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end)
@@ -1265,17 +1281,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-TrustNode TheorySetsPrivate::expandDefinition(Node node)
-{
-  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
-
-  if (node.getKind()==kind::CHOOSE)
-  {
-    return expandChooseOperator(node);
-  }
-  return TrustNode::null();
-}
-
 TrustNode TheorySetsPrivate::ppRewrite(Node node,
                                        std::vector<SkolemLemma>& lems)
 {
@@ -1283,23 +1288,16 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
 
   switch (node.getKind())
   {
-    case kind::CHOOSE: return expandChooseOperator(node);
+    case kind::CHOOSE: return expandChooseOperator(node, lems);
     case kind::IS_SINGLETON: return expandIsSingletonOperator(node);
     default: return TrustNode::null();
   }
 }
 
-TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
+TrustNode TheorySetsPrivate::expandChooseOperator(
+    const Node& node, std::vector<SkolemLemma>& lems)
 {
   Assert(node.getKind() == CHOOSE);
-
-  // we call the rewriter here to handle the pattern (choose (singleton x))
-  // because the rewriter is called after expansion
-  Node rewritten = Rewriter::rewrite(node);
-  if (rewritten.getKind() != CHOOSE)
-  {
-    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
-  }
 
   // (choose A) is expanded as
   // (witness ((x elementType))
@@ -1309,7 +1307,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
   //      (and (member x A) (= x chooseUf(A)))
 
   NodeManager* nm = NodeManager::currentNM();
-  Node set = rewritten[0];
+  Node set = node[0];
   TypeNode setType = set.getType();
   Node chooseSkolem = getChooseFunction(setType);
   Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
@@ -1322,9 +1320,10 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
   Node member = nm->mkNode(MEMBER, witnessVariable, set);
   Node memberAndEqual = member.andNode(equal);
   Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
-  Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-  Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
-  return TrustNode::mkTrustRewrite(node, witness, nullptr);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node ret = sm->mkSkolem(witnessVariable, ite, "kSetChoose");
+  lems.push_back(SkolemLemma(ret, nullptr));
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
@@ -1374,11 +1373,12 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
   stringstream stream;
   stream << "chooseUf" << setType.getId();
   string name = stream.str();
-  Node chooseSkolem = nm->mkSkolem(
+  Node chooseSkolem = sm->mkDummySkolem(
       name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
   d_chooseFunctions[setType] = chooseSkolem;
   return chooseSkolem;
@@ -1388,4 +1388,4 @@ void TheorySetsPrivate::presolve() { d_state.reset(); }
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

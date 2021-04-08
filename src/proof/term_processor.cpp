@@ -16,9 +16,9 @@
 
 #include "expr/attribute.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 TermProcessor::TermProcessor(bool forceIdem) : d_forceIdem(forceIdem) {}
@@ -133,7 +133,7 @@ TypeNode TermProcessor::convertType(TypeNode tn)
     {
       // reconstruct using a node builder, which seems to be required for
       // type nodes.
-      NodeBuilder<> nb(cur.getKind());
+      NodeBuilder nb(cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator
@@ -192,4 +192,4 @@ TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
 bool TermProcessor::shouldTraverse(Node n) { return true; }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

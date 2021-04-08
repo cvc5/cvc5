@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
     : d_type(), d_value()
@@ -115,4 +115,4 @@ size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
          * NodeHashFunction()(asa.getValue());
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

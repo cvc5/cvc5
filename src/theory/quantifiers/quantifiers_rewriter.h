@@ -2,9 +2,9 @@
 /*! \file quantifiers_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -140,7 +140,7 @@ class QuantifiersRewriter : public TheoryRewriter
                                 Kind k,
                                 std::map<Node, bool>& lit_pol,
                                 bool& childrenChanged);
-  static void addNodeToOrBuilder(Node n, NodeBuilder<>& t);
+  static void addNodeToOrBuilder(Node n, NodeBuilder& t);
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
@@ -301,8 +301,8 @@ public:
                        bool marked = false);
 }; /* class QuantifiersRewriter */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,10 +19,10 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -207,4 +207,4 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

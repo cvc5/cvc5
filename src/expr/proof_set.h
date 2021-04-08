@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,7 @@
 #include "context/context.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A (context-dependent) set of proofs, which is used for memory
@@ -70,6 +70,6 @@ class CDProofSet
   std::string d_namePrefix;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__EXPR__LAZY_PROOF_SET_H */

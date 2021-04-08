@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -41,9 +41,7 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe,
-        QuantifiersInferenceManager& qim,
-        SynthConjecture* p);
+  Cegis(QuantifiersInferenceManager& qim, TermDbSygus* tds, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node conj,
@@ -227,8 +225,8 @@ class Cegis : public SygusModule
   //---------------------------------end for symbolic constructors
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */

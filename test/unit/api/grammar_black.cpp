@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -44,6 +44,7 @@ TEST_F(TestApiBlackGrammar, addRule)
   ASSERT_THROW(g.addRule(start, nullTerm), CVC4ApiException);
   ASSERT_THROW(g.addRule(nts, d_solver.mkBoolean(false)), CVC4ApiException);
   ASSERT_THROW(g.addRule(start, d_solver.mkInteger(0)), CVC4ApiException);
+  ASSERT_THROW(g.addRule(start, nts), CVC4ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 
@@ -68,6 +69,7 @@ TEST_F(TestApiBlackGrammar, addRules)
   ASSERT_THROW(g.addRules(start, {nullTerm}), CVC4ApiException);
   ASSERT_THROW(g.addRules(nts, {d_solver.mkBoolean(false)}), CVC4ApiException);
   ASSERT_THROW(g.addRules(start, {d_solver.mkInteger(0)}), CVC4ApiException);
+  ASSERT_THROW(g.addRules(start, {nts}), CVC4ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 
@@ -120,4 +122,4 @@ TEST_F(TestApiBlackGrammar, addAnyVariable)
   ASSERT_THROW(g1.addAnyVariable(start), CVC4ApiException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,9 +19,11 @@
 #ifndef CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 #define CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 
+#include <climits>
+
 #include "theory/sets/normal_form.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -388,7 +390,7 @@ struct JoinImageTypeRule {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be a constant");
     }
-    CVC4::Rational r(INT_MAX);
+    cvc5::Rational r(INT_MAX);
     if (n[1].getConst<Rational>() > r) {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage Exceeded INT_MAX in cardinality constraint");
@@ -440,8 +442,8 @@ struct SetsProperties {
   }
 };/* struct SetsProperties */
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */

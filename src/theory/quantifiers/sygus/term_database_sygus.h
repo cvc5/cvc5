@@ -2,9 +2,9 @@
 /*! \file term_database_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -54,8 +54,10 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
-  TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim);
+  TermDbSygus(QuantifiersState& qs);
   ~TermDbSygus() {}
+  /** Finish init, which sets the inference manager */
+  void finishInit(QuantifiersInferenceManager* qim);
   /** Reset this utility */
   bool reset(Theory::Effort e);
   /** Identify this utility */
@@ -316,8 +318,8 @@ class TermDbSygus {
  private:
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
-  /** The quantifiers inference manager */
-  QuantifiersInferenceManager& d_qim;
+  /** Pointer to the quantifiers inference manager */
+  QuantifiersInferenceManager* d_qim;
 
   //------------------------------utilities
   /** sygus explanation */
@@ -463,8 +465,8 @@ class TermDbSygus {
 
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

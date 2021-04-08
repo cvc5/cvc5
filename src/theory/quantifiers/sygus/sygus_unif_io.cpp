@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,15 +20,15 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 #include "util/random.h"
 
 #include <math.h>
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -522,7 +522,7 @@ SygusUnifIo::SygusUnifIo(SynthConjecture* p)
 SygusUnifIo::~SygusUnifIo() {}
 
 void SygusUnifIo::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
@@ -545,7 +545,7 @@ void SygusUnifIo::initializeCandidate(
     }
   }
   d_ecache.clear();
-  SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(tds, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
 }
@@ -1675,6 +1675,6 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   return conds[bestIndex];
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

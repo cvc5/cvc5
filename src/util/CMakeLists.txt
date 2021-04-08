@@ -3,12 +3,14 @@
 ## Top contributors (to current version):
 ##   Mathias Preiner, Gereon Kremer, Aina Niemetz
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
 configure_file(floatingpoint_literal_symfpu.h.in floatingpoint_literal_symfpu.h)
+configure_file(floatingpoint_literal_symfpu_traits.h.in
+               floatingpoint_literal_symfpu_traits.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
@@ -29,6 +31,8 @@ libcvc4_add_sources(
   floatingpoint.h
   floatingpoint_size.cpp
   floatingpoint_size.h
+  floatingpoint_literal_symfpu.cpp
+  floatingpoint_literal_symfpu_traits.cpp
   gmp_util.h
   hash.h
   iand.h
@@ -58,11 +62,23 @@ libcvc4_add_sources(
   smt2_quote_string.h
   statistics.cpp
   statistics.h
+  statistics_public.cpp
+  statistics_public.h
+  statistics_reg.cpp
+  statistics_reg.h
   statistics_registry.cpp
   statistics_registry.h
+  statistics_value.cpp
+  statistics_value.h
+  stats_base.cpp
+  stats_base.h
+  stats_histogram.h
+  stats_timer.cpp
+  stats_timer.h
+  stats_utils.cpp
+  stats_utils.h
   string.cpp
   string.h
-  floatingpoint_literal_symfpu.cpp
   tuple.h
   unsafe_interrupt_exception.h
   utility.cpp

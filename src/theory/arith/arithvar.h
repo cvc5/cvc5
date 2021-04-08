@@ -4,18 +4,18 @@
  ** Top contributors (to current version):
  **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Defines ArithVar which is the internal representation of variables in arithmetic
+ ** \brief Defines ArithVar which is the internal representation of variables in
+ ** arithmetic
  **
  ** This defines ArithVar which is the internal representation of variables in
  ** arithmetic. This is a typedef from Index to ArithVar.
  ** This file also provides utilities for ArithVars.
  **/
-
 
 #include "cvc4_private.h"
 
@@ -26,7 +26,7 @@
 #include "util/index.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -39,7 +39,6 @@ typedef std::vector< ArithRatPair > ArithRatPairVec;
 
 extern bool debugIsASet(const ArithVarVec& variables);
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

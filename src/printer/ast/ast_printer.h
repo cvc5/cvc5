@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,17 +23,17 @@
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LetBinding;
 
 namespace printer {
 namespace ast {
 
-class AstPrinter : public CVC4::Printer
+class AstPrinter : public cvc5::Printer
 {
  public:
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
@@ -196,6 +196,6 @@ class AstPrinter : public CVC4::Printer
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PRINTER__AST_PRINTER_H */

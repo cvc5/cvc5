@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,13 +31,14 @@
 #include "parser/antlr_line_buffered_input.h"
 
 #include <antlr3.h>
+
 #include <iostream>
 #include <string>
-#include <cassert>
 
+#include "base/check.h"
 #include "base/output.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
@@ -217,8 +218,8 @@ setupInputStream(pANTLR3_INPUT_STREAM input)
 
 static ANTLR3_UCHAR bufferedInputLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
-  CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
-      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
+  cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
   uint8_t* result = line_buffered_input->line_buffer->getPtrWithOffset(
       input->line, input->charPositionInLine, la - 1);
   return (result != NULL) ? *result : ANTLR3_CHARSTREAM_EOF;
@@ -254,8 +255,8 @@ static void bufferedInputRewind(pANTLR3_INT_STREAM is, ANTLR3_MARKER mark) {
 
 static void bufferedInputConsume(pANTLR3_INT_STREAM is) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
-  CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
-      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
+  cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
 
   uint8_t* current = line_buffered_input->line_buffer->getPtr(
       input->line, input->charPositionInLine);
@@ -284,7 +285,7 @@ static void bufferedInputSeek(pANTLR3_INT_STREAM is, ANTLR3_MARKER seekPoint) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
 
   // Check that we are not seeking backwards.
-  assert(!((CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)
+  Assert(!((cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)
               ->line_buffer->isPtrBefore(
                   (uint8_t*)seekPoint, input->line, input->charPositionInLine));
 
@@ -295,20 +296,20 @@ static void bufferedInputSeek(pANTLR3_INT_STREAM is, ANTLR3_MARKER seekPoint) {
 
 static ANTLR3_UINT32 bufferedInputSize(pANTLR3_INPUT_STREAM input) {
   // Not supported for this type of stream
-  assert(false);
+  Assert(false);
   return 0;
 }
 
 static void bufferedInputSetNewLineChar(pANTLR3_INPUT_STREAM input,
                                         ANTLR3_UINT32 newlineChar) {
   // Not supported for this type of stream
-  assert(false);
+  Assert(false);
 }
 
 static void bufferedInputSetUcaseLA(pANTLR3_INPUT_STREAM input,
                                     ANTLR3_BOOLEAN flag) {
   // Not supported for this type of stream
-  assert(false);
+  Assert(false);
 }
 
 pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
@@ -410,5 +411,5 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
   return input;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,12 +29,12 @@ namespace std {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
-  CVC4::container_to_stream(os, v);
+  cvc5::container_to_stream(os, v);
   return os;
 }
 }  // namespace std
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -545,6 +545,6 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

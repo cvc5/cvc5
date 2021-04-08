@@ -2,9 +2,9 @@
 /*! \file quantifiers_inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,17 +14,36 @@
 
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 
-namespace CVC4 {
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/skolemize.h"
+
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 QuantifiersInferenceManager::QuantifiersInferenceManager(
-    Theory& t, QuantifiersState& state, ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm, "theory::quantifiers")
+    Theory& t,
+    QuantifiersState& state,
+    QuantifiersRegistry& qr,
+    TermRegistry& tr,
+    ProofNodeManager* pnm)
+    : InferenceManagerBuffered(t, state, pnm, "theory::quantifiers"),
+      d_instantiate(new Instantiate(state, *this, qr, tr, pnm)),
+      d_skolemize(new Skolemize(state, pnm))
 {
 }
 
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
+
+Instantiate* QuantifiersInferenceManager::getInstantiate()
+{
+  return d_instantiate.get();
+}
+
+Skolemize* QuantifiersInferenceManager::getSkolemize()
+{
+  return d_skolemize.get();
+}
 
 void QuantifiersInferenceManager::doPending()
 {
@@ -34,4 +53,4 @@ void QuantifiersInferenceManager::doPending()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

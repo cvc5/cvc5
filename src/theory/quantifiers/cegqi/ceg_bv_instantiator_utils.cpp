@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,9 +17,9 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace utils {
@@ -66,7 +66,7 @@ Node normalizePvMult(
   bool neg, neg_coeff = false;
   bool found_pv = false;
   NodeManager* nm;
-  NodeBuilder<> nb(BITVECTOR_MULT);
+  NodeBuilder nb(BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
   nm = NodeManager::currentNM();
@@ -168,8 +168,8 @@ Node normalizePvPlus(
     std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   NodeManager* nm;
-  NodeBuilder<> nb_c(BITVECTOR_PLUS);
-  NodeBuilder<> nb_l(BITVECTOR_PLUS);
+  NodeBuilder nb_c(BITVECTOR_PLUS);
+  NodeBuilder nb_l(BITVECTOR_PLUS);
   BvLinearAttribute is_linear;
   bool neg;
 
@@ -342,4 +342,4 @@ Node normalizePvEqual(
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

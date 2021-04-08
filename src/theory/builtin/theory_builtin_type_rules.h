@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,12 +21,11 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/rewriter.h"
 #include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
 #include <sstream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -82,13 +81,14 @@ class DistinctTypeRule {
 class SExprTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    std::vector<TypeNode> types;
-    for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
-        child_it != child_it_end;
-        ++child_it) {
-      types.push_back((*child_it).getType(check));
+    if (check)
+    {
+      for (TNode c : n)
+      {
+        c.getType(check);
+      }
     }
-    return nodeManager->mkSExprType(types);
+    return nodeManager->sExprType();
   }
 };/* class SExprTypeRule */
 
@@ -246,60 +246,8 @@ class FunctionProperties {
   }
 };/* class FuctionProperties */
 
-class SExprProperties {
- public:
-  inline static Cardinality computeCardinality(TypeNode type) {
-    // Don't assert this; allow other theories to use this cardinality
-    // computation.
-    //
-    // Assert(type.getKind() == kind::SEXPR_TYPE);
-
-    Cardinality card(1);
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      card *= (*i).getCardinality();
-    }
-
-    return card;
-  }
-
-  inline static bool isWellFounded(TypeNode type) {
-    // Don't assert this; allow other theories to use this
-    // wellfoundedness computation.
-    //
-    // Assert(type.getKind() == kind::SEXPR_TYPE);
-
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      if(! (*i).isWellFounded()) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SEXPR_TYPE);
-
-    std::vector<Node> children;
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      children.push_back((*i).mkGroundTerm());
-    }
-
-    return NodeManager::currentNM()->mkNode(kind::SEXPR, children);
-  }
-};/* class SExprProperties */
-
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */

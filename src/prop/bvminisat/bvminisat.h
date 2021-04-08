@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,8 +26,9 @@
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class BVMinisatSatSolver : public BVSatSolverInterface,
@@ -146,5 +147,5 @@ public:
   Statistics d_statistics;
 };
 
-} /* CVC4::prop namespace */
-} /* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5
