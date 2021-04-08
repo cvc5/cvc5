@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file main.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Main driver for CVC4 executable
- **
- ** Main driver for CVC4 executable.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Main driver for cvc5 executable.
+ */
 #include "main/main.h"
 
 #include <cstdlib>

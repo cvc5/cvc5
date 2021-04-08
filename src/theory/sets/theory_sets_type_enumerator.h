@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_sets_type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief type enumerator for sets
- **
- ** A set enumerator that iterates over the power set of the element type
- ** starting with the empty set as the initial value
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type enumerator for sets.
+ *
+ * A set enumerator that iterates over the power set of the element type
+ * starting with the empty set as the initial value.
+ */
 
 #include "cvc4_private.h"
 

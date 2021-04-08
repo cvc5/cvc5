@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file option_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Options-related exceptions
- **
- ** Options-related exceptions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Options-related exceptions.
+ */
 
 #include "cvc4_public.h"
 

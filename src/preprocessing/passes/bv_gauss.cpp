@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file bv_gauss.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Gaussian Elimination preprocessing pass.
- **
- ** Simplify a given equation system modulo a (prime) number via Gaussian
- ** Elimination if possible.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Gaussian Elimination preprocessing pass.
+ *
+ * Simplify a given equation system modulo a (prime) number via Gaussian
+ * Elimination if possible.
+ */
 
 #include "preprocessing/passes/bv_gauss.h"
 

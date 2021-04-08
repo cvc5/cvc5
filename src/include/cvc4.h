@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file cvc4.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Main header file for CVC4 library functionality
- **
- ** Main header file for CVC4 library functionality.  Includes the
- ** most-commonly used CVC4 public-facing class interfaces.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Main header file for CVC4 library functionality
+ *
+ * Main header file for CVC4 library functionality.  Includes the
+ * most-commonly used CVC4 public-facing class interfaces.
+ */
 
 #ifndef CVC4__CVC4_H
 #define CVC4__CVC4_H

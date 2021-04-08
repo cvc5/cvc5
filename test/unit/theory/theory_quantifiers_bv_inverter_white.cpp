@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_quantifiers_bv_inverter_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for BV inverter.
- **
- ** Unit tests for BV inverter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for BV inverter.
+ */
 
 #include "expr/node.h"
 #include "test_smt.h"

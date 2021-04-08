@@ -1,33 +1,32 @@
-/*********************                                                        */
-/*! \file check.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Assertion utility classes, functions and macros.
- **
- ** The AlwaysAssert utility classes, functions and macros.
- **
- ** The main usage in the file is the AlwaysAssert macros. The AlwaysAssert
- ** macros assert a condition and aborts()'s the process if the condition is
- ** not satisfied. The macro leaves a hanging ostream for the user to specify
- ** additional information about the failure. Example usage:
- **   AlwaysAssert(x >= 0) << "x must be positive.";
- **
- ** Assert is a AlwaysAssert that is only enabled in debug builds.
- **   Assert(pointer != nullptr);
- **
- ** CVC4_FATAL() can be used to indicate unreachable code.
- **
- ** The AlwaysAssert and Assert macros are not safe for use in
- ** signal-handling code. In future, a a signal-handling safe version of
- ** AlwaysAssert may be added.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Assertion utility classes, functions and macros.
+ *
+ * Assertion macros assert a condition and aborts() the process if the
+ * condition is not satisfied. These macro leave a hanging ostream for the user
+ * to specify additional information about the failure.
+ *
+ * Example usage:
+ *   AlwaysAssert(x >= 0) << "x must be positive.";
+ *
+ * Assert is an AlwaysAssert that is only enabled in debug builds.
+ *   Assert(pointer != nullptr);
+ *
+ * CVC4_FATAL() can be used to indicate unreachable code.
+ *
+ * Note: The AlwaysAssert and Assert macros are not safe for use in
+ *       signal-handling code.
+ */
 
 #include "cvc4_private_library.h"
 

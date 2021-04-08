@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file bv_to_int.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BVToInt preprocessing pass
- **
- ** Converts bit-vector operations into integer operations.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BVToInt preprocessing pass.
+ *
+ * Converts bit-vector operations into integer operations.
+ *
+ */
 
 #include "preprocessing/passes/bv_to_int.h"
 

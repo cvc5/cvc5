@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file memory_mapped_input_buffer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ANTLR input buffer from a memory-mapped file.
- **
- ** ANTLR input buffer from a memory-mapped file.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ANTLR input buffer from a memory-mapped file.
+ */
 
 #include "cvc4parser_private.h"
 

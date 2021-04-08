@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file maybe.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This provides a templated Maybe construct.
- **
- ** This class provides a templated Maybe<T> construct.
- ** This follows the rough pattern of the Maybe monad in haskell.
- ** A Maybe is an algebraic type that is either Nothing | Just T
- **
- ** T must support T() and operator=.
- **
- ** This has a couple of uses:
- ** - There is no reasonable value or particularly clean way to represent
- **   Nothing using a value of T
- ** - High level of assurance that a value is not used before it is set.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This provides a templated Maybe construct.
+ *
+ * This class provides a templated Maybe<T> construct.
+ * This follows the rough pattern of the Maybe monad in haskell.
+ * A Maybe is an algebraic type that is either Nothing | Just T
+ *
+ * T must support T() and operator=.
+ *
+ * This has a couple of uses:
+ * - There is no reasonable value or particularly clean way to represent
+ *   Nothing using a value of T
+ * - High level of assurance that a value is not used before it is set.
+ */
 #include "cvc4_public.h"
 
 #ifndef CVC4__UTIL__MAYBE_H

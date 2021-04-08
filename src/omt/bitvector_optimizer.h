@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file bitvector_optimizer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yancheng Ou
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Optimizer for BitVector type
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yancheng Ou
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Optimizer for BitVector type.
+ */
 
 #ifndef CVC4__OMT__BITVECTOR_OPTIMIZER_H
 #define CVC4__OMT__BITVECTOR_OPTIMIZER_H

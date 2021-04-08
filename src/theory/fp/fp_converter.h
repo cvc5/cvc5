@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file fp_converter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Converts floating-point nodes to bit-vector expressions.
- **
- ** Uses the symfpu library to convert from floating-point operations to
- ** bit-vectors and propositions allowing the theory to be solved by
- ** 'bit-blasting'.
- **
- ** !!! This header is not to be included in any other headers !!!
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Converts floating-point nodes to bit-vector expressions.
+ *
+ * Uses the symfpu library to convert from floating-point operations to
+ * bit-vectors and propositions allowing the theory to be solved by
+ * 'bit-blasting'.
+ *
+ * !!! This header is not to be included in any other headers !!!
+ */
 
 #include "cvc4_private.h"
 

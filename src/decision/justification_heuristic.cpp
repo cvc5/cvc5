@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file justification_heuristic.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andres Noetzli, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification heuristic for decision making
- **
- ** A ATGP-inspired justification-based decision heuristic. This code is based
- ** on the CVC3 implementation of the same heuristic -- note below.
- **
- ** It needs access to the simplified but non-clausal formula.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification heuristic for decision making
+ *
+ * A ATGP-inspired justification-based decision heuristic. This code is based
+ * on the CVC3 implementation of the same heuristic -- note below.
+ *
+ * It needs access to the simplified but non-clausal formula.
+ */
 #include "justification_heuristic.h"
 
 #include "decision/decision_attributes.h"

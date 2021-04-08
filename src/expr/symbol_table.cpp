@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file symbol_table.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Convenience class for scoping variable and type
- ** declarations (implementation)
- **
- ** Convenience class for scoping variable and type declarations
- ** (implementation).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Convenience class for scoping variable and type declarations
+ * (implementation).
+ */
 
 #include "expr/symbol_table.h"
 

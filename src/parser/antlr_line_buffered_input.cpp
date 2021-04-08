@@ -1,32 +1,31 @@
-/*********************                                                        */
-/*! \file antlr_line_buffered_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A custom ANTLR input stream that reads from the input stream lazily
- **
- ** WARNING: edits to this and related files should be done carefully due to the
- *interaction with ANTLR internals.
- **
- ** This overwrites the _LA and the consume functions of the ANTLR input stream
- ** to use a LineBuffer instead of accessing a buffer. The lines are kept in
- ** memory to make sure that existing tokens remain valid (tokens store pointers
- ** to the corresponding input). We do not overwrite mark(), etc.
- *because
- ** we can use the line number and the position within that line to index into
- *the
- ** line buffer and the default markers already store and restore that
- ** information. The line buffer guarantees that lines are consecutive in
- ** memory, so ANTLR3_INPUT_STREAM::getLineBuf() should work as intended and
- ** tokens themselves are consecutive in memory (we are assuming that tokens
- ** are not split across multiple lines).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A custom ANTLR input stream that reads from the input stream lazily
+ *
+ * WARNING: Edits to this and related files should be done carefully due to the
+ *          interaction with ANTLR internals.
+ *
+ * This overwrites the _LA and the consume functions of the ANTLR input stream
+ * to use a LineBuffer instead of accessing a buffer. The lines are kept in
+ * memory to make sure that existing tokens remain valid (tokens store pointers
+ * to the corresponding input). We do not overwrite mark(), etc. because
+ * we can use the line number and the position within that line to index into
+ * the line buffer and the default markers already store and restore that
+ * information. The line buffer guarantees that lines are consecutive in
+ * memory, so ANTLR3_INPUT_STREAM::getLineBuf() should work as intended and
+ * tokens themselves are consecutive in memory (we are assuming that tokens
+ * are not split across multiple lines).
+ */
 
 #include "parser/antlr_line_buffered_input.h"
 

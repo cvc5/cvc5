@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file statistics_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistics utility classes
- **
- ** Statistics utility classes, including classes for holding (and referring
- ** to) statistics, the statistics registry, and some other associated
- ** classes.
- **
- ** This file is somewhat unique in that it is a "cvc4_private_library.h"
- ** header. Because of this, most classes need to be marked as CVC4_EXPORT.
- ** This is because CVC4_EXPORT is connected to the visibility of the linkage
- ** in the object files for the class. It does not dictate what headers are
- ** installed.
- ** Because the StatisticsRegistry and associated classes are built into
- ** libutil, which is used by libcvc4, and then later used by the libmain
- ** without referring to libutil as well. Thus the without marking these as
- ** CVC4_EXPORT the symbols would be external in libutil, internal in libcvc4,
- ** and not be visible to libmain and linking would fail.
- ** You can debug this using "nm" on the .so and .o files in the builds/
- ** directory. See
- ** http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
- ** for a longer discussion on symbol visibility.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Statistics utility classes
+ *
+ * Statistics utility classes, including classes for holding (and referring
+ * to) statistics, the statistics registry, and some other associated
+ * classes.
+ *
+ * This file is somewhat unique in that it is a "cvc4_private_library.h"
+ * header. Because of this, most classes need to be marked as CVC4_EXPORT.
+ * This is because CVC4_EXPORT is connected to the visibility of the linkage
+ * in the object files for the class. It does not dictate what headers are
+ * installed.
+ * Because the StatisticsRegistry and associated classes are built into
+ * libutil, which is used by libcvc4, and then later used by the libmain
+ * without referring to libutil as well. Thus the without marking these as
+ * CVC4_EXPORT the symbols would be external in libutil, internal in libcvc4,
+ * and not be visible to libmain and linking would fail.
+ * You can debug this using "nm" on the .so and .o files in the builds/
+ * directory. See
+ * http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
+ * for a longer discussion on symbol visibility.
+ */
 
 /**
  * On the design of the statistics:

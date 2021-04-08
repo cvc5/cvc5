@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file type_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A type checker
- **
- ** A type checker.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A type checker.
+ */
 
 #include "cvc4_private.h"
 

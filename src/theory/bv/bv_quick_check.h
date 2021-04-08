@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_quick_check.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sandboxed sat solver for bv quickchecks.
- **
- ** Sandboxed sat solver for bv quickchecks.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sandboxed SAT solver for bv quickchecks.
+ */
 
 #include "cvc4_private.h"
 

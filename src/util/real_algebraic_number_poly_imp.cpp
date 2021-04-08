@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file real_algebraic_number_poly_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of RealAlgebraicNumber based on libpoly.
- **
- ** Implementation of RealAlgebraicNumber based on libpoly.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of RealAlgebraicNumber based on libpoly.
+ */
 
 #include "cvc4autoconfig.h"
 #include "util/real_algebraic_number.h"

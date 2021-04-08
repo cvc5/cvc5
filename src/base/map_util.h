@@ -1,37 +1,37 @@
-/*********************                                                        */
-/*! \file map_util.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility functions for dealing with maps in a mostly uniform fashion.
- **
- ** Utility functions for dealing with maps and related classed in a mostly
- ** uniform fashion. These are stylistically encouraged (but not required) in
- ** new code. Supports:
- ** - std::map
- ** - std::unordered_map
- ** - cvc5::context::CDHashmap
- ** - cvc5::context::CDInsertHashmap
- ** The ContainsKey function is also compatible with std::[unordered_]set.
- **
- ** Currently implemented classes of functions:
- ** - ContainsKey
- **   Returns true if a map contains a key. (Also Supports std::set and
- **   std::unordered_set.)
- ** - FindOr*
- **   Finds an data element mapped to by the map. Variants include FindOrNull
- **   and FindOrDie.
- **
- ** Potential future classes of functions:
- ** - InsertOrUpdate
- ** - InsertIfNotPresent
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Utility functions for dealing with maps and related classes in a mostly
+ * uniform fashion.
+ *
+ * These are stylistically encouraged (but not required) in new code.
+ * Supports:
+ * - std::map
+ * - std::unordered_map
+ * - cvc5::context::CDHashmap
+ * - cvc5::context::CDInsertHashmap
+ * The ContainsKey function is also compatible with std::[unordered_]set.
+ *
+ * Currently implemented classes of functions:
+ * - ContainsKey
+ *   Returns true if a map contains a key. (Also Supports std::set and
+ *   std::unordered_set.)
+ * - FindOr*
+ *   Finds an data element mapped to by the map. Variants include FindOrNull
+ *   and FindOrDie.
+ *
+ * Potential future classes of functions:
+ * - InsertOrUpdate
+ * - InsertIfNotPresent
+ */
 
 #include "cvc4_private.h"
 
