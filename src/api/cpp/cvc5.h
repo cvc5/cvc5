@@ -2268,7 +2268,7 @@ struct CVC4_EXPORT RoundingModeHashFunction
  * The value type can be queried (using `isInt`, `isString`, etc.) and
  * the stored value can be accessed (using `getInt`, `getString`, etc.).
  */
-class Stat
+class CVC4_EXPORT Stat
 {
   struct StatData;
 
@@ -2312,7 +2312,7 @@ class Stat
   std::unique_ptr<StatData> d_data;
 };
 
-std::ostream& operator<<(std::ostream& os, const Stat& sv);
+std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
 
 /**
  * Represents a snapshot of the solver statistics.
@@ -2326,7 +2326,7 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv);
  * name using `get()`.
  * A single statistic value is represented as `Stat`.
  */
-class Statistics
+class CVC4_EXPORT Statistics
 {
  public:
   friend Solver;
@@ -2378,7 +2378,7 @@ class Statistics
   /** Internal data */
   BaseType d_stats;
 };
-std::ostream& operator<<(std::ostream& out, const Statistics& stats);
+std::ostream& operator<<(std::ostream& out, const Statistics& stats) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
