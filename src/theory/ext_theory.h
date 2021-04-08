@@ -124,6 +124,8 @@ class ExtTheoryCallback
    * @param n The term to reduce
    * @param on The original form of n, before substitution
    * @param exp The explanation of on = n
+   * @param id If this method returns true, then id is updated to the reason
+   * why n was reduced.
    * @return true if n is reduced.
    */
   virtual bool isExtfReduced(
@@ -262,6 +264,10 @@ class ExtTheory
   bool hasActiveTerm() const;
   /** is n an active extended function term? */
   bool isActive(Node n) const;
+  /** 
+   * Same as above, but rid is update to the reason if this method returns
+   * false.
+   */
   bool isActive(Node n, ExtReducedId& rid) const;
   /** get the set of active terms from d_ext_func_terms */
   std::vector<Node> getActive() const;
@@ -273,6 +279,9 @@ class ExtTheory
   static std::vector<Node> collectVars(Node n);
   /** is n context dependent inactive? */
   bool isContextIndependentInactive(Node n) const;
+  /** 
+   * Same as above, but rid is update to the reason if this method returns true.
+   */
   bool isContextIndependentInactive(Node n, ExtReducedId& rid) const;
   /** do inferences internal */
   bool doInferencesInternal(int effort,
