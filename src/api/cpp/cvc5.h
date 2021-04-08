@@ -2320,10 +2320,10 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
  * object: it will not change when the solvers internal statistics do, it
  * will not be invalidated if the solver is destroyed.
  * Statistics are generally categorized as public and expert statistics.
+ * Furthermore, statistics may be unset and thus hold no value of interest.
  * Iterating on this class (via `begin()` and `end()`) shows only public
- * statistics. Expert statistics can be accessed via iteration using
- * `begin_all()` and `end_all()`, or by querying a single statistic by
- * name using `get()`.
+ * statistics that have been set. By passing appropriate flags to `begin()`,
+ * statistics that are expert, unset, or both, can be included as well.
  * A single statistic value is represented as `Stat`.
  */
 class CVC4_EXPORT Statistics
