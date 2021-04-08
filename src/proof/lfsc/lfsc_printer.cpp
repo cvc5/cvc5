@@ -42,7 +42,7 @@ void LfscPrinter::print(std::ostream& out,
   // closing parentheses
   std::stringstream cparen;
   const ProofNode* pnBody = pn->getChildren()[0].get();
-  
+
   // clear the rules we have warned about
   d_trustWarned.clear();
 
@@ -75,7 +75,7 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& s : syms)
   {
     preamble << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
-        << " ";
+             << " ";
     print(preamble, s.getType());
     preamble << "))" << std::endl;
   }
