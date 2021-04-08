@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --produce-proofs
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'
 (set-logic AUFLIA)

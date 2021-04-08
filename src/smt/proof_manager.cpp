@@ -42,7 +42,27 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_rewriteDb(new theory::RewriteDb),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
-      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
+      d_pfpp(new ProofPostproccess(
+          d_pnm.get(),
+          smte,
+          d_pppg.get(),
+          // by default the post-processor will update all assumptions, which
+          // can lead to SCOPE subproofs of the form
+          //   A
+          //  ...
+          //   B1    B2
+          //  ...   ...
+          // ------------
+          //      C
+          // ------------- SCOPE [B1, B2]
+          // B1 ^ B2 => C
+          //
+          // where A is an available assumption from outside the scope (note
+          // that B1 was an assumption of this SCOPE subproof but since it could
+          // be inferred from A, it was updated). This shape is problematic for
+          // the veriT reconstruction, so we disable the update of scoped
+          // assumptions (which would disable the update of B1 in this case).
+          options::proofFormatMode() != options::ProofFormatMode::VERIT)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -141,6 +161,7 @@ void PfManager::printProof(std::ostream& out,
   }
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
+
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter::print(out, fp.get());
