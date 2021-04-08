@@ -329,13 +329,13 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             '--check-synth-sol' not in all_args:
             extra_command_line_args += ['--check-synth-sol']
         if ('sat' in expected_output_lines or \
-            'invalid' in expected_output_lines or \
+            'not_entailed' in expected_output_lines or \
             'unknown' in expected_output_lines) and \
            '--no-debug-check-models' not in all_args and \
            '--no-check-models' not in all_args and \
            '--debug-check-models' not in all_args:
             extra_command_line_args += ['--debug-check-models']
-        if 'unsat' in expected_output_lines or 'valid' in expected_output_lines:
+        if 'unsat' in expected_output_lines or 'entailed' in expected_output_lines:
             if check_unsat_cores and \
                '--no-produce-unsat-cores' not in all_args and \
                '--no-check-unsat-cores' not in all_args and \
