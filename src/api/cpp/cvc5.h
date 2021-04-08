@@ -3812,7 +3812,7 @@ class CVC4_EXPORT Solver
  private:
   /** @return the node manager of this solver */
   NodeManager* getNodeManager(void) const;
-  /** Reset the api statistics */
+  /** Reset the API statistics */
   void resetStatistics();
 
   /** Helper to check for API misuse in mkOp functions. */
