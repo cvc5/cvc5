@@ -39,6 +39,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_DIO_CUT: return "ARITH_DIO_CUT";
     case InferenceId::ARITH_DIO_DECOMPOSITION: return "ARITH_DIO_DECOMPOSITION";
     case InferenceId::ARITH_UNATE: return "ARITH_UNATE";
+    case InferenceId::ARITH_ROW_IMPL: return "ARITH_ROW_IMPL";
     case InferenceId::ARITH_SPLIT_FOR_NL_MODEL:
       return "ARITH_SPLIT_FOR_NL_MODEL";
     case InferenceId::ARITH_PP_ELIM_OPERATORS: return "ARITH_PP_ELIM_OPERATORS";

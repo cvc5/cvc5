@@ -4800,11 +4800,11 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
         // Output it
         TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
-        outputTrustedLemma(trustedClause, InferenceId::UNKNOWN);
+        outputTrustedLemma(trustedClause, InferenceId::ARITH_ROW_IMPL);
       }
       else
       {
-        outputLemma(clause, InferenceId::UNKNOWN);
+        outputLemma(clause, InferenceId::ARITH_ROW_IMPL);
       }
     }else{
       Assert(!implied->negationHasProof());

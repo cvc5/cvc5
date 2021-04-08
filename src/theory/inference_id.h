@@ -66,8 +66,10 @@ enum class InferenceId
   ARITH_BB_LEMMA,
   ARITH_DIO_CUT,
   ARITH_DIO_DECOMPOSITION,
-  // unate lemma during presolv
+  // unate lemma during presolve
   ARITH_UNATE,
+  // row implication
+  ARITH_ROW_IMPL,
   // a split that occurs when the non-linear solver changes values of arithmetic
   // variables in a model, but those variables are inconsistent with assignments
   // from another theory
