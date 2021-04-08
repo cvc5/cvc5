@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -46,6 +47,7 @@ Node ExprMiner::convertToSkolem(Node n)
   std::vector<Node> sks;
   // map to skolems
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0, size = fvs.size(); i < size; i++)
   {
     Node v = fvs[i];
@@ -56,7 +58,7 @@ Node ExprMiner::convertToSkolem(Node n)
       std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
       if (itf == d_fv_to_skolem.end())
       {
-        Node sk = nm->mkSkolem("rrck", v.getType());
+        Node sk = sm->mkDummySkolem("rrck", v.getType());
         d_fv_to_skolem[v] = sk;
         sks.push_back(sk);
       }

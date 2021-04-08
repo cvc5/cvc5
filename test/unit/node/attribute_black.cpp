@@ -55,7 +55,7 @@ class TestNodeBlackAttribute : public TestNode
 TEST_F(TestNodeBlackAttribute, ints)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
   const uint64_t val = 63489;
   uint64_t data0 = 0;
   uint64_t data1 = 0;
@@ -72,9 +72,9 @@ TEST_F(TestNodeBlackAttribute, ints)
 TEST_F(TestNodeBlackAttribute, tnodes)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
 
-  Node val(d_nodeManager->mkSkolem("b", booleanType));
+  Node val(d_skolemManager->mkDummySkolem("b", booleanType));
   TNode data0;
   TNode data1;
 
@@ -90,7 +90,7 @@ TEST_F(TestNodeBlackAttribute, tnodes)
 TEST_F(TestNodeBlackAttribute, strings)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
 
   std::string val("63489");
   std::string data0;
@@ -108,7 +108,7 @@ TEST_F(TestNodeBlackAttribute, strings)
 TEST_F(TestNodeBlackAttribute, bools)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
 
   bool val = true;
   bool data0 = false;
