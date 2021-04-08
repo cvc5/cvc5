@@ -48,7 +48,6 @@ class ProofManager;
 class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
-class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 
