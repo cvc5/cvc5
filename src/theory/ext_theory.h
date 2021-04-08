@@ -127,7 +127,6 @@ const char* toString(ExtReducedId id);
  */
 std::ostream& operator<<(std::ostream& out, ExtReducedId id);
 
-
 /** Extended theory class
  *
  * This class is used for constructing generic extensions to theory solvers.
@@ -149,7 +148,8 @@ std::ostream& operator<<(std::ostream& out, ExtReducedId id);
 class ExtTheory
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, ExtReducedId, NodeHashFunction> NodeExtReducedIdMap;
+  typedef context::CDHashMap<Node, ExtReducedId, NodeHashFunction>
+      NodeExtReducedIdMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:

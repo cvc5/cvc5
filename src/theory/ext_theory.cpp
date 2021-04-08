@@ -54,14 +54,14 @@ bool ExtTheoryCallback::getReduction(int effort,
 }
 
 const char* toString(ExtReducedId id)
-{  
-  switch(id)
+{
+  switch (id)
   {
-  case ExtReducedId::EVAL_TO_CONST: return "EVAL_TO_CONST";
-  case ExtReducedId::STRINGS_NEG_CTN_DEQ: return "STRINGS_NEG_CTN_DEQ";
-  case ExtReducedId::STRINGS_POS_CTN: return "STRINGS_POS_CTN";
-  case ExtReducedId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
-  default: return "?ExtReducedId?";
+    case ExtReducedId::EVAL_TO_CONST: return "EVAL_TO_CONST";
+    case ExtReducedId::STRINGS_NEG_CTN_DEQ: return "STRINGS_NEG_CTN_DEQ";
+    case ExtReducedId::STRINGS_POS_CTN: return "STRINGS_POS_CTN";
+    case ExtReducedId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
+    default: return "?ExtReducedId?";
   }
 }
 
@@ -514,7 +514,6 @@ void ExtTheory::getTerms(std::vector<Node>& terms)
 
 bool ExtTheory::hasActiveTerm() const { return !d_has_extf.get().isNull(); }
 
-
 bool ExtTheory::isActive(Node n) const
 {
   ExtReducedId rid = ExtReducedId::UNKNOWN;
@@ -530,7 +529,7 @@ bool ExtTheory::isActive(Node n, ExtReducedId& rid) const
     {
       return !isContextIndependentInactive(n, rid);
     }
-    Assert (d_extfExtReducedIdMap.find(n)!=d_extfExtReducedIdMap.end());
+    Assert(d_extfExtReducedIdMap.find(n) != d_extfExtReducedIdMap.end());
     rid = d_extfExtReducedIdMap[n];
     return false;
   }
