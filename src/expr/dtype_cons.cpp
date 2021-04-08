@@ -120,15 +120,20 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
       << "DTypeConstructor::getSpecializedConstructorType: expected datatype, "
          "got "
       << returnType;
+  TypeNode ctn = d_constructor.getType();
   const DType& dt = DType::datatypeOf(d_constructor);
-  Assert(dt.isParametric());
+  if (!dt.isParametric())
+  {
+    // if the datatype is not parametric, then no specialization is needed
+    return ctn;
+  }
   TypeNode dtt = dt.getTypeNode();
   TypeMatcher m(dtt);
   m.doMatching(dtt, returnType);
   std::vector<TypeNode> subst;
   m.getMatches(subst);
   std::vector<TypeNode> params = dt.getParameters();
-  return d_constructor.getType().substitute(
+  return ctn.substitute(
       params.begin(), params.end(), subst.begin(), subst.end());
 }
 
