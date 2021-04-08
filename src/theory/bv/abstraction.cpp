@@ -1091,11 +1091,10 @@ AbstractionModule::Statistics::Statistics(
     const std::string& name, const NodeNodeMap& functionsAbstracted)
     : d_numFunctionsAbstracted(
         smtStatisticsRegistry().registerSize<NodeNodeMap>(
-            name + "::abstraction::NumFunctionsAbstracted",
-            functionsAbstracted)),
+            name + "abstraction::NumFunctionsAbstracted", functionsAbstracted)),
       d_numArgsSkolemized(smtStatisticsRegistry().registerInt(
-          name + "::abstraction::NumArgsSkolemized")),
+          name + "abstraction::NumArgsSkolemized")),
       d_abstractionTime(smtStatisticsRegistry().registerTimer(
-          name + "::abstraction::AbstractionTime"))
+          name + "abstraction::AbstractionTime"))
 {
 }

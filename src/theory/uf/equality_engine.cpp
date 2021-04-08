@@ -29,13 +29,12 @@ namespace theory {
 namespace eq {
 
 EqualityEngine::Statistics::Statistics(const std::string& name)
-    : d_mergesCount(
-        smtStatisticsRegistry().registerInt(name + "::mergesCount")),
-      d_termsCount(smtStatisticsRegistry().registerInt(name + "::termsCount")),
+    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "mergesCount")),
+      d_termsCount(smtStatisticsRegistry().registerInt(name + "termsCount")),
       d_functionTermsCount(
-          smtStatisticsRegistry().registerInt(name + "::functionTermsCount")),
+          smtStatisticsRegistry().registerInt(name + "functionTermsCount")),
       d_constantTermsCount(
-          smtStatisticsRegistry().registerInt(name + "::constantTermsCount"))
+          smtStatisticsRegistry().registerInt(name + "constantTermsCount"))
 {
 }
 
@@ -119,7 +118,7 @@ EqualityEngine::EqualityEngine(context::Context* context,
       d_assertedEqualitiesCount(context, 0),
       d_equalityTriggersCount(context, 0),
       d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -149,7 +148,7 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
       d_assertedEqualitiesCount(context, 0),
       d_equalityTriggersCount(context, 0),
       d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),

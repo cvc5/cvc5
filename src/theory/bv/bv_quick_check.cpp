@@ -353,19 +353,19 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
 
 QuickXPlain::Statistics::Statistics(const std::string& name)
     : d_xplainTime(
-        smtStatisticsRegistry().registerTimer(name + "::QuickXplain::Time")),
-      d_numSolved(smtStatisticsRegistry().registerInt(
-          name + "::QuickXplain::NumSolved")),
+        smtStatisticsRegistry().registerTimer(name + "QuickXplain::Time")),
+      d_numSolved(
+          smtStatisticsRegistry().registerInt(name + "QuickXplain::NumSolved")),
       d_numUnknown(smtStatisticsRegistry().registerInt(
-          name + "::QuickXplain::NumUnknown")),
+          name + "QuickXplain::NumUnknown")),
       d_numUnknownWasUnsat(smtStatisticsRegistry().registerInt(
-          name + "::QuickXplain::NumUnknownWasUnsat")),
+          name + "QuickXplain::NumUnknownWasUnsat")),
       d_numConflictsMinimized(smtStatisticsRegistry().registerInt(
-          name + "::QuickXplain::NumConflictsMinimized")),
+          name + "QuickXplain::NumConflictsMinimized")),
       d_finalPeriod(smtStatisticsRegistry().registerInt(
-          name + "::QuickXplain::FinalPeriod")),
+          name + "QuickXplain::FinalPeriod")),
       d_avgMinimizationRatio(smtStatisticsRegistry().registerAverage(
-          name + "::QuickXplain::AvgMinRatio"))
+          name + "QuickXplain::AvgMinRatio"))
 {
 }
 

@@ -26,19 +26,19 @@ namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
     : conflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                    + "::conflicts")),
+                                                    + "conflicts")),
       propagations(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "::propagations")),
+                                                       + "propagations")),
       lemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                 + "::lemmas")),
+                                                 + "lemmas")),
       requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "::requirePhase")),
+                                                       + "requirePhase")),
       restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                         + "::restartDemands")),
+                                                         + "restartDemands")),
       trustedConflicts(smtStatisticsRegistry().registerInt(
-          getStatsPrefix(theory) + "::trustedConflicts")),
+          getStatsPrefix(theory) + "trustedConflicts")),
       trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                        + "::trustedLemmas"))
+                                                        + "trustedLemmas"))
 {
 }
 

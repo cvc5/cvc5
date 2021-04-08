@@ -249,7 +249,7 @@ private:
 
     ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
-    Statistics(uint32_t& pivots);
+    Statistics(const std::string& name, uint32_t& pivots);
   } d_statistics;
 };/* class FCSimplexDecisionProcedure */
 

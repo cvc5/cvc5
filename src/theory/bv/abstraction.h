@@ -33,17 +33,17 @@ namespace bv {
 typedef std::vector<TNode> ArgsVec;
 
 class AbstractionModule {
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      NodeVecMap;
-  typedef std::unordered_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
-  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef std::unordered_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_map<unsigned, Node> IntNodeMap;
-  typedef std::unordered_map<unsigned, unsigned> IndexMap;
-  typedef std::unordered_map<unsigned, std::vector<Node> > SkolemMap;
-  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction> SignatureMap;
+  using NodeVecMap =
+      std::unordered_map<Node, std::vector<Node>, NodeHashFunction>;
+  using NodeTNodeMap = std::unordered_map<Node, TNode, NodeHashFunction>;
+  using TNodeTNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;
+  using NodeNodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+  using TNodeNodeMap = std::unordered_map<Node, TNode, NodeHashFunction>;
+  using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
+  using IntNodeMap = std::unordered_map<unsigned, Node>;
+  using IndexMap = std::unordered_map<unsigned, unsigned>;
+  using SkolemMap = std::unordered_map<unsigned, std::vector<Node> >;
+  using SignatureMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
 
   struct Statistics {
     SizeStat<NodeNodeMap> d_numFunctionsAbstracted;

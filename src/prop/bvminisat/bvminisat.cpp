@@ -231,29 +231,28 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
 BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                            const std::string& prefix)
     : d_statStarts(
-        registry.registerReference<int64_t>(prefix + "::bvminisat::starts")),
-      d_statDecisions(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::decisions")),
+        registry.registerReference<int64_t>(prefix + "bvminisat::starts")),
+      d_statDecisions(
+          registry.registerReference<int64_t>(prefix + "bvminisat::decisions")),
       d_statRndDecisions(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::rnd_decisions")),
+          prefix + "bvminisat::rnd_decisions")),
       d_statPropagations(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::propagations")),
-      d_statConflicts(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::conflicts")),
+          prefix + "bvminisat::propagations")),
+      d_statConflicts(
+          registry.registerReference<int64_t>(prefix + "bvminisat::conflicts")),
       d_statClausesLiterals(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::clauses_literals")),
+          prefix + "bvminisat::clauses_literals")),
       d_statLearntsLiterals(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::learnts_literals")),
+          prefix + "bvminisat::learnts_literals")),
       d_statMaxLiterals(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::max_literals")),
+          prefix + "bvminisat::max_literals")),
       d_statTotLiterals(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::tot_literals")),
+          prefix + "bvminisat::tot_literals")),
       d_statEliminatedVars(registry.registerReference<int64_t>(
-          prefix + "::bvminisat::eliminated_vars")),
+          prefix + "bvminisat::eliminated_vars")),
       d_statCallsToSolve(
-          registry.registerInt(prefix + "::bvminisat::calls_to_solve")),
-      d_statSolveTime(
-          registry.registerTimer(prefix + "::bvminisat::solve_time"))
+          registry.registerInt(prefix + "bvminisat::calls_to_solve")),
+      d_statSolveTime(registry.registerTimer(prefix + "bvminisat::solve_time"))
 {
   if (!d_registerStats)
   {

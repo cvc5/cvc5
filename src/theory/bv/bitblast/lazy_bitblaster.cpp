@@ -74,7 +74,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       d_emptyNotify(emptyNotify),
       d_fullModelAssertionLevel(c, 0),
       d_name(name),
-      d_statistics(name)
+      d_statistics(name + "::")
 {
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
@@ -365,19 +365,19 @@ void TLazyBitblaster::getConflict(std::vector<TNode>& conflict)
 
 TLazyBitblaster::Statistics::Statistics(const std::string& prefix)
     : d_numTermClauses(
-        smtStatisticsRegistry().registerInt(prefix + "::NumTermSatClauses")),
+        smtStatisticsRegistry().registerInt(prefix + "NumTermSatClauses")),
       d_numAtomClauses(
-          smtStatisticsRegistry().registerInt(prefix + "::NumAtomSatClauses")),
+          smtStatisticsRegistry().registerInt(prefix + "NumAtomSatClauses")),
       d_numTerms(
-          smtStatisticsRegistry().registerInt(prefix + "::NumBitblastedTerms")),
+          smtStatisticsRegistry().registerInt(prefix + "NumBitblastedTerms")),
       d_numAtoms(
-          smtStatisticsRegistry().registerInt(prefix + "::NumBitblastedAtoms")),
+          smtStatisticsRegistry().registerInt(prefix + "NumBitblastedAtoms")),
       d_numExplainedPropagations(smtStatisticsRegistry().registerInt(
-          prefix + "::NumExplainedPropagations")),
+          prefix + "NumExplainedPropagations")),
       d_numBitblastingPropagations(smtStatisticsRegistry().registerInt(
-          prefix + "::NumBitblastingPropagations")),
+          prefix + "NumBitblastingPropagations")),
       d_bitblastTimer(
-          smtStatisticsRegistry().registerTimer(prefix + "::BitblastTimer"))
+          smtStatisticsRegistry().registerTimer(prefix + "BitblastTimer"))
 {
 }
 

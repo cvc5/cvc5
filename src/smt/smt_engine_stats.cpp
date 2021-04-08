@@ -19,29 +19,28 @@
 namespace cvc5 {
 namespace smt {
 
-SmtEngineStatistics::SmtEngineStatistics()
+SmtEngineStatistics::SmtEngineStatistics(const std::string& name)
     : d_definitionExpansionTime(smtStatisticsRegistry().registerTimer(
-        "smt::SmtEngine::definitionExpansionTime")),
-      d_numConstantProps(smtStatisticsRegistry().registerInt(
-          "smt::SmtEngine::numConstantProps")),
-      d_cnfConversionTime(smtStatisticsRegistry().registerTimer(
-          "smt::SmtEngine::cnfConversionTime")),
+        name + "definitionExpansionTime")),
+      d_numConstantProps(
+          smtStatisticsRegistry().registerInt(name + "numConstantProps")),
+      d_cnfConversionTime(
+          smtStatisticsRegistry().registerTimer(name + "cnfConversionTime")),
       d_numAssertionsPre(smtStatisticsRegistry().registerInt(
-          "smt::SmtEngine::numAssertionsPreITERemoval")),
+          name + "numAssertionsPreITERemoval")),
       d_numAssertionsPost(smtStatisticsRegistry().registerInt(
-          "smt::SmtEngine::numAssertionsPostITERemoval")),
-      d_checkModelTime(smtStatisticsRegistry().registerTimer(
-          "smt::SmtEngine::checkModelTime")),
-      d_checkUnsatCoreTime(smtStatisticsRegistry().registerTimer(
-          "smt::SmtEngine::checkUnsatCoreTime")),
-      d_solveTime(
-          smtStatisticsRegistry().registerTimer("smt::SmtEngine::solveTime")),
+          name + "numAssertionsPostITERemoval")),
+      d_checkModelTime(
+          smtStatisticsRegistry().registerTimer(name + "checkModelTime")),
+      d_checkUnsatCoreTime(
+          smtStatisticsRegistry().registerTimer(name + "checkUnsatCoreTime")),
+      d_solveTime(smtStatisticsRegistry().registerTimer(name + "solveTime")),
       d_pushPopTime(
-          smtStatisticsRegistry().registerTimer("smt::SmtEngine::pushPopTime")),
+          smtStatisticsRegistry().registerTimer(name + "pushPopTime")),
       d_processAssertionsTime(smtStatisticsRegistry().registerTimer(
-          "smt::SmtEngine::processAssertionsTime")),
-      d_simplifiedToFalse(smtStatisticsRegistry().registerInt(
-          "smt::SmtEngine::simplifiedToFalse"))
+          name + "processAssertionsTime")),
+      d_simplifiedToFalse(
+          smtStatisticsRegistry().registerInt(name + "simplifiedToFalse"))
 {
 }
 

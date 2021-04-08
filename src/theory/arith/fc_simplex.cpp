@@ -29,41 +29,41 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-
-FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc)
-  , d_focusSize(0)
-  , d_focusErrorVar(ARITHVAR_SENTINEL)
-  , d_focusCoefficients()
-  , d_pivotBudget(0)
-  , d_prevWitnessImprovement(AntiProductive)
-  , d_witnessImprovementInARow(0)
-  , d_sgnDisagreements()
-  , d_statistics(d_pivots)
+FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
+    LinearEqualityModule& linEq,
+    ErrorSet& errors,
+    RaiseConflict conflictChannel,
+    TempVarMalloc tvmalloc)
+    : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc),
+      d_focusSize(0),
+      d_focusErrorVar(ARITHVAR_SENTINEL),
+      d_focusCoefficients(),
+      d_pivotBudget(0),
+      d_prevWitnessImprovement(AntiProductive),
+      d_witnessImprovementInARow(0),
+      d_sgnDisagreements(),
+      d_statistics("theory::arith::FC::", d_pivots)
 { }
 
-FCSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
-    : d_initialSignalsTime(smtStatisticsRegistry().registerTimer(
-        "theory::arith::FC::initialProcessTime")),
-      d_initialConflicts(smtStatisticsRegistry().registerInt(
-          "theory::arith::FC::UpdateConflicts")),
-      d_fcFoundUnsat(
-          smtStatisticsRegistry().registerInt("theory::arith::FC::FoundUnsat")),
-      d_fcFoundSat(
-          smtStatisticsRegistry().registerInt("theory::arith::FC::FoundSat")),
-      d_fcMissed(
-          smtStatisticsRegistry().registerInt("theory::arith::FC::Missed")),
-      d_fcTimer(
-          smtStatisticsRegistry().registerTimer("theory::arith::FC::Timer")),
-      d_fcFocusConstructionTimer(smtStatisticsRegistry().registerTimer(
-          "theory::arith::FC::Construction")),
+FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
+                                                   uint32_t& pivots)
+    : d_initialSignalsTime(
+        smtStatisticsRegistry().registerTimer(name + "initialProcessTime")),
+      d_initialConflicts(
+          smtStatisticsRegistry().registerInt(name + "UpdateConflicts")),
+      d_fcFoundUnsat(smtStatisticsRegistry().registerInt(name + "FoundUnsat")),
+      d_fcFoundSat(smtStatisticsRegistry().registerInt(name + "FoundSat")),
+      d_fcMissed(smtStatisticsRegistry().registerInt(name + "Missed")),
+      d_fcTimer(smtStatisticsRegistry().registerTimer(name + "Timer")),
+      d_fcFocusConstructionTimer(
+          smtStatisticsRegistry().registerTimer(name + "Construction")),
       d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer(
-          "theory::arith::FC::selectUpdateForDualLike")),
+          name + "selectUpdateForDualLike")),
       d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer(
-          "theory::arith::FC::selectUpdateForPrimal")),
+          name + "selectUpdateForPrimal")),
       d_finalCheckPivotCounter(
           smtStatisticsRegistry().registerReference<uint32_t>(
-              "theory::arith::FC::lastPivots", pivots))
+              name + "lastPivots", pivots))
 {
 }
 

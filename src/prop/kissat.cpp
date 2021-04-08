@@ -153,10 +153,10 @@ bool KissatSolver::ok() const { return d_okay; }
 KissatSolver::Statistics::Statistics(StatisticsRegistry* registry,
                                      const std::string& prefix)
     : d_registry(registry),
-      d_numSatCalls("theory::bv::" + prefix + "::Kissat::calls_to_solve", 0),
-      d_numVariables("theory::bv::" + prefix + "::Kissat::variables", 0),
-      d_numClauses("theory::bv::" + prefix + "::Kissat::clauses", 0),
-      d_solveTime("theory::bv::" + prefix + "::Kissat::solve_time")
+      d_numSatCalls("theory::bv::" + prefix + "Kissat::calls_to_solve", 0),
+      d_numVariables("theory::bv::" + prefix + "Kissat::variables", 0),
+      d_numClauses("theory::bv::" + prefix + "Kissat::clauses", 0),
+      d_solveTime("theory::bv::" + prefix + "Kissat::solve_time")
 {
   d_registry->registerStat(&d_numSatCalls);
   d_registry->registerStat(&d_numVariables);

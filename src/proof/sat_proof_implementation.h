@@ -1010,21 +1010,21 @@ void TSatProof<Solver>::storeClauseGlue(ClauseId clause, int glue) {
 template <class Solver>
 TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
     : d_numLearnedClauses(smtStatisticsRegistry().registerInt(
-        "satproof::" + prefix + "::NumLearnedClauses")),
+        "satproof::" + prefix + "NumLearnedClauses")),
       d_numLearnedInProof(smtStatisticsRegistry().registerInt(
-          "satproof::" + prefix + "::NumLearnedInProof")),
+          "satproof::" + prefix + "NumLearnedInProof")),
       d_numLemmasInProof(smtStatisticsRegistry().registerInt(
-          "satproof::" + prefix + "::NumLemmasInProof")),
+          "satproof::" + prefix + "NumLemmasInProof")),
       d_avgChainLength(smtStatisticsRegistry().registerAverage(
-          "satproof::" + prefix + "::AvgResChainLength")),
+          "satproof::" + prefix + "AvgResChainLength")),
       d_resChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "::ResChainLengthsHist")),
+          "satproof::" + prefix + "ResChainLengthsHist")),
       d_usedResChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "::UsedResChainLengthsHist")),
+          "satproof::" + prefix + "UsedResChainLengthsHist")),
       d_clauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "::ClauseGlueHist")),
+          "satproof::" + prefix + "ClauseGlueHist")),
       d_usedClauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "::UsedClauseGlueHist"))
+          "satproof::" + prefix + "UsedClauseGlueHist"))
 {
 }
 

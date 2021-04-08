@@ -51,21 +51,21 @@ ArrayInfo::ArrayInfo(context::Context* c,
       bck(b),
       info_map(),
       d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(
-          statisticsPrefix + "theory::arrays::mergeInfoTimer")),
+          statisticsPrefix + "mergeInfoTimer")),
       d_avgIndexListLength(smtStatisticsRegistry().registerAverage(
-          statisticsPrefix + "theory::arrays::avgIndexListLength")),
+          statisticsPrefix + "avgIndexListLength")),
       d_avgStoresListLength(smtStatisticsRegistry().registerAverage(
-          statisticsPrefix + "theory::arrays::avgStoresListLength")),
+          statisticsPrefix + "avgStoresListLength")),
       d_avgInStoresListLength(smtStatisticsRegistry().registerAverage(
-          statisticsPrefix + "theory::arrays::avgInStoresListLength")),
-      d_listsCount(smtStatisticsRegistry().registerInt(
-          statisticsPrefix + "theory::arrays::listsCount")),
-      d_callsMergeInfo(smtStatisticsRegistry().registerInt(
-          statisticsPrefix + "theory::arrays::callsMergeInfo")),
-      d_maxList(smtStatisticsRegistry().registerInt(
-          statisticsPrefix + "theory::arrays::maxList")),
+          statisticsPrefix + "avgInStoresListLength")),
+      d_listsCount(
+          smtStatisticsRegistry().registerInt(statisticsPrefix + "listsCount")),
+      d_callsMergeInfo(smtStatisticsRegistry().registerInt(statisticsPrefix
+                                                           + "callsMergeInfo")),
+      d_maxList(
+          smtStatisticsRegistry().registerInt(statisticsPrefix + "maxList")),
       d_tableSize(smtStatisticsRegistry().registerSize<CNodeInfoMap>(
-          statisticsPrefix + "theory::arrays::infoTableSize", info_map))
+          statisticsPrefix + "infoTableSize", info_map))
 {
   emptyList = new(true) CTNodeList(ct);
   emptyInfo = new Info(ct, bck);

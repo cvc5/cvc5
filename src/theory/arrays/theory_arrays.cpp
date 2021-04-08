@@ -63,34 +63,34 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            ProofNodeManager* pnm,
                            std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
-      d_numRow(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of Row lemmas")),
-      d_numExt(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of Ext lemmas")),
-      d_numProp(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of propagations")),
-      d_numExplain(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of explanations")),
+      d_numRow(
+          smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(
+          smtStatisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numProp(
+          smtStatisticsRegistry().registerInt(name + "number of propagations")),
+      d_numExplain(
+          smtStatisticsRegistry().registerInt(name + "number of explanations")),
       d_numNonLinear(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of calls to setNonLinear")),
+          name + "number of calls to setNonLinear")),
       d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of shared array var splits")),
+          name + "number of shared array var splits")),
       d_numGetModelValSplits(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of getModelVal splits")),
+          name + "number of getModelVal splits")),
       d_numGetModelValConflicts(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of getModelVal conflicts")),
+          name + "number of getModelVal conflicts")),
       d_numSetModelValSplits(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of setModelVal splits")),
+          name + "number of setModelVal splits")),
       d_numSetModelValConflicts(smtStatisticsRegistry().registerInt(
-          name + "theory::arrays::number of setModelVal conflicts")),
-      d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
+          name + "number of setModelVal conflicts")),
+      d_ppEqualityEngine(u, name + "pp", true),
       d_ppFacts(u),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
-      d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
+      d_mayEqualEqualityEngine(c, name + "mayEqual", true),
       d_notify(*this),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -150,7 +150,7 @@ ProofRuleChecker* TheoryArrays::getProofChecker() { return &d_checker; }
 bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
-  esi.d_name = d_instanceName + "theory::arrays::ee";
+  esi.d_name = d_instanceName + "ee";
   return true;
 }
 

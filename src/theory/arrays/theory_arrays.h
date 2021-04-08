@@ -139,7 +139,7 @@ class TheoryArrays : public Theory {
                Valuation valuation,
                const LogicInfo& logicInfo,
                ProofNodeManager* pnm = nullptr,
-               std::string name = "");
+               std::string name = "theory::arrays::");
   ~TheoryArrays();
 
   //--------------------------------- initialization
