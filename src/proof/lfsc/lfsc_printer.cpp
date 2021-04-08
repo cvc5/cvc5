@@ -42,6 +42,9 @@ void LfscPrinter::print(std::ostream& out,
   // closing parentheses
   std::stringstream cparen;
   const ProofNode* pnBody = pn->getChildren()[0].get();
+  
+  // clear the rules we have warned about
+  d_trustWarned.clear();
 
   // [1] compute and print the declarations
   std::unordered_set<Node, NodeHashFunction> syms;
@@ -57,6 +60,7 @@ void LfscPrinter::print(std::ostream& out,
     passumeMap[a] = i;
   }
   // [1a] user declared sorts
+  std::stringstream preamble;
   std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
   for (const Node& s : syms)
   {
@@ -64,16 +68,16 @@ void LfscPrinter::print(std::ostream& out,
     if (st.isSort() && sts.find(st) == sts.end())
     {
       sts.insert(st);
-      out << "(declare " << st << " sort)" << std::endl;
+      preamble << "(declare " << st << " sort)" << std::endl;
     }
   }
   // [1b] user declare function symbols
   for (const Node& s : syms)
   {
-    out << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
+    preamble << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
         << " ";
-    print(out, s.getType());
-    out << "))" << std::endl;
+    print(preamble, s.getType());
+    preamble << "))" << std::endl;
   }
 
   // [2] compute the proof letification
@@ -82,8 +86,6 @@ void LfscPrinter::print(std::ostream& out,
   computeProofLetification(pnBody, pletList, pletMap);
 
   // [3] print the check command and term lets
-  out << "(check" << std::endl;
-  cparen << ")";
   // compute the term lets
   LetBinding lbind;
   for (const Node& ia : iasserts)
@@ -106,6 +108,14 @@ void LfscPrinter::print(std::ostream& out,
     printProofInternal(&lpcln, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
   }
+  // [1a] print warnings
+  for (PfRule r : d_trustWarned)
+  {
+    out << "; WARNING: adding trust step for " << r << std::endl;
+  }
+  out << preamble.str();
+  out << "(check" << std::endl;
+  cparen << ")";
   // Print the body of the outermost scope
   printProofInternal(&lpcln, pnBody, emptyLetBind, pletMap, passumeMap);
   Trace("lfsc-print-debug2")
@@ -326,8 +336,6 @@ void LfscPrinter::printProofInternal(
             if (d_trustWarned.find(r) == d_trustWarned.end())
             {
               d_trustWarned.insert(r);
-              Trace("lfsc-print-warn")
-                  << "; WARNING: adding trust step for " << r << std::endl;
             }
           }
         }
