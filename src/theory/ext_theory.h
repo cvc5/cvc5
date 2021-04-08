@@ -264,7 +264,7 @@ class ExtTheory
   bool hasActiveTerm() const;
   /** is n an active extended function term? */
   bool isActive(Node n) const;
-  /** 
+  /**
    * Same as above, but rid is update to the reason if this method returns
    * false.
    */
@@ -279,7 +279,7 @@ class ExtTheory
   static std::vector<Node> collectVars(Node n);
   /** is n context dependent inactive? */
   bool isContextIndependentInactive(Node n) const;
-  /** 
+  /**
    * Same as above, but rid is update to the reason if this method returns true.
    */
   bool isContextIndependentInactive(Node n, ExtReducedId& rid) const;
