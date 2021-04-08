@@ -98,14 +98,35 @@ class ExtTheoryCallback
 };
 
 /** Reasons for why a term was marked reduced */
-enum class ReducedId
+enum class ExtReducedId
 {
   UNKNOWN,
+  // the extended function evaluates to a constant
   EVAL_TO_CONST,
+  // a negative str.contains was reduced to a disequality
   STRINGS_NEG_CTN_DEQ,
+  // a positive str.contains was reduced to an equality
   STRINGS_POS_CTN,
+  // a str.contains was subsumed by another based on a decomposition
   STRINGS_CTN_DECOMPOSE,
 };
+/**
+ * Converts an ext reduced identifier to a string.
+ *
+ * @param id The ext reduced identifier
+ * @return The name of the ext reduced identifier
+ */
+const char* toString(ExtReducedId id);
+
+/**
+ * Writes an ext reduced identifier to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The ext reduced identifier to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, ExtReducedId id);
+
 
 /** Extended theory class
  *
@@ -128,7 +149,7 @@ enum class ReducedId
 class ExtTheory
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, ReducedId, NodeHashFunction> NodeReducedIdMap;
+  typedef context::CDHashMap<Node, ExtReducedId, NodeHashFunction> NodeExtReducedIdMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -161,7 +182,7 @@ class ExtTheory
    * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, ReducedId rid, bool satDep = true);
+  void markReduced(Node n, ExtReducedId rid, bool satDep = true);
   /** getSubstitutedTerms
    *
    *  input : effort, terms
@@ -238,7 +259,7 @@ class ExtTheory
   bool hasActiveTerm() const;
   /** is n an active extended function term? */
   bool isActive(Node n) const;
-  bool isActive(Node n, ReducedId& rid) const;
+  bool isActive(Node n, ExtReducedId& rid) const;
   /** get the set of active terms from d_ext_func_terms */
   std::vector<Node> getActive() const;
   /** get the set of active terms from d_ext_func_terms of kind k */
@@ -248,7 +269,7 @@ class ExtTheory
   /** returns the set of variable subterms of n */
   static std::vector<Node> collectVars(Node n);
   /** is n context dependent inactive? */
-  bool isContextIndependentInactive(Node n, ReducedId& rid) const;
+  bool isContextIndependentInactive(Node n, ExtReducedId& rid) const;
   /** do inferences internal */
   bool doInferencesInternal(int effort,
                             const std::vector<Node>& terms,
@@ -266,13 +287,13 @@ class ExtTheory
   /** extended function terms, map to whether they are active */
   NodeBoolMap d_ext_func_terms;
   /** mapping to why extended function terms are inactive */
-  NodeReducedIdMap d_extfReducedIdMap;
+  NodeExtReducedIdMap d_extfExtReducedIdMap;
   /**
    * The set of terms from d_ext_func_terms that are SAT-context-independent
    * inactive. For instance, a term t is SAT-context-independent inactive if
    * a reduction lemma of the form t = t' was added in this user-context level.
    */
-  NodeReducedIdMap d_ci_inactive;
+  NodeExtReducedIdMap d_ci_inactive;
   /**
    * Watched term for checking if any non-reduced extended functions exist.
    * This is an arbitrary active member of d_ext_func_terms.

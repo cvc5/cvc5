@@ -53,6 +53,24 @@ bool ExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
+const char* toString(ExtReducedId id)
+{  
+  switch(id)
+  {
+  case ExtReducedId::EVAL_TO_CONST: return "EVAL_TO_CONST";
+  case ExtReducedId::STRINGS_NEG_CTN_DEQ: return "STRINGS_NEG_CTN_DEQ";
+  case ExtReducedId::STRINGS_POS_CTN: return "STRINGS_POS_CTN";
+  case ExtReducedId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
+  default: return "?ExtReducedId?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, ExtReducedId id)
+{
+  out << toString(id);
+  return out;
+}
+
 ExtTheory::ExtTheory(ExtTheoryCallback& p,
                      context::Context* c,
                      context::UserContext* u,
@@ -61,7 +79,7 @@ ExtTheory::ExtTheory(ExtTheoryCallback& p,
     : d_parent(p),
       d_out(out),
       d_ext_func_terms(c),
-      d_extfReducedIdMap(c),
+      d_extfExtReducedIdMap(c),
       d_ci_inactive(u),
       d_has_extf(c),
       d_lemmas(u),
@@ -337,7 +355,7 @@ bool ExtTheory::doInferencesInternal(int effort,
   std::vector<Node> nnred;
   if (terms.empty())
   {
-    ReducedId rid = ReducedId::UNKNOWN;
+    ExtReducedId rid = ExtReducedId::UNKNOWN;
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
          it != d_ext_func_terms.end();
          ++it)
@@ -443,13 +461,13 @@ void ExtTheory::registerTerm(Node n)
 }
 
 // mark reduced
-void ExtTheory::markReduced(Node n, ReducedId rid, bool satDep)
+void ExtTheory::markReduced(Node n, ExtReducedId rid, bool satDep)
 {
   Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
   Assert(d_ext_func_terms.find(n) != d_ext_func_terms.end());
   d_ext_func_terms[n] = false;
-  d_extfReducedIdMap[n] = rid;
+  d_extfExtReducedIdMap[n] = rid;
   if (!satDep)
   {
     d_ci_inactive[n] = rid;
@@ -458,7 +476,7 @@ void ExtTheory::markReduced(Node n, ReducedId rid, bool satDep)
   // update has_extf
   if (d_has_extf.get() == n)
   {
-    ReducedId tmpRid = ReducedId::UNKNOWN;
+    ExtReducedId tmpRid = ExtReducedId::UNKNOWN;
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
          it != d_ext_func_terms.end();
          ++it)
@@ -475,7 +493,7 @@ void ExtTheory::markReduced(Node n, ReducedId rid, bool satDep)
 
 bool ExtTheory::isContextIndependentInactive(Node n) const
 {
-  NodeReducedIdMap::iterator it = d_ci_inactive.find(n);
+  NodeExtReducedIdMap::iterator it = d_ci_inactive.find(n);
   if (it != d_ci_inactive.end())
   {
     rid = it->second;
@@ -499,11 +517,11 @@ bool ExtTheory::hasActiveTerm() const { return !d_has_extf.get().isNull(); }
 
 bool ExtTheory::isActive(Node n) const
 {
-  ReducedId rid = ReducedId::UNKNOWN;
+  ExtReducedId rid = ExtReducedId::UNKNOWN;
   return isActive(n, rid);
 }
 
-bool ExtTheory::isActive(Node n, ReducedId& rid) const
+bool ExtTheory::isActive(Node n, ExtReducedId& rid) const
 {
   NodeBoolMap::const_iterator it = d_ext_func_terms.find(n);
   if (it != d_ext_func_terms.end())
@@ -512,8 +530,8 @@ bool ExtTheory::isActive(Node n, ReducedId& rid) const
     {
       return !isContextIndependentInactive(n, rid);
     }
-    Assert (d_extfReducedIdMap.find(n)!=d_extfReducedIdMap.end());
-    rid = d_extfReducedIdMap[n];
+    Assert (d_extfExtReducedIdMap.find(n)!=d_extfExtReducedIdMap.end());
+    rid = d_extfExtReducedIdMap[n];
     return false;
   }
   return false;
