@@ -4355,7 +4355,7 @@ void TheoryArithPrivate::presolve(){
   for(; i != i_end; ++i){
     TrustNode lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
-    outputTrustedLemma(lem, InferenceId::UNKNOWN);
+    outputTrustedLemma(lem, InferenceId::ARITH_UNATE);
   }
 }
 

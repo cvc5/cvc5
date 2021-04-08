@@ -95,8 +95,6 @@ private:
   SkolemCache& d_skCache;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** A list of pending inferences to process */
-  std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
 
 
