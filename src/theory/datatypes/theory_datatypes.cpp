@@ -282,8 +282,12 @@ void TheoryDatatypes::postCheck(Effort level)
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                  bool ifin = d_state.isFiniteType(
-                      dt[j].getSpecializedConstructorType(tt));
+                  // Notice that we split here on all datatypes except the
+                  // truly infinite ones. It is possible to also not split
+                  // on those that are interpreted-finite, but as a heuristic
+                  // we choose to split on those too.
+                  bool ifin = 
+                      dt[j].getCardinalityClass(tt)!=CardinalityClass::INFINITE;
                   Trace("datatypes-debug") << "...returned " << ifin
                                            << std::endl;
                   if (!ifin)
