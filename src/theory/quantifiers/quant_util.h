@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/theory.h"
 #include "theory/incomplete_id.h"
+#include "theory/theory.h"
 
 namespace cvc5 {
 namespace theory {
