@@ -463,7 +463,7 @@ void ExtTheory::markReduced(Node n, ExtReducedId rid, bool satDep)
 
 bool ExtTheory::isContextIndependentInactive(Node n) const
 {
-  ExtReducedId rid;
+  ExtReducedId rid = ExtReducedId::UNKNOWN;
   return isContextIndependentInactive(n, rid);
 }
 
