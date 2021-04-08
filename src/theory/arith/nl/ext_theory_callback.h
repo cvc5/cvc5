@@ -72,7 +72,8 @@ class NlExtTheoryCallback : public ExtTheoryCallback
   bool isExtfReduced(int effort,
                      Node n,
                      Node on,
-                     std::vector<Node>& exp) override;
+                     std::vector<Node>& exp,
+                     ExtReducedId& id) override;
 
  private:
   /** The underlying equality engine. */

@@ -72,14 +72,21 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
 bool NlExtTheoryCallback::isExtfReduced(int effort,
                                         Node n,
                                         Node on,
-                                        std::vector<Node>& exp)
+                                        std::vector<Node>& exp,
+                                        ExtReducedId& id)
 {
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    return k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND;
+    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND)
+    {
+      id = ExtReducedId::ARITH_SR_LINEAR;
+      return true;
+    }
+    return false;
   }
   Assert(n == d_zero);
+  id = ExtReducedId::ARITH_SR_ZERO;
   if (on.getKind() == NONLINEAR_MULT)
   {
     Trace("nl-ext-zero-exp")

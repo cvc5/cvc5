@@ -46,6 +46,52 @@ namespace theory {
 
 class OutputChannel;
 
+/** Reasons for why a term was marked reduced */
+enum class ExtReducedId
+{
+  UNKNOWN,
+  // the extended function substitutes+rewrites to a constant
+  SR_CONST,
+  // the extended function was reduced by the callback
+  REDUCTION,
+  // the extended function substitutes+rewrites to zero
+  ARITH_SR_ZERO,
+  // the extended function substitutes+rewrites to a linear (non-zero) term
+  ARITH_SR_LINEAR,
+  // an extended string function substitutes+rewrites to a constant
+  STRINGS_SR_CONST,
+  // a negative str.contains was reduced to a disequality
+  STRINGS_NEG_CTN_DEQ,
+  // a positive str.contains was reduced to an equality
+  STRINGS_POS_CTN,
+  // a str.contains was subsumed by another based on a decomposition
+  STRINGS_CTN_DECOMPOSE,
+  // reduced via an intersection inference
+  STRINGS_REGEXP_INTER,
+  // subsumed due to intersection reasoning
+  STRINGS_REGEXP_INTER_SUBSUME,
+  // subsumed due to RE inclusion reasoning for positive memberships
+  STRINGS_REGEXP_INCLUDE,
+  // subsumed due to RE inclusion reasoning for negative memberships
+  STRINGS_REGEXP_INCLUDE_NEG,
+};
+/**
+ * Converts an ext reduced identifier to a string.
+ *
+ * @param id The ext reduced identifier
+ * @return The name of the ext reduced identifier
+ */
+const char* toString(ExtReducedId id);
+
+/**
+ * Writes an ext reduced identifier to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The ext reduced identifier to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, ExtReducedId id);
+
 /**
  * A callback class for ExtTheory below. This class is responsible for
  * determining how to apply context-dependent simplification.
@@ -83,7 +129,8 @@ class ExtTheoryCallback
   virtual bool isExtfReduced(int effort,
                              Node n,
                              Node on,
-                             std::vector<Node>& exp);
+                             std::vector<Node>& exp,
+                             ExtReducedId& id);
 
   /**
    * Get reduction for node n.
@@ -96,36 +143,6 @@ class ExtTheoryCallback
    */
   virtual bool getReduction(int effort, Node n, Node& nr, bool& satDep);
 };
-
-/** Reasons for why a term was marked reduced */
-enum class ExtReducedId
-{
-  UNKNOWN,
-  // the extended function evaluates to a constant
-  EVAL_TO_CONST,
-  // a negative str.contains was reduced to a disequality
-  STRINGS_NEG_CTN_DEQ,
-  // a positive str.contains was reduced to an equality
-  STRINGS_POS_CTN,
-  // a str.contains was subsumed by another based on a decomposition
-  STRINGS_CTN_DECOMPOSE,
-};
-/**
- * Converts an ext reduced identifier to a string.
- *
- * @param id The ext reduced identifier
- * @return The name of the ext reduced identifier
- */
-const char* toString(ExtReducedId id);
-
-/**
- * Writes an ext reduced identifier to a stream.
- *
- * @param out The stream to write to
- * @param id The ext reduced identifier to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, ExtReducedId id);
 
 /** Extended theory class
  *
@@ -160,8 +177,7 @@ class ExtTheory
   ExtTheory(ExtTheoryCallback& p,
             context::Context* c,
             context::UserContext* u,
-            OutputChannel& out,
-            bool cacheEnabled = false);
+            OutputChannel& out);
   virtual ~ExtTheory() {}
   /** Tells this class to treat terms with Kind k as extended functions */
   void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
@@ -190,27 +206,19 @@ class ExtTheory
    *
    * For each i, sterms[i] = term[i] * sigma for some "derivable substitution"
    * sigma. We obtain derivable substitutions and their explanations via calls
-   * to the underlying theory's Theory::getCurrentSubstitution method. This
-   * also
-   *
-   * If useCache is true, we cache the result in d_gst_cache. This is a context
-   * independent cache that can be cleared using clearCache() below.
+   * to the underlying theory's Theory::getCurrentSubstitution method.
    */
   void getSubstitutedTerms(int effort,
                            const std::vector<Node>& terms,
                            std::vector<Node>& sterms,
-                           std::vector<std::vector<Node> >& exp,
-                           bool useCache = false);
+                           std::vector<std::vector<Node> >& exp);
   /**
    * Same as above, but for a single term. We return the substituted form of
    * term and add its explanation to exp.
    */
   Node getSubstitutedTerm(int effort,
                           Node term,
-                          std::vector<Node>& exp,
-                          bool useCache = false);
-  /** clear the cache for getSubstitutedTerm */
-  void clearCache();
+                          std::vector<Node>& exp);
   /** doInferences
    *
    * This function performs "context-dependent simplification". The method takes
@@ -269,6 +277,7 @@ class ExtTheory
   /** returns the set of variable subterms of n */
   static std::vector<Node> collectVars(Node n);
   /** is n context dependent inactive? */
+  bool isContextIndependentInactive(Node n) const;
   bool isContextIndependentInactive(Node n, ExtReducedId& rid) const;
   /** do inferences internal */
   bool doInferencesInternal(int effort,
@@ -313,22 +322,6 @@ class ExtTheory
   // cache of all lemmas sent
   NodeSet d_lemmas;
   NodeSet d_pp_lemmas;
-  /** whether we enable caching for getSubstitutedTerm */
-  bool d_cacheEnabled;
-  /** Substituted term info */
-  class SubsTermInfo
-  {
-   public:
-    /** the substituted term */
-    Node d_sterm;
-    /** an explanation */
-    std::vector<Node> d_exp;
-  };
-  /**
-   * This maps an (effort, term) to the information above. It is used as a
-   * cache for getSubstitutedTerm when d_cacheEnabled is true.
-   */
-  std::map<int, std::map<Node, SubsTermInfo> > d_gst_cache;
 };
 
 }  // namespace theory

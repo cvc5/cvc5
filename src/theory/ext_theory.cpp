@@ -30,6 +30,32 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 
+const char* toString(ExtReducedId id)
+{
+  switch (id)
+  {
+    case ExtReducedId::SR_CONST: return "SR_CONST";
+    case ExtReducedId::REDUCTION: return "REDUCTION";
+    case ExtReducedId::ARITH_SR_ZERO: return "ARITH_SR_ZERO";
+    case ExtReducedId::ARITH_SR_LINEAR: return "ARITH_SR_LINEAR";
+    case ExtReducedId::STRINGS_SR_CONST: return "STRINGS_SR_CONST";
+    case ExtReducedId::STRINGS_NEG_CTN_DEQ: return "STRINGS_NEG_CTN_DEQ";
+    case ExtReducedId::STRINGS_POS_CTN: return "STRINGS_POS_CTN";
+    case ExtReducedId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";  
+    case ExtReducedId::STRINGS_REGEXP_INTER: return "STRINGS_REGEXP_INTER";
+    case ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME: return "STRINGS_REGEXP_INTER_SUBSUME";
+    case ExtReducedId::STRINGS_REGEXP_INCLUDE: return "STRINGS_REGEXP_INCLUDE";
+    case ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG: return "STRINGS_REGEXP_INCLUDE_NEG";
+    default: return "?ExtReducedId?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, ExtReducedId id)
+{
+  out << toString(id);
+  return out;
+}
+
 bool ExtTheoryCallback::getCurrentSubstitution(
     int effort,
     const std::vector<Node>& vars,
@@ -41,8 +67,10 @@ bool ExtTheoryCallback::getCurrentSubstitution(
 bool ExtTheoryCallback::isExtfReduced(int effort,
                                       Node n,
                                       Node on,
-                                      std::vector<Node>& exp)
+                                      std::vector<Node>& exp,
+                                      ExtReducedId& id)
 {
+  id = ExtReducedId::SR_CONST;
   return n.isConst();
 }
 bool ExtTheoryCallback::getReduction(int effort,
@@ -53,29 +81,10 @@ bool ExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
-const char* toString(ExtReducedId id)
-{
-  switch (id)
-  {
-    case ExtReducedId::EVAL_TO_CONST: return "EVAL_TO_CONST";
-    case ExtReducedId::STRINGS_NEG_CTN_DEQ: return "STRINGS_NEG_CTN_DEQ";
-    case ExtReducedId::STRINGS_POS_CTN: return "STRINGS_POS_CTN";
-    case ExtReducedId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
-    default: return "?ExtReducedId?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, ExtReducedId id)
-{
-  out << toString(id);
-  return out;
-}
-
 ExtTheory::ExtTheory(ExtTheoryCallback& p,
                      context::Context* c,
                      context::UserContext* u,
-                     OutputChannel& out,
-                     bool cacheEnabled)
+                     OutputChannel& out)
     : d_parent(p),
       d_out(out),
       d_ext_func_terms(c),
@@ -83,8 +92,7 @@ ExtTheory::ExtTheory(ExtTheoryCallback& p,
       d_ci_inactive(u),
       d_has_extf(c),
       d_lemmas(u),
-      d_pp_lemmas(u),
-      d_cacheEnabled(cacheEnabled)
+      d_pp_lemmas(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -122,23 +130,13 @@ std::vector<Node> ExtTheory::collectVars(Node n)
 
 Node ExtTheory::getSubstitutedTerm(int effort,
                                    Node term,
-                                   std::vector<Node>& exp,
-                                   bool useCache)
+                                   std::vector<Node>& exp)
 {
-  if (useCache)
-  {
-    Assert(d_gst_cache[effort].find(term) != d_gst_cache[effort].end());
-    exp.insert(exp.end(),
-               d_gst_cache[effort][term].d_exp.begin(),
-               d_gst_cache[effort][term].d_exp.end());
-    return d_gst_cache[effort][term].d_sterm;
-  }
-
   std::vector<Node> terms;
   terms.push_back(term);
   std::vector<Node> sterms;
   std::vector<std::vector<Node> > exps;
-  getSubstitutedTerms(effort, terms, sterms, exps, useCache);
+  getSubstitutedTerms(effort, terms, sterms, exps);
   Assert(sterms.size() == 1);
   Assert(exps.size() == 1);
   exp.insert(exp.end(), exps[0].begin(), exps[0].end());
@@ -149,94 +147,71 @@ Node ExtTheory::getSubstitutedTerm(int effort,
 void ExtTheory::getSubstitutedTerms(int effort,
                                     const std::vector<Node>& terms,
                                     std::vector<Node>& sterms,
-                                    std::vector<std::vector<Node> >& exp,
-                                    bool useCache)
+                                    std::vector<std::vector<Node> >& exp)
 {
-  if (useCache)
+  Trace("extt-debug") << "getSubstitutedTerms for " << terms.size() << " / "
+                      << d_ext_func_terms.size() << " extended functions."
+                      << std::endl;
+  if (!terms.empty())
   {
+    // all variables we need to find a substitution for
+    std::vector<Node> vars;
+    std::vector<Node> sub;
+    std::map<Node, std::vector<Node> > expc;
     for (const Node& n : terms)
     {
-      Assert(d_gst_cache[effort].find(n) != d_gst_cache[effort].end());
-      sterms.push_back(d_gst_cache[effort][n].d_sterm);
-      exp.push_back(std::vector<Node>());
-      exp[0].insert(exp[0].end(),
-                    d_gst_cache[effort][n].d_exp.begin(),
-                    d_gst_cache[effort][n].d_exp.end());
-    }
-  }
-  else
-  {
-    Trace("extt-debug") << "getSubstitutedTerms for " << terms.size() << " / "
-                        << d_ext_func_terms.size() << " extended functions."
-                        << std::endl;
-    if (!terms.empty())
-    {
-      // all variables we need to find a substitution for
-      std::vector<Node> vars;
-      std::vector<Node> sub;
-      std::map<Node, std::vector<Node> > expc;
-      for (const Node& n : terms)
+      // do substitution, rewrite
+      std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
+      Assert(iti != d_extf_info.end());
+      for (const Node& v : iti->second.d_vars)
       {
-        // do substitution, rewrite
-        std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
-        Assert(iti != d_extf_info.end());
-        for (const Node& v : iti->second.d_vars)
+        if (std::find(vars.begin(), vars.end(), v) == vars.end())
         {
-          if (std::find(vars.begin(), vars.end(), v) == vars.end())
-          {
-            vars.push_back(v);
-          }
+          vars.push_back(v);
         }
       }
-      bool useSubs = d_parent.getCurrentSubstitution(effort, vars, sub, expc);
-      // get the current substitution for all variables
-      Assert(!useSubs || vars.size() == sub.size());
-      for (const Node& n : terms)
+    }
+    bool useSubs = d_parent.getCurrentSubstitution(effort, vars, sub, expc);
+    // get the current substitution for all variables
+    Assert(!useSubs || vars.size() == sub.size());
+    for (const Node& n : terms)
+    {
+      Node ns = n;
+      std::vector<Node> expn;
+      if (useSubs)
       {
-        Node ns = n;
-        std::vector<Node> expn;
-        if (useSubs)
+        // do substitution
+        ns = n.substitute(vars.begin(), vars.end(), sub.begin(), sub.end());
+        if (ns != n)
         {
-          // do substitution
-          ns = n.substitute(vars.begin(), vars.end(), sub.begin(), sub.end());
-          if (ns != n)
+          // build explanation: explanation vars = sub for each vars in FV(n)
+          std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
+          Assert(iti != d_extf_info.end());
+          for (const Node& v : iti->second.d_vars)
           {
-            // build explanation: explanation vars = sub for each vars in FV(n)
-            std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
-            Assert(iti != d_extf_info.end());
-            for (const Node& v : iti->second.d_vars)
+            std::map<Node, std::vector<Node> >::iterator itx = expc.find(v);
+            if (itx != expc.end())
             {
-              std::map<Node, std::vector<Node> >::iterator itx = expc.find(v);
-              if (itx != expc.end())
+              for (const Node& e : itx->second)
               {
-                for (const Node& e : itx->second)
+                if (std::find(expn.begin(), expn.end(), e) == expn.end())
                 {
-                  if (std::find(expn.begin(), expn.end(), e) == expn.end())
-                  {
-                    expn.push_back(e);
-                  }
+                  expn.push_back(e);
                 }
               }
             }
           }
-          Trace("extt-debug")
-              << "  have " << n << " == " << ns << ", exp size=" << expn.size()
-              << "." << std::endl;
         }
-        // add to vector
-        sterms.push_back(ns);
-        exp.push_back(expn);
-        // add to cache
-        if (d_cacheEnabled)
-        {
-          d_gst_cache[effort][n].d_sterm = ns;
-          d_gst_cache[effort][n].d_exp.clear();
-          d_gst_cache[effort][n].d_exp.insert(
-              d_gst_cache[effort][n].d_exp.end(), expn.begin(), expn.end());
-        }
+        Trace("extt-debug")
+            << "  have " << n << " == " << ns << ", exp size=" << expn.size()
+            << "." << std::endl;
       }
+      // add to vector
+      sterms.push_back(ns);
+      exp.push_back(expn);
     }
   }
+
 }
 
 bool ExtTheory::doInferencesInternal(int effort,
@@ -271,7 +246,7 @@ bool ExtTheory::doInferencesInternal(int effort,
               addedLemma = true;
             }
           }
-          markReduced(n, satDep);
+          markReduced(n, ExtReducedId::REDUCTION, satDep);
         }
       }
     }
@@ -290,10 +265,11 @@ bool ExtTheory::doInferencesInternal(int effort,
           Node sr = Rewriter::rewrite(sterms[i]);
           // ask the theory if this term is reduced, e.g. is it constant or it
           // is a non-extf term.
-          if (d_parent.isExtfReduced(effort, sr, terms[i], exp[i]))
+          ExtReducedId id;
+          if (d_parent.isExtfReduced(effort, sr, terms[i], exp[i], id))
           {
             processed = true;
-            markReduced(terms[i]);
+            markReduced(terms[i], id);
             // We have exp[i] => terms[i] = sr, convert this to a clause.
             // This ensures the proof infrastructure can process this as a
             // normal theory lemma.
@@ -355,12 +331,11 @@ bool ExtTheory::doInferencesInternal(int effort,
   std::vector<Node> nnred;
   if (terms.empty())
   {
-    ExtReducedId rid = ExtReducedId::UNKNOWN;
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
          it != d_ext_func_terms.end();
          ++it)
     {
-      if ((*it).second && !isContextIndependentInactive((*it).first, rid))
+      if ((*it).second && !isContextIndependentInactive((*it).first))
       {
         std::vector<Node> nterms;
         nterms.push_back((*it).first);
@@ -476,13 +451,12 @@ void ExtTheory::markReduced(Node n, ExtReducedId rid, bool satDep)
   // update has_extf
   if (d_has_extf.get() == n)
   {
-    ExtReducedId tmpRid = ExtReducedId::UNKNOWN;
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
          it != d_ext_func_terms.end();
          ++it)
     {
       // if not already reduced
-      if ((*it).second && !isContextIndependentInactive((*it).first, tmpRid))
+      if ((*it).second && !isContextIndependentInactive((*it).first))
       {
         d_has_extf = (*it).first;
       }
@@ -492,6 +466,12 @@ void ExtTheory::markReduced(Node n, ExtReducedId rid, bool satDep)
 
 
 bool ExtTheory::isContextIndependentInactive(Node n) const
+{
+  ExtReducedId rid;
+  return isContextIndependentInactive(n, rid);
+}
+
+bool ExtTheory::isContextIndependentInactive(Node n, ExtReducedId& rid) const
 {
   NodeExtReducedIdMap::iterator it = d_ci_inactive.find(n);
   if (it != d_ci_inactive.end())
@@ -529,8 +509,9 @@ bool ExtTheory::isActive(Node n, ExtReducedId& rid) const
     {
       return !isContextIndependentInactive(n, rid);
     }
-    Assert(d_extfExtReducedIdMap.find(n) != d_extfExtReducedIdMap.end());
-    rid = d_extfExtReducedIdMap[n];
+    NodeExtReducedIdMap::const_iterator itr = d_extfExtReducedIdMap.find(n);
+    Assert(itr != d_extfExtReducedIdMap.end());
+    rid = itr->second;
     return false;
   }
   return false;
@@ -569,8 +550,6 @@ std::vector<Node> ExtTheory::getActive(Kind k) const
   }
   return active;
 }
-
-void ExtTheory::clearCache() { d_gst_cache.clear(); }
 
 }  // namespace theory
 }  // namespace cvc5
