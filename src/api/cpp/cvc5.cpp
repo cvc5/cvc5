@@ -4212,9 +4212,11 @@ bool Statistics::iterator::isVisible() const
 
 const Stat& Statistics::get(const std::string& name)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   auto it = d_stats.find(name);
-  Assert(it != d_stats.end());
+  CVC4_API_CHECK(it != d_stats.end()) << "No stat with name \"" << name << "\" exists.";
   return it->second;
+  CVC4_API_TRY_CATCH_END;
 }
 
 Statistics::iterator Statistics::begin(bool expert, bool unset) const
