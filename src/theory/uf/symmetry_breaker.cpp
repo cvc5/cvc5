@@ -166,21 +166,20 @@ void SymmetryBreaker::Template::reset() {
   d_reps.clear();
 }
 
-SymmetryBreaker::SymmetryBreaker(context::Context* context,
-                                 std::string name) :
-  ContextNotifyObj(context),
-  d_assertionsToRerun(context),
-  d_rerunningAssertions(false),
-  d_phi(),
-  d_phiSet(),
-  d_permutations(),
-  d_terms(),
-  d_template(),
-  d_normalizationCache(),
-  d_termEqs(),
-  d_termEqsOnly(),
-  d_name(name),
-  d_stats(d_name)
+SymmetryBreaker::SymmetryBreaker(context::Context* context, std::string name)
+    : ContextNotifyObj(context),
+      d_assertionsToRerun(context),
+      d_rerunningAssertions(false),
+      d_phi(),
+      d_phiSet(),
+      d_permutations(),
+      d_terms(),
+      d_template(),
+      d_normalizationCache(),
+      d_termEqs(),
+      d_termEqsOnly(),
+      d_name(name),
+      d_stats(d_name + "theory::uf::symmetry_breaker::")
 {
 }
 
@@ -753,21 +752,18 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
 }
 
 SymmetryBreaker::Statistics::Statistics(const std::string& name)
-    : d_clauses(smtStatisticsRegistry().registerInt(
-        name + "theory::uf::symmetry_breaker::clauses")),
-      d_units(smtStatisticsRegistry().registerInt(
-          name + "theory::uf::symmetry_breaker::units")),
+    : d_clauses(smtStatisticsRegistry().registerInt(name + "clauses")),
+      d_units(smtStatisticsRegistry().registerInt(name + "units")),
       d_permutationSetsConsidered(smtStatisticsRegistry().registerInt(
-          name + "theory::uf::symmetry_breaker::permutationSetsConsidered")),
+          name + "permutationSetsConsidered")),
       d_permutationSetsInvariant(smtStatisticsRegistry().registerInt(
-          name + "theory::uf::symmetry_breaker::permutationSetsInvariant")),
+          name + "permutationSetsInvariant")),
       d_invariantByPermutationsTimer(smtStatisticsRegistry().registerTimer(
-          name
-          + "theory::uf::symmetry_breaker::timers::invariantByPermutations")),
-      d_selectTermsTimer(smtStatisticsRegistry().registerTimer(
-          name + "theory::uf::symmetry_breaker::timers::selectTerms")),
+          name + "timers::invariantByPermutations")),
+      d_selectTermsTimer(
+          smtStatisticsRegistry().registerTimer(name + "timers::selectTerms")),
       d_initNormalizationTimer(smtStatisticsRegistry().registerTimer(
-          name + "theory::uf::symmetry_breaker::timers::initNormalization"))
+          name + "timers::initNormalization"))
 {
 }
 

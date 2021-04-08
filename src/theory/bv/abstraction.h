@@ -209,7 +209,7 @@ public:
        d_addedLemmas(),
        d_lemmaAtoms(),
        d_inputAtoms(),
-       d_statistics(name, d_signatureToFunc)
+       d_statistics(name + "abstraction::", d_signatureToFunc)
  {
  }
   /**
