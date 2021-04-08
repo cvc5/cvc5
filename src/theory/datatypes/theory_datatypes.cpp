@@ -282,7 +282,8 @@ void TheoryDatatypes::postCheck(Effort level)
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                  bool ifin = d_state.isFiniteType(dt[j].getSpecializedConstructorType(tt));
+                  bool ifin = d_state.isFiniteType(
+                      dt[j].getSpecializedConstructorType(tt));
                   Trace("datatypes-debug") << "...returned " << ifin
                                            << std::endl;
                   if (!ifin)
