@@ -41,7 +41,8 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SkolemCache& skc)
     : d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
-      d_full_check_incomplete(false),
+      d_fullCheckIncomplete(false),
+      d_fullCheckIncompleteId(IncompleteId::UNKNOWN),
       d_external(external),
       d_state(state),
       d_im(im),
@@ -208,7 +209,8 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
-  d_full_check_incomplete = false;
+  d_fullCheckIncomplete = false;
+  d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
   d_most_common_type.clear();
   d_most_common_type_term.clear();
   d_card_enabled = false;
@@ -295,7 +297,8 @@ void TheorySetsPrivate::fullEffortCheck()
           // some kinds of cardinality we cannot handle
           if (d_rels->isRelationKind(nk0))
           {
-            d_full_check_incomplete = true;
+            d_fullCheckIncomplete = true;
+            d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
             Trace("sets-incomplete")
                 << "Sets : incomplete because of " << n << "." << std::endl;
             // TODO (#1124):  The issue can be divided into 4 parts
@@ -789,9 +792,9 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
       {
         fullEffortCheck();
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
-            && d_full_check_incomplete)
+            && d_fullCheckIncomplete)
         {
-          d_im.setIncomplete();
+          d_im.setIncomplete(d_fullCheckIncompleteId);
         }
       }
     }
@@ -1373,11 +1376,12 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
   stringstream stream;
   stream << "chooseUf" << setType.getId();
   string name = stream.str();
-  Node chooseSkolem = nm->mkSkolem(
+  Node chooseSkolem = sm->mkDummySkolem(
       name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
   d_chooseFunctions[setType] = chooseSkolem;
   return chooseSkolem;

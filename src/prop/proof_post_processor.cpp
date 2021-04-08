@@ -29,6 +29,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(
 void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
   bool result = pn->getRule() == PfRule::ASSUME

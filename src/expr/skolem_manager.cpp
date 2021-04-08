@@ -204,6 +204,14 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
   return it->second;
 }
 
+Node SkolemManager::mkDummySkolem(const std::string& prefix,
+                                  const TypeNode& type,
+                                  const std::string& comment,
+                                  int flags)
+{
+  return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
+}
+
 Node SkolemManager::mkBooleanTermVariable(Node t)
 {
   return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);

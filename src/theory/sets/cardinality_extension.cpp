@@ -17,6 +17,7 @@
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
@@ -1015,6 +1016,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       if (elementType.isInterpretedFinite())
       {
         // get all members of this finite type
@@ -1034,7 +1036,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // slack elements for the leaves without worrying about conflicts with
           // the current members of this finite type.
 
-          Node slack = nm->mkSkolem("slack", elementType);
+          Node slack = sm->mkDummySkolem("slack", elementType);
           Node singleton = nm->mkSingleton(elementType, slack);
           els.push_back(singleton);
           d_finite_type_slack_elements[elementType].push_back(slack);
@@ -1043,8 +1045,8 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(
-              nm->mkSingleton(elementType, nm->mkSkolem("msde", elementType)));
+          els.push_back(nm->mkSingleton(
+              elementType, sm->mkDummySkolem("msde", elementType)));
         }
       }
     }

@@ -55,7 +55,7 @@ public:
  QEffort needsModel(Theory::Effort e) override;
  void reset_round(Theory::Effort e) override;
  void check(Theory::Effort e, QEffort quant_e) override;
- bool checkComplete() override;
+ bool checkComplete(IncompleteId& incId) override;
  bool checkCompleteFor(Node q) override;
  void registerQuantifier(Node f) override;
  void assertNode(Node f) override;

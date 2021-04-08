@@ -135,12 +135,15 @@ set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supprted language bindings based on new C++ API
+# Supported language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Build limitations
 option(BUILD_LIB_ONLY         "Only build the library")
+
+# Api documentation
+cvc4_option(BUILD_DOCS "Build Api documentation")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -511,6 +514,10 @@ if(BUILD_BINDINGS_JAVA)
   message(WARNING "Java API is currently under development.")
 endif()
 
+if(BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Package configuration
 #
@@ -658,6 +665,8 @@ else()
 endif()
 print_config("Editline                  " ${USE_EDITLINE})
 print_config("SymFPU                    " ${USE_SYMFPU})
+message("")
+print_config("Api docs                  " ${BUILD_DOCS})
 message("")
 if(ABC_DIR)
   print_config("ABC dir                   " ${ABC_DIR})

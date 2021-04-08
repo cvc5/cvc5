@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/theory_options.h"
 #include "theory/theory.h"
 
@@ -278,10 +279,10 @@ Node mkConst(const BitVector& value)
 Node mkVar(unsigned size)
 {
   NodeManager* nm = NodeManager::currentNM();
-
-  return nm->mkSkolem("BVSKOLEM$$",
-                      nm->mkBitVectorType(size),
-                      "is a variable created by the theory of bitvectors");
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkDummySkolem("BVSKOLEM$$",
+                           nm->mkBitVectorType(size),
+                           "is a variable created by the theory of bitvectors");
 }
 
 /* ------------------------------------------------------------------------- */

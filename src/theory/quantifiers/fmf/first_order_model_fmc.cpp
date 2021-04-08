@@ -15,6 +15,7 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
 #include "expr/attribute.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
 
@@ -90,8 +91,9 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
-  Node st = NodeManager::currentNM()->mkSkolem(
-      "star", tn, "skolem created for full-model checking");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node st =
+      sm->mkDummySkolem("star", tn, "skolem created for full-model checking");
   d_type_star[tn] = st;
   st.setAttribute(IsStarAttribute(), true);
   return st;

@@ -199,13 +199,14 @@ class TheoryEngine {
    * context level or below).
    */
   context::CDO<bool> d_incomplete;
+  /** The theory and identifier that (most recently) set incomplete */
+  context::CDO<theory::TheoryId> d_incompleteTheory;
+  context::CDO<theory::IncompleteId> d_incompleteId;
 
   /**
    * Called by the theories to notify that the current branch is incomplete.
    */
-  void setIncomplete(theory::TheoryId theory) {
-    d_incomplete = true;
-  }
+  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Mapping of propagations from recievers to senders.

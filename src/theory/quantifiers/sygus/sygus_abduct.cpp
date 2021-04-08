@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -43,6 +44,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node, NodeHashFunction> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
@@ -121,7 +123,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     abvl = agtsd.getSygusVarList();
     Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
   }
-  else
+  else if (!varlist.empty())
   {
     // the bound variable list of the abduct-to-synthesize is determined by
     // the variable list above
@@ -164,9 +166,12 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
   Node sc = nm->mkNode(AND, aconj, abdApp);
-  Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  sc = nm->mkNode(EXISTS, vbvl, sc);
-  Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+  if (!vars.empty())
+  {
+    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    sc = nm->mkNode(EXISTS, vbvl, sc);
+  }
+  Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
   // build in the side condition

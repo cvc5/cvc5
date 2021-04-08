@@ -16,6 +16,7 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -433,6 +434,7 @@ Node SygusRepairConst::getFoQuery(Node body,
                                   const std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),
@@ -451,7 +453,7 @@ Node SygusRepairConst::getFoQuery(Node body,
     if (itf == d_sk_to_fo.end())
     {
       TypeNode builtinType = d_tds->sygusToBuiltinType(v.getType());
-      Node sk_fov = nm->mkSkolem("k", builtinType);
+      Node sk_fov = sm->mkDummySkolem("k", builtinType);
       d_sk_to_fo[v] = sk_fov;
       d_fo_to_sk[sk_fov] = v;
       Trace("sygus-repair-const-debug")
