@@ -45,7 +45,7 @@
  ** (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
  **/
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 

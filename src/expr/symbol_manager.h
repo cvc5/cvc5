@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "cvc4_export.h"
 #include "expr/symbol_table.h"
 

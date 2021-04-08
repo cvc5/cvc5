@@ -201,6 +201,23 @@ bindings for `<lang>`.
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.
 
+
+## Building the API Documentation
+
+Building the API documentation of CVC4 requires the following dependencies:
+* [Doxygen](https://www.doxygen.nl)
+* [Sphinx](https://www.sphinx-doc.org)
+* [Breathe](https://breathe.readthedocs.io)
+
+To build the documentation, configure CVC4 with `./configure.sh --docs`.
+Building CVC4 will then include building the API documentation.
+
+The API documentation can then be found at `<build_dir>/docs/sphinx/index.html`.
+
+To only build the documentation, change to the build directory and call
+`make docs`.
+
+
 ## Building the Examples
 
 See `examples/README.md` for instructions on how to build and run the examples.

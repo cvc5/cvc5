@@ -18,7 +18,9 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_util.h"
 
 namespace cvc5 {
 namespace theory {
@@ -29,6 +31,7 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
+      d_termPools(new TermPools(qs)),
       d_termDb(new TermDb(qs, qr)),
       d_sygusTdb(nullptr)
 {
@@ -116,6 +119,21 @@ Node TermRegistry::getTermForType(TypeNode tn)
   return d_termDb->getOrMakeTypeGroundTerm(tn);
 }
 
+void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
+{
+  d_termPools->registerPool(p, initValue);
+}
+
+void TermRegistry::processInstantiation(Node q, const std::vector<Node>& terms)
+{
+  d_termPools->processInstantiation(q, terms);
+}
+void TermRegistry::processSkolemization(Node q,
+                                        const std::vector<Node>& skolems)
+{
+  d_termPools->processSkolemization(q, skolems);
+}
+
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() const
@@ -127,6 +145,8 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 {
   return d_termEnum.get();
 }
+
+TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }
 

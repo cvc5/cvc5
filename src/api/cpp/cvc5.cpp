@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cpp.cpp
+/*! \file cvc5.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
@@ -31,12 +31,12 @@
  ** consistent behavior (see Solver::mkRealFromStrHelper for an example).
  **/
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 #include <cstring>
 #include <sstream>
 
-#include "api/checks.h"
+#include "api/cpp/cvc5_checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/dtype.h"
@@ -46,6 +46,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
@@ -2114,7 +2115,7 @@ size_t Term::getNumChildren() const
   {
     return d_node->getNumChildren() + 1;
   }
-  if(isCastedReal())
+  if (isCastedReal())
   {
     return 0;
   }
@@ -2548,23 +2549,19 @@ bool isInteger(const Node& node)
 }
 bool isInt32(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::int32_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::int32_t>(getInteger(node));
 }
 bool isUInt32(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::uint32_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::uint32_t>(getInteger(node));
 }
 bool isInt64(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::int64_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::int64_t>(getInteger(node));
 }
 bool isUInt64(const Node& node)
 {
-  return isInteger(node)
-         && checkIntegerBounds<std::uint64_t>(getInteger(node));
+  return isInteger(node) && checkIntegerBounds<std::uint64_t>(getInteger(node));
 }
 }  // namespace detail
 
@@ -3725,7 +3722,7 @@ void Grammar::addAnyVariable(const Term& ntSymbol)
 }
 
 /**
- * this function concatinates the outputs of calling f on each element between
+ * This function concatenates the outputs of calling f on each element between
  * first and last, seperated by sep.
  * @param first the beginning of the range
  * @param last the end of the range
@@ -3957,7 +3954,7 @@ Term Grammar::purifySygusGTerm(
   if (term.d_node->getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     // it's an indexed operator so we should provide the op
-    NodeBuilder<> nb(term.d_node->getKind());
+    NodeBuilder nb(term.d_node->getKind());
     nb << term.d_node->getOperator();
     nb.append(Term::termVectorToNodes(pchildren));
     nret = nb.constructNode();
@@ -4540,7 +4537,7 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   const cvc5::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = Term::termVectorToNodes(children);
 
-  NodeBuilder<> nb(int_kind);
+  NodeBuilder nb(int_kind);
   nb << *op.d_node;
   nb.append(echildren);
   Node res = nb.constructNode();
@@ -5752,7 +5749,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 
   Sort s = mkTupleSortHelper(sorts);
   Datatype dt = s.getDatatype();
-  NodeBuilder<> nb(extToIntKind(APPLY_CONSTRUCTOR));
+  NodeBuilder nb(extToIntKind(APPLY_CONSTRUCTOR));
   nb << *dt[0].getConstructorTerm().d_node;
   nb.append(args);
   Node res = nb.constructNode();
@@ -6053,9 +6050,6 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
 /* SMT-LIB commands                                                           */
 /* -------------------------------------------------------------------------- */
 
-/**
- *  ( assert <term> )
- */
 void Solver::assertFormula(const Term& term) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6067,9 +6061,6 @@ void Solver::assertFormula(const Term& term) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( check-sat )
- */
 Result Solver::checkSat(void) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6085,9 +6076,6 @@ Result Solver::checkSat(void) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( check-sat-assuming ( <prop_literal> ) )
- */
 Result Solver::checkSatAssuming(const Term& assumption) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6104,9 +6092,6 @@ Result Solver::checkSatAssuming(const Term& assumption) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( check-sat-assuming ( <prop_literal>* ) )
- */
 Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6128,9 +6113,6 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( declare-datatype <symbol> <datatype_decl> )
- */
 Sort Solver::declareDatatype(
     const std::string& symbol,
     const std::vector<DatatypeConstructorDecl>& ctors) const
@@ -6150,9 +6132,6 @@ Sort Solver::declareDatatype(
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( declare-fun <symbol> ( <sort>* ) <sort> )
- */
 Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
                         const Sort& sort) const
@@ -6173,9 +6152,6 @@ Term Solver::declareFun(const std::string& symbol,
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( declare-sort <symbol> <numeral> )
- */
 Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6189,9 +6165,6 @@ Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( define-fun <function_def> )
- */
 Term Solver::defineFun(const std::string& symbol,
                        const std::vector<Term>& bound_vars,
                        const Sort& sort,
@@ -6259,9 +6232,6 @@ Term Solver::defineFun(const Term& fun,
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( define-fun-rec <function_def> )
- */
 Term Solver::defineFunRec(const std::string& symbol,
                           const std::vector<Term>& bound_vars,
                           const Sort& sort,
@@ -6350,9 +6320,6 @@ Term Solver::defineFunRec(const Term& fun,
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
- */
 void Solver::defineFunsRec(const std::vector<Term>& funs,
                            const std::vector<std::vector<Term>>& bound_vars,
                            const std::vector<Term>& terms,
@@ -6418,17 +6385,11 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( echo <std::string> )
- */
 void Solver::echo(std::ostream& out, const std::string& str) const
 {
   out << str;
 }
 
-/**
- *  ( get-assertions )
- */
 std::vector<Term> Solver::getAssertions(void) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6447,9 +6408,6 @@ std::vector<Term> Solver::getAssertions(void) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-info <info_flag> )
- */
 std::string Solver::getInfo(const std::string& flag) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6461,9 +6419,6 @@ std::string Solver::getInfo(const std::string& flag) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-option <keyword> )
- */
 std::string Solver::getOption(const std::string& option) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6474,9 +6429,6 @@ std::string Solver::getOption(const std::string& option) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-unsat-assumptions )
- */
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6505,9 +6457,6 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-unsat-core )
- */
 std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6532,9 +6481,6 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-value ( <term> ) )
- */
 Term Solver::getValue(const Term& term) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6545,9 +6491,6 @@ Term Solver::getValue(const Term& term) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( get-value ( <term>+ ) )
- */
 std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6589,8 +6532,8 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
-  return Term(
-      this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
+  return Term(this,
+              d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
   ////////
   CVC4_API_TRY_CATCH_END;
 }
@@ -6649,9 +6592,6 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( pop <numeral> )
- */
 void Solver::pop(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
@@ -6784,9 +6724,6 @@ void Solver::printInstantiations(std::ostream& out) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( push <numeral> )
- */
 void Solver::push(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
@@ -6802,9 +6739,6 @@ void Solver::push(uint32_t nscopes) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( reset-assertions )
- */
 void Solver::resetAssertions(void) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6814,9 +6748,6 @@ void Solver::resetAssertions(void) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( set-info <attribute> )
- */
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6843,9 +6774,6 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( set-logic <symbol> )
- */
 void Solver::setLogic(const std::string& logic) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
@@ -6858,9 +6786,6 @@ void Solver::setLogic(const std::string& logic) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
- *  ( set-option <option> )
- */
 void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
@@ -7089,13 +7014,13 @@ void Solver::printSynthSolution(std::ostream& out) const
   CVC4_API_TRY_CATCH_END;
 }
 
-/**
+/*
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
-/**
+/*
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!
  */

@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
 namespace cvc5 {
 

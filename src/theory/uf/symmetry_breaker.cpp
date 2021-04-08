@@ -525,7 +525,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
           Debug("ufsymm") << "UFSYMM p == " << p << endl;
           if(i != p.end() || p.size() != cts.size()) {
             Debug("ufsymm") << "UFSYMM cts != p" << endl;
-            NodeBuilder<> disj(kind::OR);
+            NodeBuilder disj(kind::OR);
             NodeManager* nm = NodeManager::currentNM();
             for (const Node& nn : cts)
             {

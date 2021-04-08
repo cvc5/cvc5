@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_engine.h"
@@ -144,6 +145,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   d_single_inv = d_sip->getSingleInvocation();
   d_single_inv = TermUtil::simpleNegate(d_single_inv);
   std::vector<Node> func_vars;
@@ -159,8 +161,8 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   d_sip->getSingleInvocationVariables(sivars);
   for (unsigned i = 0, size = sivars.size(); i < size; i++)
   {
-    Node v = NodeManager::currentNM()->mkSkolem(
-        "a", sivars[i].getType(), "single invocation arg");
+    Node v =
+        sm->mkDummySkolem("a", sivars[i].getType(), "single invocation arg");
     d_single_inv_arg_sk.push_back(v);
   }
   d_single_inv = d_single_inv.substitute(sivars.begin(),
@@ -209,15 +211,16 @@ bool CegSingleInv::solve()
   }
   Trace("sygus-si") << "Solve using single invocation..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // Mark the quantified formula with the quantifier elimination attribute to
   // ensure its structure is preserved in the query below.
   Node siq = d_single_inv;
   if (siq.getKind() == FORALL)
   {
-    Node n_attr =
-        nm->mkSkolem("qe_si",
-                     nm->booleanType(),
-                     "Auxiliary variable for qe attr for single invocation.");
+    Node n_attr = sm->mkDummySkolem(
+        "qe_si",
+        nm->booleanType(),
+        "Auxiliary variable for qe attr for single invocation.");
     QuantElimAttribute qea;
     n_attr.setAttribute(qea, true);
     n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);

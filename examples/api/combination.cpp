@@ -16,9 +16,9 @@
  ** The model is displayed using getValue().
  **/
 
-#include <iostream>
+#include <cvc5/cvc5.h>
 
-#include <cvc4/api/cvc4cpp.h>
+#include <iostream>
 
 using namespace std;
 using namespace cvc5::api;

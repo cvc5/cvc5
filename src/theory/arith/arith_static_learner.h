@@ -45,19 +45,22 @@ private:
 public:
   ArithStaticLearner(context::Context* userContext);
   ~ArithStaticLearner();
-  void staticLearning(TNode n, NodeBuilder<>& learned);
+  void staticLearning(TNode n, NodeBuilder& learned);
 
   void addBound(TNode n);
 
-private:
-  void process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue);
+ private:
+  void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
 
-  void iteMinMax(TNode n, NodeBuilder<>& learned);
-  void iteConstant(TNode n, NodeBuilder<>& learned);
+  void iteMinMax(TNode n, NodeBuilder& learned);
+  void iteConstant(TNode n, NodeBuilder& learned);
 
-  /** These fields are designed to be accessible to ArithStaticLearner methods. */
-  class Statistics {
-  public:
+  /**
+   * These fields are designed to be accessible to ArithStaticLearner methods.
+   */
+  class Statistics
+  {
+   public:
     IntStat d_iteMinMaxApplications;
     IntStat d_iteConstantApplications;
 

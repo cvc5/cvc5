@@ -19,6 +19,7 @@
 #include "base/configuration.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
+#include "options/option_exception.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/command.h"
 #include "smt/node_command.h"

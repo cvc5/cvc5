@@ -481,7 +481,7 @@ bool Constraint::isInternalAssumption() const {
 
 TrustNode Constraint::externalExplainByAssertions() const
 {
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
   Node exp = safeConstructNary(nb);
   if (d_database->isProofEnabled())
@@ -1072,12 +1072,12 @@ TrustNode Constraint::split()
   TNode lhs = eqNode[0];
   TNode rhs = eqNode[1];
 
-  Node leqNode = NodeBuilder<2>(kind::LEQ) << lhs << rhs;
-  Node ltNode = NodeBuilder<2>(kind::LT) << lhs << rhs;
-  Node gtNode = NodeBuilder<2>(kind::GT) << lhs << rhs;
-  Node geqNode = NodeBuilder<2>(kind::GEQ) << lhs << rhs;
+  Node leqNode = NodeBuilder(kind::LEQ) << lhs << rhs;
+  Node ltNode = NodeBuilder(kind::LT) << lhs << rhs;
+  Node gtNode = NodeBuilder(kind::GT) << lhs << rhs;
+  Node geqNode = NodeBuilder(kind::GEQ) << lhs << rhs;
 
-  Node lemma = NodeBuilder<3>(OR) << leqNode << geqNode;
+  Node lemma = NodeBuilder(OR) << leqNode << geqNode;
 
   TrustNode trustedLemma;
   if (d_database->isProofEnabled())
@@ -1511,7 +1511,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
   Assert(hasProof());
   Assert(!isAssumption());
   Assert(!isInternalAssumption());
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
   Node n = safeConstructNary(nb);
   if (d_database->isProofEnabled())
@@ -1547,7 +1547,7 @@ TrustNode Constraint::externalExplainConflict() const
 {
   Debug("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   auto pf1 = externalExplainByAssertions(nb);
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
@@ -1644,7 +1644,7 @@ void Constraint::assertionFringe(ConstraintCPVec& o, const ConstraintCPVec& i){
 }
 
 Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order){
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   ConstraintCPVec::const_iterator i, end;
   for(i = v.begin(), end = v.end(); i != end; ++i){
     ConstraintCP v_i = *i;
@@ -1654,7 +1654,7 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
 }
 
 std::shared_ptr<ProofNode> Constraint::externalExplain(
-    NodeBuilder<>& nb, AssertionOrder order) const
+    NodeBuilder& nb, AssertionOrder order) const
 {
   if (Debug.isOn("pf::arith::explain"))
   {
@@ -1851,14 +1851,14 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 }
 
 Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b){
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   a->externalExplainByAssertions(nb);
   b->externalExplainByAssertions(nb);
   return nb;
 }
 
 Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b, ConstraintCP c){
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   a->externalExplainByAssertions(nb);
   b->externalExplainByAssertions(nb);
   c->externalExplainByAssertions(nb);
@@ -1976,7 +1976,7 @@ TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
   return d_congruenceManager.explain(c->getLiteral());
 }
 
-void ConstraintDatabase::eeExplain(ConstraintCP c, NodeBuilder<>& nb) const
+void ConstraintDatabase::eeExplain(ConstraintCP c, NodeBuilder& nb) const
 {
   Assert(c->hasLiteral());
   // NOTE: this is not a recommended method since it ignores proofs
