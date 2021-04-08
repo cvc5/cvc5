@@ -730,9 +730,10 @@ std::string ExtfSolver::debugPrintModel()
   for (const Node& n : extf)
   {
     ss << "- " << n;
-    if (!d_extt.isActive(n))
+    ExtReducedId id;
+    if (!d_extt.isActive(n, id))
     {
-      ss << " :extt-inactive";
+      ss << " :extt-inactive " << id;
     }
     if (!d_extfInfoTmp[n].d_modelActive)
     {
