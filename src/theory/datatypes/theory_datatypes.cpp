@@ -282,9 +282,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                  // FIXME
-                  bool ifin = dt[j].getCardinalityClass(tt)
-                              != CardinalityClass::INFINITE;
+                  bool ifin = d_state.isFiniteType(dt[j].getSpecializedConstructorType(tt));
                   Trace("datatypes-debug") << "...returned " << ifin
                                            << std::endl;
                   if (!ifin)
@@ -1332,9 +1330,8 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
             // must try the infinite ones first
-            // FIXME
             bool cfinite =
-                dt[i].getCardinalityClass(tt) != CardinalityClass::INFINITE;
+                d_state.isFiniteType(dt[i].getSpecializedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

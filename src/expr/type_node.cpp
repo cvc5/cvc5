@@ -161,7 +161,20 @@ CardinalityClass TypeNode::getCardinalityClass()
     }
     else if (isConstructor())
     {
+      // notice that we require computing the cardinality class of the
+      // constructor type, which is equivalent to asking how many
+      // constructor applications of the given constructor exist? This
+      // is used in several places in the decision procedure for datatypes.
+      // starts with one
       ret = CardinalityClass::ONE;
+      // we may have a larger cardinality class based on the
+      // arguments of the constructor
+      std::vector<TypeNode> argTypes = getArgTypes();
+      for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
+      {
+        CardinalityClass cca = argTypes[i].getCardinalityClass();
+        ret = maxCardinalityClass(ret, cca);
+      }
     }
     else
     {
