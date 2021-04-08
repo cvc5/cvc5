@@ -139,7 +139,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
   if (!funcs.empty())
   {
     TypeNode tn0 = funcs[0].getType();
-    if (tn0.getNumChildren() > 0)
+    if (tn0.isFunction())
     {
       for (unsigned i = 0, nargs = tn0.getNumChildren() - 1; i < nargs; i++)
       {
@@ -155,7 +155,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
         Trace("si-prt") << "...type mismatch" << std::endl;
         return false;
       }
-      else if (tni.getNumChildren() > 0)
+      else if (tni.isFunction())
       {
         for (unsigned j = 0, nargs = tni.getNumChildren() - 1; j < nargs; j++)
         {

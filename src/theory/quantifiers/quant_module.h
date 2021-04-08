@@ -105,8 +105,11 @@ class QuantifiersModule
    *
    * This is called just before the quantifiers engine will return
    * with no lemmas added during a LAST_CALL effort check.
+   *
+   * If this method returns false, it should update incId to the reason for
+   * why the module was incomplete.
    */
-  virtual bool checkComplete() { return true; }
+  virtual bool checkComplete(IncompleteId& incId) { return true; }
   /** Check was complete for quantified formula q
    *
    * If for each quantified formula q, some module returns true for

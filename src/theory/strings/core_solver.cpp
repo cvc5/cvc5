@@ -1777,7 +1777,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }
   else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
   {
-    d_im.setIncomplete();
+    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
     return ProcessLoopResult::SKIPPED;
   }
 
@@ -1930,7 +1930,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     else if (options::stringProcessLoopMode()
              == options::ProcessLoopMode::SIMPLE)
     {
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
       return ProcessLoopResult::SKIPPED;
     }
 

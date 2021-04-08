@@ -118,7 +118,7 @@ class Instantiate : public QuantifiersUtil
   /** identify */
   std::string identify() const override { return "Instantiate"; }
   /** check incomplete */
-  bool checkComplete() override;
+  bool checkComplete(IncompleteId& incId) override;
 
   //--------------------------------------rewrite objects
   /** add instantiation rewriter */

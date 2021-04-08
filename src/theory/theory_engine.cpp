@@ -233,6 +233,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_inSatMode(false),
       d_hasShutDown(false),
       d_incomplete(context, false),
+      d_incompleteTheory(context, THEORY_BUILTIN),
+      d_incompleteId(context, IncompleteId::UNKNOWN),
       d_propagationMap(context),
       d_propagationMapTimestamp(context, 0),
       d_propagatedLiterals(context),
@@ -1451,6 +1453,14 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
     // pass the trust node that was sent from the theory
     lemma(tconflict, LemmaProperty::REMOVABLE, THEORY_LAST, theoryId);
   }
+}
+
+void TheoryEngine::setIncomplete(theory::TheoryId theory,
+                                 theory::IncompleteId id)
+{
+  d_incomplete = true;
+  d_incompleteTheory = theory;
+  d_incompleteId = id;
 }
 
 theory::TrustNode TheoryEngine::getExplanation(

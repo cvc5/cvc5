@@ -490,7 +490,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         Trace("nl-ext") << "...failed to send lemma in "
                            "NonLinearExtension, set incomplete"
                         << std::endl;
-        d_containing.getOutputChannel().setIncomplete();
+        d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
         return Result::Sat::SAT_UNKNOWN;
       }
     }

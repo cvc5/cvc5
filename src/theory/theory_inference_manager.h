@@ -371,7 +371,7 @@ class TheoryInferenceManager
    * Notification from a theory that it realizes it is incomplete at
    * this context level.
    */
-  void setIncomplete();
+  void setIncomplete(IncompleteId id);
 
  protected:
   /**

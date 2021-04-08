@@ -177,7 +177,7 @@ bool TheoryUF::preNotifyFact(
       else
       {
         // support for cardinality constraints is not enabled, set incomplete
-        d_im.setIncomplete();
+        d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
       }
     }
     // don't need to assert cardinality constraints if not producing models

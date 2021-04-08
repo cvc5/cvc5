@@ -296,9 +296,10 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool InstStrategyCegqi::checkComplete()
+bool InstStrategyCegqi::checkComplete(IncompleteId& incId)
 {
   if( ( !options::cegqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
+    incId = IncompleteId::QUANTIFIERS_CEGQI;
     return false;
   }else{
     return true;
