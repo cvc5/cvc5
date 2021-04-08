@@ -97,6 +97,16 @@ class ExtTheoryCallback
   virtual bool getReduction(int effort, Node n, Node& nr, bool& satDep);
 };
 
+/** Reasons for why a term was marked reduced */
+enum class ReducedId
+{
+  UNKNOWN,
+  EVAL_TO_CONST,
+  STRINGS_NEG_CTN_DEQ,
+  STRINGS_POS_CTN,
+  STRINGS_CTN_DECOMPOSE,
+};
+
 /** Extended theory class
  *
  * This class is used for constructing generic extensions to theory solvers.
@@ -118,6 +128,7 @@ class ExtTheoryCallback
 class ExtTheory
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef context::CDHashMap<Node, ReducedId, NodeHashFunction> NodeReducedIdMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -150,12 +161,7 @@ class ExtTheory
    * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, bool satDep = true);
-  /**
-   * Mark that a and b are congruent terms. This sets b inactive, and sets a to
-   * inactive if b was inactive.
-   */
-  void markCongruent(Node a, Node b);
+  void markReduced(Node n, ReducedId rid, bool satDep = true);
   /** getSubstitutedTerms
    *
    *  input : effort, terms
@@ -232,6 +238,7 @@ class ExtTheory
   bool hasActiveTerm() const;
   /** is n an active extended function term? */
   bool isActive(Node n) const;
+  bool isActive(Node n, ReducedId& rid) const;
   /** get the set of active terms from d_ext_func_terms */
   std::vector<Node> getActive() const;
   /** get the set of active terms from d_ext_func_terms of kind k */
@@ -241,7 +248,7 @@ class ExtTheory
   /** returns the set of variable subterms of n */
   static std::vector<Node> collectVars(Node n);
   /** is n context dependent inactive? */
-  bool isContextIndependentInactive(Node n) const;
+  bool isContextIndependentInactive(Node n, ReducedId& rid) const;
   /** do inferences internal */
   bool doInferencesInternal(int effort,
                             const std::vector<Node>& terms,
@@ -258,12 +265,14 @@ class ExtTheory
   Node d_true;
   /** extended function terms, map to whether they are active */
   NodeBoolMap d_ext_func_terms;
+  /** mapping to why extended function terms are inactive */
+  NodeReducedIdMap d_extfReducedIdMap;
   /**
    * The set of terms from d_ext_func_terms that are SAT-context-independent
    * inactive. For instance, a term t is SAT-context-independent inactive if
    * a reduction lemma of the form t = t' was added in this user-context level.
    */
-  NodeSet d_ci_inactive;
+  NodeReducedIdMap d_ci_inactive;
   /**
    * Watched term for checking if any non-reduced extended functions exist.
    * This is an arbitrary active member of d_ext_func_terms.

@@ -61,6 +61,7 @@ ExtTheory::ExtTheory(ExtTheoryCallback& p,
     : d_parent(p),
       d_out(out),
       d_ext_func_terms(c),
+      d_extfReducedIdMap(c),
       d_ci_inactive(u),
       d_has_extf(c),
       d_lemmas(u),
@@ -336,11 +337,12 @@ bool ExtTheory::doInferencesInternal(int effort,
   std::vector<Node> nnred;
   if (terms.empty())
   {
+    ReducedId rid = ReducedId::UNKNOWN;
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
          it != d_ext_func_terms.end();
          ++it)
     {
-      if ((*it).second && !isContextIndependentInactive((*it).first))
+      if ((*it).second && !isContextIndependentInactive((*it).first, rid))
       {
         std::vector<Node> nterms;
         nterms.push_back((*it).first);
@@ -441,26 +443,28 @@ void ExtTheory::registerTerm(Node n)
 }
 
 // mark reduced
-void ExtTheory::markReduced(Node n, bool satDep)
+void ExtTheory::markReduced(Node n, ReducedId rid, bool satDep)
 {
   Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
   Assert(d_ext_func_terms.find(n) != d_ext_func_terms.end());
   d_ext_func_terms[n] = false;
+  d_extfReducedIdMap[n] = rid;
   if (!satDep)
   {
-    d_ci_inactive.insert(n);
+    d_ci_inactive[n] = rid;
   }
 
   // update has_extf
   if (d_has_extf.get() == n)
   {
+    ReducedId tmpRid = ReducedId::UNKNOWN;
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
          it != d_ext_func_terms.end();
          ++it)
     {
       // if not already reduced
-      if ((*it).second && !isContextIndependentInactive((*it).first))
+      if ((*it).second && !isContextIndependentInactive((*it).first, tmpRid))
       {
         d_has_extf = (*it).first;
       }
@@ -468,34 +472,16 @@ void ExtTheory::markReduced(Node n, bool satDep)
   }
 }
 
-// mark congruent
-void ExtTheory::markCongruent(Node a, Node b)
-{
-  Trace("extt-debug") << "Mark congruent : " << a << " " << b << std::endl;
-  registerTerm(a);
-  registerTerm(b);
-  NodeBoolMap::const_iterator it = d_ext_func_terms.find(b);
-  if (it != d_ext_func_terms.end())
-  {
-    if (d_ext_func_terms.find(a) != d_ext_func_terms.end())
-    {
-      d_ext_func_terms[a] = d_ext_func_terms[a] && (*it).second;
-    }
-    else
-    {
-      Assert(false);
-    }
-    d_ext_func_terms[b] = false;
-  }
-  else
-  {
-    Assert(false);
-  }
-}
 
 bool ExtTheory::isContextIndependentInactive(Node n) const
 {
-  return d_ci_inactive.find(n) != d_ci_inactive.end();
+  NodeReducedIdMap::iterator it = d_ci_inactive.find(n);
+  if (it != d_ci_inactive.end())
+  {
+    rid = it->second;
+    return true;
+  }
+  return false;
 }
 
 void ExtTheory::getTerms(std::vector<Node>& terms)
@@ -510,13 +496,25 @@ void ExtTheory::getTerms(std::vector<Node>& terms)
 
 bool ExtTheory::hasActiveTerm() const { return !d_has_extf.get().isNull(); }
 
-// is active
+
 bool ExtTheory::isActive(Node n) const
+{
+  ReducedId rid = ReducedId::UNKNOWN;
+  return isActive(n, rid);
+}
+
+bool ExtTheory::isActive(Node n, ReducedId& rid) const
 {
   NodeBoolMap::const_iterator it = d_ext_func_terms.find(n);
   if (it != d_ext_func_terms.end())
   {
-    return (*it).second && !isContextIndependentInactive(n);
+    if ((*it).second)
+    {
+      return !isContextIndependentInactive(n, rid);
+    }
+    Assert (d_extfReducedIdMap.find(n)!=d_extfReducedIdMap.end());
+    rid = d_extfReducedIdMap[n];
+    return false;
   }
   return false;
 }
