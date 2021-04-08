@@ -119,7 +119,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
-  Assert (id!=InferenceId::UNKNOWN);
+  Assert(id != InferenceId::UNKNOWN);
   d_conflictIdStats << id;
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
@@ -252,7 +252,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
       return false;
     }
   }
-  Assert (id!=InferenceId::UNKNOWN);
+  Assert(id != InferenceId::UNKNOWN);
   d_lemmaIdStats << id;
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
@@ -373,7 +373,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  const std::vector<Node>& args,
                                                  ProofGenerator* pg)
 {
-  Assert (iid!=InferenceId::UNKNOWN);
+  Assert(iid != InferenceId::UNKNOWN);
   d_factIdStats << iid;
   Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
               << ")" << std::endl;

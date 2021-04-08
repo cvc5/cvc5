@@ -233,7 +233,7 @@ enum class InferenceId
   // (dt.size t) >= 0
   DATATYPES_SYGUS_MT_POS,
   // ---------------------------------- end datatypes theory
-  
+
   //-------------------------------------- floating point theory
   FP_PREPROCESS,
   FP_EQUATE_TERM,

@@ -784,7 +784,8 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
     NodeManager *nm = NodeManager::currentNM();
 
     handleLemma(
-        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))), InferenceId::FP_EQUATE_TERM);
+        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))),
+        InferenceId::FP_EQUATE_TERM);
 #endif
 
     ++oldAdditionalAssertions;
@@ -801,11 +802,13 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
 #ifdef SYMFPUPROPISBOOL
       handleLemma(nm->mkNode(kind::EQUAL, node, converted));
 #else
-      handleLemma(nm->mkNode(
-          kind::EQUAL,
-          node,
-          nm->mkNode(
-              kind::EQUAL, converted, nm->mkConst(::cvc5::BitVector(1U, 1U)))), InferenceId::FP_EQUATE_TERM);
+      handleLemma(
+          nm->mkNode(kind::EQUAL,
+                     node,
+                     nm->mkNode(kind::EQUAL,
+                                converted,
+                                nm->mkConst(::cvc5::BitVector(1U, 1U)))),
+          InferenceId::FP_EQUATE_TERM);
 #endif
 
     } else {
@@ -817,7 +820,8 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
       Assert(converted.getType().isBitVector());
 
       handleLemma(
-          NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted), InferenceId::FP_EQUATE_TERM);
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted),
+          InferenceId::FP_EQUATE_TERM);
     }
   }
 
@@ -888,7 +892,8 @@ void TheoryFp::registerTerm(TNode node) {
         Unreachable() << "Only isNaN, isInf and isZero have aliases";
       }
 
-      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias), InferenceId::FP_REGISTER_TERM);
+      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias),
+                  InferenceId::FP_REGISTER_TERM);
     }
 
     // Use symfpu to produce an equivalent bit-vector statement
