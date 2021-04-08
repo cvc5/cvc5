@@ -201,12 +201,6 @@ class InferenceManager : public InferenceManagerBuffered
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
   bool sendSplit(Node a, Node b, InferenceId infer, bool preq = true);
-  /**
-   * Set that we are incomplete for the current set of assertions (in other
-   * words, we must answer "unknown" instead of "sat"); this calls the output
-   * channel's setIncomplete method.
-   */
-  void setIncomplete();
 
   //----------------------------constructing antecedants
   /**

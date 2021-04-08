@@ -85,7 +85,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** check complete */
-  bool checkComplete() override;
+  bool checkComplete(IncompleteId& incId) override;
   /** check complete for quantified formula */
   bool checkCompleteFor(Node q) override;
   /** check ownership */

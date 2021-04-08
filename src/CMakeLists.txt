@@ -632,6 +632,8 @@ libcvc4_add_sources(
   theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/incomplete_id.cpp
+  theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
   theory/inference_manager_buffered.cpp

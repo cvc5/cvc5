@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/incomplete_id.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
@@ -49,9 +50,10 @@ public:
   /** Check complete?
    *
    * Returns false if the utility's reasoning was globally incomplete
-   * (e.g. "sat" must be replaced with "incomplete").
+   * (e.g. "sat" must be replaced with "incomplete"). If this method returns
+   * false, it should update incId to the reason for incompleteness.
    */
-  virtual bool checkComplete() { return true; }
+  virtual bool checkComplete(IncompleteId& incId) { return true; }
 };
 
 class QuantPhaseReq
