@@ -599,9 +599,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    AlwaysAssert(nameResolutions.find(dtp->getName()) == nameResolutions.end())
-        << "cannot construct two datatypes at the same time "
-           "with the same name";
+    if (nameResolutions.find(dtp->getName()) != nameResolutions.end())
+    {
+      throw Exception(
+          "cannot construct two datatypes at the same time with the same name");
+    }
     nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);
   }
@@ -624,9 +626,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     std::string name = ut.getAttribute(expr::VarNameAttr());
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
-    AlwaysAssert(resolver != nameResolutions.end())
-        << "cannot resolve type " + name
-               + "; it's not among the datatypes being defined";
+    if (resolver == nameResolutions.end())
+    {
+      throw Exception("cannot resolve type " + name
+                      + "; it's not among the datatypes being defined");
+    }
     // We will instruct the Datatype to substitute "ut" (the
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
@@ -679,8 +683,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
         // cvc5::DType class, but this actually needs to be checked.
-        AlwaysAssert(!selectorType.getRangeType().isFunctionLike())
-            << "cannot put function-like things in datatypes";
+        if (selectorType.getRangeType().isFunctionLike())
+        {
+          throw Exception("cannot put function-like things in datatypes");
+        }
       }
     }
   }
