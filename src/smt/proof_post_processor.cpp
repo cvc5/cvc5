@@ -38,7 +38,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
     : d_pnm(pnm),
       d_smte(smte),
       d_pppg(pppg),
-      d_wfpm(pnm), 
+      d_wfpm(pnm),
       d_trrc(pnm),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
