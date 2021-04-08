@@ -69,11 +69,8 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
   return retVal;
 }
 
-bool NlExtTheoryCallback::isExtfReduced(int effort,
-                                        Node n,
-                                        Node on,
-                                        std::vector<Node>& exp,
-                                        ExtReducedId& id)
+bool NlExtTheoryCallback::isExtfReduced(
+    int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
 {
   if (n != d_zero)
   {

@@ -126,11 +126,8 @@ class ExtTheoryCallback
    * @param exp The explanation of on = n
    * @return true if n is reduced.
    */
-  virtual bool isExtfReduced(int effort,
-                             Node n,
-                             Node on,
-                             std::vector<Node>& exp,
-                             ExtReducedId& id);
+  virtual bool isExtfReduced(
+      int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id);
 
   /**
    * Get reduction for node n.
@@ -216,9 +213,7 @@ class ExtTheory
    * Same as above, but for a single term. We return the substituted form of
    * term and add its explanation to exp.
    */
-  Node getSubstitutedTerm(int effort,
-                          Node term,
-                          std::vector<Node>& exp);
+  Node getSubstitutedTerm(int effort, Node term, std::vector<Node>& exp);
   /** doInferences
    *
    * This function performs "context-dependent simplification". The method takes
