@@ -444,7 +444,7 @@ bool VeritProofPostprocessCallback::update(
       }
       return addVeritStep(res,
                           vrule,
-                          d_nm->mkNode(kind::SEXPR, d_cl, res), //TODO: delete
+                          d_nm->mkNode(kind::SEXPR, d_cl, res),  // TODO: delete
                           children,
                           {},
                           *cdp);
@@ -2363,14 +2363,14 @@ bool VeritProofPostprocessCallback::update(
     // args: ()
     case PfRule::SYMM:
     {
-      if(res.getKind() == kind::NOT){
+      if (res.getKind() == kind::NOT)
+      {
         return addVeritStep(res,
-                          VeritRule::NOT_SYMM,
-                          d_nm->mkNode(kind::SEXPR, d_cl, res),
-                          children,
-                          {},
-                          *cdp);
-
+                            VeritRule::NOT_SYMM,
+                            d_nm->mkNode(kind::SEXPR, d_cl, res),
+                            children,
+                            {},
+                            *cdp);
       }
       return addVeritStep(res,
                           VeritRule::SYMM,

@@ -208,7 +208,7 @@ enum class VeritRule : uint32_t
   SKO_EX,
   SKO_FORALL,
   /** Special Rules*/
-  UNDEFINED,      // TBD
+  UNDEFINED,  // TBD
   /** Extended Rules */
   SYMM,
   NOT_SYMM,

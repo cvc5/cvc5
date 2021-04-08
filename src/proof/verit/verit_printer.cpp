@@ -119,7 +119,6 @@ std::string VeritProofPrinter::veritPrinterInternal(
       steps[assumption_level][pfn->getArguments()[i].toString()] = step_id;
       step_id++;
     }*/
-
   }
 
   // Assumptions are printed at the anchor and therefore have to be in the list
@@ -143,8 +142,10 @@ std::string VeritProofPrinter::veritPrinterInternal(
      * NodeManager* nm = NodeManager::currentNM();
 
     if(pfn->getResult().getKind() == kind::EQUAL){
-      Node symmNode = nm->mkNode(kind::EQUAL,pfn->getArguments()[2][1],pfn->getArguments()[2][0]);
-      return prefix + "a" + std::to_string(assumptions[assumption_level].find(symmNode.toString())->second);
+      Node symmNode =
+    nm->mkNode(kind::EQUAL,pfn->getArguments()[2][1],pfn->getArguments()[2][0]);
+      return prefix + "a" +
+    std::to_string(assumptions[assumption_level].find(symmNode.toString())->second);
     }*/
 
     //TODO: Error Trace
@@ -159,7 +160,9 @@ std::string VeritProofPrinter::veritPrinterInternal(
   }
 
   // If rule is SYMM or REORDER the rule should not be printed in non-extended mode
-  if (vrule == VeritRule::REORDER || (!d_extended && vrule == VeritRule::SYMM)) //TODO: I changed this temporary
+  if (vrule == VeritRule::REORDER
+      || (!d_extended
+          && vrule == VeritRule::SYMM))  // TODO: I changed this temporary
   {
     Trace("verit-printer") << "... non-extended mode skip child "
                            << pfn->getResult() << " "
