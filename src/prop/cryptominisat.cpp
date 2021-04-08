@@ -219,12 +219,10 @@ unsigned CryptoMinisatSolver::getAssertionLevel() const {
 CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry* registry,
                                             const std::string& prefix)
     : d_registry(registry),
-      d_statCallsToSolve(
-          "theory::bv::" + prefix + "cryptominisat::calls_to_solve", 0),
-      d_xorClausesAdded("theory::bv::" + prefix + "cryptominisat::xor_clauses",
-                        0),
-      d_clausesAdded("theory::bv::" + prefix + "cryptominisat::clauses", 0),
-      d_solveTime("theory::bv::" + prefix + "cryptominisat::solve_time"),
+      d_statCallsToSolve(prefix + "cryptominisat::calls_to_solve", 0),
+      d_xorClausesAdded("cryptominisat::xor_clauses", 0),
+      d_clausesAdded("cryptominisat::clauses", 0),
+      d_solveTime("cryptominisat::solve_time"),
       d_registerStats(!prefix.empty())
 {
   if (!d_registerStats)

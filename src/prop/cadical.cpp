@@ -181,10 +181,10 @@ bool CadicalSolver::ok() const { return d_inSatMode; }
 CadicalSolver::Statistics::Statistics(StatisticsRegistry* registry,
                                       const std::string& prefix)
     : d_registry(registry),
-      d_numSatCalls("theory::bv::" + prefix + "cadical::calls_to_solve", 0),
-      d_numVariables("theory::bv::" + prefix + "cadical::variables", 0),
-      d_numClauses("theory::bv::" + prefix + "cadical::clauses", 0),
-      d_solveTime("theory::bv::" + prefix + "cadical::solve_time")
+      d_numSatCalls(prefix + "cadical::calls_to_solve", 0),
+      d_numVariables(prefix + "cadical::variables", 0),
+      d_numClauses(prefix + "cadical::clauses", 0),
+      d_solveTime(prefix + "cadical::solve_time")
 {
   d_registry->registerStat(&d_numSatCalls);
   d_registry->registerStat(&d_numVariables);
