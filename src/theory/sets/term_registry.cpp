@@ -15,6 +15,7 @@
 #include "theory/sets/term_registry.h"
 
 #include "expr/emptyset.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -116,7 +117,8 @@ Node TermRegistry::getTypeConstraintSkolem(Node n, TypeNode tn)
   std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
   if (it == d_tc_skolem[n].end())
   {
-    Node k = NodeManager::currentNM()->mkSkolem("tc_k", tn);
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    Node k = sm->mkDummySkolem("tc_k", tn);
     d_tc_skolem[n][tn] = k;
     return k;
   }

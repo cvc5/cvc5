@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -1563,7 +1564,8 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    Node avar = nm->mkSkolem("id", nm->booleanType());
+    SkolemManager* sm = nm->getSkolemManager();
+    Node avar = sm->mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(kind::INST_ATTRIBUTE, avar));
