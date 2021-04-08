@@ -35,8 +35,14 @@ enum class IncompleteId
   QUANTIFIERS,
   // we failed to verify the correctness of a candidate solution in SyGuS
   QUANTIFIERS_SYGUS_NO_VERIFY,
+  // incomplete due to counterexample-guided instantiation not being complete
+  QUANTIFIERS_CEGQI,
   // incomplete due to finite model finding not being complete
   QUANTIFIERS_FMF,
+  // incomplete due to explicitly recorded instantiations
+  QUANTIFIERS_RECORDED_INST,
+  // incomplete due to separation logic
+  SEP,
   // relations were used in combination with set cardinality constraints
   SETS_RELS_CARD,
   // we skipped processing a looping word equation
@@ -47,6 +53,8 @@ enum class IncompleteId
   UF_HO_EXT_DISABLED,
   // UF+cardinality solver was disabled
   UF_CARD_DISABLED,
+  // UF+cardinality solver used in an incomplete mode
+  UF_CARD_MODE,
 
   //-------------------------------------- unknown
   UNKNOWN

@@ -205,7 +205,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   d_qim.reset();
   bool setIncomplete = false;
-  IncompleteId setIncompleteId = InferenceId::QUANTIFIERS;
+  IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
@@ -355,7 +355,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
             //sources of incompleteness
             for (QuantifiersUtil*& util : d_util)
             {
-              if (!util->checkComplete())
+              if (!util->checkComplete(setIncompleteId))
               {
                 Trace("quant-engine-debug") << "Set incomplete because utility "
                                             << util->identify().c_str()
