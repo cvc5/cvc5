@@ -38,7 +38,8 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
     : d_pnm(pnm),
       d_smte(smte),
       d_pppg(pppg),
-      d_wfpm(pnm),
+      d_wfpm(pnm), 
+      d_trrc(pnm),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -64,19 +65,12 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     return true;
   }
-<<<<<<< HEAD
-  // other than elimination rules, we always update assumptions as long as they
-  // are *not* in scope, i.e., not in fa
-  if (id != PfRule::ASSUME
-      || std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end())
-=======
   // other than elimination rules, we always update assumptions as long as
   // d_updateScopedAssumptions is true or they are *not* in scope, i.e., not in
   // fa
   if (id != PfRule::ASSUME
       || (!d_updateScopedAssumptions
           && std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end()))
->>>>>>> 889daf13112f71b6f5dd98444af99ec7656195be
   {
     Trace("smt-proof-pp-debug")
         << "... not updating in-scope assumption " << pn->getResult() << "\n";
