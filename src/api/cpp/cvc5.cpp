@@ -4278,27 +4278,29 @@ NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
 
 void Solver::increment_term_stats(Kind kind) const
 {
-#ifdef CVC4_STATISTICS_ON
-  d_stats->d_terms << kind;
-#endif
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_stats->d_terms << kind;
+  }
 }
 
 void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
 {
-#ifdef CVC4_STATISTICS_ON
-  const TypeNode tn = sort.getTypeNode();
-  TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
-                        ? tn.getConst<TypeConstant>()
-                        : LAST_TYPE;
-  if (is_var)
+  if constexpr (Configuration::isStatisticsBuild())
   {
-    d_stats->d_vars << tc;
+    const TypeNode tn = sort.getTypeNode();
+    TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
+                          ? tn.getConst<TypeConstant>()
+                          : LAST_TYPE;
+    if (is_var)
+    {
+      d_stats->d_vars << tc;
+    }
+    else
+    {
+      d_stats->d_consts << tc;
+    }
   }
-  else
-  {
-    d_stats->d_consts << tc;
-  }
-#endif
 }
 
 /* Split out to avoid nested API calls (problematic with API tracing).        */
@@ -4696,15 +4698,16 @@ bool Solver::isValidInteger(const std::string& s) const
 
 void Solver::resetStatistics()
 {
-#if CVC4_STATISTICS_ON
-  d_stats.reset(new APIStatistics{
-      d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
-          "api::CONSTANT"),
-      d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
-          "api::VARIABLE"),
-      d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
-  });
-#endif
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_stats.reset(new APIStatistics{
+        d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+            "api::CONSTANT"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+            "api::VARIABLE"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+    });
+  }
 }
 
 /* Helpers for mkTerm checks.                                                 */
