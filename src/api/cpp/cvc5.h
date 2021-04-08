@@ -3802,6 +3802,11 @@ class CVC4_EXPORT Solver
   // the driver level. !!!
   Options& getOptions(void);
 
+  /**
+   * Returns a snapshot of the current state of the statistic values of this
+   * solver. The returned object is completely decoupled from the solver and
+   * will not change when the solver is used again.
+   */
   Statistics getStatistics() const;
 
  private:
