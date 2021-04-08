@@ -1763,8 +1763,9 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4328-nqe.smt2
-  regress1/quantifiers/issue4420-order-sensitive.smt2
+  regress1/quantifiers/issue4400-2-already-conf.smt2
   regress1/quantifiers/issue4412-cegqi-type.smt2
+  regress1/quantifiers/issue4420-order-sensitive.smt2
   regress1/quantifiers/issue4433-nqe.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
