@@ -109,6 +109,17 @@ std::string VeritProofPrinter::veritPrinterInternal(
     // position
     current_step_id = step_id;  // TODO: move up?
     step_id = 1;
+
+    /*for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
+    {
+      Trace("verit-printer")
+          << "... print assumption " << pfn->getArguments()[i] << std::endl;
+      out << "(step " << prefix << "t" << std::to_string(step_id) << " "
+          << "(cl " << pfn->getArguments()[i] << ") :rule refl)\n";
+      steps[assumption_level][pfn->getArguments()[i].toString()] = step_id;
+      step_id++;
+    }*/
+
   }
 
   // Assumptions are printed at the anchor and therefore have to be in the list
@@ -128,12 +139,13 @@ std::string VeritProofPrinter::veritPrinterInternal(
       return prefix + "a" + std::to_string(it->second);
     }
 
-    NodeManager* nm = NodeManager::currentNM();
+    /* TODO: Only in non-extended mode
+     * NodeManager* nm = NodeManager::currentNM();
 
     if(pfn->getResult().getKind() == kind::EQUAL){
       Node symmNode = nm->mkNode(kind::EQUAL,pfn->getArguments()[2][1],pfn->getArguments()[2][0]);
       return prefix + "a" + std::to_string(assumptions[assumption_level].find(symmNode.toString())->second);
-    }
+    }*/
 
     //TODO: Error Trace
     return "";
@@ -147,7 +159,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
   }
 
   // If rule is SYMM or REORDER the rule should not be printed in non-extended mode
-  if (!d_extended && (vrule == VeritRule::REORDER || vrule == VeritRule::SYMM))
+  if (vrule == VeritRule::REORDER || (!d_extended && vrule == VeritRule::SYMM)) //TODO: I changed this temporary
   {
     Trace("verit-printer") << "... non-extended mode skip child "
                            << pfn->getResult() << " "
@@ -186,7 +198,6 @@ std::string VeritProofPrinter::veritPrinterInternal(
   }
 
   // If the current step is already printed return its id
-  Trace("verit-printer") << "here" << std::endl;
   auto it = steps[assumption_level].find(pfn->getArguments()[2].toString());
 
   if(it != steps[assumption_level].end()){

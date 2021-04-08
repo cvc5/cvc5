@@ -444,7 +444,7 @@ bool VeritProofPostprocessCallback::update(
       }
       return addVeritStep(res,
                           vrule,
-                          d_nm->mkNode(kind::SEXPR, d_cl, d_nm->mkNode(kind::EQUAL,res[1],res[0])), //TODO: delete
+                          d_nm->mkNode(kind::SEXPR, d_cl, res), //TODO: delete
                           children,
                           {},
                           *cdp);
@@ -2086,7 +2086,7 @@ bool VeritProofPostprocessCallback::update(
       for (unsigned long int i = 0; i < args.size(); i++)
       {
         new_args.push_back(
-            d_nm->mkNode(kind::EQUAL, children[0][0][i], args[i]));
+            d_nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
       }
       Node vp1 = d_nm->mkNode(
           kind::SEXPR, d_cl, d_nm->mkNode(kind::OR, children[0].notNode(), res));
@@ -2363,6 +2363,15 @@ bool VeritProofPostprocessCallback::update(
     // args: ()
     case PfRule::SYMM:
     {
+      if(res.getKind() == kind::NOT){
+        return addVeritStep(res,
+                          VeritRule::NOT_SYMM,
+                          d_nm->mkNode(kind::SEXPR, d_cl, res),
+                          children,
+                          {},
+                          *cdp);
+
+      }
       return addVeritStep(res,
                           VeritRule::SYMM,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),

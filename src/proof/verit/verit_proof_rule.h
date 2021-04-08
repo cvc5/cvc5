@@ -211,6 +211,7 @@ enum class VeritRule : uint32_t
   UNDEFINED,      // TBD
   /** Extended Rules */
   SYMM,
+  NOT_SYMM,
   REORDER
 };
 
