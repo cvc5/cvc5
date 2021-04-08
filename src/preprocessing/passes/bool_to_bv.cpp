@@ -266,7 +266,11 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
-    ++(d_statistics.d_numIntroducedItes);
+    if (d_boolToBVMode == options::BoolToBVMode::ALL)
+    {
+      // this statistic only makes sense for ALL mode
+      ++(d_statistics.d_numIntroducedItes);
+    }
     return;
   }
   else if (safe_to_rebuild && needToRebuild(n))
@@ -286,7 +290,11 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
-    ++(d_statistics.d_numIntroducedItes);
+    if (d_boolToBVMode == options::BoolToBVMode::ALL)
+    {
+      // this statistic only makes sense for ALL mode
+      ++(d_statistics.d_numIntroducedItes);
+    }
   }
   else
   {
@@ -364,6 +372,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 
   if ((d_boolToBVMode == options::BoolToBVMode::ALL) && (new_kind != k))
   {
+    // this statistic only makes sense for ALL mode
     ++(d_statistics.d_numTermsLowered);
   }
 
@@ -395,6 +404,9 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 BoolToBV::Statistics::Statistics()
     : d_numIteToBvite(smtStatisticsRegistry().registerInt(
         "preprocessing::passes::BoolToBV::NumIteToBvite")),
+      // the following two statistics are not correct in the ITE mode, because
+      // we might discard rebuilt nodes if we fails to convert a bool to
+      // width-one bit-vector (never forces)
       d_numTermsLowered(smtStatisticsRegistry().registerInt(
           "preprocessing::passes:BoolToBV::NumTermsLowered")),
       d_numIntroducedItes(smtStatisticsRegistry().registerInt(
