@@ -44,8 +44,8 @@ using TypeObligationSetMap =
  * {
  *   Obs: A map from sygus types T to a set of triples to reconstruct into T,
  *        where each triple is of the form (k, ts, s), where k is a skolem of
- *        type T, t is a set of builtin terms of the type encoded by T, and s is
- *        a possibly null sygus term of type T representing the solution.
+ *        type T, ts is a set of builtin terms of the type encoded by T, and s
+ *        is a possibly null sygus term of type T representing the solution.
  *
  *   Sol: A map from skolems k to solutions s in the triples (k, ts, s). That
  *        is, Sol[k] = s.
@@ -68,47 +68,53 @@ using TypeObligationSetMap =
  *     Obs' = {} // map from T to sets of triples pending addition to Obs
  *     // enumeration phase
  *     for each subfield type T of T_0
- *       // enumerated terms may contain variables z ranging over all terms of
+ *       // enumerated terms may contain variables zs ranging over all terms of
  *       // their type (subfield types of T_0)
- *       s[z] = nextEnum(T)
- *       builtin = rewrite(toBuiltIn(s[z]))
- *       if (s[z] is ground)
+ *       s[zs] = nextEnum(T)
+ *       if (s[zs] is ground)
+ *         builtin = rewrite(toBuiltIn(s[zs]))
  *         // let X be the theory the solver is invoked with
  *         find (k, ts, s) in Obs[T] s.t. |=_X ts[0] = builtin
  *         if no such triple exists
  *           let k be a new variable of type : T
  *           Obs[T] += (k, [builtin], null)
- *         markSolved(k, s[z])
+ *         markSolved(k, s[zs])
  *       else if no s' in Pool[T] and matcher sigma s.t.
- *             rewrite(toBuiltIn(s')) * sigma = builtin
- *         Pool[T] += s[z]
+ *             rewrite(toBuiltIn(s')) * sigma = rewrite(toBuiltIn(s[zs]))
+ *         Pool[T] += s[zs]
  *         for each (k, ts, null) in Obs[T]
- *           Obs' += matchNewObs(k, s[z])
+ *           Obs' += matchNewObs(k, s[zs])
  *     // match phase
  *     while Obs' != {}
  *       Obs'' = {}
  *       for each (k, ts, null) in Obs' // s = null for all triples in Obs'
  *         Obs[T] += (k, ts, null)
- *         for each s[z] in Pool[T]
- *           Obs'' += matchNewObs(k, s[z])
+ *         for each s[zs] in Pool[T]
+ *           Obs'' += matchNewObs(k, s[zs])
  *       Obs' = Obs''
  *   g = Sol[k_0]
  *   instantiate free variables of g with arbitrary sygus datatype values
  * }
  *
- * matchNewObs(k, s[z]) returns Obs'
+ * matchNewObs(k, s[zs]) returns Obs'
  * {
- *   u = rewrite(toBuiltIn(s[z]))
+ *   u = rewrite(toBuiltIn(s[zs]))
  *   for each t in Terms[k]
- *     if match(u, t) == {toBuiltin(z) -> ts'}
- *       // let X be the theory the solver is invoked with
- *       if exists t' in ts' s.t.
- *             forall (k'', ts'', s'') in Obs[T] |=_X t''[0] != t'
- *         let k' be a new variable of type : typeOf(z)
- *         CandSol[k] += s{z -> k'}
- *         Obs'[typeOf(z)] += (k', [t'], null)
+ *     if match(u, t) == {toBuiltin(zs) -> sts}
+ *       Sub = {} // substitution map from zs to corresponding new vars ks
+ *       for each (z, st) in {zs -> sts}
+ *         // let X be the theory the solver is invoked with
+ *         if exists (k', ts', s') in Obs[T] !=_X ts'[0] = st
+ *           ts' += st
+ *           Sub[z] = k'
+ *         else
+ *           let sk be a new variable of type : typeOf(z)
+ *           Sub[z] = sk
+ *           Obs'[typeOf(z)] += (sk, [st], null)
+ *       if Sol[sk] != null forall (z, sk) in Sub
+ *         markSolved(k, s{Sub})
  *       else
- *         markSolved(k, s{z -> s''})
+ *         CandSol[k] += s{Sub}
  * }
  *
  * markSolved(k, s)

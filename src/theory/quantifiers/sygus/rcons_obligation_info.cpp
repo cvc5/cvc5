@@ -64,11 +64,15 @@ std::string RConsObligationInfo::obToString(Node k,
                                             const RConsObligationInfo& obInfo)
 {
   std::stringstream ss;
-  ss << "ob<\n";
-  for (Node builtin : obInfo.getBuiltins()) {
-    ss << "  builtin: " << builtin << '\n';
+  ss << "([";
+  auto it = obInfo.getBuiltins().cbegin();
+  ss << *it;
+  ++it;
+  while (it != obInfo.getBuiltins().cend())
+  {
+    ss << ", " << *it;
   }
-  ss << "  Type: " << k.getType() << "\n>" << std::endl;
+  ss << "]), " << k.getType() << ')' << std::endl;
   return ss.str();
 }
 
