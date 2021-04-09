@@ -1050,8 +1050,9 @@ enum class PfRule : uint32_t
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n * poly_n)
-  //    t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n * const_n)
+  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
+  //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
+  //    * const_n)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
   // ======== Sum Upper Bounds
@@ -1136,8 +1137,9 @@ enum class PfRule : uint32_t
   // Arguments: (t, x, y, a, b, sgn)
   // ---------------------
   // Conclusion:
-  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y b)))
-  //   sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a) (>= y b)))
+  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
+  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
+  //   (>= y b)))
   // Where x,y are real terms (variables or extended terms), t = (* x y)
   // (possibly under rewriting), a,b are real constants, and sgn is either -1
   // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
