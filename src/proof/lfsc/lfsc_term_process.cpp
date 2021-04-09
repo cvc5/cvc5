@@ -18,10 +18,10 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "expr/node_manager_attributes.h"
 
 using namespace cvc5::kind;
 
