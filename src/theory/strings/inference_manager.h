@@ -220,18 +220,11 @@ class InferenceManager : public InferenceManagerBuffered
 
   // ------------------------------------------------- extended theory
   /**
-   * Mark that terms a and b are congruent in the current context.
-   * This makes a call to markCongruent in the extended theory object of
-   * the parent theory if the kind of a (and b) is owned by the extended
-   * theory.
-   */
-  void markCongruent(Node a, Node b);
-  /**
    * Mark that extended function is reduced. If contextDepend is true,
    * then this mark is SAT-context dependent, otherwise it is user-context
    * dependent (see ExtTheory::markReduced).
    */
-  void markReduced(Node n, bool contextDepend = true);
+  void markReduced(Node n, ExtReducedId id, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
   /**

@@ -268,18 +268,9 @@ bool InferenceManager::hasProcessed() const
   return d_state.isInConflict() || hasPending();
 }
 
-void InferenceManager::markCongruent(Node a, Node b)
+void InferenceManager::markReduced(Node n, ExtReducedId id, bool contextDepend)
 {
-  Assert(a.getKind() == b.getKind());
-  if (d_extt.hasFunctionKind(a.getKind()))
-  {
-    d_extt.markCongruent(a, b);
-  }
-}
-
-void InferenceManager::markReduced(Node n, bool contextDepend)
-{
-  d_extt.markReduced(n, contextDepend);
+  d_extt.markReduced(n, id, contextDepend);
 }
 
 void InferenceManager::processConflict(const InferInfo& ii)
