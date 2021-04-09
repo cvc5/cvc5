@@ -400,7 +400,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       types.push_back(d_sortType);
     }
     Node op;
-    if (k==PARAMETRIC_DATATYPE)
+    if (k == PARAMETRIC_DATATYPE)
     {
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       op = getSymbolInternal(k, ftype, tn.getDType().getName());
