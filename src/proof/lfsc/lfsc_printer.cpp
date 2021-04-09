@@ -24,7 +24,7 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace proof {
-
+  
 LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -46,6 +46,7 @@ void LfscPrinter::print(std::ostream& out,
   // clear the rules we have warned about
   d_trustWarned.clear();
 
+  Trace("lfsc-print-debug") << "; print declarations" << std::endl;
   // [1] compute and print the declarations
   std::unordered_set<Node, NodeHashFunction> syms;
   std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -59,32 +60,43 @@ void LfscPrinter::print(std::ostream& out,
     // remember the assumption name
     passumeMap[a] = i;
   }
+  Trace("lfsc-print-debug") << "; print sorts" << std::endl;
   // [1a] user declared sorts
   std::stringstream preamble;
   std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
   for (const Node& s : syms)
   {
+    // note that we must get all "component types" of a type, so that
+    // e.g. U is printed as a sort declaration when we have type (Array U Int).
     TypeNode st = s.getType();
-    if (st.isSort() && sts.find(st) == sts.end())
+    std::unordered_set<TypeNode, TypeNodeHashFunction> types;
+    expr::getComponentTypes(st, types);
+    for (const TypeNode& stc : types)
     {
-      sts.insert(st);
-      preamble << "(declare " << st << " sort)" << std::endl;
+      if (stc.isSort() && sts.find(stc) == sts.end())
+      {
+        sts.insert(stc);
+        preamble << "(declare " << stc << " sort)" << std::endl;
+      }
     }
   }
+  Trace("lfsc-print-debug") << "; print user symbols" << std::endl;
   // [1b] user declare function symbols
   for (const Node& s : syms)
   {
     preamble << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
              << " ";
-    print(preamble, s.getType());
+    printType(preamble, s.getType());
     preamble << "))" << std::endl;
   }
 
+  Trace("lfsc-print-debug") << "; compute proof letification" << std::endl;
   // [2] compute the proof letification
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, size_t> pletMap;
   computeProofLetification(pnBody, pletList, pletMap);
 
+  Trace("lfsc-print-debug") << "; compute term lets" << std::endl;
   // [3] print the check command and term lets
   // compute the term lets
   LetBinding lbind;
@@ -126,6 +138,7 @@ void LfscPrinter::print(std::ostream& out,
   // print the term let list
   printLetList(out, cparen, lbind);
 
+  Trace("lfsc-print-debug") << "; print asserts" << std::endl;
   // [4] print the assertions, with letification
   // the assumption identifier mapping
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
@@ -139,10 +152,12 @@ void LfscPrinter::print(std::ostream& out,
     cparen << ")";
   }
 
+  Trace("lfsc-print-debug") << "; print annotation" << std::endl;
   // [5] print the annotation
   out << "(: (holds false)" << std::endl;
   cparen << ")";
 
+  Trace("lfsc-print-debug") << "; print proof body" << std::endl;
   // [6] print the proof body
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
@@ -577,22 +592,14 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 LetBinding& lbind,
                                 bool letTop)
 {
-  // TODO: smt2 printer, dag thresh 0 print?
   Node nc = lbind.convert(n, "__t", letTop);
-  out << nc;
+  LfscPrintChannelOut::printNodeInternal(out, nc);
 }
 
-void LfscPrinter::print(std::ostream& out, TypeNode tn)
+void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 {
   TypeNode tni = d_tproc.convertType(tn);
-  printInternal(out, tni);
-}
-
-void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
-{
-  // (internal) types are always printed as-is
-  // TODO: smt2 printer
-  out << tn;
+  LfscPrintChannelOut::printTypeNodeInternal(out, tni);
 }
 
 }  // namespace proof

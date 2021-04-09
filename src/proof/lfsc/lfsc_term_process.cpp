@@ -29,10 +29,22 @@ LfscTermProcessor::LfscTermProcessor()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_arrow = nm->mkSortConstructor("arrow", 2);
+  
   d_sortType = nm->mkSort("sortType");
   // the embedding of arrow into Node, which is binary constructor over sorts
   TypeNode anfType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
   d_typeAsNode[d_arrow] = getSymbolInternal(FUNCTION_TYPE, anfType, "arrow");
+  
+  TypeNode intType = nm->integerType();
+  TypeNode arrType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
+  d_typeKindToNodeCons[ARRAY_TYPE] = getSymbolInternal(FUNCTION_TYPE, arrType, "Array");
+  TypeNode bvType = nm->mkFunctionType(intType, d_sortType);
+  d_typeKindToNodeCons[SET_TYPE] = getSymbolInternal(FUNCTION_TYPE, bvType, "BitVec");
+  TypeNode fpType = nm->mkFunctionType({intType, intType}, d_sortType);
+  d_typeKindToNodeCons[SET_TYPE] = getSymbolInternal(FUNCTION_TYPE, fpType, "FloatingPoint");
+  TypeNode setType = nm->mkFunctionType(d_sortType, d_sortType);
+  d_typeKindToNodeCons[SET_TYPE] = getSymbolInternal(FUNCTION_TYPE, setType, "Set");
+  d_typeKindToNodeCons[BAG_TYPE] = getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
 }
 
 Node LfscTermProcessor::runConvert(Node n)
@@ -241,7 +253,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
     Node opc;
-    if (k == PLUS || k == MULT)
+    if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
     {
       std::stringstream opName;
       if (n.getType().isInteger())
@@ -276,18 +288,17 @@ Node LfscTermProcessor::runConvert(Node n)
 
 TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 {
+  NodeManager* nm = NodeManager::currentNM();
   TypeNode cur = tn;
   Node tnn;
   Kind k = tn.getKind();
   if (k == FUNCTION_TYPE)
   {
-    NodeManager* nm = NodeManager::currentNM();
     // (-> T1 ... Tn T) is (arrow T1 .... (arrow Tn T))
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     // also make the node embedding of the type
     Node arrown = d_typeAsNode[d_arrow];
     Assert(!arrown.isNull());
-    std::vector<Node> nargs;
     cur = tn.getRangeType();
     tnn = typeAsNode(cur);
     for (std::vector<TypeNode>::reverse_iterator it = argTypes.rbegin();
@@ -301,13 +312,6 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
   }
-  /*
-  else if (k==BITVECTOR_TYPE)
-  {
-    // (_ BitVec n) is (BitVec n)
-    
-  }
-  */
   else if (tn.getNumChildren() == 0)
   {
     std::stringstream ss;
@@ -316,7 +320,22 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   }
   else
   {
-    Assert(false);
+    // to build the type-as-node, must convert the component types
+    std::vector<Node> nargs;
+    for (const TypeNode& tnc : tn)
+    {
+      nargs.push_back(typeAsNode(tnc));
+    }
+    std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
+    if (it!=d_typeKindToNodeCons.end())
+    {
+      nargs.insert(nargs.begin(), it->second);
+      tnn = nm->mkNode(APPLY_UF, nargs);
+    }
+    else
+    {
+      Assert (false);
+    }
   }
   Assert(!tnn.isNull());
   d_typeAsNode[cur] = tnn;
@@ -408,7 +427,8 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND: nullTerm = nm->mkConst(true); break;
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-    case MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case MULT: 
+      case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
     case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
@@ -450,7 +470,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k == GEQ || k == GT || k == LEQ || k == LT
+  if (k == PLUS || k == MULT || k==NONLINEAR_MULT || k == GEQ || k == GT || k == LEQ || k == LT
       || k == MINUS)
   {
     if (n[0].getType().isInteger())
@@ -470,6 +490,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     TypeNode itype = nm->mkFunctionType(d_sortType, ftype, false);
     Node iteSym = getSymbolInternal(k, itype, opName.str());
     Node typeNode = typeAsNode(convertType(tn));
+    Assert (!typeNode.isNull());
     return nm->mkNode(APPLY_UF, iteSym, typeNode);
   }
   return getSymbolInternal(k, ftype, opName.str());

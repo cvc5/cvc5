@@ -81,6 +81,8 @@ class LfscTermProcessor : public TermProcessor
   std::map<Node, size_t> d_varIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
+  /** Used for interpreted builtin parametric sorts */
+  std::map<Kind, Node> d_typeKindToNodeCons;
 };
 
 }  // namespace proof
