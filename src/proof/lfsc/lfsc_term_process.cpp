@@ -244,7 +244,15 @@ Node LfscTermProcessor::runConvert(Node n)
     if (k == PLUS || k == MULT)
     {
       std::stringstream opName;
-      opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
+      if (n.getType().isInteger())
+      {
+        opName << "int.";
+      }
+      else
+      {
+        opName << "real.";
+      }
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
       TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
       opc = getSymbolInternal(k, ftype, opName.str());
       ck = APPLY_UF;
@@ -293,6 +301,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
   }
+  /*
+  else if (k==BITVECTOR_TYPE)
+  {
+    // (_ BitVec n) is (BitVec n)
+    
+  }
+  */
   else if (tn.getNumChildren() == 0)
   {
     std::stringstream ss;

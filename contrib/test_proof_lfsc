@@ -1,16 +1,19 @@
 #!/bin/bash
 
-CVC4_REGRESSION_DIR=/space/ajreynol/cvc4/test/regress/
+CVC4_DIR=/space/ajreynol/cvc4
+
+echo "Update LFSC"
+$CVC4_DIR/contrib/get-lfsc-checker
 
 # HACK: update the regression script
-cp $CVC4_REGRESSION_DIR/run_regression.py $CVC4_REGRESSION_DIR/temp.py
-cp $CVC4_REGRESSION_DIR/extract_regression_calls.py $CVC4_REGRESSION_DIR/run_regression.py
+cp $CVC4_DIR/test/regress/run_regression.py $CVC4_DIR/test/regress/temp.py
+cp $CVC4_DIR/test/regress/extract_regression_calls.py $CVC4_DIR/test/regress/run_regression.py
 
 echo "Make the LFSC regression script"
 make regress | grep CALL: >& temp.txt
 
 # HACK: revert changes to regression script
-cp $CVC4_REGRESSION_DIR/temp.py $CVC4_REGRESSION_DIR/run_regression.py
+cp $CVC4_DIR/test/regress/temp.py $CVC4_DIR/test/regress/run_regression.py
 
 sed -i 's/\CALL:/run_regression_lfsc/g' temp.txt
 
