@@ -22,6 +22,8 @@
 #define CVC4__RESOURCE_MANAGER_H
 
 #include <stdint.h>
+
+#include <array>
 #include <chrono>
 #include <memory>
 #include <vector>
