@@ -64,8 +64,8 @@ TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
 TEST_F(TestNodeWhiteNodeManager, topological_sort)
 {
   TypeNode boolType = d_nodeManager->booleanType();
-  Node i = d_nodeManager->mkSkolem("i", boolType);
-  Node j = d_nodeManager->mkSkolem("j", boolType);
+  Node i = d_skolemManager->mkDummySkolem("i", boolType);
+  Node j = d_skolemManager->mkDummySkolem("j", boolType);
   Node n1 = d_nodeManager->mkNode(kind::AND, j, j);
   Node n2 = d_nodeManager->mkNode(kind::AND, i, n1);
 

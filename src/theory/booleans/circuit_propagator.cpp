@@ -716,7 +716,9 @@ TrustNode CircuitPropagator::propagate()
                     && (current[0].isVar() && current[1].isVar()));
 
     // If an atom, add to the list for simplification
-    if (atom)
+    if (atom
+        || (current.getKind() == kind::EQUAL
+            && (current[0].isVar() || current[1].isVar())))
     {
       Debug("circuit-prop")
           << "CircuitPropagator::propagate(): adding to learned: "
