@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
-#define __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
+#ifndef __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
+#define __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
 
 #include <map>
 #include <unordered_map>
@@ -152,4 +152,4 @@ class HoElim : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H */
+#endif /* __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H */

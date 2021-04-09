@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__BITVECTOR_H
-#define CVC4__BITVECTOR_H
+#ifndef CVC5__BITVECTOR_H
+#define CVC5__BITVECTOR_H
 
 #include <iosfwd>
 #include <iostream>
@@ -444,4 +444,4 @@ inline std::ostream& operator<<(std::ostream& os, const IntToBitVector& bv)
 
 }  // namespace cvc5
 
-#endif /* CVC4__BITVECTOR_H */
+#endif /* CVC5__BITVECTOR_H */

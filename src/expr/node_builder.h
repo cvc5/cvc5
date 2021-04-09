@@ -137,8 +137,8 @@
 /* strong dependency; make sure node is included first */
 #include "expr/node.h"
 
-#ifndef CVC4__NODE_BUILDER_H
-#define CVC4__NODE_BUILDER_H
+#ifndef CVC5__NODE_BUILDER_H
+#define CVC5__NODE_BUILDER_H
 
 #include <iostream>
 #include <vector>
@@ -407,4 +407,4 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb);
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_BUILDER_H */
+#endif /* CVC5__NODE_BUILDER_H */

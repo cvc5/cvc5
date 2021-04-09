@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BOOLEAN_SIMPLIFICATION_H
-#define CVC4__BOOLEAN_SIMPLIFICATION_H
+#ifndef CVC5__BOOLEAN_SIMPLIFICATION_H
+#define CVC5__BOOLEAN_SIMPLIFICATION_H
 
 #include <vector>
 #include <algorithm>
@@ -225,4 +225,4 @@ class BooleanSimplification {
 
 }  // namespace cvc5
 
-#endif /* CVC4__BOOLEAN_SIMPLIFICATION_H */
+#endif /* CVC5__BOOLEAN_SIMPLIFICATION_H */

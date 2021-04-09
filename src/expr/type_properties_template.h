@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__TYPE_PROPERTIES_H
-#define CVC4__TYPE_PROPERTIES_H
+#ifndef CVC5__TYPE_PROPERTIES_H
+#define CVC5__TYPE_PROPERTIES_H
 
 #include <sstream>
 
@@ -116,4 +116,4 @@ ${type_groundterms}
 }  // namespace kind
 }  // namespace cvc5
 
-#endif /* CVC4__TYPE_PROPERTIES_H */
+#endif /* CVC5__TYPE_PROPERTIES_H */

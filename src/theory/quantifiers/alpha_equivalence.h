@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__ALPHA_EQUIVALENCE_H
-#define CVC4__ALPHA_EQUIVALENCE_H
+#ifndef CVC5__ALPHA_EQUIVALENCE_H
+#define CVC5__ALPHA_EQUIVALENCE_H
 
 #include "theory/quantifiers/quant_util.h"
 

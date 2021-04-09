@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RATIONAL_H
-#define CVC4__RATIONAL_H
+#ifndef CVC5__RATIONAL_H
+#define CVC5__RATIONAL_H
 
 #include <cln/dfloat.h>
 #include <cln/input.h>
@@ -343,4 +343,4 @@ std::ostream& operator<<(std::ostream& os, const Rational& n) CVC4_EXPORT;
 
 }  // namespace cvc5
 
-#endif /* CVC4__RATIONAL_H */
+#endif /* CVC5__RATIONAL_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__MANAGED_OSTREAMS_H
-#define CVC4__MANAGED_OSTREAMS_H
+#ifndef CVC5__MANAGED_OSTREAMS_H
+#define CVC5__MANAGED_OSTREAMS_H
 
 #include <ostream>
 
@@ -143,4 +143,4 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
 
 }  // namespace cvc5
 
-#endif /* CVC4__MANAGED_OSTREAMS_H */
+#endif /* CVC5__MANAGED_OSTREAMS_H */

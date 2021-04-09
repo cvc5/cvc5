@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__OUTPUT_H
-#define CVC4__OUTPUT_H
+#ifndef CVC5__OUTPUT_H
+#define CVC5__OUTPUT_H
 
 #include <cstdio>
 #include <ios>
@@ -581,4 +581,4 @@ inline IndentedScope::~IndentedScope() {}
 
 }  // namespace cvc5
 
-#endif /* CVC4__OUTPUT_H */
+#endif /* CVC5__OUTPUT_H */

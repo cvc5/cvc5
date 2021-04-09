@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__SMT2_H
-#define CVC4__PARSER__SMT2_H
+#ifndef CVC5__PARSER__SMT2_H
+#define CVC5__PARSER__SMT2_H
 
 #include <sstream>
 #include <stack>
@@ -432,4 +432,4 @@ class Smt2 : public Parser
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__SMT2_H */
+#endif /* CVC5__PARSER__SMT2_H */

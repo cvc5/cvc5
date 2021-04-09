@@ -13,8 +13,8 @@
  ** conjecture into an interpolation problem, and solve it.
  **/
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
 
 #include <string>
 #include <vector>
@@ -215,4 +215,4 @@ class SygusInterpol
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */

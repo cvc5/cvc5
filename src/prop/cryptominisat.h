@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CRYPTOMINISAT_H
-#define CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC5__PROP__CRYPTOMINISAT_H
+#define CVC5__PROP__CRYPTOMINISAT_H
 
 #ifdef CVC4_USE_CRYPTOMINISAT
 
@@ -109,4 +109,4 @@ class CryptoMinisatSolver : public SatSolver
 }  // namespace cvc5
 
 #endif  // CVC4_USE_CRYPTOMINISAT
-#endif  // CVC4__PROP__CRYPTOMINISAT_H
+#endif  // CVC5__PROP__CRYPTOMINISAT_H

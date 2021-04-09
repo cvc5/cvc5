@@ -12,8 +12,8 @@
  ** \brief An additional layer between commands and invoking them.
  **/
 
-#ifndef CVC4__MAIN__COMMAND_EXECUTOR_H
-#define CVC4__MAIN__COMMAND_EXECUTOR_H
+#ifndef CVC5__MAIN__COMMAND_EXECUTOR_H
+#define CVC5__MAIN__COMMAND_EXECUTOR_H
 
 #include <iosfwd>
 #include <string>
@@ -119,4 +119,4 @@ bool solverInvoke(api::Solver* solver,
 }  // namespace main
 }  // namespace cvc5
 
-#endif  /* CVC4__MAIN__COMMAND_EXECUTOR_H */
+#endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */

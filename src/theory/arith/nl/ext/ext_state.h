@@ -12,8 +12,8 @@
  ** \brief Common data shared by multiple checks
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
-#define CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#define CVC5__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
 
 #include <vector>
 

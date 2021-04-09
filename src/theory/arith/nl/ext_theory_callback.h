@@ -12,8 +12,8 @@
  ** \brief The extended theory callback for non-linear arithmetic
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
-#define CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
+#define CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
 
 #include "expr/node.h"
 #include "theory/ext_theory.h"
@@ -87,4 +87,4 @@ class NlExtTheoryCallback : public ExtTheoryCallback
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */
+#endif /* CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */

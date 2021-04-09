@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__SETS__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__SETS__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__SETS__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -70,4 +70,4 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__SETS__TYPE_ENUMERATOR_H */

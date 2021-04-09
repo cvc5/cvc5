@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
 
 #include <map>
 #include <vector>

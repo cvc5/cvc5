@@ -12,8 +12,8 @@
  ** \brief Model object for the non-linear extension class
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#ifndef CVC5__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC5__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>
@@ -331,4 +331,4 @@ class NlModel
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

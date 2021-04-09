@@ -23,8 +23,8 @@
 #include "cvc4autoconfig.h"
 #include "options/options.h"
 
-#ifndef CVC4__MAIN__MAIN_H
-#define CVC4__MAIN__MAIN_H
+#ifndef CVC5__MAIN__MAIN_H
+#define CVC5__MAIN__MAIN_H
 
 namespace cvc5 {
 namespace main {
@@ -78,4 +78,4 @@ void cvc4_shutdown() noexcept;
 int runCvc4(int argc, char* argv[], cvc5::Options&);
 void printUsage(cvc5::Options&, bool full = false);
 
-#endif /* CVC4__MAIN__MAIN_H */
+#endif /* CVC5__MAIN__MAIN_H */

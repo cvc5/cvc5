@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
 #include <cln/input.h>
 #include <cln/integer.h>
@@ -387,4 +387,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n);
 
 }  // namespace cvc5
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */
