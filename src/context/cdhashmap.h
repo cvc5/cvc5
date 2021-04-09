@@ -80,8 +80,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDHASHMAP_H
-#define CVC4__CONTEXT__CDHASHMAP_H
+#ifndef CVC5__CONTEXT__CDHASHMAP_H
+#define CVC5__CONTEXT__CDHASHMAP_H
 
 #include <functional>
 #include <iterator>
@@ -455,4 +455,4 @@ public:
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDHASHMAP_H */
+#endif /* CVC5__CONTEXT__CDHASHMAP_H */

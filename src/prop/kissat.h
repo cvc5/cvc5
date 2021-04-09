@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__KISSAT_H
-#define CVC4__PROP__KISSAT_H
+#ifndef CVC5__PROP__KISSAT_H
+#define CVC5__PROP__KISSAT_H
 
 #ifdef CVC4_USE_KISSAT
 
@@ -100,4 +100,4 @@ class KissatSolver : public SatSolver
 }  // namespace cvc5
 
 #endif  // CVC4_USE_KISSAT
-#endif  // CVC4__PROP__KISSAT_H
+#endif  // CVC5__PROP__KISSAT_H

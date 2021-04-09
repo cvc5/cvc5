@@ -13,8 +13,8 @@
  ** abduction problem.
  **/
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
 
 #include <string>
 #include <vector>
@@ -87,4 +87,4 @@ class SygusAbduct
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */

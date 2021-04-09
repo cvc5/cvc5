@@ -25,8 +25,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef	CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H
-#define	CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H
+#ifndef CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H
+#define CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H
 
 #include <antlr3defs.h>
 
@@ -61,4 +61,4 @@ BoundedTokenBufferFree(pBOUNDED_TOKEN_BUFFER buffer);
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H */
+#endif /* CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H */

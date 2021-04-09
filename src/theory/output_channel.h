@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
-#define CVC4__THEORY__OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
+#define CVC5__THEORY__OUTPUT_CHANNEL_H
 
 #include "theory/incomplete_id.h"
 #include "theory/trust_node.h"
@@ -202,4 +202,4 @@ class OutputChannel {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */

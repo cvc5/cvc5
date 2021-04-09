@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H
-#define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H
+#ifndef CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H
+#define CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -133,4 +133,4 @@ struct QuantifierInstPatternListTypeRule {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_TYPE_RULES_H */

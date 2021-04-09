@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_HANDLER_H
-#define CVC4__OPTIONS__OPTIONS_HANDLER_H
+#ifndef CVC5__OPTIONS__OPTIONS_HANDLER_H
+#define CVC5__OPTIONS__OPTIONS_HANDLER_H
 
 #include <ostream>
 #include <string>
@@ -136,4 +136,4 @@ void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 }  // namespace options
 }  // namespace cvc5
 
-#endif /*  CVC4__OPTIONS__OPTIONS_HANDLER_H */
+#endif /*  CVC5__OPTIONS__OPTIONS_HANDLER_H */

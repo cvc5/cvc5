@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__ARRAY_STORE_ALL_H
-#define CVC4__ARRAY_STORE_ALL_H
+#ifndef CVC5__ARRAY_STORE_ALL_H
+#define CVC5__ARRAY_STORE_ALL_H
 
 #include <iosfwd>
 #include <memory>
@@ -71,4 +71,4 @@ struct ArrayStoreAllHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__ARRAY_STORE_ALL_H */
+#endif /* CVC5__ARRAY_STORE_ALL_H */

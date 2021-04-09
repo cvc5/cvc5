@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_ENSURE_CLOSED_H
-#define CVC4__EXPR__PROOF_ENSURE_CLOSED_H
+#ifndef CVC5__EXPR__PROOF_ENSURE_CLOSED_H
+#define CVC5__EXPR__PROOF_ENSURE_CLOSED_H
 
 #include "expr/node.h"
 
@@ -69,4 +69,4 @@ void pfnEnsureClosedWrt(ProofNode* pn,
                         const char* ctx);
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_ENSURE_CLOSED_H */
+#endif /* CVC5__EXPR__PROOF_ENSURE_CLOSED_H */

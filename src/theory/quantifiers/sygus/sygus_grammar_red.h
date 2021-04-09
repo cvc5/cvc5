@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
 #include <map>
 #include <vector>
@@ -120,4 +120,4 @@ class SygusRedundantCons
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */

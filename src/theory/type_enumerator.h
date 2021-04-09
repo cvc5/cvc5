@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__TYPE_ENUMERATOR_H
 
 #include "base/check.h"
 #include "base/exception.h"
@@ -186,4 +186,4 @@ class TypeEnumerator {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__TYPE_ENUMERATOR_H */

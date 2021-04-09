@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
-#define CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#define CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
 
 #include "expr/node.h"
 #include "theory/output_channel.h"
@@ -110,4 +110,4 @@ class EngineOutputChannel : public theory::OutputChannel
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H */

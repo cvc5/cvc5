@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__MODEL_H
-#define CVC4__MODEL_H
+#ifndef CVC5__MODEL_H
+#define CVC5__MODEL_H
 
 #include <iosfwd>
 #include <vector>
@@ -120,4 +120,4 @@ class Model {
 }  // namespace smt
 }  // namespace cvc5
 
-#endif  /* CVC4__MODEL_H */
+#endif /* CVC5__MODEL_H */

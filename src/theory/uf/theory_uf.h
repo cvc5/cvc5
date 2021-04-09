@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__THEORY_UF_H
-#define CVC4__THEORY__UF__THEORY_UF_H
+#ifndef CVC5__THEORY__UF__THEORY_UF_H
+#define CVC5__THEORY__UF__THEORY_UF_H
 
 #include "expr/node.h"
 #include "expr/node_trie.h"
@@ -186,4 +186,4 @@ private:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__UF__THEORY_UF_H */
+#endif /* CVC5__THEORY__UF__THEORY_UF_H */

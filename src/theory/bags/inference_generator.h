@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
-#define CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
+#ifndef CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H
+#define CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H
 
 #include "expr/node.h"
 #include "infer_info.h"
@@ -190,4 +190,4 @@ class InferenceGenerator
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H */
+#endif /* CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H */

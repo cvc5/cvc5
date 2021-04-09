@@ -12,8 +12,8 @@
  ** \brief Common header for Node unit tests.
  **/
 
-#ifndef CVC4__TEST__UNIT__TEST_NODE_H
-#define CVC4__TEST__UNIT__TEST_NODE_H
+#ifndef CVC5__TEST__UNIT__TEST_NODE_H
+#define CVC5__TEST__UNIT__TEST_NODE_H
 
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"

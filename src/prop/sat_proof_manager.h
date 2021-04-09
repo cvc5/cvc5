@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SAT_PROOF_MANAGER_H
-#define CVC4__SAT_PROOF_MANAGER_H
+#ifndef CVC5__SAT_PROOF_MANAGER_H
+#define CVC5__SAT_PROOF_MANAGER_H
 
 #include "context/cdhashset.h"
 #include "expr/buffered_proof_generator.h"
@@ -590,4 +590,4 @@ class SatProofManager
 }  // namespace prop
 }  // namespace cvc5
 
-#endif /* CVC4__SAT_PROOF_MANAGER_H */
+#endif /* CVC5__SAT_PROOF_MANAGER_H */

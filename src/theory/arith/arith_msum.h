@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__MSUM_H
-#define CVC4__THEORY__ARITH__MSUM_H
+#ifndef CVC5__THEORY__ARITH__MSUM_H
+#define CVC5__THEORY__ARITH__MSUM_H
 
 #include <map>
 
@@ -185,4 +185,4 @@ class ArithMSum
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__MSUM_H */
+#endif /* CVC5__THEORY__ARITH__MSUM_H */

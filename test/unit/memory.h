@@ -29,8 +29,8 @@
 
 #include "test.h"
 
-#ifndef __CVC4__TEST__UNIT__MEMORY_H
-#define __CVC4__TEST__UNIT__MEMORY_H
+#ifndef __CVC5__TEST__UNIT__MEMORY_H
+#define __CVC5__TEST__UNIT__MEMORY_H
 
 #include <string>
 #include <sys/resource.h>
@@ -94,4 +94,4 @@ class WithLimitedMemory {
 #undef CVC4_MEMORY_LIMITING_DISABLED_REASON
 #endif /* CVC4_MEMORY_LIMITING_DISABLED_REASON */
 
-#endif /* __CVC4__TEST__MEMORY_H */
+#endif /* __CVC5__TEST__MEMORY_H */

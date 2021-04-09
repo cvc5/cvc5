@@ -23,8 +23,8 @@
 // circular dependency
 #include "expr/metakind.h"
 
-#ifndef CVC4__EXPR__NODE_VALUE_H
-#define CVC4__EXPR__NODE_VALUE_H
+#ifndef CVC5__EXPR__NODE_VALUE_H
+#define CVC5__EXPR__NODE_VALUE_H
 
 #include <iterator>
 #include <string>
@@ -546,4 +546,4 @@ static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* 
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__NODE_VALUE_H */
+#endif /* CVC5__EXPR__NODE_VALUE_H */

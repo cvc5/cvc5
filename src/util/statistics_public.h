@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATISTICS_PUBLIC_H
-#define CVC4__UTIL__STATISTICS_PUBLIC_H
+#ifndef CVC5__UTIL__STATISTICS_PUBLIC_H
+#define CVC5__UTIL__STATISTICS_PUBLIC_H
 
 namespace cvc5 {
 

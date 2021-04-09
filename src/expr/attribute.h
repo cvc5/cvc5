@@ -21,8 +21,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef CVC4__EXPR__ATTRIBUTE_H
-#define CVC4__EXPR__ATTRIBUTE_H
+#ifndef CVC5__EXPR__ATTRIBUTE_H
+#define CVC5__EXPR__ATTRIBUTE_H
 
 #include <string>
 #include "expr/attribute_unique_id.h"
@@ -623,4 +623,4 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__ATTRIBUTE_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_H */

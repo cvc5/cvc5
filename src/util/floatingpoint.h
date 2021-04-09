@@ -17,8 +17,8 @@
  **/
 #include "cvc4_public.h"
 
-#ifndef CVC4__FLOATINGPOINT_H
-#define CVC4__FLOATINGPOINT_H
+#ifndef CVC5__FLOATINGPOINT_H
+#define CVC5__FLOATINGPOINT_H
 
 #include <memory>
 
@@ -535,4 +535,4 @@ std::ostream& operator<<(std::ostream& os,
 
 }  // namespace cvc5
 
-#endif /* CVC4__FLOATINGPOINT_H */
+#endif /* CVC5__FLOATINGPOINT_H */

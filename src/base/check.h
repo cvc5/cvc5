@@ -31,8 +31,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__CHECK_H
-#define CVC4__CHECK_H
+#ifndef CVC5__CHECK_H
+#define CVC5__CHECK_H
 
 #include <cstdarg>
 #include <ostream>
@@ -247,4 +247,4 @@ class AssertArgumentException : public Exception
 
 }  // namespace cvc5
 
-#endif /* CVC4__CHECK_H */
+#endif /* CVC5__CHECK_H */

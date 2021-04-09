@@ -14,8 +14,8 @@
  ** Common header for replacement function sources.
  **/
 
-#ifndef CVC4__LIB__REPLACEMENTS_H
-#define CVC4__LIB__REPLACEMENTS_H
+#ifndef CVC5__LIB__REPLACEMENTS_H
+#define CVC5__LIB__REPLACEMENTS_H
 
 #if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
 #  include "cvc4_private.h"
@@ -31,4 +31,4 @@
 #  endif
 #endif
 
-#endif /* CVC4__LIB__REPLACEMENTS_H */
+#endif /* CVC5__LIB__REPLACEMENTS_H */

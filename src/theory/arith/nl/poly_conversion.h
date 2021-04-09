@@ -14,8 +14,8 @@
  ** Utilities for converting to and from LibPoly objects.
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
-#define CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
+#ifndef CVC5__THEORY__ARITH__NL__POLY_CONVERSION_H
+#define CVC5__THEORY__ARITH__NL__POLY_CONVERSION_H
 
 #include "cvc4_private.h"
 

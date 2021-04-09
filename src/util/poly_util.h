@@ -22,8 +22,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__POLY_UTIL_H
-#define CVC4__POLY_UTIL_H
+#ifndef CVC5__POLY_UTIL_H
+#define CVC5__POLY_UTIL_H
 
 #include <vector>
 
@@ -142,4 +142,4 @@ void getVariableInformation(VariableInformation& vi,
 
 #endif
 
-#endif /* CVC4__POLY_UTIL_H */
+#endif /* CVC5__POLY_UTIL_H */

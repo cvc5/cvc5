@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_STATS_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_STATS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 
 #include "util/statistics_registry.h"
 

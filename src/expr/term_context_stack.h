@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONTEXT_STACK_H
-#define CVC4__EXPR__TERM_CONTEXT_STACK_H
+#ifndef CVC5__EXPR__TERM_CONTEXT_STACK_H
+#define CVC5__EXPR__TERM_CONTEXT_STACK_H
 
 #include "expr/term_context_node.h"
 
@@ -70,4 +70,4 @@ class TCtxStack
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__TERM_CONTEXT_STACK_H */
+#endif /* CVC5__EXPR__TERM_CONTEXT_STACK_H */

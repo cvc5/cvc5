@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
-#define CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
+#ifndef CVC5__THEORY__UF__PROOF_EQUALITY_ENGINE_H
+#define CVC5__THEORY__UF__PROOF_EQUALITY_ENGINE_H
 
 #include <vector>
 
@@ -298,4 +298,4 @@ class ProofEqEngine : public EagerProofGenerator
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__PROOF_MANAGER_H */
+#endif /* CVC5__THEORY__STRINGS__PROOF_MANAGER_H */
