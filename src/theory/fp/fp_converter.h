@@ -32,11 +32,11 @@
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 #include "symfpu/core/unpackedFloat.h"
 #endif
 
-#ifdef CVC4_SYM_SYMBOLIC_EVAL
+#ifdef CVC5_SYM_SYMBOLIC_EVAL
 // This allows debugging of the CVC4 symbolic back-end.
 // By enabling this and disabling constant folding in the rewriter,
 // SMT files that have operations on constants will be evaluated
@@ -102,12 +102,12 @@ typedef traits::bwt bwt;
 class nodeWrapper : public Node
 {
  protected:
-/* CVC4_SYM_SYMBOLIC_EVAL is for debugging CVC4 symbolic back-end issues.
+/* CVC5_SYM_SYMBOLIC_EVAL is for debugging CVC4 symbolic back-end issues.
  * Enable this and disabling constant folding will mean that operations
  * that are input with constant args are 'folded' using the symbolic encoding
  * allowing them to be traced via GDB.
  */
-#ifdef CVC4_SYM_SYMBOLIC_EVAL
+#ifdef CVC5_SYM_SYMBOLIC_EVAL
   nodeWrapper(const Node &n) : Node(theory::Rewriter::rewrite(n)) {}
 #else
   nodeWrapper(const Node &n) : Node(n) {}
@@ -119,7 +119,7 @@ class symbolicProposition : public nodeWrapper
  protected:
   bool checkNodeType(const TNode node);
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition, symbolicProposition>;  // For ITE
 #endif
 
@@ -140,7 +140,7 @@ class symbolicRoundingMode : public nodeWrapper
  protected:
   bool checkNodeType(const TNode n);
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition, symbolicRoundingMode>;  // For ITE
 #endif
 
@@ -182,7 +182,7 @@ class symbolicBitVector : public nodeWrapper
   bool checkNodeType(const TNode n);
   friend symbolicBitVector<!isSigned>;  // To allow conversion between the types
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   friend ::symfpu::ite<symbolicProposition,
                        symbolicBitVector<isSigned> >;  // For ITE
 #endif
@@ -313,7 +313,7 @@ class FpConverter
   context::CDList<Node> d_additionalAssertions;
 
  protected:
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   typedef symfpuSymbolic::traits traits;
   typedef ::symfpu::unpackedFloat<symfpuSymbolic::traits> uf;
   typedef symfpuSymbolic::traits::rm rm;

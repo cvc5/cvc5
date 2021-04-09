@@ -42,7 +42,7 @@ namespace context {
 template <class T>
 class DefaultCleanUp {
 public:
-  inline void operator()(T* t CVC4_UNUSED) const{}
+ inline void operator()(T* t CVC5_UNUSED) const {}
 };
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >

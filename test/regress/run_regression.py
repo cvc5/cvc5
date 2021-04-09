@@ -268,9 +268,9 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
     if expected_exit_status is None:
         expected_exit_status = 0
 
-    if 'CVC4_REGRESSION_ARGS' in os.environ:
+    if 'CVC5_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
-            os.environ['CVC4_REGRESSION_ARGS'])
+            os.environ['CVC5_REGRESSION_ARGS'])
 
     if not check_unsat_cores and ('(get-unsat-core)' in benchmark_content
                             or '(get-unsat-assumptions)' in benchmark_content):

@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
 #define CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
 
-#ifdef CVC4_USE_POLY
+#ifdef CVC5_USE_POLY
 
 #include <poly/polyxx.h>
 

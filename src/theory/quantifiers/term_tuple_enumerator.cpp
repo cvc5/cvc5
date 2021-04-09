@@ -153,7 +153,7 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
   virtual size_t prepareTerms(size_t variableIx) = 0;
   /** Get a given term for a given variable.  */
   virtual Node getTerm(size_t variableIx,
-                       size_t term_index) CVC4_WARN_UNUSED_RESULT = 0;
+                       size_t term_index) CVC5_WARN_UNUSED_RESULT = 0;
 };
 
 /**

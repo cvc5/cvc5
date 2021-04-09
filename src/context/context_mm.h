@@ -20,7 +20,7 @@
 #ifndef CVC4__CONTEXT__CONTEXT_MM_H
 #define CVC4__CONTEXT__CONTEXT_MM_H
 
-#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 #include <deque>
 #endif
 #include <vector>
@@ -28,7 +28,7 @@
 namespace cvc5 {
 namespace context {
 
-#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 
 /**
  * Region-based memory manager for contexts.  Calls to newData provide memory
@@ -105,7 +105,7 @@ class ContextMemoryManager {
    */
   void newChunk();
 
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   /**
    * Vector of allocations for each level. Used for accurately marking
    * allocations as free'd in Valgrind.
@@ -149,7 +149,7 @@ class ContextMemoryManager {
 
 };/* class ContextMemoryManager */
 
-#else /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+#else /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 #warning \
     "Using the debug version of ContextMemoryManager, expect performance degradation"
@@ -198,7 +198,7 @@ class ContextMemoryManager
   std::vector<std::vector<char*>> d_allocations;
 }; /* ContextMemoryManager */
 
-#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+#endif /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 /**
  * An STL-like allocator class for allocating from context memory.

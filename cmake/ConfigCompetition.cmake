@@ -8,7 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-add_definitions(-DCVC4_COMPETITION_MODE)
+add_definitions(-DCVC5_COMPETITION_MODE)
 add_check_c_cxx_flag("-funroll-all-loops")
 add_check_c_cxx_flag("-fexpensive-optimizations")
 add_check_c_cxx_flag("-fno-enforce-eh-specs")

@@ -43,7 +43,7 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
   int r = mkstemp(tmpName);
   if (r == -1)
   {
-    CVC4_FATAL() << "Could not create temporary file " << *pattern;
+    CVC5_FATAL() << "Could not create temporary file " << *pattern;
   }
   std::unique_ptr<std::fstream> tmpStream(new std::fstream(tmpName));
   close(r);

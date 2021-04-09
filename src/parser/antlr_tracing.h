@@ -18,8 +18,8 @@
 #ifndef CVC4__PARSER__ANTLR_TRACING_H
 #define CVC4__PARSER__ANTLR_TRACING_H
 
-// only enable the hack with -DCVC4_TRACE_ANTLR
-#ifdef CVC4_TRACE_ANTLR
+// only enable the hack with -DCVC5_TRACE_ANTLR
+#ifdef CVC5_TRACE_ANTLR
 
 #include <iostream>
 #include <string>
@@ -81,6 +81,6 @@ static struct __Cvc4System {
 #undef ANTLR3_PRINTF
 #define ANTLR3_PRINTF(args...) {int failed=0;printf(args);}
 
-#endif /* CVC4_TRACE_ANTLR */
+#endif /* CVC5_TRACE_ANTLR */
 
 #endif /* CVC4__PARSER__ANTLR_TRACING_H */

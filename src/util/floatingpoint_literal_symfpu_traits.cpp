@@ -12,7 +12,7 @@
  ** \brief SymFPU glue code for floating-point values.
  **/
 
-#if CVC4_USE_SYMFPU
+#if CVC5_USE_SYMFPU
 
 #include "util/floatingpoint_literal_symfpu_traits.h"
 

@@ -25,7 +25,7 @@
 
 namespace std {
 
-#ifdef CVC4_NEED_HASH_UINT64_T
+#ifdef CVC5_NEED_HASH_UINT64_T
 // on some versions and architectures of GNU C++, we need a
 // specialization of hash for 64-bit values
 template <>
@@ -34,7 +34,7 @@ struct hash<uint64_t> {
     return v;
   }
 };/* struct hash<uint64_t> */
-#endif /* CVC4_NEED_HASH_UINT64_T */
+#endif /* CVC5_NEED_HASH_UINT64_T */
 
 }/* std namespace */
 

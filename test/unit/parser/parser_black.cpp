@@ -238,7 +238,7 @@ TEST_F(TestParserBlackCvCParser, good_inputs)
 TEST_F(TestParserBlackCvCParser, bad_inputs)
 {
 // competition builds don't do any checking
-#ifndef CVC4_COMPETITION_MODE
+#ifndef CVC5_COMPETITION_MODE
   tryBadInput("ASSERT;");  // no args
   tryBadInput("QUERY");
   tryBadInput("CHECKSAT");
@@ -278,7 +278,7 @@ TEST_F(TestParserBlackCvCParser, good_exprs)
 TEST_F(TestParserBlackCvCParser, bad_exprs)
 {
 // competition builds don't do any checking
-#ifndef CVC4_COMPETITION_MODE
+#ifndef CVC5_COMPETITION_MODE
   tryBadInput("a AND");             // wrong arity
   tryBadInput("AND(a,b)");          // not infix
   tryBadInput("(OR (AND a b) c)");  // not infix
@@ -326,7 +326,7 @@ TEST_F(TestParserBlackSmt2Parser, good_inputs)
 TEST_F(TestParserBlackSmt2Parser, bad_inputs)
 {
   // competition builds don't do any checking
-#ifndef CVC4_COMPETITION_MODE
+#ifndef CVC5_COMPETITION_MODE
   // no arguments
   tryBadInput("(assert)");
   // illegal character in symbol
@@ -366,7 +366,7 @@ TEST_F(TestParserBlackSmt2Parser, good_exprs)
 TEST_F(TestParserBlackSmt2Parser, bad_exprs)
 {
 // competition builds don't do any checking
-#ifndef CVC4_COMPETITION_MODE
+#ifndef CVC5_COMPETITION_MODE
   tryBadExpr("(and)");                     // wrong arity
   tryBadExpr("(and a b");                  // no closing paren
   tryBadExpr("(a and b)");                 // infix

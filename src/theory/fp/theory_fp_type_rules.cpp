@@ -711,7 +711,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
     }
   }
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   /* Need to create some symfpu objects as the size of bit-vector
    * that is needed for this component is dependent on the encoding
    * used (i.e. whether subnormals are forcibly normalised or not).
@@ -751,7 +751,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
     }
   }
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   /* As before we need to use some of sympfu. */
   FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
   uint32_t bw = FloatingPoint::getUnpackedSignificandWidth(fps);
@@ -783,7 +783,7 @@ TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
     }
   }
 
-  return nodeManager->mkBitVectorType(CVC4_NUM_ROUNDING_MODES);
+  return nodeManager->mkBitVectorType(CVC5_NUM_ROUNDING_MODES);
 }
 
 Cardinality CardinalityComputer::computeCardinality(TypeNode type)

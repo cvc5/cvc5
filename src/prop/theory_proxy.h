@@ -21,7 +21,7 @@
 
 // Just defining this for now, since there's no other SAT solver bindings.
 // Optional blocks below will be unconditionally included
-#define CVC4_USE_MINISAT
+#define CVC5_USE_MINISAT
 
 #include <unordered_set>
 

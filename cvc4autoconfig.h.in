@@ -1,35 +1,35 @@
-#ifndef __CVC4__CVC4AUTOCONFIG_H
-#define __CVC4__CVC4AUTOCONFIG_H
+#ifndef __CVC5__CVC4AUTOCONFIG_H
+#define __CVC5__CVC4AUTOCONFIG_H
 
 /* Major component of the version of CVC4. */
-#define CVC4_MAJOR @CVC4_MAJOR@
+#define CVC5_MAJOR @CVC5_MAJOR@
 
 /* Minor component of the version of CVC4. */
-#define CVC4_MINOR @CVC4_MINOR@
+#define CVC5_MINOR @CVC5_MINOR@
 
 /* Release component of the version of CVC4. */
-#define CVC4_RELEASE @CVC4_RELEASE@
+#define CVC5_RELEASE @CVC5_RELEASE@
 
 /* Extraversion component of the version of CVC4. */
-#define CVC4_EXTRAVERSION "@CVC4_EXTRAVERSION@"
+#define CVC5_EXTRAVERSION "@CVC5_EXTRAVERSION@"
 
 /* Full release string for CVC4. */
-#define CVC4_RELEASE_STRING "@CVC4_RELEASE_STRING@"
+#define CVC5_RELEASE_STRING "@CVC5_RELEASE_STRING@"
 
 /* Full name of this package. */
-#define CVC4_PACKAGE_NAME "@CVC4_PACKAGE_NAME@"
+#define CVC5_PACKAGE_NAME "@CVC5_PACKAGE_NAME@"
 
 /* Define to 1 if CVC4 is built with (optional) GPLed library dependencies. */
-#cmakedefine01 CVC4_GPL_DEPS
+#cmakedefine01 CVC5_GPL_DEPS
 
 /* Define to use the CLN multi-precision arithmetic library. */
-#cmakedefine CVC4_CLN_IMP
+#cmakedefine CVC5_CLN_IMP
 
 /* Define to use the GMP multi-precision arithmetic library. */
-#cmakedefine CVC4_GMP_IMP
+#cmakedefine CVC5_GMP_IMP
 
 /* Define to use the libpoly polynomial library. */
-#cmakedefine CVC4_POLY_IMP
+#cmakedefine CVC5_POLY_IMP
 
 /* Define to 1 if Boost threading library has support for thread attributes. */
 #cmakedefine01 BOOST_HAS_THREAD_ATTR
@@ -70,6 +70,6 @@
 /* Define to 1 if `strerror_r' returns (char *). */
 #cmakedefine01 STRERROR_R_CHAR_P
 
-#cmakedefine01 CVC4_STATIC_BUILD
+#cmakedefine01 CVC5_STATIC_BUILD
 
-#endif /* __CVC4__CVC4AUTOCONFIG_H */
+#endif /* __CVC5__CVC4AUTOCONFIG_H */

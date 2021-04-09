@@ -20,7 +20,7 @@
 
 namespace cvc5 {
 
-#define CVC4_NUM_ROUNDING_MODES 5
+#define CVC5_NUM_ROUNDING_MODES 5
 
 /**
  * A concrete instance of the rounding mode sort

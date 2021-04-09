@@ -130,10 +130,10 @@ class CVC4_EXPORT Rational
   Rational(signed long int n) : d_value(n) {}
   Rational(unsigned long int n) : d_value(n) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Rational(int64_t n) : d_value(static_cast<long>(n)) {}
   Rational(uint64_t n) : d_value(static_cast<unsigned long>(n)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /**
    * Constructs a canonical Rational from a numerator and denominator.
@@ -155,7 +155,7 @@ class CVC4_EXPORT Rational
     d_value /= cln::cl_I(d);
   }
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Rational(int64_t n, int64_t d) : d_value(static_cast<long>(n))
   {
     d_value /= cln::cl_I(d);
@@ -164,7 +164,7 @@ class CVC4_EXPORT Rational
   {
     d_value /= cln::cl_I(d);
   }
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   Rational(const Integer& n, const Integer& d) : d_value(n.get_cl_I())
   {

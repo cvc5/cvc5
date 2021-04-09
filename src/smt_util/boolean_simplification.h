@@ -39,7 +39,7 @@ class BooleanSimplification {
 
   static bool push_back_associative_commute_recursive(
       Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
-      CVC4_WARN_UNUSED_RESULT;
+      CVC5_WARN_UNUSED_RESULT;
 
  public:
   /**
@@ -165,8 +165,8 @@ class BooleanSimplification {
     AssertArgument(n.getKind() == k, n,
                    "expected node to have kind %s", kindToString(k).c_str());
 
-    bool b CVC4_UNUSED =
-      push_back_associative_commute_recursive(n, buffer, k, notK, false);
+    bool b CVC5_UNUSED =
+        push_back_associative_commute_recursive(n, buffer, k, notK, false);
 
     if(buffer.size() == 0) {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away

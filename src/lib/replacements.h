@@ -23,7 +23,8 @@
 #  if defined(__BUILDING_CVC4PARSERLIB) || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST)
 #    include "cvc4parser_private.h"
 #  else
-#    if defined(__BUILDING_CVC4DRIVER) || defined(__BUILDING_CVC4_SYSTEM_TEST) || defined(__BUILDING_STATISTICS_FOR_EXPORT)
+#if defined(__BUILDING_CVC4DRIVER) || defined(__BUILDING_CVC5_SYSTEM_TEST) \
+    || defined(__BUILDING_STATISTICS_FOR_EXPORT)
 #      include "cvc4autoconfig.h"
 #    else
 #      error Must be building libcvc4 or libcvc4parser to use replacement functions.  This is because replacement function headers should never be publicly-depended upon, as they should not be installed on user machines with 'make install'.

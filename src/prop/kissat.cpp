@@ -16,7 +16,7 @@
 
 #include "prop/kissat.h"
 
-#ifdef CVC4_USE_KISSAT
+#ifdef CVC5_USE_KISSAT
 
 #include "base/check.h"
 
@@ -175,4 +175,4 @@ KissatSolver::Statistics::~Statistics()
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC4_USE_KISSAT
+#endif  // CVC5_USE_KISSAT

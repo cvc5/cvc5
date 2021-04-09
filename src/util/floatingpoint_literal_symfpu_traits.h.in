@@ -27,7 +27,7 @@
 #define CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
 // clang-format on
 
 #include "util/bitvector.h"

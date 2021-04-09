@@ -17,7 +17,7 @@
 
 #include "cvc4_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <cstddef>
 
