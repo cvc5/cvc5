@@ -51,6 +51,7 @@ bool LfscProofPostprocessCallback::update(Node res,
 {
   Trace("lfsc-pp") << "LfscProofPostprocessCallback::update: " << id
                    << std::endl;
+  Trace("lfsc-pp-debug") << "...proves " << res << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
   bool isFirstTime = d_firstTime;

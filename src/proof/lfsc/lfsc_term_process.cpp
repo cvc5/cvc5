@@ -19,6 +19,8 @@
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 
 using namespace cvc5::kind;
 
@@ -96,6 +98,20 @@ Node LfscTermProcessor::runConvert(Node n)
   {
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+  }
+  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER)
+  {
+    // must convert other kinds of apply to functions, since we convert to
+    // HO_APPLY
+    Node opc = getOperatorOfTerm(n, true);
+    if (n.getNumChildren()==0)
+    {
+      return opc;
+    }
+    std::vector<Node> children;
+    children.push_back(opc);
+    children.insert(children.end(), n.begin(), n.end());
+    return runConvert(nm->mkNode(APPLY_UF, children));
   }
   else if (k == HO_APPLY)
   {
@@ -449,17 +465,45 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
 Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
 {
   Assert(n.hasOperator());
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n.getKind();
+  std::stringstream opName;
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
-    return n.getOperator();
+    Node op = n.getOperator();
+    if (op.getType().isFunction())
+    {
+      return op;
+    }
+    // note other kinds of functions (e.g. selectors and testers)
+    std::vector<TypeNode> argTypes;
+    for (const Node& nc : n)
+    {
+      argTypes.push_back(nc.getType());
+    }
+    TypeNode ftype = n.getType();
+    if (!argTypes.empty())
+    {
+      ftype = nm->mkFunctionType(argTypes, ftype, false);
+    }
+    if (k==APPLY_TESTER)
+    {
+      // do not use (_ is C) syntax for testers
+      unsigned cindex = DType::indexOf(op);
+      const DType& dt = DType::datatypeOf(op);
+      opName << "is-" << dt[cindex].getConstructor();
+    }
+    else
+    {
+      opName << op;
+    }
+    return getSymbolInternal(k, ftype, opName.str());
   }
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
     argTypes.push_back(nc.getType());
   }
-  Kind k = n.getKind();
   // we only use binary operators
   if (NodeManager::isNAryKind(k))
   {
@@ -469,7 +513,6 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   TypeNode ftype = nm->mkFunctionType(argTypes, tn, false);
   // most functions are called f_X where X is the SMT-LIB name, if we are
   // getting the macroApply variant, then we don't prefix with `f_`.
-  std::stringstream opName;
   if (!macroApply)
   {
     opName << "f_";
