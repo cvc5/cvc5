@@ -1279,9 +1279,19 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     break;
     case kind::JOIN_IMAGE:
     {
+      // these are logic exceptions, not type checking exceptions
       if (node[1].getKind() != kind::CONST_RATIONAL) {
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");
+      }
+      cvc5::Rational r(INT_MAX);
+      if (node[1].getConst<Rational>() > r) {
+        throw LogicException(
+            "JoinImage Exceeded INT_MAX in cardinality constraint");
+      }
+      if (node[1].getConst<Rational>().getNumerator().getSignedInt() < 0) {
+        throw LogicException(
+          "JoinImage cardinality constraint must be non-negative");
       }
     }
     break;

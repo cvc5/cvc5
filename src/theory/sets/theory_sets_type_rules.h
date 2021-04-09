@@ -386,15 +386,6 @@ struct JoinImageTypeRule {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be integer");
     }
-    cvc5::Rational r(INT_MAX);
-    if (n[1].getConst<Rational>() > r) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage Exceeded INT_MAX in cardinality constraint");
-    }
-    if (n[1].getConst<Rational>().getNumerator().getSignedInt() < 0) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage cardinality constraint must be non-negative");
-    }
     std::vector<TypeNode> newTupleTypes;
     newTupleTypes.push_back(tupleTypes[0]);
     return nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
