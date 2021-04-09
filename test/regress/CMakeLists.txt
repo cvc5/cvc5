@@ -2163,6 +2163,7 @@ set(regress_1_tests
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/eq-sub-obs.sy
   regress1/sygus/error1-dt.sy
   regress1/sygus/eval-uc.sy
   regress1/sygus/extract.sy

@@ -43,10 +43,18 @@ class RConsObligationInfo
    */
   explicit RConsObligationInfo(Node builtin = Node::null());
 
+  /**
+   * Add `builtin` to the set of equivalent builtins this class' obligation
+   * solves.
+   *
+   * \note `builtin` MUST be equivalent to the builtin terms in `d_builtins`
+   *
+   * @param builtin builtin term to add
+   */
   void addBuiltin(Node builtin);
 
   /**
-   * @return builtin term to reconstruct for this class' obligation
+   * @return equivalent builtin terms to reconstruct for this class' obligation
    */
   std::unordered_set<Node, NodeHashFunction> getBuiltins() const;
 
@@ -115,10 +123,10 @@ class RConsObligationInfo
           obInfo);
 
  private:
-  /** Builtin term for this class' obligation.
+  /** Equivalent builtin terms for this class' obligation.
    *
-   * To solve the obligation, this builtin term must be reconstructed in the
-   * specified grammar (sygus datatype type) of this class' obligation.
+   * To solve the obligation, one of these builtin terms must be reconstructed
+   * in the specified grammar (sygus datatype type) of the obligation.
    */
   std::unordered_set<Node, NodeHashFunction> d_builtins;
   /** A set of candidate solutions to this class' obligation.
