@@ -321,7 +321,9 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   TypeNode cur = tn;
   Node tnn;
   Kind k = tn.getKind();
-  Trace("lfsc-term-process-debug") << "runConvertType " << tn << " " << tn.getNumChildren() << " " << k << std::endl;
+  Trace("lfsc-term-process-debug")
+      << "runConvertType " << tn << " " << tn.getNumChildren() << " " << k
+      << std::endl;
   if (k == FUNCTION_TYPE)
   {
     // (-> T1 ... Tn T) is (arrow T1 .... (arrow Tn T))
@@ -342,13 +344,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
   }
-  else if (k==BITVECTOR_TYPE)
+  else if (k == BITVECTOR_TYPE)
   {
     tnn = d_typeKindToNodeCons[k];
     Node w = nm->mkConst(Rational(tn.getBitVectorSize()));
     tnn = nm->mkNode(APPLY_UF, tnn, w);
   }
-  else if (k==FLOATINGPOINT_TYPE)
+  else if (k == FLOATINGPOINT_TYPE)
   {
     tnn = d_typeKindToNodeCons[k];
     Node e = nm->mkConst(Rational(tn.getFloatingPointExponentSize()));
@@ -358,12 +360,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   else if (tn.getNumChildren() == 0)
   {
     // special case: tuples are builtin datatypes
-    // notice this would not be a special case if tuples were parametric datatypes
+    // notice this would not be a special case if tuples were parametric
+    // datatypes
     if (tn.isTuple())
     {
       const DType& dt = tn.getDType();
       unsigned int nargs = dt[0].getNumArgs();
-      if (nargs>0)
+      if (nargs > 0)
       {
         std::vector<Node> targs;
         std::vector<TypeNode> types;
