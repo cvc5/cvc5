@@ -29,8 +29,9 @@ void LfscPrintChannelOut::printNode(TNode n)
   printNodeInternal(d_out, n);
 }
 
-void LfscPrintChannelOut::printTypeNode(TypeNode tn) { 
-  d_out << " "; 
+void LfscPrintChannelOut::printTypeNode(TypeNode tn)
+{
+  d_out << " ";
   printTypeNodeInternal(d_out, tn);
 }
 
@@ -72,7 +73,6 @@ void LfscPrintChannelOut::printAssumeId(size_t id)
 }
 
 void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
-
 
 void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
@@ -131,9 +131,10 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 void LfscPrintChannelOut::cleanIndexedSymbols(std::string& s)
 {
   size_t start_pos = 0;
-  while((start_pos = s.find("(_ ", start_pos)) != std::string::npos) {
-      s.replace(start_pos, 3, "(");
-      start_pos += 1; 
+  while ((start_pos = s.find("(_ ", start_pos)) != std::string::npos)
+  {
+    s.replace(start_pos, 3, "(");
+    start_pos += 1;
   }
 }
 

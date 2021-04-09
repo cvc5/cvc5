@@ -24,7 +24,7 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace proof {
-  
+
 LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
 {
   NodeManager* nm = NodeManager::currentNM();

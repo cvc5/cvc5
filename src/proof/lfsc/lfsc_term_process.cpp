@@ -29,22 +29,27 @@ LfscTermProcessor::LfscTermProcessor()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_arrow = nm->mkSortConstructor("arrow", 2);
-  
+
   d_sortType = nm->mkSort("sortType");
   // the embedding of arrow into Node, which is binary constructor over sorts
   TypeNode anfType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
   d_typeAsNode[d_arrow] = getSymbolInternal(FUNCTION_TYPE, anfType, "arrow");
-  
+
   TypeNode intType = nm->integerType();
   TypeNode arrType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
-  d_typeKindToNodeCons[ARRAY_TYPE] = getSymbolInternal(FUNCTION_TYPE, arrType, "Array");
+  d_typeKindToNodeCons[ARRAY_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, arrType, "Array");
   TypeNode bvType = nm->mkFunctionType(intType, d_sortType);
-  d_typeKindToNodeCons[SET_TYPE] = getSymbolInternal(FUNCTION_TYPE, bvType, "BitVec");
+  d_typeKindToNodeCons[SET_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, bvType, "BitVec");
   TypeNode fpType = nm->mkFunctionType({intType, intType}, d_sortType);
-  d_typeKindToNodeCons[SET_TYPE] = getSymbolInternal(FUNCTION_TYPE, fpType, "FloatingPoint");
+  d_typeKindToNodeCons[SET_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, fpType, "FloatingPoint");
   TypeNode setType = nm->mkFunctionType(d_sortType, d_sortType);
-  d_typeKindToNodeCons[SET_TYPE] = getSymbolInternal(FUNCTION_TYPE, setType, "Set");
-  d_typeKindToNodeCons[BAG_TYPE] = getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
+  d_typeKindToNodeCons[SET_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, setType, "Set");
+  d_typeKindToNodeCons[BAG_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
 }
 
 Node LfscTermProcessor::runConvert(Node n)
@@ -327,14 +332,14 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       nargs.push_back(typeAsNode(tnc));
     }
     std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
-    if (it!=d_typeKindToNodeCons.end())
+    if (it != d_typeKindToNodeCons.end())
     {
       nargs.insert(nargs.begin(), it->second);
       tnn = nm->mkNode(APPLY_UF, nargs);
     }
     else
     {
-      Assert (false);
+      Assert(false);
     }
   }
   Assert(!tnn.isNull());
@@ -427,8 +432,8 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND: nullTerm = nm->mkConst(true); break;
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-    case MULT: 
-      case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case MULT:
+    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
     case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
@@ -470,8 +475,8 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k==NONLINEAR_MULT || k == GEQ || k == GT || k == LEQ || k == LT
-      || k == MINUS)
+  if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
+      || k == LEQ || k == LT || k == MINUS)
   {
     if (n[0].getType().isInteger())
     {
@@ -490,7 +495,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     TypeNode itype = nm->mkFunctionType(d_sortType, ftype, false);
     Node iteSym = getSymbolInternal(k, itype, opName.str());
     Node typeNode = typeAsNode(convertType(tn));
-    Assert (!typeNode.isNull());
+    Assert(!typeNode.isNull());
     return nm->mkNode(APPLY_UF, iteSym, typeNode);
   }
   return getSymbolInternal(k, ftype, opName.str());

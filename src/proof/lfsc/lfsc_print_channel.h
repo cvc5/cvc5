@@ -67,8 +67,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   /**
    * Print node to stream in the expected format of LFSC.
    */
-  static void printNodeInternal(std::ostream& out,
-                     Node n);
+  static void printNodeInternal(std::ostream& out, Node n);
   /**
    * Print type node to stream in the expected format of LFSC.
    */
