@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_UTILITIES_H
-#define CVC4__THEORY__ARITH__ARITH_UTILITIES_H
+#ifndef CVC5__THEORY__ARITH__ARITH_UTILITIES_H
+#define CVC5__THEORY__ARITH__ARITH_UTILITIES_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -334,4 +334,4 @@ Node negateProofLiteral(TNode n);
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_UTILITIES_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_UTILITIES_H */

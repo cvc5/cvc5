@@ -81,8 +81,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__STATISTICS_REGISTRY_H
-#define CVC4__STATISTICS_REGISTRY_H
+#ifndef CVC5__STATISTICS_REGISTRY_H
+#define CVC5__STATISTICS_REGISTRY_H
 
 #include <ctime>
 #include <iomanip>
@@ -198,4 +198,4 @@ private:
 
 }  // namespace cvc5
 
-#endif /* CVC4__STATISTICS_REGISTRY_H */
+#endif /* CVC5__STATISTICS_REGISTRY_H */

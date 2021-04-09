@@ -13,8 +13,8 @@
  ** the value of iand.
  **/
 
-#ifndef CVC4__THEORY__ARITH__IAND_TABLE_H
-#define CVC4__THEORY__ARITH__IAND_TABLE_H
+#ifndef CVC5__THEORY__ARITH__IAND_TABLE_H
+#define CVC5__THEORY__ARITH__IAND_TABLE_H
 
 #include <map>
 
@@ -171,4 +171,4 @@ class IAndUtils
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__IAND_TABLE_H */
+#endif /* CVC5__THEORY__ARITH__IAND_TABLE_H */

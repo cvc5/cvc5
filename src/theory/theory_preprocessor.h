@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_PREPROCESSOR_H
-#define CVC4__THEORY__THEORY_PREPROCESSOR_H
+#ifndef CVC5__THEORY__THEORY_PREPROCESSOR_H
+#define CVC5__THEORY__THEORY_PREPROCESSOR_H
 
 #include <unordered_map>
 
@@ -225,4 +225,4 @@ class TheoryPreprocessor
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_PREPROCESSOR_H */
+#endif /* CVC5__THEORY__THEORY_PREPROCESSOR_H */

@@ -13,8 +13,8 @@
  **/
 #include "cvc4_public.h"
 
-#ifndef CVC4__ROUNDINGMODE_H
-#define CVC4__ROUNDINGMODE_H
+#ifndef CVC5__ROUNDINGMODE_H
+#define CVC5__ROUNDINGMODE_H
 
 #include <fenv.h>
 

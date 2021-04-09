@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EXCEPTION_H
-#define CVC4__EXCEPTION_H
+#ifndef CVC5__EXCEPTION_H
+#define CVC5__EXCEPTION_H
 
 #include <exception>
 #include <iosfwd>
@@ -166,4 +166,4 @@ private:
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXCEPTION_H */
+#endif /* CVC5__EXCEPTION_H */

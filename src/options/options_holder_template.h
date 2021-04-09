@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_HOLDER_H
-#define CVC4__OPTIONS__OPTIONS_HOLDER_H
+#ifndef CVC5__OPTIONS__OPTIONS_HOLDER_H
+#define CVC5__OPTIONS__OPTIONS_HOLDER_H
 
 // clang-format off
 ${headers_module}$
@@ -35,5 +35,5 @@ struct OptionsHolder
 }  // namespace options
 }  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__OPTIONS_HOLDER_H */
+#endif /* CVC5__OPTIONS__OPTIONS_HOLDER_H */
 // clang-format on

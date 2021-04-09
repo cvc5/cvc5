@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATS_HISTOGRAM_H
-#define CVC4__UTIL__STATS_HISTOGRAM_H
+#ifndef CVC5__UTIL__STATS_HISTOGRAM_H
+#define CVC5__UTIL__STATS_HISTOGRAM_H
 
 #include <map>
 #include <vector>

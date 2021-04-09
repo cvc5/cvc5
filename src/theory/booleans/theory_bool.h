@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
-#define CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
+#ifndef CVC5__THEORY__BOOLEANS__THEORY_BOOL_H
+#define CVC5__THEORY__BOOLEANS__THEORY_BOOL_H
 
 #include "context/context.h"
 #include "theory/booleans/proof_checker.h"
@@ -58,4 +58,4 @@ class TheoryBool : public Theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__THEORY_BOOL_H */
+#endif /* CVC5__THEORY__BOOLEANS__THEORY_BOOL_H */

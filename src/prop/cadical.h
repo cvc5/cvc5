@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CADICAL_H
-#define CVC4__PROP__CADICAL_H
+#ifndef CVC5__PROP__CADICAL_H
+#define CVC5__PROP__CADICAL_H
 
 #ifdef CVC5_USE_CADICAL
 

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
@@ -123,4 +123,4 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
 }  // namespace theory
 }  // namespace cvc5
 
-#endif  //  CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#endif  //  CVC5__THEORY__BV__BITBLAST__AIG_BITBLASTER_H

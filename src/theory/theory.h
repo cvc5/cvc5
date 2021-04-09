@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_H
-#define CVC4__THEORY__THEORY_H
+#ifndef CVC5__THEORY__THEORY_H
+#define CVC5__THEORY__THEORY_H
 
 #include <iosfwd>
 #include <set>
@@ -946,4 +946,4 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_H */
+#endif /* CVC5__THEORY__THEORY_H */

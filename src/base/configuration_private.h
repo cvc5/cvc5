@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONFIGURATION_PRIVATE_H
-#define CVC4__CONFIGURATION_PRIVATE_H
+#ifndef CVC5__CONFIGURATION_PRIVATE_H
+#define CVC5__CONFIGURATION_PRIVATE_H
 
 #include <string>
 
@@ -178,4 +178,4 @@ namespace cvc5 {
 
 }  // namespace cvc5
 
-#endif /* CVC4__CONFIGURATION_PRIVATE_H */
+#endif /* CVC5__CONFIGURATION_PRIVATE_H */

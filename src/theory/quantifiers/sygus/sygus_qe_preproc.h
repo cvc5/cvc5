@@ -12,8 +12,8 @@
  ** \brief Sygus quantifier elimination preprocessor
  **/
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
 
 #include "expr/node.h"
 
@@ -47,4 +47,4 @@ class SygusQePreproc
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H */

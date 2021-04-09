@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__VALUATION_H
-#define CVC4__THEORY__VALUATION_H
+#ifndef CVC5__THEORY__VALUATION_H
+#define CVC5__THEORY__VALUATION_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -219,4 +219,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__VALUATION_H */
+#endif /* CVC5__THEORY__VALUATION_H */

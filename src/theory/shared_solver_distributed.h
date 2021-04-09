@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SHARED_SOLVER_DISTRIBUTED__H
-#define CVC4__THEORY__SHARED_SOLVER_DISTRIBUTED__H
+#ifndef CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H
+#define CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H
 
 #include "expr/node.h"
 #include "theory/shared_solver.h"
@@ -61,4 +61,4 @@ class SharedSolverDistributed : public SharedSolver
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SHARED_SOLVER_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H */

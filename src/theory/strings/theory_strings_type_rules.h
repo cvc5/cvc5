@@ -17,8 +17,8 @@
 #include "cvc4_private.h"
 #include "options/strings_options.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+#ifndef CVC5__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+#define CVC5__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
 #include "expr/sequence.h"
 
@@ -420,4 +420,4 @@ struct SequenceProperties
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */
+#endif /* CVC5__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */

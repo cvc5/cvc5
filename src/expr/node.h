@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__NODE_H
-#define CVC4__NODE_H
+#ifndef CVC5__NODE_H
+#define CVC5__NODE_H
 
 #include <iostream>
 #include <map>
@@ -1492,4 +1492,4 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

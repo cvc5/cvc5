@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__KISSAT_H
-#define CVC4__PROP__KISSAT_H
+#ifndef CVC5__PROP__KISSAT_H
+#define CVC5__PROP__KISSAT_H
 
 #ifdef CVC5_USE_KISSAT
 

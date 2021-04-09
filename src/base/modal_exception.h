@@ -19,8 +19,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__MODAL_EXCEPTION_H
-#define CVC4__SMT__MODAL_EXCEPTION_H
+#ifndef CVC5__SMT__MODAL_EXCEPTION_H
+#define CVC5__SMT__MODAL_EXCEPTION_H
 
 #include "base/exception.h"
 
@@ -60,4 +60,4 @@ class RecoverableModalException : public cvc5::ModalException
 
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__MODAL_EXCEPTION_H */
+#endif /* CVC5__SMT__MODAL_EXCEPTION_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
-#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
+#ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
+#define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -630,4 +630,4 @@ class TupleProjectTypeRule
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */
+#endif /* CVC5__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */

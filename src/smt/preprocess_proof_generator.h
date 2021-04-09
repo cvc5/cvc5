@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-#define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
+#ifndef CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
+#define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__EAGER_SOLVER_H
-#define CVC4__THEORY__STRINGS__EAGER_SOLVER_H
+#ifndef CVC5__THEORY__STRINGS__EAGER_SOLVER_H
+#define CVC5__THEORY__STRINGS__EAGER_SOLVER_H
 
 #include <map>
 
@@ -65,4 +65,4 @@ class EagerSolver
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__EAGER_SOLVER_H */
+#endif /* CVC5__THEORY__STRINGS__EAGER_SOLVER_H */

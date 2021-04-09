@@ -12,8 +12,8 @@
  ** \brief
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__INTERVAL_H
-#define CVC4__THEORY__ARITH__ICP__INTERVAL_H
+#ifndef CVC5__THEORY__ARITH__ICP__INTERVAL_H
+#define CVC5__THEORY__ARITH__ICP__INTERVAL_H
 
 #include "cvc4_private.h"
 

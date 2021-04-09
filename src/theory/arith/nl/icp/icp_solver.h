@@ -12,8 +12,8 @@
  ** \brief Implements a ICP-based solver for nonlinear arithmetic.
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
-#define CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
+#define CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
 
 #include "cvc4_private.h"
 

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__SYGUS_EXTENSION_H
-#define CVC4__THEORY__DATATYPES__SYGUS_EXTENSION_H
+#ifndef CVC5__THEORY__DATATYPES__SYGUS_EXTENSION_H
+#define CVC5__THEORY__DATATYPES__SYGUS_EXTENSION_H
 
 #include <iostream>
 #include <map>

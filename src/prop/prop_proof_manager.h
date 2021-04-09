@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP_PROOF_MANAGER_H
-#define CVC4__PROP_PROOF_MANAGER_H
+#ifndef CVC5__PROP_PROOF_MANAGER_H
+#define CVC5__PROP_PROOF_MANAGER_H
 
 #include "context/cdlist.h"
 #include "expr/proof.h"
@@ -94,4 +94,4 @@ class PropPfManager
 }  // namespace prop
 }  // namespace cvc5
 
-#endif /* CVC4__PROP__PROOF_MANAGER_H */
+#endif /* CVC5__PROP__PROOF_MANAGER_H */

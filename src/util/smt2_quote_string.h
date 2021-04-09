@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTIL__SMT2_QUOTE_STRING_H
-#define CVC4__UTIL__SMT2_QUOTE_STRING_H
+#ifndef CVC5__UTIL__SMT2_QUOTE_STRING_H
+#define CVC5__UTIL__SMT2_QUOTE_STRING_H
 
 #include <string>
 
@@ -30,4 +30,4 @@ std::string quoteSymbol(const std::string& s);
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTIL__SMT2_QUOTE_STRING_H */
+#endif /* CVC5__UTIL__SMT2_QUOTE_STRING_H */

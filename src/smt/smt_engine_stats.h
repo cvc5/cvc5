@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_STATS_H
-#define CVC4__SMT__SMT_ENGINE_STATS_H
+#ifndef CVC5__SMT__SMT_ENGINE_STATS_H
+#define CVC5__SMT__SMT_ENGINE_STATS_H
 
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
@@ -62,4 +62,4 @@ struct SmtEngineStatistics
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__SMT_ENGINE_STATS_H */
+#endif /* CVC5__SMT__SMT_ENGINE_STATS_H */

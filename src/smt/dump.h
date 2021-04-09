@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DUMP_H
-#define CVC4__DUMP_H
+#ifndef CVC5__DUMP_H
+#define CVC5__DUMP_H
 
 #include "base/output.h"
 
@@ -114,4 +114,4 @@ extern DumpC DumpChannel;
 
 }  // namespace cvc5
 
-#endif /* CVC4__DUMP_H */
+#endif /* CVC5__DUMP_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT_ENGINE_H
-#define CVC4__SMT_ENGINE_H
+#ifndef CVC5__SMT_ENGINE_H
+#define CVC5__SMT_ENGINE_H
 
 #include <map>
 #include <memory>
@@ -1156,4 +1156,4 @@ class CVC4_EXPORT SmtEngine
 
 }  // namespace cvc5
 
-#endif /* CVC4__SMT_ENGINE_H */
+#endif /* CVC5__SMT_ENGINE_H */

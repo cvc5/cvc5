@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CRYPTOMINISAT_H
-#define CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC5__PROP__CRYPTOMINISAT_H
+#define CVC5__PROP__CRYPTOMINISAT_H
 
 #ifdef CVC5_USE_CRYPTOMINISAT
 

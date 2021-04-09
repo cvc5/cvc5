@@ -12,8 +12,8 @@
  ** \brief Represents a contraction candidate for ICP-style propagation.
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__CANDIDATE_H
-#define CVC4__THEORY__ARITH__ICP__CANDIDATE_H
+#ifndef CVC5__THEORY__ARITH__ICP__CANDIDATE_H
+#define CVC5__THEORY__ARITH__ICP__CANDIDATE_H
 
 #include "cvc4_private.h"
 

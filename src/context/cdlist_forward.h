@@ -29,8 +29,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONTEXT__CDLIST_FORWARD_H
-#define CVC4__CONTEXT__CDLIST_FORWARD_H
+#ifndef CVC5__CONTEXT__CDLIST_FORWARD_H
+#define CVC5__CONTEXT__CDLIST_FORWARD_H
 
 #include <memory>
 
@@ -53,4 +53,4 @@ class CDList;
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDLIST_FORWARD_H */
+#endif /* CVC5__CONTEXT__CDLIST_FORWARD_H */

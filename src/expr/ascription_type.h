@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__ASCRIPTION_TYPE_H
-#define CVC4__ASCRIPTION_TYPE_H
+#ifndef CVC5__ASCRIPTION_TYPE_H
+#define CVC5__ASCRIPTION_TYPE_H
 
 #include <iosfwd>
 #include <memory>
@@ -62,4 +62,4 @@ std::ostream& operator<<(std::ostream& out, AscriptionType at);
 
 }  // namespace cvc5
 
-#endif /* CVC4__ASCRIPTION_TYPE_H */
+#endif /* CVC5__ASCRIPTION_TYPE_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__API__CHECKS_H
-#define CVC4__API__CHECKS_H
+#ifndef CVC5__API__CHECKS_H
+#define CVC5__API__CHECKS_H
 
 namespace cvc4 {
 namespace api {
