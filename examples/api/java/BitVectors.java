@@ -10,8 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the solving capabilities of the CVC4
- * bit-vector solver.
+ * A simple demonstration of the solving capabilities of the cvc5 bit-vector
+ * solver.
  *
  */
 

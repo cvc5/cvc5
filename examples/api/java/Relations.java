@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about relations with CVC4 via Jave API.
+ * A simple demonstration of reasoning about relations with CVC4 via Java API.
  */
 
 import edu.stanford.CVC4.*;

@@ -125,6 +125,8 @@ The directories in which to search for and change sources is:
   $pwd/src
   $pwd/examples
   $pwd/test
+  $pwd/doc
+  $pwd/docs
 
 Continue? y or n:
 EOF

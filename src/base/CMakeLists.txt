@@ -10,10 +10,11 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Extract info from Git for git_versioninfo.cpp
-# Note: GitInfo.cmake generates git_versioninfo.cpp.
+# The build system configuration.
 ##
 
+# Extract info from Git for git_versioninfo.cpp
+# Note: GitInfo.cmake generates git_versioninfo.cpp.
 find_package(Git)
 configure_file(GitInfo.cmake.in GitInfo.cmake @ONLY)
 add_custom_target(gen-gitinfo

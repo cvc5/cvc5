@@ -10,9 +10,10 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Check if the toml Python module is installed.
+# The build system configuration.
 ##
 
+# Check if the toml Python module is installed.
 check_python_module("toml")
 
 libcvc4_add_sources(

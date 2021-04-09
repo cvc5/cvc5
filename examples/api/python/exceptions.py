@@ -13,7 +13,7 @@
 #
 # Catching cvc5 exceptions with the legacy Python API.
 #
-# A simple demonstration of catching cvc5 execptions with the legacy Python API.
+# A simple demonstration of catching cvc5 exceptions with the legacy Python API.
 ##
 
 import pycvc4

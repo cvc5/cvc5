@@ -10,11 +10,13 @@
 # directory for licensing information.
 # #############################################################################
 #
+# The build system configuration.
+##
+
 # Add target 'check', builds and runs
 # > unit tests
 # > regression tests of levels 0 and 1
 # > api tests
-##
 
 add_custom_target(build-tests)
 

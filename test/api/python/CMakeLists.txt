@@ -10,7 +10,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Add Python bindings API tests.
+# The build system configuration.
 ##
 
 # Check if the pytest Python module is installed.

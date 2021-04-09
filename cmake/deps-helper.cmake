@@ -10,6 +10,10 @@
 # directory for licensing information.
 # #############################################################################
 #
+# Defines some initial setup for building the dependencies (paths and default
+# options for external projects) and some helper functions and macros that are
+# used in the custom FindX.cmake scripts.
+##
 
 # where to build dependencies
 set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")

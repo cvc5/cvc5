@@ -9,6 +9,10 @@
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
 # #############################################################################
+#
+# Checks if include-what-you-use is available.
+# If so, create appropriate targets to run it on the whole code base or
+# individual folders.
 ##
 
 find_program(IWYU_PATH NAMES iwyu_tool iwyu-tool)

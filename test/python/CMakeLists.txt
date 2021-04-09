@@ -10,21 +10,20 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Add Python bindings API tests.
+# The build system configuration.
 ##
 
 # Check if the pytest Python module is installed.
 check_python_module("pytest")
 
+# Add Python bindings API tests.
 macro(cvc4_add_python_api_test name filename)
-
-  #   we create test target 'python/unit/api/myapitest'
-  #   and run it with 'ctest -R "python/unit/api/myapitest"'.
-  add_test (NAME python/unit/api/${name}
-    COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
-    # directory for importing the python bindings
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
-
+# We create test target 'python/unit/api/myapitest' and run it with
+# 'ctest -R "python/unit/api/myapitest"'.
+add_test (NAME python/unit/api/${name}
+  COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+  # directory for importing the python bindings
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
 endmacro()
 
 # add specific test files

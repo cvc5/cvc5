@@ -10,9 +10,10 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Add unit tests.
+# The build system configuration.
 ##
 
+# Add unit tests.
 cvc4_add_unit_test_black(regexp_operation_black theory)
 cvc4_add_unit_test_black(theory_black theory)
 cvc4_add_unit_test_white(evaluator_white theory)

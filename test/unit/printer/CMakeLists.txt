@@ -10,7 +10,8 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Add unit tests.
+# The build system configuration.
 ##
 
+# Add unit tests.
 cvc4_add_unit_test_black(smt2_printer_black printer)
