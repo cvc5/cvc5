@@ -97,6 +97,14 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
 
+    case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
+    case InferenceId::BV_LAZY_CONFLICT: return "BV_LAZY_CONFLICT";
+    case InferenceId::BV_LAZY_LEMMA: return "BV_LAZY_LEMMA";
+    case InferenceId::BV_SIMPLE_LEMMA: return "BV_SIMPLE_LEMMA";
+    case InferenceId::BV_SIMPLE_BITBLAST_LEMMA: return "BV_SIMPLE_BITBLAST_LEMMA";
+    case InferenceId::BV_EXTF_LEMMA: return "BV_EXTF_LEMMA";
+    case InferenceId::BV_EXTF_COLLAPSE: return "BV_EXTF_COLLAPSE";
+
     case InferenceId::DATATYPES_PURIFY: return "DATATYPES_PURIFY";
     case InferenceId::DATATYPES_UNIF: return "DATATYPES_UNIF";
     case InferenceId::DATATYPES_INST: return "DATATYPES_INST";
@@ -338,6 +346,15 @@ const char* toString(InferenceId i)
       return "STRINGS_REGISTER_TERM_ATOMIC";
     case InferenceId::STRINGS_REGISTER_TERM: return "STRINGS_REGISTER_TERM";
     case InferenceId::STRINGS_CMI_SPLIT: return "STRINGS_CMI_SPLIT";
+
+    case InferenceId::UF_BREAK_SYMMETRY: return "UF_BREAK_SYMMETRY";
+    case InferenceId::UF_CARD_CLIQUE: return "UF_CARD_CLIQUE";
+    case InferenceId::UF_CARD_COMBINED: return "UF_CARD_COMBINED";
+    case InferenceId::UF_CARD_ENFORCE_NEGATIVE: return "UF_CARD_ENFORCE_NEGATIVE";
+    case InferenceId::UF_CARD_EQUIV: return "UF_CARD_EQUIV";
+    case InferenceId::UF_CARD_MONOTONE_COMBINED: return "UF_CARD_MONOTONE_COMBINED";
+    case InferenceId::UF_CARD_SIMPLE_CONFLICT: return "UF_CARD_SIMPLE_CONFLICT";
+    case InferenceId::UF_CARD_SPLIT: return "UF_CARD_SPLIT";
 
     case InferenceId::UF_HO_APP_ENCODE: return "UF_HO_APP_ENCODE";
     case InferenceId::UF_HO_APP_CONV_SKOLEM: return "UF_HO_APP_CONV_SKOLEM";
