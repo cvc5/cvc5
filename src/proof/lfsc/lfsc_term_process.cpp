@@ -16,11 +16,11 @@
 
 #include <sstream>
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "expr/dtype.h"
-#include "expr/dtype_cons.h"
 
 using namespace cvc5::kind;
 
@@ -104,7 +104,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
     Node opc = getOperatorOfTerm(n, true);
-    if (n.getNumChildren()==0)
+    if (n.getNumChildren() == 0)
     {
       return opc;
     }
@@ -486,7 +486,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     {
       ftype = nm->mkFunctionType(argTypes, ftype, false);
     }
-    if (k==APPLY_TESTER)
+    if (k == APPLY_TESTER)
     {
       // do not use (_ is C) syntax for testers
       unsigned cindex = DType::indexOf(op);
