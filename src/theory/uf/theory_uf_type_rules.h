@@ -171,7 +171,7 @@ class HoApplyTypeRule {
       for (; argument_type_it != argument_type_it_end; ++argument_type_it) {
         children.push_back( *argument_type_it );
       }
-      return nodeManager->mkFunctionType( children, false );
+      return nodeManager->mkFunctionType(children, false);
     }
   }
 }; /* class HoApplyTypeRule */

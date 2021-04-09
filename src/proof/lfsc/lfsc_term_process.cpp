@@ -60,7 +60,7 @@ Node LfscTermProcessor::runConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  if (k==ASCRIPTION_TYPE)
+  if (k == ASCRIPTION_TYPE)
   {
     // dummy node, return it
     return n;
@@ -570,7 +570,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     }
     Node ret = getSymbolInternal(k, ftype, opName.str());
     // TODO: if parametric, instantiate the parameters?
-    
+
     return ret;
   }
   std::vector<TypeNode> argTypes;
