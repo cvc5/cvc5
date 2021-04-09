@@ -85,7 +85,7 @@ Node TermProcessor::convert(Node n)
       }
       // run the callback for the current application
       Node cret = runConvert(ret);
-      if (!cret.isNull())
+      if (!cret.isNull() && ret!=cret)
       {
         AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
             << "Converting " << ret << " to " << cret << " changes type";

@@ -60,6 +60,11 @@ Node LfscTermProcessor::runConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
+  if (k==ASCRIPTION_TYPE)
+  {
+    // dummy node, return it
+    return n;
+  }
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
       << "runConvert " << n << " " << k << std::endl;
@@ -554,7 +559,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     }
     if (k == APPLY_TESTER)
     {
-      // do not use (_ is C) syntax for testers
+      // use is-C instead of (_ is C) syntax for testers
       unsigned cindex = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
       opName << "is-" << dt[cindex].getConstructor();
@@ -563,7 +568,10 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     {
       opName << op;
     }
-    return getSymbolInternal(k, ftype, opName.str());
+    Node ret = getSymbolInternal(k, ftype, opName.str());
+    // TODO: if parametric, instantiate the parameters?
+    
+    return ret;
   }
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)

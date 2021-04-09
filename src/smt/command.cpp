@@ -208,9 +208,11 @@ void Command::invoke(api::Solver* solver, SymbolManager* sm, std::ostream& out)
   invoke(solver, sm);
   if (!(isMuted() && ok()))
   {
+    /*
     printResult(
         out,
         std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
+        */
   }
 }
 

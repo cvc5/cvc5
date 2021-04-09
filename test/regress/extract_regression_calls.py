@@ -277,14 +277,17 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         extra_command_line_args = []
         if 'unsat' in expected_output_lines or 'entailed' in expected_output_lines:
             if benchmark_ext != '.sy' and \
-               '--incremental' not in all_args and \
-               '-i' not in all_args and \
-               '--sygus-inference' not in all_args and \
-               '--global-negate' not in all_args and \
+               '--dump-unsat-cores' not in all_args and \
+               '--dump-unsat-cores-full' not in all_args and \
                '--no-produce-proofs' not in all_args and \
                '--no-check-proofs' not in all_args and \
+               '-i' not in all_args and \
+               '--incremental' not in all_args and \
                ':incremental' not in benchmark_content and \
-               'sygus-inference' not in benchmark_content:
+               '--global-negate' not in all_args and \
+               ':global-negate' not in benchmark_content \
+               '--sygus-inference' not in all_args and \
+               ':sygus-inference' not in benchmark_content:
                 extra_command_line_args += ['--dump-proofs --proof-format=lfsc']
 
         # Create a test case for each extra argument
