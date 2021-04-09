@@ -39,8 +39,9 @@ popd
 SIG_DIR="$BASE_DIR/lfsc-signatures"
 mkdir -p $SIG_DIR
 
-# download and unpack signatures: use the current version !!!! proof-new branch only
-download "https://github.com/CVC4/signatures/archive/refs/heads/master.tar.gz" $BASE_DIR/tmp/signatures.tgz
+# download and unpack signatures
+sig_version="10198f78318139878896f6a032c4ba58c36d3c61"
+download "https://github.com/CVC4/signatures/archive/$sig_version.tar.gz" $BASE_DIR/tmp/signatures.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/signatures.tgz -C $SIG_DIR
 
 # install signatures and scripts
