@@ -279,6 +279,8 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             if benchmark_ext != '.sy' and \
                '--incremental' not in all_args and \
                '-i' not in all_args and \
+               '--sygus-inference' not in all_args and \
+               '--global-negate' not in all_args and \
                '--no-produce-proofs' not in all_args and \
                '--no-check-proofs' not in all_args:
                 extra_command_line_args += ['--dump-proofs --proof-format=lfsc']

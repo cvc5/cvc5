@@ -52,6 +52,8 @@ LfscTermProcessor::LfscTermProcessor()
       getSymbolInternal(FUNCTION_TYPE, setType, "Set");
   d_typeKindToNodeCons[BAG_TYPE] =
       getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
+  d_typeKindToNodeCons[SEQUENCE_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, setType, "Seq");
 }
 
 Node LfscTermProcessor::runConvert(Node n)
@@ -78,6 +80,12 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == SKOLEM)
   {
+    // constructors/selectors are represented by skolems, which are defined
+    // symbols
+    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    {
+      return n;
+    }
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
     Node on = SkolemManager::getOriginalForm(n);
@@ -194,7 +202,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
-    TypeNode bodyType = nm->mkFunctionType(ret.getType(), tn);
+    TypeNode bodyType = nm->mkFunctionType(ret.getType(), tn, false);
     // We permit non-flat function types here
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
     Node forallOp = getSymbolInternal(
@@ -313,6 +321,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   TypeNode cur = tn;
   Node tnn;
   Kind k = tn.getKind();
+  Trace("lfsc-term-process-debug") << "runConvertType " << tn << " " << tn.getNumChildren() << " " << k << std::endl;
   if (k == FUNCTION_TYPE)
   {
     // (-> T1 ... Tn T) is (arrow T1 .... (arrow Tn T))
@@ -333,32 +342,76 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
   }
+  else if (k==BITVECTOR_TYPE)
+  {
+    tnn = d_typeKindToNodeCons[k];
+    Node w = nm->mkConst(Rational(tn.getBitVectorSize()));
+    tnn = nm->mkNode(APPLY_UF, tnn, w);
+  }
+  else if (k==FLOATINGPOINT_TYPE)
+  {
+    tnn = d_typeKindToNodeCons[k];
+    Node e = nm->mkConst(Rational(tn.getFloatingPointExponentSize()));
+    Node s = nm->mkConst(Rational(tn.getFloatingPointSignificandSize()));
+    tnn = nm->mkNode(APPLY_UF, tnn, e, s);
+  }
   else if (tn.getNumChildren() == 0)
   {
-    std::stringstream ss;
-    ss << tn;
-    tnn = getSymbolInternal(k, d_sortType, ss.str());
+    // special case: tuples are builtin datatypes
+    // notice this would not be a special case if tuples were parametric datatypes
+    if (tn.isTuple())
+    {
+      const DType& dt = tn.getDType();
+      unsigned int nargs = dt[0].getNumArgs();
+      if (nargs>0)
+      {
+        std::vector<Node> targs;
+        std::vector<TypeNode> types;
+        for (unsigned int i = 0; i < nargs; i++)
+        {
+          // it is not converted yet, convert here
+          TypeNode tnc = runConvertType(dt[0][i].getRangeType());
+          types.push_back(d_sortType);
+          targs.push_back(typeAsNode(tnc));
+        }
+        TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, "Tuple"));
+        tnn = nm->mkNode(APPLY_UF, targs);
+      }
+    }
+    if (tnn.isNull())
+    {
+      std::stringstream ss;
+      ss << tn;
+      tnn = getSymbolInternal(k, d_sortType, ss.str());
+    }
   }
   else
   {
     // to build the type-as-node, must convert the component types
-    std::vector<Node> nargs;
+    std::vector<Node> targs;
     for (const TypeNode& tnc : tn)
     {
-      nargs.push_back(typeAsNode(tnc));
+      targs.push_back(typeAsNode(tnc));
     }
+    Node op;
     std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
     if (it != d_typeKindToNodeCons.end())
     {
-      nargs.insert(nargs.begin(), it->second);
-      tnn = nm->mkNode(APPLY_UF, nargs);
+      op = it->second;
+    }
+    if (!op.isNull())
+    {
+      targs.insert(targs.begin(), it->second);
+      tnn = nm->mkNode(APPLY_UF, targs);
     }
     else
     {
-      Assert(false);
+      AlwaysAssert(false);
     }
   }
   Assert(!tnn.isNull());
+  Trace("lfsc-term-process-debug") << "...type as node: " << tnn << std::endl;
   d_typeAsNode[cur] = tnn;
   return cur;
 }

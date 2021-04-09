@@ -69,6 +69,11 @@ void LfscPrinter::print(std::ostream& out,
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
     TypeNode st = s.getType();
+    if (st.isConstructor() || st.isSelector() || st.isTester())
+    {
+      // can ignore these types
+      continue;
+    }
     std::unordered_set<TypeNode, TypeNodeHashFunction> types;
     expr::getComponentTypes(st, types);
     for (const TypeNode& stc : types)
@@ -84,9 +89,15 @@ void LfscPrinter::print(std::ostream& out,
   // [1b] user declare function symbols
   for (const Node& s : syms)
   {
+    TypeNode st = s.getType();
+    if (st.isConstructor() || st.isSelector() || st.isTester())
+    {
+      // constructors, selector, testers are defined by the datatype
+      continue;
+    }
     preamble << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
              << " ";
-    printType(preamble, s.getType());
+    printType(preamble, st);
     preamble << "))" << std::endl;
   }
 
