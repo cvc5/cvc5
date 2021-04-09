@@ -410,6 +410,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       op = getSymbolInternal(k, ftype, tn.getDType().getName());
     }
+    else if (k == SORT_TYPE)
+    {
+      TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+      std::string name;
+      tn.getAttribute(expr::VarNameAttr(), name);
+      op = getSymbolInternal(k, ftype, name);
+    }
     else
     {
       std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);

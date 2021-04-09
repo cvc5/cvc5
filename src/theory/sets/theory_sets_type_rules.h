@@ -386,10 +386,6 @@ struct JoinImageTypeRule {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be integer");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage cardinality constraint must be a constant");
-    }
     cvc5::Rational r(INT_MAX);
     if (n[1].getConst<Rational>() > r) {
       throw TypeCheckingExceptionPrivate(

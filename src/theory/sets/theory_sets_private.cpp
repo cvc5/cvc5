@@ -1277,6 +1277,14 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       d_equalityEngine->addTriggerPredicate(node);
     }
     break;
+    case kind::JOIN_IMAGE:
+    {
+      if (node[1].getKind() != kind::CONST_RATIONAL) {
+        throw LogicException(
+            "JoinImage cardinality constraint must be a constant");
+      }
+    }
+    break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
