@@ -17,6 +17,106 @@ public class Op extends AbstractPointer
 
   // endregion
 
+
+
+  /**
+   * Syntactic equality operator.
+   * Return true if both operators are syntactically identical.
+   * Both operators must belong to the same solver object.
+   * @param t the operator to compare to for equality
+   * @return true if the operators are equal
+   */
+  @Override public boolean equals(Object t)
+  {
+    if (this == t)
+      return true;
+    if (t == null || getClass() != t.getClass())
+      return false;
+    return equals(pointer, ((Op) t).getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
+   * @return the kind of this operator
+   */
+  Kind getKind()
+  {
+    try
+    {
+      int value = getKind(pointer);
+      return Kind.fromInt(value);
+    }
+    catch(CVC5ApiException e)
+    {
+      e.printStackTrace();
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
+  private native int getKind(long pointer);
+
+  /**
+   * @return true if this operator is a null term
+   */
+  public boolean isNull()
+  {
+    return isNull(pointer);
+  }
+
+  private native boolean isNull(long pointer);
+
+  /**
+   * @return true iff this operator is indexed
+   */
+  public boolean isIndexed()
+  {
+    return isIndexed(pointer);
+  }
+
+  private native boolean isIndexed(long pointer);
+
+  /**
+   * Get the indices used to create this Op.
+   * Check the Op Kind with getKind() to determine which argument to use.
+   *
+   * @return the index used to create this Op
+   */
+  public int getIntegerIndex()
+  {
+    return getIntegerIndex(pointer);
+  }
+
+  private native int getIntegerIndex(long pointer);
+
+  /**
+   * Get the indices used to create this Op.
+   * Check the Op Kind with getKind() to determine which argument to use.
+   *
+   * @return the indices used to create this Op
+   */
+  public String getStringIndices()
+  {
+    return getStringIndices(pointer);
+  }
+
+  private native String getStringIndices(long pointer);
+
+  /**
+   * Get the indices used to create this Op.
+   * Check the Op Kind with getKind() to determine which argument to use.
+   *
+   * @return the indices used to create this Op
+   */
+  public Pair<Integer, Integer> getIntegerPairIndices()
+  {
+    int[] pair = getIntegerPairIndices(pointer);
+    // invariant getIntegerPairIndices returns an array of two integers
+    return new Pair<>(pair[0], pair[1]);
+  }
+
+  private native int[] getIntegerPairIndices(long pointer);
+
   /**
    * @return a string representation of this operator
    */
