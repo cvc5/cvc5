@@ -168,9 +168,7 @@ void ITEUtilities::clear()
   d_containsVisitor->garbageCollect();
 }
 
-/*********************                                                        */
-/* ContainsTermITEVisitor
- */
+/** ContainsTermITEVisitor. */
 ContainsTermITEVisitor::ContainsTermITEVisitor() : d_cache() {}
 ContainsTermITEVisitor::~ContainsTermITEVisitor() {}
 bool ContainsTermITEVisitor::containsTermITE(TNode e)
@@ -241,9 +239,7 @@ bool ContainsTermITEVisitor::containsTermITE(TNode e)
 }
 void ContainsTermITEVisitor::garbageCollect() { d_cache.clear(); }
 
-/*********************                                                        */
-/* IncomingArcCounter
- */
+/** IncomingArcCounter. */
 IncomingArcCounter::IncomingArcCounter(bool skipVars, bool skipConstants)
     : d_reachCount(), d_skipVariables(skipVars), d_skipConstants(skipConstants)
 {
@@ -290,9 +286,7 @@ void IncomingArcCounter::computeReachability(
 
 void IncomingArcCounter::clear() { d_reachCount.clear(); }
 
-/*********************                                                        */
-/* ITECompressor
- */
+/** ITECompressor. */
 ITECompressor::ITECompressor(ContainsTermITEVisitor* contains)
     : d_contains(contains), d_assertions(NULL), d_incoming(true, true)
 {
