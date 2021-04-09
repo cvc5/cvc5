@@ -86,7 +86,6 @@ size_t AssertionList::size() const { return d_assertions.size(); }
 
 void AssertionList::notifyStatus(TNode n, DecisionStatus s)
 {
-  // FIXME
   Trace("jh-status") << "Assertion status " << s << " for " << n.getId()
                      << ", current " << d_dindex.get() << "/" << d_dlist.size()
                      << std::endl;
@@ -137,22 +136,6 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
     }
     Trace("jh-status") << "...remove due to " << s << std::endl;
     d_dlist.erase(it);
-  }
-  // if we backtracked, insert as the next assertion
-  if (s == DecisionStatus::BACKTRACK)
-  {
-    if (d_dindex.get() >= d_dlist.size())
-    {
-      Trace("jh-status") << "...push back due to backtrack" << std::endl;
-      d_dlist.push_back(n);
-      d_dindex = d_dlist.size();
-    }
-    else
-    {
-      Trace("jh-status") << "...insert due to backtrack" << std::endl;
-      d_dlist.insert(d_dlist.begin() + d_dindex.get(), n);
-      d_dindex = d_dindex + 1;
-    }
   }
 }
 
