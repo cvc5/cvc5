@@ -108,6 +108,13 @@ void LfscPrinter::print(std::ostream& out,
     printProofInternal(&lpcln, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
   }
+  // Print the body of the outermost scope
+  printProofInternal(&lpcln, pnBody, emptyLetBind, pletMap, passumeMap);
+  Trace("lfsc-print-debug2")
+      << "node count let " << lpcln.d_nodeCount << std::endl;
+  Trace("lfsc-print-debug2")
+      << "trust count let " << lpcln.d_trustCount << std::endl;
+
   // [1a] print warnings
   for (PfRule r : d_trustWarned)
   {
@@ -116,12 +123,6 @@ void LfscPrinter::print(std::ostream& out,
   out << preamble.str();
   out << "(check" << std::endl;
   cparen << ")";
-  // Print the body of the outermost scope
-  printProofInternal(&lpcln, pnBody, emptyLetBind, pletMap, passumeMap);
-  Trace("lfsc-print-debug2")
-      << "node count let " << lpcln.d_nodeCount << std::endl;
-  Trace("lfsc-print-debug2")
-      << "trust count let " << lpcln.d_trustCount << std::endl;
   // print the term let list
   printLetList(out, cparen, lbind);
 
