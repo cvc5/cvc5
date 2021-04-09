@@ -25,7 +25,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
-  pc->registerChecker(PfRule::MACRO_RESOLUTION_TRUST, this);
+  pc->registerChecker(PfRule::MACRO_RESOLUTION_TRUST, this, 3);
   pc->registerChecker(PfRule::MACRO_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
