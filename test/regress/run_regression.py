@@ -327,7 +327,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             '--no-check-synth-sol' not in all_args and \
             '--sygus-rr' not in all_args and \
             '--check-synth-sol' not in all_args:
-            extra_command_line_args += ['--check-synth-sol']
+            all_args += ['--check-synth-sol']
         if ('sat' in expected_output_lines or \
             'not_entailed' in expected_output_lines or \
             'unknown' in expected_output_lines) and \
@@ -351,7 +351,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         if '--no-check-abducts' not in all_args and \
             '--check-abducts' not in all_args and \
             'get-abduct' in benchmark_content:
-            extra_command_line_args += ['--check-abducts']
+            all_args += ['--check-abducts']
 
         # Create a test case for each extra argument
         for extra_arg in extra_command_line_args:
