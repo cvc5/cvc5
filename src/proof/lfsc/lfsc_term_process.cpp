@@ -42,10 +42,10 @@ LfscTermProcessor::LfscTermProcessor()
   d_typeKindToNodeCons[ARRAY_TYPE] =
       getSymbolInternal(FUNCTION_TYPE, arrType, "Array");
   TypeNode bvType = nm->mkFunctionType(intType, d_sortType);
-  d_typeKindToNodeCons[SET_TYPE] =
+  d_typeKindToNodeCons[BITVECTOR_TYPE] =
       getSymbolInternal(FUNCTION_TYPE, bvType, "BitVec");
   TypeNode fpType = nm->mkFunctionType({intType, intType}, d_sortType);
-  d_typeKindToNodeCons[SET_TYPE] =
+  d_typeKindToNodeCons[FLOATINGPOINT_TYPE] =
       getSymbolInternal(FUNCTION_TYPE, fpType, "FloatingPoint");
   TypeNode setType = nm->mkFunctionType(d_sortType, d_sortType);
   d_typeKindToNodeCons[SET_TYPE] =
@@ -393,19 +393,29 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   {
     // to build the type-as-node, must convert the component types
     std::vector<Node> targs;
+    std::vector<TypeNode> types;
     for (const TypeNode& tnc : tn)
     {
       targs.push_back(typeAsNode(tnc));
+      types.push_back(d_sortType);
     }
     Node op;
-    std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
-    if (it != d_typeKindToNodeCons.end())
+    if (k==PARAMETRIC_DATATYPE)
     {
-      op = it->second;
+      TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+      op = getSymbolInternal(k, ftype, tn.getDType().getName());
+    }
+    else
+    {
+      std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
+      if (it != d_typeKindToNodeCons.end())
+      {
+        op = it->second;
+      }
     }
     if (!op.isNull())
     {
-      targs.insert(targs.begin(), it->second);
+      targs.insert(targs.begin(), op);
       tnn = nm->mkNode(APPLY_UF, targs);
     }
     else
