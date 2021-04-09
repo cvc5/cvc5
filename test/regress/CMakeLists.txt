@@ -2054,6 +2054,9 @@ set(regress_1_tests
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
+  regress1/strings/issue6214-2-sym-re-inc.smt2
+  regress1/strings/issue6214-3-sym-re-inc.smt2
+  regress1/strings/issue6214-4-sym-re-inc.smt2
   regress1/strings/issue6270.smt2
   regress1/strings/issue6271-rnf.smt2
   regress1/strings/issue6271-2-rnf.smt2
