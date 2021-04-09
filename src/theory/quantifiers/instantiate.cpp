@@ -99,7 +99,7 @@ bool Instantiate::addInstantiation(Node q,
                                    bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
+  d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Trace("inst-add-debug") << "For quantified formula " << q

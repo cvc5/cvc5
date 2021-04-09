@@ -39,8 +39,8 @@ public:
    * Notify about a learnt clause.
    */
   virtual void notify(SatClause& clause) = 0;
-  virtual void spendResource(ResourceManager::Resource r) = 0;
-  virtual void safePoint(ResourceManager::Resource r) = 0;
+  virtual void spendResource(Resource r) = 0;
+  virtual void safePoint(Resource r) = 0;
 
 };/* class BVSatSolverInterface::Notify */
 

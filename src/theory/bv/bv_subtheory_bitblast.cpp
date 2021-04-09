@@ -173,7 +173,7 @@ bool BitblastSolver::check(Theory::Effort e)
   // We need to ensure we are fully propagated, so propagate now
   if (d_useSatPropagation)
   {
-    d_bv->spendResource(ResourceManager::Resource::BvPropagationStep);
+    d_bv->spendResource(Resource::BvPropagationStep);
     bool ok = d_bitblaster->propagate();
     if (!ok)
     {

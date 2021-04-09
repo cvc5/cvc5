@@ -66,7 +66,7 @@ TrustNode ExpandDefs::expandDefinitions(
 
   do
   {
-    d_resourceManager.spendResource(ResourceManager::Resource::PreprocessStep);
+    d_resourceManager.spendResource(Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result

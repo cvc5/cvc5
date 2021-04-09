@@ -1901,7 +1901,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
   }
 }
 
-void TheoryEngine::spendResource(ResourceManager::Resource r)
+void TheoryEngine::spendResource(Resource r)
 {
   d_resourceManager->spendResource(r);
 }

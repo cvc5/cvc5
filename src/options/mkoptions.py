@@ -20,7 +20,7 @@
       <tpl-src> location of all *_template.{cpp,h} files
       <tpl-doc> location of all *_template documentation files
       <dst>     destination directory for the generated source code files
-      <toml>+   one or more *_optios.toml files
+      <toml>+   one or more *_options.toml files
 
 
     Directory <tpl-src> must contain:

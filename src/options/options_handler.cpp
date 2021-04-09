@@ -35,6 +35,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/options_holder.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -81,6 +82,12 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
+
+void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
+{
+  d_options->d_holder->resourceWeightHolder.emplace_back(optarg);
+}
+
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)

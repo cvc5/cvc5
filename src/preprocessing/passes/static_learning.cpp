@@ -33,7 +33,7 @@ StaticLearning::StaticLearning(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult StaticLearning::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {

@@ -124,7 +124,7 @@ class BVSolverLazy : public BVSolver
   Statistics d_statistics;
 
   void check(Theory::Effort e);
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;

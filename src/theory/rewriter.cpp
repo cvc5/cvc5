@@ -222,7 +222,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   for (;;){
     if (hasSmtEngine)
     {
-      rm->spendResource(ResourceManager::Resource::RewriteStep);
+      rm->spendResource(Resource::RewriteStep);
     }
 
     // Get the top of the recursion stack

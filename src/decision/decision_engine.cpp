@@ -70,7 +70,7 @@ void DecisionEngine::shutdown()
 
 SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
-  d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
+  d_resourceManager->spendResource(Resource::DecisionStep);
   Assert(d_cnfStream != nullptr)
       << "Forgot to set cnfStream for decision engine?";
   Assert(d_satSolver != nullptr)

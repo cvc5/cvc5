@@ -61,7 +61,7 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(ResourceManager::Resource r)
+  void spendResource(Resource r)
   {
     d_resourceManager->spendResource(r);
   }

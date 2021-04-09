@@ -93,7 +93,7 @@ void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 
 void ProcessAssertions::cleanup() { d_passes.clear(); }
 
-void ProcessAssertions::spendResource(ResourceManager::Resource r)
+void ProcessAssertions::spendResource(Resource r)
 {
   d_resourceManager.spendResource(r);
 }
@@ -358,7 +358,7 @@ bool ProcessAssertions::apply(Assertions& as)
 // returns false if simplification led to "false"
 bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
-  spendResource(ResourceManager::Resource::PreprocessStep);
+  spendResource(Resource::PreprocessStep);
   try
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);

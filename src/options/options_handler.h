@@ -90,6 +90,7 @@ public:
   void statsEnabledBuild(std::string option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);
+  void setResourceWeight(std::string option, std::string optarg);
 
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(std::string option, int depth);

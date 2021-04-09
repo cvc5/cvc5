@@ -507,12 +507,12 @@ void TheoryInferenceManager::requirePhase(TNode n, bool pol)
   return d_out.requirePhase(n, pol);
 }
 
-void TheoryInferenceManager::spendResource(ResourceManager::Resource r)
+void TheoryInferenceManager::spendResource(Resource r)
 {
   d_out.spendResource(r);
 }
 
-void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
+void TheoryInferenceManager::safePoint(Resource r)
 {
   d_out.safePoint(r);
 }

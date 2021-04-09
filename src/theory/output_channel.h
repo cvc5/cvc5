@@ -91,7 +91,7 @@ class OutputChannel {
    *
    * @throws Interrupted if the theory can be safely interrupted.
    */
-  virtual void safePoint(ResourceManager::Resource r) {}
+  virtual void safePoint(Resource r) {}
 
   /**
    * Indicate a theory conflict has arisen.
@@ -164,7 +164,7 @@ class OutputChannel {
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(ResourceManager::Resource r) {}
+  virtual void spendResource(Resource r) {}
 
   /**
    * Handle user attribute.

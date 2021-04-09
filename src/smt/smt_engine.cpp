@@ -1149,7 +1149,7 @@ Node SmtEngine::simplify(const Node& ex)
 Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
   getResourceManager()->spendResource(
-      ResourceManager::Resource::PreprocessStep);
+      Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
