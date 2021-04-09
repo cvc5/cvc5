@@ -164,7 +164,8 @@ class ExtTheoryCallback
 class ExtTheory
 {
   using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
-  using NodeExtReducedIdMap = context::CDHashMap<Node, ExtReducedId, NodeHashFunction>;
+  using NodeExtReducedIdMap =
+      context::CDHashMap<Node, ExtReducedId, NodeHashFunction>;
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
@@ -279,7 +280,8 @@ class ExtTheory
   /** is n context dependent inactive? */
   bool isContextIndependentInactive(Node n) const;
   /**
-   * Same as above, but rid is updated to the reason if this method returns true.
+   * Same as above, but rid is updated to the reason if this method returns
+   * true.
    */
   bool isContextIndependentInactive(Node n, ExtReducedId& rid) const;
   /** do inferences internal */
