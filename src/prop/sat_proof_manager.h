@@ -561,7 +561,8 @@ class SatProofManager
   /** The proof generator for resolution chains */
   BufferedProofGenerator d_resChainPg;
 
-  /** The false node */
+  /** The true/false nodes */
+  Node d_true;
   Node d_false;
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
