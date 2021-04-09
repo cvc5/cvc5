@@ -46,6 +46,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/AbstractPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Datatype.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
