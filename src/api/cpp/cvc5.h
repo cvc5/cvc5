@@ -30,9 +30,11 @@
 
 namespace cvc5 {
 
+#ifndef DOXYGEN_SKIP
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
+#endif
 
 class Command;
 class DType;
@@ -1800,7 +1802,7 @@ class CVC4_EXPORT DatatypeConstructor
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
 
-/*
+/**
  * A CVC4 datatype.
  */
 class CVC4_EXPORT Datatype
@@ -2259,7 +2261,7 @@ struct CVC4_EXPORT RoundingModeHashFunction
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * A CVC4 solver.
  */
 class CVC4_EXPORT Solver
