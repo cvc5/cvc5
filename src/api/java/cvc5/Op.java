@@ -17,8 +17,6 @@ public class Op extends AbstractPointer
 
   // endregion
 
-
-
   /**
    * Syntactic equality operator.
    * Return true if both operators are syntactically identical.

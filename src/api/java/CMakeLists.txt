@@ -48,10 +48,12 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Datatype.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructor.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructorDecl.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Pair.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Result.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Sort.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
