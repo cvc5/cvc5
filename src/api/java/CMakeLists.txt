@@ -49,6 +49,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Datatype.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructor.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructorDecl.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeDecl.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java

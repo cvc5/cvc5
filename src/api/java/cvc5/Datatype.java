@@ -1,7 +1,5 @@
 package cvc5;
 
-import java.lang.ref.Cleaner;
-
 public class Datatype extends AbstractPointer
 {
   // region construction and destruction
