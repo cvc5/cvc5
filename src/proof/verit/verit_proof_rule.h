@@ -37,7 +37,8 @@ enum class VeritRule : uint32_t
   // ---------------------------------
   // > k. (cl (not F1) ... (not Fn) F)
   //
-  // Each subproof in veriT begins with an anchor command. The outermost application of anchor will not be printed.
+  // Each subproof in veriT begins with an anchor command. The outermost
+  // application of anchor will not be printed.
   ANCHOR_SUBPROOF,
   // ======== bind
   // G,y1,...,yn,x1->y1,...,xn->yn > j.  (= F1 F2)
@@ -160,20 +161,25 @@ enum class VeritRule : uint32_t
   // > i. (or (<= t1 t2) (<= t2 t1))
   LA_TOTALITY,
   // ======== la_tautology
-  // Tautology of linear arithmetic that can be checked without sophisticated reasoning.
+  // Tautology of linear arithmetic that can be checked without sophisticated
+  // reasoning.
   LA_TAUTOLOGY,
   // ======== forall_inst
   // > i. (or (not (forall (x1 ... xn) P)) P[t1/x1]...[tn/xn])
   // args = ((:= x_k1 tk1) ... (:= xkn tkn))
-  // where k1,...,kn is a permutation of 1,...,n and xi and ki have the same sort.
+  // where k1,...,kn is a permutation of 1,...,n and xi and ki have the same
+  // sort.
   FORALL_INST,
   // ======== qnt_join
   // G > i. (= (Q (x1 ... xn) (Q (xn+1 ... xm) F)) (Q (xk1 ... xko) F))
-  // where m>n, Q in {forall,exist}, k1...ko is a monotonic map 1,...,m s.t. xk1,...,xko are pairwise distinct and {x1,...,xm} = {xk1,...,xko}.
+  // where m>n, Q in {forall,exist}, k1...ko is a monotonic map 1,...,m s.t.
+  // xk1,...,xko are pairwise distinct and {x1,...,xm} = {xk1,...,xko}.
   QNT_JOIN,
   // ======== qnt_tm_unused
   // G > i. (= (Q (x1 ... xn) F) (Q (xk1 ... xkm) F))
-  // where m <= n, Q in {forall,exists}, k1,...,km is monotonic map to 1,...,n and if x in {xj | j in {1,...,n} and j not in {k1,...,km}} then x is not free in P
+  // where m <= n, Q in {forall,exists}, k1,...,km is monotonic map to 1,...,n
+  // and if x in {xj | j in {1,...,n} and j not in {k1,...,km}} then x is not
+  // free in P
   QNT_RM_UNUSED,
   // ======== th_resolution
   // > i1. (cl F^1_1 ... F^1_k1)
@@ -181,10 +187,13 @@ enum class VeritRule : uint32_t
   // > in. (cl F^n_1 ... F^n_kn)
   // ...
   // > i1,...,in. (cl F^r1_s1 ... F^rm_sm)
-  // where (cl F^r1_s1 ... F^rm_sm) are from F^i_j and are the result of a chain of predicate resolution steps on the clauses i1 to in. This rule is used when the resolution step is not emitted by the SAT solver.
+  // where (cl F^r1_s1 ... F^rm_sm) are from F^i_j and are the result of a chain
+  // of predicate resolution steps on the clauses i1 to in. This rule is used
+  // when the resolution step is not emitted by the SAT solver.
   TH_RESOLUTION,
   // ======== resolution
-  // This rule is equivalent to the th_resolution rule but is emitted by the SAT solver.
+  // This rule is equivalent to the th_resolution rule but is emitted by the SAT
+  // solver.
   RESOLUTION,
   // ======== refl
   // G > i. (= F1 F2)
@@ -335,7 +344,7 @@ enum class VeritRule : uint32_t
   SKO_FORALL,
   /** Special Rules*/
   UNDEFINED,  // TBD
-  //================================================= Extended Rules
+              //================================================= Extended Rules
   SYMM,
   NOT_SYMM,
   REORDER
