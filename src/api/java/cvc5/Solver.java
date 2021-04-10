@@ -249,7 +249,14 @@ public class Solver implements IPointer
        * @param kind the kind of the term
        * @return the Term
        */
-      Term mkTerm(Kind kind)
+      public Term mkTerm(Kind kind)
+      {
+        long [] childPointers = Utils.getPointers(children);
+        long termPointer = mkTerm(pointer, king.getValue());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long kindValue);
 
       /**
        * Create a unary term of given kind.
@@ -257,7 +264,14 @@ public class Solver implements IPointer
        * @param child the child of the term
        * @return the Term
        */
-      Term mkTerm(Kind kind, Term child)
+      public Term mkTerm(Kind kind, Term child)
+      {
+        long [] childPointers = Utils.getPointers(children);
+        long termPointer = mkTerm(pointer, king.getValue(), child.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long kindValue, long childPointer);
 
       /**
        * Create binary term of given kind.
@@ -266,7 +280,14 @@ public class Solver implements IPointer
        * @param child2 the second child of the term
        * @return the Term
        */
-      Term mkTerm(Kind kind, Term child1, Term child2)
+      public Term mkTerm(Kind kind, Term child1, Term child2)
+      {
+        long [] childPointers = Utils.getPointers(children);
+        long termPointer = mkTerm(pointer, king.getValue(), child1.getPointer(), child2.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long kindValue, long child1Pointer, long child2Pointer);
 
       /**
        * Create ternary term of given kind.
@@ -276,15 +297,28 @@ public class Solver implements IPointer
        * @param child3 the third child of the term
        * @return the Term
        */
-      Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
+      public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
+      {
+        long [] childPointers = Utils.getPointers(children);
+        long termPointer = mkTerm(pointer, king.getValue(), child1.getPointer(), child2.getPointer(), child2.getPointer());
+        return new Term(this, termPointer);
+      }
 
+      private native long mkTerm(long pointer, long kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
       /**
        * Create n-ary term of given kind.
        * @param kind the kind of the term
        * @param children the children of the term
        * @return the Term
        */
-      Term mkTerm(Kind kind, Term[] children)
+      public Term mkTerm(Kind kind, Term[] children)
+      {
+        long [] childPointers = Utils.getPointers(children);
+        long termPointer = mkTerm(pointer, king.getValue(), childPointers);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long kindValue, long [] childrenPointers);
 
       /**
        * Create nullary term of given kind from a given operator.
@@ -292,8 +326,13 @@ public class Solver implements IPointer
        * @param op the operator
        * @return the Term
        */
-      Term mkTerm(Op& op)
+      public Term mkTerm(Op op)
+      {
+        long termPointer = mkTerm(pointer, op.getPointer());
+        return new Term(this, termPointer);
+      }
 
+      private native long mkTerm(long pointer, long opPointer);
       /**
        * Create unary term of given kind from a given operator.
        * Create operators with mkOp().
@@ -301,7 +340,13 @@ public class Solver implements IPointer
        * @param child the child of the term
        * @return the Term
        */
-      Term mkTerm(Op& op, Term child)
+      public Term mkTerm(Op op, Term child)
+      {
+        long termPointer = mkTerm(pointer, op.getPointer(), child.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long opPointer, long childPointer);
 
       /**
        * Create binary term of given kind from a given operator.
@@ -311,8 +356,14 @@ public class Solver implements IPointer
        * @param child2 the second child of the term
        * @return the Term
        */
-      Term mkTerm(Op& op, Term child1, Term child2)
+      public Term mkTerm(Op op, Term child1, Term child2)
+      {
+        long termPointer = mkTerm(pointer, op.getPointer(), child1.getPointer(), child2.getPointer());
+        return new Term(this, termPointer);
+      }
 
+      private native long mkTerm(long pointer, long opPointer, long child1Pointer,
+      long child2Pointer);
       /**
        * Create ternary term of given kind from a given operator.
        * Create operators with mkOp().
@@ -322,7 +373,14 @@ public class Solver implements IPointer
        * @param child3 the third child of the term
        * @return the Term
        */
-      Term mkTerm(Op& op, Term child1, Term child2, Term child3)
+      public Term mkTerm(Op op, Term child1, Term child2, Term child3)
+      {
+        long termPointer = mkTerm(op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long opPointer, long child1Pointer,
+      long child2Pointer, long child3Pointer);
 
       /**
        * Create n-ary term of given kind from a given operator.
@@ -331,7 +389,14 @@ public class Solver implements IPointer
        * @param children the children of the term
        * @return the Term
        */
-      Term mkTerm(Op& op, Term[] children)
+      public Term mkTerm(Op op, Term[] children)
+      {
+        long [] childPointers = Utils.getPointers(children);
+        long termPointer = mkTerm(pointer, op.getPointer(), childPointers);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTerm(long pointer, long opPointer, long [] childrenPointers);
 
       /**
        * Create a tuple term. Terms are automatically converted if sorts are
@@ -340,7 +405,15 @@ public class Solver implements IPointer
        * @param terms The elements in the tuple
        * @return the tuple Term
        */
-      Term mkTuple(std::vector<Sort>& sorts, Term[] terms)
+      public Term mkTuple(Sort[] sorts, Term[] terms)
+      {
+        long [] sortPointers = Utils.getPointers(sorts);
+        long [] termPointers = Utils.getPointers(terms);
+        long termPointer = mkTuple(pointer, sortPointer, termPointers);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkTuple(long pointer, long[] sortPointers, long [] termPointers);
 
       /* .................................................................... */
       /* Create Operators                                                     */
@@ -355,8 +428,13 @@ public class Solver implements IPointer
        *   creating an op first.
        * @param kind the kind to wrap
        */
-      Op mkOp(Kind kind)
+      public Op mkOp(Kind kind)
+      {
+        long opPointer = mkOp(pointer, kind.getValue());
+        return new Op(this, opPointer);
+      }
 
+      private native int[] mkOp(long pointer, int kindValue);
       /**
        * Create operator of kind:
        *   - RECORD_UPDATE
@@ -365,7 +443,13 @@ public class Solver implements IPointer
        * @param kind the kind of the operator
        * @param arg the string argument to this operator
        */
-      Op mkOp(Kind kind, String arg)
+      public Op mkOp(Kind kind, String arg)
+      {
+        long opPointer = mkOp(pointer, kind.getValue(), arg);
+        return new Op(this, opPointer);
+      }
+
+      private native int[] mkOp(long pointer, int kindValue , String arg);
 
       /**
        * Create operator of kind:
@@ -383,9 +467,16 @@ public class Solver implements IPointer
        *   - TUPLE_UPDATE
        * See enum Kind for a description of the parameters.
        * @param kind the kind of the operator
-       * @param arg the uint32_t argument to this operator
+       * @param arg the unsigned int argument to this operator
        */
-      Op mkOp(Kind kind, uint32_t arg)
+      public Op mkOp(Kind kind, int arg)
+      {
+        Utils.validateUnsigned(arg, "arg");
+        long opPointer = mkOp(pointer, kind.getValue(), arg);
+        return new Op(this, opPointer);
+      }
+
+      private native int[] mkOp(long pointer, int kindValue , int arg);
 
       /**
        * Create operator of Kind:
@@ -398,10 +489,18 @@ public class Solver implements IPointer
        *   - FLOATINGPOINT_TO_FP_GENERIC
        * See enum Kind for a description of the parameters.
        * @param kind the kind of the operator
-       * @param arg1 the first uint32_t argument to this operator
-       * @param arg2 the second uint32_t argument to this operator
+       * @param arg1 the first unsigned int argument to this operator
+       * @param arg2 the second unsigned int argument to this operator
        */
-      Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
+      public Op mkOp(Kind kind, int arg1, int arg2)
+      {
+        Utils.validateUnsigned(arg1, "arg1");
+        Utils.validateUnsigned(arg2, "arg2");
+        long opPointer = mkOp(pointer, kind.getValue(), arg1, arg2);
+        return new Op(this, opPointer);
+      }
+
+      private native int[] mkOp(long pointer, int kindValue , int arg1, int arg2);
 
       /**
        * Create operator of Kind:
@@ -410,7 +509,14 @@ public class Solver implements IPointer
        * @param kind the kind of the operator
        * @param args the arguments (indices) of the operator
        */
-      Op mkOp(Kind kind, const std::vector<uint32_t>& args)
+      public Op mkOp(Kind kind, int [] args)
+      {
+        Utils.validateUnsigned(args, "args");
+        long opPointer = mkOp(pointer, kind.getValue(), args);
+        return new Op(this, opPointer);
+      }
+
+      private native int[] mkOp(long pointer, int kindValue , int[] args);
 
       /* .................................................................... */
       /* Create Constants                                                     */
@@ -420,250 +526,321 @@ public class Solver implements IPointer
        * Create a Boolean true constant.
        * @return the true constant
        */
-      Term mkTrue()
+  public Term mkTrue()
+  {
+    long termPointer = mkTrue(pointer);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a Boolean false constant.
-       * @return the false constant
-       */
-      Term mkFalse()
+  private native long mkTrue(long pointer);
+  /**
+   * Create a Boolean false constant.
+   * @return the false constant
+   */
+  public Term mkFalse()
+  {
+    long termPointer = mkFalse(pointer);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a Boolean constant.
-       * @return the Boolean constant
-       * @param val the value of the constant
-       */
-      Term mkBoolean(bool val)
+  private native long mkFalse(long pointer);
+  /**
+   * Create a Boolean constant.
+   * @return the Boolean constant
+   * @param val the value of the constant
+   */
+  public Term mkBoolean(bool val)
+  {
+    long termPointer = mkBoolean(pointer, val);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a constant representing the number Pi.
-       * @return a constant representing Pi
-       */
-      Term mkPi()
-      /**
-       * Create an integer constant from a string.
-       * @param s the string representation of the constant, may represent an
-       *          integer (e.g., "123").
-       * @return a constant of sort Integer assuming 's' represents an integer)
-       */
-      Term mkInteger(String s)
+  private native long mkBoolean(long pointer, boolean val);
+  /**
+   * Create a constant representing the number Pi.
+   * @return a constant representing Pi
+   */
+  public Term mkPi()
+  {
+    long termPointer = mkPi(pointer);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create an integer constant from a c++ int.
-       * @param val the value of the constant
-       * @return a constant of sort Integer
-       */
-      Term mkInteger(int64_t val)
+  private native long mkPi(long pointer);
+  /**
+   * Create an integer constant from a string.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123").
+   * @return a constant of sort Integer assuming 's' represents an integer)
+   */
+  public Term mkInteger(String s) throws CVC5ApiException;
+  {
+    long termPointer = mkInteger(pointer, s);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a real constant from a string.
-       * @param s the string representation of the constant, may represent an
-       *          integer (e.g., "123") or real constant (e.g., "12.34" or
-       * "12/34").
-       * @return a constant of sort Real
-       */
-      Term mkReal(String s)
+  private native long mkInteger(long pointer, String s) throws CVC5ApiException;
 
-      /**
-       * Create a real constant from an integer.
-       * @param val the value of the constant
-       * @return a constant of sort Integer
-       */
-      Term mkReal(int64_t val)
+  /**
+   * Create an integer constant from a c++ int.
+   * @param val the value of the constant
+   * @return a constant of sort Integer
+   */
+  Term mkInteger(long val)
+  {
+    long termPointer = mkInteger(pointer, val);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a real constant from a rational.
-       * @param num the value of the numerator
-       * @param den the value of the denominator
-       * @return a constant of sort Real
-       */
-      Term mkReal(int64_t num, int64_t den)
+  private native long mkReal(long pointer, val s);
+  /**
+   * Create a real constant from a string.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123") or real constant (e.g., "12.34" or
+   * "12/34").
+   * @return a constant of sort Real
+   */
+  public Term mkReal(String s) throws CVC5ApiException
+  {
+    long termPointer = mkReal(pointer, s);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a regular expression empty term.
-       * @return the empty term
-       */
-      Term mkRegexpEmpty()
+  private native long mkReal(long pointer, String s) throws CVC5ApiException;
+  /**
+   * Create a real constant from an integer.
+   * @param val the value of the constant
+   * @return a constant of sort Integer
+   */
+  Term mkReal(int val)
+  {
+    long termPointer = mkReal(pointer, val);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a regular expression sigma term.
-       * @return the sigma term
-       */
-      Term mkRegexpSigma()
+  private native long mkReal(long pointer, long val);
+  /**
+   * Create a real constant from a rational.
+   * @param num the value of the numerator
+   * @param den the value of the denominator
+   * @return a constant of sort Real
+   */
+  Term mkReal(long num, long den)
+  {
+    long termPointer = mkReal(pointer, num, den);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a constant representing an empty set of the given sort.
-       * @param sort the sort of the set elements.
-       * @return the empty set constant
-       */
-      public Term mkEmptySet(Sort sort)
+  private native long mkReal(long pointer, long num, long den);
 
-      /**
-       * Create a constant representing an empty bag of the given sort.
-       * @param sort the sort of the bag elements.
-       * @return the empty bag constant
-       */
-      public Term mkEmptyBag(Sort sort)
+  /**
+   * Create a regular expression empty term.
+   * @return the empty term
+   */
+  public Term mkRegexpEmpty()
+  {
+    long termPointer = mkRegexpEmpty(pointer);
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a separation logic nil term.
-       * @param sort the sort of the nil term
-       * @return the separation logic nil term
-       */
-   public Term mkSepNil(Sort sort)
-   {
-        long termPointer = mkSepNil(pointer, sort.getPointer());
-        return new Term(this, termPointer);
-      }
+  private native long mkRegexpEmpty(long pointer, long sortPointer);
 
-      private native long mkSepNil(long pointer, long sortPointer);
+  /**
+   * Create a regular expression sigma term.
+   * @return the sigma term
+   */
+  public Term mkRegexpSigma()
+  {
+    long termPointer = mkRegexpSigma(pointer);
+    return new Term(this, termPointer);
+  }
 
-    /**
-     * Create a String constant.
-     * @param s the string this constant represents
-     * @return the String constant
-     */
-    public Term mkString(String s)
-    {
-      return mkString(s, false);
-    }
+  private native long mkRegexpSigma(long pointer, long sortPointer);
 
-      /**
-       * Create a String constant.
-       * @param s the string this constant represents
-       * @param useEscSequences determines whether escape sequences in \p s
-       *     should
-       * be converted to the corresponding character
-       * @return the String constant
-       */
-      public Term mkString(String s, bool useEscSequences)
-      {
-        // TODO: review unicode
-        long termPointer = mkString(pointer, s, useEscSequences);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a constant representing an empty set of the given sort.
+   * @param sort the sort of the set elements.
+   * @return the empty set constant
+   */
+  public Term mkEmptySet(Sort sort)
+  {
+    long termPointer = mkEmptySet(pointer, sort.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkString(long pointer, String s, bool useEscSequences);
+  private native long mkEmptySet(long pointer, long sortPointer);
+  /**
+   * Create a constant representing an empty bag of the given sort.
+   * @param sort the sort of the bag elements.
+   * @return the empty bag constant
+   */
+  public Term mkEmptyBag(Sort sort)
+  {
+    long termPointer = mkEmptyBag(pointer, sort.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a String constant.
-       * @param c the character this constant represents
-       * @return the String constant
-       */
-      public Term mkString(char c)
-      {
-        // TODO: review unicode
-        long termPointer = mkString(pointer, c);
-        return new Term(this, termPointer);
-      }
+  private native long mkEmptyBag(long pointer, long sortPointer);
 
-      private native long mkString(long pointer, char c);
+  /**
+   * Create a separation logic nil term.
+   * @param sort the sort of the nil term
+   * @return the separation logic nil term
+   */
+  public Term mkSepNil(Sort sort)
+  {
+    long termPointer = mkSepNil(pointer, sort.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a String constant.
-       * @param s a list of unsigned (unicode) values this constant represents
-       *     as
-       * string
-       * @return the String constant
-       */
-      public Term mkString(int [] s)
-      {
-        Utils.validateUnsigned(s, "s");
-        long termPointer = mkString(pointer, s);
-        return new Term(this, termPointer);
-      }
+  private native long mkSepNil(long pointer, long sortPointer);
 
-      private native long mkString(long pointer, String s);
+  /**
+   * Create a String constant.
+   * @param s the string this constant represents
+   * @return the String constant
+   */
+  public Term mkString(String s)
+  {
+    return mkString(s, false);
+  }
 
-      /**
-       * Create a character constant from a given string.
-       * @param s the string denoting the code point of the character (in base
-       *     16)
-       * @return the character constant
-       */
-      public Term mkChar(String s)
-      {
-        long termPointer = mkChar(pointer, s);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a String constant.
+   * @param s the string this constant represents
+   * @param useEscSequences determines whether escape sequences in \p s
+   *     should
+   * be converted to the corresponding character
+   * @return the String constant
+   */
+  public Term mkString(String s, bool useEscSequences)
+  {
+    // TODO: review unicode
+    long termPointer = mkString(pointer, s, useEscSequences);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkChar(long pointer, String s);
+  private native long mkString(long pointer, String s, bool useEscSequences);
 
-      /**
-       * Create an empty sequence of the given element sort.
-       * @param sort The element sort of the sequence.
-       * @return the empty sequence with given element sort.
-       */
-      public Term mkEmptySequence(Sort sort)
-      {
-        long termPointer = mkEmptySequence(pointer, sort.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a String constant.
+   * @param c the character this constant represents
+   * @return the String constant
+   */
+  public Term mkString(char c)
+  {
+    // TODO: review unicode
+    long termPointer = mkString(pointer, c);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkEmptySequence(long pointer, long sortPointer);
+  private native long mkString(long pointer, char c);
 
-      /**
-       * Create a universe set of the given sort.
-       * @param sort the sort of the set elements
-       * @return the universe set constant
-       */
-      public Term mkUniverseSet(Sort sort)
-      {
-        long termPointer = mkUniverseSet(pointer, sort.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a String constant.
+   * @param s a list of unsigned (unicode) values this constant represents
+   *     as
+   * string
+   * @return the String constant
+   */
+  public Term mkString(int[] s)
+  {
+    Utils.validateUnsigned(s, "s");
+    long termPointer = mkString(pointer, s);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkUniverseSet(long pointer, long sortPointer);
+  private native long mkString(long pointer, String s);
 
-      /**
-       * Create a bit-vector constant of given size and value.
-       * @param size the bit-width of the bit-vector sort
-       * @param val the value of the constant
-       * @return the bit-vector constant
-       */
-      public Term mkBitVector(int size, long val = 0)
-      {
-        Utils.validateUnsigned(size, "size");
-        Utils.validateUnsigned(val, "val");
-        long termPointer = mkBitVector(pointer, size, val);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a character constant from a given string.
+   * @param s the string denoting the code point of the character (in base
+   *     16)
+   * @return the character constant
+   */
+  public Term mkChar(String s)
+  {
+    long termPointer = mkChar(pointer, s);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkBitVector(long pointer, int size, long val);
+  private native long mkChar(long pointer, String s);
 
-      /**
-       * Create a bit-vector constant from a given string of base 2.
-       * The size of resulting bit-vector is the size of the binary string
-       * @param s the string representation of the constant
-       * @return the bit-vector constant
-       */
-      public Term mkBitVector(String s)
-      {
-        return mkBitVector(s, 2);
-      }
+  /**
+   * Create an empty sequence of the given element sort.
+   * @param sort The element sort of the sequence.
+   * @return the empty sequence with given element sort.
+   */
+  public Term mkEmptySequence(Sort sort)
+  {
+    long termPointer = mkEmptySequence(pointer, sort.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      /**
-       * Create a bit-vector constant from a given string of base 2, 10 or 16.
-       *
-       * The size of resulting bit-vector is
-       * - base  2: the size of the binary string
-       * - base 10: the min. size required to represent the decimal as a
-       * bit-vector
-       * - base 16: the max. size required to represent the hexadecimal as a
-       *            bit-vector (4 * size of the given value string)
-       *
-       * @param s the string representation of the constant
-       * @param base the base of the string representation (2, 10, or 16)
-       * @return the bit-vector constant
-       */
-      public Term mkBitVector(String s, int base)
-      {
-        Utils.validateUnsigned(base, "base");
-        long termPointer = mkBitVector(pointer, s, base);
-        return new Term(this, termPointer);
-      }
+  private native long mkEmptySequence(long pointer, long sortPointer);
 
-      private native long mkBitVector(long pointer, String s, int base)
+  /**
+   * Create a universe set of the given sort.
+   * @param sort the sort of the set elements
+   * @return the universe set constant
+   */
+  public Term mkUniverseSet(Sort sort)
+  {
+    long termPointer = mkUniverseSet(pointer, sort.getPointer());
+    return new Term(this, termPointer);
+  }
+
+  private native long mkUniverseSet(long pointer, long sortPointer);
+
+  /**
+   * Create a bit-vector constant of given size and value.
+   * @param size the bit-width of the bit-vector sort
+   * @param val the value of the constant
+   * @return the bit-vector constant
+   */
+  public Term mkBitVector(int size, long val = 0)
+  {
+    Utils.validateUnsigned(size, "size");
+    Utils.validateUnsigned(val, "val");
+    long termPointer = mkBitVector(pointer, size, val);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkBitVector(long pointer, int size, long val);
+
+  /**
+   * Create a bit-vector constant from a given string of base 2.
+   * The size of resulting bit-vector is the size of the binary string
+   * @param s the string representation of the constant
+   * @return the bit-vector constant
+   */
+  public Term mkBitVector(String s)
+  {
+    return mkBitVector(s, 2);
+  }
+
+  /**
+   * Create a bit-vector constant from a given string of base 2, 10 or 16.
+   *
+   * The size of resulting bit-vector is
+   * - base  2: the size of the binary string
+   * - base 10: the min. size required to represent the decimal as a
+   * bit-vector
+   * - base 16: the max. size required to represent the hexadecimal as a
+   *            bit-vector (4 * size of the given value string)
+   *
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
+   * @return the bit-vector constant
+   */
+  public Term mkBitVector(String s, int base)
+  {
+    Utils.validateUnsigned(base, "base");
+    long termPointer = mkBitVector(pointer, s, base);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkBitVector(long pointer, String s, int base)
 
       /**
        * Create a bit-vector constant of a given bit-width from a given string
@@ -674,238 +851,238 @@ public class Solver implements IPointer
        * @return the bit-vector constant
        */
       public Term mkBitVector(int size, String s, int base)
-      {
-        Utils.validateUnsigned(size, "size");
-        Utils.validateUnsigned(base, "base");
-        long termPointer = mkBitVector(pointer, size, s, base);
-        return new Term(this, termPointer);
-      }
+  {
+    Utils.validateUnsigned(size, "size");
+    Utils.validateUnsigned(base, "base");
+    long termPointer = mkBitVector(pointer, size, s, base);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkBitVector(long pointer, int size, String s, int base);
+  private native long mkBitVector(long pointer, int size, String s, int base);
 
-      /**
-       * Create a constant array with the provided constant value stored at
-       * every index
-       * @param sort the sort of the constant array (must be an array sort)
-       * @param val the constant value to store (must match the sort's element
-       *     sort)
-       * @return the constant array term
-       */
-      public Term mkConstArray(Sort sort, Term val)
-      {
-        long termPointer = mkConstArray(pointer, sort.getPointer(), val.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a constant array with the provided constant value stored at
+   * every index
+   * @param sort the sort of the constant array (must be an array sort)
+   * @param val the constant value to store (must match the sort's element
+   *     sort)
+   * @return the constant array term
+   */
+  public Term mkConstArray(Sort sort, Term val)
+  {
+    long termPointer = mkConstArray(pointer, sort.getPointer(), val.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkConstArray(long pointer, long sortPointer, long valPointer);
-      /**
-       * Create a positive infinity floating-point constant. Requires CVC4 to be
-       * compiled with SymFPU support.
-       * @param exp Number of bits in the exponent
-       * @param sig Number of bits in the significand
-       * @return the floating-point constant
-       */
-      public Term mkPosInf(int exp, int sig)
-      {
-        Utils.validateUnsigned(exp, "exp");
-        Utils.validateUnsigned(sig, "sig");
-        long termPointer = mkPosInf(pointer, exp, sig);
-        return new Term(this, termPointer);
-      }
+  private native long mkConstArray(long pointer, long sortPointer, long valPointer);
+  /**
+   * Create a positive infinity floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  public Term mkPosInf(int exp, int sig)
+  {
+    Utils.validateUnsigned(exp, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long termPointer = mkPosInf(pointer, exp, sig);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkPosInf(long pointer, int exp, int sig);
-      /**
-       * Create a negative infinity floating-point constant. Requires CVC4 to be
-       * compiled with SymFPU support.
-       * @param exp Number of bits in the exponent
-       * @param sig Number of bits in the significand
-       * @return the floating-point constant
-       */
-      public Term mkNegInf(int exp, int sig)
-      {
-        Utils.validateUnsigned(exp, "exp");
-        Utils.validateUnsigned(sig, "sig");
-        long termPointer = mkNegInf(pointer, exp, sig);
-        return new Term(this, termPointer);
-      }
+  private native long mkPosInf(long pointer, int exp, int sig);
+  /**
+   * Create a negative infinity floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  public Term mkNegInf(int exp, int sig)
+  {
+    Utils.validateUnsigned(exp, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long termPointer = mkNegInf(pointer, exp, sig);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkNegInf(long pointer, int exp, int sig);
-      /**
-       * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to
-       * be compiled with SymFPU support.
-       * @param exp Number of bits in the exponent
-       * @param sig Number of bits in the significand
-       * @return the floating-point constant
-       */
-      public Term mkNaN(int exp, int sig)
-      {
-        Utils.validateUnsigned(exp, "exp");
-        Utils.validateUnsigned(sig, "sig");
-        long termPointer = mkNaN(pointer, exp, sig);
-        return new Term(this, termPointer);
-      }
+  private native long mkNegInf(long pointer, int exp, int sig);
+  /**
+   * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to
+   * be compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  public Term mkNaN(int exp, int sig)
+  {
+    Utils.validateUnsigned(exp, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long termPointer = mkNaN(pointer, exp, sig);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkNaN(long pointer, int exp, int sig);      
+  private native long mkNaN(long pointer, int exp, int sig);
 
-      /**
-       * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to
-       * be compiled with SymFPU support.
-       * @param exp Number of bits in the exponent
-       * @param sig Number of bits in the significand
-       * @return the floating-point constant
-       */
-      public Term mkPosZero(int exp, int sig)
-      {
-        Utils.validateUnsigned(exp, "exp");
-        Utils.validateUnsigned(sig, "sig");
-        long termPointer = mkPosZero(pointer, exp, sig);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to
+   * be compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  public Term mkPosZero(int exp, int sig)
+  {
+    Utils.validateUnsigned(exp, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long termPointer = mkPosZero(pointer, exp, sig);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkPosZero(long pointer, int exp, int sig);
+  private native long mkPosZero(long pointer, int exp, int sig);
 
-      /**
-       * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to
-       * be compiled with SymFPU support.
-       * @param exp Number of bits in the exponent
-       * @param sig Number of bits in the significand
-       * @return the floating-point constant
-       */
-      public Term mkNegZero(int exp, int sig)
-      {
-        Utils.validateUnsigned(exp, "exp");
-        Utils.validateUnsigned(sig, "sig");
-        long termPointer = mkNegZero(pointer, exp, sig);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to
+   * be compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  public Term mkNegZero(int exp, int sig)
+  {
+    Utils.validateUnsigned(exp, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long termPointer = mkNegZero(pointer, exp, sig);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkNegZero(long pointer, int exp, int sig);
+  private native long mkNegZero(long pointer, int exp, int sig);
 
-      /**
-       * Create a roundingmode constant.
-       * @param rm the floating point rounding mode this constant represents
-       */
-      public Term mkRoundingMode(RoundingMode rm)
-      {
-        long termPointer = mkRoundingMode(pointer, rm.getValue());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a roundingmode constant.
+   * @param rm the floating point rounding mode this constant represents
+   */
+  public Term mkRoundingMode(RoundingMode rm)
+  {
+    long termPointer = mkRoundingMode(pointer, rm.getValue());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkRoundingMode(long pointer, int rm);
+  private native long mkRoundingMode(long pointer, int rm);
 
-      /**
-       * Create uninterpreted constant.
-       * @param sort Sort of the constant
-       * @param index Index of the constant
-       */
-      public Term mkUninterpretedConst(Sort sort, int index)
-      {
-        Utils.validateUnsigned(index);
-        long termPointer = (pointer, sort.getPointer(), index);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create uninterpreted constant.
+   * @param sort Sort of the constant
+   * @param index Index of the constant
+   */
+  public Term mkUninterpretedConst(Sort sort, int index)
+  {
+    Utils.validateUnsigned(index);
+    long termPointer = (pointer, sort.getPointer(), index);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkUninterpretedConst(long pointer, long sortPointer, int index);
+  private native long mkUninterpretedConst(long pointer, long sortPointer, int index);
 
-      /**
-       * Create an abstract value constant.
-       * @param index Index of the abstract value
-       */
-      public Term mkAbstractValue(String index)
-      {
-        long termPointer = mkAbstractValue(pointer, index);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create an abstract value constant.
+   * @param index Index of the abstract value
+   */
+  public Term mkAbstractValue(String index)
+  {
+    long termPointer = mkAbstractValue(pointer, index);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkAbstractValue(long pointer, String index);
+  private native long mkAbstractValue(long pointer, String index);
 
-      /**
-       * Create an abstract value constant.
-       * @param index Index of the abstract value
-       */
-      public Term mkAbstractValue(long index)
-      {
-        Utils.validateUnsigned(index, "index");
-        long termPointer = mkAbstractValue(pointer, index);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create an abstract value constant.
+   * @param index Index of the abstract value
+   */
+  public Term mkAbstractValue(long index)
+  {
+    Utils.validateUnsigned(index, "index");
+    long termPointer = mkAbstractValue(pointer, index);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkAbstractValue(long pointer, long index);
+  private native long mkAbstractValue(long pointer, long index);
 
-      /**
-       * Create a floating-point constant (requires CVC4 to be compiled with
-       * symFPU support).
-       * @param exp Size of the exponent
-       * @param sig Size of the significand
-       * @param val Value of the floating-point constant as a bit-vector term
-       */
-      public Term mkFloatingPoint(int exp, int sig, Term val)
-      {
-        Utils.validateUnsigned(expr, "exp");
-        Utils.validateUnsigned(sig, "sig");
-        long termPointer = mkFloatingPoint(pointer, expr, sig, val.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a floating-point constant (requires CVC4 to be compiled with
+   * symFPU support).
+   * @param exp Size of the exponent
+   * @param sig Size of the significand
+   * @param val Value of the floating-point constant as a bit-vector term
+   */
+  public Term mkFloatingPoint(int exp, int sig, Term val)
+  {
+    Utils.validateUnsigned(expr, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long termPointer = mkFloatingPoint(pointer, expr, sig, val.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
+  private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
 
-      /* .................................................................... */
-      /* Create Variables                                                     */
-      /* .................................................................... */
+  /* .................................................................... */
+  /* Create Variables                                                     */
+  /* .................................................................... */
 
-      /**
-       * Create (first-order) constant (0-arity function symbol).
-       * SMT-LIB:
-       * \verbatim
-       *   ( declare-const <symbol> <sort> )
-       *   ( declare-fun <symbol> ( ) <sort> )
-       * \endverbatim
-       *
-       * @param sort the sort of the constant
-       * @param symbol the name of the constant
-       * @return the first-order constant
-       */
-      public Term mkConst(Sort sort, String symbol)
-      {
-        long termPointer = mkConst(pointer, sort.getPointer(), symbol);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create (first-order) constant (0-arity function symbol).
+   * SMT-LIB:
+   * \verbatim
+   *   ( declare-const <symbol> <sort> )
+   *   ( declare-fun <symbol> ( ) <sort> )
+   * \endverbatim
+   *
+   * @param sort the sort of the constant
+   * @param symbol the name of the constant
+   * @return the first-order constant
+   */
+  public Term mkConst(Sort sort, String symbol)
+  {
+    long termPointer = mkConst(pointer, sort.getPointer(), symbol);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkConst(long pointer, long sortPointer, String symbol);
+  private native long mkConst(long pointer, long sortPointer, String symbol);
 
-      /**
-       * Create (first-order) constant (0-arity function symbol), with a default
-       * symbol name.
-       *
-       * @param sort the sort of the constant
-       * @return the first-order constant
-       */
-      public Term mkConst(Sort sort)
-      {
-        long termPointer = mkConst(pointer, sort.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create (first-order) constant (0-arity function symbol), with a default
+   * symbol name.
+   *
+   * @param sort the sort of the constant
+   * @return the first-order constant
+   */
+  public Term mkConst(Sort sort)
+  {
+    long termPointer = mkConst(pointer, sort.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkConst(long pointer, long sortPointer);
+  private native long mkConst(long pointer, long sortPointer);
 
-      /**
-       * Create a bound variable to be used in a binder (i.e. a quantifier, a
-       * lambda, or a witness binder).
-       * @param sort the sort of the variable
-       * @return the variable
-       */
+  /**
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
+   * @param sort the sort of the variable
+   * @return the variable
+   */
   public Term mkVar(Sort sort, String symbol)
   {
     return mkVar(sort, "");
   }
 
-      /**
-       * Create a bound variable to be used in a binder (i.e. a quantifier, a
-       * lambda, or a witness binder).
-       * @param sort the sort of the variable
-       * @param symbol the name of the variable
-       * @return the variable
-       */
+  /**
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
+   * @param sort the sort of the variable
+   * @param symbol the name of the variable
+   * @return the variable
+   */
   public Term mkVar(Sort sort, String symbol)
   {
     long termPointer = mkVar(pointer, sort.getPointer(), symbol);
@@ -913,9 +1090,9 @@ public class Solver implements IPointer
 
   private native long mkVar(long pointer, long sortPointer, String symbol);
 
-      /* .................................................................... */
-      /* Create datatype constructor declarations                             */
-      /* .................................................................... */
+  /* .................................................................... */
+  /* Create datatype constructor declarations                             */
+  /* .................................................................... */
 
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
@@ -980,7 +1157,8 @@ public class Solver implements IPointer
     return new DatatypeDecl(solver, declPointer);
   }
 
-  private native long mkDatatypeDecl(long pointer, String name, long paramPointer, boolean isCoDatatype);
+  private native long mkDatatypeDecl(
+      long pointer, String name, long paramPointer, boolean isCoDatatype);
 
   /**
    * Create a datatype declaration.
@@ -1002,14 +1180,15 @@ public class Solver implements IPointer
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  public DatatypeDecl mkDatatypeDecl(String name, Sort[] params,  boolean isCoDatatype )
+  public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
   {
     long[] paramPointers = Utils.getPointers(params);
     long declPointer = mkDatatypeDecl(pointer, name, paramPointers, isCoDatatype);
     return new DatatypeDecl(solver, declPointer);
   }
 
-  private native long mkDatatypeDecl(long pointer, String name, long[] paramPointers, boolean isCoDatatype);
+  private native long mkDatatypeDecl(
+      long pointer, String name, long[] paramPointers, boolean isCoDatatype);
 
   /* .................................................................... */
   /* Formula Handling                                                     */
