@@ -88,4 +88,15 @@ class Utils
       throw new CVC5ApiException("Expected "+name+" '" + integer + "' to be non negative.");
     }
   }
+
+  public validateUnsigned(long [] integers, String name)
+  {
+    for(int i = 0; i < integers.length; i++)
+    {
+      if(integers[i] < 0)
+      {
+        throw new CVC5ApiException("Expected "+name+"[" + i + "] '" + integer + "' to be non negative.");
+      }
+    }
+  }
 }

@@ -520,14 +520,21 @@ public class Solver implements IPointer
        * be converted to the corresponding character
        * @return the String constant
        */
-      Term mkString(String s, bool useEscSequences = false)
+      public Term mkString(String s, bool useEscSequences = false)
 
       /**
        * Create a String constant.
        * @param c the character this constant represents
        * @return the String constant
        */
-      Term mkString(unsigned char c)
+      public Term mkString(char c)
+      {
+        // TODO: review unicode
+        long termPointer = mkString(pointer, c);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkString(long pointer, char c);
 
       /**
        * Create a String constant.
@@ -536,7 +543,14 @@ public class Solver implements IPointer
        * string
        * @return the String constant
        */
-      Term mkString(std::vector<uint32_t>& s)
+      public Term mkString(int [] s)
+      {
+        Utils.validateUnsigned(s, "s");
+        long termPointer = mkString(pointer, s);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkString(long pointer, String s);
 
       /**
        * Create a character constant from a given string.
@@ -544,21 +558,39 @@ public class Solver implements IPointer
        *     16)
        * @return the character constant
        */
-      Term mkChar(String s)
+      public Term mkChar(String s)
+      {
+        long termPointer = mkChar(pointer, s);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkChar(long pointer, String s);
 
       /**
        * Create an empty sequence of the given element sort.
        * @param sort The element sort of the sequence.
        * @return the empty sequence with given element sort.
        */
-      Term mkEmptySequence(Sort sort)
+      public Term mkEmptySequence(Sort sort)
+      {
+        long termPointer = mkEmptySequence(pointer, sort.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkEmptySequence(long pointer, long sortPointer);
 
       /**
        * Create a universe set of the given sort.
        * @param sort the sort of the set elements
        * @return the universe set constant
        */
-      Term mkUniverseSet(Sort sort)
+      public Term mkUniverseSet(Sort sort)
+      {
+        long termPointer = mkUniverseSet(pointer, sort.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkUniverseSet(long pointer, long sortPointer);
 
       /**
        * Create a bit-vector constant of given size and value.
@@ -566,7 +598,26 @@ public class Solver implements IPointer
        * @param val the value of the constant
        * @return the bit-vector constant
        */
-      Term mkBitVector(uint32_t size, uint64_t val = 0)
+      public Term mkBitVector(int size, long val = 0)
+      {
+        Utils.validateUnsigned(size, "size");
+        Utils.validateUnsigned(val, "val");
+        long termPointer = mkBitVector(pointer, size, val);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkBitVector(long pointer, int size, long val);
+
+      /**
+       * Create a bit-vector constant from a given string of base 2.
+       * The size of resulting bit-vector is the size of the binary string
+       * @param s the string representation of the constant
+       * @return the bit-vector constant
+       */
+      public Term mkBitVector(String s)
+      {
+        return mkBitVector(s, 2);
+      }
 
       /**
        * Create a bit-vector constant from a given string of base 2, 10 or 16.
@@ -582,7 +633,14 @@ public class Solver implements IPointer
        * @param base the base of the string representation (2, 10, or 16)
        * @return the bit-vector constant
        */
-      Term mkBitVector(String s, uint32_t base = 2)
+      public Term mkBitVector(String s, int base)
+      {
+        Utils.validateUnsigned(base, "base");
+        long termPointer = mkBitVector(pointer, s, base);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkBitVector(long pointer, String s, int base)
 
       /**
        * Create a bit-vector constant of a given bit-width from a given string
@@ -592,7 +650,15 @@ public class Solver implements IPointer
        * @param base the base of the string representation (2, 10, or 16)
        * @return the bit-vector constant
        */
-      Term mkBitVector(uint32_t size, String s, uint32_t base)
+      public Term mkBitVector(int size, String s, int base)
+      {
+        Utils.validateUnsigned(size, "size");
+        Utils.validateUnsigned(base, "base");
+        long termPointer = mkBitVector(pointer, size, s, base);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkBitVector(long pointer, int size, String s, int base);
 
       /**
        * Create a constant array with the provided constant value stored at
@@ -602,8 +668,13 @@ public class Solver implements IPointer
        *     sort)
        * @return the constant array term
        */
-      Term mkConstArray(Sort sort, Term val)
+      public Term mkConstArray(Sort sort, Term val)
+      {
+        long termPointer = mkConstArray(pointer, sort.getPointer(), val.getPointer());
+        return new Term(this, termPointer);
+      }
 
+      private native long mkConstArray(long pointer, long sortPointer, long valPointer);
       /**
        * Create a positive infinity floating-point constant. Requires CVC4 to be
        * compiled with SymFPU support.
@@ -611,8 +682,15 @@ public class Solver implements IPointer
        * @param sig Number of bits in the significand
        * @return the floating-point constant
        */
-      Term mkPosInf(uint32_t exp, uint32_t sig)
+      public Term mkPosInf(int exp, int sig)
+      {
+        Utils.validateUnsigned(exp, "exp");
+        Utils.validateUnsigned(sig, "sig");
+        long termPointer = mkPosInf(pointer, exp, sig);
+        return new Term(this, termPointer);
+      }
 
+      private native long mkPosInf(long pointer, int exp, int sig);
       /**
        * Create a negative infinity floating-point constant. Requires CVC4 to be
        * compiled with SymFPU support.
@@ -620,8 +698,15 @@ public class Solver implements IPointer
        * @param sig Number of bits in the significand
        * @return the floating-point constant
        */
-      Term mkNegInf(uint32_t exp, uint32_t sig)
+      public Term mkNegInf(int exp, int sig)
+      {
+        Utils.validateUnsigned(exp, "exp");
+        Utils.validateUnsigned(sig, "sig");
+        long termPointer = mkNegInf(pointer, exp, sig);
+        return new Term(this, termPointer);
+      }
 
+      private native long mkNegInf(long pointer, int exp, int sig);
       /**
        * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to
        * be compiled with SymFPU support.
@@ -629,7 +714,15 @@ public class Solver implements IPointer
        * @param sig Number of bits in the significand
        * @return the floating-point constant
        */
-      Term mkNaN(uint32_t exp, uint32_t sig)
+      public Term mkNaN(int exp, int sig)
+      {
+        Utils.validateUnsigned(exp, "exp");
+        Utils.validateUnsigned(sig, "sig");
+        long termPointer = mkNaN(pointer, exp, sig);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkNaN(long pointer, int exp, int sig);      
 
       /**
        * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to
@@ -638,7 +731,15 @@ public class Solver implements IPointer
        * @param sig Number of bits in the significand
        * @return the floating-point constant
        */
-      Term mkPosZero(uint32_t exp, uint32_t sig)
+      public Term mkPosZero(int exp, int sig)
+      {
+        Utils.validateUnsigned(exp, "exp");
+        Utils.validateUnsigned(sig, "sig");
+        long termPointer = mkPosZero(pointer, exp, sig);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkPosZero(long pointer, int exp, int sig);
 
       /**
        * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to
@@ -647,32 +748,66 @@ public class Solver implements IPointer
        * @param sig Number of bits in the significand
        * @return the floating-point constant
        */
-      Term mkNegZero(uint32_t exp, uint32_t sig)
+      public Term mkNegZero(int exp, int sig)
+      {
+        Utils.validateUnsigned(exp, "exp");
+        Utils.validateUnsigned(sig, "sig");
+        long termPointer = mkNegZero(pointer, exp, sig);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkNegZero(long pointer, int exp, int sig);
 
       /**
        * Create a roundingmode constant.
        * @param rm the floating point rounding mode this constant represents
        */
-      Term mkRoundingMode(RoundingMode rm)
+      public Term mkRoundingMode(RoundingMode rm)
+      {
+        long termPointer = mkRoundingMode(pointer, rm.getValue());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkRoundingMode(long pointer, int rm);
 
       /**
        * Create uninterpreted constant.
        * @param sort Sort of the constant
        * @param index Index of the constant
        */
-      Term mkUninterpretedConst(Sort sort, int32_t index)
+      public Term mkUninterpretedConst(Sort sort, int index)
+      {
+        Utils.validateUnsigned(index);
+        long termPointer = (pointer, sort.getPointer(), index);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkUninterpretedConst(long pointer, long sortPointer, int index);
 
       /**
        * Create an abstract value constant.
        * @param index Index of the abstract value
        */
-      Term mkAbstractValue(String index)
+      public Term mkAbstractValue(String index)
+      {
+        long termPointer = mkAbstractValue(pointer, index);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkAbstractValue(long pointer, String index);
 
       /**
        * Create an abstract value constant.
        * @param index Index of the abstract value
        */
-      Term mkAbstractValue(uint64_t index)
+      public Term mkAbstractValue(long index)
+      {
+        Utils.validateUnsigned(index, "index");
+        long termPointer = mkAbstractValue(pointer, index);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkAbstractValue(long pointer, long index);
 
       /**
        * Create a floating-point constant (requires CVC4 to be compiled with
@@ -681,7 +816,15 @@ public class Solver implements IPointer
        * @param sig Size of the significand
        * @param val Value of the floating-point constant as a bit-vector term
        */
-      Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val)
+      public Term mkFloatingPoint(int exp, int sig, Term val)
+      {
+        Utils.validateUnsigned(expr, "exp");
+        Utils.validateUnsigned(sig, "sig");
+        long termPointer = mkFloatingPoint(pointer, expr, sig, val.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
 
       /* .................................................................... */
       /* Create Variables                                                     */
@@ -699,7 +842,14 @@ public class Solver implements IPointer
        * @param symbol the name of the constant
        * @return the first-order constant
        */
-      Term mkConst(Sort sort, String symbol)
+      public Term mkConst(Sort sort, String symbol)
+      {
+        long termPointer = mkConst(pointer, sort.getPointer(), symbol);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkConst(long pointer, long sortPointer, String symbol);
+
       /**
        * Create (first-order) constant (0-arity function symbol), with a default
        * symbol name.
@@ -707,7 +857,24 @@ public class Solver implements IPointer
        * @param sort the sort of the constant
        * @return the first-order constant
        */
-      Term mkConst(Sort sort)
+      public Term mkConst(Sort sort)
+      {
+        long termPointer = mkConst(pointer, sort.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkConst(long pointer, long sortPointer);
+
+      /**
+       * Create a bound variable to be used in a binder (i.e. a quantifier, a
+       * lambda, or a witness binder).
+       * @param sort the sort of the variable
+       * @return the variable
+       */
+  public Term mkVar(Sort sort, String symbol)
+  {
+    return mkVar(sort, "");
+  }
 
       /**
        * Create a bound variable to be used in a binder (i.e. a quantifier, a
@@ -716,13 +883,24 @@ public class Solver implements IPointer
        * @param symbol the name of the variable
        * @return the variable
        */
-      Term mkVar(Sort sort, String symbol = std::string())
+  public Term mkVar(Sort sort, String symbol)
+  {
+    long termPointer = mkVar(pointer, sort.getPointer(), symbol);
+  }
+
+  private native long mkVar(long pointer, long sortPointer, String symbol);
 
       /* .................................................................... */
       /* Create datatype constructor declarations                             */
       /* .................................................................... */
 
-      DatatypeConstructorDecl mkDatatypeConstructorDecl(String name);
+  public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
+  {
+    long declPointer = mkDatatypeConstructorDecl(pointer, name);
+    return new DatatypeConstructorDecl(this, declPointer);
+  }
+
+  private native long mkDatatypeConstructorDecl(long pointer, String name);
 
   /* .................................................................... */
   /* Create datatype declarations                                         */
@@ -734,7 +912,36 @@ public class Solver implements IPointer
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  DatatypeDecl mkDatatypeDecl(String name, public boolean isCoDatatype = false);
+  public DatatypeDecl mkDatatypeDecl(String name)
+  {
+    return mkDatatypeDecl(name, false);
+  }
+
+  /**
+   * Create a datatype declaration.
+   * @param name the name of the datatype
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  public DatatypeDecl mkDatatypeDecl(String name, public boolean isCoDatatype);
+  {
+    long declPointer = mkDatatypeDecl(pointer, name, isCoDatatype);
+    return new DatatypeDecl(solver, declPointer);
+  }
+
+  private native long mkDatatypeDecl(long pointer, String name, boolean isCoDatatype);
+
+  /**
+   * Create a datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param name the name of the datatype
+   * @param param the sort parameter
+   * @return the DatatypeDecl
+   */
+  public DatatypeDecl mkDatatypeDecl(String name, Sort param)
+  {
+    return mkDatatypeDecl(name, param, false);
+  }
 
   /**
    * Create a datatype declaration.
@@ -744,7 +951,25 @@ public class Solver implements IPointer
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  DatatypeDecl mkDatatypeDecl(String name, Sort param, public boolean isCoDatatype = false);
+  public DatatypeDecl mkDatatypeDecl(String name, Sort param, boolean isCoDatatype)
+  {
+    long declPointer = mkDatatypeDecl(pointer, name, param.getPointer(), isCoDatatype);
+    return new DatatypeDecl(solver, declPointer);
+  }
+
+  private native long mkDatatypeDecl(long pointer, String name, long paramPointer, boolean isCoDatatype);
+
+  /**
+   * Create a datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param name the name of the datatype
+   * @param params a list of sort parameters
+   * @return the DatatypeDecl
+   */
+  public DatatypeDecl mkDatatypeDecl(String name, Sort[] params)
+  {
+    return mkDatatypeDecl(name, params, false);
+  }
 
   /**
    * Create a datatype declaration.
@@ -754,8 +979,14 @@ public class Solver implements IPointer
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  DatatypeDecl mkDatatypeDecl(
-      String name, const std::vector<Sort>& params, public boolean isCoDatatype = false);
+  public DatatypeDecl mkDatatypeDecl(String name, Sort[] params,  boolean isCoDatatype )
+  {
+    long[] paramPointers = Utils.getPointers(params);
+    long declPointer = mkDatatypeDecl(pointer, name, paramPointers, isCoDatatype);
+    return new DatatypeDecl(solver, declPointer);
+  }
+
+  private native long mkDatatypeDecl(long pointer, String name, long[] paramPointers, boolean isCoDatatype);
 
   /* .................................................................... */
   /* Formula Handling                                                     */
