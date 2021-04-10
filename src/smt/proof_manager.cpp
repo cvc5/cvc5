@@ -62,7 +62,8 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
           // be inferred from A, it was updated). This shape is problematic for
           // the veriT reconstruction, so we disable the update of scoped
           // assumptions (which would disable the update of B1 in this case).
-          options::proofFormatMode() != options::ProofFormatMode::VERIT_EXTENDED)),
+          options::proofFormatMode()
+              != options::ProofFormatMode::VERIT_EXTENDED)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
