@@ -23,34 +23,36 @@ namespace cvc5 {
 
 namespace proof {
 
-// TODO: Are detailled comments needed?
-// + If veriT rules would change, maintenance would be hard
-// - Convolution of this file with unnecessary information
 enum class VeritRule : uint32_t
 {
   //================================================= Special Rules: Commands
-  //======================== Anchor and Assume
   // These rules should be printed as commands
-  // ======== Anchor
-  // Children: (P:F)
-  // Arguments:
-  // --------------
-  // Conclusion: F
   //
-  // Each subproof in veriT begins with an anchor command. The outermost
-  // application of anchor will not be printed.
-  ANCHOR,
+  // ======== subproof
+  // > i1. F1
+  // ...
+  // > in. Fn
+  // ...
+  // > j. F
+  // ---------------------------------
+  // > k. (cl (not F1) ... (not Fn) F)
+  //
+  // Each subproof in veriT begins with an anchor command. The outermost application of anchor will not be printed.
   ANCHOR_SUBPROOF,
+  // ======== bind
+  // G,y1,...,yn,x1->y1,...,xn->yn > j.  (= F1 F2)
+  // ------------------------------------------------------
+  // G > k. (= (forall (x1 ... xn) F1) (forall (y1 ... yn) F2))
+  //
+  // where y1,...,yn are not free in (forall (x1,...,xn) F2)
   ANCHOR_BIND,
+  // ======== input
+  // > i. F
   ASSUME,
   //================================================= Rules of the veriT
   // calculus
-  // ======== input
-  // > i. F
-  // , where F is equivalent to a formula asserted in the input problem.
-  INPUT,
   // ======== true
-  // > i. (true)
+  // > i. true
   TRUE,
   // ======== false
   // > i. (not true)
@@ -133,51 +135,175 @@ enum class VeritRule : uint32_t
   EQ_CONGRUENT_PRED,
   // ======== distinct_elim
   // If called with one argument:
-  // > i. (= (distinct F) true)
+  //  > i. (= (distinct F) true)
   // If applied to terms of type Bool more than two terms can never be distinct.
-  // Two cases can be possible: > i. (= (distinct F G) (not (= F G))) > i. (=
-  // (distinct F1 F2 F3 ...) false) In general: > i. (= (distinct F1 ... Fn) (
-  // )) TODO
+  // Two cases can be possible:
+  //  > i. (= (distinct F G) (not (= F G)))
+  // and
+  //  > i. (= (distinct F1 F2 F3 ...) false)
+  // In general:
+  //  > i. (= (distinct F1 ... Fn) (AND^n_i=1 (AND^n_j=i+1 (!= Fi Fj))))
   DISTINCT_ELIM,
   // ======== la_rw_eq
   // > i. (= (= F G) (and (<= F G) (<= G F)))
   LA_RW_EQ,
-  // TODO
+  // Tautology of linear disequalities.
+  // > i. (cl F1 ... Fn)
   LA_GENERIC,
-  // TODO
+  // Tautology of linear integer arithmetic
+  // > i. (cl F1 ... Fn)
   LIA_GENERIC,
   // ======== la_disequality
   // > i. (= (= F G) (not (<= F G)) (not (<= G F)))
   LA_DISEQUALITY,
+  // ======== la_totality
+  // > i. (or (<= t1 t2) (<= t2 t1))
   LA_TOTALITY,
+  // ======== la_tautology
+  // Tautology of linear arithmetic that can be checked without sophisticated reasoning.
   LA_TAUTOLOGY,
+  // ======== forall_inst
+  // > i. (or (not (forall (x1 ... xn) P)) P[t1/x1]...[tn/xn])
+  // args = ((:= x_k1 tk1) ... (:= xkn tkn))
+  // where k1,...,kn is a permutation of 1,...,n and xi and ki have the same sort.
   FORALL_INST,
+  // ======== qnt_join
+  // G > i. (= (Q (x1 ... xn) (Q (xn+1 ... xm) F)) (Q (xk1 ... xko) F))
+  // where m>n, Q in {forall,exist}, k1...ko is a monotonic map 1,...,m s.t. xk1,...,xko are pairwise distinct and {x1,...,xm} = {xk1,...,xko}.
   QNT_JOIN,
+  // ======== qnt_tm_unused
+  // G > i. (= (Q (x1 ... xn) F) (Q (xk1 ... xkm) F))
+  // where m <= n, Q in {forall,exists}, k1,...,km is monotonic map to 1,...,n and if x in {xj | j in {1,...,n} and j not in {k1,...,km}} then x is not free in P
   QNT_RM_UNUSED,
+  // ======== th_resolution
+  // > i1. (cl F^1_1 ... F^1_k1)
+  // ...
+  // > in. (cl F^n_1 ... F^n_kn)
+  // ...
+  // > i1,...,in. (cl F^r1_s1 ... F^rm_sm)
+  // where (cl F^r1_s1 ... F^rm_sm) are from F^i_j and are the result of a chain of predicate resolution steps on the clauses i1 to in. This rule is used when the resolution step is not emitted by the SAT solver.
   TH_RESOLUTION,
+  // ======== resolution
+  // This rule is equivalent to the th_resolution rule but is emitted by the SAT solver.
   RESOLUTION,
+  // ======== refl
+  // G > i. (= F1 F2)
   REFL,
+  // ======== trans
+  // G > i. (= F1 F2)
+  // ...
+  // G > j. (= F2 F3)
+  // ...
+  // G > k. (= F1 F3)
   TRANS,
+  // ======== cong
+  // G > i1. (= F1 G1)
+  // ...
+  // G > in. (= Fn Gn)
+  // ...
+  // G > j. (= (f F1 ... Fn) (f G1 ... Gn))
+  // where f is an n-ary function symbol.
   CONG,
+  // ======== and
+  // > i. (and F1 ... Fn)
+  // ...
+  // > j. Fi
   AND,
+  // ======== tautologic_clause
+  // > i. (cl F1 ... Fi ... Fj ... Fn)
+  // ...
+  // > j. true
+  // where Fi != Fj
   TAUTOLOGIC_CLAUSE,
+  // ======== not_or
+  // > i. (not (or F1 ... Fn))
+  // ...
+  // > j. (not Fi)
   NOT_OR,
+  // ======== or
+  // > i. (or F1 ... Fn)
+  // ...
+  // > j. (cl F1 ... Fn)
   OR,
+  // ======== not_and
+  // > i. (not (and F1 ... Fn))
+  // ...
+  // > j. (cl (not F1) ... (not Fn))
   NOT_AND,
+  // ======== xor1
+  // > i. (xor F1 F2)
+  // ...
+  // > j. (cl F1 F2)
   XOR1,
+  // ======== xor2
+  // > i. (xor F1 F2)
+  // ...
+  // > j. (cl (not F1) (not F2))
   XOR2,
+  // ======== not_xor1
+  // > i. (not (xor F1 F2))
+  // ...
+  // > j. (cl F1 (not F2))
   NOT_XOR1,
+  // ======== not_xor2
+  // > i. (not (xor F1 F2))
+  // ...
+  // > j. (cl (not F1) F2)
   NOT_XOR2,
+  // ======== implies
+  // > i. (=> F1 F2)
+  // ...
+  // > j. (cl (not F1) F2)
   IMPLIES,
+  // ======== not_implies1
+  // > i. (not (=> F1 F2))
+  // ...
+  // > j. (not F2)
   NOT_IMPLIES1,
+  // ======== not_implies2
+  // > i. (not (=> F1 F2))
+  // ...
+  // > j. (not F2)
   NOT_IMPLIES2,
+  // ======== equiv1
+  // > i. (= F1 F2)
+  // ...
+  // > j. (cl (not F1) F2)
   EQUIV1,
+  // ======== equiv2
+  // > i. (= F1 F2)
+  // ...
+  // > j. (cl F1 (not F2))
   EQUIV2,
+  // ======== not_equiv1
+  // > i. (not (= F1 F2))
+  // ...
+  // > j. (cl F1 F2)
   NOT_EQUIV1,
+  // ======== not_equiv2
+  // > i. (not (= F1 F2))
+  // ...
+  // > j. (cl (not F1) (not F2))
   NOT_EQUIV2,
+  // ======== ite1
+  // > i. (ite F1 F2 F3)
+  // ...
+  // > j. (cl F1 F3)
   ITE1,
+  // ======== ite2
+  // > i. (ite F1 F2 F3)
+  // ...
+  // > j. (cl (not F1) F2)
   ITE2,
+  // ======== not_ite1
+  // > i. (not (ite F1 F2 F3))
+  // ...
+  // > j. (cl F1 (not F3))
   NOT_ITE1,
+  // ======== not_ite2
+  // > i. (not (ite F1 F2 F3))
+  // ...
+  // > j. (cl (not F1) (not F3))
   NOT_ITE2,
   ITE_INTRO,
   DUPLICATED_LITERALS,
@@ -209,7 +335,7 @@ enum class VeritRule : uint32_t
   SKO_FORALL,
   /** Special Rules*/
   UNDEFINED,  // TBD
-  /** Extended Rules */
+  //================================================= Extended Rules
   SYMM,
   NOT_SYMM,
   REORDER

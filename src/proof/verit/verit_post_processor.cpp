@@ -13,6 +13,7 @@
  **/
 
 #include "proof/verit/verit_post_processor.h"
+#include "expr/proof_checker.h"
 
 namespace cvc5 {
 
@@ -23,11 +24,6 @@ VeritProofPostprocessCallback::VeritProofPostprocessCallback(
     : d_pnm(pnm), d_nm(NodeManager::currentNM())
 {
   d_cl = d_nm->mkBoundVar("cl",d_nm->stringType());
-}
-
-void VeritProofPostprocessCallback::initializeUpdate(bool extended)
-{
-  d_extended = extended;
 }
 
 bool VeritProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -48,6 +44,7 @@ bool VeritProofPostprocessCallback::update(
     CDProof* cdp,
     bool& continueUpdate)
 {
+  bool d_extended = true; //TODO: delete
   Trace("verit-proof") << "- veriT post process callback " << res << " " << id
                        << " " << children << " / " << args << std::endl;
 
@@ -1843,13 +1840,28 @@ bool VeritProofPostprocessCallback::update(
     // APPLY_UF. The actual node for <kind> is constructible via
     // ProofRuleChecker::mkKindNode.
     //
-    // proof rule: cong
-    // proof node: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
-    // proof term: (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
-    // premises: P1, ..., Pn
-    // args: ()
+    // In the case that <kind> is forall the cong rule needs to be translated into a bind rule. The first child will be a refl rule, e.g. (= (v0 Int) (v0 Int)). The type has to be deleted.
+    //
+    //
+    //
+    //
+    // Otherwise
+    //
+    //  proof rule: cong
+    //  proof node: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+    //  proof term: (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
+    //  premises: P1, ..., Pn
+    //  args: ()
     case PfRule::CONG:
     {
+      if(args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)){ //TODO
+	 Node arg = d_nm->mkNode(kind::EQUAL,children[0][0][0],children[0][1][0]);
+	 Node vp1 = d_nm->mkNode(kind::SEXPR,d_cl,arg);
+	 auto new_children = children;
+	 new_children[0] = vp1;
+         return addVeritStep(vp1,VeritRule::REFL,{},{},*cdp) &&
+	        addVeritStep(res,VeritRule::ANCHOR_BIND,d_nm->mkNode(kind::SEXPR,d_cl,res),new_children,{arg},*cdp);
+      }
       return addVeritStep(res, VeritRule::CONG, d_nm->mkNode(kind::SEXPR,d_cl,res), children, {}, *cdp);
     }
     // ======== True intro
@@ -2327,40 +2339,25 @@ bool VeritProofPostprocessCallback::update(
     // (possibly under rewriting), a,b are real constants, and sgn is either -1
     // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
     // ARITH_MULT_TANGENT,
-    default:  // TBD
-    {
-      if (!d_extended && id != PfRule::SYMM && id != PfRule::REORDERING)
-      {
-        std::cout << "Not implemented yet " << id << std::endl;
-        return addVeritStep(res,
-                            VeritRule::UNDEFINED,
-                            d_nm->mkNode(kind::SEXPR, d_cl, res),
-                            children,
-                            args,
-                            *cdp);
-      }
-    }
-  }
+    //
 
-  if (!d_extended && id != PfRule::SYMM && id != PfRule::REORDERING)
-  {
-    return false;
-  }
-
-  // Extended rules
-  switch (id)
-  {
+    //================================================= Extended rules
     // ======== Symmetric
     // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
     // Arguments: none
     // -----------------------
     // Conclusion: (= t2 t1) or (not (= t2 t1))
     //
-    //
     // proof rule: symm
-    // proof node: (= t2 t1) or (not (= t2 t1))
-    // proof term: (cl (= t2 t1)) or (cl (not (= t2 t1)))
-    // premises: ((P:(= t1 t2)) or (P:(not (= t1 t2))
+    // proof node: (= t2 t1)
+    // proof term: (cl (= t2 t1))
+    // premises: ((P:(= t1 t2))
+    // args: ()
+    //
+    // proof rule: not_symm
+    // proof node: (not (= t2 t1))
+    // proof term: (cl (not (= t2 t1)))
+    // premises: (P:(not (= t1 t2))
     // args: ()
     case PfRule::SYMM:
     {
@@ -2401,12 +2398,19 @@ bool VeritProofPostprocessCallback::update(
     {
       return addVeritStepFromOr(res, VeritRule::REORDER, children, {}, *cdp);
     }
+
     default:  // TBD
     {
       std::cout << "Not implemented yet " << id << std::endl;
-      return addVeritStep(res, VeritRule::UNDEFINED, d_nm->mkNode(kind::SEXPR,d_cl,res),children, args, *cdp);
+      return addVeritStep(res,
+                          VeritRule::UNDEFINED,
+                          d_nm->mkNode(kind::SEXPR, d_cl, res),
+                          children,
+                          args,
+                          *cdp);
     }
   }
+
 
   Trace("verit-proof") << "... error translating rule " << id << " / " << res
                        << " " << children << " " << args << std::endl;
@@ -2464,7 +2468,7 @@ VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
 }
 
 bool VeritProofPostprocessFinalCallback::shouldUpdate(
-    std::shared_ptr<ProofNode> pn, bool& continueUpdate)
+    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa, bool& continueUpdate)
 {
 
   // The proof node should not be traversed further
@@ -2569,17 +2573,13 @@ bool VeritProofPostprocessFinalCallback::update(
   return success;
 }
 
-VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
-                                             bool extended)
+VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
     : d_pnm(pnm),
       d_cb(d_pnm),
-      d_updater(d_pnm, d_cb, false, false),
+      d_updater(d_pnm, d_cb, false,false,false),
       d_fcb(d_pnm),
-      d_finalize(d_pnm, d_fcb, false, false),
-      d_extended(extended)
-{
-  d_cb.initializeUpdate(extended);
-}
+      d_finalize(d_pnm, d_fcb, false, false,false)
+{}
 
 VeritProofPostprocess::~VeritProofPostprocess() {}
 

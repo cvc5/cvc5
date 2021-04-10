@@ -46,17 +46,17 @@ class VeritProofPrinter
                                    std::shared_ptr<ProofNode> pfn);
   /** Flag to indicate whether the veriT proof format should be extended */
   bool d_extended;
-  /** The current level of nesting, which increases when in a subproof */
-  int assumption_level;
+  /** The current level of nesting, which increases if a subproof is entered*/
+  int nested_level;
   /** Current step id */
   int step_id;
   /** The current prefix which is updated whenever a subproof is encountered
    * E.g. prefix = "t19.t2." */
   std::string prefix;
   /** A list of assumption lists, one for every level of the nested proof node */
-  std::vector<std::unordered_map<std::string,int>> assumptions;//TODO: Change to node
+  std::vector<std::unordered_map<Node, int, NodeHashFunction>> assumptions;
   /** A list of step lists, one for every level of the nested proof node */
-  std::vector<std::unordered_map<std::string,int>> steps;
+  std::vector<std::unordered_map<Node, int, NodeHashFunction>> steps;
 };
 
 /**
@@ -76,4 +76,4 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn, bool
 
 }  // namespace cvc5
 
-#endif
+#endif /* CVC4__PROOF__VERIT_PROOF_PRINTER_H */

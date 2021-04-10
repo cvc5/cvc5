@@ -113,15 +113,6 @@ header = "options/smt_options.h"
   help = "Only include a subset of variables whose values, in addition to the values of variables whose values are implied, are sufficient to show the input formula is satisfied by the given model."
 
 [[option]]
-  name       = "produceProofs"
-  category   = "regular"
-  long       = "produce-proofs"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "output proofs after every UNSAT/VALID response"
-
-[[option]]
   name       = "blockModelsMode"
   category   = "regular"
   long       = "block-models=MODE"

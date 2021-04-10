@@ -62,7 +62,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
           // be inferred from A, it was updated). This shape is problematic for
           // the veriT reconstruction, so we disable the update of scoped
           // assumptions (which would disable the update of B1 in this case).
-          options::proofFormatMode() != options::ProofFormatMode::VERIT)),
+          options::proofFormatMode() != options::ProofFormatMode::VERIT_EXTENDED)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -176,14 +176,14 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
-    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(), false));
-    d_vpfpp->process(fp);
+    proof::VeritProofPostprocess vpfpp(d_pnm.get());
+    vpfpp.process(fp);
     proof::veritPrinter(out, fp,false);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT_EXTENDED)
   {
-    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(), true));
-    d_vpfpp->process(fp);
+    proof::VeritProofPostprocess vpfpp(d_pnm.get());
+    vpfpp.process(fp);
     proof::veritPrinter(out, fp,true);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)

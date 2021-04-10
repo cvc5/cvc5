@@ -32,13 +32,6 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   VeritProofPostprocessCallback(ProofNodeManager* pnm);
   ~VeritProofPostprocessCallback() {}
-  /**
-   * Initialize, called once for each new ProofNode to process. This initializes
-   * static information to be used by successive calls to update.
-   *
-   * @param extended indicates whether the extended veriT format should be used or not
-   */
-  void initializeUpdate(bool extended);
   /** Should proof pn be updated?
    *
    * @param pn the proof node that maybe should be updated
@@ -73,8 +66,6 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   NodeManager* d_nm;
   /** The variable cl **/
   Node d_cl;
-  /** Flag to indicate whether the veriT proof format should be extended */
-  bool d_extended;
   /**
    * This method adds a new step to the proof applying the VERIT_RULE. It adds
    * the id of the VERIT_RULE as the first argument, the res node as the second
@@ -146,6 +137,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+		    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /**
    * This method gets a proof node pn = false printed as (cl false) and updates
@@ -181,7 +173,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 class VeritProofPostprocess
 {
  public:
-  VeritProofPostprocess(ProofNodeManager* pnm, bool extended);
+  VeritProofPostprocess(ProofNodeManager* pnm);
   ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
@@ -197,8 +189,6 @@ class VeritProofPostprocess
   /** The updater, which is responsible for adding additional steps to the end
    * of the proof */
   ProofNodeUpdater d_finalize;
-  /** Flag to indicate whether proof format should be extended */
-  bool d_extended;
 };
 
 }  // namespace proof
