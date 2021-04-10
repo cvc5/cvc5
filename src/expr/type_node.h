@@ -1032,7 +1032,7 @@ inline unsigned TypeNode::getBitVectorSize() const {
   return getConst<BitVectorSize>();
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1066,7 +1066,7 @@ static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 

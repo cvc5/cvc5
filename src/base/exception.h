@@ -119,18 +119,23 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 
 template <class T>
 inline void CheckArgument(bool cond, const T& arg, const char* tail);
-template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
-                                             const char* tail CVC4_UNUSED) {
+template <class T>
+inline void CheckArgument(bool cond,
+                          const T& arg CVC5_UNUSED,
+                          const char* tail CVC5_UNUSED)
+{
   if(__builtin_expect( ( !cond ), false )) {
     throw ::cvc5::IllegalArgumentException("", "", tail);
-  } \
+  }
 }
 template <class T>
 inline void CheckArgument(bool cond, const T& arg);
-template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
+template <class T>
+inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
+{
   if(__builtin_expect( ( !cond ), false )) {
     throw ::cvc5::IllegalArgumentException("", "", "");
-  } \
+  }
 }
 
 class CVC4_EXPORT LastExceptionBuffer

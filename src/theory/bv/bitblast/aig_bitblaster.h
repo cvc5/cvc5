@@ -40,7 +40,7 @@ class SatSolver;
 namespace theory {
 namespace bv {
 
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*>
 {
@@ -106,7 +106,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   Statistics d_statistics;
 };
 
-#else /* CVC4_USE_ABC */
+#else /* CVC5_USE_ABC */
 
 /**
  * Dummy version of the AigBitblaster class that cannot be instantiated s.t. we
@@ -117,7 +117,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   AigBitblaster() = delete;
 };
 
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 
 }  // namespace bv
 }  // namespace theory

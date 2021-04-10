@@ -363,13 +363,13 @@ class NodeBuilder {
   /** Construct the node value out of the node builder */
   expr::NodeValue* constructNV();
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   // Throws a TypeCheckingExceptionPrivate on a failure.
   void maybeCheckType(const TNode n) const;
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
   // Do nothing if not in debug mode.
   inline void maybeCheckType(const TNode n) const {}
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
   // used by convenience node builders
   NodeBuilder& collapseTo(Kind k);

@@ -525,7 +525,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
 #pragma GCC system_header
 
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
 /* This improves performance by ~10 percent on big inputs.
  * This option is only valid if we know the input is ASCII (or some 8-bit encoding).
  * If we know the input is UTF-16, we can use ANTLR3_INLINE_INPUT_UTF16.
@@ -533,7 +533,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
  */
 #  define ANTLR3_INLINE_INPUT_ASCII
 #  define ANTLR3_INLINE_INPUT_8BIT
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
 
 #include "parser/antlr_input.h"
 #include "parser/antlr_tracing.h"

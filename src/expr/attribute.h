@@ -28,9 +28,9 @@
 #include "expr/attribute_unique_id.h"
 
 // include supporting templates
-#define CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#define CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #include "expr/attribute_internals.h"
-#undef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#undef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
 namespace cvc5 {
 namespace expr {

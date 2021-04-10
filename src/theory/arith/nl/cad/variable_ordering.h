@@ -19,7 +19,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
 #define CVC5__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 

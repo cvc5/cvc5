@@ -97,7 +97,7 @@ class IntegralHistogramStat : public Stat
 
   IntegralHistogramStat& operator<<(Integral val)
   {
-    if (CVC4_USE_STATISTICS)
+    if (CVC5_USE_STATISTICS)
     {
       int64_t v = static_cast<int64_t>(val);
       if (d_hist.empty())

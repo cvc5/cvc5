@@ -689,7 +689,7 @@ class CVC4_EXPORT Sort
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -819,7 +819,7 @@ class CVC4_EXPORT Op
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1216,7 +1216,7 @@ class CVC4_EXPORT Term
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1382,7 +1382,7 @@ class CVC4_EXPORT DatatypeConstructorDecl
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1488,7 +1488,7 @@ class CVC4_EXPORT DatatypeDecl
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1558,7 +1558,7 @@ class CVC4_EXPORT DatatypeSelector
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1785,7 +1785,7 @@ class CVC4_EXPORT DatatypeConstructor
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -2007,7 +2007,7 @@ class CVC4_EXPORT Datatype
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 

@@ -50,7 +50,7 @@ public:
 
   static constexpr bool isStatisticsBuild()
   {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
     return true;
 #else
     return false;

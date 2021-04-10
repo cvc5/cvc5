@@ -87,7 +87,7 @@ class CadSolver
    */
   Node d_ranVariable;
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   /**
    * The object implementing the actual decision procedure.
    */

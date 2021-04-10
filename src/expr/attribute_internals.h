@@ -16,9 +16,9 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #  error expr/attribute_internals.h should only be included by expr/attribute.h
-#endif /* CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
 #ifndef CVC5__EXPR__ATTRIBUTE_INTERNALS_H
 #define CVC5__EXPR__ATTRIBUTE_INTERNALS_H

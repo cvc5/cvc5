@@ -26,7 +26,7 @@ namespace cvc5 {
 class Command;
 class NodeCommand;
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
 class CVC4dumpstream
 {
@@ -62,7 +62,7 @@ class CVC4dumpstream
   CVC4dumpstream& operator<<(const NodeCommand& nc);
 }; /* class CVC4dumpstream */
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 /** The dump class */
 class DumpC

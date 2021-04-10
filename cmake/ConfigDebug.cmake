@@ -8,7 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-add_definitions(-DCVC4_DEBUG)
+add_definitions(-DCVC5_DEBUG)
 add_check_c_cxx_flag("-fno-inline")
 set(OPTIMIZATION_LEVEL "g")
 # enable_debug_symbols=yes
