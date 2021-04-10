@@ -137,7 +137,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-		    const std::vector<Node>& fa,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /**
    * This method gets a proof node pn = false printed as (cl false) and updates

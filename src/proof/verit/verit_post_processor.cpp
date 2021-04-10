@@ -13,6 +13,7 @@
  **/
 
 #include "proof/verit/verit_post_processor.h"
+
 #include "expr/proof_checker.h"
 
 namespace cvc5 {
@@ -44,7 +45,7 @@ bool VeritProofPostprocessCallback::update(
     CDProof* cdp,
     bool& continueUpdate)
 {
-  bool d_extended = true; //TODO: delete
+  bool d_extended = true;  // TODO: delete
   Trace("verit-proof") << "- veriT post process callback " << res << " " << id
                        << " " << children << " / " << args << std::endl;
 
@@ -1840,7 +1841,9 @@ bool VeritProofPostprocessCallback::update(
     // APPLY_UF. The actual node for <kind> is constructible via
     // ProofRuleChecker::mkKindNode.
     //
-    // In the case that <kind> is forall the cong rule needs to be translated into a bind rule. The first child will be a refl rule, e.g. (= (v0 Int) (v0 Int)). The type has to be deleted.
+    // In the case that <kind> is forall the cong rule needs to be translated
+    // into a bind rule. The first child will be a refl rule, e.g. (= (v0 Int)
+    // (v0 Int)). The type has to be deleted.
     //
     //
     //
@@ -1854,13 +1857,20 @@ bool VeritProofPostprocessCallback::update(
     //  args: ()
     case PfRule::CONG:
     {
-      if(args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)){ //TODO
-	 Node arg = d_nm->mkNode(kind::EQUAL,children[0][0][0],children[0][1][0]);
-	 Node vp1 = d_nm->mkNode(kind::SEXPR,d_cl,arg);
-	 auto new_children = children;
-	 new_children[0] = vp1;
-         return addVeritStep(vp1,VeritRule::REFL,{},{},*cdp) &&
-	        addVeritStep(res,VeritRule::ANCHOR_BIND,d_nm->mkNode(kind::SEXPR,d_cl,res),new_children,{arg},*cdp);
+      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
+      {  // TODO
+        Node arg =
+            d_nm->mkNode(kind::EQUAL, children[0][0][0], children[0][1][0]);
+        Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, arg);
+        auto new_children = children;
+        new_children[0] = vp1;
+        return addVeritStep(vp1, VeritRule::REFL, {}, {}, *cdp)
+               && addVeritStep(res,
+                               VeritRule::ANCHOR_BIND,
+                               d_nm->mkNode(kind::SEXPR, d_cl, res),
+                               new_children,
+                               {arg},
+                               *cdp);
       }
       return addVeritStep(res, VeritRule::CONG, d_nm->mkNode(kind::SEXPR,d_cl,res), children, {}, *cdp);
     }
@@ -2411,7 +2421,6 @@ bool VeritProofPostprocessCallback::update(
     }
   }
 
-
   Trace("verit-proof") << "... error translating rule " << id << " / " << res
                        << " " << children << " " << args << std::endl;
   return false;
@@ -2468,7 +2477,9 @@ VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
 }
 
 bool VeritProofPostprocessFinalCallback::shouldUpdate(
-    std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa, bool& continueUpdate)
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
 {
 
   // The proof node should not be traversed further
@@ -2576,10 +2587,11 @@ bool VeritProofPostprocessFinalCallback::update(
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
     : d_pnm(pnm),
       d_cb(d_pnm),
-      d_updater(d_pnm, d_cb, false,false,false),
+      d_updater(d_pnm, d_cb, false, false, false),
       d_fcb(d_pnm),
-      d_finalize(d_pnm, d_fcb, false, false,false)
-{}
+      d_finalize(d_pnm, d_fcb, false, false, false)
+{
+}
 
 VeritProofPostprocess::~VeritProofPostprocess() {}
 
