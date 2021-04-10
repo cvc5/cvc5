@@ -103,7 +103,7 @@ public class Solver implements IPointer
      * @param elemSort the array element sort
      * @return the array sort
      */
-    Sort mkArraySort(Sort indexSort, Sort& elemSort)
+    Sort mkArraySort(Sort indexSort, Sort elemSort)
   
     /**
      * Create a bit-vector sort.
@@ -164,7 +164,7 @@ public class Solver implements IPointer
      * @param codomain the sort of the function return value
      * @return the function sort
      */
-    Sort mkFunctionSort(Sort domain, Sort& codomain)
+    Sort mkFunctionSort(Sort domain, Sort codomain)
   
     /**
      * Create function sort.
@@ -173,7 +173,7 @@ public class Solver implements IPointer
      * @return the function sort
      */
     Sort mkFunctionSort(std::vector<Sort>& sorts,
-                        Sort& codomain)
+                        Sort codomain)
   
     /**
      * Create a sort parameter.
@@ -257,7 +257,7 @@ public class Solver implements IPointer
      * @param child the child of the term
      * @return the Term
      */
-    Term mkTerm(Kind kind, const Term child)
+    Term mkTerm(Kind kind, Term child)
   
     /**
      * Create binary term of given kind.
@@ -266,7 +266,7 @@ public class Solver implements IPointer
      * @param child2 the second child of the term
      * @return the Term
      */
-    Term mkTerm(Kind kind, const Term child1, const Term child2)
+    Term mkTerm(Kind kind, Term child1, Term child2)
   
     /**
      * Create ternary term of given kind.
@@ -277,9 +277,9 @@ public class Solver implements IPointer
      * @return the Term
      */
     Term mkTerm(Kind kind,
-                const Term child1,
-                const Term child2,
-                const Term child3)
+                Term child1,
+                Term child2,
+                Term child3)
   
     /**
      * Create n-ary term of given kind.
@@ -304,7 +304,7 @@ public class Solver implements IPointer
      * @param child the child of the term
      * @return the Term
      */
-    Term mkTerm(Op& op, const Term child)
+    Term mkTerm(Op& op, Term child)
   
     /**
      * Create binary term of given kind from a given operator.
@@ -314,7 +314,7 @@ public class Solver implements IPointer
      * @param child2 the second child of the term
      * @return the Term
      */
-    Term mkTerm(Op& op, const Term child1, const Term child2)
+    Term mkTerm(Op& op, Term child1, Term child2)
   
     /**
      * Create ternary term of given kind from a given operator.
@@ -326,9 +326,9 @@ public class Solver implements IPointer
      * @return the Term
      */
     Term mkTerm(Op& op,
-                const Term child1,
-                const Term child2,
-                const Term child3)
+                Term child1,
+                Term child2,
+                Term child3)
   
     /**
      * Create n-ary term of given kind from a given operator.
@@ -603,7 +603,7 @@ public class Solver implements IPointer
      * @param val the constant value to store (must match the sort's element sort)
      * @return the constant array term
      */
-    Term mkConstArray(Sort sort, const Term val)
+    Term mkConstArray(Sort sort, Term val)
   
     /**
      * Create a positive infinity floating-point constant. Requires CVC4 to be
@@ -795,7 +795,12 @@ public class Solver implements IPointer
      * @return the result of the satisfiability check.
      */
     Result checkSat()
-  
+    {
+            long resultPointer = checkSat(pointer);
+            return new Result(solver, resultPointer);
+          }
+
+          private native long checkSat(long pointer);
     /**
      * Check satisfiability assuming the given formula.
      * SMT-LIB:
@@ -806,7 +811,13 @@ public class Solver implements IPointer
      * @return the result of the satisfiability check.
      */
     Result checkSatAssuming(Term assumption)
-  
+  {
+        long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
+        return new Result(solver, resultPointer);
+      }
+
+      private native long checkSatAssuming(long pointer, long assumptionPointer);
+
     /**
      * Check satisfiability assuming the given formulas.
      * SMT-LIB:
@@ -816,22 +827,43 @@ public class Solver implements IPointer
      * @param assumptions the formulas to assume
      * @return the result of the satisfiability check.
      */
-    Result checkSatAssuming(Term[] assumptions)
+    public Result checkSatAssuming(Term[] assumptions)
+    {
+          long [] pointers = Utils.getPointers(assumptions);
+          long resultPointer = checkSatAssuming(pointer, pointers);
+          return new Result(solver, resultPointer);
+        }
+
+        private native long checkSatAssuming(long pointer, long [] assumptionPointers);
+
   
     /**
      * Check entailment of the given formula w.r.t. the current set of assertions.
      * @param term the formula to check entailment for
      * @return the result of the entailment check.
      */
-    Result checkEntailed(Term term)
-  
+    public Result checkEntailed(Term term)
+        {
+          long resultPointer = checkEntailed(pointer, term.getPointer());
+          return new Result(solver, resultPointer);
+        }
+
+        private native long checkEntailed(long pointer, long termPointer);
+
     /**
      * Check entailment of the given set of given formulas w.r.t. the current
      * set of assertions.
      * @param terms the terms to check entailment for
      * @return the result of the entailmentcheck.
      */
-    Result checkEntailed(Term[] terms)
+    public Result checkEntailed(Term[] terms)
+    {
+      long [] pointers = Utils.getPointers(terms);
+      long resultPointer = checkEntailed(pointer, pointers);
+      return new Result(solver, resultPointer);
+    }
+
+    private native long checkEntailed(long pointer, long [] termPointers);
   
     /**
      * Create datatype sort.
@@ -843,8 +875,14 @@ public class Solver implements IPointer
      * @param ctors the constructor declarations of the datatype sort
      * @return the datatype sort
      */
-    Sort declareDatatype(String  symbol,
-                         const std::vector<DatatypeConstructorDecl>& ctors)
+    public Sort declareDatatype(String symbol, DatatypeConstructorDecl [] ctors)
+    {
+      long [] pointers = Utils.getPointers(ctors);
+      long sortPointer = declareDatatype(pointer, symbol, pointers);
+      return new Sort(solver, sortPointer);
+    }
+
+    private native long declareDatatype(long pointer, String symbol, long [] declPointers);
   
     /**
      * Declare n-ary function symbol.
@@ -857,9 +895,16 @@ public class Solver implements IPointer
      * @param sort the sort of the return value of this function
      * @return the function
      */
-    Term declareFun(String  symbol,
-                    const std::vector<Sort>& sorts,
-                    Sort& sort)
+    public Term declareFun(String  symbol,
+                    Sort [] sorts,
+                    Sort sort)
+    {
+      long [] sortPointers = Utils.getPointers(sorts);
+      long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer);
+      return new Term(solver, termPointer);
+    }
+
+    private native long declareFun(long pointer, String symbol, long[] sortPointers, long sortPointer);
   
     /**
      * Declare uninterpreted sort.
@@ -871,7 +916,34 @@ public class Solver implements IPointer
      * @param arity the arity of the sort
      * @return the sort
      */
-    Sort declareSort(String  symbol, uint32_t arity)
+    public Sort declareSort(String  symbol, int arity)
+    {
+      validateUnsigned(arity, "arity");
+      long sortPointer = declareSort(pointer, symbol, arity);
+      return new Sort(solver, sortPointer);
+    }
+
+    private native long declareSort(long pointer, String symbol, int arity);
+
+    /**
+         * Define n-ary function in the current context.
+         * SMT-LIB:
+         * \verbatim
+         *   ( define-fun <function_def> )
+         * \endverbatim
+         * @param symbol the name of the function
+         * @param bound_vars the parameters to this function
+         * @param sort the sort of the return value of this function
+         * @param term the function body
+         * @return the function
+         */
+        public Term defineFun(String  symbol,
+                       Term[] bound_vars,
+                       Sort sort,
+                       Term term)
+        {
+         return defineFun(symbol, bound_vars, sort, term);
+        }
   
     /**
      * Define n-ary function.
@@ -887,11 +959,37 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    Term defineFun(String  symbol,
+    public Term defineFun(String  symbol,
                    Term[] bound_vars,
-                   Sort& sort,
-                   const Term term,
-                 public boolean global = false)
+                   Sort sort,
+                   Term term,
+                   boolean global)
+ {
+           long [] boundVarPointers = Utils.getPointers(bound_vars);
+           long termPointer = defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
+           return new Term(solver, termPointer);
+         }
+
+         private native long defineFun(long pointer, String symbol, long [] boundVarPointers, long sortPointer, long termPointer, boolean global);
+
+    /**
+         * Define n-ary function in the current context.
+         * SMT-LIB:
+         * \verbatim
+         * ( define-fun <function_def> )
+         * \endverbatim
+         * Create parameter 'fun' with mkConst().
+         * @param fun the sorted function
+         * @param bound_vars the parameters to this function
+         * @param term the function body
+         * @return the function
+         */
+       public  Term defineFun(Term fun,
+                       Term[] bound_vars,
+                       Term term)
+        {
+          return defineFun(fun, bound_vars, term, false);
+        }
     /**
      * Define n-ary function.
      * SMT-LIB:
@@ -906,11 +1004,38 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    Term defineFun(Term fun,
+    public Term defineFun(Term fun,
                    Term[] bound_vars,
-                   const Term term,
-                 public boolean global = false)
-  
+                   Term term,
+                   boolean global)
+    {
+           long [] boundVarPointers = Utils.getPointers(bound_vars);
+           long termPointer = defineFun(pointer, boundVarPointers, term.getPointer(), global);
+           return new Term(solver, termPointer);
+         }
+
+         private native long defineFun(long pointer, long [] boundVarPointers, long termPointer, boolean global);
+
+        /**
+         * Define recursive function in the current context.
+         * SMT-LIB:
+         * \verbatim
+         * ( define-fun-rec <function_def> )
+         * \endverbatim
+         * @param symbol the name of the function
+         * @param bound_vars the parameters to this function
+         * @param sort the sort of the return value of this function
+         * @param term the function body
+         * @return the function
+         */
+        public Term defineFunRec(String  symbol,
+                          Term[] bound_vars,
+                          Sort sort,
+                          Term term)
+        {
+          defineFunsRec(symbol, bound_vars, sort, term, false);
+        }
+
     /**
      * Define recursive function.
      * SMT-LIB:
@@ -925,12 +1050,40 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    Term defineFunRec(String  symbol,
+   public  Term defineFunRec(String  symbol,
                       Term[] bound_vars,
-                      Sort& sort,
-                      const Term term,
-                    public boolean global = false)
-  
+                      Sort sort,
+                      Term term,
+                       boolean global)
+    {
+       long [] boundVarPointers = Utils.getPointers(bound_vars);
+       defineFunRec(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
+     }
+
+     private native void defineFunRec(long pointer, String symbol, long [] boundVarPointers, long sortPointer,
+     long termPointer, boolean global);
+
+     /**
+          * Define recursive function in the current context.
+          * SMT-LIB:
+          * \verbatim
+          * ( define-fun-rec <function_def> )
+          * \endverbatim
+          * Create parameter 'fun' with mkConst().
+          * @param fun the sorted function
+          * @param bound_vars the parameters to this function
+          * @param term the function body
+          * @return the function
+          */
+
+     public Term defineFunRec(Term fun,
+                           Term[] bound_vars,
+                           Term term,
+                         boolean global)
+           {
+             defineFunRec(fun, bound_vars, term, false);
+           }
+
     /**
      * Define recursive function.
      * SMT-LIB:
@@ -945,11 +1098,36 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    Term defineFunRec(Term fun,
+   public  Term defineFunRec(Term fun,
                       Term[] bound_vars,
-                      const Term term,
-                    public boolean global = false)
-  
+                      Term term,
+                    boolean global)
+      {
+           long [] boundVarPointers = Utils.getPointers(bound_vars);
+           defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
+         }
+
+         private native void defineFunRec(long pointer, long funPointer, long [] boundVarPointers,
+         long termPointer, boolean global);
+
+    /**
+         * Define recursive functions in the current context.
+         * SMT-LIB:
+         * \verbatim
+         *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+         * \endverbatim
+         * Create elements of parameter 'funs' with mkConst().
+         * @param funs the sorted functions
+         * @param bound_vars the list of parameters to the functions
+         * @param terms the list of function bodies of the functions
+         * @return the function
+         */
+        public void defineFunsRec(Term[] funs,
+                           Term[] [] bound_vars,
+                           Term[] terms)
+        {
+          defineFunsRec(funs, bound_vars, terms, false);
+        }
     /**
      * Define recursive functions.
      * SMT-LIB:
@@ -967,15 +1145,16 @@ public class Solver implements IPointer
     public void defineFunsRec(Term[] funs,
                        Term[] [] bound_vars,
                        Term[] terms,
-                     public boolean global = false)
+                       boolean)
     {
       long [] funPointers = Utils.getPointers(funs);
-      long [] [] boundVarPointers = new long []
-      for(int i = 0; i < bound_vars.length; i++)
-      {
-
-      }
+      long [] [] boundVarPointers = Utils.getPointers(bound_vars);
+      long [] termPointers = Utils.getPointers(terms);
+      defineFunsRec(pointer, funPointers, boundVarPointers, termPointers, global);
     }
+
+    private native void defineFunsRec(long pointer, long [] funPointers, long [][] boundVarPointers,
+    long[] termPointers, boolean global);
   
     /**
      * Echo a given string to the given output stream.
@@ -1510,7 +1689,7 @@ public class Solver implements IPointer
      */
     public Term synthFun(String  symbol,
                   Term[] boundVars,
-                  Sort& sort)
+                  Sort sort)
      {
         long [] boundVarPointers = Utils.getPointers(boundVars);
               long termPointer = synthFun(pointer, symbol, boundVarPointers, sort.getPointer());
