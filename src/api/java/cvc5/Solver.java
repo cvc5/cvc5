@@ -11,11 +11,6 @@ public class Solver implements IPointer
     return pointer;
   }
 
-  public Solver()
-  {
-    this.pointer = newSolver();
-  }
-
   private native long newSolver();
 
   public void deletePointer()
@@ -31,214 +26,356 @@ public class Solver implements IPointer
   }
 
   /* .................................................................... */
-  /* Constructors/Destructors                                             */
+  /* Constructors                                                         */
   /* .................................................................... */
+
+  public Solver()
+  {
+    this.pointer = newSolver();
+  }
 
   /**
    * Constructor.
    * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr);
-
-  /**
-   * Destructor.
-   */
-  ~Solver();
-
-  /**
-   * Disallow copy/assignment.
-   */
-  Solver(Solver&) = delete;
-  Solver& operator = (Solver&) = delete;
+  // TODO: Solver(Options* opts = nullptr);
 
   /* .................................................................... */
   /* Solver Configuration                                                 */
   /* .................................................................... */
 
   public boolean supportsFloatingPoint()
+  {
+    return supportsFloatingPoint(pointer);
+  }
 
-      /* .................................................................... */
-      /* Sorts Handling                                                       */
-      /* .................................................................... */
+  private native boolean supportsFloatingPoint(long pointer);
+  /* .................................................................... */
+  /* Sorts Handling                                                       */
+  /* .................................................................... */
 
-      /**
-       * @return sort null
-       */
-      Sort getNullSort()
+  /**
+   * @return sort null
+   */
 
-      /**
-       * @return sort Boolean
-       */
-      Sort getBooleanSort()
+  public Sort getNullSort()
+  {
+    long sortPointer = getNullSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * @return sort Integer (in CVC4, Integer is a subtype of Real)
-       */
-      Sort getIntegerSort()
+  private native long getNullSort(long pointer);
 
-      /**
-       * @return sort Real
-       */
-      Sort getRealSort()
+  /**
+   * @return sort Boolean
+   */
+  public Sort getBooleanSort()
+  {
+    long sortPointer = getBooleanSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * @return sort RegExp
-       */
-      Sort getRegExpSort()
+  private native long getBooleanSort(long pointer);
 
-      /**
-       * @return sort RoundingMode
-       */
-      Sort getRoundingModeSort()
+  /**
+   * @return sort Integer (in CVC4, Integer is a subtype of Real)
+   */
+  public Sort getIntegerSort()
+  {
+    long sortPointer = getIntegerSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * @return sort String
-       */
-      Sort getStringSort()
+  public native long getIntegerSort(long pointer);
+  /**
+   * @return sort Real
+   */
+  public Sort getRealSort()
+  {
+    long sortPointer = getRealSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create an array sort.
-       * @param indexSort the array index sort
-       * @param elemSort the array element sort
-       * @return the array sort
-       */
-      Sort mkArraySort(Sort indexSort, Sort elemSort)
+  private native long getRealSort(long pointer);
+  /**
+   * @return sort RegExp
+   */
+  public Sort getRegExpSort()
+  {
+    long sortPointer = getRegExpSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create a bit-vector sort.
-       * @param size the bit-width of the bit-vector sort
-       * @return the bit-vector sort
-       */
-      Sort mkBitVectorSort(uint32_t size)
+  private native long getRegExpSort(long pointer);
+  /**
+   * @return sort RoundingMode
+   */
+  public Sort getRoundingModeSort() throws CVCApiException
+  {
+    long sortPointer = getRoundingModeSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create a floating-point sort.
-       * @param exp the bit-width of the exponent of the floating-point sort.
-       * @param sig the bit-width of the significand of the floating-point sort.
-       */
-      Sort mkFloatingPointSort(uint32_t exp, uint32_t sig)
+  private native long getRoundingModeSort(long pointer) throws CVCApiException;
+  /**
+   * @return sort String
+   */
+  public Sort getStringSort()
+  {
+    long sortPointer = getStringSort(pointer);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create a datatype sort.
-       * @param dtypedecl the datatype declaration from which the sort is
-       *     created
-       * @return the datatype sort
-       */
-      Sort mkDatatypeSort(DatatypeDecl& dtypedecl)
+  private native long getStringSort(long solverPointer);
+  /**
+   * Create an array sort.
+   * @param indexSort the array index sort
+   * @param elemSort the array element sort
+   * @return the array sort
+   */
+  public Sort mkArraySort(Sort indexSort, Sort elementSort)
+  {
+    long sortPointer = mkArraySort(pointer, indexSort.getPointer(), elementSort.getPointer());
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create a vector of datatype sorts. The names of the datatype
-       * declarations must be distinct.
-       *
-       * @param dtypedecls the datatype declarations from which the sort is
-       *     created
-       * @return the datatype sorts
-       */
-      std::vector<Sort> mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls)
+  private native long mkArraySort(long pointer, long indexSortPointer, long elementSortPointer);
 
-      /**
-       * Create a vector of datatype sorts using unresolved sorts. The names of
-       * the datatype declarations in dtypedecls must be distinct.
-       *
-       * This method is called when the DatatypeDecl objects dtypedecls have
-       * been built using "unresolved" sorts.
-       *
-       * We associate each sort in unresolvedSorts with exacly one datatype from
-       * dtypedecls. In particular, it must have the same name as exactly one
-       * datatype declaration in dtypedecls.
-       *
-       * When constructing datatypes, unresolved sorts are replaced by the
-       * datatype sort constructed for the datatype declaration it is associated
-       * with.
-       *
-       * @param dtypedecls the datatype declarations from which the sort is
-       *     created
-       * @param unresolvedSorts the list of unresolved sorts
-       * @return the datatype sorts
-       */
-      std::vector<Sort> mkDatatypeSorts(
-          const std::vector<DatatypeDecl>& dtypedecls, const std::set<Sort>& unresolvedSorts)
+  /**
+   * Create a bit-vector sort.
+   * @param size the bit-width of the bit-vector sort
+   * @return the bit-vector sort
+   */
+  public Sort mkBitVectorSort(int size)
+  {
+    Utils.validateUnsigned(size, "size");
+    long sortPointer = mkBitVectorSort(pointer, size);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create function sort.
-       * @param domain the sort of the fuction argument
-       * @param codomain the sort of the function return value
-       * @return the function sort
-       */
-      Sort mkFunctionSort(Sort domain, Sort codomain)
+  private native long mkBitVectorSort(long pointer, int size);
 
-      /**
-       * Create function sort.
-       * @param sorts the sort of the function arguments
-       * @param codomain the sort of the function return value
-       * @return the function sort
-       */
-      Sort mkFunctionSort(std::vector<Sort>& sorts, Sort codomain)
+  /**
+   * Create a floating-point sort.
+   * @param exp the bit-width of the exponent of the floating-point sort.
+   * @param sig the bit-width of the significand of the floating-point sort.
+   */
+  public Sort mkFloatingPointSort(int exp, int sig)
+  {
+    Utils.validateUnsigned(exp, "exp");
+    Utils.validateUnsigned(sig, "sig");
+    long sortPointer = mkFloatingPointSort(pointer, exp, sig);
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create a sort parameter.
-       * @param symbol the name of the sort
-       * @return the sort parameter
-       */
-      Sort mkParamSort(String symbol)
+  private native long mkFloatingPointSort(long solverPointer, int exp, int sig)
+      throws CVCApiException;
 
-      /**
-       * Create a predicate sort.
-       * @param sorts the list of sorts of the predicate
-       * @return the predicate sort
-       */
-      Sort mkPredicateSort(std::vector<Sort>& sorts)
+  /**
+   * Create a datatype sort.
+   * @param dtypedecl the datatype declaration from which the sort is
+   *     created
+   * @return the datatype sort
+   */
+  public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVCApiException
+  {
+    long pointer = mkDatatypeSort(this.pointer, dtypedecl.getPointer());
+    return new Sort(this, pointer);
+  }
 
-      /**
-       * Create a record sort
-       * @param fields the list of fields of the record
-       * @return the record sort
-       */
-      Sort mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields)
+  private native long mkDatatypeSort(pointer, long datatypeDeclPointer) throws CVCApiException;
 
-      /**
-       * Create a set sort.
-       * @param elemSort the sort of the set elements
-       * @return the set sort
-       */
-      Sort mkSetSort(Sort elemSort)
+  /**
+   * Create a vector of datatype sorts. The names of the datatype
+   * declarations must be distinct.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is
+   *     created
+   * @return the datatype sorts
+   */
+  public Sort[] mkDatatypeSorts(DatatypeDecl[] datatypeDecls) throws CVCApiException
+  {
+    long[] declPointers = Utils.getPointers(datatypeDecls);
+    long[] sortPointers = mkDatatypeSorts(pointer, declPointers);
+    Sort[] sorts = Utils.getSorts(this, sortPointers);
+    return sorts;
+  }
 
-      /**
-       * Create a bag sort.
-       * @param elemSort the sort of the bag elements
-       * @return the bag sort
-       */
-      Sort mkBagSort(Sort elemSort)
+  private native long[] mkDatatypeSorts(pointer, long[] declPointers) throws CVCApiException;
 
-      /**
-       * Create a sequence sort.
-       * @param elemSort the sort of the sequence elements
-       * @return the sequence sort
-       */
-      Sort mkSequenceSort(Sort elemSort)
+  /**
+   * Create a vector of datatype sorts using unresolved sorts. The names of
+   * the datatype declarations in dtypedecls must be distinct.
+   *
+   * This method is called when the DatatypeDecl objects dtypedecls have
+   * been built using "unresolved" sorts.
+   *
+   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * dtypedecls. In particular, it must have the same name as exactly one
+   * datatype declaration in dtypedecls.
+   *
+   * When constructing datatypes, unresolved sorts are replaced by the
+   * datatype sort constructed for the datatype declaration it is associated
+   * with.
+   *
+   * @param dtypedecls the datatype declarations from which the sort is
+   *     created
+   * @param unresolvedSorts the list of unresolved sorts
+   * @return the datatype sorts
+   */
+  public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls, Sort[] unresolvedSorts)
+      throws CVCApiException
+  {
+    long[] declPointers = Utils.getPointers(dtypedecls);
+    long[] unresolvedPointers = Utils.getPointers(unresolvedSorts);
+    long[] sortPointers = mkDatatypeSorts(pointer, declPointers, unresolvedPointers);
+    Sort[] sorts = Utils.getSorts(this, sortPointers);
+    return sorts;
+  }
 
-      /**
-       * Create an uninterpreted sort.
-       * @param symbol the name of the sort
-       * @return the uninterpreted sort
-       */
-      Sort mkUninterpretedSort(String symbol)
+  private native long[] mkDatatypeSorts(
+      long pointer, long[] declPointers, long[] unresolvedPointers) throws CVCApiException;
 
-      /**
-       * Create a sort constructor sort.
-       * @param symbol the symbol of the sort
-       * @param arity the arity of the sort
-       * @return the sort constructor sort
-       */
-      Sort mkSortConstructorSort(String symbol, size_t arity)
+  /**
+   * Create function sort.
+   * @param domain the sort of the fuction argument
+   * @param codomain the sort of the function return value
+   * @return the function sort
+   */
+  public Sort mkFunctionSort(Sort domain, Sort codomain)
+  {
+    long sortPointer = mkFunctionSort(pointer, domain.getPointer(), codomain.getPointer());
+    return new Sort(this, sortPointer);
+  }
 
-      /**
-       * Create a tuple sort.
-       * @param sorts of the elements of the tuple
-       * @return the tuple sort
-       */
-      Sort mkTupleSort(std::vector<Sort>& sorts)
+  private native long mkFunctionSort(long pointer, long domainPointer, long codomainPointer);
+
+  /**
+   * Create function sort.
+   * @param sorts the sort of the function arguments
+   * @param codomain the sort of the function return value
+   * @return the function sort
+   */
+  public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
+  {
+    long sortPointer = mkFunctionSort(pointer, Utils.getPointers(sorts), codomain.getPointer());
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkFunctionSort(long pointer, long[] sortPointers, long codomainPointer);
+
+  /**
+   * Create a sort parameter.
+   * @param symbol the name of the sort
+   * @return the sort parameter
+   */
+  public Sort mkParamSort(String symbol)
+  {
+    long sortPointer = mkParamSort(pointer, symbol);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkParamSort(long pointer, String symbol);
+
+  /**
+   * Create a predicate sort.
+   * @param sorts the list of sorts of the predicate
+   * @return the predicate sort
+   */
+  public Sort mkPredicateSort(Sort[] sorts)
+  {
+    long sortPointer = mkPredicateSort(pointer, Utils.getPointers(sorts));
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkPredicateSort(long pointer, long[] sortPointers);
+
+  /**
+   * Create a record sort
+   * @param fields the list of fields of the record
+   * @return the record sort
+   */
+  public Sort mkRecordSort(Pair<String, Sort>[] fields)
+  {
+    long sortPointer = mkRecordSort(pointer, Utils.getPairs(fields));
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkRecordSort(long pointer, Pair<String, Long>[] fields);
+
+  /**
+   * Create a set sort.
+   * @param elemSort the sort of the set elements
+   * @return the set sort
+   */
+  public Sort mkSetSort(Sort elemSort)
+  {
+    long sortPointer = mkSetSort(pointer, elemSort.getPointer());
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkSetSort(long pointer, long elemSortPointer);
+  /**
+   * Create a bag sort.
+   * @param elemSort the sort of the bag elements
+   * @return the bag sort
+   */
+  public Sort mkBagSort(Sort elemSort)
+  {
+    long sortPointer = mkBagSort(pointer, elemSort.getPointer());
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkBagSort(long pointer, long elemSortPointer);
+
+  /**
+   * Create a sequence sort.
+   * @param elemSort the sort of the sequence elements
+   * @return the sequence sort
+   */
+  public Sort mkSequenceSort(Sort elemSort)
+  {
+    long sortPointer = mkSequenceSort(pointer, elemSort.getPointer());
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkSequenceSort(long pointer, long elemSortPointer);
+
+  /**
+   * Create an uninterpreted sort.
+   * @param symbol the name of the sort
+   * @return the uninterpreted sort
+   */
+  public Sort mkUninterpretedSort(String symbol)
+  {
+    long sortPointer = mkUninterpretedSort(pointer, symbol);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUninterpretedSort(long pointer, String symbol);
+
+  /**
+   * Create a sort constructor sort.
+   * @param symbol the symbol of the sort
+   * @param arity the arity of the sort
+   * @return the sort constructor sort
+   */
+  public Sort mkSortConstructorSort(String symbol, int arity)
+  {
+    Utils.validateUnsigned(arity);
+    long sortPointer = mkSortConstructorSort(pointer, symbol, arity);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkSortConstructorSort(long pointer, String symbol, int arity);
+
+  /**
+   * Create a tuple sort.
+   * @param sorts of the elements of the tuple
+   * @return the tuple sort
+   */
+  public Sort mkTupleSort(Sort[] sorts)
 
       /* .................................................................... */
       /* Create Terms                                                         */
@@ -250,282 +387,284 @@ public class Solver implements IPointer
        * @return the Term
        */
       public Term mkTerm(Kind kind)
-      {
-        long [] childPointers = Utils.getPointers(children);
-        long termPointer = mkTerm(pointer, king.getValue());
-        return new Term(this, termPointer);
-      }
+  {
+    long[] childPointers = Utils.getPointers(children);
+    long termPointer = mkTerm(pointer, king.getValue());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long kindValue);
+  private native long mkTerm(long pointer, long kindValue);
 
-      /**
-       * Create a unary term of given kind.
-       * @param kind the kind of the term
-       * @param child the child of the term
-       * @return the Term
-       */
-      public Term mkTerm(Kind kind, Term child)
-      {
-        long [] childPointers = Utils.getPointers(children);
-        long termPointer = mkTerm(pointer, king.getValue(), child.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a unary term of given kind.
+   * @param kind the kind of the term
+   * @param child the child of the term
+   * @return the Term
+   */
+  public Term mkTerm(Kind kind, Term child)
+  {
+    long[] childPointers = Utils.getPointers(children);
+    long termPointer = mkTerm(pointer, king.getValue(), child.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long kindValue, long childPointer);
+  private native long mkTerm(long pointer, long kindValue, long childPointer);
 
-      /**
-       * Create binary term of given kind.
-       * @param kind the kind of the term
-       * @param child1 the first child of the term
-       * @param child2 the second child of the term
-       * @return the Term
-       */
-      public Term mkTerm(Kind kind, Term child1, Term child2)
-      {
-        long [] childPointers = Utils.getPointers(children);
-        long termPointer = mkTerm(pointer, king.getValue(), child1.getPointer(), child2.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create binary term of given kind.
+   * @param kind the kind of the term
+   * @param child1 the first child of the term
+   * @param child2 the second child of the term
+   * @return the Term
+   */
+  public Term mkTerm(Kind kind, Term child1, Term child2)
+  {
+    long[] childPointers = Utils.getPointers(children);
+    long termPointer = mkTerm(pointer, king.getValue(), child1.getPointer(), child2.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long kindValue, long child1Pointer, long child2Pointer);
+  private native long mkTerm(long pointer, long kindValue, long child1Pointer, long child2Pointer);
 
-      /**
-       * Create ternary term of given kind.
-       * @param kind the kind of the term
-       * @param child1 the first child of the term
-       * @param child2 the second child of the term
-       * @param child3 the third child of the term
-       * @return the Term
-       */
-      public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
-      {
-        long [] childPointers = Utils.getPointers(children);
-        long termPointer = mkTerm(pointer, king.getValue(), child1.getPointer(), child2.getPointer(), child2.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create ternary term of given kind.
+   * @param kind the kind of the term
+   * @param child1 the first child of the term
+   * @param child2 the second child of the term
+   * @param child3 the third child of the term
+   * @return the Term
+   */
+  public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
+  {
+    long[] childPointers = Utils.getPointers(children);
+    long termPointer = mkTerm(
+        pointer, king.getValue(), child1.getPointer(), child2.getPointer(), child2.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
-      /**
-       * Create n-ary term of given kind.
-       * @param kind the kind of the term
-       * @param children the children of the term
-       * @return the Term
-       */
-      public Term mkTerm(Kind kind, Term[] children)
-      {
-        long [] childPointers = Utils.getPointers(children);
-        long termPointer = mkTerm(pointer, king.getValue(), childPointers);
-        return new Term(this, termPointer);
-      }
+  private native long mkTerm(
+      long pointer, long kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
+  /**
+   * Create n-ary term of given kind.
+   * @param kind the kind of the term
+   * @param children the children of the term
+   * @return the Term
+   */
+  public Term mkTerm(Kind kind, Term[] children)
+  {
+    long[] childPointers = Utils.getPointers(children);
+    long termPointer = mkTerm(pointer, king.getValue(), childPointers);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long kindValue, long [] childrenPointers);
+  private native long mkTerm(long pointer, long kindValue, long[] childrenPointers);
 
-      /**
-       * Create nullary term of given kind from a given operator.
-       * Create operators with mkOp().
-       * @param op the operator
-       * @return the Term
-       */
-      public Term mkTerm(Op op)
-      {
-        long termPointer = mkTerm(pointer, op.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create nullary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param op the operator
+   * @return the Term
+   */
+  public Term mkTerm(Op op)
+  {
+    long termPointer = mkTerm(pointer, op.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long opPointer);
-      /**
-       * Create unary term of given kind from a given operator.
-       * Create operators with mkOp().
-       * @param op the operator
-       * @param child the child of the term
-       * @return the Term
-       */
-      public Term mkTerm(Op op, Term child)
-      {
-        long termPointer = mkTerm(pointer, op.getPointer(), child.getPointer());
-        return new Term(this, termPointer);
-      }
+  private native long mkTerm(long pointer, long opPointer);
+  /**
+   * Create unary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param op the operator
+   * @param child the child of the term
+   * @return the Term
+   */
+  public Term mkTerm(Op op, Term child)
+  {
+    long termPointer = mkTerm(pointer, op.getPointer(), child.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long opPointer, long childPointer);
+  private native long mkTerm(long pointer, long opPointer, long childPointer);
 
-      /**
-       * Create binary term of given kind from a given operator.
-       * Create operators with mkOp().
-       * @param op the operator
-       * @param child1 the first child of the term
-       * @param child2 the second child of the term
-       * @return the Term
-       */
-      public Term mkTerm(Op op, Term child1, Term child2)
-      {
-        long termPointer = mkTerm(pointer, op.getPointer(), child1.getPointer(), child2.getPointer());
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create binary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param op the operator
+   * @param child1 the first child of the term
+   * @param child2 the second child of the term
+   * @return the Term
+   */
+  public Term mkTerm(Op op, Term child1, Term child2)
+  {
+    long termPointer = mkTerm(pointer, op.getPointer(), child1.getPointer(), child2.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long opPointer, long child1Pointer,
-      long child2Pointer);
-      /**
-       * Create ternary term of given kind from a given operator.
-       * Create operators with mkOp().
-       * @param op the operator
-       * @param child1 the first child of the term
-       * @param child2 the second child of the term
-       * @param child3 the third child of the term
-       * @return the Term
-       */
-      public Term mkTerm(Op op, Term child1, Term child2, Term child3)
-      {
-        long termPointer = mkTerm(op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
-        return new Term(this, termPointer);
-      }
+  private native long mkTerm(long pointer, long opPointer, long child1Pointer, long child2Pointer);
+  /**
+   * Create ternary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param op the operator
+   * @param child1 the first child of the term
+   * @param child2 the second child of the term
+   * @param child3 the third child of the term
+   * @return the Term
+   */
+  public Term mkTerm(Op op, Term child1, Term child2, Term child3)
+  {
+    long termPointer =
+        mkTerm(op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long opPointer, long child1Pointer,
-      long child2Pointer, long child3Pointer);
+  private native long mkTerm(
+      long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
 
-      /**
-       * Create n-ary term of given kind from a given operator.
-       * Create operators with mkOp().
-       * @param op the operator
-       * @param children the children of the term
-       * @return the Term
-       */
-      public Term mkTerm(Op op, Term[] children)
-      {
-        long [] childPointers = Utils.getPointers(children);
-        long termPointer = mkTerm(pointer, op.getPointer(), childPointers);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create n-ary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param op the operator
+   * @param children the children of the term
+   * @return the Term
+   */
+  public Term mkTerm(Op op, Term[] children)
+  {
+    long[] childPointers = Utils.getPointers(children);
+    long termPointer = mkTerm(pointer, op.getPointer(), childPointers);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTerm(long pointer, long opPointer, long [] childrenPointers);
+  private native long mkTerm(long pointer, long opPointer, long[] childrenPointers);
 
-      /**
-       * Create a tuple term. Terms are automatically converted if sorts are
-       * compatible.
-       * @param sorts The sorts of the elements in the tuple
-       * @param terms The elements in the tuple
-       * @return the tuple Term
-       */
-      public Term mkTuple(Sort[] sorts, Term[] terms)
-      {
-        long [] sortPointers = Utils.getPointers(sorts);
-        long [] termPointers = Utils.getPointers(terms);
-        long termPointer = mkTuple(pointer, sortPointer, termPointers);
-        return new Term(this, termPointer);
-      }
+  /**
+   * Create a tuple term. Terms are automatically converted if sorts are
+   * compatible.
+   * @param sorts The sorts of the elements in the tuple
+   * @param terms The elements in the tuple
+   * @return the tuple Term
+   */
+  public Term mkTuple(Sort[] sorts, Term[] terms)
+  {
+    long[] sortPointers = Utils.getPointers(sorts);
+    long[] termPointers = Utils.getPointers(terms);
+    long termPointer = mkTuple(pointer, sortPointer, termPointers);
+    return new Term(this, termPointer);
+  }
 
-      private native long mkTuple(long pointer, long[] sortPointers, long [] termPointers);
+  private native long mkTuple(long pointer, long[] sortPointers, long[] termPointers);
 
-      /* .................................................................... */
-      /* Create Operators                                                     */
-      /* .................................................................... */
+  /* .................................................................... */
+  /* Create Operators                                                     */
+  /* .................................................................... */
 
-      /**
-       * Create an operator for a builtin Kind
-       * The Kind may not be the Kind for an indexed operator
-       *   (e.g. BITVECTOR_EXTRACT)
-       * Note: in this case, the Op simply wraps the Kind.
-       * The Kind can be used in mkTerm directly without
-       *   creating an op first.
-       * @param kind the kind to wrap
-       */
-      public Op mkOp(Kind kind)
-      {
-        long opPointer = mkOp(pointer, kind.getValue());
-        return new Op(this, opPointer);
-      }
+  /**
+   * Create an operator for a builtin Kind
+   * The Kind may not be the Kind for an indexed operator
+   *   (e.g. BITVECTOR_EXTRACT)
+   * Note: in this case, the Op simply wraps the Kind.
+   * The Kind can be used in mkTerm directly without
+   *   creating an op first.
+   * @param kind the kind to wrap
+   */
+  public Op mkOp(Kind kind)
+  {
+    long opPointer = mkOp(pointer, kind.getValue());
+    return new Op(this, opPointer);
+  }
 
-      private native int[] mkOp(long pointer, int kindValue);
-      /**
-       * Create operator of kind:
-       *   - RECORD_UPDATE
-       *   - DIVISIBLE (to support arbitrary precision integers)
-       * See enum Kind for a description of the parameters.
-       * @param kind the kind of the operator
-       * @param arg the string argument to this operator
-       */
-      public Op mkOp(Kind kind, String arg)
-      {
-        long opPointer = mkOp(pointer, kind.getValue(), arg);
-        return new Op(this, opPointer);
-      }
+  private native int[] mkOp(long pointer, int kindValue);
+  /**
+   * Create operator of kind:
+   *   - RECORD_UPDATE
+   *   - DIVISIBLE (to support arbitrary precision integers)
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param arg the string argument to this operator
+   */
+  public Op mkOp(Kind kind, String arg)
+  {
+    long opPointer = mkOp(pointer, kind.getValue(), arg);
+    return new Op(this, opPointer);
+  }
 
-      private native int[] mkOp(long pointer, int kindValue , String arg);
+  private native int[] mkOp(long pointer, int kindValue, String arg);
 
-      /**
-       * Create operator of kind:
-       *   - DIVISIBLE
-       *   - BITVECTOR_REPEAT
-       *   - BITVECTOR_ZERO_EXTEND
-       *   - BITVECTOR_SIGN_EXTEND
-       *   - BITVECTOR_ROTATE_LEFT
-       *   - BITVECTOR_ROTATE_RIGHT
-       *   - INT_TO_BITVECTOR
-       *   - FLOATINGPOINT_TO_UBV
-       *   - FLOATINGPOINT_TO_UBV_TOTAL
-       *   - FLOATINGPOINT_TO_SBV
-       *   - FLOATINGPOINT_TO_SBV_TOTAL
-       *   - TUPLE_UPDATE
-       * See enum Kind for a description of the parameters.
-       * @param kind the kind of the operator
-       * @param arg the unsigned int argument to this operator
-       */
-      public Op mkOp(Kind kind, int arg)
-      {
-        Utils.validateUnsigned(arg, "arg");
-        long opPointer = mkOp(pointer, kind.getValue(), arg);
-        return new Op(this, opPointer);
-      }
+  /**
+   * Create operator of kind:
+   *   - DIVISIBLE
+   *   - BITVECTOR_REPEAT
+   *   - BITVECTOR_ZERO_EXTEND
+   *   - BITVECTOR_SIGN_EXTEND
+   *   - BITVECTOR_ROTATE_LEFT
+   *   - BITVECTOR_ROTATE_RIGHT
+   *   - INT_TO_BITVECTOR
+   *   - FLOATINGPOINT_TO_UBV
+   *   - FLOATINGPOINT_TO_UBV_TOTAL
+   *   - FLOATINGPOINT_TO_SBV
+   *   - FLOATINGPOINT_TO_SBV_TOTAL
+   *   - TUPLE_UPDATE
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param arg the unsigned int argument to this operator
+   */
+  public Op mkOp(Kind kind, int arg)
+  {
+    Utils.validateUnsigned(arg, "arg");
+    long opPointer = mkOp(pointer, kind.getValue(), arg);
+    return new Op(this, opPointer);
+  }
 
-      private native int[] mkOp(long pointer, int kindValue , int arg);
+  private native int[] mkOp(long pointer, int kindValue, int arg);
 
-      /**
-       * Create operator of Kind:
-       *   - BITVECTOR_EXTRACT
-       *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-       *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
-       *   - FLOATINGPOINT_TO_FP_REAL
-       *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-       *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
-       *   - FLOATINGPOINT_TO_FP_GENERIC
-       * See enum Kind for a description of the parameters.
-       * @param kind the kind of the operator
-       * @param arg1 the first unsigned int argument to this operator
-       * @param arg2 the second unsigned int argument to this operator
-       */
-      public Op mkOp(Kind kind, int arg1, int arg2)
-      {
-        Utils.validateUnsigned(arg1, "arg1");
-        Utils.validateUnsigned(arg2, "arg2");
-        long opPointer = mkOp(pointer, kind.getValue(), arg1, arg2);
-        return new Op(this, opPointer);
-      }
+  /**
+   * Create operator of Kind:
+   *   - BITVECTOR_EXTRACT
+   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
+   *   - FLOATINGPOINT_TO_FP_REAL
+   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_GENERIC
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param arg1 the first unsigned int argument to this operator
+   * @param arg2 the second unsigned int argument to this operator
+   */
+  public Op mkOp(Kind kind, int arg1, int arg2)
+  {
+    Utils.validateUnsigned(arg1, "arg1");
+    Utils.validateUnsigned(arg2, "arg2");
+    long opPointer = mkOp(pointer, kind.getValue(), arg1, arg2);
+    return new Op(this, opPointer);
+  }
 
-      private native int[] mkOp(long pointer, int kindValue , int arg1, int arg2);
+  private native int[] mkOp(long pointer, int kindValue, int arg1, int arg2);
 
-      /**
-       * Create operator of Kind:
-       *   - TUPLE_PROJECT
-       * See enum Kind for a description of the parameters.
-       * @param kind the kind of the operator
-       * @param args the arguments (indices) of the operator
-       */
-      public Op mkOp(Kind kind, int [] args)
-      {
-        Utils.validateUnsigned(args, "args");
-        long opPointer = mkOp(pointer, kind.getValue(), args);
-        return new Op(this, opPointer);
-      }
+  /**
+   * Create operator of Kind:
+   *   - TUPLE_PROJECT
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param args the arguments (indices) of the operator
+   */
+  public Op mkOp(Kind kind, int[] args)
+  {
+    Utils.validateUnsigned(args, "args");
+    long opPointer = mkOp(pointer, kind.getValue(), args);
+    return new Op(this, opPointer);
+  }
 
-      private native int[] mkOp(long pointer, int kindValue , int[] args);
+  private native int[] mkOp(long pointer, int kindValue, int[] args);
 
-      /* .................................................................... */
-      /* Create Constants                                                     */
-      /* .................................................................... */
+  /* .................................................................... */
+  /* Create Constants                                                     */
+  /* .................................................................... */
 
-      /**
-       * Create a Boolean true constant.
-       * @return the true constant
-       */
+  /**
+   * Create a Boolean true constant.
+   * @return the true constant
+   */
   public Term mkTrue()
   {
     long termPointer = mkTrue(pointer);
@@ -2210,7 +2349,7 @@ public class Solver implements IPointer
    */
   public void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post)
   {
-        addSygusConstraint(pointer, inv.getPointer(), pre.getPointer()), trans.getPointer(), post.getPointer());
+    addSygusConstraint(pointer, inv.getPointer(), pre.getPointer()), trans.getPointer(), post.getPointer());
   }
 
   private native void addSygusConstraint(
