@@ -496,21 +496,37 @@ public class Solver implements IPointer
        * @param sort the sort of the set elements.
        * @return the empty set constant
        */
-      Term mkEmptySet(Sort sort)
+      public Term mkEmptySet(Sort sort)
 
       /**
        * Create a constant representing an empty bag of the given sort.
        * @param sort the sort of the bag elements.
        * @return the empty bag constant
        */
-      Term mkEmptyBag(Sort sort)
+      public Term mkEmptyBag(Sort sort)
 
       /**
        * Create a separation logic nil term.
        * @param sort the sort of the nil term
        * @return the separation logic nil term
        */
-      Term mkSepNil(Sort sort)
+   public Term mkSepNil(Sort sort)
+   {
+        long termPointer = mkSepNil(pointer, sort.getPointer());
+        return new Term(this, termPointer);
+      }
+
+      private native long mkSepNil(long pointer, long sortPointer);
+
+    /**
+     * Create a String constant.
+     * @param s the string this constant represents
+     * @return the String constant
+     */
+    public Term mkString(String s)
+    {
+      return mkString(s, false);
+    }
 
       /**
        * Create a String constant.
@@ -520,7 +536,14 @@ public class Solver implements IPointer
        * be converted to the corresponding character
        * @return the String constant
        */
-      public Term mkString(String s, bool useEscSequences = false)
+      public Term mkString(String s, bool useEscSequences)
+      {
+        // TODO: review unicode
+        long termPointer = mkString(pointer, s, useEscSequences);
+        return new Term(this, termPointer);
+      }
+
+      private native long mkString(long pointer, String s, bool useEscSequences);
 
       /**
        * Create a String constant.
