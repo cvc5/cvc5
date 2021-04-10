@@ -56,7 +56,7 @@ public class Solver implements IPointer
     /* Solver Configuration                                                 */
     /* .................................................................... */
   
-    bool supportsFloatingPoint()
+  public boolean supportsFloatingPoint()
   
     /* .................................................................... */
     /* Sorts Handling                                                       */
@@ -103,7 +103,7 @@ public class Solver implements IPointer
      * @param elemSort the array element sort
      * @return the array sort
      */
-    Sort mkArraySort(Sort& indexSort, const Sort& elemSort)
+    Sort mkArraySort(Sort indexSort, Sort& elemSort)
   
     /**
      * Create a bit-vector sort.
@@ -164,7 +164,7 @@ public class Solver implements IPointer
      * @param codomain the sort of the function return value
      * @return the function sort
      */
-    Sort mkFunctionSort(Sort& domain, const Sort& codomain)
+    Sort mkFunctionSort(Sort domain, Sort& codomain)
   
     /**
      * Create function sort.
@@ -173,7 +173,7 @@ public class Solver implements IPointer
      * @return the function sort
      */
     Sort mkFunctionSort(std::vector<Sort>& sorts,
-                        const Sort& codomain)
+                        Sort& codomain)
   
     /**
      * Create a sort parameter.
@@ -202,21 +202,21 @@ public class Solver implements IPointer
      * @param elemSort the sort of the set elements
      * @return the set sort
      */
-    Sort mkSetSort(Sort& elemSort)
+    Sort mkSetSort(Sort elemSort)
   
     /**
      * Create a bag sort.
      * @param elemSort the sort of the bag elements
      * @return the bag sort
      */
-    Sort mkBagSort(Sort& elemSort)
+    Sort mkBagSort(Sort elemSort)
   
     /**
      * Create a sequence sort.
      * @param elemSort the sort of the sequence elements
      * @return the sequence sort
      */
-    Sort mkSequenceSort(Sort& elemSort)
+    Sort mkSequenceSort(Sort elemSort)
   
     /**
      * Create an uninterpreted sort.
@@ -257,7 +257,7 @@ public class Solver implements IPointer
      * @param child the child of the term
      * @return the Term
      */
-    Term mkTerm(Kind kind, const Term& child)
+    Term mkTerm(Kind kind, const Term child)
   
     /**
      * Create binary term of given kind.
@@ -266,7 +266,7 @@ public class Solver implements IPointer
      * @param child2 the second child of the term
      * @return the Term
      */
-    Term mkTerm(Kind kind, const Term& child1, const Term& child2)
+    Term mkTerm(Kind kind, const Term child1, const Term child2)
   
     /**
      * Create ternary term of given kind.
@@ -277,9 +277,9 @@ public class Solver implements IPointer
      * @return the Term
      */
     Term mkTerm(Kind kind,
-                const Term& child1,
-                const Term& child2,
-                const Term& child3)
+                const Term child1,
+                const Term child2,
+                const Term child3)
   
     /**
      * Create n-ary term of given kind.
@@ -304,7 +304,7 @@ public class Solver implements IPointer
      * @param child the child of the term
      * @return the Term
      */
-    Term mkTerm(Op& op, const Term& child)
+    Term mkTerm(Op& op, const Term child)
   
     /**
      * Create binary term of given kind from a given operator.
@@ -314,7 +314,7 @@ public class Solver implements IPointer
      * @param child2 the second child of the term
      * @return the Term
      */
-    Term mkTerm(Op& op, const Term& child1, const Term& child2)
+    Term mkTerm(Op& op, const Term child1, const Term child2)
   
     /**
      * Create ternary term of given kind from a given operator.
@@ -326,9 +326,9 @@ public class Solver implements IPointer
      * @return the Term
      */
     Term mkTerm(Op& op,
-                const Term& child1,
-                const Term& child2,
-                const Term& child3)
+                const Term child1,
+                const Term child2,
+                const Term child3)
   
     /**
      * Create n-ary term of given kind from a given operator.
@@ -502,21 +502,21 @@ public class Solver implements IPointer
      * @param sort the sort of the set elements.
      * @return the empty set constant
      */
-    Term mkEmptySet(Sort& sort)
+    Term mkEmptySet(Sort sort)
   
     /**
      * Create a constant representing an empty bag of the given sort.
      * @param sort the sort of the bag elements.
      * @return the empty bag constant
      */
-    Term mkEmptyBag(Sort& sort)
+    Term mkEmptyBag(Sort sort)
   
     /**
      * Create a separation logic nil term.
      * @param sort the sort of the nil term
      * @return the separation logic nil term
      */
-    Term mkSepNil(Sort& sort)
+    Term mkSepNil(Sort sort)
   
     /**
      * Create a String constant.
@@ -554,14 +554,14 @@ public class Solver implements IPointer
      * @param sort The element sort of the sequence.
      * @return the empty sequence with given element sort.
      */
-    Term mkEmptySequence(Sort& sort)
+    Term mkEmptySequence(Sort sort)
   
     /**
      * Create a universe set of the given sort.
      * @param sort the sort of the set elements
      * @return the universe set constant
      */
-    Term mkUniverseSet(Sort& sort)
+    Term mkUniverseSet(Sort sort)
   
     /**
      * Create a bit-vector constant of given size and value.
@@ -603,7 +603,7 @@ public class Solver implements IPointer
      * @param val the constant value to store (must match the sort's element sort)
      * @return the constant array term
      */
-    Term mkConstArray(Sort& sort, const Term& val)
+    Term mkConstArray(Sort sort, const Term val)
   
     /**
      * Create a positive infinity floating-point constant. Requires CVC4 to be
@@ -661,7 +661,7 @@ public class Solver implements IPointer
      * @param sort Sort of the constant
      * @param index Index of the constant
      */
-    Term mkUninterpretedConst(Sort& sort, int32_t index)
+    Term mkUninterpretedConst(Sort sort, int32_t index)
   
     /**
      * Create an abstract value constant.
@@ -700,7 +700,7 @@ public class Solver implements IPointer
      * @param symbol the name of the constant
      * @return the first-order constant
      */
-    Term mkConst(Sort& sort, String  symbol)
+    Term mkConst(Sort sort, String  symbol)
     /**
      * Create (first-order) constant (0-arity function symbol), with a default
      * symbol name.
@@ -708,7 +708,7 @@ public class Solver implements IPointer
      * @param sort the sort of the constant
      * @return the first-order constant
      */
-    Term mkConst(Sort& sort)
+    Term mkConst(Sort sort)
   
     /**
      * Create a bound variable to be used in a binder (i.e. a quantifier, a
@@ -717,7 +717,7 @@ public class Solver implements IPointer
      * @param symbol the name of the variable
      * @return the variable
      */
-    Term mkVar(Sort& sort, String  symbol = std::string())
+    Term mkVar(Sort sort, String  symbol = std::string())
   
     /* .................................................................... */
     /* Create datatype constructor declarations                             */
@@ -736,7 +736,7 @@ public class Solver implements IPointer
      * @return the DatatypeDecl
      */
     DatatypeDecl mkDatatypeDecl(String  name,
-                                bool isCoDatatype = false);
+                              public boolean isCoDatatype = false);
   
     /**
      * Create a datatype declaration.
@@ -748,7 +748,7 @@ public class Solver implements IPointer
      */
     DatatypeDecl mkDatatypeDecl(String  name,
                                 Sort param,
-                                bool isCoDatatype = false);
+                              public boolean isCoDatatype = false);
   
     /**
      * Create a datatype declaration.
@@ -760,7 +760,7 @@ public class Solver implements IPointer
      */
     DatatypeDecl mkDatatypeDecl(String  name,
                                 const std::vector<Sort>& params,
-                                bool isCoDatatype = false);
+                              public boolean isCoDatatype = false);
   
     /* .................................................................... */
     /* Formula Handling                                                     */
@@ -774,7 +774,7 @@ public class Solver implements IPointer
      * @param t the formula to simplify
      * @return the simplified formula
      */
-    Term simplify(Term& t);
+    Term simplify(Term t);
   
     /**
      * Assert a formula.
@@ -784,7 +784,7 @@ public class Solver implements IPointer
      * \endverbatim
      * @param term the formula to assert
      */
-    void assertFormula(Term& term)
+    void assertFormula(Term term)
   
     /**
      * Check satisfiability.
@@ -805,7 +805,7 @@ public class Solver implements IPointer
      * @param assumption the formula to assume
      * @return the result of the satisfiability check.
      */
-    Result checkSatAssuming(Term& assumption)
+    Result checkSatAssuming(Term assumption)
   
     /**
      * Check satisfiability assuming the given formulas.
@@ -823,7 +823,7 @@ public class Solver implements IPointer
      * @param term the formula to check entailment for
      * @return the result of the entailment check.
      */
-    Result checkEntailed(Term& term)
+    Result checkEntailed(Term term)
   
     /**
      * Check entailment of the given set of given formulas w.r.t. the current
@@ -859,7 +859,7 @@ public class Solver implements IPointer
      */
     Term declareFun(String  symbol,
                     const std::vector<Sort>& sorts,
-                    const Sort& sort)
+                    Sort& sort)
   
     /**
      * Declare uninterpreted sort.
@@ -889,9 +889,9 @@ public class Solver implements IPointer
      */
     Term defineFun(String  symbol,
                    Term[] bound_vars,
-                   const Sort& sort,
-                   const Term& term,
-                   bool global = false)
+                   Sort& sort,
+                   const Term term,
+                 public boolean global = false)
     /**
      * Define n-ary function.
      * SMT-LIB:
@@ -906,10 +906,10 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    Term defineFun(Term& fun,
+    Term defineFun(Term fun,
                    Term[] bound_vars,
-                   const Term& term,
-                   bool global = false)
+                   const Term term,
+                 public boolean global = false)
   
     /**
      * Define recursive function.
@@ -927,9 +927,9 @@ public class Solver implements IPointer
      */
     Term defineFunRec(String  symbol,
                       Term[] bound_vars,
-                      const Sort& sort,
-                      const Term& term,
-                      bool global = false)
+                      Sort& sort,
+                      const Term term,
+                    public boolean global = false)
   
     /**
      * Define recursive function.
@@ -945,10 +945,10 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    Term defineFunRec(Term& fun,
+    Term defineFunRec(Term fun,
                       Term[] bound_vars,
-                      const Term& term,
-                      bool global = false)
+                      const Term term,
+                    public boolean global = false)
   
     /**
      * Define recursive functions.
@@ -964,10 +964,18 @@ public class Solver implements IPointer
      *               when popping the context)
      * @return the function
      */
-    void defineFunsRec(Term[] funs,
-                       const std::vector<std::vector<Term>>& bound_vars,
+    public void defineFunsRec(Term[] funs,
+                       Term[] [] bound_vars,
                        Term[] terms,
-                       bool global = false)
+                     public boolean global = false)
+    {
+      long [] funPointers = Utils.getPointers(funs);
+      long [] [] boundVarPointers = new long []
+      for(int i = 0; i < bound_vars.length; i++)
+      {
+
+      }
+    }
   
     /**
      * Echo a given string to the given output stream.
@@ -978,7 +986,7 @@ public class Solver implements IPointer
      * @param out the output stream
      * @param str the string to echo
      */
-    void echo(std::ostream& out, String  str)
+    // TODO: void echo(std::ostream& out, String  str)
   
     /**
      * Get the list of asserted formulas.
@@ -988,14 +996,25 @@ public class Solver implements IPointer
      * \endverbatim
      * @return the list of asserted formulas
      */
-    Term []getAssertions()
+    public Term []getAssertions()
+     {
+        long retPointers = getAssertions(pointer);
+        return Utils.getTerms(retPointers);
+     }
+
+     private native long[] getAssertions(long pointer);
   
     /**
      * Get info from the solver.
      * SMT-LIB: \verbatim( get-info <info_flag> )\verbatim
      * @return the info
      */
-    std::string getInfo(String  flag)
+    public String getInfo(String  flag)
+    {
+          return getInfo(pointer, flag);
+        }
+
+        private native String getInfo(long pointer, String flag);
   
     /**
      * Get the value of a given option.
@@ -1006,7 +1025,12 @@ public class Solver implements IPointer
      * @param option the option for which the value is queried
      * @return a string representation of the option value
      */
-    std::string getOption(String  option)
+    public String getOption(String  option)
+    {
+      return getOption(pointer, option);
+    }
+
+    private native String getOption(long pointer, String option);
   
     /**
      * Get the set of unsat ("failed") assumptions.
@@ -1016,8 +1040,14 @@ public class Solver implements IPointer
      * \endverbatim
      * Requires to enable option 'produce-unsat-assumptions'.
      * @return the set of unsat assumptions.
-     */
-    Term []getUnsatAssumptions()
+     */    
+    public Term []getUnsatAssumptions()
+        {
+          long retPointers = getUnsatAssumptions(pointer);
+          return Utils.getTerms(retPointers);
+        }
+
+        private native long[] getUnsatAssumptions(long pointer);
   
     /**
      * Get the unsatisfiable core.
@@ -1028,7 +1058,13 @@ public class Solver implements IPointer
      * Requires to enable option 'produce-unsat-cores'.
      * @return a set of terms representing the unsatisfiable core
      */
-    Term []getUnsatCore()
+    public Term []getUnsatCore()
+    {
+      long retPointers = getUnsatCore(pointer);
+      return Utils.getTerms(retPointers);
+    }
+
+    private native long[] getUnsatCore(long pointer);
   
     /**
      * Get the value of the given term.
@@ -1039,7 +1075,14 @@ public class Solver implements IPointer
      * @param term the term for which the value is queried
      * @return the value of the given term
      */
-    Term getValue(Term& term)
+    public Term getValue(Term term)
+    {
+      long termPointer = getValue(pointer, term.getPointer());
+      return new Term(solver, termPointer);
+    }
+
+    private native long getValue(long pointer, long termPointer);
+
     /**
      * Get the values of the given terms.
      * SMT-LIB:
@@ -1049,7 +1092,14 @@ public class Solver implements IPointer
      * @param terms the terms for which the value is queried
      * @return the values of the given terms
      */
-    Term []getValue(Term[] terms)
+    public Term []getValue(Term[] terms)
+    {
+      long [] pointers = Utils.getPointers(terms);
+      long [] retPointers = getValue(pointer, pointers);
+      return Utils.getTerms(solver, retPointers);
+    }
+
+    private native long[] getValue(long pointer, long [] termPointers);
   
     /**
      * Do quantifier elimination.
@@ -1068,7 +1118,12 @@ public class Solver implements IPointer
      *   - ret is quantifier-free formula containing only free variables in
      *     y1...yn.
      */
-    Term getQuantifierElimination(Term& q)
+    public Term getQuantifierElimination(Term q)
+    {
+      long termPointer = getQuantifierElimination(q.getPointer());
+    }
+
+    private native long getQuantifierElimination(long pointer, long qPointer);
   
     /**
      * Do partial quantifier elimination, which can be used for incrementally
@@ -1097,7 +1152,13 @@ public class Solver implements IPointer
      *     where ret^Q_i is the same as above. In either case, we have
      *     that ret^Q_j will eventually be true or false, for some finite j.
      */
-    Term getQuantifierEliminationDisjunct(Term& q)
+    public Term getQuantifierEliminationDisjunct(Term q)
+    {
+      long termPointer = getQuantifierEliminationDisjunct(pointer, qPointer);
+      return new Pointer(solver, termPointer);
+    }
+
+    private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
   
     /**
      * When using separation logic, this sets the location sort and the
@@ -1106,20 +1167,42 @@ public class Solver implements IPointer
      * @param locSort The location sort of the heap
      * @param dataSort The data sort of the heap
      */
-    void declareSeparationHeap(Sort& locSort, const Sort& dataSort)
+    public void declareSeparationHeap(Sort locSort, Sort dataSort)
+    {
+      declareSeparationHeap(pointer, locSort.getPointer(), dataSort.getPointer());
+    }
+
+    private native void declareSeparationHeap(pointer, locSortPointer, dataSortPointer);
   
     /**
      * When using separation logic, obtain the term for the heap.
      * @return The term for the heap
      */
-    Term getSeparationHeap()
+    public Term getSeparationHeap()
+    {
+      long termPointer = getSeparationHeap(pointer);
+      return new Term(solver, termPointer);
+    }
+    
+    private native long getSeparationHeap(long pointer);
   
     /**
      * When using separation logic, obtain the term for nil.
      * @return The term for nil
      */
-    Term getSeparationNilTerm()
-  
+    public Term getSeparationNilTerm()
+   /**
+       * Pop a level from the assertion stack.
+       * SMT-LIB:
+       * \verbatim
+       * ( pop <numeral> )
+       * \endverbatim
+       */
+    public void pop()
+    {
+      pop(1);
+    }
+
     /**
      * Pop (a) level(s) from the assertion stack.
      * SMT-LIB:
@@ -1128,7 +1211,16 @@ public class Solver implements IPointer
      * \endverbatim
      * @param nscopes the number of levels to pop
      */
-    void pop(uint32_t nscopes = 1)
+    public void pop(uint32_t nscopes)
+    {
+       if (nscopes < 0)
+      {
+        throw new CVC5ApiException("Expected nscopes '" + nscopes + "' to be non negative.");
+      }
+      pop(pointer, nscopes);
+    }
+
+    private native void pop(long pointer, int nscopes);
   
     /**
      * Get an interpolant
@@ -1142,8 +1234,13 @@ public class Solver implements IPointer
      *        current set of assertions and B is given in the input by conj.
      * @return true if it gets I successfully, false otherwise.
      */
-    bool getInterpolant(Term& conj, Term& output)
-  
+  public boolean getInterpolant(Term conj, Term output)
+  {
+      return getInterpolant(pointer, conj.getPointer(), output.getPointer);
+    }
+
+    private native boolean getInterpolant(long pointer, long conjPointer, long outputPointer);
+
     /**
      * Get an interpolant
      * SMT-LIB:
@@ -1157,7 +1254,12 @@ public class Solver implements IPointer
      *        current set of assertions and B is given in the input by conj.
      * @return true if it gets I successfully, false otherwise.
      */
-    bool getInterpolant(Term& conj, Grammar& grammar, Term& output)
+  public boolean getInterpolant(Term conj, Grammar grammar, Term output)
+  {
+    return getInterpolant(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer);
+  }
+
+  private native boolean getInterpolant(long pointer, long conjPointer, long grammarPointer, long outputPointer);
   
     /**
      * Get an abduct.
@@ -1172,8 +1274,12 @@ public class Solver implements IPointer
      *        given in the input by conj
      * @return true if it gets C successfully, false otherwise
      */
-    bool getAbduct(Term& conj, Term& output)
-  
+  public boolean getAbduct(Term conj, Term output)
+   {
+    return getAbduct(pointer, conj.getPointer(), output.getPointer);
+   }
+
+    private native boolean getAbduct(long pointer, long conjPointer, long outputPointer);
     /**
      * Get an abduct.
      * SMT-LIB:
@@ -1188,7 +1294,12 @@ public class Solver implements IPointer
      *        given in the input by conj
      * @return true if it gets C successfully, false otherwise
      */
-    bool getAbduct(Term& conj, Grammar& grammar, Term& output)
+   public boolean getAbduct(Term conj, Grammar grammar, Term output)
+   {
+      return getAbduct(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer);
+   }
+
+   private native boolean getAbduct(long pointer, long conjPointer, long grammarPointer, long outputPointer);
   
     /**
      * Block the current model. Can be called only if immediately preceded by a
@@ -1200,7 +1311,12 @@ public class Solver implements IPointer
      * Requires enabling 'produce-models' option and setting 'block-models' option
      * to a mode other than "none".
      */
-    void blockModel()
+    public void blockModel()
+    {
+      blockModel(pointer);
+    }
+
+    private native void blockModel(long pointer);
   
     /**
      * Block the current model values of (at least) the values in terms. Can be
@@ -1212,14 +1328,32 @@ public class Solver implements IPointer
      * Requires enabling 'produce-models' option and setting 'block-models' option
      * to a mode other than "none".
      */
-    void blockModelValues(Term[] terms)
+    public void blockModelValues(Term[] terms)
+    {
+      long pointers = Utils.getPointers(terms);
+      blockModelValues(pointer, pointers);
+    }
+
+    private native void blockModelValues(long pointer, long[] termPointers);
   
     /**
      * Print all instantiations made by the quantifiers module.
      * @param out the output stream
      */
-    void printInstantiations(std::ostream& out)
-  
+    // void printInstantiations(std::ostream& out)
+
+    /**
+     * Push a level to the assertion stack.
+     * SMT-LIB:
+     * \verbatim
+     * ( push <numeral> )
+     * \endverbatim
+     */
+    public void push(int nscopes = 1)
+    {
+      push(1);
+    }
+
     /**
      * Push (a) level(s) to the assertion stack.
      * SMT-LIB:
@@ -1228,7 +1362,16 @@ public class Solver implements IPointer
      * \endverbatim
      * @param nscopes the number of levels to push
      */
-    void push(uint32_t nscopes = 1)
+    public void push(int nscopes)
+    {
+      if (nscopes < 0)
+      {
+        throw new CVC5ApiException("Expected nscopes '" + nscopes + "' to be non negative.");
+      }
+      push(pointer, nscopes);
+    }
+
+    private native void push(long pointer, int nscopes);
   
     /**
      * Remove all assertions.
@@ -1237,8 +1380,13 @@ public class Solver implements IPointer
      * ( reset-assertions )
      * \endverbatim
      */
-    void resetAssertions()
-  
+    public void resetAssertions()
+    {
+      resetAssertions(pointer);
+    }
+
+    private native void resetAssertions(long pointer);
+
     /**
      * Set info.
      * SMT-LIB:
@@ -1248,8 +1396,13 @@ public class Solver implements IPointer
      * @param keyword the info flag
      * @param value the value of the info flag
      */
-    void setInfo(String  keyword, String  value)
-  
+    public void setInfo(String keyword, String  value) throws CVC5ApiException
+    {
+      setInfo(pointer, keyword, value);
+    }
+
+    private native void setInfo(long pointer, String keyword, String value) throws CVC5ApiException;
+
     /**
      * Set logic.
      * SMT-LIB:
@@ -1258,7 +1411,12 @@ public class Solver implements IPointer
      * \endverbatim
      * @param logic the logic to set
      */
-    void setLogic(String  logic)
+    public void setLogic(String logic) throws CVC5ApiException
+    {
+      setLogic(pointer, logic);
+    }
+
+    private native void setLogic(long pointer, String logic) throws CVC5ApiException;
   
     /**
      * Set option.
@@ -1269,7 +1427,12 @@ public class Solver implements IPointer
      * @param option the option name
      * @param value the option value
      */
-    void setOption(String  option, String  value)
+    public void setOption(String  option, String  value)
+    {
+      setOption(pointer, option, value);
+    }
+
+    private native void setOption(long pointer, String option, String value);
   
     /**
      * If needed, convert this term to a given sort. Note that the sort of the
@@ -1279,7 +1442,13 @@ public class Solver implements IPointer
      * @param s the target sort
      * @return the term wrapped into a sort conversion if needed
      */
-    Term ensureTermSort(Term& t, const Sort& s)
+    public Term ensureTermSort(Term t, Sort s)
+    {
+      long termPointer = ensureTermSort(pointer, t.getPointer(), s.getPointer());
+      return new Term(solver, termPointer);
+    }
+
+    private native long ensureTermSort(long pointer, termPointer, sortPointer);
 
 
     /**
@@ -1502,20 +1671,7 @@ public class Solver implements IPointer
     // void printSynthSolution(std::ostream& out)
   
 
-     
-  /**
-   * Set logic.
-   * SMT-LIB: ( set-logic <symbol> )
-   *
-   * @param logic
-   * @throws CVC5ApiException
-   */
-  public void setLogic(String logic) throws CVC5ApiException
-  {
-    setLogic(pointer, logic);
-  }
 
-  private native void setLogic(long pointer, String logic) throws CVC5ApiException;
 
 
   /**
