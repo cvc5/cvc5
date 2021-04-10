@@ -283,13 +283,13 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                '--no-check-proofs' not in all_args and \
                '-i' not in all_args and \
                '--incremental' not in all_args and \
-               ':incremental' not in benchmark_content and \
+               ':incremental true' not in benchmark_content and \
                '--global-negate' not in all_args and \
-               ':global-negate' not in benchmark_content and \
+               ':global-negate true' not in benchmark_content and \
                '--produce-unsat-cores' not in all_args and \
-               ':produce-unsat-cores' not in benchmark_content and \
+               ':produce-unsat-cores true' not in benchmark_content and \
                '--sygus-inference' not in all_args and \
-               ':sygus-inference' not in benchmark_content:
+               ':sygus-inference true' not in benchmark_content:
                 extra_command_line_args += ['--dump-proofs --proof-format=lfsc']
 
         # Create a test case for each extra argument
