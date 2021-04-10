@@ -31,6 +31,19 @@ class Utils
   }
 
   /**
+   * return terms array from array of pointers
+   */
+  public static Term[] getTerms(Solver solver, long[] pointers)
+  {
+    Term[] terms = new Term[pointers.length];
+    for (int i = 0; i < pointers.length; i++)
+    {
+      terms[i] = new Term(solver, pointers[i]);
+    }
+    return terms;
+  }
+
+  /**
    * @return c pointers that represent the given objects
    */
   public static long[] getPointers(IPointer[] objects)
