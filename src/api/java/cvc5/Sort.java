@@ -24,11 +24,16 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   @Override public boolean equals(Object s)
   {
-    if (this == s)
+    if (this == s )
       return true;
     if (s == null || getClass() != s.getClass())
       return false;
-    return equals(pointer, ((Sort) s).getPointer());
+    Sort sort = (Sort) s;
+    if(this.pointer == sort.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, sort.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);

@@ -32,7 +32,12 @@ public class Term extends AbstractPointer implements Comparable<Term>
       return true;
     if (t == null || getClass() != t.getClass())
       return false;
-    return equals(pointer, ((Term) t).getPointer());
+    Term term = (Term) t;
+    if(this.pointer == term.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, term.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);

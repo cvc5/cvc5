@@ -102,6 +102,7 @@ message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvc5jni SHARED
   jni/cvc5_Solver.cpp
+  jni/cvc5_Sort.cpp
   jni/cvc5_Term.cpp)
 add_dependencies(cvc5jni generate-jni-headers)
 
