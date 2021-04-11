@@ -134,9 +134,9 @@ public class Solver implements IPointer
    * @param elemSort the array element sort
    * @return the array sort
    */
-  public Sort mkArraySort(Sort indexSort, Sort elementSort)
+  public Sort mkArraySort(Sort indexSort, Sort elemSort)
   {
-    long sortPointer = mkArraySort(pointer, indexSort.getPointer(), elementSort.getPointer());
+    long sortPointer = mkArraySort(pointer, indexSort.getPointer(), elemSort.getPointer());
     return new Sort(this, sortPointer);
   }
 
@@ -147,7 +147,7 @@ public class Solver implements IPointer
    * @param size the bit-width of the bit-vector sort
    * @return the bit-vector sort
    */
-  public Sort mkBitVectorSort(int size)
+  public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
     Utils.validateUnsigned(size, "size");
     long sortPointer = mkBitVectorSort(pointer, size);
@@ -161,7 +161,7 @@ public class Solver implements IPointer
    * @param exp the bit-width of the exponent of the floating-point sort.
    * @param sig the bit-width of the significand of the floating-point sort.
    */
-  public Sort mkFloatingPointSort(int exp, int sig)
+  public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -169,8 +169,7 @@ public class Solver implements IPointer
     return new Sort(this, sortPointer);
   }
 
-  private native long mkFloatingPointSort(long solverPointer, int exp, int sig)
-      throws CVC5ApiException;
+  private native long mkFloatingPointSort(long solverPointer, int exp, int sig);
 
   /**
    * Create a datatype sort.
@@ -195,9 +194,9 @@ public class Solver implements IPointer
    *     created
    * @return the datatype sorts
    */
-  public Sort[] mkDatatypeSorts(DatatypeDecl[] datatypeDecls) throws CVC5ApiException
+  public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
-    long[] declPointers = Utils.getPointers(datatypeDecls);
+    long[] declPointers = Utils.getPointers(dtypedecls);
     long[] sortPointers = mkDatatypeSorts(pointer, declPointers);
     Sort[] sorts = Utils.getSorts(this, sortPointers);
     return sorts;
@@ -362,7 +361,7 @@ public class Solver implements IPointer
    * @param arity the arity of the sort
    * @return the sort constructor sort
    */
-  public Sort mkSortConstructorSort(String symbol, int arity)
+  public Sort mkSortConstructorSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = mkSortConstructorSort(pointer, symbol, arity);
@@ -400,7 +399,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkTerm(long pointer, long kindValue);
+  private native long mkTerm(long pointer, int kindValue);
 
   /**
    * Create a unary term of given kind.
@@ -414,7 +413,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkTerm(long pointer, long kindValue, long childPointer);
+  private native long mkTerm(long pointer, int kindValue, long childPointer);
 
   /**
    * Create binary term of given kind.
@@ -429,7 +428,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkTerm(long pointer, long kindValue, long child1Pointer, long child2Pointer);
+  private native long mkTerm(long pointer, int kindValue, long child1Pointer, long child2Pointer);
 
   /**
    * Create ternary term of given kind.
@@ -447,7 +446,7 @@ public class Solver implements IPointer
   }
 
   private native long mkTerm(
-      long pointer, long kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
+      long pointer, int kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
   /**
    * Create n-ary term of given kind.
    * @param kind the kind of the term
@@ -461,7 +460,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkTerm(long pointer, long kindValue, long[] childrenPointers);
+  private native long mkTerm(long pointer, int kindValue, long[] childrenPointers);
 
   /**
    * Create nullary term of given kind from a given operator.
@@ -612,7 +611,7 @@ public class Solver implements IPointer
    * @param kind the kind of the operator
    * @param arg the unsigned int argument to this operator
    */
-  public Op mkOp(Kind kind, int arg)
+  public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
     Utils.validateUnsigned(arg, "arg");
     long opPointer = mkOp(pointer, kind.getValue(), arg);
@@ -635,7 +634,7 @@ public class Solver implements IPointer
    * @param arg1 the first unsigned int argument to this operator
    * @param arg2 the second unsigned int argument to this operator
    */
-  public Op mkOp(Kind kind, int arg1, int arg2)
+  public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
   {
     Utils.validateUnsigned(arg1, "arg1");
     Utils.validateUnsigned(arg2, "arg2");
@@ -652,7 +651,7 @@ public class Solver implements IPointer
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    */
-  public Op mkOp(Kind kind, int[] args)
+  public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
     Utils.validateUnsigned(args, "args");
     long opPointer = mkOp(pointer, kind.getValue(), args);
@@ -757,11 +756,11 @@ public class Solver implements IPointer
    */
   Term mkReal(int val)
   {
-    long termPointer = mkReal(pointer, val);
+    long termPointer = mkRealValue(pointer, val);
     return new Term(this, termPointer);
   }
 
-  private native long mkReal(long pointer, long val);
+  private native long mkRealValue(long pointer, long val);
   /**
    * Create a real constant from a rational.
    * @param num the value of the numerator
@@ -886,7 +885,7 @@ public class Solver implements IPointer
    * string
    * @return the String constant
    */
-  public Term mkString(int[] s)
+  public Term mkString(int[] s) throws CVC5ApiException
   {
     Utils.validateUnsigned(s, "s");
     long termPointer = mkString(pointer, s);
@@ -940,7 +939,7 @@ public class Solver implements IPointer
    * @param size the bit-width of the bit-vector sort
    * @return the bit-vector constant
    */
-  public Term mkBitVector(int size)
+  public Term mkBitVector(int size) throws CVC5ApiException
   {
     return mkBitVector(size, 0);
   }
@@ -951,7 +950,7 @@ public class Solver implements IPointer
    * @param val the value of the constant
    * @return the bit-vector constant
    */
-  public Term mkBitVector(int size, long val)
+  public Term mkBitVector(int size, long val) throws CVC5ApiException
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(val, "val");
@@ -967,7 +966,7 @@ public class Solver implements IPointer
    * @param s the string representation of the constant
    * @return the bit-vector constant
    */
-  public Term mkBitVector(String s)
+  public Term mkBitVector(String s) throws CVC5ApiException
   {
     return mkBitVector(s, 2);
   }
@@ -986,7 +985,7 @@ public class Solver implements IPointer
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
-  public Term mkBitVector(String s, int base)
+  public Term mkBitVector(String s, int base) throws CVC5ApiException
   {
     Utils.validateUnsigned(base, "base");
     long termPointer = mkBitVector(pointer, s, base);
@@ -1003,7 +1002,7 @@ public class Solver implements IPointer
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
-  public Term mkBitVector(int size, String s, int base)
+  public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(base, "base");
@@ -1035,7 +1034,7 @@ public class Solver implements IPointer
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkPosInf(int exp, int sig)
+  public Term mkPosInf(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -1051,7 +1050,7 @@ public class Solver implements IPointer
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNegInf(int exp, int sig)
+  public Term mkNegInf(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -1067,7 +1066,7 @@ public class Solver implements IPointer
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNaN(int exp, int sig)
+  public Term mkNaN(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -1084,7 +1083,7 @@ public class Solver implements IPointer
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkPosZero(int exp, int sig)
+  public Term mkPosZero(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -1101,7 +1100,7 @@ public class Solver implements IPointer
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNegZero(int exp, int sig)
+  public Term mkNegZero(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -1128,7 +1127,7 @@ public class Solver implements IPointer
    * @param sort Sort of the constant
    * @param index Index of the constant
    */
-  public Term mkUninterpretedConst(Sort sort, int index)
+  public Term mkUninterpretedConst(Sort sort, int index) throws CVC5ApiException
   {
     Utils.validateUnsigned(index, "index");
     long termPointer = mkUninterpretedConst(pointer, sort.getPointer(), index);
@@ -1153,7 +1152,7 @@ public class Solver implements IPointer
    * Create an abstract value constant.
    * @param index Index of the abstract value
    */
-  public Term mkAbstractValue(long index)
+  public Term mkAbstractValue(long index) throws CVC5ApiException
   {
     Utils.validateUnsigned(index, "index");
     long termPointer = mkAbstractValue(pointer, index);
@@ -1169,7 +1168,7 @@ public class Solver implements IPointer
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
    */
-  public Term mkFloatingPoint(int exp, int sig, Term val)
+  public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
@@ -1239,6 +1238,7 @@ public class Solver implements IPointer
   public Term mkVar(Sort sort, String symbol)
   {
     long termPointer = mkVar(pointer, sort.getPointer(), symbol);
+    return new Term(this, termPointer);
   }
 
   private native long mkVar(long pointer, long sortPointer, String symbol);
@@ -1262,7 +1262,6 @@ public class Solver implements IPointer
   /**
    * Create a datatype declaration.
    * @param name the name of the datatype
-   * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
   public DatatypeDecl mkDatatypeDecl(String name)
@@ -1506,7 +1505,7 @@ public class Solver implements IPointer
    * @param arity the arity of the sort
    * @return the sort
    */
-  public Sort declareSort(String symbol, int arity)
+  public Sort declareSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity);
@@ -1615,7 +1614,7 @@ public class Solver implements IPointer
    */
   public Term defineFunRec(String symbol, Term[] bound_vars, Sort sort, Term term)
   {
-    defineFunRec(symbol, bound_vars, sort, term, false);
+    return defineFunRec(symbol, bound_vars, sort, term, false);
   }
 
   /**
@@ -1635,10 +1634,12 @@ public class Solver implements IPointer
   public Term defineFunRec(String symbol, Term[] bound_vars, Sort sort, Term term, boolean global)
   {
     long[] boundVarPointers = Utils.getPointers(bound_vars);
-    defineFunRec(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
+    long termPointer = defineFunRec(
+        pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
+    return new Term(this, termPointer);
   }
 
-  private native void defineFunRec(long pointer,
+  private native long defineFunRec(long pointer,
       String symbol,
       long[] boundVarPointers,
       long sortPointer,
@@ -1658,9 +1659,9 @@ public class Solver implements IPointer
    * @return the function
    */
 
-  public Term defineFunRec(Term fun, Term[] bound_vars, Term term, boolean global)
+  public Term defineFunRec(Term fun, Term[] bound_vars, Term term)
   {
-    defineFunRec(fun, bound_vars, term, false);
+    return defineFunRec(fun, bound_vars, term, false);
   }
 
   /**
@@ -1680,10 +1681,12 @@ public class Solver implements IPointer
   public Term defineFunRec(Term fun, Term[] bound_vars, Term term, boolean global)
   {
     long[] boundVarPointers = Utils.getPointers(bound_vars);
-    defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
+    long termPointer =
+        defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
+    return new Term(this, termPointer);
   }
 
-  private native void defineFunRec(
+  private native long defineFunRec(
       long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
 
   /**
@@ -1960,7 +1963,7 @@ public class Solver implements IPointer
    * ( pop <numeral> )
    * \endverbatim
    */
-  public void pop()
+  public void pop() throws CVC5ApiException
   {
     pop(1);
   }
@@ -1973,12 +1976,9 @@ public class Solver implements IPointer
    * \endverbatim
    * @param nscopes the number of levels to pop
    */
-  public void pop(int nscopes)
+  public void pop(int nscopes) throws CVC5ApiException
   {
-    if (nscopes < 0)
-    {
-      throw new CVC5ApiException("Expected nscopes '" + nscopes + "' to be non negative.");
-    }
+    Utils.validateUnsigned(nscopes, "nscopes");
     pop(pointer, nscopes);
   }
 
@@ -2113,7 +2113,7 @@ public class Solver implements IPointer
    * ( push <numeral> )
    * \endverbatim
    */
-  public void push()
+  public void push() throws CVC5ApiException
   {
     push(1);
   }
@@ -2126,12 +2126,9 @@ public class Solver implements IPointer
    * \endverbatim
    * @param nscopes the number of levels to push
    */
-  public void push(int nscopes)
+  public void push(int nscopes) throws CVC5ApiException
   {
-    if (nscopes < 0)
-    {
-      throw new CVC5ApiException("Expected nscopes '" + nscopes + "' to be non negative.");
-    }
+    Utils.validateUnsigned(nscopes, "nscopes");
     push(pointer, nscopes);
   }
 

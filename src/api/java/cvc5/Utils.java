@@ -73,7 +73,7 @@ class Utils
     return pointers;
   }
 
-  public static void validateUnsigned(int integer, String name)
+  public static void validateUnsigned(int integer, String name) throws CVC5ApiException
   {
     if(integer < 0)
     {
@@ -81,7 +81,7 @@ class Utils
     }
   }
 
-  public static void validateUnsigned(long integer, String name)
+  public static void validateUnsigned(long integer, String name) throws CVC5ApiException
   {
     if(integer < 0)
     {
@@ -89,7 +89,7 @@ class Utils
     }
   }
 
-  public static void validateUnsigned(int [] integers, String name)
+  public static void validateUnsigned(int [] integers, String name) throws CVC5ApiException
   {
     for(int i = 0; i < integers.length; i++)
     {
@@ -100,7 +100,7 @@ class Utils
     }
   }
 
-  public static void validateUnsigned(long [] integers, String name)
+  public static void validateUnsigned(long [] integers, String name) throws CVC5ApiException
   {
     for(int i = 0; i < integers.length; i++)
     {
