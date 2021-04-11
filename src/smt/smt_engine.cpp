@@ -1986,7 +1986,20 @@ std::string SmtEngine::getOption(const std::string& key) const
     return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  return getOptions().getOption(key);
+  std::string atom = getOptions().getOption(key);
+
+  if (atom != "true" && atom != "false") {
+    try
+    {
+      Integer z(atom);
+    }
+    catch (std::invalid_argument&)
+    {
+      atom = "\"" + atom + "\"";
+    }
+  }
+
+  return atom;
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }
