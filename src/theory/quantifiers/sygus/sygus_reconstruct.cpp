@@ -344,7 +344,7 @@ void SygusReconstruct::markSolved(Node k, Node s)
         // pass a temporary copy of d_sol to avoid populating it with unsafe
         // TNodes
         std::unordered_map<TNode, TNode, TNodeHashFunction> sol = d_sol;
-        Node parentSol = parent.substitute(d_sol);
+        Node parentSol = parent.substitute(sol);
         Node parentOb = d_parentOb[parent];
         // proceed only if parent obligation is not already solved
         if (d_sol[parentOb].isNull())
