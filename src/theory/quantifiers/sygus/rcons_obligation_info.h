@@ -56,7 +56,7 @@ class RConsObligationInfo
   /**
    * @return equivalent builtin terms to reconstruct for this class' obligation
    */
-  std::unordered_set<Node, NodeHashFunction> getBuiltins() const;
+  const std::unordered_set<Node, NodeHashFunction>& getBuiltins() const;
 
   /**
    * Add candidate solution to the set of candidate solutions for the
