@@ -14,6 +14,7 @@
 
 #include "proof/verit/verit_post_processor.h"
 
+#include "expr/proof.h"
 #include "expr/proof_checker.h"
 
 namespace cvc5 {

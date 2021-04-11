@@ -12,12 +12,12 @@
  ** \brief Enumeration of veriT proof rules
  **/
 
-#include <memory>
-
 #include "cvc4_private.h"
 
 #ifndef CVC4__PROOF__VERIT_PROOF_RULE_H
 #define CVC4__PROOF__VERIT_PROOF_RULE_H
+
+#include <memory>
 
 namespace cvc5 {
 
@@ -394,7 +394,7 @@ enum class VeritRule : uint32_t
   * @param id The verit proof rule
   * @return The name of the verit proof rule
   */
-const char* veritRuletoString(VeritRule id);  // TODO: COMMENT
+const char* veritRuletoString(VeritRule id);
 
 /**
  * Writes a verit proof rule name to a stream.

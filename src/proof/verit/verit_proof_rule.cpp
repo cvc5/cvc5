@@ -13,6 +13,7 @@
  **/
 
 #include "proof/verit/verit_proof_rule.h"
+
 #include <iostream>
 
 namespace cvc5 {

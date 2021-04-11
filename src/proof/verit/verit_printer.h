@@ -12,15 +12,12 @@
  ** \brief The module for printing veriT proof nodes
  **/
 
+#include "cvc4_private.h"
+
 #ifndef CVC4__PROOF__VERIT_PROOF_PRINTER_H
 #define CVC4__PROOF__VERIT_PROOF_PRINTER_H
 
-#include "cvc4_private.h"
 #include "expr/proof_node.h"
-#include "proof/verit/verit_proof_rule.h"
-
-#include <iostream>
-#include <unordered_map>
 
 namespace cvc5 {
 

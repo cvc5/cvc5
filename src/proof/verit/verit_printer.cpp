@@ -14,6 +14,11 @@
 
 #include "proof/verit/verit_printer.h"
 
+#include <iostream>
+#include <unordered_map>
+
+#include "proof/verit/verit_proof_rule.h"
+
 namespace cvc5 {
 
 namespace proof {
@@ -166,9 +171,10 @@ std::string VeritProofPrinter::veritPrinterInternal(
     child_prefixes.push_back(veritPrinterInternal(out, child));
   }
 
-  // If rule is SYMM or REORDER the rule should not be printed in non-extended mode
-  // if (!d_extended && (vrule == VeritRule::REORDER || vrule == VeritRule::SYMM))
-  // for now exclude all reorder rules since they cannot be reconstructed in Isabelle yet.
+  // If rule is SYMM or REORDER the rule should not be printed in non-extended
+  // mode if (!d_extended && (vrule == VeritRule::REORDER || vrule ==
+  // VeritRule::SYMM)) for now exclude all reorder rules since they cannot be
+  // reconstructed in Isabelle yet.
   if (vrule == VeritRule::REORDER || (!d_extended && vrule == VeritRule::SYMM))
   {
     Trace("verit-printer") << "... non-extended mode skip child "
