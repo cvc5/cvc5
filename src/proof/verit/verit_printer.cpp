@@ -167,7 +167,9 @@ std::string VeritProofPrinter::veritPrinterInternal(
   }
 
   // If rule is SYMM or REORDER the rule should not be printed in non-extended mode
-  if (!d_extended && (vrule == VeritRule::REORDER || vrule == VeritRule::SYMM))
+  // if (!d_extended && (vrule == VeritRule::REORDER || vrule == VeritRule::SYMM))
+  // for now exclude all reorder rules since they cannot be reconstructed in Isabelle yet.
+  if (vrule == VeritRule::REORDER || (!d_extended && vrule == VeritRule::SYMM))
   {
     Trace("verit-printer") << "... non-extended mode skip child "
                            << pfn->getResult() << " "
@@ -188,7 +190,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
     out << "(step " << prefix << " " << pfn->getArguments()[2] << " :rule "
         << veritRuletoString(vrule);
     // Discharge assumptions
-    // TODO: It is not clear from the onomicon whether the assumptions should be
+    // It is not clear from the onomicon whether the assumptions should be
     // discharged in this way or not.
     if (vrule == VeritRule::ANCHOR_SUBPROOF)
     {
