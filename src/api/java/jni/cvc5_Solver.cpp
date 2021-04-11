@@ -339,8 +339,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JI(JNIEnv*,
  * Method:    mkTerm
  * Signature: (JIJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkTerm__JIJ(JNIEnv*, jobject, jlong, jint, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JIJ(
+    JNIEnv* env, jobject, jlong pointer, jint kindValue, jlong childPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Kind kind = (Kind)kindValue;
+  Term* child = (Term*)childPointer;
+  Term* termPointer = new Term(solver->mkTerm(kind, *child));
+  return ((jlong)termPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -704,10 +713,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkChar(JNIEnv*,
  * Method:    mkEmptySequence
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkEmptySequence(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkEmptySequence(JNIEnv* env,
                                                          jobject,
-                                                         jlong,
-                                                         jlong);
+                                                         jlong pointer,
+                                                         jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer = new Term(solver->mkEmptySequence(*sort));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

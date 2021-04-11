@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 class TermTest
@@ -819,30 +820,30 @@ class TermTest
      stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
      stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
    }
-//
-//    @Test void  constSequenceElements)
-//    {
-//      Sort realsort = d_solver.getRealSort();
-//      Sort seqsort = d_solver.mkSequenceSort(realsort);
-//      Term s = d_solver.mkEmptySequence(seqsort);
-//
-//      assertEquals(s.getKind(), CONST_SEQUENCE);
-//      // empty sequence has zero elements
-//      std::vector<Term> cs = s.getConstSequenceElements();
-//      assertTrue(cs.empty());
-//
-//      // A seq.unit app is not a constant sequence (regardless of whether it is
-//      // applied to a constant).
-//      Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-//      assertThrows(CVC5ApiException.class,() -> su.getConstSequenceElements());
-//    }
-//
-//    @Test void  termScopedToString)
-//    {
-//      Sort intsort = d_solver.getIntegerSort();
-//      Term x = d_solver.mkConst(intsort, "x");
-//      assertEquals(x.toString(), "x");
-//      Solver solver2;
-//      assertEquals(x.toString(), "x");
-//    }
+
+   @Test void  constSequenceElements() throws CVC5ApiException
+   {
+     Sort realsort = d_solver.getRealSort();
+     Sort seqsort = d_solver.mkSequenceSort(realsort);
+     Term s = d_solver.mkEmptySequence(seqsort);
+
+     assertEquals(s.getKind(), CONST_SEQUENCE);
+     // empty sequence has zero elements
+     List<Term> cs = Arrays.asList(s.getConstSequenceElements());
+     assertTrue(cs.isEmpty());
+
+     // A seq.unit app is not a constant sequence (regardless of whether it is
+     // applied to a constant).
+     Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
+     assertThrows(CVC5ApiException.class,() -> su.getConstSequenceElements());
+   }
+
+   @Test void  termScopedToString()
+   {
+     Sort intsort = d_solver.getIntegerSort();
+     Term x = d_solver.mkConst(intsort, "x");
+     assertEquals(x.toString(), "x");
+     Solver solver2;
+     assertEquals(x.toString(), "x");
+   }
 }
