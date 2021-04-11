@@ -506,7 +506,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPi(JNIEnv*, jobject, jlong);
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkInteger__JLjava_lang_String_2(
-    JNIEnv*, jobject, jlong, jstring);
+    JNIEnv* env, jobject, jlong pointer, jstring jS)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer = new Term(solver->mkInteger(cS));
+  env->ReleaseStringUTFChars(jS, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -603,7 +613,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSepNil(JNIEnv*,
  * Signature: (JLjava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__JLjava_lang_String_2Z(
-    JNIEnv*, jobject, jlong, jstring, jboolean);
+    JNIEnv* env, jobject, jlong pointer, jstring jS, jboolean useEscSequences)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer = new Term(solver->mkString(cS, (bool)useEscSequences));
+  env->ReleaseStringUTFChars(jS, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
+
 class TermTest
 {
   private Solver d_solver;
@@ -659,90 +661,91 @@ class TermTest
 //      assertThrows(CVC5ApiException.class,() -> tnull[0]);
 //    }
 //
-//    @Test void  getInteger)
-//    {
-//      Term int1 = d_solver.mkInteger("-18446744073709551616");
-//      Term int2 = d_solver.mkInteger("-18446744073709551615");
-//      Term int3 = d_solver.mkInteger("-4294967296");
-//      Term int4 = d_solver.mkInteger("-4294967295");
-//      Term int5 = d_solver.mkInteger("-10");
-//      Term int6 = d_solver.mkInteger("0");
-//      Term int7 = d_solver.mkInteger("10");
-//      Term int8 = d_solver.mkInteger("4294967295");
-//      Term int9 = d_solver.mkInteger("4294967296");
-//      Term int10 = d_solver.mkInteger("18446744073709551615");
-//      Term int11 = d_solver.mkInteger("18446744073709551616");
-//      Term int12 = d_solver.mkInteger("-0");
-//
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger(""));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-1-"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("0.0"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-0.1"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("012"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("0000"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-01"));
-//      assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-00"));
-//
-//      assertTrue(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64() && !int1.isUInt64()
-//          && int1.isInteger());
-//      assertEquals(int1.getInteger(), "-18446744073709551616");
-//      assertTrue(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64() && !int2.isUInt64()
-//          && int2.isInteger());
-//      assertEquals(int2.getInteger(), "-18446744073709551615");
-//      assertTrue(!int3.isInt32() && !int3.isUInt32() && int3.isInt64() && !int3.isUInt64()
-//          && int3.isInteger());
-//      assertEquals(int3.getInt64(), -4294967296);
-//      assertEquals(int3.getInteger(), "-4294967296");
-//      assertTrue(!int4.isInt32() && !int4.isUInt32() && int4.isInt64() && !int4.isUInt64()
-//          && int4.isInteger());
-//      assertEquals(int4.getInt64(), -4294967295);
-//      assertEquals(int4.getInteger(), "-4294967295");
-//      assertTrue(int5.isInt32() && !int5.isUInt32() && int5.isInt64() && !int5.isUInt64()
-//          && int5.isInteger());
-//      assertEquals(int5.getInt32(), -10);
-//      assertEquals(int5.getInt64(), -10);
-//      assertEquals(int5.getInteger(), "-10");
-//      assertTrue(int6.isInt32() && int6.isUInt32() && int6.isInt64() && int6.isUInt64()
-//          && int6.isInteger());
-//      assertEquals(int6.getInt32(), 0);
-//      assertEquals(int6.getUInt32(), 0);
-//      assertEquals(int6.getInt64(), 0);
-//      assertEquals(int6.getUInt64(), 0);
-//      assertEquals(int6.getInteger(), "0");
-//      assertTrue(int7.isInt32() && int7.isUInt32() && int7.isInt64() && int7.isUInt64()
-//          && int7.isInteger());
-//      assertEquals(int7.getInt32(), 10);
-//      assertEquals(int7.getUInt32(), 10);
-//      assertEquals(int7.getInt64(), 10);
-//      assertEquals(int7.getUInt64(), 10);
-//      assertEquals(int7.getInteger(), "10");
-//      assertTrue(!int8.isInt32() && int8.isUInt32() && int8.isInt64() && int8.isUInt64()
-//          && int8.isInteger());
-//      assertEquals(int8.getUInt32(), 4294967295);
-//      assertEquals(int8.getInt64(), 4294967295);
-//      assertEquals(int8.getUInt64(), 4294967295);
-//      assertEquals(int8.getInteger(), "4294967295");
-//      assertTrue(!int9.isInt32() && !int9.isUInt32() && int9.isInt64() && int9.isUInt64()
-//          && int9.isInteger());
-//      assertEquals(int9.getInt64(), 4294967296);
-//      assertEquals(int9.getUInt64(), 4294967296);
-//      assertEquals(int9.getInteger(), "4294967296");
-//      assertTrue(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64() && int10.isUInt64()
-//          && int10.isInteger());
-//      assertEquals(int10.getUInt64(), 18446744073709551615ull);
-//      assertEquals(int10.getInteger(), "18446744073709551615");
-//      assertTrue(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64() && !int11.isUInt64()
-//          && int11.isInteger());
-//      assertEquals(int11.getInteger(), "18446744073709551616");
-//    }
-//
-//    @Test void  getString)
-//    {
-//      Term s1 = d_solver.mkString("abcde");
-//      assertTrue(s1.isString());
-//      assertEquals(s1.getString(), L"abcde");
-//    }
+   @Test void  getInteger() throws CVC5ApiException
+   {
+     Term int1 = d_solver.mkInteger("-18446744073709551616");
+     Term int2 = d_solver.mkInteger("-18446744073709551615");
+     Term int3 = d_solver.mkInteger("-4294967296");
+     Term int4 = d_solver.mkInteger("-4294967295");
+     Term int5 = d_solver.mkInteger("-10");
+     Term int6 = d_solver.mkInteger("0");
+     Term int7 = d_solver.mkInteger("10");
+     Term int8 = d_solver.mkInteger("4294967295");
+     Term int9 = d_solver.mkInteger("4294967296");
+     Term int10 = d_solver.mkInteger("18446744073709551615");
+     Term int11 = d_solver.mkInteger("18446744073709551616");
+     Term int12 = d_solver.mkInteger("-0");
+
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger(""));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-1-"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("0.0"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-0.1"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("012"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("0000"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-01"));
+     assertThrows(CVC5ApiException.class,() -> d_solver.mkInteger("-00"));
+
+     assertTrue(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64() && !int1.isUInt64()
+         && int1.isInteger());
+     assertEquals(int1.getInteger(), "-18446744073709551616");
+     assertTrue(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64() && !int2.isUInt64()
+         && int2.isInteger());
+     assertEquals(int2.getInteger(), "-18446744073709551615");
+     assertTrue(!int3.isInt32() && !int3.isUInt32() && int3.isInt64() && !int3.isUInt64()
+         && int3.isInteger());
+     assertEquals(int3.getInt64(), -4294967296L);
+     assertEquals(int3.getInteger(), "-4294967296");
+     assertTrue(!int4.isInt32() && !int4.isUInt32() && int4.isInt64() && !int4.isUInt64()
+         && int4.isInteger());
+     assertEquals(int4.getInt64(), -4294967295L);
+     assertEquals(int4.getInteger(), "-4294967295");
+     assertTrue(int5.isInt32() && !int5.isUInt32() && int5.isInt64() && !int5.isUInt64()
+         && int5.isInteger());
+     assertEquals(int5.getInt32(), -10);
+     assertEquals(int5.getInt64(), -10);
+     assertEquals(int5.getInteger(), "-10");
+     assertTrue(int6.isInt32() && int6.isUInt32() && int6.isInt64() && int6.isUInt64()
+         && int6.isInteger());
+     assertEquals(int6.getInt32(), 0);
+     assertEquals(int6.getUInt32(), 0);
+     assertEquals(int6.getInt64(), 0);
+     assertEquals(int6.getUInt64(), 0);
+     assertEquals(int6.getInteger(), "0");
+     assertTrue(int7.isInt32() && int7.isUInt32() && int7.isInt64() && int7.isUInt64()
+         && int7.isInteger());
+     assertEquals(int7.getInt32(), 10);
+     assertEquals(int7.getUInt32(), 10);
+     assertEquals(int7.getInt64(), 10);
+     assertEquals(int7.getUInt64(), 10);
+     assertEquals(int7.getInteger(), "10");
+     assertTrue(!int8.isInt32() && int8.isUInt32() && int8.isInt64() && int8.isUInt64()
+         && int8.isInteger());
+     assertEquals(Integer.toUnsignedLong(int8.getUInt32()), 4294967295L);
+     assertEquals(int8.getInt64(), 4294967295L);
+     assertEquals(int8.getUInt64(), 4294967295L);
+     assertEquals(int8.getInteger(), "4294967295");
+     assertTrue(!int9.isInt32() && !int9.isUInt32() && int9.isInt64() && int9.isUInt64()
+         && int9.isInteger());
+     assertEquals(int9.getInt64(), 4294967296L);
+     assertEquals(int9.getUInt64(), 4294967296L);
+     assertEquals(int9.getInteger(), "4294967296");
+     assertTrue(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64() && int10.isUInt64()
+         && int10.isInteger());
+
+     assertEquals(Long.compareUnsigned(int10.getUInt64(), new BigInteger("18446744073709551615").longValue()), 0);
+     assertEquals(int10.getInteger(), "18446744073709551615");
+     assertTrue(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64() && !int11.isUInt64()
+         && int11.isInteger());
+     assertEquals(int11.getInteger(), "18446744073709551616");
+   }
+
+   @Test void  getString()
+   {
+     Term s1 = d_solver.mkString("abcde");
+     assertTrue(s1.isString());
+     assertEquals(s1.getString(), "abcde");
+   }
 //
 //    @Test void  substitute)
 //    {
