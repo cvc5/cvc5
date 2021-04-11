@@ -1,5 +1,7 @@
 package cvc5;
 
+import java.util.List;
+
 public class Term extends AbstractPointer implements Comparable<Term>
 {
   // region construction and destruction
@@ -127,6 +129,15 @@ public class Term extends AbstractPointer implements Comparable<Term>
   }
 
   private native long substitute(long pointer, long termPointer, long replacementPointer);
+
+  /**
+   * @return the result of simultaneously replacing 'terms' by 'replacements'
+   * in this term
+   */
+  public Term substitute(List<Term> terms, List<Term> replacements)
+  {
+    return substitute(terms.toArray(new Term[0]), replacements.toArray(new Term[0]));
+  }
 
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'

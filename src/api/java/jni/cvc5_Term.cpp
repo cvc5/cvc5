@@ -184,14 +184,14 @@ Java_cvc5_Term_substitute__J_3J_3J(JNIEnv* env,
   for (jsize i = 0; i < termsSize; i++)
   {
     Term* term = (Term*)termElements[i];
-    terms.push_back(*term);
+    terms[i] = *term;
   }
   env->ReleaseLongArrayElements(termPointers, termElements, 0);
 
   for (jsize i = 0; i < replacementsSize; i++)
   {
     Term* term = (Term*)replacementElements[i];
-    replacements.push_back(*term);
+    replacements[i] = *term;
   }
   env->ReleaseLongArrayElements(replacementPointers, replacementElements, 0);
 

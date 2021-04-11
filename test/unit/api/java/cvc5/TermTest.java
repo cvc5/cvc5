@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.ArrayList;
+
 
 class TermTest
 {
@@ -746,57 +749,57 @@ class TermTest
      assertTrue(s1.isString());
      assertEquals(s1.getString(), "abcde");
    }
-//
-//    @Test void  substitute)
-//    {
-//      Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
-//      Term one = d_solver.mkInteger(1);
-//      Term ttrue = d_solver.mkTrue();
-//      Term xpx = d_solver.mkTerm(PLUS, x, x);
-//      Term onepone = d_solver.mkTerm(PLUS, one, one);
-//
-//      assertEquals(xpx.substitute(x, one), onepone);
-//      assertEquals(onepone.substitute(one, x), xpx);
-//      // incorrect due to type
-//      assertThrows(CVC5ApiException.class,() -> xpx.substitute(one, ttrue));
-//
-//      // simultaneous substitution
-//      Term y = d_solver.mkConst(d_solver.getIntegerSort(), "y");
-//      Term xpy = d_solver.mkTerm(PLUS, x, y);
-//      Term xpone = d_solver.mkTerm(PLUS, y, one);
-//      std::vector<Term> es;
-//      std::vector<Term> rs;
-//      es.push_back(x);
-//      rs.push_back(y);
-//      es.push_back(y);
-//      rs.push_back(one);
-//      assertEquals(xpy.substitute(es, rs), xpone);
-//
-//      // incorrect substitution due to arity
-//      rs.pop_back();
-//      assertThrows(CVC5ApiException.class,() -> xpy.substitute(es, rs));
-//
-//      // incorrect substitution due to types
-//      rs.push_back(ttrue);
-//      assertThrows(CVC5ApiException.class,() -> xpy.substitute(es, rs));
-//
-//      // null cannot substitute
-//      Term tnull;
-//      assertThrows(CVC5ApiException.class,() -> tnull.substitute(one, x));
-//      assertThrows(CVC5ApiException.class,() -> xpx.substitute(tnull, x));
-//      assertThrows(CVC5ApiException.class,() -> xpx.substitute(x, tnull));
-//      rs.pop_back();
-//      rs.push_back(tnull);
-//      assertThrows(CVC5ApiException.class,() -> xpy.substitute(es, rs));
-//      es.clear();
-//      rs.clear();
-//      es.push_back(x);
-//      rs.push_back(y);
-//      assertThrows(CVC5ApiException.class,() -> tnull.substitute(es, rs));
-//      es.push_back(tnull);
-//      rs.push_back(one);
-//      assertThrows(CVC5ApiException.class,() -> xpx.substitute(es, rs));
-//    }
+
+   @Test void  substitute()
+   {
+     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+     Term one = d_solver.mkInteger(1);
+     Term ttrue = d_solver.mkTrue();
+     Term xpx = d_solver.mkTerm(PLUS, x, x);
+     Term onepone = d_solver.mkTerm(PLUS, one, one);
+
+     assertEquals(xpx.substitute(x, one), onepone);
+     assertEquals(onepone.substitute(one, x), xpx);
+     // incorrect due to type
+     assertThrows(CVC5ApiException.class,() -> xpx.substitute(one, ttrue));
+
+     // simultaneous substitution
+     Term y = d_solver.mkConst(d_solver.getIntegerSort(), "y");
+     Term xpy = d_solver.mkTerm(PLUS, x, y);
+     Term xpone = d_solver.mkTerm(PLUS, y, one);
+     List<Term> es = new ArrayList<>();
+     List<Term> rs = new ArrayList<>();
+     es.add(x);
+     rs.add(y);
+     es.add(y);
+     rs.add(one);
+     assertEquals(xpy.substitute(es, rs), xpone);
+
+     // incorrect substitution due to arity
+     rs.remove(rs.size() - 1);
+     assertThrows(CVC5ApiException.class,() -> xpy.substitute(es, rs));
+
+     // incorrect substitution due to types
+     rs.add(ttrue);
+     assertThrows(CVC5ApiException.class,() -> xpy.substitute(es, rs));
+
+     // null cannot substitute
+     Term tnull = d_solver.getNullTerm();
+     assertThrows(CVC5ApiException.class,() -> tnull.substitute(one, x));
+     assertThrows(CVC5ApiException.class,() -> xpx.substitute(tnull, x));
+     assertThrows(CVC5ApiException.class,() -> xpx.substitute(x, tnull));
+     rs.remove(rs.size() - 1);
+     rs.add(tnull);
+     assertThrows(CVC5ApiException.class,() -> xpy.substitute(es, rs));
+     es.clear();
+     rs.clear();
+     es.add(x);
+     rs.add(y);
+     assertThrows(CVC5ApiException.class,() -> tnull.substitute(es, rs));
+     es.add(tnull);
+     rs.add(one);
+     assertThrows(CVC5ApiException.class,() -> xpx.substitute(es, rs));
+   }
 //
 //    @Test void  constArray)
 //    {
