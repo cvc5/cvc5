@@ -394,7 +394,7 @@ enum class VeritRule : uint32_t
   * @param id The verit proof rule
   * @return The name of the verit proof rule
   */
-const char* veritRuletoString(VeritRule id);
+const char* veritRuleToString(VeritRule id);
 
 /**
  * Writes a verit proof rule name to a stream.

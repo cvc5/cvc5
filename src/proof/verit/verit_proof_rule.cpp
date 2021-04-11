@@ -20,7 +20,7 @@ namespace cvc5 {
 
 namespace proof {
 
-const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
+const char* veritRuleToString(VeritRule id)  // TODO: RENAME veritRuleToString?
 {
   switch (id)
   {
@@ -123,7 +123,7 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
 
 std::ostream& operator<<(std::ostream& out, VeritRule id)
 {
-  out << veritRuletoString(id);
+  out << veritRuleToString(id);
   return out;
 }
 
