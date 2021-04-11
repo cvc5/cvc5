@@ -111,13 +111,13 @@ public class Solver implements IPointer
   /**
    * @return sort RoundingMode
    */
-  public Sort getRoundingModeSort() throws CVCApiException
+  public Sort getRoundingModeSort() throws CVC5ApiException
   {
     long sortPointer = getRoundingModeSort(pointer);
     return new Sort(this, sortPointer);
   }
 
-  private native long getRoundingModeSort(long pointer) throws CVCApiException;
+  private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
   /**
    * @return sort String
    */
@@ -170,7 +170,7 @@ public class Solver implements IPointer
   }
 
   private native long mkFloatingPointSort(long solverPointer, int exp, int sig)
-      throws CVCApiException;
+      throws CVC5ApiException;
 
   /**
    * Create a datatype sort.
@@ -178,13 +178,14 @@ public class Solver implements IPointer
    *     created
    * @return the datatype sort
    */
-  public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVCApiException
+  public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
     long pointer = mkDatatypeSort(this.pointer, dtypedecl.getPointer());
     return new Sort(this, pointer);
   }
 
-  private native long mkDatatypeSort(pointer, long datatypeDeclPointer) throws CVCApiException;
+  private native long mkDatatypeSort(long pointer, long datatypeDeclPointer)
+      throws CVC5ApiException;
 
   /**
    * Create a vector of datatype sorts. The names of the datatype
@@ -194,7 +195,7 @@ public class Solver implements IPointer
    *     created
    * @return the datatype sorts
    */
-  public Sort[] mkDatatypeSorts(DatatypeDecl[] datatypeDecls) throws CVCApiException
+  public Sort[] mkDatatypeSorts(DatatypeDecl[] datatypeDecls) throws CVC5ApiException
   {
     long[] declPointers = Utils.getPointers(datatypeDecls);
     long[] sortPointers = mkDatatypeSorts(pointer, declPointers);
@@ -202,7 +203,7 @@ public class Solver implements IPointer
     return sorts;
   }
 
-  private native long[] mkDatatypeSorts(pointer, long[] declPointers) throws CVCApiException;
+  private native long[] mkDatatypeSorts(long pointer, long[] declPointers) throws CVC5ApiException;
 
   /**
    * Create a vector of datatype sorts using unresolved sorts. The names of
@@ -225,7 +226,7 @@ public class Solver implements IPointer
    * @return the datatype sorts
    */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls, Sort[] unresolvedSorts)
-      throws CVCApiException
+      throws CVC5ApiException
   {
     long[] declPointers = Utils.getPointers(dtypedecls);
     long[] unresolvedPointers = Utils.getPointers(unresolvedSorts);
@@ -235,7 +236,7 @@ public class Solver implements IPointer
   }
 
   private native long[] mkDatatypeSorts(
-      long pointer, long[] declPointers, long[] unresolvedPointers) throws CVCApiException;
+      long pointer, long[] declPointers, long[] unresolvedPointers) throws CVC5ApiException;
 
   /**
    * Create function sort.
@@ -363,7 +364,7 @@ public class Solver implements IPointer
    */
   public Sort mkSortConstructorSort(String symbol, int arity)
   {
-    Utils.validateUnsigned(arity);
+    Utils.validateUnsigned(arity, "arity");
     long sortPointer = mkSortConstructorSort(pointer, symbol, arity);
     return new Sort(this, sortPointer);
   }
@@ -376,20 +377,26 @@ public class Solver implements IPointer
    * @return the tuple sort
    */
   public Sort mkTupleSort(Sort[] sorts)
-
-      /* .................................................................... */
-      /* Create Terms                                                         */
-      /* .................................................................... */
-
-      /**
-       * Create 0-ary term of given kind.
-       * @param kind the kind of the term
-       * @return the Term
-       */
-      public Term mkTerm(Kind kind)
   {
-    long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(pointer, king.getValue());
+    long[] sortPointers = Utils.getPointers(sorts);
+    long sortPointer = mkTupleSort(pointer, sortPointers);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkTupleSort(long pointer, long[] sortPointers);
+
+  /* .................................................................... */
+  /* Create Terms                                                         */
+  /* .................................................................... */
+
+  /**
+   * Create 0-ary term of given kind.
+   * @param kind the kind of the term
+   * @return the Term
+   */
+  public Term mkTerm(Kind kind)
+  {
+    long termPointer = mkTerm(pointer, kind.getValue());
     return new Term(this, termPointer);
   }
 
@@ -403,8 +410,7 @@ public class Solver implements IPointer
    */
   public Term mkTerm(Kind kind, Term child)
   {
-    long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(pointer, king.getValue(), child.getPointer());
+    long termPointer = mkTerm(pointer, kind.getValue(), child.getPointer());
     return new Term(this, termPointer);
   }
 
@@ -419,8 +425,7 @@ public class Solver implements IPointer
    */
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
-    long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(pointer, king.getValue(), child1.getPointer(), child2.getPointer());
+    long termPointer = mkTerm(pointer, kind.getValue(), child1.getPointer(), child2.getPointer());
     return new Term(this, termPointer);
   }
 
@@ -436,9 +441,8 @@ public class Solver implements IPointer
    */
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
-    long[] childPointers = Utils.getPointers(children);
     long termPointer = mkTerm(
-        pointer, king.getValue(), child1.getPointer(), child2.getPointer(), child2.getPointer());
+        pointer, kind.getValue(), child1.getPointer(), child2.getPointer(), child2.getPointer());
     return new Term(this, termPointer);
   }
 
@@ -453,7 +457,7 @@ public class Solver implements IPointer
   public Term mkTerm(Kind kind, Term[] children)
   {
     long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(pointer, king.getValue(), childPointers);
+    long termPointer = mkTerm(pointer, kind.getValue(), childPointers);
     return new Term(this, termPointer);
   }
 
@@ -548,7 +552,7 @@ public class Solver implements IPointer
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(pointer, sortPointer, termPointers);
+    long termPointer = mkTuple(pointer, sortPointers, termPointers);
     return new Term(this, termPointer);
   }
 
@@ -573,7 +577,7 @@ public class Solver implements IPointer
     return new Op(this, opPointer);
   }
 
-  private native int[] mkOp(long pointer, int kindValue);
+  private native long mkOp(long pointer, int kindValue);
   /**
    * Create operator of kind:
    *   - RECORD_UPDATE
@@ -588,7 +592,7 @@ public class Solver implements IPointer
     return new Op(this, opPointer);
   }
 
-  private native int[] mkOp(long pointer, int kindValue, String arg);
+  private native long mkOp(long pointer, int kindValue, String arg);
 
   /**
    * Create operator of kind:
@@ -615,7 +619,7 @@ public class Solver implements IPointer
     return new Op(this, opPointer);
   }
 
-  private native int[] mkOp(long pointer, int kindValue, int arg);
+  private native long mkOp(long pointer, int kindValue, int arg);
 
   /**
    * Create operator of Kind:
@@ -639,7 +643,7 @@ public class Solver implements IPointer
     return new Op(this, opPointer);
   }
 
-  private native int[] mkOp(long pointer, int kindValue, int arg1, int arg2);
+  private native long mkOp(long pointer, int kindValue, int arg1, int arg2);
 
   /**
    * Create operator of Kind:
@@ -655,7 +659,7 @@ public class Solver implements IPointer
     return new Op(this, opPointer);
   }
 
-  private native int[] mkOp(long pointer, int kindValue, int[] args);
+  private native long mkOp(long pointer, int kindValue, int[] args);
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -688,7 +692,7 @@ public class Solver implements IPointer
    * @return the Boolean constant
    * @param val the value of the constant
    */
-  public Term mkBoolean(bool val)
+  public Term mkBoolean(boolean val)
   {
     long termPointer = mkBoolean(pointer, val);
     return new Term(this, termPointer);
@@ -712,7 +716,7 @@ public class Solver implements IPointer
    *          integer (e.g., "123").
    * @return a constant of sort Integer assuming 's' represents an integer)
    */
-  public Term mkInteger(String s) throws CVC5ApiException;
+  public Term mkInteger(String s) throws CVC5ApiException
   {
     long termPointer = mkInteger(pointer, s);
     return new Term(this, termPointer);
@@ -731,7 +735,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkReal(long pointer, val s);
+  private native long mkInteger(long pointer, long val);
   /**
    * Create a real constant from a string.
    * @param s the string representation of the constant, may represent an
@@ -764,7 +768,7 @@ public class Solver implements IPointer
    * @param den the value of the denominator
    * @return a constant of sort Real
    */
-  Term mkReal(long num, long den)
+  public Term mkReal(long num, long den)
   {
     long termPointer = mkReal(pointer, num, den);
     return new Term(this, termPointer);
@@ -782,7 +786,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpEmpty(long pointer, long sortPointer);
+  private native long mkRegexpEmpty(long pointer);
 
   /**
    * Create a regular expression sigma term.
@@ -794,7 +798,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpSigma(long pointer, long sortPointer);
+  private native long mkRegexpSigma(long pointer);
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -852,14 +856,14 @@ public class Solver implements IPointer
    * be converted to the corresponding character
    * @return the String constant
    */
-  public Term mkString(String s, bool useEscSequences)
+  public Term mkString(String s, boolean useEscSequences)
   {
     // TODO: review unicode
     long termPointer = mkString(pointer, s, useEscSequences);
     return new Term(this, termPointer);
   }
 
-  private native long mkString(long pointer, String s, bool useEscSequences);
+  private native long mkString(long pointer, String s, boolean useEscSequences);
 
   /**
    * Create a String constant.
@@ -889,7 +893,7 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkString(long pointer, String s);
+  private native long mkString(long pointer, int[] s);
 
   /**
    * Create a character constant from a given string.
@@ -932,12 +936,22 @@ public class Solver implements IPointer
   private native long mkUniverseSet(long pointer, long sortPointer);
 
   /**
+   * Create a bit-vector constant of given size and value = 0.
+   * @param size the bit-width of the bit-vector sort
+   * @return the bit-vector constant
+   */
+  public Term mkBitVector(int size)
+  {
+    return mkBitVector(size, 0);
+  }
+
+  /**
    * Create a bit-vector constant of given size and value.
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
    * @return the bit-vector constant
    */
-  public Term mkBitVector(int size, long val = 0)
+  public Term mkBitVector(int size, long val)
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(val, "val");
@@ -979,17 +993,17 @@ public class Solver implements IPointer
     return new Term(this, termPointer);
   }
 
-  private native long mkBitVector(long pointer, String s, int base)
+  private native long mkBitVector(long pointer, String s, int base);
 
-      /**
-       * Create a bit-vector constant of a given bit-width from a given string
-       * of base 2, 10 or 16.
-       * @param size the bit-width of the constant
-       * @param s the string representation of the constant
-       * @param base the base of the string representation (2, 10, or 16)
-       * @return the bit-vector constant
-       */
-      public Term mkBitVector(int size, String s, int base)
+  /**
+   * Create a bit-vector constant of a given bit-width from a given string
+   * of base 2, 10 or 16.
+   * @param size the bit-width of the constant
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
+   * @return the bit-vector constant
+   */
+  public Term mkBitVector(int size, String s, int base)
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(base, "base");
@@ -1116,8 +1130,8 @@ public class Solver implements IPointer
    */
   public Term mkUninterpretedConst(Sort sort, int index)
   {
-    Utils.validateUnsigned(index);
-    long termPointer = (pointer, sort.getPointer(), index);
+    Utils.validateUnsigned(index, "index");
+    long termPointer = mkUninterpretedConst(pointer, sort.getPointer(), index);
     return new Term(this, termPointer);
   }
 
@@ -1157,9 +1171,9 @@ public class Solver implements IPointer
    */
   public Term mkFloatingPoint(int exp, int sig, Term val)
   {
-    Utils.validateUnsigned(expr, "exp");
+    Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPoint(pointer, expr, sig, val.getPointer());
+    long termPointer = mkFloatingPoint(pointer, exp, sig, val.getPointer());
     return new Term(this, termPointer);
   }
 
@@ -1210,7 +1224,7 @@ public class Solver implements IPointer
    * @param sort the sort of the variable
    * @return the variable
    */
-  public Term mkVar(Sort sort, String symbol)
+  public Term mkVar(Sort sort)
   {
     return mkVar(sort, "");
   }
@@ -1262,10 +1276,10 @@ public class Solver implements IPointer
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  public DatatypeDecl mkDatatypeDecl(String name, public boolean isCoDatatype);
+  public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
     long declPointer = mkDatatypeDecl(pointer, name, isCoDatatype);
-    return new DatatypeDecl(solver, declPointer);
+    return new DatatypeDecl(this, declPointer);
   }
 
   private native long mkDatatypeDecl(long pointer, String name, boolean isCoDatatype);
@@ -1293,7 +1307,7 @@ public class Solver implements IPointer
   public DatatypeDecl mkDatatypeDecl(String name, Sort param, boolean isCoDatatype)
   {
     long declPointer = mkDatatypeDecl(pointer, name, param.getPointer(), isCoDatatype);
-    return new DatatypeDecl(solver, declPointer);
+    return new DatatypeDecl(this, declPointer);
   }
 
   private native long mkDatatypeDecl(
@@ -1323,7 +1337,7 @@ public class Solver implements IPointer
   {
     long[] paramPointers = Utils.getPointers(params);
     long declPointer = mkDatatypeDecl(pointer, name, paramPointers, isCoDatatype);
-    return new DatatypeDecl(solver, declPointer);
+    return new DatatypeDecl(this, declPointer);
   }
 
   private native long mkDatatypeDecl(
@@ -1344,7 +1358,7 @@ public class Solver implements IPointer
   public Term simplify(Term t)
   {
     long termPointer = simplify(pointer, t.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -1375,7 +1389,7 @@ public class Solver implements IPointer
   public Result checkSat()
   {
     long resultPointer = checkSat(pointer);
-    return new Result(solver, resultPointer);
+    return new Result(this, resultPointer);
   }
 
   private native long checkSat(long pointer);
@@ -1391,7 +1405,7 @@ public class Solver implements IPointer
   Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
-    return new Result(solver, resultPointer);
+    return new Result(this, resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -1409,7 +1423,7 @@ public class Solver implements IPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     long resultPointer = checkSatAssuming(pointer, pointers);
-    return new Result(solver, resultPointer);
+    return new Result(this, resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -1422,7 +1436,7 @@ public class Solver implements IPointer
   public Result checkEntailed(Term term)
   {
     long resultPointer = checkEntailed(pointer, term.getPointer());
-    return new Result(solver, resultPointer);
+    return new Result(this, resultPointer);
   }
 
   private native long checkEntailed(long pointer, long termPointer);
@@ -1437,7 +1451,7 @@ public class Solver implements IPointer
   {
     long[] pointers = Utils.getPointers(terms);
     long resultPointer = checkEntailed(pointer, pointers);
-    return new Result(solver, resultPointer);
+    return new Result(this, resultPointer);
   }
 
   private native long checkEntailed(long pointer, long[] termPointers);
@@ -1456,7 +1470,7 @@ public class Solver implements IPointer
   {
     long[] pointers = Utils.getPointers(ctors);
     long sortPointer = declareDatatype(pointer, symbol, pointers);
-    return new Sort(solver, sortPointer);
+    return new Sort(this, sortPointer);
   }
 
   private native long declareDatatype(long pointer, String symbol, long[] declPointers);
@@ -1475,8 +1489,8 @@ public class Solver implements IPointer
   public Term declareFun(String symbol, Sort[] sorts, Sort sort)
   {
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer);
-    return new Term(solver, termPointer);
+    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer());
+    return new Term(this, termPointer);
   }
 
   private native long declareFun(
@@ -1494,9 +1508,9 @@ public class Solver implements IPointer
    */
   public Sort declareSort(String symbol, int arity)
   {
-    validateUnsigned(arity, "arity");
+    Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity);
-    return new Sort(solver, sortPointer);
+    return new Sort(this, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
@@ -1537,7 +1551,7 @@ public class Solver implements IPointer
     long[] boundVarPointers = Utils.getPointers(bound_vars);
     long termPointer =
         defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long defineFun(long pointer,
@@ -1581,7 +1595,7 @@ public class Solver implements IPointer
   {
     long[] boundVarPointers = Utils.getPointers(bound_vars);
     long termPointer = defineFun(pointer, boundVarPointers, term.getPointer(), global);
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long defineFun(
@@ -1601,7 +1615,7 @@ public class Solver implements IPointer
    */
   public Term defineFunRec(String symbol, Term[] bound_vars, Sort sort, Term term)
   {
-    defineFunsRec(symbol, bound_vars, sort, term, false);
+    defineFunRec(symbol, bound_vars, sort, term, false);
   }
 
   /**
@@ -1702,7 +1716,7 @@ public class Solver implements IPointer
    *               when popping the context)
    * @return the function
    */
-  public void defineFunsRec(Term[] funs, Term[][] bound_vars, Term[] terms, boolean)
+  public void defineFunsRec(Term[] funs, Term[][] bound_vars, Term[] terms, boolean global)
   {
     long[] funPointers = Utils.getPointers(funs);
     long[][] boundVarPointers = Utils.getPointers(bound_vars);
@@ -1737,8 +1751,8 @@ public class Solver implements IPointer
    */
   public Term[] getAssertions()
   {
-    long retPointers = getAssertions(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getAssertions(pointer);
+    return Utils.getTerms(this, retPointers);
   }
 
   private native long[] getAssertions(long pointer);
@@ -1782,8 +1796,8 @@ public class Solver implements IPointer
    */
   public Term[] getUnsatAssumptions()
   {
-    long retPointers = getUnsatAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getUnsatAssumptions(pointer);
+    return Utils.getTerms(this, retPointers);
   }
 
   private native long[] getUnsatAssumptions(long pointer);
@@ -1799,8 +1813,8 @@ public class Solver implements IPointer
    */
   public Term[] getUnsatCore()
   {
-    long retPointers = getUnsatCore(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getUnsatCore(pointer);
+    return Utils.getTerms(this, retPointers);
   }
 
   private native long[] getUnsatCore(long pointer);
@@ -1817,7 +1831,7 @@ public class Solver implements IPointer
   public Term getValue(Term term)
   {
     long termPointer = getValue(pointer, term.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -1835,7 +1849,7 @@ public class Solver implements IPointer
   {
     long[] pointers = Utils.getPointers(terms);
     long[] retPointers = getValue(pointer, pointers);
-    return Utils.getTerms(solver, retPointers);
+    return Utils.getTerms(this, retPointers);
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -1859,7 +1873,8 @@ public class Solver implements IPointer
    */
   public Term getQuantifierElimination(Term q)
   {
-    long termPointer = getQuantifierElimination(q.getPointer());
+    long termPointer = getQuantifierElimination(pointer, q.getPointer());
+    return new Term(this, termPointer);
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -1893,8 +1908,8 @@ public class Solver implements IPointer
    */
   public Term getQuantifierEliminationDisjunct(Term q)
   {
-    long termPointer = getQuantifierEliminationDisjunct(pointer, qPointer);
-    return new Pointer(solver, termPointer);
+    long termPointer = getQuantifierEliminationDisjunct(pointer, q.getPointer());
+    return new Term(this, termPointer);
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -1911,7 +1926,8 @@ public class Solver implements IPointer
     declareSeparationHeap(pointer, locSort.getPointer(), dataSort.getPointer());
   }
 
-  private native void declareSeparationHeap(pointer, locSortPointer, dataSortPointer);
+  private native void declareSeparationHeap(
+      long pointer, long locSortPointer, long dataSortPointer);
 
   /**
    * When using separation logic, obtain the term for the heap.
@@ -1920,7 +1936,7 @@ public class Solver implements IPointer
   public Term getSeparationHeap()
   {
     long termPointer = getSeparationHeap(pointer);
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long getSeparationHeap(long pointer);
@@ -1930,14 +1946,21 @@ public class Solver implements IPointer
    * @return The term for nil
    */
   public Term getSeparationNilTerm()
-      /**
-       * Pop a level from the assertion stack.
-       * SMT-LIB:
-       * \verbatim
-       * ( pop <numeral> )
-       * \endverbatim
-       */
-      public void pop()
+  {
+    long termPointer = getSeparationNilTerm(pointer);
+    return new Term(this, termPointer);
+  }
+
+  private native long getSeparationNilTerm(long pointer);
+
+  /**
+   * Pop a level from the assertion stack.
+   * SMT-LIB:
+   * \verbatim
+   * ( pop <numeral> )
+   * \endverbatim
+   */
+  public void pop()
   {
     pop(1);
   }
@@ -1950,7 +1973,7 @@ public class Solver implements IPointer
    * \endverbatim
    * @param nscopes the number of levels to pop
    */
-  public void pop(uint32_t nscopes)
+  public void pop(int nscopes)
   {
     if (nscopes < 0)
     {
@@ -1975,7 +1998,7 @@ public class Solver implements IPointer
    */
   public boolean getInterpolant(Term conj, Term output)
   {
-    return getInterpolant(pointer, conj.getPointer(), output.getPointer);
+    return getInterpolant(pointer, conj.getPointer(), output.getPointer());
   }
 
   private native boolean getInterpolant(long pointer, long conjPointer, long outputPointer);
@@ -1995,7 +2018,7 @@ public class Solver implements IPointer
    */
   public boolean getInterpolant(Term conj, Grammar grammar, Term output)
   {
-    return getInterpolant(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer);
+    return getInterpolant(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer());
   }
 
   private native boolean getInterpolant(
@@ -2016,7 +2039,7 @@ public class Solver implements IPointer
    */
   public boolean getAbduct(Term conj, Term output)
   {
-    return getAbduct(pointer, conj.getPointer(), output.getPointer);
+    return getAbduct(pointer, conj.getPointer(), output.getPointer());
   }
 
   private native boolean getAbduct(long pointer, long conjPointer, long outputPointer);
@@ -2036,7 +2059,7 @@ public class Solver implements IPointer
    */
   public boolean getAbduct(Term conj, Grammar grammar, Term output)
   {
-    return getAbduct(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer);
+    return getAbduct(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer());
   }
 
   private native boolean getAbduct(
@@ -2071,7 +2094,7 @@ public class Solver implements IPointer
    */
   public void blockModelValues(Term[] terms)
   {
-    long pointers = Utils.getPointers(terms);
+    long[] pointers = Utils.getPointers(terms);
     blockModelValues(pointer, pointers);
   }
 
@@ -2090,7 +2113,7 @@ public class Solver implements IPointer
    * ( push <numeral> )
    * \endverbatim
    */
-  public void push(int nscopes = 1)
+  public void push()
   {
     push(1);
   }
@@ -2186,10 +2209,10 @@ public class Solver implements IPointer
   public Term ensureTermSort(Term t, Sort s)
   {
     long termPointer = ensureTermSort(pointer, t.getPointer(), s.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
-  private native long ensureTermSort(long pointer, termPointer, sortPointer);
+  private native long ensureTermSort(long pointer, long termPointer, long sortPointer);
 
   /**
    * Append \p symbol to the current list of universal variables.
@@ -2213,7 +2236,7 @@ public class Solver implements IPointer
   public Term mkSygusVar(Sort sort, String symbol)
   {
     long termPointer = mkSygusVar(pointer, sort.getPointer(), symbol);
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long mkSygusVar(long pointer, long sortPointer, String symbol);
@@ -2230,8 +2253,8 @@ public class Solver implements IPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long termPointer = synthFun(pointer, symbol, boundVarPointers, ntSymbolPointers);
-    return new Term(solver, termPointer);
+    long grammarPointer = mkSygusGrammar(pointer, boundVarPointers, ntSymbolPointers);
+    return new Grammar(this, grammarPointer);
   }
 
   private native long mkSygusGrammar(
@@ -2252,7 +2275,7 @@ public class Solver implements IPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = synthFun(pointer, symbol, boundVarPointers, sort.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long synthFun(
@@ -2275,7 +2298,7 @@ public class Solver implements IPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         synthFun(pointer, symbol, boundVarPointers, sort.getPointer(), grammar.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long synthFun(
@@ -2295,7 +2318,7 @@ public class Solver implements IPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = synthInv(pointer, symbol, boundVarPointers);
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long synthInv(long pointer, String symbol, long[] boundVarPointers);
@@ -2315,7 +2338,7 @@ public class Solver implements IPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = synthInv(pointer, symbol, boundVarPointers, grammar.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long synthInv(
@@ -2349,7 +2372,8 @@ public class Solver implements IPointer
    */
   public void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post)
   {
-    addSygusConstraint(pointer, inv.getPointer(), pre.getPointer()), trans.getPointer(), post.getPointer());
+    addSygusConstraint(
+        pointer, inv.getPointer(), pre.getPointer(), trans.getPointer(), post.getPointer());
   }
 
   private native void addSygusConstraint(
@@ -2368,7 +2392,7 @@ public class Solver implements IPointer
   public Result checkSynth()
   {
     long resultPointer = checkSynth(pointer);
-    return new Result(solver, resultPointer);
+    return new Result(this, resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -2382,7 +2406,7 @@ public class Solver implements IPointer
   public Term getSynthSolution(Term term)
   {
     long termPointer = getSynthSolution(pointer, term.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(this, termPointer);
   }
 
   private native long getSynthSolution(long pointer, long termPointer);
@@ -2397,7 +2421,7 @@ public class Solver implements IPointer
   {
     long[] termPointers = Utils.getPointers(terms);
     long[] retPointers = getSynthSolutions(pointer, termPointers);
-    return Utils.getTerms(solver, retPointers);
+    return Utils.getTerms(this, retPointers);
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
@@ -2407,47 +2431,6 @@ public class Solver implements IPointer
    * @param out the output stream
    */
   // TODO: void printSynthSolution(std::ostream& out)
-
-  /**
-   * Create a bound variable to be used in a binder (i.e. a quantifier, a
-   * lambda, or a witness binder).
-   *
-   * @param sort   the sort of the variable
-   * @param symbol the name of the variable
-   * @return the variable
-   */
-  public Term mkVar(Sort sort, String symbol)
-  {
-    long termPointer = mkVar(pointer, sort.getPointer(), symbol);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkVar(long pointer, long sortPointer, String symbol);
-
-  /**
-   * Create an uninterpreted sort.
-   *
-   * @param symbol the name of the sort
-   * @return the uninterpreted sort
-   */
-  public Sort mkUninterpretedSort(String symbol)
-  {
-    long sortPointer = mkUninterpretedSort(pointer, symbol);
-    return new Sort(this, sortPointer);
-  }
-
-  private native long mkUninterpretedSort(long pointer, String symbol);
-
-  /**
-   * @return sort Integer (in CVC4, Integer is a subtype of Real)
-   */
-  public Sort getIntegerSort()
-  {
-    long sortPointer = getIntegerSort(pointer);
-    return new Sort(this, sortPointer);
-  }
-
-  public native long getIntegerSort(long pointer);
 
   /**
    * @return null term

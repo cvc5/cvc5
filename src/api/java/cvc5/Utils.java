@@ -59,13 +59,13 @@ class Utils
   /**
    * get pointers from two dimensional matrix
    */
-  public static long[] getPointers(IPointer[][] objects)
+  public static long[][] getPointers(IPointer[][] objects)
   {
     long[][] pointers = new long[objects.length][];
     for (int i = 0; i < pointers.length; i++)
     {
       pointers[i] = new long[objects[i].length];
-      for(int j = 0; j < bound_vars[i].length; j++)
+      for(int j = 0; j < objects[i].length; j++)
       {
         pointers[i][j] = objects[i][j].getPointer();
       }
@@ -73,7 +73,7 @@ class Utils
     return pointers;
   }
 
-  public validateUnsigned(int integer, String name)
+  public static void validateUnsigned(int integer, String name)
   {
     if(integer < 0)
     {
@@ -81,7 +81,7 @@ class Utils
     }
   }
 
-  public validateUnsigned(long integer, String name)
+  public static void validateUnsigned(long integer, String name)
   {
     if(integer < 0)
     {
@@ -89,14 +89,35 @@ class Utils
     }
   }
 
-  public validateUnsigned(long [] integers, String name)
+  public static void validateUnsigned(int [] integers, String name)
   {
     for(int i = 0; i < integers.length; i++)
     {
       if(integers[i] < 0)
       {
-        throw new CVC5ApiException("Expected "+name+"[" + i + "] '" + integer + "' to be non negative.");
+        throw new CVC5ApiException("Expected "+name+"[" + i + "] '" + integers[i] + "' to be non negative.");
       }
     }
+  }
+
+  public static void validateUnsigned(long [] integers, String name)
+  {
+    for(int i = 0; i < integers.length; i++)
+    {
+      if(integers[i] < 0)
+      {
+        throw new CVC5ApiException("Expected "+name+"[" + i + "] '" + integers[i] + "' to be non negative.");
+      }
+    }
+  }
+
+  public static <K> Pair<K, Long>[] getPairs(Pair<K, ? extends AbstractPointer>[] abstractPointers)
+  {
+    Pair<K, Long>[] pointers = new Pair[abstractPointers.length];
+    for (int i = 0; i < pointers.length; i++)
+    {
+      pointers[i] = new Pair<>(abstractPointers[i].first, abstractPointers[i].second.getPointer());
+    }
+    return pointers;
   }
 }
