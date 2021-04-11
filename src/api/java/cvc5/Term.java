@@ -25,7 +25,8 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t the term to compare to for equality
    * @return true if the terms are equal
    */
-  @Override public boolean equals(Object t)
+  @Override
+  public boolean equals(Object t)
   {
     if (this == t)
       return true;
@@ -43,7 +44,8 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return a negative integer, zero, or a positive integer as this term
    * is less than, equal to, or greater than the specified term.
    */
-  @Override public int compareTo(Term t)
+  @Override
+  public int compareTo(Term t)
   {
     return this.compareTo(pointer, t.getPointer());
   }
@@ -53,7 +55,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return the number of children of this term
    */
-  int getNumChildren()
+  public int getNumChildren()
   {
     return getNumChildren(pointer);
   }
@@ -66,7 +68,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param index the index of the child term to return
    * @return the child term with the given index
    */
-  Term getChild(int index) throws CVC5ApiException
+  public Term getChild(int index) throws CVC5ApiException
   {
     if (index < 0)
     {
@@ -81,7 +83,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return the id of this term
    */
-  long getId()
+  public long getId()
   {
     return getId(pointer);
   }
@@ -91,18 +93,10 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return the kind of this term
    */
-  Kind getKind()
+  public Kind getKind() throws CVC5ApiException
   {
-    try
-    {
-      int value = getKind(pointer);
-      return Kind.fromInt(value);
-    }
-    catch(CVC5ApiException e)
-    {
-      e.printStackTrace();
-      throw new RuntimeException(e.getMessage());
-    }
+    int value = getKind(pointer);
+    return Kind.fromInt(value);
   }
 
   private native int getKind(long pointer);
@@ -110,7 +104,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return the sort of this term
    */
-  Sort getSort()
+  public Sort getSort()
   {
     long sortPointer = getSort(pointer);
     return new Sort(solver, sortPointer);
@@ -121,7 +115,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return the result of replacing 'term' by 'replacement' in this term
    */
-  Term substitute(Term term, Term replacement)
+  public Term substitute(Term term, Term replacement)
   {
     long termPointer = substitute(pointer, term.getPointer(), replacement.getPointer());
     return new Term(solver, termPointer);
@@ -133,7 +127,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
    */
-  Term substitute(Term[] terms, Term[] replacements)
+  public Term substitute(Term[] terms, Term[] replacements)
   {
     long[] termPointers = new long[terms.length];
     for (int i = 0; i < termPointers.length; i++)
@@ -155,7 +149,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true iff this term has an operator
    */
-  boolean hasOp()
+  public boolean hasOp()
   {
     return hasOp(pointer);
   }
@@ -166,7 +160,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the Op used to create this term
    * Note: This is safe to call when hasOp() returns true.
    */
-  Op getOp()
+  public Op getOp()
   {
     long opPointer = getOp(pointer);
     return new Op(solver, opPointer);
@@ -177,7 +171,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if this Term is a null term
    */
-  boolean isNull()
+  public boolean isNull()
   {
     return isNull(pointer);
   }
@@ -190,7 +184,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    *
    * @return the base value
    */
-  Term getConstArrayBase()
+  public Term getConstArrayBase()
   {
     long termPointer = getConstArrayBase(pointer);
     return new Term(solver, termPointer);
@@ -204,7 +198,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    *
    * @return the elements of the constant sequence.
    */
-  Term[] getConstSequenceElements()
+  public Term[] getConstSequenceElements()
   {
     long[] termPointers = getConstSequenceElements(pointer);
     Term[] terms = new Term[termPointers.length];
@@ -223,7 +217,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    *
    * @return the Boolean negation of this term
    */
-  Term notTerm()
+  public Term notTerm()
   {
     long termPointer = notTerm(pointer);
     return new Term(solver, termPointer);
@@ -237,7 +231,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t a Boolean term
    * @return the conjunction of this term and the given term
    */
-  Term andTerm(Term t)
+  public Term andTerm(Term t)
   {
     long termPointer = andTerm(pointer, t.getPointer());
     return new Term(solver, termPointer);
@@ -251,7 +245,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t a Boolean term
    * @return the disjunction of this term and the given term
    */
-  Term orTerm(Term t)
+  public Term orTerm(Term t)
   {
     long termPointer = orTerm(pointer, t.getPointer());
     return new Term(solver, termPointer);
@@ -265,7 +259,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t a Boolean term
    * @return the exclusive disjunction of this term and the given term
    */
-  Term xorTerm(Term t)
+  public Term xorTerm(Term t)
   {
     long termPointer = xorTerm(pointer, t.getPointer());
     return new Term(solver, termPointer);
@@ -279,7 +273,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t a Boolean term
    * @return the Boolean equivalence of this term and the given term
    */
-  Term eqTerm(Term t)
+  public Term eqTerm(Term t)
   {
     long termPointer = eqTerm(pointer, t.getPointer());
     return new Term(solver, termPointer);
@@ -293,7 +287,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t a Boolean term
    * @return the implication of this term and the given term
    */
-  Term impTerm(Term t)
+  public Term impTerm(Term t)
   {
     long termPointer = impTerm(pointer, t.getPointer());
     return new Term(solver, termPointer);
@@ -308,7 +302,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param elseTerm the 'else' term
    * @return the if-then-else term with this term as the Boolean condition
    */
-  Term iteTerm(Term thenTerm, Term elseTerm)
+  public Term iteTerm(Term thenTerm, Term elseTerm)
   {
     long termPointer = iteTerm(pointer, thenTerm.getPointer(), elseTerm.getPointer());
     return new Term(solver, termPointer);
@@ -324,7 +318,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if the term is an integer that fits within signed 32 bits.
    */
-  boolean isInt32()
+  public boolean isInt32()
   {
     return isInt32(pointer);
   }
@@ -335,7 +329,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the stored integer as an int.
    * Note: Asserts isInt32().
    */
-  int getInt32()
+  public int getInt32()
   {
     return getInt32(pointer);
   }
@@ -345,7 +339,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if the term is an integer that fits within unsigned 32 bits.
    */
-  boolean isUInt32()
+  public boolean isUInt32()
   {
     return isUInt32(pointer);
   }
@@ -356,7 +350,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the stored integer as an int.
    * Note: Asserts isUInt32().
    */
-  int getUInt32()
+  public int getUInt32()
   {
     return getUInt32(pointer);
   }
@@ -366,7 +360,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if the term is an integer that fits within signed 64 bits.
    */
-  boolean isInt64()
+  public boolean isInt64()
   {
     return isInt64(pointer);
   }
@@ -377,8 +371,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the stored integer as a long.
    * Note: Asserts isInt64().
    */
-  long getInt64()
-
+  public long getInt64()
   {
     return getInt64(pointer);
   }
@@ -388,8 +381,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if the term is an integer that fits within unsigned 64 bits.
    */
-  boolean isUInt64()
-
+  public boolean isUInt64()
   {
     return isUInt64(pointer);
   }
@@ -400,7 +392,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the stored integer as a long.
    * Note: Asserts isUInt64().
    */
-  long getUInt64()
+  public long getUInt64()
   {
     return getUInt64(pointer);
   }
@@ -410,7 +402,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if the term is an integer.
    */
-  boolean isInteger()
+  public boolean isInteger()
   {
     return isInteger(pointer);
   }
@@ -421,7 +413,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return the stored integer in (decimal) string representation.
    * Note: Asserts isInteger().
    */
-  String getInteger()
+  public String getInteger()
   {
     return getInteger(pointer);
   }
@@ -431,7 +423,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
   /**
    * @return true if the term is a string constant.
    */
-  boolean isString()
+  public boolean isString()
   {
     return isString(pointer);
   }
@@ -445,7 +437,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * term in some string representation, whatever data it may hold.
    * Asserts isString().
    */
-  String getString()
+  public String getString()
   {
     return getString(pointer);
   }

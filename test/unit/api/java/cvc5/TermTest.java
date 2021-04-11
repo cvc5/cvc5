@@ -1,6 +1,7 @@
 package cvc5;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static cvc5.Kind.*;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,48 +49,48 @@ class TermTest
       assertNotEquals(x.getId(), z.getId());
     }
 
-//    @Test void  getKind)
-//    {
-//      Sort uSort = d_solver.mkUninterpretedSort("u");
-//      Sort intSort = d_solver.getIntegerSort();
-//      Sort boolSort = d_solver.getBooleanSort();
-//      Sort funSort1 = d_solver.mkFunctionSort(uSort, intSort);
-//      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
-//
-//      Term n;
-//      assertThrows(n.getKind(), CVC4ApiException);
-//      Term x = d_solver.mkVar(uSort, "x");
-//      assertDoesNotThrow(() -> x.getKind());
-//      Term y = d_solver.mkVar(uSort, "y");
-//      assertDoesNotThrow(() -> y.getKind());
-//
-//      Term f = d_solver.mkVar(funSort1, "f");
-//      assertDoesNotThrow(() -> f.getKind());
-//      Term p = d_solver.mkVar(funSort2, "p");
-//      assertDoesNotThrow(() -> p.getKind());
-//
-//      Term zero = d_solver.mkInteger(0);
-//      assertDoesNotThrow(() -> zero.getKind());
-//
-//      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertDoesNotThrow(() -> f_x.getKind());
-//      Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-//      assertDoesNotThrow(() -> f_y.getKind());
-//      Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
-//      assertDoesNotThrow(() -> sum.getKind());
-//      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
-//      assertDoesNotThrow(() -> p_0.getKind());
-//      Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
-//      assertDoesNotThrow(() -> p_f_y.getKind());
-//
-//      // Sequence kinds do not exist internally, test that the API properly
-//      // converts them back.
-//      Sort seqSort = d_solver.mkSequenceSort(intSort);
-//      Term s = d_solver.mkConst(seqSort, "s");
-//      Term ss = d_solver.mkTerm(SEQ_CONCAT, s, s);
-//      assertEquals(ss.getKind(), SEQ_CONCAT);
-//    }
-//
+   @Test void  getKind() throws CVC5ApiException
+   {
+     Sort uSort = d_solver.mkUninterpretedSort("u");
+     Sort intSort = d_solver.getIntegerSort();
+     Sort boolSort = d_solver.getBooleanSort();
+     Sort funSort1 = d_solver.mkFunctionSort(uSort, intSort);
+     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
+
+     Term n = d_solver.getNullTerm();
+     assertThrows(CVC5ApiException.class, () -> n.getKind());
+     Term x = d_solver.mkVar(uSort, "x");
+     assertDoesNotThrow(() -> x.getKind());
+     Term y = d_solver.mkVar(uSort, "y");
+     assertDoesNotThrow(() -> y.getKind());
+
+     Term f = d_solver.mkVar(funSort1, "f");
+     assertDoesNotThrow(() -> f.getKind());
+     Term p = d_solver.mkVar(funSort2, "p");
+     assertDoesNotThrow(() -> p.getKind());
+
+     Term zero = d_solver.mkInteger(0);
+     assertDoesNotThrow(() -> zero.getKind());
+
+     Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+     assertDoesNotThrow(() -> f_x.getKind());
+     Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
+     assertDoesNotThrow(() -> f_y.getKind());
+     Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+     assertDoesNotThrow(() -> sum.getKind());
+     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+     assertDoesNotThrow(() -> p_0.getKind());
+     Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+     assertDoesNotThrow(() -> p_f_y.getKind());
+
+     // Sequence kinds do not exist internally, test that the API properly
+     // converts them back.
+     Sort seqSort = d_solver.mkSequenceSort(intSort);
+     Term s = d_solver.mkConst(seqSort, "s");
+     Term ss = d_solver.mkTerm(SEQ_CONCAT, s, s);
+     assertEquals(ss.getKind(), SEQ_CONCAT);
+   }
+
 //    @Test void  getSort)
 //    {
 //      Sort bvSort = d_solver.mkBitVectorSort(8);
@@ -99,7 +100,7 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term n;
-//      assertThrows(n.getSort(), CVC4ApiException);
+//      assertThrows(n.getSort(), CVC5ApiException);
 //      Term x = d_solver.mkVar(bvSort, "x");
 //      assertDoesNotThrow(() -> x.getSort());
 //      assertEquals(x.getSort(), bvSort);
@@ -147,7 +148,7 @@ class TermTest
 //      Term b = d_solver.mkConst(bvsort, "b");
 //
 //      assertFalse(x.hasOp());
-//      assertThrows(x.getOp(), CVC4ApiException);
+//      assertThrows(x.getOp(), CVC5ApiException);
 //
 //      Term ab = d_solver.mkTerm(SELECT, a, b);
 //      Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
@@ -164,7 +165,7 @@ class TermTest
 //      Term fx = d_solver.mkTerm(APPLY_UF, f, x);
 //
 //      assertFalse(f.hasOp());
-//      assertThrows(f.getOp(), CVC4ApiException);
+//      assertThrows(f.getOp(), CVC5ApiException);
 //      assertTrue(fx.hasOp());
 //      std::vector<Term> children(fx.begin(), fx.end());
 //      // testing rebuild from op and children
@@ -222,21 +223,21 @@ class TermTest
 //      Sort funSort1 = d_solver.mkFunctionSort(bvSort, intSort);
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
-//      assertThrows(Term().notTerm(), CVC4ApiException);
+//      assertThrows(Term().notTerm(), CVC5ApiException);
 //      Term b = d_solver.mkTrue();
 //      assertDoesNotThrow(() -> b.notTerm());
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
-//      assertThrows(x.notTerm(), CVC4ApiException);
+//      assertThrows(x.notTerm(), CVC5ApiException);
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.notTerm(), CVC4ApiException);
+//      assertThrows(f.notTerm(), CVC5ApiException);
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.notTerm(), CVC4ApiException);
+//      assertThrows(p.notTerm(), CVC5ApiException);
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.notTerm(), CVC4ApiException);
+//      assertThrows(zero.notTerm(), CVC5ApiException);
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.notTerm(), CVC4ApiException);
+//      assertThrows(f_x.notTerm(), CVC5ApiException);
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.notTerm(), CVC4ApiException);
+//      assertThrows(sum.notTerm(), CVC5ApiException);
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.notTerm());
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
@@ -252,59 +253,59 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term b = d_solver.mkTrue();
-//      assertThrows(Term().andTerm(b), CVC4ApiException);
-//      assertThrows(b.andTerm(Term()), CVC4ApiException);
+//      assertThrows(Term().andTerm(b), CVC5ApiException);
+//      assertThrows(b.andTerm(Term()), CVC5ApiException);
 //      assertDoesNotThrow(() -> b.andTerm(b));
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
-//      assertThrows(x.andTerm(b), CVC4ApiException);
-//      assertThrows(x.andTerm(x), CVC4ApiException);
+//      assertThrows(x.andTerm(b), CVC5ApiException);
+//      assertThrows(x.andTerm(x), CVC5ApiException);
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.andTerm(b), CVC4ApiException);
-//      assertThrows(f.andTerm(x), CVC4ApiException);
-//      assertThrows(f.andTerm(f), CVC4ApiException);
+//      assertThrows(f.andTerm(b), CVC5ApiException);
+//      assertThrows(f.andTerm(x), CVC5ApiException);
+//      assertThrows(f.andTerm(f), CVC5ApiException);
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.andTerm(b), CVC4ApiException);
-//      assertThrows(p.andTerm(x), CVC4ApiException);
-//      assertThrows(p.andTerm(f), CVC4ApiException);
-//      assertThrows(p.andTerm(p), CVC4ApiException);
+//      assertThrows(p.andTerm(b), CVC5ApiException);
+//      assertThrows(p.andTerm(x), CVC5ApiException);
+//      assertThrows(p.andTerm(f), CVC5ApiException);
+//      assertThrows(p.andTerm(p), CVC5ApiException);
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.andTerm(b), CVC4ApiException);
-//      assertThrows(zero.andTerm(x), CVC4ApiException);
-//      assertThrows(zero.andTerm(f), CVC4ApiException);
-//      assertThrows(zero.andTerm(p), CVC4ApiException);
-//      assertThrows(zero.andTerm(zero), CVC4ApiException);
+//      assertThrows(zero.andTerm(b), CVC5ApiException);
+//      assertThrows(zero.andTerm(x), CVC5ApiException);
+//      assertThrows(zero.andTerm(f), CVC5ApiException);
+//      assertThrows(zero.andTerm(p), CVC5ApiException);
+//      assertThrows(zero.andTerm(zero), CVC5ApiException);
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.andTerm(b), CVC4ApiException);
-//      assertThrows(f_x.andTerm(x), CVC4ApiException);
-//      assertThrows(f_x.andTerm(f), CVC4ApiException);
-//      assertThrows(f_x.andTerm(p), CVC4ApiException);
-//      assertThrows(f_x.andTerm(zero), CVC4ApiException);
-//      assertThrows(f_x.andTerm(f_x), CVC4ApiException);
+//      assertThrows(f_x.andTerm(b), CVC5ApiException);
+//      assertThrows(f_x.andTerm(x), CVC5ApiException);
+//      assertThrows(f_x.andTerm(f), CVC5ApiException);
+//      assertThrows(f_x.andTerm(p), CVC5ApiException);
+//      assertThrows(f_x.andTerm(zero), CVC5ApiException);
+//      assertThrows(f_x.andTerm(f_x), CVC5ApiException);
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.andTerm(b), CVC4ApiException);
-//      assertThrows(sum.andTerm(x), CVC4ApiException);
-//      assertThrows(sum.andTerm(f), CVC4ApiException);
-//      assertThrows(sum.andTerm(p), CVC4ApiException);
-//      assertThrows(sum.andTerm(zero), CVC4ApiException);
-//      assertThrows(sum.andTerm(f_x), CVC4ApiException);
-//      assertThrows(sum.andTerm(sum), CVC4ApiException);
+//      assertThrows(sum.andTerm(b), CVC5ApiException);
+//      assertThrows(sum.andTerm(x), CVC5ApiException);
+//      assertThrows(sum.andTerm(f), CVC5ApiException);
+//      assertThrows(sum.andTerm(p), CVC5ApiException);
+//      assertThrows(sum.andTerm(zero), CVC5ApiException);
+//      assertThrows(sum.andTerm(f_x), CVC5ApiException);
+//      assertThrows(sum.andTerm(sum), CVC5ApiException);
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.andTerm(b));
-//      assertThrows(p_0.andTerm(x), CVC4ApiException);
-//      assertThrows(p_0.andTerm(f), CVC4ApiException);
-//      assertThrows(p_0.andTerm(p), CVC4ApiException);
-//      assertThrows(p_0.andTerm(zero), CVC4ApiException);
-//      assertThrows(p_0.andTerm(f_x), CVC4ApiException);
-//      assertThrows(p_0.andTerm(sum), CVC4ApiException);
+//      assertThrows(p_0.andTerm(x), CVC5ApiException);
+//      assertThrows(p_0.andTerm(f), CVC5ApiException);
+//      assertThrows(p_0.andTerm(p), CVC5ApiException);
+//      assertThrows(p_0.andTerm(zero), CVC5ApiException);
+//      assertThrows(p_0.andTerm(f_x), CVC5ApiException);
+//      assertThrows(p_0.andTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_0.andTerm(p_0));
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
 //      assertDoesNotThrow(() -> p_f_x.andTerm(b));
-//      assertThrows(p_f_x.andTerm(x), CVC4ApiException);
-//      assertThrows(p_f_x.andTerm(f), CVC4ApiException);
-//      assertThrows(p_f_x.andTerm(p), CVC4ApiException);
-//      assertThrows(p_f_x.andTerm(zero), CVC4ApiException);
-//      assertThrows(p_f_x.andTerm(f_x), CVC4ApiException);
-//      assertThrows(p_f_x.andTerm(sum), CVC4ApiException);
+//      assertThrows(p_f_x.andTerm(x), CVC5ApiException);
+//      assertThrows(p_f_x.andTerm(f), CVC5ApiException);
+//      assertThrows(p_f_x.andTerm(p), CVC5ApiException);
+//      assertThrows(p_f_x.andTerm(zero), CVC5ApiException);
+//      assertThrows(p_f_x.andTerm(f_x), CVC5ApiException);
+//      assertThrows(p_f_x.andTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_f_x.andTerm(p_0));
 //      assertDoesNotThrow(() -> p_f_x.andTerm(p_f_x));
 //    }
@@ -318,59 +319,59 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term b = d_solver.mkTrue();
-//      assertThrows(Term().orTerm(b), CVC4ApiException);
-//      assertThrows(b.orTerm(Term()), CVC4ApiException);
+//      assertThrows(Term().orTerm(b), CVC5ApiException);
+//      assertThrows(b.orTerm(Term()), CVC5ApiException);
 //      assertDoesNotThrow(() -> b.orTerm(b));
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
-//      assertThrows(x.orTerm(b), CVC4ApiException);
-//      assertThrows(x.orTerm(x), CVC4ApiException);
+//      assertThrows(x.orTerm(b), CVC5ApiException);
+//      assertThrows(x.orTerm(x), CVC5ApiException);
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.orTerm(b), CVC4ApiException);
-//      assertThrows(f.orTerm(x), CVC4ApiException);
-//      assertThrows(f.orTerm(f), CVC4ApiException);
+//      assertThrows(f.orTerm(b), CVC5ApiException);
+//      assertThrows(f.orTerm(x), CVC5ApiException);
+//      assertThrows(f.orTerm(f), CVC5ApiException);
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.orTerm(b), CVC4ApiException);
-//      assertThrows(p.orTerm(x), CVC4ApiException);
-//      assertThrows(p.orTerm(f), CVC4ApiException);
-//      assertThrows(p.orTerm(p), CVC4ApiException);
+//      assertThrows(p.orTerm(b), CVC5ApiException);
+//      assertThrows(p.orTerm(x), CVC5ApiException);
+//      assertThrows(p.orTerm(f), CVC5ApiException);
+//      assertThrows(p.orTerm(p), CVC5ApiException);
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.orTerm(b), CVC4ApiException);
-//      assertThrows(zero.orTerm(x), CVC4ApiException);
-//      assertThrows(zero.orTerm(f), CVC4ApiException);
-//      assertThrows(zero.orTerm(p), CVC4ApiException);
-//      assertThrows(zero.orTerm(zero), CVC4ApiException);
+//      assertThrows(zero.orTerm(b), CVC5ApiException);
+//      assertThrows(zero.orTerm(x), CVC5ApiException);
+//      assertThrows(zero.orTerm(f), CVC5ApiException);
+//      assertThrows(zero.orTerm(p), CVC5ApiException);
+//      assertThrows(zero.orTerm(zero), CVC5ApiException);
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.orTerm(b), CVC4ApiException);
-//      assertThrows(f_x.orTerm(x), CVC4ApiException);
-//      assertThrows(f_x.orTerm(f), CVC4ApiException);
-//      assertThrows(f_x.orTerm(p), CVC4ApiException);
-//      assertThrows(f_x.orTerm(zero), CVC4ApiException);
-//      assertThrows(f_x.orTerm(f_x), CVC4ApiException);
+//      assertThrows(f_x.orTerm(b), CVC5ApiException);
+//      assertThrows(f_x.orTerm(x), CVC5ApiException);
+//      assertThrows(f_x.orTerm(f), CVC5ApiException);
+//      assertThrows(f_x.orTerm(p), CVC5ApiException);
+//      assertThrows(f_x.orTerm(zero), CVC5ApiException);
+//      assertThrows(f_x.orTerm(f_x), CVC5ApiException);
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.orTerm(b), CVC4ApiException);
-//      assertThrows(sum.orTerm(x), CVC4ApiException);
-//      assertThrows(sum.orTerm(f), CVC4ApiException);
-//      assertThrows(sum.orTerm(p), CVC4ApiException);
-//      assertThrows(sum.orTerm(zero), CVC4ApiException);
-//      assertThrows(sum.orTerm(f_x), CVC4ApiException);
-//      assertThrows(sum.orTerm(sum), CVC4ApiException);
+//      assertThrows(sum.orTerm(b), CVC5ApiException);
+//      assertThrows(sum.orTerm(x), CVC5ApiException);
+//      assertThrows(sum.orTerm(f), CVC5ApiException);
+//      assertThrows(sum.orTerm(p), CVC5ApiException);
+//      assertThrows(sum.orTerm(zero), CVC5ApiException);
+//      assertThrows(sum.orTerm(f_x), CVC5ApiException);
+//      assertThrows(sum.orTerm(sum), CVC5ApiException);
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.orTerm(b));
-//      assertThrows(p_0.orTerm(x), CVC4ApiException);
-//      assertThrows(p_0.orTerm(f), CVC4ApiException);
-//      assertThrows(p_0.orTerm(p), CVC4ApiException);
-//      assertThrows(p_0.orTerm(zero), CVC4ApiException);
-//      assertThrows(p_0.orTerm(f_x), CVC4ApiException);
-//      assertThrows(p_0.orTerm(sum), CVC4ApiException);
+//      assertThrows(p_0.orTerm(x), CVC5ApiException);
+//      assertThrows(p_0.orTerm(f), CVC5ApiException);
+//      assertThrows(p_0.orTerm(p), CVC5ApiException);
+//      assertThrows(p_0.orTerm(zero), CVC5ApiException);
+//      assertThrows(p_0.orTerm(f_x), CVC5ApiException);
+//      assertThrows(p_0.orTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_0.orTerm(p_0));
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
 //      assertDoesNotThrow(() -> p_f_x.orTerm(b));
-//      assertThrows(p_f_x.orTerm(x), CVC4ApiException);
-//      assertThrows(p_f_x.orTerm(f), CVC4ApiException);
-//      assertThrows(p_f_x.orTerm(p), CVC4ApiException);
-//      assertThrows(p_f_x.orTerm(zero), CVC4ApiException);
-//      assertThrows(p_f_x.orTerm(f_x), CVC4ApiException);
-//      assertThrows(p_f_x.orTerm(sum), CVC4ApiException);
+//      assertThrows(p_f_x.orTerm(x), CVC5ApiException);
+//      assertThrows(p_f_x.orTerm(f), CVC5ApiException);
+//      assertThrows(p_f_x.orTerm(p), CVC5ApiException);
+//      assertThrows(p_f_x.orTerm(zero), CVC5ApiException);
+//      assertThrows(p_f_x.orTerm(f_x), CVC5ApiException);
+//      assertThrows(p_f_x.orTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_f_x.orTerm(p_0));
 //      assertDoesNotThrow(() -> p_f_x.orTerm(p_f_x));
 //    }
@@ -384,59 +385,59 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term b = d_solver.mkTrue();
-//      assertThrows(Term().xorTerm(b), CVC4ApiException);
-//      assertThrows(b.xorTerm(Term()), CVC4ApiException);
+//      assertThrows(Term().xorTerm(b), CVC5ApiException);
+//      assertThrows(b.xorTerm(Term()), CVC5ApiException);
 //      assertDoesNotThrow(() -> b.xorTerm(b));
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
-//      assertThrows(x.xorTerm(b), CVC4ApiException);
-//      assertThrows(x.xorTerm(x), CVC4ApiException);
+//      assertThrows(x.xorTerm(b), CVC5ApiException);
+//      assertThrows(x.xorTerm(x), CVC5ApiException);
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.xorTerm(b), CVC4ApiException);
-//      assertThrows(f.xorTerm(x), CVC4ApiException);
-//      assertThrows(f.xorTerm(f), CVC4ApiException);
+//      assertThrows(f.xorTerm(b), CVC5ApiException);
+//      assertThrows(f.xorTerm(x), CVC5ApiException);
+//      assertThrows(f.xorTerm(f), CVC5ApiException);
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.xorTerm(b), CVC4ApiException);
-//      assertThrows(p.xorTerm(x), CVC4ApiException);
-//      assertThrows(p.xorTerm(f), CVC4ApiException);
-//      assertThrows(p.xorTerm(p), CVC4ApiException);
+//      assertThrows(p.xorTerm(b), CVC5ApiException);
+//      assertThrows(p.xorTerm(x), CVC5ApiException);
+//      assertThrows(p.xorTerm(f), CVC5ApiException);
+//      assertThrows(p.xorTerm(p), CVC5ApiException);
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.xorTerm(b), CVC4ApiException);
-//      assertThrows(zero.xorTerm(x), CVC4ApiException);
-//      assertThrows(zero.xorTerm(f), CVC4ApiException);
-//      assertThrows(zero.xorTerm(p), CVC4ApiException);
-//      assertThrows(zero.xorTerm(zero), CVC4ApiException);
+//      assertThrows(zero.xorTerm(b), CVC5ApiException);
+//      assertThrows(zero.xorTerm(x), CVC5ApiException);
+//      assertThrows(zero.xorTerm(f), CVC5ApiException);
+//      assertThrows(zero.xorTerm(p), CVC5ApiException);
+//      assertThrows(zero.xorTerm(zero), CVC5ApiException);
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.xorTerm(b), CVC4ApiException);
-//      assertThrows(f_x.xorTerm(x), CVC4ApiException);
-//      assertThrows(f_x.xorTerm(f), CVC4ApiException);
-//      assertThrows(f_x.xorTerm(p), CVC4ApiException);
-//      assertThrows(f_x.xorTerm(zero), CVC4ApiException);
-//      assertThrows(f_x.xorTerm(f_x), CVC4ApiException);
+//      assertThrows(f_x.xorTerm(b), CVC5ApiException);
+//      assertThrows(f_x.xorTerm(x), CVC5ApiException);
+//      assertThrows(f_x.xorTerm(f), CVC5ApiException);
+//      assertThrows(f_x.xorTerm(p), CVC5ApiException);
+//      assertThrows(f_x.xorTerm(zero), CVC5ApiException);
+//      assertThrows(f_x.xorTerm(f_x), CVC5ApiException);
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.xorTerm(b), CVC4ApiException);
-//      assertThrows(sum.xorTerm(x), CVC4ApiException);
-//      assertThrows(sum.xorTerm(f), CVC4ApiException);
-//      assertThrows(sum.xorTerm(p), CVC4ApiException);
-//      assertThrows(sum.xorTerm(zero), CVC4ApiException);
-//      assertThrows(sum.xorTerm(f_x), CVC4ApiException);
-//      assertThrows(sum.xorTerm(sum), CVC4ApiException);
+//      assertThrows(sum.xorTerm(b), CVC5ApiException);
+//      assertThrows(sum.xorTerm(x), CVC5ApiException);
+//      assertThrows(sum.xorTerm(f), CVC5ApiException);
+//      assertThrows(sum.xorTerm(p), CVC5ApiException);
+//      assertThrows(sum.xorTerm(zero), CVC5ApiException);
+//      assertThrows(sum.xorTerm(f_x), CVC5ApiException);
+//      assertThrows(sum.xorTerm(sum), CVC5ApiException);
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.xorTerm(b));
-//      assertThrows(p_0.xorTerm(x), CVC4ApiException);
-//      assertThrows(p_0.xorTerm(f), CVC4ApiException);
-//      assertThrows(p_0.xorTerm(p), CVC4ApiException);
-//      assertThrows(p_0.xorTerm(zero), CVC4ApiException);
-//      assertThrows(p_0.xorTerm(f_x), CVC4ApiException);
-//      assertThrows(p_0.xorTerm(sum), CVC4ApiException);
+//      assertThrows(p_0.xorTerm(x), CVC5ApiException);
+//      assertThrows(p_0.xorTerm(f), CVC5ApiException);
+//      assertThrows(p_0.xorTerm(p), CVC5ApiException);
+//      assertThrows(p_0.xorTerm(zero), CVC5ApiException);
+//      assertThrows(p_0.xorTerm(f_x), CVC5ApiException);
+//      assertThrows(p_0.xorTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_0.xorTerm(p_0));
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
 //      assertDoesNotThrow(() -> p_f_x.xorTerm(b));
-//      assertThrows(p_f_x.xorTerm(x), CVC4ApiException);
-//      assertThrows(p_f_x.xorTerm(f), CVC4ApiException);
-//      assertThrows(p_f_x.xorTerm(p), CVC4ApiException);
-//      assertThrows(p_f_x.xorTerm(zero), CVC4ApiException);
-//      assertThrows(p_f_x.xorTerm(f_x), CVC4ApiException);
-//      assertThrows(p_f_x.xorTerm(sum), CVC4ApiException);
+//      assertThrows(p_f_x.xorTerm(x), CVC5ApiException);
+//      assertThrows(p_f_x.xorTerm(f), CVC5ApiException);
+//      assertThrows(p_f_x.xorTerm(p), CVC5ApiException);
+//      assertThrows(p_f_x.xorTerm(zero), CVC5ApiException);
+//      assertThrows(p_f_x.xorTerm(f_x), CVC5ApiException);
+//      assertThrows(p_f_x.xorTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_f_x.xorTerm(p_0));
 //      assertDoesNotThrow(() -> p_f_x.xorTerm(p_f_x));
 //    }
@@ -450,59 +451,59 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term b = d_solver.mkTrue();
-//      assertThrows(Term().eqTerm(b), CVC4ApiException);
-//      assertThrows(b.eqTerm(Term()), CVC4ApiException);
+//      assertThrows(Term().eqTerm(b), CVC5ApiException);
+//      assertThrows(b.eqTerm(Term()), CVC5ApiException);
 //      assertDoesNotThrow(() -> b.eqTerm(b));
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
-//      assertThrows(x.eqTerm(b), CVC4ApiException);
+//      assertThrows(x.eqTerm(b), CVC5ApiException);
 //      assertDoesNotThrow(() -> x.eqTerm(x));
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.eqTerm(b), CVC4ApiException);
-//      assertThrows(f.eqTerm(x), CVC4ApiException);
+//      assertThrows(f.eqTerm(b), CVC5ApiException);
+//      assertThrows(f.eqTerm(x), CVC5ApiException);
 //      assertDoesNotThrow(() -> f.eqTerm(f));
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.eqTerm(b), CVC4ApiException);
-//      assertThrows(p.eqTerm(x), CVC4ApiException);
-//      assertThrows(p.eqTerm(f), CVC4ApiException);
+//      assertThrows(p.eqTerm(b), CVC5ApiException);
+//      assertThrows(p.eqTerm(x), CVC5ApiException);
+//      assertThrows(p.eqTerm(f), CVC5ApiException);
 //      assertDoesNotThrow(() -> p.eqTerm(p));
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.eqTerm(b), CVC4ApiException);
-//      assertThrows(zero.eqTerm(x), CVC4ApiException);
-//      assertThrows(zero.eqTerm(f), CVC4ApiException);
-//      assertThrows(zero.eqTerm(p), CVC4ApiException);
+//      assertThrows(zero.eqTerm(b), CVC5ApiException);
+//      assertThrows(zero.eqTerm(x), CVC5ApiException);
+//      assertThrows(zero.eqTerm(f), CVC5ApiException);
+//      assertThrows(zero.eqTerm(p), CVC5ApiException);
 //      assertDoesNotThrow(() -> zero.eqTerm(zero));
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.eqTerm(b), CVC4ApiException);
-//      assertThrows(f_x.eqTerm(x), CVC4ApiException);
-//      assertThrows(f_x.eqTerm(f), CVC4ApiException);
-//      assertThrows(f_x.eqTerm(p), CVC4ApiException);
+//      assertThrows(f_x.eqTerm(b), CVC5ApiException);
+//      assertThrows(f_x.eqTerm(x), CVC5ApiException);
+//      assertThrows(f_x.eqTerm(f), CVC5ApiException);
+//      assertThrows(f_x.eqTerm(p), CVC5ApiException);
 //      assertDoesNotThrow(() -> f_x.eqTerm(zero));
 //      assertDoesNotThrow(() -> f_x.eqTerm(f_x));
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.eqTerm(b), CVC4ApiException);
-//      assertThrows(sum.eqTerm(x), CVC4ApiException);
-//      assertThrows(sum.eqTerm(f), CVC4ApiException);
-//      assertThrows(sum.eqTerm(p), CVC4ApiException);
+//      assertThrows(sum.eqTerm(b), CVC5ApiException);
+//      assertThrows(sum.eqTerm(x), CVC5ApiException);
+//      assertThrows(sum.eqTerm(f), CVC5ApiException);
+//      assertThrows(sum.eqTerm(p), CVC5ApiException);
 //      assertDoesNotThrow(() -> sum.eqTerm(zero));
 //      assertDoesNotThrow(() -> sum.eqTerm(f_x));
 //      assertDoesNotThrow(() -> sum.eqTerm(sum));
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.eqTerm(b));
-//      assertThrows(p_0.eqTerm(x), CVC4ApiException);
-//      assertThrows(p_0.eqTerm(f), CVC4ApiException);
-//      assertThrows(p_0.eqTerm(p), CVC4ApiException);
-//      assertThrows(p_0.eqTerm(zero), CVC4ApiException);
-//      assertThrows(p_0.eqTerm(f_x), CVC4ApiException);
-//      assertThrows(p_0.eqTerm(sum), CVC4ApiException);
+//      assertThrows(p_0.eqTerm(x), CVC5ApiException);
+//      assertThrows(p_0.eqTerm(f), CVC5ApiException);
+//      assertThrows(p_0.eqTerm(p), CVC5ApiException);
+//      assertThrows(p_0.eqTerm(zero), CVC5ApiException);
+//      assertThrows(p_0.eqTerm(f_x), CVC5ApiException);
+//      assertThrows(p_0.eqTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_0.eqTerm(p_0));
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
 //      assertDoesNotThrow(() -> p_f_x.eqTerm(b));
-//      assertThrows(p_f_x.eqTerm(x), CVC4ApiException);
-//      assertThrows(p_f_x.eqTerm(f), CVC4ApiException);
-//      assertThrows(p_f_x.eqTerm(p), CVC4ApiException);
-//      assertThrows(p_f_x.eqTerm(zero), CVC4ApiException);
-//      assertThrows(p_f_x.eqTerm(f_x), CVC4ApiException);
-//      assertThrows(p_f_x.eqTerm(sum), CVC4ApiException);
+//      assertThrows(p_f_x.eqTerm(x), CVC5ApiException);
+//      assertThrows(p_f_x.eqTerm(f), CVC5ApiException);
+//      assertThrows(p_f_x.eqTerm(p), CVC5ApiException);
+//      assertThrows(p_f_x.eqTerm(zero), CVC5ApiException);
+//      assertThrows(p_f_x.eqTerm(f_x), CVC5ApiException);
+//      assertThrows(p_f_x.eqTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_f_x.eqTerm(p_0));
 //      assertDoesNotThrow(() -> p_f_x.eqTerm(p_f_x));
 //    }
@@ -516,59 +517,59 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term b = d_solver.mkTrue();
-//      assertThrows(Term().impTerm(b), CVC4ApiException);
-//      assertThrows(b.impTerm(Term()), CVC4ApiException);
+//      assertThrows(Term().impTerm(b), CVC5ApiException);
+//      assertThrows(b.impTerm(Term()), CVC5ApiException);
 //      assertDoesNotThrow(() -> b.impTerm(b));
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
-//      assertThrows(x.impTerm(b), CVC4ApiException);
-//      assertThrows(x.impTerm(x), CVC4ApiException);
+//      assertThrows(x.impTerm(b), CVC5ApiException);
+//      assertThrows(x.impTerm(x), CVC5ApiException);
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.impTerm(b), CVC4ApiException);
-//      assertThrows(f.impTerm(x), CVC4ApiException);
-//      assertThrows(f.impTerm(f), CVC4ApiException);
+//      assertThrows(f.impTerm(b), CVC5ApiException);
+//      assertThrows(f.impTerm(x), CVC5ApiException);
+//      assertThrows(f.impTerm(f), CVC5ApiException);
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.impTerm(b), CVC4ApiException);
-//      assertThrows(p.impTerm(x), CVC4ApiException);
-//      assertThrows(p.impTerm(f), CVC4ApiException);
-//      assertThrows(p.impTerm(p), CVC4ApiException);
+//      assertThrows(p.impTerm(b), CVC5ApiException);
+//      assertThrows(p.impTerm(x), CVC5ApiException);
+//      assertThrows(p.impTerm(f), CVC5ApiException);
+//      assertThrows(p.impTerm(p), CVC5ApiException);
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.impTerm(b), CVC4ApiException);
-//      assertThrows(zero.impTerm(x), CVC4ApiException);
-//      assertThrows(zero.impTerm(f), CVC4ApiException);
-//      assertThrows(zero.impTerm(p), CVC4ApiException);
-//      assertThrows(zero.impTerm(zero), CVC4ApiException);
+//      assertThrows(zero.impTerm(b), CVC5ApiException);
+//      assertThrows(zero.impTerm(x), CVC5ApiException);
+//      assertThrows(zero.impTerm(f), CVC5ApiException);
+//      assertThrows(zero.impTerm(p), CVC5ApiException);
+//      assertThrows(zero.impTerm(zero), CVC5ApiException);
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.impTerm(b), CVC4ApiException);
-//      assertThrows(f_x.impTerm(x), CVC4ApiException);
-//      assertThrows(f_x.impTerm(f), CVC4ApiException);
-//      assertThrows(f_x.impTerm(p), CVC4ApiException);
-//      assertThrows(f_x.impTerm(zero), CVC4ApiException);
-//      assertThrows(f_x.impTerm(f_x), CVC4ApiException);
+//      assertThrows(f_x.impTerm(b), CVC5ApiException);
+//      assertThrows(f_x.impTerm(x), CVC5ApiException);
+//      assertThrows(f_x.impTerm(f), CVC5ApiException);
+//      assertThrows(f_x.impTerm(p), CVC5ApiException);
+//      assertThrows(f_x.impTerm(zero), CVC5ApiException);
+//      assertThrows(f_x.impTerm(f_x), CVC5ApiException);
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.impTerm(b), CVC4ApiException);
-//      assertThrows(sum.impTerm(x), CVC4ApiException);
-//      assertThrows(sum.impTerm(f), CVC4ApiException);
-//      assertThrows(sum.impTerm(p), CVC4ApiException);
-//      assertThrows(sum.impTerm(zero), CVC4ApiException);
-//      assertThrows(sum.impTerm(f_x), CVC4ApiException);
-//      assertThrows(sum.impTerm(sum), CVC4ApiException);
+//      assertThrows(sum.impTerm(b), CVC5ApiException);
+//      assertThrows(sum.impTerm(x), CVC5ApiException);
+//      assertThrows(sum.impTerm(f), CVC5ApiException);
+//      assertThrows(sum.impTerm(p), CVC5ApiException);
+//      assertThrows(sum.impTerm(zero), CVC5ApiException);
+//      assertThrows(sum.impTerm(f_x), CVC5ApiException);
+//      assertThrows(sum.impTerm(sum), CVC5ApiException);
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.impTerm(b));
-//      assertThrows(p_0.impTerm(x), CVC4ApiException);
-//      assertThrows(p_0.impTerm(f), CVC4ApiException);
-//      assertThrows(p_0.impTerm(p), CVC4ApiException);
-//      assertThrows(p_0.impTerm(zero), CVC4ApiException);
-//      assertThrows(p_0.impTerm(f_x), CVC4ApiException);
-//      assertThrows(p_0.impTerm(sum), CVC4ApiException);
+//      assertThrows(p_0.impTerm(x), CVC5ApiException);
+//      assertThrows(p_0.impTerm(f), CVC5ApiException);
+//      assertThrows(p_0.impTerm(p), CVC5ApiException);
+//      assertThrows(p_0.impTerm(zero), CVC5ApiException);
+//      assertThrows(p_0.impTerm(f_x), CVC5ApiException);
+//      assertThrows(p_0.impTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_0.impTerm(p_0));
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
 //      assertDoesNotThrow(() -> p_f_x.impTerm(b));
-//      assertThrows(p_f_x.impTerm(x), CVC4ApiException);
-//      assertThrows(p_f_x.impTerm(f), CVC4ApiException);
-//      assertThrows(p_f_x.impTerm(p), CVC4ApiException);
-//      assertThrows(p_f_x.impTerm(zero), CVC4ApiException);
-//      assertThrows(p_f_x.impTerm(f_x), CVC4ApiException);
-//      assertThrows(p_f_x.impTerm(sum), CVC4ApiException);
+//      assertThrows(p_f_x.impTerm(x), CVC5ApiException);
+//      assertThrows(p_f_x.impTerm(f), CVC5ApiException);
+//      assertThrows(p_f_x.impTerm(p), CVC5ApiException);
+//      assertThrows(p_f_x.impTerm(zero), CVC5ApiException);
+//      assertThrows(p_f_x.impTerm(f_x), CVC5ApiException);
+//      assertThrows(p_f_x.impTerm(sum), CVC5ApiException);
 //      assertDoesNotThrow(() -> p_f_x.impTerm(p_0));
 //      assertDoesNotThrow(() -> p_f_x.impTerm(p_f_x));
 //    }
@@ -582,39 +583,39 @@ class TermTest
 //      Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 //
 //      Term b = d_solver.mkTrue();
-//      assertThrows(Term().iteTerm(b, b), CVC4ApiException);
-//      assertThrows(b.iteTerm(Term(), b), CVC4ApiException);
-//      assertThrows(b.iteTerm(b, Term()), CVC4ApiException);
+//      assertThrows(Term().iteTerm(b, b), CVC5ApiException);
+//      assertThrows(b.iteTerm(Term(), b), CVC5ApiException);
+//      assertThrows(b.iteTerm(b, Term()), CVC5ApiException);
 //      assertDoesNotThrow(() -> b.iteTerm(b, b));
 //      Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
 //      assertDoesNotThrow(() -> b.iteTerm(x, x));
 //      assertDoesNotThrow(() -> b.iteTerm(b, b));
-//      assertThrows(b.iteTerm(x, b), CVC4ApiException);
-//      assertThrows(x.iteTerm(x, x), CVC4ApiException);
-//      assertThrows(x.iteTerm(x, b), CVC4ApiException);
+//      assertThrows(b.iteTerm(x, b), CVC5ApiException);
+//      assertThrows(x.iteTerm(x, x), CVC5ApiException);
+//      assertThrows(x.iteTerm(x, b), CVC5ApiException);
 //      Term f = d_solver.mkVar(funSort1, "f");
-//      assertThrows(f.iteTerm(b, b), CVC4ApiException);
-//      assertThrows(x.iteTerm(b, x), CVC4ApiException);
+//      assertThrows(f.iteTerm(b, b), CVC5ApiException);
+//      assertThrows(x.iteTerm(b, x), CVC5ApiException);
 //      Term p = d_solver.mkVar(funSort2, "p");
-//      assertThrows(p.iteTerm(b, b), CVC4ApiException);
-//      assertThrows(p.iteTerm(x, b), CVC4ApiException);
+//      assertThrows(p.iteTerm(b, b), CVC5ApiException);
+//      assertThrows(p.iteTerm(x, b), CVC5ApiException);
 //      Term zero = d_solver.mkInteger(0);
-//      assertThrows(zero.iteTerm(x, x), CVC4ApiException);
-//      assertThrows(zero.iteTerm(x, b), CVC4ApiException);
+//      assertThrows(zero.iteTerm(x, x), CVC5ApiException);
+//      assertThrows(zero.iteTerm(x, b), CVC5ApiException);
 //      Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-//      assertThrows(f_x.iteTerm(b, b), CVC4ApiException);
-//      assertThrows(f_x.iteTerm(b, x), CVC4ApiException);
+//      assertThrows(f_x.iteTerm(b, b), CVC5ApiException);
+//      assertThrows(f_x.iteTerm(b, x), CVC5ApiException);
 //      Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
-//      assertThrows(sum.iteTerm(x, x), CVC4ApiException);
-//      assertThrows(sum.iteTerm(b, x), CVC4ApiException);
+//      assertThrows(sum.iteTerm(x, x), CVC5ApiException);
+//      assertThrows(sum.iteTerm(b, x), CVC5ApiException);
 //      Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
 //      assertDoesNotThrow(() -> p_0.iteTerm(b, b));
 //      assertDoesNotThrow(() -> p_0.iteTerm(x, x));
-//      assertThrows(p_0.iteTerm(x, b), CVC4ApiException);
+//      assertThrows(p_0.iteTerm(x, b), CVC5ApiException);
 //      Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
 //      assertDoesNotThrow(() -> p_f_x.iteTerm(b, b));
 //      assertDoesNotThrow(() -> p_f_x.iteTerm(x, x));
-//      assertThrows(p_f_x.iteTerm(x, b), CVC4ApiException);
+//      assertThrows(p_f_x.iteTerm(x, b), CVC5ApiException);
 //    }
 //
 //    @Test void  termAssignment)
@@ -644,7 +645,7 @@ class TermTest
 //      assertEquals(t1[0], two);
 //      assertEquals(t1.getNumChildren(), 2);
 //      Term tnull;
-//      assertThrows(tnull.getNumChildren(), CVC4ApiException);
+//      assertThrows(tnull.getNumChildren(), CVC5ApiException);
 //
 //      // apply term f(2)
 //      Sort intSort = d_solver.getIntegerSort();
@@ -655,7 +656,7 @@ class TermTest
 //      assertEquals(t2.getNumChildren(), 2);
 //      assertEquals(t2[0], f);
 //      assertEquals(t2[1], two);
-//      assertThrows(tnull[0], CVC4ApiException);
+//      assertThrows(tnull[0], CVC5ApiException);
 //    }
 //
 //    @Test void  getInteger)
@@ -673,15 +674,15 @@ class TermTest
 //      Term int11 = d_solver.mkInteger("18446744073709551616");
 //      Term int12 = d_solver.mkInteger("-0");
 //
-//      assertThrows(d_solver.mkInteger(""), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("-"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("-1-"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("0.0"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("-0.1"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("012"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("0000"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("-01"), CVC4ApiException);
-//      assertThrows(d_solver.mkInteger("-00"), CVC4ApiException);
+//      assertThrows(d_solver.mkInteger(""), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("-"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("-1-"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("0.0"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("-0.1"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("012"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("0000"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("-01"), CVC5ApiException);
+//      assertThrows(d_solver.mkInteger("-00"), CVC5ApiException);
 //
 //      assertTrue(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64() && !int1.isUInt64()
 //          && int1.isInteger());
@@ -754,7 +755,7 @@ class TermTest
 //      assertEquals(xpx.substitute(x, one), onepone);
 //      assertEquals(onepone.substitute(one, x), xpx);
 //      // incorrect due to type
-//      assertThrows(xpx.substitute(one, ttrue), CVC4ApiException);
+//      assertThrows(xpx.substitute(one, ttrue), CVC5ApiException);
 //
 //      // simultaneous substitution
 //      Term y = d_solver.mkConst(d_solver.getIntegerSort(), "y");
@@ -770,28 +771,28 @@ class TermTest
 //
 //      // incorrect substitution due to arity
 //      rs.pop_back();
-//      assertThrows(xpy.substitute(es, rs), CVC4ApiException);
+//      assertThrows(xpy.substitute(es, rs), CVC5ApiException);
 //
 //      // incorrect substitution due to types
 //      rs.push_back(ttrue);
-//      assertThrows(xpy.substitute(es, rs), CVC4ApiException);
+//      assertThrows(xpy.substitute(es, rs), CVC5ApiException);
 //
 //      // null cannot substitute
 //      Term tnull;
-//      assertThrows(tnull.substitute(one, x), CVC4ApiException);
-//      assertThrows(xpx.substitute(tnull, x), CVC4ApiException);
-//      assertThrows(xpx.substitute(x, tnull), CVC4ApiException);
+//      assertThrows(tnull.substitute(one, x), CVC5ApiException);
+//      assertThrows(xpx.substitute(tnull, x), CVC5ApiException);
+//      assertThrows(xpx.substitute(x, tnull), CVC5ApiException);
 //      rs.pop_back();
 //      rs.push_back(tnull);
-//      assertThrows(xpy.substitute(es, rs), CVC4ApiException);
+//      assertThrows(xpy.substitute(es, rs), CVC5ApiException);
 //      es.clear();
 //      rs.clear();
 //      es.push_back(x);
 //      rs.push_back(y);
-//      assertThrows(tnull.substitute(es, rs), CVC4ApiException);
+//      assertThrows(tnull.substitute(es, rs), CVC5ApiException);
 //      es.push_back(tnull);
 //      rs.push_back(one);
-//      assertThrows(xpx.substitute(es, rs), CVC4ApiException);
+//      assertThrows(xpx.substitute(es, rs), CVC5ApiException);
 //    }
 //
 //    @Test void  constArray)
@@ -804,7 +805,7 @@ class TermTest
 //
 //      assertEquals(constarr.getKind(), CONST_ARRAY);
 //      assertEquals(constarr.getConstArrayBase(), one);
-//      assertThrows(a.getConstArrayBase(), CVC4ApiException);
+//      assertThrows(a.getConstArrayBase(), CVC5ApiException);
 //
 //      arrsort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
 //      Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
@@ -827,7 +828,7 @@ class TermTest
 //      // A seq.unit app is not a constant sequence (regardless of whether it is
 //      // applied to a constant).
 //      Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-//      assertThrows(su.getConstSequenceElements(), CVC4ApiException);
+//      assertThrows(su.getConstSequenceElements(), CVC5ApiException);
 //    }
 //
 //    @Test void  termScopedToString)
