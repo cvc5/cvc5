@@ -754,7 +754,7 @@ public class Solver implements IPointer
    * @param val the value of the constant
    * @return a constant of sort Integer
    */
-  Term mkReal(int val)
+  public Term mkReal(int val)
   {
     long termPointer = mkRealValue(pointer, val);
     return new Term(this, termPointer);

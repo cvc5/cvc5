@@ -81,7 +81,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getIntegerSort(JNIEnv* env,
  * Method:    getRealSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRealSort(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRealSort(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sortPointer = new Sort(solver->getRealSort());
+  return ((jlong)sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -111,8 +120,20 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getStringSort(JNIEnv*, jobject, jlong);
  * Method:    mkArraySort
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkArraySort(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkArraySort(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer,
+                                                     jlong indexSortPointer,
+                                                     jlong elementSortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* indexSort = (Sort*)indexSortPointer;
+  Sort* elementSort = (Sort*)elementSortPointer;
+  Sort* retPointer = new Sort(solver->mkArraySort(*indexSort, *elementSort));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -348,8 +369,24 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JIJJ(JNIEnv* env,
  * Method:    mkTerm
  * Signature: (JIJJJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JIJJJ(
-    JNIEnv*, jobject, jlong, jint, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JIJJJ(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jint kindValue,
+                                                       jlong child1Pointer,
+                                                       jlong child2Pointer,
+                                                       jlong child3Pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Kind kind = (Kind)kindValue;
+  Term* child1 = (Term*)child1Pointer;
+  Term* child2 = (Term*)child2Pointer;
+  Term* child3 = (Term*)child3Pointer;
+  Term* retPointer = new Term(solver->mkTerm(kind, *child1, *child2, *child3));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -550,10 +587,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkReal__JLjava_lang_String_2(JNIEnv*,
  * Method:    mkRealValue
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRealValue(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRealValue(JNIEnv* env,
                                                      jobject,
-                                                     jlong,
-                                                     jlong);
+                                                     jlong pointer,
+                                                     jlong val)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkReal((int64_t)val));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -704,8 +748,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
  * Method:    mkConstArray
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkConstArray(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkConstArray(
+    JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jlong valPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* val = (Term*)valPointer;
+  Term* retPointer = new Term(solver->mkConstArray(*sort, *val));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

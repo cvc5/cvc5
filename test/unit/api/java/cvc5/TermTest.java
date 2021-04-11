@@ -800,25 +800,25 @@ class TermTest
      rs.add(one);
      assertThrows(CVC5ApiException.class,() -> xpx.substitute(es, rs));
    }
-//
-//    @Test void  constArray)
-//    {
-//      Sort intsort = d_solver.getIntegerSort();
-//      Sort arrsort = d_solver.mkArraySort(intsort, intsort);
-//      Term a = d_solver.mkConst(arrsort, "a");
-//      Term one = d_solver.mkInteger(1);
-//      Term constarr = d_solver.mkConstArray(arrsort, one);
-//
-//      assertEquals(constarr.getKind(), CONST_ARRAY);
-//      assertEquals(constarr.getConstArrayBase(), one);
-//      assertThrows(CVC5ApiException.class,() -> a.getConstArrayBase());
-//
-//      arrsort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
-//      Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
-//      Term stores = d_solver.mkTerm(STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
-//      stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
-//      stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
-//    }
+
+   @Test void  constArray() throws CVC5ApiException
+   {
+     Sort intsort = d_solver.getIntegerSort();
+     Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+     Term a = d_solver.mkConst(arrsort, "a");
+     Term one = d_solver.mkInteger(1);
+     Term constarr = d_solver.mkConstArray(arrsort, one);
+
+     assertEquals(constarr.getKind(), CONST_ARRAY);
+     assertEquals(constarr.getConstArrayBase(), one);
+     assertThrows(CVC5ApiException.class,() -> a.getConstArrayBase());
+
+     arrsort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
+     Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
+     Term stores = d_solver.mkTerm(STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
+     stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
+     stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
+   }
 //
 //    @Test void  constSequenceElements)
 //    {
