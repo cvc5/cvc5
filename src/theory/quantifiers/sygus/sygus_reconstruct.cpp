@@ -281,8 +281,8 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
     if (isSolved)
     {
       // As it traverses sz, substitute populates its input cache with TNodes
-      // that are not preserved by this module and maybe destoryed after the
-      // method call. To avoid referencing those unsafe TNodes throught this
+      // that are not preserved by this module and maybe destroyed after the
+      // method call. To avoid referencing those unsafe TNodes throughout this
       // module, we pass a temporary copy of d_sol instead.
       std::unordered_map<TNode, TNode, TNodeHashFunction> sol = d_sol;
       Node s = sz.substitute(sol);
