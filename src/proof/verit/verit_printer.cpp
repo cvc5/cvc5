@@ -82,8 +82,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
     {
       Trace("verit-printer")
           << "... subproof is already printed " << pfn->getResult() << " "
-          << veritRuleToString(vrule) << " / " << pfn->getArguments()
-          << std::endl;
+          << vrule << " / " << pfn->getArguments() << std::endl;
       return prefix + "t" + std::to_string(it->second);
     }
 
@@ -94,7 +93,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
     // Print anchor
     Trace("verit-printer") << "... print anchor " << pfn->getResult() << " "
-                           << veritRuleToString(vrule) << " "
+                           << vrule << " "
                            << " / " << pfn->getArguments() << std::endl;
     out << "(anchor :step " << prefix << "t" << step_id << " :args (";
     for (unsigned long int j = 3; j < pfn->getArguments().size(); j++)
@@ -143,7 +142,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
   if (vrule == VeritRule::ASSUME)
   {
     Trace("verit-printer") << "... reached assumption " << pfn->getResult()
-                           << " " << veritRuleToString(vrule) << " "
+                           << " " << vrule << " "
                            << " / " << pfn->getArguments() << std::endl;
 
     auto it = assumptions[nested_level].find(pfn->getArguments()[2]);
@@ -177,8 +176,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
   if (vrule == VeritRule::REORDER || (!d_extended && vrule == VeritRule::SYMM))
   {
     Trace("verit-printer") << "... non-extended mode skip child "
-                           << pfn->getResult() << " "
-                           << veritRuleToString(vrule) << " / "
+                           << pfn->getResult() << " " << vrule << " / "
                            << pfn->getArguments() << std::endl;
     return child_prefixes[0];
   }
@@ -187,13 +185,13 @@ std::string VeritProofPrinter::veritPrinterInternal(
   if (vrule == VeritRule::ANCHOR_SUBPROOF || vrule == VeritRule::ANCHOR_BIND)
   {
     Trace("verit-printer") << "... print node " << pfn->getResult() << " "
-                           << veritRuleToString(vrule) << " / "
-                           << pfn->getArguments() << std::endl;
+                           << vrule << " / " << pfn->getArguments()
+                           << std::endl;
 
     prefix.pop_back();  // Remove last .
     // print subproof or bind
     out << "(step " << prefix << " " << pfn->getArguments()[2] << " :rule "
-        << veritRuleToString(vrule);
+        << vrule;
     // Discharge assumptions
     // It is not clear from the onomicon whether the assumptions should be
     // discharged in this way or not.
@@ -228,21 +226,19 @@ std::string VeritProofPrinter::veritPrinterInternal(
   if (it != steps[nested_level].end())
   {
     Trace("verit-printer") << "... step is already printed " << pfn->getResult()
-                           << " " << veritRuleToString(vrule) << " / "
-                           << pfn->getArguments() << std::endl;
+                           << " " << vrule << " / " << pfn->getArguments()
+                           << std::endl;
     return prefix + "t" + std::to_string(it->second);
   }
 
   // Print current step
   Trace("verit-printer") << "... print node " << pfn->getResult() << " "
-                         << veritRuleToString(vrule) << " / "
-                         << pfn->getArguments() << std::endl;
+                         << vrule << " / " << pfn->getArguments() << std::endl;
   std::string current_t;
   current_t = "t" + std::to_string(step_id);
   steps[nested_level][pfn->getArguments()[2]] = step_id;
-  out << "(step " << prefix << current_t + " ";
-  out << pfn->getArguments()[2].toString() + " :rule "
-             + veritRuleToString(vrule);
+  out << "(step " << prefix << current_t << " ";
+  out << pfn->getArguments()[2].toString() << " :rule " << vrule;
   if (pfn->getArguments().size() > 3)
   {
     out << " :args (";
