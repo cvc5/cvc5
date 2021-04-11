@@ -63,11 +63,11 @@ class VeritProofPrinter
  * @param out The stream to write to
  * @param pfn The proof node to be printed
  */
-static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn, bool extended)
+/*static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn, bool extended)
 {
   VeritProofPrinter vpp(extended);
   vpp.veritPrinter(out, pfn);
-}
+}*/
 
 }  // namespace proof
 

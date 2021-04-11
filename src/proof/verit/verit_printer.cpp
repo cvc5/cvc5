@@ -133,7 +133,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
     // Store step_id until children are printed to resume counter at current
     // position
-    current_step_id = step_id;  // TODO: move up?
+    current_step_id = step_id;
     step_id = 1;
   }
 
