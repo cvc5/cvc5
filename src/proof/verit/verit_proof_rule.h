@@ -314,9 +314,25 @@ enum class VeritRule : uint32_t
   // ...
   // > j. (cl (not F1) (not F3))
   NOT_ITE2,
+  // ======== ite_intro
+  // > i. (= F (and F F1 ... Fn))
+  // where F contains the ite operator. Let G1,...,Gn be the terms starting with ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if Hi is of sort Bool
   ITE_INTRO,
+  // ======== duplicated_literals
+  // > i. (cl F1 ... Fn)
+  // ...
+  // > j. (cl Fk1 ... Fkm)
+  // where m <= n and k1,...,km is a monotonic map to 1,...,n such that Fk1 ... Fkm are pairwise distinct and {F1,...,Fn} = {Fk1 ... Fkm}
   DUPLICATED_LITERALS,
+  // ======== connective_def
+  //  G > i. (= (xor F1 F2) (or (and (not F1) F2) (and F1 (not F2))))
+  // or
+  //  G > i. (= (= F1 F2) (and (=> F1 F2) (=> F2 F1)))
+  // or
+  //  G > i. (= (ite F1 F2 F3) (and (=> F1 F2) (=> (not F1) (not F3))))
   CONNECTIVE_DEF,
+  // ======== Simplify rules
+  // The following rules are simplfy rules introduced as tautologies that can be verified by a number of simple transformations
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
   AND_SIMPLIFY,
@@ -333,24 +349,62 @@ enum class VeritRule : uint32_t
   SUM_SIMPLIFY,
   COMP_SIMPLIFY,
   NARY_ELIM,
-  TMP_AC_SIMP,
-  TMP_BFUN_ELIM,
-  TEMP_QUANTIFIER_CNF,
-  SUBPROOF,
-  BIND,
-  LET,
   QNT_SIMPLIFY,
+  // ======== let
+  // G,x1->F1,...,xn->Fn > j. (= G G')
+  // ---------------------------------
+  // G > k. (= (let (x1 := F1,...,xn := Fn.G) G')
+  LET,
+  // ======== sko_ex
+  // G,x1->(e x1.F),...,xn->(e xn.F) > j. (= F G)
+  // --------------------------------------------
+  // G > k. (exists (x1 ... xn) (= F G))
   SKO_EX,
+  // ======== sko_forall
+  // G,x1->(e x1.(not F)),...,xn->(e xn.(not F)) > j. (= F G)
+  // --------------------------------------------------------
+  // G > k. (forall (x1 ... xn) (= F G))
   SKO_FORALL,
   /** Special Rules*/
-  UNDEFINED,  // TBD
-              //================================================= Extended Rules
+  //================================================= Extended Rule
+  // ======== symm
+  // > i. (= F G)
+  // ...
+  // > j. (= G F)
   SYMM,
+  // ======== not_symm
+  // > i. (not (= F G))
+  // ...
+  // > j. (not (= G F))
   NOT_SYMM,
-  REORDER
+  // ======== reorder
+  // > i1. F1
+  // ...
+  // > j. F2
+  // where set representation of F1 and F2 are the same and the number of literals in C2 is the same of that of C1.
+  REORDER,
+  // ======== undefined
+  // Used in case that a step in the proof rule could not be translated.
+  UNDEFINED
 };
 
+/**
+  * Converts a verit proof rule to a string.
+  *
+  * @param id The verit proof rule
+  * @return The name of the verit proof rule
+  */
 const char* veritRuletoString(VeritRule id);  // TODO: COMMENT
+
+/**
+ * Writes a verit proof rule name to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The verit proof rule to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, VeritRule id);
+
 }  // namespace proof
 
 }  // namespace cvc5
