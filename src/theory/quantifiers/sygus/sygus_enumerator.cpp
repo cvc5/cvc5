@@ -773,8 +773,10 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   // have we run out of constructor classes for this size?
   if (d_ccCons.empty())
   {
-    // check whether we should terminate
-    if (d_tn.isInterpretedFinite())
+    // check whether we should terminate, which notice always treats
+    // uninterpreted sorts as infinite, since we do not put bounds on them
+    // in our enumeration.
+    if (isCardinalityClassFinite(d_tn.getCardinalityClass(), false))
     {
       if (ncc == tc.getNumConstructorClasses())
       {

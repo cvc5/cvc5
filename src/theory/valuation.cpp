@@ -220,5 +220,10 @@ context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
   return theory->facts_end();
 }
 
+bool Valuation::isFiniteType(TypeNode tn) const
+{
+  return d_engine->isFiniteType(tn);
+}
+
 }  // namespace theory
 }  // namespace cvc5
