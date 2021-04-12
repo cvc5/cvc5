@@ -534,7 +534,7 @@ void PropEngine::interrupt()
   Debug("prop") << "interrupt()" << std::endl;
 }
 
-void PropEngine::spendResource(ResourceManager::Resource r)
+void PropEngine::spendResource(Resource r)
 {
   d_resourceManager->spendResource(r);
 }

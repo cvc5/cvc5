@@ -302,7 +302,7 @@ class TheoryEngine {
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if

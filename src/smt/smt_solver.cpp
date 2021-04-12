@@ -221,7 +221,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
-  d_rm->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_rm->spendResource(Resource::PreprocessStep);
   Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();

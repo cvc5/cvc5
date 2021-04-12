@@ -46,7 +46,7 @@ class EngineOutputChannel : public theory::OutputChannel
  public:
   EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory);
 
-  void safePoint(ResourceManager::Resource r) override;
+  void safePoint(Resource r) override;
 
   void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
@@ -61,7 +61,7 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void setIncomplete(IncompleteId id) override;
 
-  void spendResource(ResourceManager::Resource r) override;
+  void spendResource(Resource r) override;
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
 

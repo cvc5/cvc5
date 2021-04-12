@@ -162,11 +162,11 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource(ResourceManager::Resource::RestartStep);
+  d_propEngine->spendResource(Resource::RestartStep);
   d_theoryEngine->notifyRestart();
 }
 
-void TheoryProxy::spendResource(ResourceManager::Resource r)
+void TheoryProxy::spendResource(Resource r)
 {
   d_theoryEngine->spendResource(r);
 }

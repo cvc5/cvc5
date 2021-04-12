@@ -252,7 +252,7 @@ class PropEngine
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed

@@ -182,10 +182,6 @@ std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
 }
 
-unsigned Options::getParseStep() const{
-  return (*this)[options::parseStep];
-}
-
 std::ostream* Options::currentGetOut() {
   return current()->getOut();
 }

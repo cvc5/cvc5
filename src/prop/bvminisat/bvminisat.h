@@ -47,11 +47,11 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
       return d_notify->notify(toSatLiteral(lit));
     }
     void notify(BVMinisat::vec<BVMinisat::Lit>& clause) override;
-    void spendResource(ResourceManager::Resource r) override
+    void spendResource(Resource r) override
     {
       d_notify->spendResource(r);
     }
-    void safePoint(ResourceManager::Resource r) override
+    void safePoint(Resource r) override
     {
       d_notify->safePoint(r);
     }

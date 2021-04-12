@@ -88,7 +88,7 @@ class TheoryProxy : public Registrar
 
   void notifyRestart();
 
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   bool isDecisionEngineDone();
 

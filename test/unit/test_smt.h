@@ -112,7 +112,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   DummyOutputChannel() {}
   ~DummyOutputChannel() override {}
 
-  void safePoint(ResourceManager::Resource r) override {}
+  void safePoint(Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
   void trustedConflict(theory::TrustNode n) override
