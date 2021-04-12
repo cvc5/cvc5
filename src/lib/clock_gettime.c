@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file clock_gettime.c
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Replacement for clock_gettime() for systems without it (Windows)
- **
- ** Replacement for clock_gettime() for systems without it (Windows).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Replacement for clock_gettime() for systems without it (Windows).
+ */
 
 // #warning "TODO(taking): Make lib/clock_gettime.h cvc4_private.h again."
 

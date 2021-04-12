@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file signal_handlers.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Gereon Kremer, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of signal handlers.
- **
- ** Implementation of signal handlers.
- **
- ** It is important to only call async-signal-safe functions from signal
- ** handlers. See: http://man7.org/linux/man-pages/man7/signal-safety.7.html for
- ** a list of async-signal-safe POSIX.1 functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of signal handlers.
+ *
+ * It is important to only call async-signal-safe functions from signal
+ * handlers. See: http://man7.org/linux/man-pages/man7/signal-safety.7.html for
+ * a list of async-signal-safe POSIX.1 functions.
+ */
 
 #include <string.h>
 

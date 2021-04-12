@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file didyoumean.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief did-you-mean style suggestions
- **
- ** ``What do you mean? I don't understand.'' An attempt to be more
- ** helpful than that. Similar to one in git.
- **
- ** There are no dependencies on CVC4 (except namespace).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Tim King, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Did-you-mean style suggestions.
+ *
+ * ``What do you mean? I don't understand.'' An attempt to be more
+ * helpful than that. Similar to one in git.
+ *
+ * There are no dependencies on CVC4 (except namespace).
+ */
 
 #include "options/didyoumean.h"
 

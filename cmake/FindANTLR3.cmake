@@ -1,17 +1,20 @@
-#####################
-## FindANTLR3.cmake
-## Top contributors (to current version):
-##   Gereon Kremer, Mathias Preiner, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Andrew V. Jones
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find ANTLR3
 # ANTLR3_FOUND - should always be true
 # ANTLR3 - target for the ANTLR3 runtime
 # ANTLR3_COMMAND - command line to run ANTLR3
+##
 
 include(deps-helper)
 

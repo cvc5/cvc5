@@ -1,17 +1,20 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Aina Niemetz, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-#-----------------------------------------------------------------------------#
+
 # Extract info from Git for git_versioninfo.cpp
 # Note: GitInfo.cmake generates git_versioninfo.cpp.
-
 find_package(Git)
 configure_file(GitInfo.cmake.in GitInfo.cmake @ONLY)
 add_custom_target(gen-gitinfo

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file parser_builder_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Christopher L. Conway, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::parser::ParserBuilder.
- **
- ** Black box testing of cvc5::parser::ParserBuilder.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Christopher L. Conway, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::parser::ParserBuilder.
+ */
 
 #include <stdio.h>
 #include <string.h>
