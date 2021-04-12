@@ -65,20 +65,18 @@ class KissatSolver : public SatSolver
  private:
   struct Statistics
   {
-    StatisticsRegistry* d_registry;
     IntStat d_numSatCalls;
     IntStat d_numVariables;
     IntStat d_numClauses;
     TimerStat d_solveTime;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
+    Statistics(StatisticsRegistry& registry, const std::string& prefix);
   };
 
   /**
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  KissatSolver(StatisticsRegistry* registry, const std::string& name = "");
+  KissatSolver(StatisticsRegistry& registry, const std::string& name = "");
   /**
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
