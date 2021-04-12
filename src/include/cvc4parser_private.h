@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file cvc4parser_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief #-inclusion of this file marks a header as private and generates a
- ** warning when the file is included improperly.
- **
- ** #-inclusion of this file marks a header as private and generates a
- ** warning when the file is included improperly.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inclusion of this file marks a header as private and generates a warning
+ * when the file is included improperly.
+ */
 
 #ifndef __CVC4PARSER_PRIVATE_H
 #define __CVC4PARSER_PRIVATE_H

@@ -1,35 +1,34 @@
-/*********************                                                        */
-/*! \file cvc5.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The CVC4 C++ API.
- **
- ** The CVC4 C++ API.
- **
- ** A brief note on how to guard API functions:
- **
- ** In general, we think of API guards as a fence -- they are supposed to make
- ** sure that no invalid arguments get passed into internal realms of CVC4.
- ** Thus we always want to catch such cases on the API level (and can then
- ** assert internally that no invalid argument is passed in).
- **
- ** The only special case is when we use 3rd party back-ends we have no control
- ** over, and which throw (invalid_argument) exceptions anyways. In this case,
- ** we do not replicate argument checks but delegate them to the back-end,
- ** catch thrown exceptions, and raise a CVC4ApiException.
- **
- ** Our Integer implementation, e.g., is such a special case since we support
- ** two different back end implementations (GMP, CLN). Be aware that they do
- ** not fully agree on what is (in)valid input, which requires extra checks for
- ** consistent behavior (see Solver::mkRealFromStrHelper for an example).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 C++ API.
+ *
+ * A brief note on how to guard API functions:
+ *
+ * In general, we think of API guards as a fence -- they are supposed to make
+ * sure that no invalid arguments get passed into internal realms of cvc5.
+ * Thus we always want to catch such cases on the API level (and can then
+ * assert internally that no invalid argument is passed in).
+ *
+ * The only special case is when we use 3rd party back-ends we have no control
+ * over, and which throw (invalid_argument) exceptions anyways. In this case,
+ * we do not replicate argument checks but delegate them to the back-end,
+ * catch thrown exceptions, and raise a CVC4ApiException.
+ *
+ * Our Integer implementation, e.g., is such a special case since we support
+ * two different back end implementations (GMP, CLN). Be aware that they do
+ * not fully agree on what is (in)valid input, which requires extra checks for
+ * consistent behavior (see Solver::mkRealFromStrHelper for an example).
+ */
 
 #include "api/cpp/cvc5.h"
 
