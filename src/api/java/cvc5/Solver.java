@@ -1,5 +1,6 @@
 package cvc5;
 
+import java.util.List;
 import java.io.IOException;
 
 public class Solver implements IPointer
@@ -523,6 +524,18 @@ public class Solver implements IPointer
 
   private native long mkTerm(
       long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
+
+  /**
+   * Create n-ary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param op the operator
+   * @param children the children of the term
+   * @return the Term
+   */
+  public Term mkTerm(Op op, List<Term> children)
+  {
+    return mkTerm(op, children.toArray(new Term[0]));
+  }
 
   /**
    * Create n-ary term of given kind from a given operator.

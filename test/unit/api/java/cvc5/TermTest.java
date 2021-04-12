@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import java.util.Iterator;
 
 class TermTest
 {
@@ -141,58 +141,65 @@ class TermTest
      assertDoesNotThrow(() -> p_f_y.getSort());
      assertEquals(p_f_y.getSort(), boolSort);
    }
-//
-//    @Test void  getOp)
-//    {
-//      Sort intsort = d_solver.getIntegerSort();
-//      Sort bvsort = d_solver.mkBitVectorSort(8);
-//      Sort arrsort = d_solver.mkArraySort(bvsort, intsort);
-//      Sort funsort = d_solver.mkFunctionSort(intsort, bvsort);
-//
-//      Term x = d_solver.mkConst(intsort, "x");
-//      Term a = d_solver.mkConst(arrsort, "a");
-//      Term b = d_solver.mkConst(bvsort, "b");
-//
-//      assertFalse(x.hasOp());
-//      assertThrows(x.getOp());
-//
-//      Term ab = d_solver.mkTerm(SELECT, a, b);
-//      Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
-//      Term extb = d_solver.mkTerm(ext, b);
-//
-//      assertTrue(ab.hasOp());
-//      assertFalse(ab.getOp().isIndexed());
-//      // can compare directly to a Kind (will invoke Op constructor)
-//      assertTrue(extb.hasOp());
-//      assertTrue(extb.getOp().isIndexed());
-//      assertEquals(extb.getOp(), ext);
-//
-//      Term f = d_solver.mkConst(funsort, "f");
-//      Term fx = d_solver.mkTerm(APPLY_UF, f, x);
-//
-//      assertFalse(f.hasOp());
-//      assertThrows(f.getOp());
-//      assertTrue(fx.hasOp());
-//      std::vector<Term> children(fx.begin(), fx.end());
-//      // testing rebuild from op and children
-//      assertEquals(fx, d_solver.mkTerm(fx.getOp(), children));
-//
-//      // Test Datatypes Ops
-//      Sort sort = d_solver.mkParamSort("T");
-//      DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
-//      DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
-//      DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
-//      cons.addSelector("head", sort);
-//      cons.addSelectorSelf("tail");
-//      listDecl.addConstructor(cons);
-//      listDecl.addConstructor(nil);
-//      Sort listSort = d_solver.mkDatatypeSort(listDecl);
-//      Sort intListSort = listSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()});
-//      Term c = d_solver.mkConst(intListSort, "c");
-//      Datatype list = listSort.getDatatype();
-//      // list datatype constructor and selector operator terms
-//      Term consOpTerm = list.getConstructorTerm("cons");
-//      Term nilOpTerm = list.getConstructorTerm("nil");
+
+   @Test void  getOp() throws CVC5ApiException
+   {
+     Sort intsort = d_solver.getIntegerSort();
+     Sort bvsort = d_solver.mkBitVectorSort(8);
+     Sort arrsort = d_solver.mkArraySort(bvsort, intsort);
+     Sort funsort = d_solver.mkFunctionSort(intsort, bvsort);
+
+     Term x = d_solver.mkConst(intsort, "x");
+     Term a = d_solver.mkConst(arrsort, "a");
+     Term b = d_solver.mkConst(bvsort, "b");
+
+     assertFalse(x.hasOp());
+     assertThrows(CVC5ApiException.class, () -> x.getOp());
+
+     Term ab = d_solver.mkTerm(SELECT, a, b);
+     Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
+     Term extb = d_solver.mkTerm(ext, b);
+
+     assertTrue(ab.hasOp());
+     assertFalse(ab.getOp().isIndexed());
+     // can compare directly to a Kind (will invoke Op constructor)
+     assertTrue(extb.hasOp());
+     assertTrue(extb.getOp().isIndexed());
+     assertEquals(extb.getOp(), ext);
+
+     Term f = d_solver.mkConst(funsort, "f");
+     Term fx = d_solver.mkTerm(APPLY_UF, f, x);
+
+     assertFalse(f.hasOp());
+     assertThrows(CVC5ApiException.class, () -> f.getOp());
+     assertTrue(fx.hasOp());
+     List<Term> children = new ArrayList();
+
+     Iterator<Term> iterator = fx.iterator();
+     for(Term t : fx)
+     {
+       children.add(t);
+     }
+
+     // testing rebuild from op and children
+     assertEquals(fx, d_solver.mkTerm(fx.getOp(), children));
+
+     // Test Datatypes Ops
+     Sort sort = d_solver.mkParamSort("T");
+     DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+     cons.addSelector("head", sort);
+     cons.addSelectorSelf("tail");
+     listDecl.addConstructor(cons);
+     listDecl.addConstructor(nil);
+     Sort listSort = d_solver.mkDatatypeSort(listDecl);
+     Sort intListSort = listSort.instantiate(new Sort []{d_solver.getIntegerSort()});
+     Term c = d_solver.mkConst(intListSort, "c");
+     Datatype list = listSort.getDatatype();
+     // list datatype constructor and selector operator terms
+     Term consOpTerm = list.getConstructorTerm("cons");
+     Term nilOpTerm = list.getConstructorTerm("nil");
 //      Term headOpTerm = list["cons"].getSelectorTerm("head");
 //      Term tailOpTerm = list["cons"].getSelectorTerm("tail");
 //
@@ -211,8 +218,8 @@ class TermTest
 //      children.clear();
 //      children.insert(children.begin(), headTerm.begin(), headTerm.end());
 //      assertEquals(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
-//    }
-//
+   }
+
    @Test void  isNull() throws CVC5ApiException
    {
      Term x = d_solver.getNullTerm();
@@ -642,29 +649,29 @@ class TermTest
      assertTrue((t1.compareTo(t2) > 0) != (t1.compareTo(t2) < 0));
      assertTrue((t1.compareTo(t2) > 0 || t1.equals(t2)) == (t1.compareTo(t2) >= 0));
    }
-//
-//    @Test void  termChildren)
-//    {
-//      // simple term 2+3
-//      Term two = d_solver.mkInteger(2);
-//      Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkInteger(3));
-//      assertEquals(t1[0], two);
-//      assertEquals(t1.getNumChildren(), 2);
-//      Term tnull;
-//      assertThrows(CVC5ApiException.class,() -> tnull.getNumChildren());
-//
-//      // apply term f(2)
-//      Sort intSort = d_solver.getIntegerSort();
-//      Sort fsort = d_solver.mkFunctionSort(intSort, intSort);
-//      Term f = d_solver.mkConst(fsort, "f");
-//      Term t2 = d_solver.mkTerm(APPLY_UF, f, two);
-//      // due to our higher-order view of terms, we treat f as a child of APPLY_UF
-//      assertEquals(t2.getNumChildren(), 2);
-//      assertEquals(t2[0], f);
-//      assertEquals(t2[1], two);
-//      assertThrows(CVC5ApiException.class,() -> tnull[0]);
-//    }
-//
+
+   @Test void  termChildren() throws CVC5ApiException
+   {
+     // simple term 2+3
+     Term two = d_solver.mkInteger(2);
+     Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkInteger(3));
+     assertEquals(t1.getChild(0), two);
+     assertEquals(t1.getNumChildren(), 2);
+     Term tnull = d_solver.getNullTerm();
+     assertThrows(CVC5ApiException.class,() -> tnull.getNumChildren());
+
+     // apply term f(2)
+     Sort intSort = d_solver.getIntegerSort();
+     Sort fsort = d_solver.mkFunctionSort(intSort, intSort);
+     Term f = d_solver.mkConst(fsort, "f");
+     Term t2 = d_solver.mkTerm(APPLY_UF, f, two);
+     // due to our higher-order view of terms, we treat f as a child of APPLY_UF
+     assertEquals(t2.getNumChildren(), 2);
+     assertEquals(t2.getChild(0), f);
+     assertEquals(t2.getChild(1), two);
+     assertThrows(CVC5ApiException.class,() -> tnull.getChild(0));
+   }
+
    @Test void  getInteger() throws CVC5ApiException
    {
      Term int1 = d_solver.mkInteger("-18446744073709551616");

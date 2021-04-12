@@ -165,10 +165,16 @@ Java_cvc5_Solver_mkFloatingPointSort(JNIEnv*, jobject, jlong, jint, jint);
  * Method:    mkDatatypeSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeSort(JNIEnv*,
-                                                        jobject,
-                                                        jlong,
-                                                        jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeSort(
+    JNIEnv* env, jobject, jlong pointer, jlong datatypeDeclPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  DatatypeDecl* decl = (DatatypeDecl*)datatypeDeclPointer;
+  Sort* retPointer = new Sort(solver->mkDatatypeSort(*decl));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -222,10 +228,20 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkFunctionSort__J_3JJ(
  * Method:    mkParamSort
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkParamSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkParamSort(JNIEnv* env,
                                                      jobject,
-                                                     jlong,
-                                                     jstring);
+                                                     jlong pointer,
+                                                     jstring jSymbol)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Sort* retPointer = new Sort(solver->mkParamSort(cSymbol));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -420,8 +436,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJ(JNIEnv*,
  * Method:    mkTerm
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkTerm__JJJ(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJJ(
+    JNIEnv* env, jobject, jlong pointer, jlong opPointer, jlong childPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Op* op = (Op*)opPointer;
+  Term* child = (Term*)childPointer;
+  Term* retPointer = new Term(solver->mkTerm(*op, *child));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -445,7 +470,36 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJJJJ(
  * Signature: (JJ[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkTerm__JJ_3J(JNIEnv*, jobject, jlong, jlong, jlongArray);
+Java_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
+                               jobject,
+                               jlong pointer,
+                               jlong opPointer,
+                               jlongArray childrenPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Op* op = (Op*)opPointer;
+
+  // get the size of children pointers
+  jsize size = env->GetArrayLength(childrenPointers);
+  // allocate buffer for the long array
+  jlong* buffer = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(childrenPointers, 0, size, buffer);
+  // copy the terms into a vector
+  std::vector<Term> children;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)buffer[i];
+    children.push_back(*term);
+  }
+  // free the buffer memory
+  delete[] buffer;
+
+  Term* retPointer = new Term(solver->mkTerm(*op, children));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -486,8 +540,16 @@ Java_cvc5_Solver_mkOp__JII(JNIEnv*, jobject, jlong, jint, jint);
  * Method:    mkOp
  * Signature: (JIII)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkOp__JIII(JNIEnv*, jobject, jlong, jint, jint, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkOp__JIII(
+    JNIEnv* env, jobject, jlong pointer, jint kindValue, jint arg1, jint arg2)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Kind kind = (Kind)kindValue;
+  Op* retPointer = new Op(solver->mkOp(kind, (uint32_t)arg1, (uint32_t)arg2));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -915,10 +977,20 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkVar(
  * Method:    mkDatatypeConstructorDecl
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeConstructorDecl(JNIEnv*,
-                                                                   jobject,
-                                                                   jlong,
-                                                                   jstring);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeConstructorDecl(
+    JNIEnv* env, jobject, jlong pointer, jstring jName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string cName(s);
+
+  DatatypeConstructorDecl* retPointer =
+      new DatatypeConstructorDecl(solver->mkDatatypeConstructorDecl(cName));
+  env->ReleaseStringUTFChars(jName, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -926,15 +998,43 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeConstructorDecl(JNIEnv*,
  * Signature: (JLjava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2Z(
-    JNIEnv*, jobject, jlong, jstring, jboolean);
+    JNIEnv* env, jobject, jlong pointer, jstring jName, jboolean isCoDatatype)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string cName(s);
+  DatatypeDecl* retPointer =
+      new DatatypeDecl(solver->mkDatatypeDecl(cName, (bool)isCoDatatype));
+  env->ReleaseStringUTFChars(jName, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkDatatypeDecl
  * Signature: (JLjava/lang/String;JZ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(
-    JNIEnv*, jobject, jlong, jstring, jlong, jboolean);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer,
+                                                        jstring jName,
+                                                        jlong paramPointer,
+                                                        jboolean isCoDatatype)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string cName(s);
+  Sort* param = (Sort*)paramPointer;
+  DatatypeDecl* retPointer = new DatatypeDecl(
+      solver->mkDatatypeDecl(cName, *param, (bool)isCoDatatype));
+  env->ReleaseStringUTFChars(jName, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

@@ -101,6 +101,10 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvc5jni SHARED
+  jni/cvc5_Datatype.cpp
+  jni/cvc5_DatatypeConstructorDecl.cpp
+  jni/cvc5_DatatypeDecl.cpp
+  jni/cvc5_Op.cpp
   jni/cvc5_Solver.cpp
   jni/cvc5_Sort.cpp
   jni/cvc5_Term.cpp)

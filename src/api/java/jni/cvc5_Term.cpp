@@ -614,3 +614,19 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getString(JNIEnv* env,
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
+
+/*
+ * Class:     cvc5_Term
+ * Method:    iterator
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Term_iterator(JNIEnv* env,
+                                                jobject,
+                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = (Term*)pointer;
+  Term::const_iterator* retPointer = new Term::const_iterator(current->begin());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}

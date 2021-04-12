@@ -1,8 +1,10 @@
 package cvc5;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
-public class Term extends AbstractPointer implements Comparable<Term>
+public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
   // region construction and destruction
   Term(Solver solver, long pointer)
@@ -27,15 +29,14 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @param t the term to compare to for equality
    * @return true if the terms are equal
    */
-  @Override
-  public boolean equals(Object t)
+  @Override public boolean equals(Object t)
   {
     if (this == t)
       return true;
     if (t == null || getClass() != t.getClass())
       return false;
     Term term = (Term) t;
-    if(this.pointer == term.pointer)
+    if (this.pointer == term.pointer)
     {
       return true;
     }
@@ -51,8 +52,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    * @return a negative integer, zero, or a positive integer as this term
    * is less than, equal to, or greater than the specified term.
    */
-  @Override
-  public int compareTo(Term t)
+  @Override public int compareTo(Term t)
   {
     return this.compareTo(pointer, t.getPointer());
   }
@@ -77,10 +77,7 @@ public class Term extends AbstractPointer implements Comparable<Term>
    */
   public Term getChild(int index) throws CVC5ApiException
   {
-    if (index < 0)
-    {
-      throw new CVC5ApiException("Expected index '" + index + "' to be non negative.");
-    }
+    Utils.validateUnsigned(index, "index");
     long termPointer = getChild(pointer, index);
     return new Term(solver, termPointer);
   }
@@ -459,4 +456,44 @@ public class Term extends AbstractPointer implements Comparable<Term>
   }
 
   private native String getString(long pointer);
+
+  public class ConstIterator implements Iterator<Term>
+  {
+    private int currentIndex;
+    private int size;
+
+    public ConstIterator()
+    {
+      currentIndex = -1;
+      size = getNumChildren();
+    }
+
+    @Override public boolean hasNext()
+    {
+      return currentIndex < size - 1;
+    }
+
+    @Override public Term next()
+    {
+      if (currentIndex >= size - 1)
+      {
+        throw new NoSuchElementException();
+      }
+      currentIndex++;
+      try
+      {
+        return getChild(currentIndex);
+      }
+      catch (CVC5ApiException e)
+      {
+        e.printStackTrace();
+        throw new RuntimeException(e.getMessage());
+      }
+    }
+  }
+
+  @Override public Iterator<Term> iterator()
+  {
+    return new ConstIterator();
+  }
 }

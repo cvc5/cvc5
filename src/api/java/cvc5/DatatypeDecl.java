@@ -20,7 +20,7 @@ public class DatatypeDecl extends AbstractPointer
    * Add datatype constructor declaration.
    * @param ctor the datatype constructor declaration to add
    */
-  void addConstructor(DatatypeConstructorDecl ctor)
+  public void addConstructor(DatatypeConstructorDecl ctor)
   {
     addConstructor(pointer, ctor.getPointer());
   }

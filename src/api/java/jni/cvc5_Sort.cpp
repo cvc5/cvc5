@@ -257,17 +257,49 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isComparableTo(JNIEnv*,
  * Method:    getDatatype
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getDatatype(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getDatatype(JNIEnv* env,
+                                                   jobject,
+                                                   jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Datatype* retPointer = new Datatype(current->getDatatype());
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    instantiate
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_instantiate(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_instantiate(JNIEnv* env,
                                                    jobject,
-                                                   jlong,
-                                                   jlongArray);
+                                                   jlong pointer,
+                                                   jlongArray paramsPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  // get the size of params pointers
+  jsize size = env->GetArrayLength(paramsPointers);
+  // allocate buffer for the long array
+  jlong* buffer = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(paramsPointers, 0, size, buffer);
+  // copy the terms into a vector
+  std::vector<Sort> params;
+  for (jsize i = 0; i < size; i++)
+  {
+    Sort* sort = (Sort*)buffer[i];
+    params.push_back(*sort);
+  }
+  // free the buffer memory
+  delete[] buffer;
+
+  Sort* retPointer = new Sort(current->instantiate(params));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
