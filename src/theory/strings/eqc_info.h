@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__EQC_INFO_H
-#define CVC4__THEORY__STRINGS__EQC_INFO_H
+#ifndef CVC5__THEORY__STRINGS__EQC_INFO_H
+#define CVC5__THEORY__STRINGS__EQC_INFO_H
 
 #include <map>
 
@@ -79,4 +79,4 @@ class EqcInfo
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__EQC_INFO_H */
+#endif /* CVC5__THEORY__STRINGS__EQC_INFO_H */

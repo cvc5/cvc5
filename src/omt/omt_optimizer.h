@@ -13,8 +13,8 @@
  * The base class for optimizers of individual cvc5 type.
  */
 
-#ifndef CVC4__OMT__OMT_OPTIMIZER_H
-#define CVC4__OMT__OMT_OPTIMIZER_H
+#ifndef CVC5__OMT__OMT_OPTIMIZER_H
+#define CVC5__OMT__OMT_OPTIMIZER_H
 
 #include "smt/optimization_solver.h"
 
@@ -82,4 +82,4 @@ class OMTOptimizer
 
 }  // namespace cvc5::omt
 
-#endif /* CVC4__OMT__OMT_OPTIMIZER_H */
+#endif /* CVC5__OMT__OMT_OPTIMIZER_H */

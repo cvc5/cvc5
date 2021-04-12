@@ -15,7 +15,7 @@
 
 #include "theory/arith/nl/cad/variable_ordering.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "util/poly_util.h"
 

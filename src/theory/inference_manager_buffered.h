@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
-#define CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
+#ifndef CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
+#define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
 #include "expr/node.h"
 #include "theory/theory_inference.h"

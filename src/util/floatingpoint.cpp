@@ -436,7 +436,7 @@ FloatingPoint::PartialRational FloatingPoint::convertToRational(void) const
   // unsigned int is not smaller than uint32_t
   static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
                 "Conversion float -> real could loose data");
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Note that multipling by 2^n requires n bits of space (worst case)
   // so, in effect, these tests limit us to cases where the resultant
   // number requires up to 2^32 bits = 512 megabyte to represent.

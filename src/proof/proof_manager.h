@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF_MANAGER_H
-#define CVC4__PROOF_MANAGER_H
+#ifndef CVC5__PROOF_MANAGER_H
+#define CVC5__PROOF_MANAGER_H
 
 #include <memory>
 #include <unordered_map>
@@ -121,4 +121,4 @@ private:
 
 }  // namespace cvc5
 
-#endif /* CVC4__PROOF_MANAGER_H */
+#endif /* CVC5__PROOF_MANAGER_H */

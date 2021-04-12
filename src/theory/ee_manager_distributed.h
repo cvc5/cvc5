@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H
-#define CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H
+#ifndef CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H
+#define CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H
 
 #include <memory>
 
@@ -100,4 +100,4 @@ class EqEngineManagerDistributed : public EqEngineManager
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__EE_MANAGER_DISTRIBUTED__H */

@@ -14,8 +14,8 @@
  */
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
 
 #include "theory/bv/bitblast/simple_bitblaster.h"
 

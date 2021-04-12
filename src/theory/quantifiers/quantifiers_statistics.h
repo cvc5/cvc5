@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
@@ -50,4 +50,4 @@ class QuantifiersStatistics
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H */

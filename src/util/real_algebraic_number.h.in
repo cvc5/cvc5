@@ -15,10 +15,10 @@
 
 // these gestures are used to avoid a public header dependence on cvc4autoconfig.h
 
-#if /* use libpoly */ @CVC4_USE_POLY_IMP@
-#  define CVC4_POLY_IMP
-#endif /* @CVC4_USE_POLY_IMP@ */
+#if /* use libpoly */ @CVC5_USE_POLY_IMP@
+#  define CVC5_POLY_IMP
+#endif /* @CVC5_USE_POLY_IMP@ */
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 #  include "util/real_algebraic_number_poly_imp.h"
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */

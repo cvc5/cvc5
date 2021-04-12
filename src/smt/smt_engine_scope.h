@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_SCOPE_H
-#define CVC4__SMT__SMT_ENGINE_SCOPE_H
+#ifndef CVC5__SMT__SMT_ENGINE_SCOPE_H
+#define CVC5__SMT__SMT_ENGINE_SCOPE_H
 
 #include "expr/node_manager.h"
 
@@ -63,4 +63,4 @@ class SmtScope : public NodeManagerScope
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__SMT_ENGINE_SCOPE_H */
+#endif /* CVC5__SMT__SMT_ENGINE_SCOPE_H */

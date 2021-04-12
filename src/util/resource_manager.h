@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RESOURCE_MANAGER_H
-#define CVC4__RESOURCE_MANAGER_H
+#ifndef CVC5__RESOURCE_MANAGER_H
+#define CVC5__RESOURCE_MANAGER_H
 
 #include <stdint.h>
 #include <chrono>
@@ -207,4 +207,4 @@ class ResourceManager
 
 }  // namespace cvc5
 
-#endif /* CVC4__RESOURCE_MANAGER_H */
+#endif /* CVC5__RESOURCE_MANAGER_H */

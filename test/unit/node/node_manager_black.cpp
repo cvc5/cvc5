@@ -301,7 +301,7 @@ TEST_F(TestNodeBlackNodeManager, mkPredicateType)
 /* This test is only valid if assertions are enabled. */
 TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   ASSERT_DEATH(d_nodeManager->mkNode(AND, x),
                "Nodes with kind AND must have at least 2 children");
@@ -311,7 +311,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 /* This test is only valid if assertions are enabled. */
 TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   std::vector<Node> vars;
   const uint32_t max = metakind::getMaxArityForKind(AND);
   TypeNode boolType = d_nodeManager->booleanType();

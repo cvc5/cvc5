@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__KIND__METAKIND_H
-#define CVC4__KIND__METAKIND_H
+#ifndef CVC5__KIND__METAKIND_H
+#define CVC5__KIND__METAKIND_H
 
 #include <iosfwd>
 
@@ -127,11 +127,11 @@ struct NodeValuePoolEq {
 
 #include "expr/node_value.h"
 
-#endif /* CVC4__KIND__METAKIND_H */
+#endif /* CVC5__KIND__METAKIND_H */
 
 ${metakind_includes}
 
-#ifdef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace cvc5 {
 
@@ -206,4 +206,4 @@ Kind operatorToKind(::cvc5::expr::NodeValue* nv);
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */
+#endif /* CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP */

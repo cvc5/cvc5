@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
-#define CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
+#ifndef CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
+#define CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
 
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
@@ -173,4 +173,4 @@ class RelevantDomain : public QuantifiersUtil
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H */

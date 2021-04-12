@@ -13,8 +13,8 @@
  * Utilities for transcendental lemmas.
  */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
 #include "expr/node.h"
 #include "expr/proof_set.h"
@@ -281,4 +281,4 @@ struct TranscendentalState
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */
+#endif /* CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H */

@@ -25,8 +25,8 @@
 
 #include "test.h"
 
-#ifndef __CVC4__TEST__UNIT__MEMORY_H
-#define __CVC4__TEST__UNIT__MEMORY_H
+#ifndef __CVC5__TEST__UNIT__MEMORY_H
+#define __CVC5__TEST__UNIT__MEMORY_H
 
 #include <string>
 #include <sys/resource.h>
@@ -35,24 +35,24 @@
 #include "base/check.h"
 #include "base/configuration_private.h"
 
-// Conditionally define CVC4_MEMORY_LIMITING_DISABLED.
+// Conditionally define CVC5_MEMORY_LIMITING_DISABLED.
 #ifdef __APPLE__
-#  define CVC4_MEMORY_LIMITING_DISABLED 1
-#  define CVC4_MEMORY_LIMITING_DISABLED_REASON "setrlimit() is broken on Mac."
+#define CVC5_MEMORY_LIMITING_DISABLED 1
+#define CVC5_MEMORY_LIMITING_DISABLED_REASON "setrlimit() is broken on Mac."
 #else /* __APPLE__ */
 
 // Tests cannot expect bad_alloc to be thrown due to limit memory using
 // setrlimit when ASAN is enable. ASAN instead aborts on mmap failures.
 #  if IS_ASAN_BUILD
-#    define CVC4_MEMORY_LIMITING_DISABLED 1
-#    define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
+#define CVC5_MEMORY_LIMITING_DISABLED 1
+#define CVC5_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
 #  endif
 #endif
 
 namespace cvc5 {
 namespace test {
 
-#ifndef CVC4_MEMORY_LIMITING_DISABLED
+#ifndef CVC5_MEMORY_LIMITING_DISABLED
 class WithLimitedMemory {
  public:
   WithLimitedMemory() { remember(); }
@@ -85,9 +85,9 @@ class WithLimitedMemory {
 }  // namespace test
 }  // namespace cvc5
 
-// Remove CVC4_MEMORY_LIMITING_DISABLED_REASON if it is defined.
-#ifdef CVC4_MEMORY_LIMITING_DISABLED_REASON
-#undef CVC4_MEMORY_LIMITING_DISABLED_REASON
-#endif /* CVC4_MEMORY_LIMITING_DISABLED_REASON */
+// Remove CVC5_MEMORY_LIMITING_DISABLED_REASON if it is defined.
+#ifdef CVC5_MEMORY_LIMITING_DISABLED_REASON
+#undef CVC5_MEMORY_LIMITING_DISABLED_REASON
+#endif /* CVC5_MEMORY_LIMITING_DISABLED_REASON */
 
-#endif /* __CVC4__TEST__MEMORY_H */
+#endif /* __CVC5__TEST__MEMORY_H */

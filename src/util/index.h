@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INDEX_H
-#define CVC4__INDEX_H
+#ifndef CVC5__INDEX_H
+#define CVC5__INDEX_H
 
 namespace cvc5 {
 
@@ -25,4 +25,4 @@ using Index = uint32_t;
 
 }  // namespace cvc5
 
-#endif /* CVC4__INDEX_H */
+#endif /* CVC5__INDEX_H */

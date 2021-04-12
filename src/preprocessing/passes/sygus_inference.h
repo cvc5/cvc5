@@ -13,8 +13,8 @@
  * SygusInference.
  */
 
-#ifndef CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
-#define CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#ifndef CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#define CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
 
 #include <vector>
 #include "expr/node.h"
@@ -66,4 +66,4 @@ class SygusInference : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */
+#endif /* CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */

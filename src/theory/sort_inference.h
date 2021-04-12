@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SORT_INFERENCE_H
-#define CVC4__SORT_INFERENCE_H
+#ifndef CVC5__SORT_INFERENCE_H
+#define CVC5__SORT_INFERENCE_H
 
 #include <map>
 #include <vector>

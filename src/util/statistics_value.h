@@ -25,8 +25,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATISTICS_VALUE_H
-#define CVC4__UTIL__STATISTICS_VALUE_H
+#ifndef CVC5__UTIL__STATISTICS_VALUE_H
+#define CVC5__UTIL__STATISTICS_VALUE_H
 
 #include <chrono>
 #include <iomanip>

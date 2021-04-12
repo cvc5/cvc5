@@ -35,7 +35,7 @@ class TestUtilBlackStats : public TestInternal
 
 TEST_F(TestUtilBlackStats, stats)
 {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   std::string empty, bar = "bar", baz = "baz";
   ReferenceStat<std::string> refStr("stat #1", empty);
   ReferenceStat<std::string> refStr2("refStr2", bar);

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REGEXP__OPERATION_H
-#define CVC4__THEORY__STRINGS__REGEXP__OPERATION_H
+#ifndef CVC5__THEORY__STRINGS__REGEXP__OPERATION_H
+#define CVC5__THEORY__STRINGS__REGEXP__OPERATION_H
 
 #include <map>
 #include <set>
@@ -210,4 +210,4 @@ class RegExpOpr {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__REGEXP__OPERATION_H */
+#endif /* CVC5__THEORY__STRINGS__REGEXP__OPERATION_H */

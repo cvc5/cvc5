@@ -140,7 +140,7 @@ Node FunDefEvaluator::evaluate(Node n) const
                                   << cur[childIdxToEval] << "\n";
           continue;
         }
-        unsigned child CVC4_UNUSED = 0;
+        unsigned child CVC5_UNUSED = 0;
         for (const Node& cn : cur)
         {
           it = visited.find(cn);

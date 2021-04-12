@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__DECISION_WEIGHT_H
-#define CVC4__OPTIONS__DECISION_WEIGHT_H
+#ifndef CVC5__OPTIONS__DECISION_WEIGHT_H
+#define CVC5__OPTIONS__DECISION_WEIGHT_H
 
 namespace cvc5 {
 namespace decision {
@@ -26,4 +26,4 @@ typedef uint64_t DecisionWeight;
 }  // namespace decision
 }  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__DECISION_WEIGHT_H */
+#endif /* CVC5__OPTIONS__DECISION_WEIGHT_H */

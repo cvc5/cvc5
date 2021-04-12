@@ -15,27 +15,27 @@
 
 // these gestures are used to avoid a public header dependence on cvc4autoconfig.h
 
-#if @CVC4_NEED_INT64_T_OVERLOADS@
-#  define CVC4_NEED_INT64_T_OVERLOADS
+#if @CVC5_NEED_INT64_T_OVERLOADS@
+#  define CVC5_NEED_INT64_T_OVERLOADS
 #endif
 
-#if /* use CLN */ @CVC4_USE_CLN_IMP@
-#  define CVC4_CLN_IMP
-#endif /* @CVC4_USE_CLN_IMP@ */
-#if /* use GMP */ @CVC4_USE_GMP_IMP@
-#  define CVC4_GMP_IMP
-#endif /* @CVC4_USE_GMP_IMP@ */
+#if /* use CLN */ @CVC5_USE_CLN_IMP@
+#  define CVC5_CLN_IMP
+#endif /* @CVC5_USE_CLN_IMP@ */
+#if /* use GMP */ @CVC5_USE_GMP_IMP@
+#  define CVC5_GMP_IMP
+#endif /* @CVC5_USE_GMP_IMP@ */
 
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
 #  include "util/integer_cln_imp.h"
 #  if SWIG
      %include "util/integer_cln_imp.h"
 #  endif /* SWIG */
-#endif /* CVC4_CLN_IMP */
+#endif /* CVC5_CLN_IMP */
 
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
 #  include "util/integer_gmp_imp.h"
 #  if SWIG
      %include "util/integer_gmp_imp.h"
 #  endif /* SWIG */
-#endif /* CVC4_GMP_IMP */
+#endif /* CVC5_GMP_IMP */

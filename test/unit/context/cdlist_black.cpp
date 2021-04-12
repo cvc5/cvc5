@@ -137,7 +137,7 @@ TEST_F(TestContextBlackCDList, empty_iterator)
 
 TEST_F(TestContextBlackCDList, out_of_memory)
 {
-#ifndef CVC4_MEMORY_LIMITING_DISABLED
+#ifndef CVC5_MEMORY_LIMITING_DISABLED
   CDList<uint32_t> list(d_context.get());
   test::WithLimitedMemory wlm(1);
 

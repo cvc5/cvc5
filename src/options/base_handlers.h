@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BASE_HANDLERS_H
-#define CVC4__BASE_HANDLERS_H
+#ifndef CVC5__BASE_HANDLERS_H
+#define CVC5__BASE_HANDLERS_H
 
 #include <iostream>
 #include <string>
@@ -84,4 +84,4 @@ struct not_equal : public comparator<std::not_equal_to> {
 }  // namespace options
 }  // namespace cvc5
 
-#endif /* CVC4__BASE_HANDLERS_H */
+#endif /* CVC5__BASE_HANDLERS_H */

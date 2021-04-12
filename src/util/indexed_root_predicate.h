@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__INDEXED_ROOT_PREDICATE_H
-#define CVC4__UTIL__INDEXED_ROOT_PREDICATE_H
+#ifndef CVC5__UTIL__INDEXED_ROOT_PREDICATE_H
+#define CVC5__UTIL__INDEXED_ROOT_PREDICATE_H
 
 namespace cvc5 {
 

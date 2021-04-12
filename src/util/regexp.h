@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__REGEXP_H
-#define CVC4__UTIL__REGEXP_H
+#ifndef CVC5__UTIL__REGEXP_H
+#define CVC5__UTIL__REGEXP_H
 
 #include <iosfwd>
 
@@ -72,4 +72,4 @@ std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTIL__REGEXP_H */
+#endif /* CVC5__UTIL__REGEXP_H */

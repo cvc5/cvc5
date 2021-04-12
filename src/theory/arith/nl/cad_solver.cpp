@@ -32,7 +32,7 @@ CadSolver::CadSolver(InferenceManager& im,
                      context::Context* ctx,
                      ProofNodeManager* pnm)
     :
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
       d_CAC(ctx, pnm),
 #endif
       d_foundSatisfiability(false),
@@ -43,7 +43,7 @@ CadSolver::CadSolver(InferenceManager& im,
   SkolemManager* sm = nm->getSkolemManager();
   d_ranVariable = sm->mkDummySkolem(
       "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
@@ -57,7 +57,7 @@ CadSolver::~CadSolver() {}
 
 void CadSolver::initLastCall(const std::vector<Node>& assertions)
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (Trace.isOn("nl-cad"))
   {
     Trace("nl-cad") << "CadSolver::initLastCall" << std::endl;
@@ -84,7 +84,7 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
 
 void CadSolver::checkFull()
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
@@ -116,7 +116,7 @@ void CadSolver::checkFull()
 
 void CadSolver::checkPartial()
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
@@ -166,7 +166,7 @@ void CadSolver::checkPartial()
 
 bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (!d_foundSatisfiability)
   {
     return false;

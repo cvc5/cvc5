@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
-#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
+#ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
+#define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
 
 #include "theory/builtin/proof_checker.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
@@ -57,4 +57,4 @@ class TheoryBuiltin : public Theory
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H */
+#endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H */

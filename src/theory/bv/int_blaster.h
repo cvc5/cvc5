@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__INT_BLASTER__H
-#define __CVC4__THEORY__BV__INT_BLASTER__H
+#ifndef __CVC5__THEORY__BV__INT_BLASTER__H
+#define __CVC5__THEORY__BV__INT_BLASTER__H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -352,4 +352,4 @@ class IntBlaster
 
 }  // namespace cvc5
 
-#endif /* __CVC4__THEORY__BV__INT_BLASTER_H */
+#endif /* __CVC5__THEORY__BV__INT_BLASTER_H */

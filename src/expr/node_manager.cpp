@@ -445,7 +445,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   // already did type check eagerly upon creation in node builder
   bool doTypeCheck = false;
 #else
@@ -661,10 +661,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& c = dt[i];
-      TypeNode testerType CVC4_UNUSED = c.getTester().getType();
+      TypeNode testerType CVC5_UNUSED = c.getTester().getType();
       Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
-      TypeNode ctorType CVC4_UNUSED = c.getConstructor().getType();
+      TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isConstructor()
             && ctorType.getNumChildren() == c.getNumArgs() + 1
             && ctorType.getRangeType() == ut)

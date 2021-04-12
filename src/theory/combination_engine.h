@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__COMBINATION_ENGINE__H
-#define CVC4__THEORY__COMBINATION_ENGINE__H
+#ifndef CVC5__THEORY__COMBINATION_ENGINE__H
+#define CVC5__THEORY__COMBINATION_ENGINE__H
 
 #include <vector>
 #include <memory>
@@ -140,4 +140,4 @@ class CombinationEngine
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__COMBINATION_DISTRIBUTED__H */

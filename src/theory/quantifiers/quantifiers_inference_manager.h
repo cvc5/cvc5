@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H
 
 #include "theory/inference_manager_buffered.h"
 #include "theory/quantifiers/quantifiers_state.h"
@@ -62,4 +62,4 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H */

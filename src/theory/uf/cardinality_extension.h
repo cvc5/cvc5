@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_UF_STRONG_SOLVER_H
-#define CVC4__THEORY_UF_STRONG_SOLVER_H
+#ifndef CVC5__THEORY_UF_STRONG_SOLVER_H
+#define CVC5__THEORY_UF_STRONG_SOLVER_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
@@ -466,4 +466,4 @@ class CardinalityExtension
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */
+#endif /* CVC5__THEORY_UF_STRONG_SOLVER_H */

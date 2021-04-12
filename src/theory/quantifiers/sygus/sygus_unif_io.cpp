@@ -1363,7 +1363,7 @@ Node SygusUnifIo::constructSol(
       // for ITE
       Node split_cond_enum;
       unsigned split_cond_res_index = 0;
-      CVC4_UNUSED bool set_split_cond_res_index = false;
+      CVC5_UNUSED bool set_split_cond_res_index = false;
 
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {

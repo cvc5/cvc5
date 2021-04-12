@@ -17,8 +17,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__TPTP_INPUT_H
-#define CVC4__PARSER__TPTP_INPUT_H
+#ifndef CVC5__PARSER__TPTP_INPUT_H
+#define CVC5__PARSER__TPTP_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/tptp/TptpLexer.h"
@@ -85,4 +85,4 @@ class TptpInput : public AntlrInput {
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC5__PARSER__TPTP_INPUT_H */

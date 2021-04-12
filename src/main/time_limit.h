@@ -13,8 +13,8 @@
  * Implementation of time limits that are imposed by the --tlimit option.
  */
 
-#ifndef CVC4__MAIN__TIME_LIMIT_H
-#define CVC4__MAIN__TIME_LIMIT_H
+#ifndef CVC5__MAIN__TIME_LIMIT_H
+#define CVC5__MAIN__TIME_LIMIT_H
 
 #include "options/options.h"
 
@@ -48,4 +48,4 @@ TimeLimit install_time_limit(const Options& opts);
 }  // namespace main
 }  // namespace cvc5
 
-#endif /* CVC4__MAIN__TIME_LIMIT_H */
+#endif /* CVC5__MAIN__TIME_LIMIT_H */

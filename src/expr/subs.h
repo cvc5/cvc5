@@ -13,8 +13,8 @@
  * Simple substitution utility.
  */
 
-#ifndef CVC4__EXPR__SUBS_H
-#define CVC4__EXPR__SUBS_H
+#ifndef CVC5__EXPR__SUBS_H
+#define CVC5__EXPR__SUBS_H
 
 #include <map>
 #include <vector>
@@ -83,4 +83,4 @@ std::ostream& operator<<(std::ostream& out, const Subs& s);
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__SUBS_H */
+#endif /* CVC5__EXPR__SUBS_H */

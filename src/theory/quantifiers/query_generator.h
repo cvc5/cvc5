@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
 
 #include <map>
 #include <unordered_set>
@@ -119,4 +119,4 @@ class QueryGenerator : public ExprMiner
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS___H */
+#endif /* CVC5__THEORY__QUANTIFIERS___H */

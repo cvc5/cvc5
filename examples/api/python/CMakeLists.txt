@@ -31,7 +31,7 @@ set(EXAMPLES_API_PYTHON
   sygus-inv
 )
 
-find_package(PythonInterp ${CVC4_BINDINGS_PYTHON_VERSION} REQUIRED)
+find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)
 
 # Find Python bindings in the corresponding python-*/site-packages directory.
 # Lookup Python module directory and store path in PYTHON_MODULE_PATH.

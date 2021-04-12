@@ -132,7 +132,7 @@ bool Instantiate::addInstantiation(Node q,
           << std::endl;
       return false;
     }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     bool bad_inst = false;
     if (TermUtil::containsUninterpretedConstant(terms[i]))
     {

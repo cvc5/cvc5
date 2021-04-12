@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_STATE_H
-#define CVC4__THEORY__THEORY_STATE_H
+#ifndef CVC5__THEORY__THEORY_STATE_H
+#define CVC5__THEORY__THEORY_STATE_H
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -124,4 +124,4 @@ class TheoryState
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SOLVER_STATE_H */
+#endif /* CVC5__THEORY__SOLVER_STATE_H */

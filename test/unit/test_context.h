@@ -13,8 +13,8 @@
  * Header for context unit tests.
  */
 
-#ifndef CVC4__TEST__UNIT__TEST_CONTEXT_H
-#define CVC4__TEST__UNIT__TEST_CONTEXT_H
+#ifndef CVC5__TEST__UNIT__TEST_CONTEXT_H
+#define CVC5__TEST__UNIT__TEST_CONTEXT_H
 
 #include "context/context.h"
 #include "test.h"

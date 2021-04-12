@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
 
 #include <map>
 #include <vector>
@@ -51,4 +51,4 @@ class TypeNodeIdTrie
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H */

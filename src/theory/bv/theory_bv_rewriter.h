@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_REWRITER_H
-#define CVC4__THEORY__BV__THEORY_BV_REWRITER_H
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITER_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITER_H
 
 #include "theory/theory_rewriter.h"
 
@@ -108,4 +108,4 @@ class TheoryBVRewriter : public TheoryRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_REWRITER_H */
+#endif /* CVC5__THEORY__BV__THEORY_BV_REWRITER_H */

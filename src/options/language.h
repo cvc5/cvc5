@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__LANGUAGE_H
-#define CVC4__LANGUAGE_H
+#ifndef CVC5__LANGUAGE_H
+#define CVC5__LANGUAGE_H
 
 #include <ostream>
 #include <string>
@@ -178,4 +178,4 @@ OutputLanguage toOutputLanguage(std::string language) CVC4_EXPORT;
 }  // namespace language
 }  // namespace cvc5
 
-#endif /* CVC4__LANGUAGE_H */
+#endif /* CVC5__LANGUAGE_H */

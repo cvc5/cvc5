@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RECORD_H
-#define CVC4__RECORD_H
+#ifndef CVC5__RECORD_H
+#define CVC5__RECORD_H
 
 #include <iostream>
 #include <string>
@@ -57,4 +57,4 @@ using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 }  // namespace cvc5
 
-#endif /* CVC4__RECORD_H */
+#endif /* CVC5__RECORD_H */

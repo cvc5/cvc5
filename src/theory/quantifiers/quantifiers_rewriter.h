@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
 #include "theory/theory_rewriter.h"
 #include "theory/trust_node.h"
@@ -304,4 +304,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */

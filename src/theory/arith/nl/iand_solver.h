@@ -13,8 +13,8 @@
  * Solver for integer and (IAND) constraints.
  */
 
-#ifndef CVC4__THEORY__ARITH__NL__IAND_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__IAND_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__IAND_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__IAND_SOLVER_H
 
 #include <map>
 #include <vector>
@@ -135,4 +135,4 @@ class IAndSolver
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__IAND_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__IAND_SOLVER_H */

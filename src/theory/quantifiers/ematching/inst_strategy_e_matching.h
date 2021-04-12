@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INST_STRATEGY_E_MATCHING_H
-#define CVC4__INST_STRATEGY_E_MATCHING_H
+#ifndef CVC5__INST_STRATEGY_E_MATCHING_H
+#define CVC5__INST_STRATEGY_E_MATCHING_H
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"

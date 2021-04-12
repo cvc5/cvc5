@@ -787,8 +787,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         Assert(weakEquivGetRep(node) == node);
         d_infoMap.setWeakEquivPointer(node, node[0]);
         d_infoMap.setWeakEquivIndex(node, node[1]);
-#ifdef CVC4_ASSERTIONS
-      checkWeakEquiv(false);
+#ifdef CVC5_ASSERTIONS
+        checkWeakEquiv(false);
 #endif
     }
 
@@ -866,7 +866,7 @@ void TheoryArrays::notifySharedTerm(TNode t)
     d_sharedArrays.insert(t);
   }
   else {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     d_sharedOther.insert(t);
 #endif
     d_sharedTerms = true;
@@ -939,7 +939,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
       // Should have been propagated to us
       Assert(false);
       break;
-    case EQUALITY_FALSE: CVC4_FALLTHROUGH;
+    case EQUALITY_FALSE: CVC5_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:
       // This is unlikely, but I think it could happen
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair called when false in model" << std::endl;
@@ -1237,11 +1237,11 @@ void TheoryArrays::postCheck(Effort level)
         d_infoMap.setWeakEquivPointer(b, a);
         d_infoMap.setWeakEquivIndex(b, TNode());
       }
-#ifdef CVC4_ASSERTIONS
-    checkWeakEquiv(false);
+#ifdef CVC5_ASSERTIONS
+      checkWeakEquiv(false);
 #endif
     }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     checkWeakEquiv(true);
 #endif
 

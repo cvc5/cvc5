@@ -17,8 +17,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__TPTP_H
-#define CVC4__PARSER__TPTP_H
+#ifndef CVC5__PARSER__TPTP_H
+#define CVC5__PARSER__TPTP_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -241,4 +241,4 @@ enum NonAssoc {
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC5__PARSER__TPTP_INPUT_H */

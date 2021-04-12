@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
 
 #include <map>
 #include <unordered_set>
@@ -116,4 +116,4 @@ class TermRegistry
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H */

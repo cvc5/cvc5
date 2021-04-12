@@ -25,8 +25,8 @@
  */
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__MAYBE_H
-#define CVC4__UTIL__MAYBE_H
+#ifndef CVC5__UTIL__MAYBE_H
+#define CVC5__UTIL__MAYBE_H
 
 #include <ostream>
 
@@ -87,4 +87,4 @@ inline std::ostream& operator<<(std::ostream& out, const Maybe<T>& m){
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTIL__MAYBE_H */
+#endif /* CVC5__UTIL__MAYBE_H */

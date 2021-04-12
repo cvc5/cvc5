@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__STRING_H
-#define CVC4__UTIL__STRING_H
+#ifndef CVC5__UTIL__STRING_H
+#define CVC5__UTIL__STRING_H
 
 #include <iosfwd>
 #include <string>
@@ -278,4 +278,4 @@ std::ostream& operator<<(std::ostream& os, const String& s);
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTIL__STRING_H */
+#endif /* CVC5__UTIL__STRING_H */

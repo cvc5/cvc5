@@ -136,8 +136,8 @@
 /* strong dependency; make sure node is included first */
 #include "expr/node.h"
 
-#ifndef CVC4__NODE_BUILDER_H
-#define CVC4__NODE_BUILDER_H
+#ifndef CVC5__NODE_BUILDER_H
+#define CVC5__NODE_BUILDER_H
 
 #include <iostream>
 #include <vector>
@@ -362,13 +362,13 @@ class NodeBuilder {
   /** Construct the node value out of the node builder */
   expr::NodeValue* constructNV();
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   // Throws a TypeCheckingExceptionPrivate on a failure.
   void maybeCheckType(const TNode n) const;
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
   // Do nothing if not in debug mode.
   inline void maybeCheckType(const TNode n) const {}
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
   // used by convenience node builders
   NodeBuilder& collapseTo(Kind k);
@@ -406,4 +406,4 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder& nb);
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_BUILDER_H */
+#endif /* CVC5__NODE_BUILDER_H */

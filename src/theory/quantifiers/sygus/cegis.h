@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_H
-#define CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGIS_H
+#define CVC5__THEORY__QUANTIFIERS__CEGIS_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_module.h"
@@ -230,4 +230,4 @@ class Cegis : public SygusModule
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEGIS_H */

@@ -18,8 +18,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
-#define CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
+#ifndef CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H
+#define CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H
 
 namespace cvc5 {
 namespace parser {
@@ -47,4 +47,4 @@ BoundedTokenFactoryNew(pANTLR3_INPUT_STREAM input,ANTLR3_UINT32 size);
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H */
+#endif /* CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H */

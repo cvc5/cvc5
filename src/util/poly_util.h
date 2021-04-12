@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__POLY_UTIL_H
-#define CVC4__POLY_UTIL_H
+#ifndef CVC5__POLY_UTIL_H
+#define CVC5__POLY_UTIL_H
 
 #include <vector>
 
@@ -25,7 +25,7 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
@@ -135,4 +135,4 @@ void getVariableInformation(VariableInformation& vi,
 
 #endif
 
-#endif /* CVC4__POLY_UTIL_H */
+#endif /* CVC5__POLY_UTIL_H */

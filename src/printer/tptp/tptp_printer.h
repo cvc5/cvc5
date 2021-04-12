@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PRINTER__TPTP_PRINTER_H
-#define CVC4__PRINTER__TPTP_PRINTER_H
+#ifndef CVC5__PRINTER__TPTP_PRINTER_H
+#define CVC5__PRINTER__TPTP_PRINTER_H
 
 #include <iostream>
 
@@ -65,4 +65,4 @@ class TptpPrinter : public cvc5::Printer
 }  // namespace printer
 }  // namespace cvc5
 
-#endif /* CVC4__PRINTER__TPTP_PRINTER_H */
+#endif /* CVC5__PRINTER__TPTP_PRINTER_H */

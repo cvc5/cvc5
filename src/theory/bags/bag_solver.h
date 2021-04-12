@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAG__SOLVER_H
-#define CVC4__THEORY__BAG__SOLVER_H
+#ifndef CVC5__THEORY__BAG__SOLVER_H
+#define CVC5__THEORY__BAG__SOLVER_H
 
 #include "theory/bags/inference_generator.h"
 
@@ -93,4 +93,4 @@ class BagSolver
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAG__SOLVER_H */
+#endif /* CVC5__THEORY__BAG__SOLVER_H */

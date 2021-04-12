@@ -16,8 +16,8 @@
  * internally.
  */
 
-#ifndef CVC4__SMT__OUTPUT_MANAGER_H
-#define CVC4__SMT__OUTPUT_MANAGER_H
+#ifndef CVC5__SMT__OUTPUT_MANAGER_H
+#define CVC5__SMT__OUTPUT_MANAGER_H
 
 #include <ostream>
 
@@ -55,4 +55,4 @@ class OutputManager
 
 }  // namespace cvc5
 
-#endif  // CVC4__SMT__OUTPUT_MANAGER_H
+#endif  // CVC5__SMT__OUTPUT_MANAGER_H

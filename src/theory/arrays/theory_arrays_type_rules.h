@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
 
 #include "theory/arrays/theory_arrays_rewriter.h" // for array-constant attributes
 #include "theory/type_enumerator.h"
@@ -277,4 +277,4 @@ struct ArrayEqRangeTypeRule
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
+#ifndef CVC5__THEORY__STRINGS__THEORY_STRINGS_H
+#define CVC5__THEORY__STRINGS__THEORY_STRINGS_H
 
 #include <climits>
 #include <deque>
@@ -304,4 +304,4 @@ class TheoryStrings : public Theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC5__THEORY__STRINGS__THEORY_STRINGS_H */

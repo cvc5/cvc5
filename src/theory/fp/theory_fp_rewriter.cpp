@@ -195,7 +195,7 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
     Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
            || (k == kind::FLOATINGPOINT_MIN_TOTAL)
@@ -886,7 +886,7 @@ namespace constantFold {
     bool result;
     switch (k)
     {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
       case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
       case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
@@ -910,7 +910,7 @@ namespace constantFold {
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
 #else
         node
@@ -926,7 +926,7 @@ namespace constantFold {
 
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
 #else
         node
@@ -940,7 +940,7 @@ namespace constantFold {
 
     BitVector value;
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());

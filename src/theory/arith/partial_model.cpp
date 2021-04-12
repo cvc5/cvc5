@@ -194,7 +194,7 @@ bool ArithVariables::VarInfo::setAssignment(const DeltaRational& a, BoundsInfo& 
 void ArithVariables::releaseArithVar(ArithVar v){
   VarInfo& vi = d_vars.get(v);
 
-  size_t removed CVC4_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
+  size_t removed CVC5_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
   Assert(removed == 1);
 
   vi.uninitialize();

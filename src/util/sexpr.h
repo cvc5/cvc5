@@ -23,8 +23,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SEXPR_H
-#define CVC4__SEXPR_H
+#ifndef CVC5__SEXPR_H
+#define CVC5__SEXPR_H
 
 #include <iosfwd>
 #include <string>
@@ -303,4 +303,4 @@ std::ostream& operator<<(std::ostream& out, PrettySExprs ps);
 
 }  // namespace cvc5
 
-#endif /* CVC4__SEXPR_H */
+#endif /* CVC5__SEXPR_H */

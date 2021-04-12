@@ -14,8 +14,8 @@
  * when the file is included improperly.
  */
 
-#ifndef CVC4_PRIVATE_LIBRARY_H
-#define CVC4_PRIVATE_LIBRARY_H
+#ifndef CVC5_PRIVATE_LIBRARY_H
+#define CVC5_PRIVATE_LIBRARY_H
 
 #if !(defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST) \
       || defined(__BUILDING_CVC4PARSERLIB)                                 \
@@ -27,4 +27,4 @@
 #include "cvc4_public.h"
 #include "cvc4autoconfig.h"
 
-#endif /* CVC4_PRIVATE_LIBRARY_H */
+#endif /* CVC5_PRIVATE_LIBRARY_H */

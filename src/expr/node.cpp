@@ -31,7 +31,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
     : Exception(message), d_node(new Node(node))
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
@@ -47,7 +47,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
     string ssstring = ss.str();
     current->setContents(ssstring.c_str());
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }

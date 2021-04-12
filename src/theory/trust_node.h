@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__TRUST_NODE_H
-#define CVC4__THEORY__TRUST_NODE_H
+#ifndef CVC5__THEORY__TRUST_NODE_H
+#define CVC5__THEORY__TRUST_NODE_H
 
 #include "expr/node.h"
 
@@ -175,4 +175,4 @@ std::ostream& operator<<(std::ostream& out, TrustNode n);
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__TRUST_NODE_H */
+#endif /* CVC5__THEORY__TRUST_NODE_H */

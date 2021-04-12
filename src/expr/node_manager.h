@@ -20,8 +20,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef CVC4__NODE_MANAGER_H
-#define CVC4__NODE_MANAGER_H
+#ifndef CVC5__NODE_MANAGER_H
+#define CVC5__NODE_MANAGER_H
 
 #include <vector>
 #include <string>
@@ -1194,9 +1194,9 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
 
 }  // namespace cvc5
 
-#define CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#define CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 #include "expr/metakind.h"
-#undef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#undef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 #include "expr/node_builder.h"
 
@@ -1569,4 +1569,4 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_MANAGER_H */
+#endif /* CVC5__NODE_MANAGER_H */

@@ -354,7 +354,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
     d_substitutions.addSubstitution( x, t, invalidateCache );
   } else {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
@@ -364,7 +364,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
           << "old mapping: " << d_substitutions.apply(oldX) << "\n"
           << "new mapping: " << d_substitutions.apply(t);
     }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
   }
 }
 

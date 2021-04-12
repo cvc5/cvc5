@@ -13,8 +13,8 @@
  * Method for setting the default options of an SMT engine.
  */
 
-#ifndef CVC4__SMT__SET_DEFAULTS_H
-#define CVC4__SMT__SET_DEFAULTS_H
+#ifndef CVC5__SMT__SET_DEFAULTS_H
+#define CVC5__SMT__SET_DEFAULTS_H
 
 #include "theory/logic_info.h"
 
@@ -39,4 +39,4 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver);
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__SET_DEFAULTS_H */
+#endif /* CVC5__SMT__SET_DEFAULTS_H */

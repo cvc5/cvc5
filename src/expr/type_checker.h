@@ -18,8 +18,8 @@
 // ordering dependence
 #include "expr/node.h"
 
-#ifndef CVC4__EXPR__TYPE_CHECKER_H
-#define CVC4__EXPR__TYPE_CHECKER_H
+#ifndef CVC5__EXPR__TYPE_CHECKER_H
+#define CVC5__EXPR__TYPE_CHECKER_H
 
 namespace cvc5 {
 namespace expr {
@@ -37,4 +37,4 @@ public:
 }  // namespace expr
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__TYPE_CHECKER_H */
+#endif /* CVC5__EXPR__TYPE_CHECKER_H */

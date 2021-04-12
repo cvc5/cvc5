@@ -32,7 +32,7 @@ static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
 String::String(const std::vector<unsigned> &s) : d_str(s)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned u : d_str)
   {
     Assert(u < num_codes());
@@ -227,7 +227,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned u : str)
   {
     Assert(u < num_codes());

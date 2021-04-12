@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CNF_PROOF_H
-#define CVC4__CNF_PROOF_H
+#ifndef CVC5__CNF_PROOF_H
+#define CVC5__CNF_PROOF_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -94,4 +94,4 @@ public:
 
 }  // namespace cvc5
 
-#endif /* CVC4__CNF_PROOF_H */
+#endif /* CVC5__CNF_PROOF_H */

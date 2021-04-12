@@ -1454,7 +1454,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (logic == LogicInfo("QF_UFNRA"))
   {
-#ifdef CVC4_USE_POLY
+#ifdef CVC5_USE_POLY
     if (!options::nlCad() && !options::nlCad.wasSetByUser())
     {
       options::nlCad.set(true);
@@ -1469,7 +1469,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
 #endif
   }
-#ifndef CVC4_USE_POLY
+#ifndef CVC5_USE_POLY
   if (options::nlCad())
   {
     if (options::nlCad.wasSetByUser())

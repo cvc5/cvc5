@@ -78,11 +78,11 @@ NodeBuilder::NodeBuilder(const NodeBuilder& nb)
 
 NodeBuilder::~NodeBuilder()
 {
-  if (CVC4_PREDICT_FALSE(nvIsAllocated()))
+  if (CVC5_PREDICT_FALSE(nvIsAllocated()))
   {
     dealloc();
   }
-  else if (CVC4_PREDICT_FALSE(!isUsed()))
+  else if (CVC5_PREDICT_FALSE(!isUsed()))
   {
     decrRefCounts();
   }
@@ -147,11 +147,11 @@ void NodeBuilder::clear(Kind k)
 {
   Assert(k != kind::NULL_EXPR) << "illegal Node-building clear kind";
 
-  if (CVC4_PREDICT_FALSE(nvIsAllocated()))
+  if (CVC5_PREDICT_FALSE(nvIsAllocated()))
   {
     dealloc();
   }
-  else if (CVC4_PREDICT_FALSE(!isUsed()))
+  else if (CVC5_PREDICT_FALSE(!isUsed()))
   {
     decrRefCounts();
   }
@@ -188,7 +188,7 @@ NodeBuilder& NodeBuilder::operator<<(const Kind& k)
   // NodeBuilder construction or at the last clear()), but we do
   // now.  That means we appended a Kind with operator<<(Kind),
   // which now (lazily) we'll collapse.
-  if (CVC4_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
+  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
   {
     Node n2 = operator Node();
     clear();
@@ -210,7 +210,7 @@ NodeBuilder& NodeBuilder::operator<<(TNode n)
   // NodeBuilder construction or at the last clear()), but we do
   // now.  That means we appended a Kind with operator<<(Kind),
   // which now (lazily) we'll collapse.
-  if (CVC4_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
+  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
   {
     Node n2 = operator Node();
     clear();
@@ -227,7 +227,7 @@ NodeBuilder& NodeBuilder::operator<<(TypeNode n)
   // NodeBuilder construction or at the last clear()), but we do
   // now.  That means we appended a Kind with operator<<(Kind),
   // which now (lazily) we'll collapse.
-  if (CVC4_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
+  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
   {
     Node n2 = operator Node();
     clear();
@@ -281,7 +281,7 @@ void NodeBuilder::realloc(size_t toSize)
       << "attempt to realloc() a NodeBuilder to size " << toSize
       << " (beyond hard limit of " << expr::NodeValue::MAX_CHILDREN << ")";
 
-  if (CVC4_PREDICT_FALSE(nvIsAllocated()))
+  if (CVC5_PREDICT_FALSE(nvIsAllocated()))
   {
     // Ensure d_nv is not modified on allocation failure
     expr::NodeValue* newBlock = (expr::NodeValue*)std::realloc(
@@ -448,7 +448,7 @@ expr::NodeValue* NodeBuilder::constructNV()
   // NodeManager pool of Nodes.  See implementation notes at the top
   // of this file.
 
-  if (CVC4_PREDICT_TRUE(!nvIsAllocated()))
+  if (CVC5_PREDICT_TRUE(!nvIsAllocated()))
   {
     /** Case 1.  d_nv points to d_inlineNv: it is the backing store
      ** allocated "inline" in this NodeBuilder. **/
@@ -579,7 +579,7 @@ void NodeBuilder::internalCopy(const NodeBuilder& nb)
     return;
   }
 
-  bool realloced CVC4_UNUSED = false;
+  bool realloced CVC5_UNUSED = false;
   if (nb.d_nvMaxChildren > d_nvMaxChildren)
   {
     realloced = true;
@@ -604,7 +604,7 @@ void NodeBuilder::internalCopy(const NodeBuilder& nb)
   }
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 inline void NodeBuilder::maybeCheckType(const TNode n) const
 {
   /* force an immediate type check, if early type checking is
@@ -616,9 +616,9 @@ inline void NodeBuilder::maybeCheckType(const TNode n) const
     d_nm->getType(n, true);
   }
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
-bool NodeBuilder::isUsed() const { return CVC4_PREDICT_FALSE(d_nv == nullptr); }
+bool NodeBuilder::isUsed() const { return CVC5_PREDICT_FALSE(d_nv == nullptr); }
 
 void NodeBuilder::setUsed()
 {
@@ -640,25 +640,25 @@ void NodeBuilder::setUnused()
 
 bool NodeBuilder::nvIsAllocated() const
 {
-  return CVC4_PREDICT_FALSE(d_nv != &d_inlineNv)
-         && CVC4_PREDICT_TRUE(d_nv != nullptr);
+  return CVC5_PREDICT_FALSE(d_nv != &d_inlineNv)
+         && CVC5_PREDICT_TRUE(d_nv != nullptr);
 }
 
 bool NodeBuilder::nvNeedsToBeAllocated() const
 {
-  return CVC4_PREDICT_FALSE(d_nv->d_nchildren == d_nvMaxChildren);
+  return CVC5_PREDICT_FALSE(d_nv->d_nchildren == d_nvMaxChildren);
 }
 
 void NodeBuilder::realloc()
 {
   size_t newSize = 2 * size_t(d_nvMaxChildren);
   size_t hardLimit = expr::NodeValue::MAX_CHILDREN;
-  realloc(CVC4_PREDICT_FALSE(newSize > hardLimit) ? hardLimit : newSize);
+  realloc(CVC5_PREDICT_FALSE(newSize > hardLimit) ? hardLimit : newSize);
 }
 
 void NodeBuilder::allocateNvIfNecessaryForAppend()
 {
-  if (CVC4_PREDICT_FALSE(nvNeedsToBeAllocated()))
+  if (CVC5_PREDICT_FALSE(nvNeedsToBeAllocated()))
   {
     realloc();
   }
@@ -666,8 +666,8 @@ void NodeBuilder::allocateNvIfNecessaryForAppend()
 
 void NodeBuilder::crop()
 {
-  if (CVC4_PREDICT_FALSE(nvIsAllocated())
-      && CVC4_PREDICT_TRUE(d_nvMaxChildren > d_nv->d_nchildren))
+  if (CVC5_PREDICT_FALSE(nvIsAllocated())
+      && CVC5_PREDICT_TRUE(d_nvMaxChildren > d_nv->d_nchildren))
   {
     // Ensure d_nv is not modified on allocation failure
     expr::NodeValue* newBlock = (expr::NodeValue*)std::realloc(

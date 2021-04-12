@@ -15,7 +15,7 @@
 
 #include "theory/arith/nl/icp/candidate.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <iostream>
 

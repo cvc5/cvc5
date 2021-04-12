@@ -134,14 +134,14 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
 
   setMessage(string(buf));
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
   if(buffer != nullptr){
     if(buffer->getContents() == nullptr) {
       buffer->setContents(buf);
     }
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   delete [] buf;
 }
 
@@ -175,14 +175,14 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
 
   setMessage(string(buf));
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
   if(buffer != nullptr){
     if(buffer->getContents() == nullptr) {
       buffer->setContents(buf);
     }
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   delete [] buf;
 }
 

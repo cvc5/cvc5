@@ -238,7 +238,7 @@ bool CandidateRewriteFilter::notify(Node s,
       Trace("crf-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned i = 0, size = vars.size(); i < size; i++)
   {
     // By using internal representation of terms, we ensure polymorphism is

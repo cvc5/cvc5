@@ -21,8 +21,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__ITE_UTILITIES_H
-#define CVC4__ITE_UTILITIES_H
+#ifndef CVC5__ITE_UTILITIES_H
+#define CVC5__ITE_UTILITIES_H
 
 #include <unordered_map>
 #include <vector>

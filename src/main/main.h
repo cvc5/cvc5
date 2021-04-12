@@ -22,8 +22,8 @@
 #include "cvc4autoconfig.h"
 #include "options/options.h"
 
-#ifndef CVC4__MAIN__MAIN_H
-#define CVC4__MAIN__MAIN_H
+#ifndef CVC5__MAIN__MAIN_H
+#define CVC5__MAIN__MAIN_H
 
 namespace cvc5 {
 namespace main {
@@ -53,7 +53,7 @@ class TotalTimer
 extern std::unique_ptr<TotalTimer> totalTime;
 
 /**
- * If true, will not spin on segfault even when CVC4_DEBUG is on.
+ * If true, will not spin on segfault even when CVC5_DEBUG is on.
  * Useful for nightly regressions, noninteractive performance runs
  * etc.  See util.cpp.
  */
@@ -77,4 +77,4 @@ void cvc4_shutdown() noexcept;
 int runCvc4(int argc, char* argv[], cvc5::Options&);
 void printUsage(cvc5::Options&, bool full = false);
 
-#endif /* CVC4__MAIN__MAIN_H */
+#endif /* CVC5__MAIN__MAIN_H */

@@ -156,7 +156,7 @@ Node BVToInt::eliminationPass(Node n)
     current = toVisit.back();
     // assert that the node is binarized
     // The following variable is only used in assertions
-    CVC4_UNUSED kind::Kind_t k = current.getKind();
+    CVC5_UNUSED kind::Kind_t k = current.getKind();
     uint64_t numChildren = current.getNumChildren();
     Assert((numChildren == 2)
            || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
@@ -343,7 +343,7 @@ Node BVToInt::translateWithChildren(Node original,
   Assert(oldKind != kind::BITVECTOR_ULTBV);
   Assert(oldKind != kind::BITVECTOR_SLTBV);
   // The following variable will only be used in assertions.
-  CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
+  CVC5_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
   switch (oldKind)
   {

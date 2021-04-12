@@ -15,12 +15,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #  error expr/attribute_internals.h should only be included by expr/attribute.h
-#endif /* CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
-#ifndef CVC4__EXPR__ATTRIBUTE_INTERNALS_H
-#define CVC4__EXPR__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5__EXPR__ATTRIBUTE_INTERNALS_H
+#define CVC5__EXPR__ATTRIBUTE_INTERNALS_H
 
 #include <unordered_map>
 
@@ -513,4 +513,4 @@ const uint64_t Attribute<T, bool, context_dep>::s_id =
 }  // namespace expr
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_INTERNALS_H */

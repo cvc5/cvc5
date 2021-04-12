@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__QUANTIFIERS_FUN_DEF_EVALUATOR_H
-#define CVC4__QUANTIFIERS_FUN_DEF_EVALUATOR_H
+#ifndef CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
+#define CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
 
 #include <map>
 #include <vector>

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTIL__CARDINALITY_CLASS_H
-#define CVC4__UTIL__CARDINALITY_CLASS_H
+#ifndef CVC5__UTIL__CARDINALITY_CLASS_H
+#define CVC5__UTIL__CARDINALITY_CLASS_H
 
 #include <iosfwd>
 

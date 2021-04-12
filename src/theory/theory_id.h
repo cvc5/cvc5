@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__THEORY__THEORY_ID_H
-#define CVC4__THEORY__THEORY_ID_H
+#ifndef CVC5__THEORY__THEORY_ID_H
+#define CVC5__THEORY__THEORY_ID_H
 
 #include <iosfwd>
 

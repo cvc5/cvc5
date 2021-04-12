@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_LAZY_H
-#define CVC4__THEORY__BV__BV_SOLVER_LAZY_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_LAZY_H
+#define CVC5__THEORY__BV__BV_SOLVER_LAZY_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -232,4 +232,4 @@ class BVSolverLazy : public BVSolver
 
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_SOLVER_LAZY_H */
+#endif /* CVC5__THEORY__BV__BV_SOLVER_LAZY_H */

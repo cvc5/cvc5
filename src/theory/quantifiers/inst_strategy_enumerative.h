@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC5__INST_STRATEGY_ENUMERATIVE_H
+#define CVC5__INST_STRATEGY_ENUMERATIVE_H
 
 #include "theory/quantifiers/quant_module.h"
 

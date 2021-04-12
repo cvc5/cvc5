@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__DOT__DOT_PRINTER_H
-#define CVC4__PROOF__DOT__DOT_PRINTER_H
+#ifndef CVC5__PROOF__DOT__DOT_PRINTER_H
+#define CVC5__PROOF__DOT__DOT_PRINTER_H
 
 #include <iostream>
 

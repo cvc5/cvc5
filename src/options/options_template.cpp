@@ -15,11 +15,11 @@
 
 #if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
 // force use of optreset; mingw32 croaks on argv-switching otherwise
-#  include "cvc4autoconfig.h"
-#  define _BSD_SOURCE
-#  undef HAVE_DECL_OPTRESET
-#  define HAVE_DECL_OPTRESET 1
-#  define CVC4_IS_NOT_REALLY_BSD
+#include "cvc4autoconfig.h"
+#define _BSD_SOURCE
+#undef HAVE_DECL_OPTRESET
+#define HAVE_DECL_OPTRESET 1
+#define CVC5_IS_NOT_REALLY_BSD
 #endif /* !_BSD_SOURCE && __MINGW32__ && !__MINGW64__ */
 
 #ifdef __MINGW64__
@@ -29,9 +29,9 @@ extern int optreset;
 #include <getopt.h>
 
 // clean up
-#ifdef CVC4_IS_NOT_REALLY_BSD
+#ifdef CVC5_IS_NOT_REALLY_BSD
 #  undef _BSD_SOURCE
-#endif /* CVC4_IS_NOT_REALLY_BSD */
+#endif /* CVC5_IS_NOT_REALLY_BSD */
 
 #include <unistd.h>
 #include <string.h>
@@ -251,11 +251,11 @@ void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 ${custom_handlers}$
 
-#if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
+#if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
-#else /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
+#else /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
-#endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
+#endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
 
 options::OptionsHolder::OptionsHolder() :
   ${module_defaults}$

@@ -38,7 +38,7 @@ TEST_F(TestNodeBlackKindMap, simple)
   ASSERT_TRUE(map.test(AND));
   map.reset(AND);
   ASSERT_FALSE(map.test(AND));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_THROW(map.set(LAST_KIND), AssertArgumentException);
 #endif
 }

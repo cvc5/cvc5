@@ -608,7 +608,7 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
     z = nc > 1 ? zb.constructNode() : zb[0];
   }
   m = utils::getSize(x);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   uint32_t n = utils::getSize(c);
 #endif
   my = y.isNull() ? 0 : utils::getSize(y);

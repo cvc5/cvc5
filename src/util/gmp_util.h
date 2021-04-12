@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__GMP_UTIL_H
-#define CVC4__GMP_UTIL_H
+#ifndef CVC5__GMP_UTIL_H
+#define CVC5__GMP_UTIL_H
 
 #include <gmpxx.h>
 
@@ -38,4 +38,4 @@ inline size_t gmpz_hash(const mpz_t toHash) {
 
 }  // namespace cvc5
 
-#endif /* CVC4__GMP_UTIL_H */
+#endif /* CVC5__GMP_UTIL_H */

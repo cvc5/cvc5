@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__SAT_SOLVER_FACTORY_H
-#define CVC4__PROP__SAT_SOLVER_FACTORY_H
+#ifndef CVC5__PROP__SAT_SOLVER_FACTORY_H
+#define CVC5__PROP__SAT_SOLVER_FACTORY_H
 
 #include <string>
 #include <vector>
@@ -51,4 +51,4 @@ class SatSolverFactory
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC4__PROP__SAT_SOLVER_FACTORY_H
+#endif  // CVC5__PROP__SAT_SOLVER_FACTORY_H

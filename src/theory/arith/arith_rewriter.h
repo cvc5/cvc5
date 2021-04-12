@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_REWRITER_H
-#define CVC4__THEORY__ARITH__ARITH_REWRITER_H
+#ifndef CVC5__THEORY__ARITH__ARITH_REWRITER_H
+#define CVC5__THEORY__ARITH__ARITH_REWRITER_H
 
 #include "theory/arith/rewrites.h"
 #include "theory/theory_rewriter.h"
@@ -76,4 +76,4 @@ class ArithRewriter : public TheoryRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_REWRITER_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_REWRITER_H */

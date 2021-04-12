@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__LISTENER_H
-#define CVC4__LISTENER_H
+#ifndef CVC5__LISTENER_H
+#define CVC5__LISTENER_H
 
 namespace cvc5 {
 
@@ -39,4 +39,4 @@ class Listener
 
 }  // namespace cvc5
 
-#endif /* CVC4__LISTENER_H */
+#endif /* CVC5__LISTENER_H */

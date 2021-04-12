@@ -49,14 +49,14 @@ int main(int argc, char* argv[]) {
   try {
     return runCvc4(argc, argv, opts);
   } catch(OptionException& e) {
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
     cerr << "(error \"" << e << "\")" << endl
          << endl
          << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
     if (language::isOutputLang_smt2(opts.getOutputLanguage()))

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
-#define CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
+#define CVC5__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
 
 #include <unordered_map>
 
@@ -253,4 +253,4 @@ class ExtendedRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H */

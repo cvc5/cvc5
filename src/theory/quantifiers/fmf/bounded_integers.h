@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BOUNDED_INTEGERS_H
-#define CVC4__BOUNDED_INTEGERS_H
+#ifndef CVC5__BOUNDED_INTEGERS_H
+#define CVC5__BOUNDED_INTEGERS_H
 
 #include "theory/quantifiers/quant_module.h"
 

@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__LOGIC_EXCEPTION_H
-#define CVC4__SMT__LOGIC_EXCEPTION_H
+#ifndef CVC5__SMT__LOGIC_EXCEPTION_H
+#define CVC5__SMT__LOGIC_EXCEPTION_H
 
 #include "base/exception.h"
 
@@ -43,4 +43,4 @@ class LogicException : public cvc5::Exception
 
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__LOGIC_EXCEPTION_H */
+#endif /* CVC5__SMT__LOGIC_EXCEPTION_H */

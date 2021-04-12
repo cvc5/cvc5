@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRINGS_REWRITER_H
-#define CVC4__THEORY__STRINGS__STRINGS_REWRITER_H
+#ifndef CVC5__THEORY__STRINGS__STRINGS_REWRITER_H
+#define CVC5__THEORY__STRINGS__STRINGS_REWRITER_H
 
 #include "expr/node.h"
 #include "theory/strings/sequences_rewriter.h"
@@ -105,4 +105,4 @@ class StringsRewriter : public SequencesRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__STRINGS_REWRITER_H */
+#endif /* CVC5__THEORY__STRINGS__STRINGS_REWRITER_H */

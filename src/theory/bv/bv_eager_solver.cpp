@@ -47,7 +47,7 @@ void EagerBitblastSolver::turnOffAig() {
 void EagerBitblastSolver::initialize() {
   Assert(!isInitialized());
   if (d_useAig) {
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
     d_aigBitblaster.reset(new AigBitblaster());
 #else
     Unreachable();
@@ -76,7 +76,7 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   d_assertionSet.insert(formula);
   // ensures all atoms are bit-blasted and converted to AIG
   if (d_useAig) {
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
     d_aigBitblaster->bbFormula(formula);
 #else
     Unreachable();
@@ -95,7 +95,7 @@ bool EagerBitblastSolver::checkSat() {
   }
 
   if (d_useAig) {
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
     const std::vector<Node> assertions = {d_assertionSet.key_begin(),
                                           d_assertionSet.key_end()};
     Assert(!assertions.empty());

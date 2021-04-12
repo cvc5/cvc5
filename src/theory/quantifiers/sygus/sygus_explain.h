@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
 
 #include <vector>
 
@@ -244,4 +244,4 @@ class SygusExplain
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */

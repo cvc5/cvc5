@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__STATISTICS_H
-#define CVC4__STATISTICS_H
+#ifndef CVC5__STATISTICS_H
+#define CVC5__STATISTICS_H
 
 #include <iterator>
 #include <ostream>
@@ -130,4 +130,4 @@ public:
 
 }  // namespace cvc5
 
-#endif /* CVC4__STATISTICS_H */
+#endif /* CVC5__STATISTICS_H */

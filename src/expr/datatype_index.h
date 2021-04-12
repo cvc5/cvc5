@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__DATATYPE_INDEX_H
-#define CVC4__DATATYPE_INDEX_H
+#ifndef CVC5__DATATYPE_INDEX_H
+#define CVC5__DATATYPE_INDEX_H
 
 #include <iosfwd>
 
@@ -67,4 +67,4 @@ struct DatatypeIndexConstantHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__DATATYPE_H */
+#endif /* CVC5__DATATYPE_H */

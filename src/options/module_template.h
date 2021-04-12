@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__${id}$_H
-#define CVC4__OPTIONS__${id}$_H
+#ifndef CVC5__OPTIONS__${id}$_H
+#define CVC5__OPTIONS__${id}$_H
 
 #include "options/options.h"
 
@@ -45,5 +45,5 @@ ${inls}$
 }  // namespace options
 }  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__${id}$_H */
+#endif /* CVC5__OPTIONS__${id}$_H */
 //clang-format on

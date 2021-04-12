@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CONTEXT_H
-#define CVC4__CONTEXT__CONTEXT_H
+#ifndef CVC5__CONTEXT__CONTEXT_H
+#define CVC5__CONTEXT__CONTEXT_H
 
 #include <cstdlib>
 #include <iostream>
@@ -741,4 +741,4 @@ inline void Scope::addToChain(ContextObj* pContextObj)
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CONTEXT_H */
+#endif /* CVC5__CONTEXT__CONTEXT_H */

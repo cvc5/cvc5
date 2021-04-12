@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_H
-#define CVC4__THEORY__BV__THEORY_BV_H
+#ifndef CVC5__THEORY__BV__THEORY_BV_H
+#define CVC5__THEORY__BV__THEORY_BV_H
 
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
@@ -130,4 +130,4 @@ class TheoryBV : public Theory
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_H */
+#endif /* CVC5__THEORY__BV__THEORY_BV_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__NODE_COMMAND_H
-#define CVC4__SMT__NODE_COMMAND_H
+#ifndef CVC5__SMT__NODE_COMMAND_H
+#define CVC5__SMT__NODE_COMMAND_H
 
 #include <string>
 
@@ -143,4 +143,4 @@ class DefineFunctionNodeCommand : public NodeCommand
 
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__NODE_COMMAND_H */
+#endif /* CVC5__SMT__NODE_COMMAND_H */

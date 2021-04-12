@@ -14,8 +14,9 @@
  * that are not yielding  useful instantiations. of quantifier instantiation.
  * This is used in the term_tuple_enumerator.
  */
-#ifndef CVC4__THEORY__QUANTIFIERS__INDEX_TRIE_H
-#define CVC4__THEORY__QUANTIFIERS__INDEX_TRIE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INDEX_TRIE_H
+#define CVC5__THEORY__QUANTIFIERS__INDEX_TRIE_H
+
 #include <algorithm>
 #include <utility>
 #include <vector>

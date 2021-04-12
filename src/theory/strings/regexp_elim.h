@@ -14,8 +14,8 @@
  */
 
 #include "cvc4_private.h"
-#ifndef CVC4__THEORY__STRINGS__REGEXP_ELIM_H
-#define CVC4__THEORY__STRINGS__REGEXP_ELIM_H
+#ifndef CVC5__THEORY__STRINGS__REGEXP_ELIM_H
+#define CVC5__THEORY__STRINGS__REGEXP_ELIM_H
 
 #include "expr/node.h"
 #include "theory/eager_proof_generator.h"
@@ -87,4 +87,4 @@ class RegExpElimination
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__REGEXP_ELIM_H */
+#endif /* CVC5__THEORY__STRINGS__REGEXP_ELIM_H */

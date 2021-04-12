@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TYPE_MATCHER_H
-#define CVC4__EXPR__TYPE_MATCHER_H
+#ifndef CVC5__EXPR__TYPE_MATCHER_H
+#define CVC5__EXPR__TYPE_MATCHER_H
 
 #include <vector>
 
@@ -71,4 +71,4 @@ class TypeMatcher
 
 }  // namespace cvc5
 
-#endif /* CVC4__MATCHER_H */
+#endif /* CVC5__MATCHER_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__PROJECT_OP_H
-#define CVC4__PROJECT_OP_H
+#ifndef CVC5__PROJECT_OP_H
+#define CVC5__PROJECT_OP_H
 
 #include <ostream>
 #include <vector>
@@ -56,4 +56,4 @@ struct TupleProjectOpHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__PROJECT_OP_H */
+#endif /* CVC5__PROJECT_OP_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__PROOF_POST_PROCESSOR_H
-#define CVC4__PROP__PROOF_POST_PROCESSOR_H
+#ifndef CVC5__PROP__PROOF_POST_PROCESSOR_H
+#define CVC5__PROP__PROOF_POST_PROCESSOR_H
 
 #include <map>
 #include <unordered_set>

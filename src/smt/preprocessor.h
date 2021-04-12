@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PREPROCESSOR_H
-#define CVC4__SMT__PREPROCESSOR_H
+#ifndef CVC5__SMT__PREPROCESSOR_H
+#define CVC5__SMT__PREPROCESSOR_H
 
 #include <memory>
 

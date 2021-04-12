@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EMPTY_BAG_H
-#define CVC4__EMPTY_BAG_H
+#ifndef CVC5__EMPTY_BAG_H
+#define CVC5__EMPTY_BAG_H
 
 #include <iosfwd>
 #include <memory>
@@ -61,4 +61,4 @@ struct EmptyBagHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__EMPTY_BAG_H */
+#endif /* CVC5__EMPTY_BAG_H */

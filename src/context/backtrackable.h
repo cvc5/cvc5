@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTIL__BACKTRACKABLE_H
-#define CVC4__UTIL__BACKTRACKABLE_H
+#ifndef CVC5__UTIL__BACKTRACKABLE_H
+#define CVC5__UTIL__BACKTRACKABLE_H
 
 #include <cstdlib>
 #include <vector>
@@ -218,4 +218,4 @@ template <class T> void Backtracker<T>::checkConsistency() {
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTIL__BACKTRACKABLE_H */
+#endif /* CVC5__UTIL__BACKTRACKABLE_H */

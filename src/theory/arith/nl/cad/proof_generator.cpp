@@ -15,7 +15,7 @@
 
 #include "theory/arith/nl/cad/proof_generator.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "theory/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"

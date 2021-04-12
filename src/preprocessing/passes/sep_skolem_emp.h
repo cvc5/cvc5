@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H
-#define CVC4__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H
+#ifndef CVC5__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H
+#define CVC5__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H
 
 #include "preprocessing/preprocessing_pass.h"
 
@@ -38,4 +38,4 @@ class SepSkolemEmp : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H */
+#endif /* CVC5__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H */

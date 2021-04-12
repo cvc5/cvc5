@@ -13,8 +13,8 @@
  * Generate taylor approximations transcendental lemmas.
  */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 
 #include "expr/node.h"
 
@@ -121,4 +121,4 @@ class TaylorGenerator
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

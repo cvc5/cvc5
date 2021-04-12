@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
-#define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#define CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/proof_checker.h"
@@ -101,4 +101,4 @@ class TheoryQuantifiers : public Theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */

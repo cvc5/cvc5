@@ -14,8 +14,8 @@
  */
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
 
 #include <map>
 #include <vector>

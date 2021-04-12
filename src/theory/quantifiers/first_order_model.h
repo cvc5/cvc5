@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__FIRST_ORDER_MODEL_H
-#define CVC4__FIRST_ORDER_MODEL_H
+#ifndef CVC5__FIRST_ORDER_MODEL_H
+#define CVC5__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
 #include "theory/quantifiers/equality_query.h"
@@ -199,4 +199,4 @@ class FirstOrderModel : public TheoryModel
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

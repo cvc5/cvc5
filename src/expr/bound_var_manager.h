@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__BOUND_VAR_MANAGER_H
-#define CVC4__EXPR__BOUND_VAR_MANAGER_H
+#ifndef CVC5__EXPR__BOUND_VAR_MANAGER_H
+#define CVC5__EXPR__BOUND_VAR_MANAGER_H
 
 #include <string>
 #include <unordered_set>
@@ -101,4 +101,4 @@ class BoundVarManager
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__BOUND_VAR_MANAGER_H */
+#endif /* CVC5__EXPR__BOUND_VAR_MANAGER_H */

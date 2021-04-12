@@ -17,8 +17,8 @@
  */
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
-#define CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
+#ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
+#define CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
 
 #include <functional>
 #include <string>
@@ -97,4 +97,4 @@ class PreprocessingPassRegistry {
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */
+#endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H */

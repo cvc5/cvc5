@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__MAKE_BAG_OP_H
-#define CVC4__MAKE_BAG_OP_H
+#ifndef CVC5__MAKE_BAG_OP_H
+#define CVC5__MAKE_BAG_OP_H
 
 #include <memory>
 
@@ -60,4 +60,4 @@ struct MakeBagOpHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__MAKE_BAG_OP_H */
+#endif /* CVC5__MAKE_BAG_OP_H */

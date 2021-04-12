@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SAT__PROOF_H
-#define CVC4__SAT__PROOF_H
+#ifndef CVC5__SAT__PROOF_H
+#define CVC5__SAT__PROOF_H
 
 #include <iosfwd>
 #include <set>
@@ -370,4 +370,4 @@ void toSatClause(const typename Solver::TClause& minisat_cl,
 
 }  // namespace cvc5
 
-#endif /* CVC4__SAT__PROOF_H */
+#endif /* CVC5__SAT__PROOF_H */

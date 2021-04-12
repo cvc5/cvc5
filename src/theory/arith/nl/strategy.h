@@ -13,8 +13,8 @@
  * Strategies for the nonlinear extension.
  */
 
-#ifndef CVC4__THEORY__ARITH__NL__STRATEGY_H
-#define CVC4__THEORY__ARITH__NL__STRATEGY_H
+#ifndef CVC5__THEORY__ARITH__NL__STRATEGY_H
+#define CVC5__THEORY__ARITH__NL__STRATEGY_H
 
 #include <iosfwd>
 #include <vector>
@@ -176,4 +176,4 @@ class Strategy
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__STRATEGY_H */
+#endif /* CVC5__THEORY__ARITH__NL__STRATEGY_H */

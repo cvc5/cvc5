@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
-#define CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
+#ifndef CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
+#define CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
@@ -245,4 +245,4 @@ class TConvProofGenerator : public ProofGenerator
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDHASHSET_H
-#define CVC4__CONTEXT__CDHASHSET_H
+#ifndef CVC5__CONTEXT__CDHASHSET_H
+#define CVC5__CONTEXT__CDHASHSET_H
 
 #include "base/check.h"
 #include "context/cdinsert_hashmap.h"
@@ -157,4 +157,4 @@ public:
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDHASHSET_H */
+#endif /* CVC5__CONTEXT__CDHASHSET_H */

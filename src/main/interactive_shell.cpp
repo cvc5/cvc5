@@ -262,7 +262,7 @@ restart:
     if (!d_usingEditline)
     {
       /* Extract the newline delimiter from the stream too */
-      int c CVC4_UNUSED = d_in.get();
+      int c CVC5_UNUSED = d_in.get();
       Assert(c == '\n');
       Debug("interactive") << "Next char is '" << (char)c << "'" << endl
                            << flush;

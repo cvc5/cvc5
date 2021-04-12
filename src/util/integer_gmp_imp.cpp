@@ -24,8 +24,8 @@
 #include "base/check.h"
 #include "util/rational.h"
 
-#ifndef CVC4_GMP_IMP
-#  error "This source should only ever be built if CVC4_GMP_IMP is on !"
+#ifndef CVC5_GMP_IMP
+#error "This source should only ever be built if CVC5_GMP_IMP is on !"
 #endif
 
 using namespace std;

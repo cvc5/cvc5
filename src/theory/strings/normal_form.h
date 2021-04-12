@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__NORMAL_FORM_H
-#define CVC4__THEORY__STRINGS__NORMAL_FORM_H
+#ifndef CVC5__THEORY__STRINGS__NORMAL_FORM_H
+#define CVC5__THEORY__STRINGS__NORMAL_FORM_H
 
 #include <map>
 #include <vector>
@@ -171,4 +171,4 @@ class NormalForm
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__NORMAL_FORM_H */
+#endif /* CVC5__THEORY__STRINGS__NORMAL_FORM_H */

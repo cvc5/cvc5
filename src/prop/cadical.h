@@ -17,10 +17,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CADICAL_H
-#define CVC4__PROP__CADICAL_H
+#ifndef CVC5__PROP__CADICAL_H
+#define CVC5__PROP__CADICAL_H
 
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
 
 #include "prop/sat_solver.h"
 #include "util/stats_timer.h"
@@ -106,5 +106,5 @@ class CadicalSolver : public SatSolver
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC4_USE_CADICAL
-#endif  // CVC4__PROP__CADICAL_H
+#endif  // CVC5_USE_CADICAL
+#endif  // CVC5__PROP__CADICAL_H

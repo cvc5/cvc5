@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BV_QUICK_CHECK_H
-#define CVC4__BV_QUICK_CHECK_H
+#ifndef CVC5__BV_QUICK_CHECK_H
+#define CVC5__BV_QUICK_CHECK_H
 
 #include <unordered_set>
 #include <vector>
@@ -182,4 +182,4 @@ class QuickXPlain
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__BV_QUICK_CHECK_H */
+#endif /* CVC5__BV_QUICK_CHECK_H */

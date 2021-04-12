@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
 
 #include <unordered_map>
 #include <vector>
@@ -74,4 +74,4 @@ class TermEnumeration
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */

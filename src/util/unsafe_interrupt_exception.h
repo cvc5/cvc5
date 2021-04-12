@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
-#define CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
+#ifndef CVC5__UNSAFE_INTERRUPT_EXCEPTION_H
+#define CVC5__UNSAFE_INTERRUPT_EXCEPTION_H
 
 #include "base/exception.h"
 #include "cvc4_export.h"
@@ -43,4 +43,4 @@ class CVC4_EXPORT UnsafeInterruptException : public cvc5::Exception
 
 }  // namespace cvc5
 
-#endif /* CVC4__UNSAFE_INTERRUPT_EXCEPTION_H */
+#endif /* CVC5__UNSAFE_INTERRUPT_EXCEPTION_H */

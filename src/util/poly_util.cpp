@@ -15,7 +15,7 @@
 
 #include "poly_util.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
@@ -51,10 +51,10 @@ To cast_by_string(const From& f)
 Integer toInteger(const poly::Integer& i)
 {
   const mpz_class& gi = *poly::detail::cast_to_gmp(&i);
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return Integer(gi);
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   if (std::numeric_limits<long>::min() <= gi
       && gi <= std::numeric_limits<long>::max())
   {
@@ -69,10 +69,10 @@ Integer toInteger(const poly::Integer& i)
 Rational toRational(const poly::Integer& i) { return Rational(toInteger(i)); }
 Rational toRational(const poly::Rational& r)
 {
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return Rational(*poly::detail::cast_to_gmp(&r));
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   return Rational(toInteger(numerator(r)), toInteger(denominator(r)));
 #endif
 }
@@ -125,10 +125,10 @@ Rational toRationalBelow(const poly::Value& v)
 
 poly::Integer toInteger(const Integer& i)
 {
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return poly::Integer(i.getValue());
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   if (std::numeric_limits<long>::min() <= i.getValue()
       && i.getValue() <= std::numeric_limits<long>::max())
   {
@@ -148,10 +148,10 @@ std::vector<poly::Integer> toInteger(const std::vector<Integer>& vi)
 }
 poly::Rational toRational(const Rational& r)
 {
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return poly::Rational(r.getValue());
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   return poly::Rational(toInteger(r.getNumerator()),
                         toInteger(r.getDenominator()));
 #endif

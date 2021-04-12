@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EXPR__SYMBOL_MANAGER_H
-#define CVC4__EXPR__SYMBOL_MANAGER_H
+#ifndef CVC5__EXPR__SYMBOL_MANAGER_H
+#define CVC5__EXPR__SYMBOL_MANAGER_H
 
 #include <map>
 #include <memory>
@@ -159,4 +159,4 @@ class CVC4_EXPORT SymbolManager
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__SYMBOL_MANAGER_H */
+#endif /* CVC5__EXPR__SYMBOL_MANAGER_H */

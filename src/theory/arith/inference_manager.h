@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
-#define CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__ARITH__INFERENCE_MANAGER_H
+#define CVC5__THEORY__ARITH__INFERENCE_MANAGER_H
 
 #include <vector>
 

@@ -649,7 +649,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
-  else if (id == PfRule::MACRO_RESOLUTION)
+  else if (id == PfRule::MACRO_RESOLUTION
+           || id == PfRule::MACRO_RESOLUTION_TRUST)
   {
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};

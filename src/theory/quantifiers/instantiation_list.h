@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
-#define CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
+#define CVC5__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
 
 #include <iosfwd>
 #include <vector>
@@ -56,4 +56,4 @@ std::ostream& operator<<(std::ostream& out, const SkolemList& skl);
 
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H */

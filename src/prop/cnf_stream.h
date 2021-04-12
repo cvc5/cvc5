@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CNF_STREAM_H
-#define CVC4__PROP__CNF_STREAM_H
+#ifndef CVC5__PROP__CNF_STREAM_H
+#define CVC5__PROP__CNF_STREAM_H
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
@@ -321,4 +321,4 @@ class CnfStream {
 }  // namespace prop
 }  // namespace cvc5
 
-#endif /* CVC4__PROP__CNF_STREAM_H */
+#endif /* CVC5__PROP__CNF_STREAM_H */

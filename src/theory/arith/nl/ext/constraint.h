@@ -13,8 +13,8 @@
  * Utilities for non-linear constraints.
  */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__CONSTRAINT_H
-#define CVC4__THEORY__ARITH__NL__EXT__CONSTRAINT_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__CONSTRAINT_H
+#define CVC5__THEORY__ARITH__NL__EXT__CONSTRAINT_H
 
 #include <map>
 #include <vector>
@@ -87,4 +87,4 @@ class ConstraintDb
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__NL_SOLVER_H */

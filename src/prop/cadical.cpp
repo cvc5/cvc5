@@ -17,7 +17,7 @@
 
 #include "prop/cadical.h"
 
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
 
 #include "base/check.h"
 
@@ -203,4 +203,4 @@ CadicalSolver::Statistics::~Statistics() {
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC4_USE_CADICAL
+#endif  // CVC5_USE_CADICAL

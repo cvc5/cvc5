@@ -23,8 +23,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
-#define CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
+#ifndef CVC5__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
+#define CVC5__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
 
 #include <antlr3.h>
 #include <istream>
@@ -48,4 +48,4 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H */
+#endif /* CVC5__PARSER__ANTLR_LINE_BUFFERED_INPUT_H */

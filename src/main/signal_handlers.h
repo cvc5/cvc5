@@ -13,8 +13,8 @@
  * Implementation of signal handlers.
  */
 
-#ifndef CVC4__MAIN__SIGNAL_HANDLERS_H
-#define CVC4__MAIN__SIGNAL_HANDLERS_H
+#ifndef CVC5__MAIN__SIGNAL_HANDLERS_H
+#define CVC5__MAIN__SIGNAL_HANDLERS_H
 
 namespace cvc5 {
 namespace main {
@@ -42,4 +42,4 @@ void cleanup();
 }  // namespace main
 }  // namespace cvc5
 
-#endif /* CVC4__MAIN__SIGNAL_HANDLERS_H */
+#endif /* CVC5__MAIN__SIGNAL_HANDLERS_H */

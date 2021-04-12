@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EXPR__SEQUENCE_H
-#define CVC4__EXPR__SEQUENCE_H
+#ifndef CVC5__EXPR__SEQUENCE_H
+#define CVC5__EXPR__SEQUENCE_H
 
 #include <memory>
 #include <vector>
@@ -176,4 +176,4 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s);
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__SEQUENCE_H */
+#endif /* CVC5__EXPR__SEQUENCE_H */

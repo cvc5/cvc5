@@ -13,8 +13,8 @@
  * Optimizer for BitVector type.
  */
 
-#ifndef CVC4__OMT__BITVECTOR_OPTIMIZER_H
-#define CVC4__OMT__BITVECTOR_OPTIMIZER_H
+#ifndef CVC5__OMT__BITVECTOR_OPTIMIZER_H
+#define CVC5__OMT__BITVECTOR_OPTIMIZER_H
 
 #include "omt/omt_optimizer.h"
 
@@ -48,4 +48,4 @@ class OMTOptimizerBitVector : public OMTOptimizer
 
 }  // namespace cvc5::omt
 
-#endif /* CVC4__OMT__BITVECTOR_OPTIMIZER_H */
+#endif /* CVC5__OMT__BITVECTOR_OPTIMIZER_H */

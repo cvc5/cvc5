@@ -13,8 +13,8 @@
  * Implements a way to track the origins of ICP-style contractions.
  */
 
-#ifndef CVC4__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
-#define CVC4__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
+#ifndef CVC5__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
+#define CVC5__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
 
 #include <memory>
 #include <vector>

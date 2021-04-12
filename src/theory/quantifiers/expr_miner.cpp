@@ -76,7 +76,14 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
                                   Node query)
 {
   Assert (!query.isNull());
-  initializeSubsolver(checker);
+  if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+  {
+    initializeSubsolver(checker, true, options::sygusExprMinerCheckTimeout());
+  }
+  else
+  {
+    initializeSubsolver(checker);
+  }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");
   checker->setOption("input-language", "smt2");

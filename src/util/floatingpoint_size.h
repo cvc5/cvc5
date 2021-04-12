@@ -14,8 +14,8 @@
  */
 #include "cvc4_public.h"
 
-#ifndef CVC4__FLOATINGPOINT_SIZE_H
-#define CVC4__FLOATINGPOINT_SIZE_H
+#ifndef CVC5__FLOATINGPOINT_SIZE_H
+#define CVC5__FLOATINGPOINT_SIZE_H
 
 namespace cvc5 {
 

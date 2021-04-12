@@ -13,8 +13,8 @@
  * Optimizer for Integer type.
  */
 
-#ifndef CVC4__OMT__INTEGER_OPTIMIZER_H
-#define CVC4__OMT__INTEGER_OPTIMIZER_H
+#ifndef CVC5__OMT__INTEGER_OPTIMIZER_H
+#define CVC5__OMT__INTEGER_OPTIMIZER_H
 
 #include "omt/omt_optimizer.h"
 
@@ -45,4 +45,4 @@ class OMTOptimizerInteger : public OMTOptimizer
 
 }  // namespace cvc5::omt
 
-#endif /* CVC4__OMT__INTEGER_OPTIMIZER_H */
+#endif /* CVC5__OMT__INTEGER_OPTIMIZER_H */

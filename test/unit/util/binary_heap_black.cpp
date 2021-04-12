@@ -59,7 +59,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   // First test a heap of 1 element
   ASSERT_EQ(heap.size(), 0u);
   ASSERT_TRUE(heap.empty());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif
@@ -76,7 +76,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_NO_THROW(heap.erase(h5));
   ASSERT_TRUE(heap.empty());
   ASSERT_EQ(heap.size(), 0u);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif
@@ -134,7 +134,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_TRUE(heap.begin() == heap.end());
   ASSERT_TRUE(heap.empty());
   ASSERT_EQ(heap.size(), 0u);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif

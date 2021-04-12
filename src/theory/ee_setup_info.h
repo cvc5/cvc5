@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__EE_SETUP_INFO__H
-#define CVC4__THEORY__EE_SETUP_INFO__H
+#ifndef CVC5__THEORY__EE_SETUP_INFO__H
+#define CVC5__THEORY__EE_SETUP_INFO__H
 
 #include <string>
 
@@ -58,4 +58,4 @@ struct EeSetupInfo
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__EE_SETUP_INFO__H */
+#endif /* CVC5__THEORY__EE_SETUP_INFO__H */

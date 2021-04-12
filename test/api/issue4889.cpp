@@ -19,7 +19,7 @@ using namespace cvc5::api;
 
 int main()
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Solver slv;
   Sort sort_int = slv.getIntegerSort();
   Sort sort_array = slv.mkArraySort(sort_int, sort_int);

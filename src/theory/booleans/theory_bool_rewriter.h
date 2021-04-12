@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H
-#define CVC4__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H
+#ifndef CVC5__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H
+#define CVC5__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H
 
 #include "theory/theory_rewriter.h"
 
@@ -39,4 +39,4 @@ class TheoryBoolRewriter : public TheoryRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H */
+#endif /* CVC5__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H */

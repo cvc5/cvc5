@@ -13,8 +13,8 @@
  * Extract bounds on variables from theory atoms.
  */
 
-#ifndef CVC4__THEORY__ARITH__BOUND_INFERENCE_H
-#define CVC4__THEORY__ARITH__BOUND_INFERENCE_H
+#ifndef CVC5__THEORY__ARITH__BOUND_INFERENCE_H
+#define CVC5__THEORY__ARITH__BOUND_INFERENCE_H
 
 #include <map>
 #include <utility>

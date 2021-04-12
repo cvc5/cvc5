@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTILITY_H
-#define CVC4__UTILITY_H
+#ifndef CVC5__UTILITY_H
+#define CVC5__UTILITY_H
 
 #include <algorithm>
 #include <fstream>
@@ -78,4 +78,4 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTILITY_H */
+#endif /* CVC5__UTILITY_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_H
-#define CVC4__EXPR__PROOF_NODE_H
+#ifndef CVC5__EXPR__PROOF_NODE_H
+#define CVC5__EXPR__PROOF_NODE_H
 
 #include <vector>
 
@@ -142,4 +142,4 @@ std::ostream& operator<<(std::ostream& out, const ProofNode& pn);
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_NODE_H */
+#endif /* CVC5__EXPR__PROOF_NODE_H */

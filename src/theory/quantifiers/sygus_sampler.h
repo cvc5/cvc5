@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
 #include "theory/evaluator.h"
@@ -323,4 +323,4 @@ class SygusSampler : public LazyTrieEvaluator
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__DECISION_ENGINE_H
-#define CVC4__DECISION__DECISION_ENGINE_H
+#ifndef CVC5__DECISION__DECISION_ENGINE_H
+#define CVC5__DECISION__DECISION_ENGINE_H
 
 #include "base/output.h"
 #include "context/cdo.h"
@@ -161,4 +161,4 @@ class DecisionEngine {
 
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__DECISION_ENGINE_H */
+#endif /* CVC5__DECISION__DECISION_ENGINE_H */

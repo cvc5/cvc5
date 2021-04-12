@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__CARDINALITY_EXTENSION_H
-#define CVC4__THEORY__SETS__CARDINALITY_EXTENSION_H
+#ifndef CVC5__THEORY__SETS__CARDINALITY_EXTENSION_H
+#define CVC5__THEORY__SETS__CARDINALITY_EXTENSION_H
 
 #include "context/cdhashset.h"
 #include "context/context.h"

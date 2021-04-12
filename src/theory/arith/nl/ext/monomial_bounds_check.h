@@ -13,8 +13,8 @@
  * Check for monomial bound inference lemmas.
  */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/constraint.h"

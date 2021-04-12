@@ -78,17 +78,17 @@ python_extension_module(pycvc4)
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
 configure_file(setup.py.in setup.py)
-set(PYCVC4_MODULE "${CMAKE_CURRENT_BINARY_DIR}/pycvc4")
-file(MAKE_DIRECTORY "${PYCVC4_MODULE}")
-file(WRITE ${PYCVC4_MODULE}/__init__.py
+set(PYCVC5_MODULE "${CMAKE_CURRENT_BINARY_DIR}/pycvc4")
+file(MAKE_DIRECTORY "${PYCVC5_MODULE}")
+file(WRITE ${PYCVC5_MODULE}/__init__.py
 "import sys
 from .pycvc4 import *
 # fake a submodule for dotted imports, e.g. from pycvc4.kinds import *
 sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds")
 
-set(PYCVC4_LOC "${PYCVC4_MODULE}/$<TARGET_FILE_NAME:pycvc4>")
+set(PYCVC5_LOC "${PYCVC5_MODULE}/$<TARGET_FILE_NAME:pycvc4>")
 add_custom_command(TARGET pycvc4 POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc4> ${PYCVC4_LOC}
+    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc4> ${PYCVC5_LOC}
 )
 
 # figure out if we're in a virtualenv

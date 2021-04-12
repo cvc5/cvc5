@@ -132,7 +132,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // No conflict, go through the literals and solve them
   context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
-  CVC4_UNUSED SubstitutionMap& top_level_substs = ttls.get();
+  CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
@@ -262,7 +262,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // NOTE: When debugging this code, consider moving this check inside of the
   // loop over propagator->getLearnedLiterals(). This check has been moved
   // outside because it is costly for certain inputs (see bug 508).
@@ -289,7 +289,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
     Assert(cps.apply((*pos).second) == (*pos).second);
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   // Resize the learnt
   Trace("non-clausal-simplify")

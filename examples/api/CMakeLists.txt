@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-set(CVC4_EXAMPLES_API
+set(CVC5_EXAMPLES_API
   bitvectors
   bitvectors_and_arrays
   combination
@@ -29,6 +29,6 @@ set(CVC4_EXAMPLES_API
   sygus-inv
 )
 
-foreach(example ${CVC4_EXAMPLES_API})
+foreach(example ${CVC5_EXAMPLES_API})
   cvc4_add_example(${example} "" "api")
 endforeach()

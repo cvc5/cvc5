@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__NODE_TRIE_H
-#define CVC4__EXPR__NODE_TRIE_H
+#ifndef CVC5__EXPR__NODE_TRIE_H
+#define CVC5__EXPR__NODE_TRIE_H
 
 #include <map>
 #include "expr/node.h"
@@ -110,4 +110,4 @@ typedef NodeTemplateTrie<false> TNodeTrie;
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__NODE_TRIE_H */
+#endif /* CVC5__EXPR__NODE_TRIE_H */

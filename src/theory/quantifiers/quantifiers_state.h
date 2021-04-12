@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
 
 #include "theory/quantifiers/quantifiers_statistics.h"
 #include "theory/theory.h"
@@ -89,4 +89,4 @@ class QuantifiersState : public TheoryState
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H */

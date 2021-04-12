@@ -28,7 +28,7 @@ class TestUtilWhite : public TestInternal
 
 TEST_F(TestUtilWhite, Assert)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(Assert(false), "false");
 #else
   ASSERT_NO_THROW(Assert(false));
@@ -40,7 +40,7 @@ TEST_F(TestUtilWhite, Assert)
 
 TEST_F(TestUtilWhite, AssertArgument)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_THROW(AssertArgument(false, "x"), AssertArgumentException);
 #else
   ASSERT_NO_THROW(AssertArgument(false, "x"));

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
-#define CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
+#define CVC5__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
 #include "context/cdlist.h"
 #include "expr/subs.h"

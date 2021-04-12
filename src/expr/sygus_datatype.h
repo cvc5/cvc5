@@ -14,8 +14,8 @@
  */
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__SYGUS_DATATYPE_H
-#define CVC4__EXPR__SYGUS_DATATYPE_H
+#ifndef CVC5__EXPR__SYGUS_DATATYPE_H
+#define CVC5__EXPR__SYGUS_DATATYPE_H
 
 #include <string>
 #include <vector>

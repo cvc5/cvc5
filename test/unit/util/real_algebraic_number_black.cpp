@@ -19,8 +19,8 @@
 namespace cvc5 {
 namespace test {
 
-#ifndef CVC4_POLY_IMP
-#error "This unit test should only be enabled for CVC4_POLY_IMP"
+#ifndef CVC5_POLY_IMP
+#error "This unit test should only be enabled for CVC5_POLY_IMP"
 #endif
 
 class TestUtilBlackRealAlgebraicNumber : public TestInternal

@@ -86,10 +86,10 @@ private:
 //
 // typedef FocusSet::handle_type FocusSetHandle;
 
-// typedef CVC4_PB_DS_NAMESPACE::priority_queue<
+// typedef CVC5_PB_DS_NAMESPACE::priority_queue<
 //   ArithVar,
 //   ComparatorPivotRule,
-//   CVC4_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
+//   CVC5_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
 
 // typedef FocusSet::point_iterator FocusSetHandle;
 

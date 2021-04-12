@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
-#define CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#define CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
 
 #include <unordered_set>
 
@@ -402,4 +402,4 @@ class CegisCoreConnective : public Cegis
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

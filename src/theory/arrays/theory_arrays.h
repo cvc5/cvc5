@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include <tuple>
 #include <unordered_map>
@@ -493,4 +493,4 @@ class TheoryArrays : public Theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SYGUS_SOLVER_H
-#define CVC4__SMT__SYGUS_SOLVER_H
+#ifndef CVC5__SMT__SYGUS_SOLVER_H
+#define CVC5__SMT__SYGUS_SOLVER_H
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -192,4 +192,4 @@ class SygusSolver
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__SYGUS_SOLVER_H */
+#endif /* CVC5__SMT__SYGUS_SOLVER_H */

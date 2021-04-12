@@ -128,7 +128,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       // negate

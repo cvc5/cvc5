@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INST_STRATEGY_E_MATCHING_USER_H
-#define CVC4__INST_STRATEGY_E_MATCHING_USER_H
+#ifndef CVC5__INST_STRATEGY_E_MATCHING_USER_H
+#define CVC5__INST_STRATEGY_E_MATCHING_USER_H
 
 #include <map>
 #include "expr/node.h"

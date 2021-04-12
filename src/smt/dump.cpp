@@ -25,7 +25,7 @@
 
 namespace cvc5 {
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
 CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
 {
@@ -53,7 +53,7 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
   return *this;
 }
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 DumpC DumpChannel;
 

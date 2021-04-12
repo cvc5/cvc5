@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__KIND_MAP_H
-#define CVC4__KIND_MAP_H
+#ifndef CVC5__KIND_MAP_H
+#define CVC5__KIND_MAP_H
 
 #include <bitset>
 
@@ -54,4 +54,4 @@ class KindMap
 
 }  // namespace cvc5
 
-#endif /* CVC4__KIND_MAP_H */
+#endif /* CVC5__KIND_MAP_H */

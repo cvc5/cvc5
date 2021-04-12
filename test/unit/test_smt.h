@@ -13,8 +13,8 @@
  * Common header for unit tests that need an SmtEngine.
  */
 
-#ifndef CVC4__TEST__UNIT__TEST_SMT_H
-#define CVC4__TEST__UNIT__TEST_SMT_H
+#ifndef CVC5__TEST__UNIT__TEST_SMT_H
+#define CVC5__TEST__UNIT__TEST_SMT_H
 
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
