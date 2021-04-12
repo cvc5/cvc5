@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PRINTER__LET_BINDING_H
-#define CVC4__PRINTER__LET_BINDING_H
+#ifndef CVC5__PRINTER__LET_BINDING_H
+#define CVC5__PRINTER__LET_BINDING_H
 
 #include <vector>
 

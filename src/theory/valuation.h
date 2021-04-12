@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__VALUATION_H
-#define CVC4__THEORY__VALUATION_H
+#ifndef CVC5__THEORY__VALUATION_H
+#define CVC5__THEORY__VALUATION_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -150,7 +150,7 @@ public:
    * differ from the input due to theory-rewriting and preprocessing,
    * as well as CNF conversion
    */
-  Node ensureLiteral(TNode n) CVC4_WARN_UNUSED_RESULT;
+  Node ensureLiteral(TNode n) CVC5_WARN_UNUSED_RESULT;
 
   /**
    * This returns the theory-preprocessed form of term n. The theory
@@ -224,4 +224,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__VALUATION_H */
+#endif /* CVC5__THEORY__VALUATION_H */

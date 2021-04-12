@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/quant_bound_inference.h"
@@ -131,4 +131,4 @@ class QuantifiersRegistry : public QuantifiersUtil
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H */

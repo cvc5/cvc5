@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__UNION_FIND_H
-#define CVC4__THEORY__ARRAYS__UNION_FIND_H
+#ifndef CVC5__THEORY__ARRAYS__UNION_FIND_H
+#define CVC5__THEORY__ARRAYS__UNION_FIND_H
 
 #include <utility>
 #include <vector>
@@ -139,4 +139,4 @@ inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /*CVC4__THEORY__ARRAYS__UNION_FIND_H */
+#endif /*CVC5__THEORY__ARRAYS__UNION_FIND_H */

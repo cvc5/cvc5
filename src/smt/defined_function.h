@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__DEFINED_FUNCTION_H
-#define CVC4__SMT__DEFINED_FUNCTION_H
+#ifndef CVC5__SMT__DEFINED_FUNCTION_H
+#define CVC5__SMT__DEFINED_FUNCTION_H
 
 #include <vector>
 
@@ -57,4 +57,4 @@ class DefinedFunction
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__DEFINED_FUNCTION_H */
+#endif /* CVC5__SMT__DEFINED_FUNCTION_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__TUPLE_H
-#define CVC4__TUPLE_H
+#ifndef CVC5__TUPLE_H
+#define CVC5__TUPLE_H
 
 #include <iostream>
 #include <vector>
@@ -51,4 +51,4 @@ inline std::ostream& operator<<(std::ostream& out, const TupleUpdate& t) {
 
 }  // namespace cvc5
 
-#endif /* CVC4__TUPLE_H */
+#endif /* CVC5__TUPLE_H */

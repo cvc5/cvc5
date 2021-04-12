@@ -13,14 +13,14 @@
  **/
 #include "cvc4_public.h"
 
-#ifndef CVC4__ROUNDINGMODE_H
-#define CVC4__ROUNDINGMODE_H
+#ifndef CVC5__ROUNDINGMODE_H
+#define CVC5__ROUNDINGMODE_H
 
 #include <fenv.h>
 
 namespace cvc5 {
 
-#define CVC4_NUM_ROUNDING_MODES 5
+#define CVC5_NUM_ROUNDING_MODES 5
 
 /**
  * A concrete instance of the rounding mode sort

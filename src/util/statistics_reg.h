@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATISTICS_REG_H
-#define CVC4__UTIL__STATISTICS_REG_H
+#ifndef CVC5__UTIL__STATISTICS_REG_H
+#define CVC5__UTIL__STATISTICS_REG_H
 
 #include <iostream>
 #include <map>

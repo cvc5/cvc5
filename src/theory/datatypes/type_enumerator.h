@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 
 #include "expr/dtype.h"
 #include "expr/kind.h"
@@ -167,4 +167,4 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H */

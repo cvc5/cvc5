@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__KIND_H
-#define CVC4__KIND_H
+#ifndef CVC5__KIND_H
+#define CVC5__KIND_H
 
 #include <iosfwd>
 
@@ -104,4 +104,4 @@ namespace theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__KIND_H */
+#endif /* CVC5__KIND_H */

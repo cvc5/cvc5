@@ -22,7 +22,7 @@
 #include "util/floatingpoint.h"
 #include "util/floatingpoint_literal_symfpu.h"
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
 #include "symfpu/core/compare.h"
@@ -39,11 +39,11 @@
 #include "symfpu/utils/properties.h"
 #endif
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 namespace symfpu {
 using namespace ::cvc5::theory::fp::symfpuSymbolic;
 
-#define CVC4_SYM_ITE_DFN(T)                                                \
+#define CVC5_SYM_ITE_DFN(T)                                                \
   template <>                                                              \
   struct ite<symbolicProposition, T>                                       \
   {                                                                        \
@@ -114,12 +114,12 @@ using namespace ::cvc5::theory::fp::symfpuSymbolic;
   }
 
 // Can (unsurprisingly) only ITE things which contain Nodes
-CVC4_SYM_ITE_DFN(traits::rm);
-CVC4_SYM_ITE_DFN(traits::prop);
-CVC4_SYM_ITE_DFN(traits::sbv);
-CVC4_SYM_ITE_DFN(traits::ubv);
+CVC5_SYM_ITE_DFN(traits::rm);
+CVC5_SYM_ITE_DFN(traits::prop);
+CVC5_SYM_ITE_DFN(traits::sbv);
+CVC5_SYM_ITE_DFN(traits::ubv);
 
-#undef CVC4_SYM_ITE_DFN
+#undef CVC5_SYM_ITE_DFN
 
 template <>
 traits::ubv orderEncode<traits, traits::ubv>(const traits::ubv &b)
@@ -144,7 +144,7 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
 };
 #endif
 
-#ifndef CVC4_USE_SYMFPU
+#ifndef CVC5_USE_SYMFPU
 #define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
 #endif
 
@@ -241,7 +241,7 @@ symbolicProposition symbolicProposition::operator^(
 
 bool symbolicRoundingMode::checkNodeType(const TNode n)
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return n.getType(false).isBitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES);
 #else
   return false;
@@ -253,7 +253,7 @@ symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
   Assert(checkNodeType(*this));
 }
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
@@ -754,7 +754,7 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 
 FpConverter::FpConverter(context::UserContext* user)
     : d_additionalAssertions(user)
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       ,
       d_fpMap(user),
       d_rmMap(user),
@@ -767,7 +767,7 @@ FpConverter::FpConverter(context::UserContext* user)
 
 FpConverter::~FpConverter() {}
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 Node FpConverter::ufToNode(const fpt &format, const uf &u) const
 {
   NodeManager *nm = NodeManager::currentNM();
@@ -844,11 +844,11 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 
 // Non-convertible things should only be added to the stack at the very start,
 // thus...
-#define CVC4_FPCONV_PASSTHROUGH Assert(workStack.empty())
+#define CVC5_FPCONV_PASSTHROUGH Assert(workStack.empty())
 
 Node FpConverter::convert(TNode node)
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   std::vector<TNode> workStack;
   TNode result = node;
 
@@ -1397,7 +1397,7 @@ Node FpConverter::convert(TNode node)
             }
             else
             {
-              CVC4_FPCONV_PASSTHROUGH;
+              CVC5_FPCONV_PASSTHROUGH;
               return result;
             }
           }
@@ -1534,7 +1534,7 @@ Node FpConverter::convert(TNode node)
           /* Fall through... */
 
           default:
-            CVC4_FPCONV_PASSTHROUGH;
+            CVC5_FPCONV_PASSTHROUGH;
             return result;
             break;
         }
@@ -1652,7 +1652,7 @@ Node FpConverter::convert(TNode node)
         case kind::ROUNDINGMODE_BITBLAST:
         /* Fall through ... */
 
-        default: CVC4_FPCONV_PASSTHROUGH; break;
+        default: CVC5_FPCONV_PASSTHROUGH; break;
       }
     }
     else if (t.isReal())
@@ -1691,12 +1691,12 @@ Node FpConverter::convert(TNode node)
                  "expandDefinition";
           break;
 
-        default: CVC4_FPCONV_PASSTHROUGH; break;
+        default: CVC5_FPCONV_PASSTHROUGH; break;
       }
     }
     else
     {
-      CVC4_FPCONV_PASSTHROUGH;
+      CVC5_FPCONV_PASSTHROUGH;
     }
   }
 
@@ -1706,13 +1706,13 @@ Node FpConverter::convert(TNode node)
 #endif
 }
 
-#undef CVC4_FPCONV_PASSTHROUGH
+#undef CVC5_FPCONV_PASSTHROUGH
 
 Node FpConverter::getValue(Valuation &val, TNode var)
 {
   Assert(Theory::isLeafOf(var, THEORY_FP));
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   TypeNode t(var.getType());
 
   Assert(t.isRoundingMode() || t.isFloatingPoint())

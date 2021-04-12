@@ -91,10 +91,10 @@ TEST_F(TestContextBlack, push_pop)
   // the interface doesn't declare any exceptions
   d_context->push();
   d_context->pop();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(d_context->pop(), "Cannot pop below level 0");
   ASSERT_DEATH(d_context->pop(), "Cannot pop below level 0");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 }
 
 TEST_F(TestContextBlack, dtor)

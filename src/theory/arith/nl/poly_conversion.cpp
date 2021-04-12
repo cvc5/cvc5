@@ -16,7 +16,7 @@
 
 #include "poly_conversion.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
@@ -451,7 +451,7 @@ Node lower_bound_as_node(const Node& var,
       poly::get_upper(poly::get_isolating_interval(alg)));
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   int su = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_upper(poly::get_isolating_interval(alg)));
   Assert(sl != 0 && su != 0 && sl != su);
@@ -507,7 +507,7 @@ Node upper_bound_as_node(const Node& var,
       poly::get_lower(poly::get_isolating_interval(alg)));
   Rational u = poly_utils::toRational(
       poly::get_upper(poly::get_isolating_interval(alg)));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
 #endif

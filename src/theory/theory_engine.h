@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_ENGINE_H
-#define CVC4__THEORY_ENGINE_H
+#ifndef CVC5__THEORY_ENGINE_H
+#define CVC5__THEORY_ENGINE_H
 
 #include <memory>
 #include <vector>
@@ -199,13 +199,14 @@ class TheoryEngine {
    * context level or below).
    */
   context::CDO<bool> d_incomplete;
+  /** The theory and identifier that (most recently) set incomplete */
+  context::CDO<theory::TheoryId> d_incompleteTheory;
+  context::CDO<theory::IncompleteId> d_incompleteId;
 
   /**
    * Called by the theories to notify that the current branch is incomplete.
    */
-  void setIncomplete(theory::TheoryId theory) {
-    d_incomplete = true;
-  }
+  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -692,4 +693,4 @@ private:
 
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY_ENGINE_H */
+#endif /* CVC5__THEORY_ENGINE_H */

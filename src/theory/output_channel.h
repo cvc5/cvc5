@@ -16,9 +16,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
-#define CVC4__THEORY__OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
+#define CVC5__THEORY__OUTPUT_CHANNEL_H
 
+#include "theory/incomplete_id.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
@@ -150,7 +151,7 @@ class OutputChannel {
    * this context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setIncomplete() = 0;
+  virtual void setIncomplete(IncompleteId id) = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
@@ -201,4 +202,4 @@ class OutputChannel {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */

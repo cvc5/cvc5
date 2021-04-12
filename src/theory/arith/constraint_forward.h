@@ -18,8 +18,8 @@
  ** between header files.
  **/
 
-#ifndef CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
-#define CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
+#ifndef CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H
+#define CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H
 
 #include "cvc4_private.h"
 #include <vector>
@@ -48,4 +48,4 @@ static const RationalVectorP RationalVectorPSentinel = NULL;
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H */
+#endif /* CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H */

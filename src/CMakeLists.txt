@@ -632,6 +632,8 @@ libcvc4_add_sources(
   theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/incomplete_id.cpp
+  theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
   theory/inference_manager_buffered.cpp
@@ -1120,7 +1122,7 @@ install(TARGETS cvc4
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc4
   PRIVATE
     -D__BUILDING_CVC4LIB
