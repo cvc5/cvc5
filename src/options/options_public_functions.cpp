@@ -1,20 +1,20 @@
-/*********************                                                        */
-/*! \file options_public_functions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of public facing interface functions for Options.
- **
- ** Definitions of public facing interface functions for Options. These are
- ** all 1 line wrappers for Options::get<T>, Options::set<T>, and
- ** Options::wasSetByUser<T> for different option types T.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of public facing interface functions for Options.
+ *
+ * These are all 1 line wrappers for Options::get<T>, Options::set<T>, and
+ * Options::wasSetByUser<T> for different option types T.
+ */
 
 #include "options.h"
 
@@ -180,10 +180,6 @@ std::ostream* Options::getOutConst() const{
 
 std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
-}
-
-unsigned Options::getParseStep() const{
-  return (*this)[options::parseStep];
 }
 
 std::ostream* Options::currentGetOut() {

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file decision_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Decision engine
- **
- ** Decision engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Decision engine.
+ */
 
 #include "cvc4_private.h"
 

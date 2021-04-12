@@ -1789,7 +1789,7 @@ lbool Solver::search(int nof_conflicts)
       }
 
       if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
-          || !withinBudget(ResourceManager::Resource::SatConflictStep))
+          || !withinBudget(Resource::SatConflictStep))
       {
         // Reached bound on number of conflicts:
         progress_estimate = progressEstimate();
@@ -1934,12 +1934,12 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget(ResourceManager::Resource::SatConflictStep))
+        if (!withinBudget(Resource::SatConflictStep))
           break;  // FIXME add restart option?
         curr_restarts++;
     }
 
-    if (!withinBudget(ResourceManager::Resource::SatConflictStep))
+    if (!withinBudget(Resource::SatConflictStep))
       status = l_Undef;
 
     if (verbosity >= 1)
@@ -2188,7 +2188,7 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
-  d_proxy->spendResource(ResourceManager::Resource::LemmaStep);
+  d_proxy->spendResource(Resource::LemmaStep);
 
   CRef conflict = CRef_Undef;
 
@@ -2370,7 +2370,7 @@ void ClauseAllocator::reloc(CRef& cr,
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
 
-inline bool Solver::withinBudget(ResourceManager::Resource r) const
+inline bool Solver::withinBudget(Resource r) const
 {
   Assert(d_proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException

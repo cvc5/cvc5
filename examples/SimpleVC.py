@@ -1,35 +1,25 @@
 #! /usr/bin/python
-#####################
-## SimpleVC.py
-## Top contributors (to current version):
-##   Morgan Deters, Aina Niemetz, Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Morgan Deters, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the Python interface
+#
+# A simple demonstration of the Python interface.  Compare to the
+# C++ interface in simple_vc_cxx.cpp; they are quite similar.
+#
+# To run from a build directory, use something like:
+#
+#   PYTHONPATH=src/bindings/python python ../examples/SimpleVC.py
 ##
-##! \file SimpleVC.py
-### \verbatim
-### Original author: mdeters
-### Major contributors: none
-### Minor contributors (to current version): none
-### This file is part of the CVC4 prototype.
-### Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
-### Courant Institute of Mathematical Sciences
-### New York University
-### See the file COPYING in the top-level source directory for licensing
-### information.\endverbatim
-###
-### \brief A simple demonstration of the Python interface
-###
-### A simple demonstration of the Python interface.  Compare to the
-### C++ interface in simple_vc_cxx.cpp; they are quite similar.
-###
-### To run from a build directory, use something like:
-###
-###   PYTHONPATH=src/bindings/python python ../examples/SimpleVC.py
-####
 
 import CVC4
 from CVC4 import ExprManager, SmtEngine, Rational, Expr
