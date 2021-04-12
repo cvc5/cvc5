@@ -10,14 +10,14 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/jni")
 
 # Generate cvc5/Kind.java
 configure_file(genkinds.py.in genkinds.py)
 
 set(JAVA_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/Kind.java"
 )
 
 add_custom_command(
@@ -29,7 +29,7 @@ add_custom_command(
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/Kind"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
