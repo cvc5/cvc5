@@ -4268,16 +4268,7 @@ Solver::Solver(Options* opts)
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
-<<<<<<< HEAD
   resetStatistics();
-=======
-#if CVC5_STATISTICS_ON
-  d_stats.reset(new Statistics());
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_consts);
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_vars);
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_terms);
-#endif
->>>>>>> upstream/master
 }
 
 Solver::~Solver() {}
