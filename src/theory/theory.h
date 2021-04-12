@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_H
-#define CVC4__THEORY__THEORY_H
+#ifndef CVC5__THEORY__THEORY_H
+#define CVC5__THEORY__THEORY_H
 
 #include <iosfwd>
 #include <set>
@@ -433,12 +433,15 @@ class Theory {
     EFFORT_LAST_CALL = 200
   }; /* enum Effort */
 
-  static inline bool standardEffortOrMore(Effort e) CVC4_CONST_FUNCTION
-    { return e >= EFFORT_STANDARD; }
-  static inline bool standardEffortOnly(Effort e) CVC4_CONST_FUNCTION
-    { return e >= EFFORT_STANDARD && e <  EFFORT_FULL; }
-  static inline bool fullEffort(Effort e) CVC4_CONST_FUNCTION
-    { return e == EFFORT_FULL; }
+  static inline bool standardEffortOrMore(Effort e) CVC5_CONST_FUNCTION
+  {
+    return e >= EFFORT_STANDARD; }
+  static inline bool standardEffortOnly(Effort e) CVC5_CONST_FUNCTION
+  {
+    return e >= EFFORT_STANDARD && e < EFFORT_FULL; }
+  static inline bool fullEffort(Effort e) CVC5_CONST_FUNCTION
+  {
+    return e == EFFORT_FULL; }
 
   /**
    * Get the id for this Theory.
@@ -942,4 +945,4 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_H */
+#endif /* CVC5__THEORY__THEORY_H */

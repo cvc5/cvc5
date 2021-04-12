@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__ARRAYS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"

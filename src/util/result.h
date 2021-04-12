@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RESULT_H
-#define CVC4__RESULT_H
+#ifndef CVC5__RESULT_H
+#define CVC5__RESULT_H
 
 #include <iosfwd>
 #include <string>
@@ -162,4 +162,4 @@ bool operator!=(enum Result::Entailment e, const Result& r);
 
 }  // namespace cvc5
 
-#endif /* CVC4__RESULT_H */
+#endif /* CVC5__RESULT_H */

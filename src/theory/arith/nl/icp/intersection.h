@@ -12,12 +12,12 @@
  ** \brief Implement intersection of intervals for propagation.
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__INTERSECTION_H
-#define CVC4__THEORY__ARITH__ICP__INTERSECTION_H
+#ifndef CVC5__THEORY__ARITH__ICP__INTERSECTION_H
+#define CVC5__THEORY__ARITH__ICP__INTERSECTION_H
 
 #include "cvc4_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <cstddef>
 

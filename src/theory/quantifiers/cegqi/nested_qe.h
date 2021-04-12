@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
-#define CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
+#define CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 
 #include <unordered_set>
 

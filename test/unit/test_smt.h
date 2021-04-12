@@ -12,8 +12,8 @@
  ** \brief Common header for unit tests that need an SmtEngine.
  **/
 
-#ifndef CVC4__TEST__UNIT__TEST_SMT_H
-#define CVC4__TEST__UNIT__TEST_SMT_H
+#ifndef CVC5__TEST__UNIT__TEST_SMT_H
+#define CVC5__TEST__UNIT__TEST_SMT_H
 
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
@@ -137,7 +137,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   }
 
   void requirePhase(TNode, bool) override {}
-  void setIncomplete() override {}
+  void setIncomplete(theory::IncompleteId id) override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
   void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }

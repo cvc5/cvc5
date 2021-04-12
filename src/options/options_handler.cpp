@@ -95,24 +95,24 @@ void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_USE_ABC
+#ifndef CVC5_USE_ABC
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 {
-#ifndef CVC4_USE_ABC
+#ifndef CVC5_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
     ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
@@ -255,13 +255,13 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_STATISTICS_ON
+#ifndef CVC5_STATISTICS_ON
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
 }
 
 void OptionsHandler::threadN(std::string option) {

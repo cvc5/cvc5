@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/conjecture_generator.h"
@@ -96,4 +96,4 @@ class QuantifiersModules
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */

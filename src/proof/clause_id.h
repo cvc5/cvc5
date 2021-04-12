@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__CLAUSE_ID_H
-#define CVC4__PROOF__CLAUSE_ID_H
+#ifndef CVC5__PROOF__CLAUSE_ID_H
+#define CVC5__PROOF__CLAUSE_ID_H
 
 namespace cvc5 {
 
@@ -37,4 +37,4 @@ const ClauseId ClauseIdError(-3);
 
 }  // namespace cvc5
 
-#endif /* CVC4__PROOF__CLAUSE_ID_H */
+#endif /* CVC5__PROOF__CLAUSE_ID_H */

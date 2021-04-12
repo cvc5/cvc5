@@ -10,7 +10,7 @@
 ##
 set(EXAMPLES_NRA_TRANSLATE_BIN_DIR ${EXAMPLES_BIN_DIR}/nra-translate)
 
-set(CVC4_EXAMPLES_NRA_TRANSLATE
+set(CVC5_EXAMPLES_NRA_TRANSLATE
   normalize
   smt2info
   smt2todreal
@@ -20,7 +20,7 @@ set(CVC4_EXAMPLES_NRA_TRANSLATE
   smt2toredlog
 )
 
-foreach(example ${CVC4_EXAMPLES_NRA_TRANSLATE})
+foreach(example ${CVC5_EXAMPLES_NRA_TRANSLATE})
   cvc4_add_example(${example} "" "nra-translate"
     # arguments to binary (for testing)
     # input file is required by all tests

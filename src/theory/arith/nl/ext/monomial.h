@@ -12,8 +12,8 @@
  ** \brief Utilities for monomials
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_H
-#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_H
+#define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_H
 
 #include <map>
 #include <vector>
@@ -146,4 +146,4 @@ class MonomialDb
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL_MONOMIAL_H */
+#endif /* CVC5__THEORY__ARITH__NL_MONOMIAL_H */

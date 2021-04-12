@@ -19,8 +19,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__COMMAND_H
-#define CVC4__COMMAND_H
+#ifndef CVC5__COMMAND_H
+#define CVC5__COMMAND_H
 
 #include <iosfwd>
 #include <sstream>
@@ -1530,4 +1530,4 @@ class CVC4_EXPORT DeclarationSequence : public CommandSequence
 
 }  // namespace cvc5
 
-#endif /* CVC4__COMMAND_H */
+#endif /* CVC5__COMMAND_H */

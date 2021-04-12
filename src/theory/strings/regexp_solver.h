@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REGEXP_SOLVER_H
-#define CVC4__THEORY__STRINGS__REGEXP_SOLVER_H
+#ifndef CVC5__THEORY__STRINGS__REGEXP_SOLVER_H
+#define CVC5__THEORY__STRINGS__REGEXP_SOLVER_H
 
 #include <map>
 #include "context/cdhashset.h"
@@ -156,4 +156,4 @@ class RegExpSolver
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC5__THEORY__STRINGS__THEORY_STRINGS_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
-#define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#define CVC5__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/quant_module.h"

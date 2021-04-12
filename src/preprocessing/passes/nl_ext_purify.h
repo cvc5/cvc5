@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
-#define CVC4__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
+#ifndef CVC5__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
+#define CVC5__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
 
 #include <unordered_map>
 #include <vector>
@@ -53,4 +53,4 @@ class NlExtPurify : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__NL_EXT_PURIFY_H */
+#endif /* CVC5__PREPROCESSING__PASSES__NL_EXT_PURIFY_H */

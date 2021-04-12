@@ -14,7 +14,7 @@
  ** Implementation of the cryptominisat for cvc4 (bitvectors).
  **/
 
-#ifdef CVC4_USE_CRYPTOMINISAT
+#ifdef CVC5_USE_CRYPTOMINISAT
 
 #include "prop/cryptominisat.h"
 

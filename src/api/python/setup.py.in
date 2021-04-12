@@ -34,7 +34,7 @@ class PyCVC4Install(install):
         c.run()
 
 setup(name='pycvc4',
-      version='${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}',
+      version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC4_RELEASE}',
       packages=['pycvc4'],
       package_dir={'pycvc4': '${CMAKE_CURRENT_BINARY_DIR}/pycvc4'},
       package_data={'pycvc4': ['pycvc4.so']},

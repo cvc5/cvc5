@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__ITE_SIMP_H
-#define CVC4__PREPROCESSING__PASSES__ITE_SIMP_H
+#ifndef CVC5__PREPROCESSING__PASSES__ITE_SIMP_H
+#define CVC5__PREPROCESSING__PASSES__ITE_SIMP_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/util/ite_utilities.h"

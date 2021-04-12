@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__MIPLIB_TRICK_H
-#define CVC4__PREPROCESSING__PASSES__MIPLIB_TRICK_H
+#ifndef CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H
+#define CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -58,4 +58,4 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__MIPLIB_TRICK_H */
+#endif /* CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H */

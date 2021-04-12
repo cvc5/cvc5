@@ -30,9 +30,11 @@
 
 namespace cvc5 {
 
+#ifndef DOXYGEN_SKIP
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
+#endif
 
 class Command;
 class DType;
@@ -689,7 +691,7 @@ class CVC4_EXPORT Sort
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -819,7 +821,7 @@ class CVC4_EXPORT Op
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1216,7 +1218,7 @@ class CVC4_EXPORT Term
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1382,7 +1384,7 @@ class CVC4_EXPORT DatatypeConstructorDecl
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1488,7 +1490,7 @@ class CVC4_EXPORT DatatypeDecl
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1558,7 +1560,7 @@ class CVC4_EXPORT DatatypeSelector
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1785,7 +1787,7 @@ class CVC4_EXPORT DatatypeConstructor
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1802,7 +1804,7 @@ class CVC4_EXPORT DatatypeConstructor
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
 
-/*
+/**
  * A CVC4 datatype.
  */
 class CVC4_EXPORT Datatype
@@ -2007,7 +2009,7 @@ class CVC4_EXPORT Datatype
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -2384,7 +2386,7 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats) CVC4_EXPORT
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * A CVC4 solver.
  */
 class CVC4_EXPORT Solver

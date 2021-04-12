@@ -49,7 +49,7 @@ class TestUtilBlackStats : public TestInternal
 
 TEST_F(TestUtilBlackStats, stats)
 {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   StatisticsRegistry reg(false);
   std::string empty, bar = "bar", baz = "baz";
 

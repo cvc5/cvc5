@@ -114,11 +114,11 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   // in C target runtime.
   //
   pANTLR3_INPUT_STREAM    in;
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) fileName.c_str());
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if(in == NULL) {
     Debug("parser") << "Can't open " << fileName << std::endl;
     return false;

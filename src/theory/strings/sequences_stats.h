@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
-#define CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
+#ifndef CVC5__THEORY__STRINGS__SEQUENCES_STATS_H
+#define CVC5__THEORY__STRINGS__SEQUENCES_STATS_H
 
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
@@ -99,4 +99,4 @@ class SequencesStatistics
 }
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SEQUENCES_STATS_H */
+#endif /* CVC5__THEORY__STRINGS__SEQUENCES_STATS_H */

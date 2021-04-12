@@ -254,7 +254,7 @@ void ArithStaticLearner::addBound(TNode n) {
   DeltaRational bound = constant;
 
   switch(Kind k = n.getKind()) {
-    case kind::LT: bound = DeltaRational(constant, -1); CVC4_FALLTHROUGH;
+    case kind::LT: bound = DeltaRational(constant, -1); CVC5_FALLTHROUGH;
     case kind::LEQ:
       if (maxFind == d_maxMap.end() || (*maxFind).second > bound)
       {
@@ -262,7 +262,7 @@ void ArithStaticLearner::addBound(TNode n) {
         Debug("arith::static") << "adding bound " << n << endl;
       }
       break;
-    case kind::GT: bound = DeltaRational(constant, 1); CVC4_FALLTHROUGH;
+    case kind::GT: bound = DeltaRational(constant, 1); CVC5_FALLTHROUGH;
     case kind::GEQ:
       if (minFind == d_minMap.end() || (*minFind).second < bound)
       {

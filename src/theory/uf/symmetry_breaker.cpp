@@ -369,7 +369,7 @@ Node SymmetryBreaker::normInternal(TNode n, size_t level) {
         Debug("ufsymm:eq") << "UFSYMM " << n[0] << " <==> " << n[1] << endl;
       }
     }
-    CVC4_FALLTHROUGH;
+    CVC5_FALLTHROUGH;
   case kind::XOR:
     // commutative binary operator handling
     return n[1] < n[0] ? NodeManager::currentNM()->mkNode(k, n[1], n[0]) : Node(n);
@@ -437,7 +437,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
       d_permutations.insert(p);
     }
     d_template.reset();
-    bool good CVC4_UNUSED = d_template.match(phi);
+    bool good CVC5_UNUSED = d_template.match(phi);
     Assert(good);
   }
 }

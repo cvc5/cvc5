@@ -34,8 +34,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__SAFE_PRINT_H
-#define CVC4__SAFE_PRINT_H
+#ifndef CVC5__SAFE_PRINT_H
+#define CVC5__SAFE_PRINT_H
 
 #include <unistd.h>
 
@@ -138,4 +138,4 @@ void safe_print_right_aligned(int fd, uint64_t i, ssize_t width);
 
 }  // namespace cvc5
 
-#endif /* CVC4__SAFE_PRINT_H */
+#endif /* CVC5__SAFE_PRINT_H */

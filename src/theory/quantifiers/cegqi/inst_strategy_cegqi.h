@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
-#define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
@@ -85,7 +85,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** check complete */
-  bool checkComplete() override;
+  bool checkComplete(IncompleteId& incId) override;
   /** check complete for quantified formula */
   bool checkCompleteFor(Node q) override;
   /** check ownership */

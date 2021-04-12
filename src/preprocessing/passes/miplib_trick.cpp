@@ -537,8 +537,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
-              CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
-              Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
+              CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
+              Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";

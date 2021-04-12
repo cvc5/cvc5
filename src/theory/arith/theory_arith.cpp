@@ -204,7 +204,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
   }
 }

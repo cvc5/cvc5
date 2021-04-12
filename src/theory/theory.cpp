@@ -402,6 +402,23 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       }
     }
   }
+  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
+           && in[0][0].getType().isBoolean())
+  {
+    TNode eq = in[0];
+    if (eq[0].isVar())
+    {
+      Node res = eq[0].eqNode(eq[1].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+    else if (eq[1].isVar())
+    {
+      Node res = eq[1].eqNode(eq[0].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+  }
 
   return PP_ASSERT_STATUS_UNSOLVED;
 }

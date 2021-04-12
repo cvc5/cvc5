@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__REAL_ALGEBRAIC_NUMBER_H
-#define CVC4__REAL_ALGEBRAIC_NUMBER_H
+#ifndef CVC5__REAL_ALGEBRAIC_NUMBER_H
+#define CVC5__REAL_ALGEBRAIC_NUMBER_H
 
 #include <vector>
 
@@ -150,4 +150,4 @@ bool isOne(const RealAlgebraicNumber& ran);
 
 }  // namespace cvc5
 
-#endif /* CVC4__REAL_ALGEBRAIC_NUMBER_H */
+#endif /* CVC5__REAL_ALGEBRAIC_NUMBER_H */

@@ -608,7 +608,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
   Node emp = Word::mkEmptyWord(stype);
   if (d_state.areEqual(eqc, emp))
   {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     for( unsigned j=0; j<d_eqc[eqc].size(); j++ ){
       Node n = d_eqc[eqc][j];
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -1778,7 +1778,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }
   else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
   {
-    d_im.setIncomplete();
+    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
     return ProcessLoopResult::SKIPPED;
   }
 
@@ -1931,7 +1931,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     else if (options::stringProcessLoopMode()
              == options::ProcessLoopMode::SIMPLE)
     {
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
       return ProcessLoopResult::SKIPPED;
     }
 

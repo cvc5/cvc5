@@ -605,7 +605,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
 
   Debug("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 
@@ -641,7 +641,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 

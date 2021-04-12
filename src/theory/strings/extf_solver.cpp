@@ -133,7 +133,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
           }
           // this depends on the current assertions, so this
           // inference is context-dependent
-          d_extt.markReduced(n, true);
+          d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
           return true;
         }
         else
@@ -184,7 +184,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
     // context-dependent because it depends on the polarity of n itself
-    d_extt.markReduced(n, true);
+    d_extt.markReduced(n, ExtReducedId::STRINGS_POS_CTN, true);
   }
   else if (k != kind::STRING_TO_CODE)
   {
@@ -298,7 +298,7 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         if (effort < 3)
         {
-          d_extt.markReduced(n);
+          d_extt.markReduced(n, ExtReducedId::STRINGS_SR_CONST);
           Trace("strings-extf-debug")
               << "  resolvable by evaluation..." << std::endl;
           std::vector<Node> exps;
@@ -550,7 +550,7 @@ void ExtfSolver::checkExtfInference(Node n,
             else if (d_extt.hasFunctionKind(conc.getKind()))
             {
               // can mark as reduced, since model for n implies model for conc
-              d_extt.markReduced(conc);
+              d_extt.markReduced(conc, ExtReducedId::STRINGS_CTN_DECOMPOSE);
             }
           }
         }
@@ -731,9 +731,10 @@ std::string ExtfSolver::debugPrintModel()
   for (const Node& n : extf)
   {
     ss << "- " << n;
-    if (!d_extt.isActive(n))
+    ExtReducedId id;
+    if (!d_extt.isActive(n, id))
     {
-      ss << " :extt-inactive";
+      ss << " :extt-inactive " << id;
     }
     if (!d_extfInfoTmp[n].d_modelActive)
     {

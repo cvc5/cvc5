@@ -204,7 +204,7 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
     //DeltaRational beta_i = d_variables.getAssignment(x_i);
     ArithVar x_j = ARITHVAR_SENTINEL;
 
-    int32_t prevErrorSize CVC4_UNUSED = d_errorSet.errorSize();
+    int32_t prevErrorSize CVC5_UNUSED = d_errorSet.errorSize();
 
     if(d_variables.cmpAssignmentLowerBound(x_i) < 0 ){
       x_j = d_linEq.selectSlackUpperBound(x_i, pf);
@@ -240,7 +240,7 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
     Assert(x_j != ARITHVAR_SENTINEL);
 
     bool conflict = processSignals();
-    int32_t currErrorSize CVC4_UNUSED = d_errorSet.errorSize();
+    int32_t currErrorSize CVC5_UNUSED = d_errorSet.errorSize();
     d_pivots++;
 
     if(Debug.isOn("arith::dual")){

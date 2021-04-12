@@ -1561,6 +1561,7 @@ set(regress_1_tests
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
   regress1/issue4335-unsat-core.smt2
+  regress1/issue5101-alira-subtypes.smt2
   regress1/issue5739-rtf-processed.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
@@ -1580,7 +1581,6 @@ set(regress_1_tests
   regress1/nl/disj-eval.smt2
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
-  regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   regress1/nl/exp-4.5-lt.smt2
   regress1/nl/exp-approx.smt2
   regress1/nl/exp-soundness-bound.smt2
@@ -1763,8 +1763,9 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4328-nqe.smt2
-  regress1/quantifiers/issue4420-order-sensitive.smt2
+  regress1/quantifiers/issue4400-2-already-conf.smt2
   regress1/quantifiers/issue4412-cegqi-type.smt2
+  regress1/quantifiers/issue4420-order-sensitive.smt2
   regress1/quantifiers/issue4433-nqe.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
@@ -2053,6 +2054,9 @@ set(regress_1_tests
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
+  regress1/strings/issue6214-2-sym-re-inc.smt2
+  regress1/strings/issue6214-3-sym-re-inc.smt2
+  regress1/strings/issue6214-4-sym-re-inc.smt2
   regress1/strings/issue6270.smt2
   regress1/strings/issue6271-rnf.smt2
   regress1/strings/issue6271-2-rnf.smt2
@@ -2539,6 +2543,8 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
+  # times out after update to circuit propagator
+  regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds

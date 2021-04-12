@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
@@ -470,4 +470,4 @@ class SygusUnifIo : public SygusUnif
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */

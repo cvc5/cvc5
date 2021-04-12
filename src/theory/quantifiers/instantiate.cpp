@@ -74,12 +74,13 @@ bool Instantiate::reset(Theory::Effort e)
 }
 
 void Instantiate::registerQuantifier(Node q) {}
-bool Instantiate::checkComplete()
+bool Instantiate::checkComplete(IncompleteId& incId)
 {
   if (!d_recordedInst.empty())
   {
     Trace("quant-engine-debug")
         << "Set incomplete due to recorded instantiations." << std::endl;
+    incId = IncompleteId::QUANTIFIERS_RECORDED_INST;
     return false;
   }
   return true;
@@ -130,7 +131,7 @@ bool Instantiate::addInstantiation(Node q,
           << std::endl;
       return false;
     }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     bool bad_inst = false;
     if (TermUtil::containsUninterpretedConstant(terms[i]))
     {

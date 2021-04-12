@@ -36,7 +36,7 @@ class TestContextBlackMM : public TestInternal
 
 TEST_F(TestContextBlackMM, push_pop)
 {
-#ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifdef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 #warning "Using the debug context memory manager, omitting unit tests"
 #else
   // Push, then allocate, then pop

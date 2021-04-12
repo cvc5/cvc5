@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__STATS_H
-#define CVC4__THEORY__ARITH__NL__STATS_H
+#ifndef CVC5__THEORY__ARITH__NL__STATS_H
+#define CVC5__THEORY__ARITH__NL__STATS_H
 
 #include "util/statistics_stats.h"
 
@@ -45,4 +45,4 @@ class NlStats
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__STATS_H */
+#endif /* CVC5__THEORY__ARITH__NL__STATS_H */

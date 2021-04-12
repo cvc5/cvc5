@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__IM_GENERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__IM_GENERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__IM_GENERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__IM_GENERATOR_H
 
 #include <map>
 #include "expr/node.h"
