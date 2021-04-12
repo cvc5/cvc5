@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file poly_conversion.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for converting to and from LibPoly objects.
- **
- ** Utilities for converting to and from LibPoly objects.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for converting to and from LibPoly objects.
+ */
 
 #include "poly_conversion.h"
 

@@ -1,3 +1,20 @@
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Defines some initial setup for building the dependencies (paths and default
+# options for external projects) and some helper functions and macros that are
+# used in the custom FindX.cmake scripts.
+##
+
 # where to build dependencies
 set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")
 # base path to installed dependencies

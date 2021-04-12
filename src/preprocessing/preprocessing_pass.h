@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file preprocessing_pass.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Justin Xu, Mathias Preiner, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessing pass super class
- **
- ** Implementation of the preprocessing pass super class. Preprocessing passes
- ** that inherit from this class, need to pass their name to the constructor to
- ** register the pass appropriately. The core of a preprocessing pass lives
- ** in applyInternal(), which operates on a list of assertions and is called
- ** from apply() in the super class. The apply() method automatically takes
- ** care of the following:
- **
- ** - Dumping assertions before and after the pass
- ** - Initializing the timer
- ** - Tracing and chatting
- **
- ** Optionally, preprocessing passes can overwrite the initInteral() method to
- ** do work that only needs to be done once.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Justin Xu, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessing pass super class
+ *
+ * Implementation of the preprocessing pass super class. Preprocessing passes
+ * that inherit from this class, need to pass their name to the constructor to
+ * register the pass appropriately. The core of a preprocessing pass lives
+ * in applyInternal(), which operates on a list of assertions and is called
+ * from apply() in the super class. The apply() method automatically takes
+ * care of the following:
+ *
+ * - Dumping assertions before and after the pass
+ * - Initializing the timer
+ * - Tracing and chatting
+ *
+ * Optionally, preprocessing passes can overwrite the initInteral() method to
+ * do work that only needs to be done once.
+ */
 
 #include "cvc4_private.h"
 

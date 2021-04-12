@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-#####################
-## floating_point.py
-## Top contributors (to current version):
-##   Makai Mann, Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## floating point solver through the Python API contributed by Eva
-## Darulova. This requires building CVC4 with symfpu.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5
+# floating point solver through the Python API contributed by Eva
+# Darulova. This requires building cvc5 with symfpu.
 ##
 
 import pycvc4
