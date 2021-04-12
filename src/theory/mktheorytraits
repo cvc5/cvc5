@@ -92,9 +92,9 @@ function theory {
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
   elif ! expr "$2" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::CVC4::theory::foo)" >&2
-  elif ! expr "$2" : '\(::CVC4::theory::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class not under ::CVC4::theory namespace" >&2
+    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::cvc5::theory::foo)" >&2
+  elif ! expr "$2" : '\(::cvc5::theory::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: theory class not under ::cvc5::theory namespace" >&2
   fi
 
   theory_id="$1"
@@ -172,7 +172,7 @@ struct TheoryTraits<${theory_id}> {
   # warnings about theory content and properties
   dir="$(dirname "$kf")/../../"
   if [ -e "$dir/$theory_header" ]; then
-    for function in check propagate ppStaticLearn notifyRestart presolve postsolve; do
+    for function in propagate ppStaticLearn notifyRestart presolve postsolve; do
        if eval "\$theory_has_$function"; then
          grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' ||
            echo "$kf: warning: $theory_class has property \"$function\" in its kinds file but doesn't appear to declare the function" >&2

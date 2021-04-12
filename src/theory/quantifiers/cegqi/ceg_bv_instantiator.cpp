@@ -15,18 +15,18 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -643,6 +643,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (options::cegqiBvRmExtract())
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
@@ -692,9 +693,9 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
         Node var =
-            nm->mkSkolem("ek",
-                         ex.getType(),
-                         "variable to represent disjoint extract region");
+            sm->mkDummySkolem("ek",
+                              ex.getType(),
+                              "variable to represent disjoint extract region");
         children.push_back(var);
         vars.push_back(var);
       }
@@ -760,4 +761,4 @@ void BvInstantiatorPreprocess::collectExtracts(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

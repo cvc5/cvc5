@@ -19,14 +19,14 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__LOGIC_EXCEPTION_H
-#define CVC4__SMT__LOGIC_EXCEPTION_H
+#ifndef CVC5__SMT__LOGIC_EXCEPTION_H
+#define CVC5__SMT__LOGIC_EXCEPTION_H
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class LogicException : public CVC4::Exception
+class LogicException : public cvc5::Exception
 {
  public:
   LogicException() :
@@ -43,6 +43,6 @@ class LogicException : public CVC4::Exception
   }
 }; /* class LogicException */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__LOGIC_EXCEPTION_H */
+#endif /* CVC5__SMT__LOGIC_EXCEPTION_H */

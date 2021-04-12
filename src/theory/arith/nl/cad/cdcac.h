@@ -17,10 +17,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
-#define CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
+#define CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
@@ -31,7 +31,7 @@
 #include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -210,7 +210,7 @@ class CDCAC
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

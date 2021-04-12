@@ -12,13 +12,13 @@
  ** \brief Module for managing options of an SmtEngine.
  **/
 
-#ifndef CVC4__SMT__OPTIONS_MANAGER_H
-#define CVC4__SMT__OPTIONS_MANAGER_H
+#ifndef CVC5__SMT__OPTIONS_MANAGER_H
+#define CVC5__SMT__OPTIONS_MANAGER_H
 
 #include "options/options_listener.h"
 #include "smt/managed_ostreams.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LogicInfo;
 class Options;
@@ -75,6 +75,6 @@ class OptionsManager : public OptionsListener
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__OPTIONS_MANAGER_H */
+#endif /* CVC5__SMT__OPTIONS_MANAGER_H */

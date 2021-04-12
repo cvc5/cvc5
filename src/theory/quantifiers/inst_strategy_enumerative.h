@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC5__INST_STRATEGY_ENUMERATIVE_H
+#define CVC5__INST_STRATEGY_ENUMERATIVE_H
 
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -61,10 +61,10 @@ class RelevantDomain;
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe,
-                   QuantifiersState& qs,
+  InstStrategyEnum(QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
+                   TermRegistry& tr,
                    RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Presolve */
@@ -114,8 +114,8 @@ class InstStrategyEnum : public QuantifiersModule
   int32_t d_fullSaturateLimit;
 }; /* class InstStrategyEnum */
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

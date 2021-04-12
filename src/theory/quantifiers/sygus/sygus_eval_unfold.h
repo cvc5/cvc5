@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -154,6 +154,6 @@ class SygusEvalUnfold
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */

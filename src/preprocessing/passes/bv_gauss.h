@@ -17,13 +17,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__BV_GAUSS_ELIM_H
-#define CVC4__PREPROCESSING__PASSES__BV_GAUSS_ELIM_H
+#ifndef CVC5__PREPROCESSING__PASSES__BV_GAUSS_ELIM_H
+#define CVC5__PREPROCESSING__PASSES__BV_GAUSS_ELIM_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -104,6 +104,6 @@ class BVGauss : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

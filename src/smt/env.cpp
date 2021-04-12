@@ -25,9 +25,9 @@
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
 
-using namespace CVC4::smt;
+using namespace cvc5::smt;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Env::Env(NodeManager* nm)
     : d_context(new context::Context()),
@@ -82,9 +82,9 @@ DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
-StatisticsRegistry* Env::getStatisticsRegistry()
+StatisticsRegistry& Env::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return *d_statisticsRegistry;
 }
 
 const Options& Env::getOptions() const { return d_options; }
@@ -101,4 +101,4 @@ const Printer& Env::getPrinter()
 
 std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
 
-}  // namespace CVC4
+}  // namespace cvc5

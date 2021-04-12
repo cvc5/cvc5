@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__WITNESS_FORM_H
-#define CVC4__SMT__WITNESS_FORM_H
+#ifndef CVC5__SMT__WITNESS_FORM_H
+#define CVC5__SMT__WITNESS_FORM_H
 
 #include <unordered_set>
 
@@ -23,7 +23,7 @@
 #include "expr/proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -97,6 +97,6 @@ class WitnessFormGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

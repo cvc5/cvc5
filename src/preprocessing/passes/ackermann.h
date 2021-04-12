@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__ACKERMANN_H
-#define CVC4__PREPROCESSING__PASSES__ACKERMANN_H
+#ifndef CVC5__PREPROCESSING__PASSES__ACKERMANN_H
+#define CVC5__PREPROCESSING__PASSES__ACKERMANN_H
 
 #include <unordered_map>
 
@@ -33,7 +33,7 @@
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -82,6 +82,6 @@ class Ackermann : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__ACKERMANN_H */
+#endif /* CVC5__PREPROCESSING__PASSES__ACKERMANN_H */

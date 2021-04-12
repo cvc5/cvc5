@@ -37,7 +37,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 CnfStream::CnfStream(SatSolver* satSolver,
@@ -76,7 +76,7 @@ bool CnfStream::assertClause(TNode node, SatClause& c)
     else
     {
       Assert(c.size() > 1);
-      NodeBuilder<> b(kind::OR);
+      NodeBuilder b(kind::OR);
       for (unsigned i = 0; i < c.size(); ++i)
       {
         b << getNode(c[i]);
@@ -772,7 +772,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       Node nnode = node;
@@ -787,5 +787,5 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

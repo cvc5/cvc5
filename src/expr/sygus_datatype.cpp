@@ -15,10 +15,11 @@
 #include "expr/sygus_datatype.h"
 
 #include <sstream>
+#include "expr/skolem_manager.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 SygusDatatype::SygusDatatype(const std::string& name) : d_dt(DType(name)) {}
 
@@ -38,8 +39,9 @@ void SygusDatatype::addConstructor(Node op,
 
 void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // add an "any constant" proxy variable
-  Node av = NodeManager::currentNM()->mkSkolem("_any_constant", tn);
+  Node av = sm->mkDummySkolem("_any_constant", tn);
   // mark that it represents any constant
   SygusAnyConstAttribute saca;
   av.setAttribute(saca, true);
@@ -99,4 +101,4 @@ const DType& SygusDatatype::getDatatype() const
 
 bool SygusDatatype::isInitialized() const { return d_dt.isSygus(); }
 
-}  // namespace CVC4
+}  // namespace cvc5

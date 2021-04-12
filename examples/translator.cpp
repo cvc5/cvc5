@@ -15,22 +15,21 @@
  ** CVC4's input languages to one of its output languages.
  **/
 
+#include <cvc5/cvc5.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
+#include <getopt.h>
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/expr/expr_iomanip.h>
-#include <cvc4/options/set_language.h>
-
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::language;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::language;
+using namespace cvc5::parser;
 
 enum {
   INPUT_LANG = 'L',

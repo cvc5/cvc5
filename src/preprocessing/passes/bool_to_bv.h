@@ -15,15 +15,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H
-#define CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H
+#ifndef CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H
+#define CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H
 
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -121,6 +121,6 @@ class BoolToBV : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H */
+#endif /* CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H */

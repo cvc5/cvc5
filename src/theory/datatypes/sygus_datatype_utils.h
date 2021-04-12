@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
-#define CVC4__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
+#ifndef CVC5__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
+#define CVC5__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
 
 #include <vector>
 
@@ -24,7 +24,7 @@
 #include "expr/node_manager_attributes.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // ----------------------- sygus datatype attributes
@@ -237,6 +237,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

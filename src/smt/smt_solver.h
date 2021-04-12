@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SMT_SOLVER_H
-#define CVC4__SMT__SMT_SOLVER_H
+#ifndef CVC5__SMT__SMT_SOLVER_H
+#define CVC5__SMT__SMT_SOLVER_H
 
 #include <vector>
 
@@ -23,7 +23,7 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 class TheoryEngine;
@@ -151,6 +151,6 @@ class SmtSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__SMT_SOLVER_H */
+#endif /* CVC5__SMT__SMT_SOLVER_H */

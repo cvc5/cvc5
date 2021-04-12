@@ -20,15 +20,15 @@
 #include "cvc4autoconfig.h"
 #include "util/integer.h"
 
-#ifndef CVC4_CLN_IMP
-#error "This source should only ever be built if CVC4_CLN_IMP is on !"
-#endif /* CVC4_CLN_IMP */
+#ifndef CVC5_CLN_IMP
+#error "This source should only ever be built if CVC5_CLN_IMP is on !"
+#endif /* CVC5_CLN_IMP */
 
 #include "base/check.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 signed int Integer::s_fastSignedIntMin = -(1 << 29);
 signed int Integer::s_fastSignedIntMax = (1 << 29) - 1;
@@ -568,4 +568,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n)
 {
   return os << n.toString();
 }
-} /* namespace CVC4 */
+}  // namespace cvc5

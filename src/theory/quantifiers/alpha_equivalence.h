@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__ALPHA_EQUIVALENCE_H
-#define CVC4__ALPHA_EQUIVALENCE_H
+#ifndef CVC5__ALPHA_EQUIVALENCE_H
+#define CVC5__ALPHA_EQUIVALENCE_H
 
 #include "theory/quantifiers/quant_util.h"
 
 #include "expr/term_canonize.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -81,7 +81,7 @@ class AlphaEquivalenceDb
 class AlphaEquivalence
 {
  public:
-  AlphaEquivalence(QuantifiersEngine* qe);
+  AlphaEquivalence();
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
@@ -101,6 +101,6 @@ class AlphaEquivalence
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

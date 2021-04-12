@@ -19,10 +19,10 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -259,6 +259,6 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
   return d_isUniversal;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

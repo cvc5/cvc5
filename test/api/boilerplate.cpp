@@ -19,9 +19,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 using namespace std;
 
 int main() {

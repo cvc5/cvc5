@@ -20,23 +20,23 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5;
+using namespace cvc5::kind;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr)
+QModelBuilder::QModelBuilder(QuantifiersState& qs,
+                             QuantifiersRegistry& qr,
+                             QuantifiersInferenceManager& qim)
     : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
       d_triedLemmas(0),
-      d_qe(nullptr),
       d_qstate(qs),
-      d_qreg(qr)
+      d_qreg(qr),
+      d_qim(qim)
 {
 }
 
@@ -96,6 +96,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     int tests = 0;
     int bad = 0;
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
+    Instantiate* inst = d_qim.getInstantiate();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       std::vector< Node > vars;
@@ -112,7 +113,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
+          Node n = inst->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
           if (!val.isConst() || !val.getConst<bool>())
           {

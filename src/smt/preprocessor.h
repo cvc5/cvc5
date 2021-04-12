@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PREPROCESSOR_H
-#define CVC4__SMT__PREPROCESSOR_H
+#ifndef CVC5__SMT__PREPROCESSOR_H
+#define CVC5__SMT__PREPROCESSOR_H
 
 #include <memory>
 
@@ -23,7 +23,7 @@
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -128,6 +128,6 @@ class Preprocessor
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

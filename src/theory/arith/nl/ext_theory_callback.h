@@ -12,13 +12,13 @@
  ** \brief The extended theory callback for non-linear arithmetic
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
-#define CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
+#define CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H
 
 #include "expr/node.h"
 #include "theory/ext_theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 class EqualityEngine;
@@ -72,7 +72,8 @@ class NlExtTheoryCallback : public ExtTheoryCallback
   bool isExtfReduced(int effort,
                      Node n,
                      Node on,
-                     std::vector<Node>& exp) override;
+                     std::vector<Node>& exp,
+                     ExtReducedId& id) override;
 
  private:
   /** The underlying equality engine. */
@@ -84,6 +85,6 @@ class NlExtTheoryCallback : public ExtTheoryCallback
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */
+#endif /* CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */

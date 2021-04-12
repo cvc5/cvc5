@@ -23,21 +23,20 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONTEXT__CDHASHMAP_FORWARD_H
-#define CVC4__CONTEXT__CDHASHMAP_FORWARD_H
+#ifndef CVC5__CONTEXT__CDHASHMAP_FORWARD_H
+#define CVC5__CONTEXT__CDHASHMAP_FORWARD_H
 
 #include <functional>
 
 /// \cond internals
 
-
-namespace CVC4 {
-  namespace context {
-    template <class Key, class Data, class HashFcn = std::hash<Key> >
-    class CDHashMap;
-  }/* CVC4::context namespace */
-}/* CVC4 namespace */
+namespace cvc5 {
+namespace context {
+template <class Key, class Data, class HashFcn = std::hash<Key> >
+class CDHashMap;
+}  // namespace context
+}  // namespace cvc5
 
 /// \endcond
 
-#endif /* CVC4__CONTEXT__CDHASHMAP_FORWARD_H */
+#endif /* CVC5__CONTEXT__CDHASHMAP_FORWARD_H */

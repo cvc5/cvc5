@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
-#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
+#define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include <iostream>
 #include <map>
@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -199,6 +199,8 @@ private:
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -309,11 +311,11 @@ private:
   /** The notify class */
   NotifyClass d_notify;
   /** Proof checker for datatypes */
-  DatatypesProofRuleChecker d_pchecker;
+  DatatypesProofRuleChecker d_checker;
 };/* class TheoryDatatypes */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */
+#endif /* CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H */

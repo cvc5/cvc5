@@ -19,9 +19,9 @@
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 TermCanonize::TermCanonize() : d_op_id_count(0), d_typ_id_count(0) {}
@@ -209,4 +209,4 @@ Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder, bool doHoVar)
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

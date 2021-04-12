@@ -20,7 +20,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -74,10 +74,6 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
                 : nullptr)
 {
-  if (pnm != nullptr)
-  {
-    d_bvProofChecker.registerTo(pnm->getChecker());
-  }
 }
 
 void BVSolverSimple::addBBLemma(TNode fact)
@@ -149,6 +145,8 @@ bool BVSolverSimple::collectModelValues(TheoryModel* m,
   return d_bitblaster->collectModelValues(m, termSet);
 }
 
+BVProofRuleChecker* BVSolverSimple::getProofChecker() { return &d_checker; }
+
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

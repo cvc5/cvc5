@@ -18,15 +18,15 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RESOURCE_MANAGER_H
-#define CVC4__RESOURCE_MANAGER_H
+#ifndef CVC5__RESOURCE_MANAGER_H
+#define CVC5__RESOURCE_MANAGER_H
 
 #include <stdint.h>
 #include <chrono>
 #include <memory>
 #include <vector>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Listener;
 class Options;
@@ -206,6 +206,6 @@ class ResourceManager
 
 }; /* class ResourceManager */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__RESOURCE_MANAGER_H */
+#endif /* CVC5__RESOURCE_MANAGER_H */

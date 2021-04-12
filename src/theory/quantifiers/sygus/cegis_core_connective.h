@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
-#define CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#define CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
 
 #include <unordered_set>
 
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -159,8 +159,8 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersEngine* qe,
-                      QuantifiersInferenceManager& qim,
+  CegisCoreConnective(QuantifiersInferenceManager& qim,
+                      TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}
   /**
@@ -399,6 +399,6 @@ class CegisCoreConnective : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__LAZY_PROOF_CHAIN_H
-#define CVC4__EXPR__LAZY_PROOF_CHAIN_H
+#ifndef CVC5__EXPR__LAZY_PROOF_CHAIN_H
+#define CVC5__EXPR__LAZY_PROOF_CHAIN_H
 
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -148,6 +148,6 @@ class LazyCDProofChain : public ProofGenerator
   ProofGenerator* d_defGen;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__LAZY_PROOF_CHAIN_H */
+#endif /* CVC5__EXPR__LAZY_PROOF_CHAIN_H */

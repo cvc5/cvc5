@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 
 #include <map>
 #include <vector>
@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -264,8 +264,8 @@ public:
   //---------------- end grammar construction
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

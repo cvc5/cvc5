@@ -12,8 +12,8 @@
  ** \brief Extract bounds on variables from theory atoms.
  **/
 
-#ifndef CVC4__THEORY__ARITH__BOUND_INFERENCE_H
-#define CVC4__THEORY__ARITH__BOUND_INFERENCE_H
+#ifndef CVC5__THEORY__ARITH__BOUND_INFERENCE_H
+#define CVC5__THEORY__ARITH__BOUND_INFERENCE_H
 
 #include <map>
 #include <utility>
@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -113,6 +113,6 @@ std::map<Node, std::pair<Node,Node>> getBounds(const std::vector<Node>& assertio
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

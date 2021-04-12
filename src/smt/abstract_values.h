@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__ABSTRACT_VALUES_H
-#define CVC4__SMT__ABSTRACT_VALUES_H
+#ifndef CVC5__SMT__ABSTRACT_VALUES_H
+#define CVC5__SMT__ABSTRACT_VALUES_H
 
 #include <unordered_map>
 
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -75,6 +75,6 @@ class AbstractValues
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

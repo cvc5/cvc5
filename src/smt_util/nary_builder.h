@@ -24,7 +24,7 @@
 
 #include "expr/node.h"
 
-namespace CVC4{
+namespace cvc5 {
 namespace util {
 
 class NaryBuilder {
@@ -53,4 +53,4 @@ private:
 };/* class RePairAssocCommutativeOperators */
 
 }/* util namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5

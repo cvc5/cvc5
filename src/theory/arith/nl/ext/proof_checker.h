@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__PROOF_CHECKER_H
-#define CVC4__THEORY__ARITH__NL__EXT__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__PROOF_CHECKER_H
+#define CVC5__THEORY__ARITH__NL__EXT__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -51,6 +51,6 @@ class ExtProofRuleChecker : public ProofRuleChecker
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__STRINGS__PROOF_CHECKER_H */

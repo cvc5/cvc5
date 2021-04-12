@@ -21,13 +21,13 @@
 
 #include "cvc4autoconfig.h"
 
-#ifndef CVC4_GMP_IMP // Make sure this comes after cvc4autoconfig.h
-#  error "This source should only ever be built if CVC4_GMP_IMP is on !"
-#endif /* CVC4_GMP_IMP */
+#ifndef CVC5_GMP_IMP  // Make sure this comes after cvc4autoconfig.h
+#error "This source should only ever be built if CVC5_GMP_IMP is on !"
+#endif /* CVC5_GMP_IMP */
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
@@ -98,4 +98,4 @@ Maybe<Rational> Rational::fromDouble(double d)
   return Maybe<Rational>();
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

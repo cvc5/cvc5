@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__MATCH_TRIE_H
-#define CVC4__EXPR__MATCH_TRIE_H
+#ifndef CVC5__EXPR__MATCH_TRIE_H
+#define CVC5__EXPR__MATCH_TRIE_H
 
 #include <map>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /** A virtual class for notifications regarding matches. */
@@ -77,6 +77,6 @@ class MatchTrie
 };
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */

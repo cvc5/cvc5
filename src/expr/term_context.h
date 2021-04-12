@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONTEXT_H
-#define CVC4__EXPR__TERM_CONTEXT_H
+#ifndef CVC5__EXPR__TERM_CONTEXT_H
+#define CVC5__EXPR__TERM_CONTEXT_H
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * This is an abstract class for computing "term context identifiers". A term
@@ -163,6 +163,6 @@ class PolarityTermContext : public TermContext
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

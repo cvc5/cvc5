@@ -14,16 +14,18 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 
-class QuantifiersEngine;
+class QuantifiersState;
+class TermRegistry;
 
 namespace inst {
 
@@ -51,10 +53,8 @@ namespace inst {
  *
  */
 class CandidateGenerator {
-protected:
-  QuantifiersEngine* d_qe;
-public:
-  CandidateGenerator( QuantifiersEngine* qe ) : d_qe( qe ){}
+ public:
+  CandidateGenerator(QuantifiersState& qs, TermRegistry& tr);
   virtual ~CandidateGenerator(){}
   /** reset instantiation round
    *
@@ -70,10 +70,15 @@ public:
   virtual void reset( Node eqc ) = 0;
   /** get the next candidate */
   virtual Node getNextCandidate() = 0;
-public:
- /** is n a legal candidate? */
- bool isLegalCandidate(Node n);
-};/* class CandidateGenerator */
+  /** is n a legal candidate? */
+  bool isLegalCandidate(Node n);
+
+ protected:
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qs;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
+};
 
 /* the default candidate generator class
  *
@@ -88,7 +93,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   friend class CandidateGeneratorQEDisequal;
 
  public:
-  CandidateGeneratorQE(QuantifiersEngine* qe, Node pat);
+  CandidateGeneratorQE(QuantifiersState& qs, TermRegistry& tr, Node pat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -142,7 +147,7 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
    * mpat is an equality that we are matching to equalities in the equivalence
    * class of false
    */
-  CandidateGeneratorQELitDeq(QuantifiersEngine* qe, Node mpat);
+  CandidateGeneratorQELitDeq(QuantifiersState& qs, TermRegistry& tr, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -178,7 +183,7 @@ class CandidateGeneratorQEAll : public CandidateGenerator
   bool d_firstTime;
 
  public:
-  CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
+  CandidateGeneratorQEAll(QuantifiersState& qs, TermRegistry& tr, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -196,7 +201,9 @@ class CandidateGeneratorQEAll : public CandidateGenerator
 class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorConsExpand(QuantifiersEngine* qe, Node mpat);
+  CandidateGeneratorConsExpand(QuantifiersState& qs,
+                               TermRegistry& tr,
+                               Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -216,7 +223,7 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 class CandidateGeneratorSelector : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorSelector(QuantifiersEngine* qe, Node mpat);
+  CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /**
@@ -233,8 +240,9 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
   Node d_ufOp;
 };
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */

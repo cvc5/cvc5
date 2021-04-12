@@ -18,6 +18,7 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -25,8 +26,9 @@
 
 #include "main/main.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
@@ -61,16 +63,20 @@ CommandExecutor::~CommandExecutor()
   d_solver.reset(nullptr);
 }
 
-void CommandExecutor::flushStatistics(std::ostream& out) const
+void CommandExecutor::printStatistics(std::ostream& out) const
 {
-  // SmtEngine + node manager flush statistics is part of the call below
-  getSmtEngine()->flushStatistics(out);
+  if (d_options.getStatistics())
+  {
+    getSmtEngine()->printStatistics(out);
+  }
 }
 
-void CommandExecutor::safeFlushStatistics(int fd) const
+void CommandExecutor::printStatisticsSafe(int fd) const
 {
-  // SmtEngine + node manager flush statistics is part of the call below
-  getSmtEngine()->safeFlushStatistics(fd);
+  if (d_options.getStatistics())
+  {
+    getSmtEngine()->printStatisticsSafe(fd);
+  }
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -103,10 +109,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  if (d_options.getStatistics())
-  {
-    flushStatistics(*d_options.getErr());
-  }
+  printStatistics(*d_options.getErr());
   /* We have to keep options passed via CL on reset. These options are stored
    * in CommandExecutor::d_options (populated and created in the driver), and
    * CommandExecutor::d_options only contains *these* options since the
@@ -144,7 +147,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
   if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
     std::ostringstream ossCurStats;
-    flushStatistics(ossCurStats);
+    printStatistics(ossCurStats);
     std::ostream& err = *d_options.getErr();
     printStatsIncremental(err, d_lastStatistics, ossCurStats.str());
     d_lastStatistics = ossCurStats.str();
@@ -280,56 +283,13 @@ void printStatsIncremental(std::ostream& out,
   }
 }
 
-void CommandExecutor::printStatsFilterZeros(std::ostream& out,
-                                            const std::string& statsString) {
-  // read each line, if a number, check zero and skip if so
-  // Stat are assumed to one-per line: "<statName>, <statValue>"
-
-  std::istringstream iss(statsString);
-  std::string statName, statValue;
-
-  std::getline(iss, statName, ',');
-
-  while (!iss.eof())
-  {
-    std::getline(iss, statValue, '\n');
-
-    bool skip = false;
-    try
-    {
-      double dval = std::stod(statValue);
-      skip = (dval == 0.0);
-    }
-    // Value can not be converted, don't skip
-    catch (const std::invalid_argument&) {}
-    catch (const std::out_of_range&) {}
-
-    skip = skip || (statValue == " \"0\"" || statValue == " \"[]\"");
-
-    if (!skip)
-    {
-      out << statName << "," << statValue << std::endl;
-    }
-
-    std::getline(iss, statName, ',');
-  }
-}
-
 void CommandExecutor::flushOutputStreams() {
-  if(d_options.getStatistics()) {
-    if(d_options.getStatsHideZeros() == false) {
-      flushStatistics(*(d_options.getErr()));
-    } else {
-      std::ostringstream ossStats;
-      flushStatistics(ossStats);
-      printStatsFilterZeros(*(d_options.getErr()), ossStats.str());
-    }
-  }
+  printStatistics(*(d_options.getErr()));
 
   // make sure out and err streams are flushed too
   d_options.flushOut();
   d_options.flushErr();
 }
 
-}/* CVC4::main namespace */
-}/* CVC4 namespace */
+}  // namespace main
+}  // namespace cvc5

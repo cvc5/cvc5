@@ -17,10 +17,10 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__LISTENER_H
-#define CVC4__LISTENER_H
+#ifndef CVC5__LISTENER_H
+#define CVC5__LISTENER_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Listener interface class.
@@ -37,6 +37,6 @@ class Listener
   virtual void notify() = 0;
 };
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__LISTENER_H */
+#endif /* CVC5__LISTENER_H */

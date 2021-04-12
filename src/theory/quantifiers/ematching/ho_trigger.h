@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H
-#define CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
+#define CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
 
 #include <map>
 #include <unordered_set>
@@ -25,8 +25,9 @@
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/ematching/trigger.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 class Trigger;
@@ -89,19 +90,16 @@ class Trigger;
  */
 class HigherOrderTrigger : public Trigger
 {
-  friend class Trigger;
-
- private:
-  HigherOrderTrigger(QuantifiersEngine* qe,
-                     quantifiers::QuantifiersState& qs,
-                     quantifiers::QuantifiersInferenceManager& qim,
-                     quantifiers::QuantifiersRegistry& qr,
+ public:
+  HigherOrderTrigger(QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim,
+                     QuantifiersRegistry& qr,
+                     TermRegistry& tr,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);
   virtual ~HigherOrderTrigger();
 
- public:
   /** Collect higher order var apply terms
    *
    * Collect all top-level HO_APPLY terms in n whose head is a variable x in
@@ -222,23 +220,23 @@ class HigherOrderTrigger : public Trigger
 
   /** higher-order pattern unification algorithm
    *
-  * Sends an instantiation that is equivalent to m via
-  * d_quantEngine->addInstantiation(...),
-  * based on Huet's algorithm.
-  *
-  * This is a helper function of sendInstantiation( m ) above.
-  *
-  * var_index is the index of the variable in m that we are currently processing
-  *   i.e. we are processing the var_index^{th} higher-order variable.
-  *
-  * For example, say we are processing the match from (EX4) above.
-  *   when var_index = 0,1, we are processing possibilities for
-  *    instantiation of f1,f2 respectively.
-  */
+   * Sends an instantiation that is equivalent to m via
+   * Instantiate::addInstantiation(...),
+   * based on Huet's algorithm.
+   *
+   * This is a helper function of sendInstantiation( m ) above.
+   *
+   * var_index is the index of the variable in m that we are currently
+   * processing i.e. we are processing the var_index^{th} higher-order variable.
+   *
+   * For example, say we are processing the match from (EX4) above.
+   *   when var_index = 0,1, we are processing possibilities for
+   *    instantiation of f1,f2 respectively.
+   */
   bool sendInstantiation(std::vector<Node>& m, size_t var_index);
   /** higher-order pattern unification algorithm
    * Sends an instantiation that is equivalent to m via
-   * d_quantEngine->addInstantiation(...).
+   * Instantiate::addInstantiation(...).
    * This is a helper function of sendInstantiation( m, var_index ) above.
    *
    * var_index is the index of the variable in m that we are currently
@@ -274,8 +272,9 @@ class HigherOrderTrigger : public Trigger
                             bool arg_changed);
 };
 
-} /* CVC4::theory::inst namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H */

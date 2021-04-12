@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_ITERATOR_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_ITERATOR_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_ITERATOR_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_ITERATOR_H
 
 #include "expr/node.h"
 #include "theory/uf/equality_engine_types.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -79,6 +79,6 @@ class EqClassIterator
 
 }  // Namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5
 
 #endif

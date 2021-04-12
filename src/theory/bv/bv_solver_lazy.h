@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_LAZY_H
-#define CVC4__THEORY__BV__BV_SOLVER_LAZY_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_LAZY_H
+#define CVC5__THEORY__BV__BV_SOLVER_LAZY_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -28,7 +28,7 @@
 #include "theory/bv/theory_bv.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -97,7 +97,7 @@ class BVSolverLazy : public BVSolver
 
   TrustNode ppRewrite(TNode t) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
 
@@ -229,6 +229,6 @@ class BVSolverLazy : public BVSolver
 }  // namespace bv
 }  // namespace theory
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_SOLVER_LAZY_H */
+#endif /* CVC5__THEORY__BV__BV_SOLVER_LAZY_H */

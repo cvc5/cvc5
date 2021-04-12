@@ -16,7 +16,7 @@
 
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 AbstractValues::AbstractValues(NodeManager* nm)
@@ -52,4 +52,4 @@ Node AbstractValues::mkAbstractValue(TNode n)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

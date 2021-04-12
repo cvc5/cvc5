@@ -15,14 +15,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DECISION_STRATEGY__H
-#define CVC4__THEORY__DECISION_STRATEGY__H
+#ifndef CVC5__THEORY__DECISION_STRATEGY__H
+#define CVC5__THEORY__DECISION_STRATEGY__H
 
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -140,6 +140,6 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DECISION_STRATEGY__H */
+#endif /* CVC5__THEORY__DECISION_STRATEGY__H */

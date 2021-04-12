@@ -26,13 +26,13 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
     : Exception(message), d_node(new Node(node))
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
@@ -48,7 +48,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
     string ssstring = ss.str();
     current->setContents(ssstring.c_str());
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
@@ -110,4 +110,4 @@ bool NodeTemplate<ref_count>::isConst() const {
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SAT_PROOF_MANAGER_H
-#define CVC4__SAT_PROOF_MANAGER_H
+#ifndef CVC5__SAT_PROOF_MANAGER_H
+#define CVC5__SAT_PROOF_MANAGER_H
 
 #include "context/cdhashset.h"
 #include "expr/buffered_proof_generator.h"
@@ -28,7 +28,7 @@ namespace Minisat {
 class Solver;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -561,7 +561,8 @@ class SatProofManager
   /** The proof generator for resolution chains */
   BufferedProofGenerator d_resChainPg;
 
-  /** The false node */
+  /** The true/false nodes */
+  Node d_true;
   Node d_false;
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
@@ -587,6 +588,6 @@ class SatProofManager
 }; /* class SatProofManager */
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SAT_PROOF_MANAGER_H */
+#endif /* CVC5__SAT_PROOF_MANAGER_H */

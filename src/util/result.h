@@ -16,15 +16,15 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RESULT_H
-#define CVC4__RESULT_H
+#ifndef CVC5__RESULT_H
+#define CVC5__RESULT_H
 
 #include <iosfwd>
 #include <string>
 
 #include "options/language.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Result;
 
@@ -160,6 +160,6 @@ bool operator==(enum Result::Entailment e, const Result& r);
 bool operator!=(enum Result::Sat s, const Result& r);
 bool operator!=(enum Result::Entailment e, const Result& r);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__RESULT_H */
+#endif /* CVC5__RESULT_H */

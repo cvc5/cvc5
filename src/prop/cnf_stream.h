@@ -22,8 +22,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CNF_STREAM_H
-#define CVC4__PROP__CNF_STREAM_H
+#ifndef CVC5__PROP__CNF_STREAM_H
+#define CVC5__PROP__CNF_STREAM_H
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
@@ -34,7 +34,7 @@
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 
@@ -318,6 +318,6 @@ class CnfStream {
 }; /* class CnfStream */
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PROP__CNF_STREAM_H */
+#endif /* CVC5__PROP__CNF_STREAM_H */

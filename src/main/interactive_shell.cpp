@@ -35,7 +35,7 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif   /* HAVE_LIBEDITLINE */
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
@@ -49,7 +49,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace parser;
 using namespace language;
@@ -261,7 +261,7 @@ restart:
     if (!d_usingEditline)
     {
       /* Extract the newline delimiter from the stream too */
-      int c CVC4_UNUSED = d_in.get();
+      int c CVC5_UNUSED = d_in.get();
       Assert(c == '\n');
       Debug("interactive") << "Next char is '" << (char)c << "'" << endl
                            << flush;
@@ -432,4 +432,4 @@ char* commandGenerator(const char* text, int state) {
 
 #endif /* HAVE_LIBEDITLINE */
 
-}/* CVC4 namespace */
+}  // namespace cvc5

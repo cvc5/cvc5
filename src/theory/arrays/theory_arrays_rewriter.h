@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -27,7 +27,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -501,8 +501,8 @@ class TheoryArraysRewriter : public TheoryRewriter
 
 }; /* class TheoryArraysRewriter */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */

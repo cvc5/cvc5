@@ -12,8 +12,8 @@
  ** \brief Common data shared by multiple checks
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
-#define CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#define CVC5__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
 
 #include <vector>
 
@@ -21,7 +21,7 @@
 #include "expr/proof_set.h"
 #include "theory/arith/nl/ext/monomial.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 
@@ -91,6 +91,6 @@ struct ExtState
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

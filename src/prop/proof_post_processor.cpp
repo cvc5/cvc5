@@ -17,7 +17,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 ProofPostprocessCallback::ProofPostprocessCallback(
@@ -29,6 +29,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(
 void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
   bool result = pn->getRule() == PfRule::ASSUME
@@ -105,4 +106,4 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

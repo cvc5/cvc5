@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__TYPE_NODE_H
-#define CVC4__TYPE_NODE_H
+#ifndef CVC5__TYPE_NODE_H
+#define CVC5__TYPE_NODE_H
 
 #include <iostream>
 #include <string>
@@ -32,14 +32,14 @@
 #include "expr/metakind.h"
 #include "util/cardinality.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class NodeManager;
 class DType;
 
 namespace expr {
   class NodeValue;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 /**
  * Encapsulation of an NodeValue pointer for Types. The reference count is
@@ -77,7 +77,6 @@ private:
 
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
   /**
@@ -604,12 +603,6 @@ public:
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
-  /** Is this a symbolic expression type? */
-  bool isSExpr() const;
-
-  /** Get the constituent types of a symbolic expression type */
-  std::vector<TypeNode> getSExprTypes() const;
-
   /** Is this a regexp type */
   bool isRegExp() const;
 
@@ -755,11 +748,11 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
 
 typedef TypeNode::HashFunction TypeNodeHashFunction;
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 #include "expr/node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
@@ -803,7 +796,7 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
@@ -866,7 +859,7 @@ template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
@@ -875,7 +868,7 @@ template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
@@ -883,7 +876,7 @@ hasAttribute(const AttrKind&) const {
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
@@ -892,7 +885,7 @@ template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
@@ -1007,46 +1000,6 @@ inline TypeNode TypeNode::getRangeType() const {
   return (*this)[getNumChildren() - 1];
 }
 
-/** Is this a symbolic expression type? */
-inline bool TypeNode::isSExpr() const {
-  return getKind() == kind::SEXPR_TYPE;
-}
-
-/** Is this a floating-point type */
-inline bool TypeNode::isFloatingPoint() const {
-  return getKind() == kind::FLOATINGPOINT_TYPE;
-}
-
-/** Is this a bit-vector type */
-inline bool TypeNode::isBitVector() const {
-  return getKind() == kind::BITVECTOR_TYPE;
-}
-
-/** Is this a datatype type */
-inline bool TypeNode::isDatatype() const {
-  return getKind() == kind::DATATYPE_TYPE || getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-/** Is this a parametric datatype type */
-inline bool TypeNode::isParametricDatatype() const {
-  return getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-/** Is this a constructor type */
-inline bool TypeNode::isConstructor() const {
-  return getKind() == kind::CONSTRUCTOR_TYPE;
-}
-
-/** Is this a selector type */
-inline bool TypeNode::isSelector() const {
-  return getKind() == kind::SELECTOR_TYPE;
-}
-
-/** Is this a tester type */
-inline bool TypeNode::isTester() const {
-  return getKind() == kind::TESTER_TYPE;
-}
-
 /** Is this a floating-point type of with <code>exp</code> exponent bits
     and <code>sig</code> significand bits */
 inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
@@ -1079,7 +1032,7 @@ inline unsigned TypeNode::getBitVectorSize() const {
   return getConst<BitVectorSize>();
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1113,8 +1066,8 @@ static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

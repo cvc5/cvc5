@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__INFERENCE_H
-#define CVC4__THEORY__DATATYPES__INFERENCE_H
+#ifndef CVC5__THEORY__DATATYPES__INFERENCE_H
+#define CVC5__THEORY__DATATYPES__INFERENCE_H
 
 #include "expr/node.h"
 #include "theory/inference_id.h"
 #include "theory/theory_inference.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -69,6 +69,6 @@ class DatatypesInference : public SimpleTheoryInternalFact
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

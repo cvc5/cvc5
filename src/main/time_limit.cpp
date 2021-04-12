@@ -58,7 +58,7 @@
 
 #include "signal_handlers.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 #if HAVE_SETITIMER
@@ -133,4 +133,4 @@ TimeLimit install_time_limit(const Options& opts)
 }
 
 }  // namespace main
-}  // namespace CVC4
+}  // namespace cvc5

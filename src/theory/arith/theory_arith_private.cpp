@@ -74,9 +74,9 @@
 #include "util/statistics_registry.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -113,6 +113,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_diseqQueue(c, false),
       d_currentPropagationList(),
       d_learnedBounds(c),
+      d_preregisteredNodes(u),
       d_partialModel(c, DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
@@ -171,11 +172,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_previousStatus(Result::SAT_UNKNOWN),
       d_statistics()
 {
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_checker.registerTo(pc);
-  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
@@ -217,7 +213,7 @@ static void drop( ConstraintCPVec& v, ConstraintP con){
 
 
 static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& pos, const ConstraintCPVec& neg){
-  unsigned posPos CVC4_UNUSED = pos.size();
+  unsigned posPos CVC5_UNUSED = pos.size();
   for(unsigned i = 0, N = pos.size(); i < N; ++i){
     if(pos[i] == c){
       posPos = i;
@@ -227,7 +223,7 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   }
   Assert(posPos < pos.size());
   ConstraintP negc = c->getNegation();
-  unsigned negPos CVC4_UNUSED = neg.size();
+  unsigned negPos CVC5_UNUSED = neg.size();
   for(unsigned i = 0, N = neg.size(); i < N; ++i){
     if(neg[i] == negc){
       negPos = i;
@@ -243,7 +239,7 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   // Assert(uppos < upconf.getNumChildren());
   // Assert(equalUpToNegation(dnconf[dnpos], upconf[uppos]));
 
-  // NodeBuilder<> nb(kind::AND);
+  // NodeBuilder nb(kind::AND);
   // dropPosition(nb, dnconf, dnpos);
   // dropPosition(nb, upconf, uppos);
   // return safeConstructNary(nb);
@@ -1200,13 +1196,12 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
-void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
   d_learner.staticLearning(n, learned);
 }
-
-
 
 ArithVar TheoryArithPrivate::findShortestBasicRow(ArithVar variable){
   ArithVar bestBasic = ARITHVAR_SENTINEL;
@@ -1299,65 +1294,6 @@ void TheoryArithPrivate::cautiousSetupPolynomial(const Polynomial& p){
   }
 }
 
-Node TheoryArithPrivate::axiomIteForTotalDivision(Node div_tot){
-  Assert(div_tot.getKind() == DIVISION_TOTAL);
-
-  // Inverse of multiplication axiom:
-  //   (for all ((n Real) (d Real))
-  //    (ite (= d 0)
-  //     (= (DIVISION_TOTAL n d) 0)
-  //     (= (* d (DIVISION_TOTAL n d)) n)))
-
-
-  Polynomial n = Polynomial::parsePolynomial(div_tot[0]);
-  Polynomial d = Polynomial::parsePolynomial(div_tot[1]);
-  Polynomial div_tot_p = Polynomial::parsePolynomial(div_tot);
-
-  Comparison invEq = Comparison::mkComparison(EQUAL, n, d * div_tot_p);
-  Comparison zeroEq = Comparison::mkComparison(EQUAL, div_tot_p, Polynomial::mkZero());
-  Node dEq0 = (d.getNode()).eqNode(mkRationalNode(0));
-  Node ite = dEq0.iteNode(zeroEq.getNode(), invEq.getNode());
-
-  return ite;
-}
-
-Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
-  Kind k = int_div_like.getKind();
-  Assert(k == INTS_DIVISION_TOTAL || k == INTS_MODULUS_TOTAL);
-
-  // See the discussion of integer division axioms above.
-
-  Polynomial n = Polynomial::parsePolynomial(int_div_like[0]);
-  Polynomial d = Polynomial::parsePolynomial(int_div_like[1]);
-
-  NodeManager* currNM = NodeManager::currentNM();
-  Node zero = mkRationalNode(0);
-
-  Node q = (k == INTS_DIVISION_TOTAL) ? int_div_like : currNM->mkNode(INTS_DIVISION_TOTAL, n.getNode(), d.getNode());
-  Node r = (k == INTS_MODULUS_TOTAL) ? int_div_like : currNM->mkNode(INTS_MODULUS_TOTAL, n.getNode(), d.getNode());
-
-  Node dEq0 = (d.getNode()).eqNode(zero);
-  Node qEq0 = q.eqNode(zero);
-  Node rEq0 = r.eqNode(zero);
-
-  Polynomial rp = Polynomial::parsePolynomial(r);
-  Polynomial qp = Polynomial::parsePolynomial(q);
-
-  Node abs_d = (d.isConstant()) ?
-    d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs");
-
-  Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();
-  Node leq0 = currNM->mkNode(LEQ, zero, r);
-  Node leq1 = currNM->mkNode(LT, r, abs_d);
-
-  Node andE = currNM->mkNode(AND, eq, leq0, leq1);
-  Node defDivMode = dEq0.iteNode(qEq0.andNode(rEq0), andE);
-  Node lem = abs_d.getMetaKind () == metakind::VARIABLE ?
-    defDivMode.andNode(d.makeAbsCondition(Variable(abs_d))) : defDivMode;
-
-  return lem;
-}
-
 
 void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
   Assert(!poly.containsConstant());
@@ -1438,6 +1374,8 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
+
+  d_preregisteredNodes.insert(n);
 
   try {
     if(isRelationOperator(n.getKind())){
@@ -1852,21 +1790,27 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
  *
  * If there is no such variable, returns ARITHVAR_SENTINEL;
  */
-ArithVar TheoryArithPrivate::nextIntegerViolatation(bool assumeBounds) const {
+ArithVar TheoryArithPrivate::nextIntegerViolation(bool assumeBounds) const
+{
   ArithVar numVars = d_partialModel.getNumberOfVariables();
   ArithVar v = d_nextIntegerCheckVar;
-  if(numVars > 0){
+  if (numVars > 0)
+  {
     const ArithVar rrEnd = d_nextIntegerCheckVar;
-    do {
-      if(isIntegerInput(v)){
-        if(!d_partialModel.integralAssignment(v)){
-          if( assumeBounds || d_partialModel.assignmentIsConsistent(v) ){
+    do
+    {
+      if (isIntegerInput(v))
+      {
+        if (!d_partialModel.integralAssignment(v))
+        {
+          if (assumeBounds || d_partialModel.assignmentIsConsistent(v))
+          {
             return v;
           }
         }
       }
-      v= (1 + v == numVars) ? 0 : (1 + v);
-    }while(v != rrEnd);
+      v = (1 + v == numVars) ? 0 : (1 + v);
+    } while (v != rrEnd);
   }
   return ARITHVAR_SENTINEL;
 }
@@ -1875,20 +1819,24 @@ ArithVar TheoryArithPrivate::nextIntegerViolatation(bool assumeBounds) const {
  * Checks the set of integer variables I to see if each variable
  * in I has an integer assignment.
  */
-bool TheoryArithPrivate::hasIntegerModel(){
-  ArithVar next = nextIntegerViolatation(true);
-  if(next != ARITHVAR_SENTINEL){
+bool TheoryArithPrivate::hasIntegerModel()
+{
+  ArithVar next = nextIntegerViolation(true);
+  if (next != ARITHVAR_SENTINEL)
+  {
     d_nextIntegerCheckVar = next;
-    if(Debug.isOn("arith::hasIntegerModel")){
+    if (Debug.isOn("arith::hasIntegerModel"))
+    {
       Debug("arith::hasIntegerModel") << "has int model? " << next << endl;
       d_partialModel.printModel(next, Debug("arith::hasIntegerModel"));
     }
     return false;
-  }else{
+  }
+  else
+  {
     return true;
   }
 }
-
 
 Node flattenAndSort(Node n){
   Kind k = n.getKind();
@@ -2257,7 +2205,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
 
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   Debug("arith::toSumNode") << "toSumNode() begin" << endl;
-  NodeBuilder<> nb(kind::PLUS);
+  NodeBuilder nb(kind::PLUS);
   NodeManager* nm = NodeManager::currentNM();
   DenseMap<Rational>::const_iterator iter, end;
   iter = sum.begin(), end = sum.end();
@@ -2425,8 +2373,8 @@ struct SizeOrd {
 
 void TheoryArithPrivate::subsumption(
     std::vector<ConstraintCPVec> &confs) const {
-  int checks CVC4_UNUSED = 0;
-  int subsumed CVC4_UNUSED = 0;
+  int checks CVC5_UNUSED = 0;
+  int subsumed CVC5_UNUSED = 0;
 
   for (size_t i = 0, N = confs.size(); i < N; ++i) {
     ConstraintCPVec &conf = confs[i];
@@ -2953,9 +2901,12 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
           importSolution(mipSolution);
           solveRelaxationOrPanic(effortLevel);
 
-          if(d_qflraStatus == Result::SAT){
-            if(!anyConflict()){
-              if(ARITHVAR_SENTINEL == nextIntegerViolatation(false)){
+          if (d_qflraStatus == Result::SAT)
+          {
+            if (!anyConflict())
+            {
+              if (ARITHVAR_SENTINEL == nextIntegerViolation(false))
+              {
                 ++(d_statistics.d_solveIntModelsSuccessful);
               }
             }
@@ -3078,21 +3029,26 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   }
 }
 
-bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
+bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
+{
   // if at this point the linear relaxation is still unknown,
   //  attempt to branch an integer variable as a last ditch effort on full check
-  if(d_qflraStatus == Result::SAT_UNKNOWN){
+  if (d_qflraStatus == Result::SAT_UNKNOWN)
+  {
     d_qflraStatus = selectSimplex(true).findModel(false);
   }
 
-  if(Theory::fullEffort(effortLevel)  && d_qflraStatus == Result::SAT_UNKNOWN){
-    ArithVar canBranch = nextIntegerViolatation(false);
-    if(canBranch != ARITHVAR_SENTINEL){
+  if (Theory::fullEffort(effortLevel) && d_qflraStatus == Result::SAT_UNKNOWN)
+  {
+    ArithVar canBranch = nextIntegerViolation(false);
+    if (canBranch != ARITHVAR_SENTINEL)
+    {
       ++d_statistics.d_panicBranches;
       TrustNode branch = branchIntegerVariable(canBranch);
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
-      if(!isSatLiteral(rwbranch)){
+      if (!isSatLiteral(rwbranch))
+      {
         d_approxCuts.push_back(branch);
         return true;
       }
@@ -3380,7 +3336,7 @@ void TheoryArithPrivate::preNotifyFact(TNode atom, bool pol, TNode fact)
   ConstraintP curr = constraintFromFactQueue(fact);
   if (curr != NullConstraint)
   {
-    bool res CVC4_UNUSED = assertionCases(curr);
+    bool res CVC5_UNUSED = assertionCases(curr);
     Assert(!res || anyConflict());
   }
 }
@@ -3394,7 +3350,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       d_learnedBounds.pop();
       Debug("arith::learned") << curr << endl;
 
-      bool res CVC4_UNUSED = assertionCases(curr);
+      bool res CVC5_UNUSED = assertionCases(curr);
       Assert(!res || anyConflict());
 
       if(anyConflict()){ break; }
@@ -4720,7 +4676,7 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 }
 
 Node flattenImplication(Node imp){
-  NodeBuilder<> nb(kind::OR);
+  NodeBuilder nb(kind::OR);
   std::unordered_set<Node, NodeHashFunction> included;
   Node left = imp[0];
   Node right = imp[1];
@@ -4808,7 +4764,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
-          NodeBuilder<> nb;
+          NodeBuilder nb;
           conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
         }
         // Collect the farkas coefficients, as nodes.
@@ -5002,16 +4958,6 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
         setToMin(secDir * dm.sgn(), bestSecDiff, tmp);
       }
       break;
-    case inferbounds::Simplex:
-      {
-        // primDir * diffm * diff < c or primDir * diffm * diff > c
-        tmp = entailmentCheckSimplex(primDir * dm.sgn(), dp, ibalg, out.getSimplexSideEffects());
-        setToMin(primDir * dm.sgn(), bestPrimDiff, tmp);
-
-        tmp = entailmentCheckSimplex(secDir * dm.sgn(), dp, ibalg, out.getSimplexSideEffects());
-        setToMin(secDir * dm.sgn(), bestSecDiff, tmp);
-      }
-      break;
     default:
       Unhandled();
     }
@@ -5089,7 +5035,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
       }
       // intentionally fall through to DISTINCT case!
       // entailments of negations are eager exit cases for EQUAL
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     case DISTINCT:
       if(!bestPrimDiff.first.isNull()){
         // primDir [dm * dp] <= primDir * dm * U < primDir * sep
@@ -5313,7 +5259,7 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
 
   Polynomial p = Polynomial::parsePolynomial(tp);
   for(Polynomial::iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
@@ -5342,414 +5288,11 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   tmp.first = nb;
 }
 
-std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sgn, TNode tp, const inferbounds::InferBoundAlgorithm& param, InferBoundsResult& result){
-
-  if((sgn == 0) || !(d_qflraStatus == Result::SAT && d_errorSet.noSignals()) || tp.getKind() == CONST_RATIONAL){
-    return make_pair(Node::null(), DeltaRational());
-  }
-
-  Assert(d_qflraStatus == Result::SAT);
-  Assert(d_errorSet.noSignals());
-  Assert(param.getAlgorithm() == inferbounds::Simplex);
-
-  // TODO Move me into a new file
-
-  enum ResultState {Unset, Inferred, NoBound, ReachedThreshold, ExhaustedRounds};
-  ResultState finalState = Unset;
-
-  const int maxRounds =
-      param.getSimplexRounds().just() ? param.getSimplexRounds().value() : -1;
-
-  Maybe<DeltaRational> threshold;
-  // TODO: get this from the parameters
-
-  // setup term
-  Polynomial p = Polynomial::parsePolynomial(tp);
-  vector<ArithVar> variables;
-  vector<Rational> coefficients;
-  asVectors(p, coefficients, variables);
-  if(sgn < 0){
-    for(size_t i=0, N=coefficients.size(); i < N; ++i){
-      coefficients[i] = -coefficients[i];
-    }
-  }
-  // implicitly an upperbound
-  Node skolem = mkRealSkolem("tmpVar$$");
-  ArithVar optVar = requestArithVar(skolem, false, true);
-  d_tableau.addRow(optVar, coefficients, variables);
-  RowIndex ridx = d_tableau.basicToRowIndex(optVar);
-
-  DeltaRational newAssignment = d_linEq.computeRowValue(optVar, false);
-  d_partialModel.setAssignment(optVar, newAssignment);
-  d_linEq.trackRowIndex(d_tableau.basicToRowIndex(optVar));
-
-  // Setup simplex
-  d_partialModel.stopQueueingBoundCounts();
-  UpdateTrackingCallback utcb(&d_linEq);
-  d_partialModel.processBoundsQueue(utcb);
-  d_linEq.startTrackingBoundCounts();
-
-  // maximize optVar via primal Simplex
-  int rounds = 0;
-  while(finalState == Unset){
-    ++rounds;
-    if(maxRounds >= 0 && rounds > maxRounds){
-      finalState = ExhaustedRounds;
-      break;
-    }
-
-    // select entering by bland's rule
-    // TODO improve upon bland's
-    ArithVar entering = ARITHVAR_SENTINEL;
-    const Tableau::Entry* enteringEntry = NULL;
-    for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
-      const Tableau::Entry& entry = *ri;
-      ArithVar v = entry.getColVar();
-      if(v != optVar){
-        int sgn1 = entry.getCoefficient().sgn();
-        Assert(sgn1 != 0);
-        bool candidate = (sgn1 > 0)
-                             ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
-                             : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
-        if(candidate && (entering == ARITHVAR_SENTINEL || entering > v)){
-          entering = v;
-          enteringEntry = &entry;
-        }
-      }
-    }
-    if(entering == ARITHVAR_SENTINEL){
-      finalState = Inferred;
-      break;
-    }
-    Assert(entering != ARITHVAR_SENTINEL);
-    Assert(enteringEntry != NULL);
-
-    int esgn = enteringEntry->getCoefficient().sgn();
-    Assert(esgn != 0);
-
-    // select leaving and ratio
-    ArithVar leaving = ARITHVAR_SENTINEL;
-    DeltaRational minRatio;
-    const Tableau::Entry* pivotEntry = NULL;
-
-    // Special case check the upper/lowerbound on entering
-    ConstraintP cOnEntering = (esgn > 0)
-      ? d_partialModel.getUpperBoundConstraint(entering)
-      : d_partialModel.getLowerBoundConstraint(entering);
-    if(cOnEntering != NullConstraint){
-      leaving = entering;
-      minRatio = d_partialModel.getAssignment(entering) - cOnEntering->getValue();
-    }
-    for(Tableau::ColIterator ci = d_tableau.colIterator(entering); !ci.atEnd(); ++ci){
-      const Tableau::Entry& centry = *ci;
-      ArithVar basic = d_tableau.rowIndexToBasic(centry.getRowIndex());
-      int csgn = centry.getCoefficient().sgn();
-      int basicDir = csgn * esgn;
-
-      ConstraintP bound = (basicDir > 0)
-        ? d_partialModel.getUpperBoundConstraint(basic)
-        : d_partialModel.getLowerBoundConstraint(basic);
-      if(bound != NullConstraint){
-        DeltaRational diff = d_partialModel.getAssignment(basic) - bound->getValue();
-        DeltaRational ratio = diff/(centry.getCoefficient());
-        bool selected = false;
-        if(leaving == ARITHVAR_SENTINEL){
-          selected = true;
-        }else{
-          int cmp = ratio.compare(minRatio);
-          if((csgn > 0) ? (cmp <= 0) : (cmp >= 0)){
-            selected = (cmp != 0) ||
-              ((leaving != entering) && (basic < leaving));
-          }
-        }
-        if(selected){
-          leaving = basic;
-          minRatio = ratio;
-          pivotEntry = &centry;
-        }
-      }
-    }
-
-
-    if(leaving == ARITHVAR_SENTINEL){
-      finalState = NoBound;
-      break;
-    }else if(leaving == entering){
-      d_linEq.update(entering, minRatio);
-    }else{
-      DeltaRational newLeaving = minRatio * (pivotEntry->getCoefficient());
-      d_linEq.pivotAndUpdate(leaving, entering, newLeaving);
-      // no conflicts clear signals
-      Assert(d_errorSet.noSignals());
-    }
-
-    if(threshold.just()){
-      if (d_partialModel.getAssignment(optVar) >= threshold.value())
-      {
-        finalState = ReachedThreshold;
-        break;
-      }
-    }
-  };
-
-  result = InferBoundsResult(tp, sgn > 0);
-
-  // tear down term
-  switch(finalState){
-  case Inferred:
-    {
-      NodeBuilder<> nb(kind::AND);
-      for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
-        const Tableau::Entry& e =*ri;
-        ArithVar colVar = e.getColVar();
-        if(colVar != optVar){
-          const Rational& q = e.getCoefficient();
-          Assert(q.sgn() != 0);
-          ConstraintP c = (q.sgn() > 0)
-            ? d_partialModel.getUpperBoundConstraint(colVar)
-            : d_partialModel.getLowerBoundConstraint(colVar);
-          c->externalExplainByAssertions(nb);
-        }
-      }
-      Assert(nb.getNumChildren() >= 1);
-      Node exp = (nb.getNumChildren() >= 2) ? (Node) nb : nb[0];
-      result.setBound(d_partialModel.getAssignment(optVar), exp);
-      result.setIsOptimal();
-      break;
-    }
-  case NoBound:
-    break;
-  case ReachedThreshold:
-    result.setReachedThreshold();
-    break;
-  case ExhaustedRounds:
-    result.setBudgetExhausted();
-    break;
-  case Unset:
-  default:
-    Unreachable();
-    break;
-  };
-
-  d_linEq.stopTrackingRowIndex(ridx);
-  d_tableau.removeBasicRow(optVar);
-  releaseArithVar(optVar);
-
-  d_linEq.stopTrackingBoundCounts();
-  d_partialModel.startQueueingBoundCounts();
-
-  if(result.foundBound()){
-    return make_pair(result.getExplanation(), result.getValue());
-  }else{
-    return make_pair(Node::null(), DeltaRational());
-  }
+ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
+{
+  return &d_checker;
 }
 
-// InferBoundsResult TheoryArithPrivate::inferUpperBoundSimplex(TNode t, const
-// inferbounds::InferBoundAlgorithm& param){
-//   Assert(param.findUpperBound());
-
-//   if(!(d_qflraStatus == Result::SAT && d_errorSet.noSignals())){
-//     InferBoundsResult inconsistent;
-//     inconsistent.setInconsistent();
-//     return inconsistent;
-//   }
-
-//   Assert(d_qflraStatus == Result::SAT);
-//   Assert(d_errorSet.noSignals());
-
-//   // TODO Move me into a new file
-
-//   enum ResultState {Unset, Inferred, NoBound, ReachedThreshold, ExhaustedRounds};
-//   ResultState finalState = Unset;
-
-//   int maxRounds = 0;
-//   switch(param.getParamKind()){
-//   case InferBoundsParameters::Unbounded:
-//     maxRounds = -1;
-//     break;
-//   case InferBoundsParameters::NumVars:
-//     maxRounds = d_partialModel.getNumberOfVariables() * param.getSimplexRoundParameter();
-//     break;
-//   case InferBoundsParameters::Direct:
-//     maxRounds = param.getSimplexRoundParameter();
-//     break;
-//   default: maxRounds = 0; break;
-//   }
-
-//   // setup term
-//   Polynomial p = Polynomial::parsePolynomial(t);
-//   vector<ArithVar> variables;
-//   vector<Rational> coefficients;
-//   asVectors(p, coefficients, variables);
-
-//   Node skolem = mkRealSkolem("tmpVar$$");
-//   ArithVar optVar = requestArithVar(skolem, false, true);
-//   d_tableau.addRow(optVar, coefficients, variables);
-//   RowIndex ridx = d_tableau.basicToRowIndex(optVar);
-
-//   DeltaRational newAssignment = d_linEq.computeRowValue(optVar, false);
-//   d_partialModel.setAssignment(optVar, newAssignment);
-//   d_linEq.trackRowIndex(d_tableau.basicToRowIndex(optVar));
-
-//   // Setup simplex
-//   d_partialModel.stopQueueingBoundCounts();
-//   UpdateTrackingCallback utcb(&d_linEq);
-//   d_partialModel.processBoundsQueue(utcb);
-//   d_linEq.startTrackingBoundCounts();
-
-//   // maximize optVar via primal Simplex
-//   int rounds = 0;
-//   while(finalState == Unset){
-//     ++rounds;
-//     if(maxRounds >= 0 && rounds > maxRounds){
-//       finalState = ExhaustedRounds;
-//       break;
-//     }
-
-//     // select entering by bland's rule
-//     // TODO improve upon bland's
-//     ArithVar entering = ARITHVAR_SENTINEL;
-//     const Tableau::Entry* enteringEntry = NULL;
-//     for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx);
-//     !ri.atEnd(); ++ri){
-//       const Tableau::Entry& entry = *ri;
-//       ArithVar v = entry.getColVar();
-//       if(v != optVar){
-//         int sgn = entry.getCoefficient().sgn();
-//         Assert(sgn != 0);
-//         bool candidate = (sgn > 0)
-//           ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
-//           : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
-//         if(candidate && (entering == ARITHVAR_SENTINEL || entering > v)){
-//           entering = v;
-//           enteringEntry = &entry;
-//         }
-//       }
-//     }
-//     if(entering == ARITHVAR_SENTINEL){
-//       finalState = Inferred;
-//       break;
-//     }
-//     Assert(entering != ARITHVAR_SENTINEL);
-//     Assert(enteringEntry != NULL);
-
-//     int esgn = enteringEntry->getCoefficient().sgn();
-//     Assert(esgn != 0);
-
-//     // select leaving and ratio
-//     ArithVar leaving = ARITHVAR_SENTINEL;
-//     DeltaRational minRatio;
-//     const Tableau::Entry* pivotEntry = NULL;
-
-//     // Special case check the upper/lowerbound on entering
-//     ConstraintP cOnEntering = (esgn > 0)
-//       ? d_partialModel.getUpperBoundConstraint(entering)
-//       : d_partialModel.getLowerBoundConstraint(entering);
-//     if(cOnEntering != NullConstraint){
-//       leaving = entering;
-//       minRatio = d_partialModel.getAssignment(entering) - cOnEntering->getValue();
-//     }
-//     for(Tableau::ColIterator ci = d_tableau.colIterator(entering); !ci.atEnd(); ++ci){
-//       const Tableau::Entry& centry = *ci;
-//       ArithVar basic = d_tableau.rowIndexToBasic(centry.getRowIndex());
-//       int csgn = centry.getCoefficient().sgn();
-//       int basicDir = csgn * esgn;
-
-//       ConstraintP bound = (basicDir > 0)
-//         ? d_partialModel.getUpperBoundConstraint(basic)
-//         : d_partialModel.getLowerBoundConstraint(basic);
-//       if(bound != NullConstraint){
-//         DeltaRational diff = d_partialModel.getAssignment(basic) - bound->getValue();
-//         DeltaRational ratio = diff/(centry.getCoefficient());
-//         bool selected = false;
-//         if(leaving == ARITHVAR_SENTINEL){
-//           selected = true;
-//         }else{
-//           int cmp = ratio.compare(minRatio);
-//           if((csgn > 0) ? (cmp <= 0) : (cmp >= 0)){
-//             selected = (cmp != 0) ||
-//               ((leaving != entering) && (basic < leaving));
-//           }
-//         }
-//         if(selected){
-//           leaving = basic;
-//           minRatio = ratio;
-//           pivotEntry = &centry;
-//         }
-//       }
-//     }
-
-//     if(leaving == ARITHVAR_SENTINEL){
-//       finalState = NoBound;
-//       break;
-//     }else if(leaving == entering){
-//       d_linEq.update(entering, minRatio);
-//     }else{
-//       DeltaRational newLeaving = minRatio * (pivotEntry->getCoefficient());
-//       d_linEq.pivotAndUpdate(leaving, entering, newLeaving);
-//       // no conflicts clear signals
-//       Assert(d_errorSet.noSignals());
-//     }
-
-//     if(param.useThreshold()){
-//       if(d_partialModel.getAssignment(optVar) >= param.getThreshold()){
-//         finalState = ReachedThreshold;
-//         break;
-//       }
-//     }
-//   };
-
-//   InferBoundsResult result(t, param.findUpperBound());
-
-//   // tear down term
-//   switch(finalState){
-//   case Inferred:
-//     {
-//       NodeBuilder<> nb(kind::AND);
-//       for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx);
-//       !ri.atEnd(); ++ri){
-//         const Tableau::Entry& e =*ri;
-//         ArithVar colVar = e.getColVar();
-//         if(colVar != optVar){
-//           const Rational& q = e.getCoefficient();
-//           Assert(q.sgn() != 0);
-//           ConstraintP c = (q.sgn() > 0)
-//             ? d_partialModel.getUpperBoundConstraint(colVar)
-//             : d_partialModel.getLowerBoundConstraint(colVar);
-//           c->externalExplainByAssertions(nb);
-//         }
-//       }
-//       Assert(nb.getNumChildren() >= 1);
-//       Node exp = (nb.getNumChildren() >= 2) ? (Node) nb : nb[0];
-//       result.setBound(d_partialModel.getAssignment(optVar), exp);
-//       result.setIsOptimal();
-//       break;
-//     }
-//   case NoBound:
-//     break;
-//   case ReachedThreshold:
-//     result.setReachedThreshold();
-//     break;
-//   case ExhaustedRounds:
-//     result.setBudgetExhausted();
-//     break;
-//   case Unset:
-//   default:
-//     Unreachable();
-//     break;
-//   };
-
-//   d_linEq.stopTrackingRowIndex(ridx);
-//   d_tableau.removeBasicRow(optVar);
-//   releaseArithVar(optVar);
-
-//   d_linEq.stopTrackingBoundCounts();
-//   d_partialModel.startQueueingBoundCounts();
-
-//   return result;
-// }
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__COMBINATION_CARE_GRAPH__H
-#define CVC4__THEORY__COMBINATION_CARE_GRAPH__H
+#ifndef CVC5__THEORY__COMBINATION_CARE_GRAPH__H
+#define CVC5__THEORY__COMBINATION_CARE_GRAPH__H
 
 #include <vector>
 
 #include "theory/combination_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -47,6 +47,6 @@ class CombinationCareGraph : public CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__COMBINATION_DISTRIBUTED__H */

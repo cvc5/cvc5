@@ -18,9 +18,9 @@
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -123,4 +123,4 @@ Node QuantifiersProofRuleChecker::checkInternal(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

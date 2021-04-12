@@ -20,7 +20,7 @@
 #include "theory/model_manager.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 CombinationCareGraph::CombinationCareGraph(
@@ -99,4 +99,4 @@ bool CombinationCareGraph::buildModel()
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

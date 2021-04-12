@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
-#define CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
+#ifndef CVC5__THEORY__BAGS__THEORY_BAGS_REWRITER_H
+#define CVC5__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 
 #include "theory/bags/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -223,6 +223,6 @@ class BagsRewriter : public TheoryRewriter
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H */
+#endif /* CVC5__THEORY__BAGS__THEORY_BAGS_REWRITER_H */

@@ -10,12 +10,6 @@
 ## directory for licensing information.
 ##
 """
-Usage:
-
-    run_regression.py [--enable-proof] [--with-lfsc] [--dump]
-        [--use-skip-return-code] [wrapper] cvc4-binary
-        [benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p]
-
 Runs benchmark and checks for correct exit status and output.
 """
 
@@ -193,11 +187,6 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
 
     cvc4_features, cvc4_disabled_features = get_cvc4_features(cvc4_binary)
 
-    # Disable proof and unsat core checks if CVC4 was not compiled with proofs.
-    if 'proof' not in cvc4_features:
-        check_unsat_cores = False
-        check_proofs = False
-
     basic_command_line_args = []
 
     benchmark_basename = os.path.basename(benchmark_path)
@@ -279,9 +268,9 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
     if expected_exit_status is None:
         expected_exit_status = 0
 
-    if 'CVC4_REGRESSION_ARGS' in os.environ:
+    if 'CVC5_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
-            os.environ['CVC4_REGRESSION_ARGS'])
+            os.environ['CVC5_REGRESSION_ARGS'])
 
     if not check_unsat_cores and ('(get-unsat-core)' in benchmark_content
                             or '(get-unsat-assumptions)' in benchmark_content):
@@ -338,15 +327,15 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             '--no-check-synth-sol' not in all_args and \
             '--sygus-rr' not in all_args and \
             '--check-synth-sol' not in all_args:
-            extra_command_line_args += ['--check-synth-sol']
+            all_args += ['--check-synth-sol']
         if ('sat' in expected_output_lines or \
-            'invalid' in expected_output_lines or \
+            'not_entailed' in expected_output_lines or \
             'unknown' in expected_output_lines) and \
            '--no-debug-check-models' not in all_args and \
            '--no-check-models' not in all_args and \
            '--debug-check-models' not in all_args:
             extra_command_line_args += ['--debug-check-models']
-        if 'unsat' in expected_output_lines or 'valid' in expected_output_lines:
+        if 'unsat' in expected_output_lines or 'entailed' in expected_output_lines:
             if check_unsat_cores and \
                '--no-produce-unsat-cores' not in all_args and \
                '--no-check-unsat-cores' not in all_args and \
@@ -362,7 +351,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         if '--no-check-abducts' not in all_args and \
             '--check-abducts' not in all_args and \
             'get-abduct' in benchmark_content:
-            extra_command_line_args += ['--check-abducts']
+            all_args += ['--check-abducts']
 
         # Create a test case for each extra argument
         for extra_arg in extra_command_line_args:

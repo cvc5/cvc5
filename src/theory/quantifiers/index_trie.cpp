@@ -15,7 +15,7 @@
  **/
 #include "theory/quantifiers/index_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -114,4 +114,4 @@ IndexTrieNode* IndexTrie::addRec(IndexTrieNode* n,
 }
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

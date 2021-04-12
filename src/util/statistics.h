@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__STATISTICS_H
-#define CVC4__STATISTICS_H
+#ifndef CVC5__STATISTICS_H
+#define CVC5__STATISTICS_H
 
 #include <iterator>
 #include <ostream>
@@ -29,7 +29,7 @@
 #include "cvc4_export.h"
 #include "util/sexpr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Stat;
 
@@ -127,6 +127,6 @@ public:
 
 }; /* class Statistics */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__STATISTICS_H */
+#endif /* CVC5__STATISTICS_H */

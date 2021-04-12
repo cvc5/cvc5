@@ -28,7 +28,7 @@
 /* Size of buffers used */
 #define BUFFER_SIZE 20
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <>
 void safe_print(int fd, const std::string& msg) {
@@ -214,4 +214,4 @@ void safe_print_right_aligned(int fd, uint64_t i, ssize_t width) {
   }
 }
 
-} /* CVC4 namespace */
+}  // namespace cvc5

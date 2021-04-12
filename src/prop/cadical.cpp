@@ -16,11 +16,11 @@
 
 #include "prop/cadical.h"
 
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 using CadicalLit = int;
@@ -200,6 +200,6 @@ CadicalSolver::Statistics::~Statistics() {
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_CADICAL
+#endif  // CVC5_USE_CADICAL

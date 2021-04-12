@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INST_STRATEGY_E_MATCHING_USER_H
-#define CVC4__INST_STRATEGY_E_MATCHING_USER_H
+#ifndef CVC5__INST_STRATEGY_E_MATCHING_USER_H
+#define CVC5__INST_STRATEGY_E_MATCHING_USER_H
 
 #include <map>
 #include "expr/node.h"
@@ -23,7 +23,7 @@
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -34,10 +34,11 @@ namespace quantifiers {
 class InstStrategyUserPatterns : public InstStrategy
 {
  public:
-  InstStrategyUserPatterns(QuantifiersEngine* qe,
+  InstStrategyUserPatterns(inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr);
+                           QuantifiersRegistry& qr,
+                           TermRegistry& tr);
   ~InstStrategyUserPatterns();
   /** add pattern */
   void addUserPattern(Node q, Node pat);
@@ -63,6 +64,6 @@ class InstStrategyUserPatterns : public InstStrategy
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

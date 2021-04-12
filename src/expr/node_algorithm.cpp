@@ -20,7 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 bool hasSubterm(TNode n, TNode t, bool strict)
@@ -624,7 +624,7 @@ Node substituteCaptureAvoiding(TNode n,
     else if (it->second.isNull())
     {
       // build node
-      NodeBuilder<> nb(curr.getKind());
+      NodeBuilder nb(curr.getKind());
       if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator
@@ -764,4 +764,4 @@ bool match(Node x,
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

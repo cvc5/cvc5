@@ -16,14 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_EAGER_SOLVER_H
-#define CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#ifndef CVC5__THEORY__BV__BV_EAGER_SOLVER_H
+#define CVC5__THEORY__BV__BV_EAGER_SOLVER_H
 
 #include "expr/node.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -60,6 +60,6 @@ class EagerBitblastSolver {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#endif  // CVC5__THEORY__BV__BV_EAGER_SOLVER_H

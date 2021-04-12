@@ -16,21 +16,21 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PRINTER__TPTP_PRINTER_H
-#define CVC4__PRINTER__TPTP_PRINTER_H
+#ifndef CVC5__PRINTER__TPTP_PRINTER_H
+#define CVC5__PRINTER__TPTP_PRINTER_H
 
 #include <iostream>
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace tptp {
 
-class TptpPrinter : public CVC4::Printer
+class TptpPrinter : public cvc5::Printer
 {
  public:
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
@@ -64,6 +64,6 @@ class TptpPrinter : public CVC4::Printer
 
 }  // namespace tptp
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__TPTP_PRINTER_H */
+#endif /* CVC5__PRINTER__TPTP_PRINTER_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
-#define CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
+#define CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
 
 #include <map>
 #include <unordered_set>
@@ -24,7 +24,7 @@
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -70,6 +70,6 @@ class SolutionFilterStrength : public ExprMiner
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H */

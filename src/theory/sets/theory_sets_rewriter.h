@@ -16,12 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H
-#define CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H
+#ifndef CVC5__THEORY__SETS__THEORY_SETS_REWRITER_H
+#define CVC5__THEORY__SETS__THEORY_SETS_REWRITER_H
 
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -77,8 +77,8 @@ private:
   bool checkConstantMembership(TNode elementTerm, TNode setTerm);
 }; /* class TheorySetsRewriter */
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H */
+#endif /* CVC5__THEORY__SETS__THEORY_SETS_REWRITER_H */

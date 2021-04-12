@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TERM_CANONIZE_H
-#define CVC4__EXPR__TERM_CANONIZE_H
+#ifndef CVC5__EXPR__TERM_CANONIZE_H
+#define CVC5__EXPR__TERM_CANONIZE_H
 
 #include <map>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /** TermCanonize
@@ -100,6 +100,6 @@ class TermCanonize
 };
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__TERM_CANONIZE_H */
+#endif /* CVC5__EXPR__TERM_CANONIZE_H */

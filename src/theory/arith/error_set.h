@@ -31,7 +31,7 @@
 #include "util/bin_heap.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -85,10 +85,10 @@ private:
 //
 // typedef FocusSet::handle_type FocusSetHandle;
 
-// typedef CVC4_PB_DS_NAMESPACE::priority_queue<
+// typedef CVC5_PB_DS_NAMESPACE::priority_queue<
 //   ArithVar,
 //   ComparatorPivotRule,
-//   CVC4_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
+//   CVC5_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
 
 // typedef FocusSet::point_iterator FocusSetHandle;
 
@@ -412,6 +412,6 @@ private:
   Statistics d_statistics;
 };
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

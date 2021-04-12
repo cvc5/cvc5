@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_ENGINE_PROOF_GENERATOR_H
-#define CVC4__THEORY_ENGINE_PROOF_GENERATOR_H
+#ifndef CVC5__THEORY_ENGINE_PROOF_GENERATOR_H
+#define CVC5__THEORY_ENGINE_PROOF_GENERATOR_H
 
 #include <memory>
 
@@ -26,7 +26,7 @@
 #include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A simple proof generator class used by the theory engine. This class
@@ -75,6 +75,6 @@ class TheoryEngineProofGenerator : public ProofGenerator
   Node d_false;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY_ENGINE_PROOF_GENERATOR_H */
+#endif /* CVC5__THEORY_ENGINE_PROOF_GENERATOR_H */

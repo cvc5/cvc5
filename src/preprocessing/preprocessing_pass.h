@@ -28,15 +28,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_H
-#define CVC4__PREPROCESSING__PREPROCESSING_PASS_H
+#ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_H
+#define CVC5__PREPROCESSING__PREPROCESSING_PASS_H
 
 #include <string>
 
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -81,6 +81,6 @@ class PreprocessingPass {
 };
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_H */
+#endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_H */

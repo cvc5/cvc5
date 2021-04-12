@@ -18,9 +18,9 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          ProofGenerator* dpg,
@@ -228,4 +228,4 @@ bool LazyCDProof::hasGenerator(Node fact) const
   return it != d_gens.end();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__UNSAT_CORE_MANAGER_H
-#define CVC4__SMT__UNSAT_CORE_MANAGER_H
+#ifndef CVC5__SMT__UNSAT_CORE_MANAGER_H
+#define CVC5__SMT__UNSAT_CORE_MANAGER_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace smt {
 
@@ -67,6 +67,6 @@ class UnsatCoreManager
 }; /* class UnsatCoreManager */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__UNSAT_CORE_MANAGER_H */
+#endif /* CVC5__SMT__UNSAT_CORE_MANAGER_H */

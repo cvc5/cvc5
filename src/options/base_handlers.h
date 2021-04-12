@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BASE_HANDLERS_H
-#define CVC4__BASE_HANDLERS_H
+#ifndef CVC5__BASE_HANDLERS_H
+#define CVC5__BASE_HANDLERS_H
 
 #include <iostream>
 #include <string>
@@ -26,7 +26,7 @@
 
 #include "options/option_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace options {
 
 template <template <class U> class Cmp>
@@ -80,7 +80,7 @@ struct not_equal : public comparator<std::not_equal_to> {
   not_equal(double d) : comparator<std::not_equal_to>(d) {}
 };/* struct not_equal_to */
 
-}/* CVC4::options namespace */
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace cvc5
 
-#endif /* CVC4__BASE_HANDLERS_H */
+#endif /* CVC5__BASE_HANDLERS_H */

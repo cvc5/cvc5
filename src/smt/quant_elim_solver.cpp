@@ -23,10 +23,10 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
@@ -45,6 +45,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
         "Expecting a quantified formula as argument to get-qe.");
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // ensure the body is rewritten
   q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary
@@ -53,7 +54,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                   << q << std::endl;
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
-  Node n_attr = nm->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
+  Node n_attr = sm->mkDummySkolem("qe", t, "Auxiliary variable for qe attr.");
   std::vector<Node> node_values;
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);
@@ -99,21 +100,11 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       Assert(topq.getKind() == FORALL);
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
-      std::vector<std::vector<Node>> insts;
-      qe->getInstantiationTermVectors(topq, insts);
-      std::vector<Node> vars(ne[0].begin(), ne[0].end());
-      std::vector<Node> conjs;
-      // apply the instantiation on the original body
-      for (const std::vector<Node>& inst : insts)
-      {
-        // note we do not convert to witness form here, since we could be
-        // an internal subsolver
-        Subs s;
-        s.add(vars, inst);
-        Node c = s.apply(ne[1].negate());
-        conjs.push_back(c);
-      }
-      ret = nm->mkAnd(conjs);
+      std::vector<Node> insts;
+      qe->getInstantiations(topq, insts);
+      // note we do not convert to witness form here, since we could be
+      // an internal subsolver (SmtEngine::isInternalSubsolver).
+      ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)
       {
@@ -140,4 +131,4 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

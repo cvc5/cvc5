@@ -13,14 +13,14 @@
  **/
 #include "cvc4_public.h"
 
-#ifndef CVC4__ROUNDINGMODE_H
-#define CVC4__ROUNDINGMODE_H
+#ifndef CVC5__ROUNDINGMODE_H
+#define CVC5__ROUNDINGMODE_H
 
 #include <fenv.h>
 
-namespace CVC4 {
+namespace cvc5 {
 
-#define CVC4_NUM_ROUNDING_MODES 5
+#define CVC5_NUM_ROUNDING_MODES 5
 
 /**
  * A concrete instance of the rounding mode sort
@@ -45,6 +45,6 @@ struct RoundingModeHashFunction
   inline size_t operator()(const RoundingMode& rm) const { return size_t(rm); }
 }; /* struct RoundingModeHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::NodeManager.
+ ** \brief White box testing of cvc5::NodeManager.
  **
- ** White box testing of CVC4::NodeManager.
+ ** White box testing of cvc5::NodeManager.
  **/
 
 #include <string>
@@ -21,9 +21,9 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-using namespace CVC4::expr;
+using namespace cvc5::expr;
 
 namespace test {
 
@@ -41,14 +41,14 @@ TEST_F(TestNodeWhiteNodeManager, mkConst_rational)
 
 TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
 {
-  NodeBuilder<> nb;
+  NodeBuilder nb;
 
   ASSERT_NO_THROW(nb.realloc(15));
   ASSERT_NO_THROW(nb.realloc(25));
   ASSERT_NO_THROW(nb.realloc(256));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.realloc(100), "toSize > d_nvMaxChildren");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
   ASSERT_NO_THROW(nb.realloc(257));
   ASSERT_NO_THROW(nb.realloc(4000));
   ASSERT_NO_THROW(nb.realloc(20000));
@@ -56,16 +56,16 @@ TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
   ASSERT_NO_THROW(nb.realloc(65535));
   ASSERT_NO_THROW(nb.realloc(65536));
   ASSERT_NO_THROW(nb.realloc(67108863));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.realloc(67108863), "toSize > d_nvMaxChildren");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 }
 
 TEST_F(TestNodeWhiteNodeManager, topological_sort)
 {
   TypeNode boolType = d_nodeManager->booleanType();
-  Node i = d_nodeManager->mkSkolem("i", boolType);
-  Node j = d_nodeManager->mkSkolem("j", boolType);
+  Node i = d_skolemManager->mkDummySkolem("i", boolType);
+  Node j = d_skolemManager->mkDummySkolem("j", boolType);
   Node n1 = d_nodeManager->mkNode(kind::AND, j, j);
   Node n2 = d_nodeManager->mkNode(kind::AND, i, n1);
 
@@ -81,4 +81,4 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

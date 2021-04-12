@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__SKOLEM_DEF_MANAGER_H
-#define CVC4__PROP__SKOLEM_DEF_MANAGER_H
+#ifndef CVC5__PROP__SKOLEM_DEF_MANAGER_H
+#define CVC5__PROP__SKOLEM_DEF_MANAGER_H
 
 #include <iosfwd>
 #include <unordered_set>
@@ -26,7 +26,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 /**
@@ -86,6 +86,6 @@ class SkolemDefManager
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PROP__SKOLEM_DEF_MANAGER_H */
+#endif /* CVC5__PROP__SKOLEM_DEF_MANAGER_H */

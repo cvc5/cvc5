@@ -12,12 +12,12 @@
  ** \brief Sort inference preprocessing pass
  **/
 
-#ifndef CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
-#define CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
+#ifndef CVC5__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
+#define CVC5__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
 
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -38,6 +38,6 @@ class SortInferencePass : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_ */
+#endif /* CVC5__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_ */

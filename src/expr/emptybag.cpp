@@ -18,7 +18,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const EmptyBag& asa)
 {
@@ -64,4 +64,4 @@ bool EmptyBag::operator<=(const EmptyBag& es) const
 
 bool EmptyBag::operator>(const EmptyBag& es) const { return !(*this <= es); }
 bool EmptyBag::operator>=(const EmptyBag& es) const { return !(*this < es); }
-}  // namespace CVC4
+}  // namespace cvc5

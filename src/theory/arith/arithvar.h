@@ -26,7 +26,7 @@
 #include "util/index.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -39,7 +39,6 @@ typedef std::vector< ArithRatPair > ArithRatPairVec;
 
 extern bool debugIsASet(const ArithVarVec& variables);
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

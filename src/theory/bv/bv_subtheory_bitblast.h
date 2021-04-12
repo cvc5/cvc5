@@ -22,7 +22,7 @@
 
 #include "theory/bv/bv_subtheory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -83,4 +83,4 @@ class BitblastSolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

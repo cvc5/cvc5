@@ -12,8 +12,8 @@
  ** \brief Utilities for processing lemmas from the non-linear solver
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
-#define CVC4__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
+#ifndef CVC5__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
+#define CVC5__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
 
 #include <tuple>
 #include <vector>
@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/theory_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -144,6 +144,6 @@ class ArgTrie
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NL_LEMMA_UTILS_H */
+#endif /* CVC5__THEORY__ARITH__NL_LEMMA_UTILS_H */

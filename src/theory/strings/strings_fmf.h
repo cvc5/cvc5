@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRINGS_FMF_H
-#define CVC4__THEORY__STRINGS__STRINGS_FMF_H
+#ifndef CVC5__THEORY__STRINGS__STRINGS_FMF_H
+#define CVC5__THEORY__STRINGS__STRINGS_FMF_H
 
 #include "context/cdhashset.h"
 #include "context/cdo.h"
@@ -25,7 +25,7 @@
 #include "theory/strings/term_registry.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -106,6 +106,6 @@ class StringsFmf
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__STRINGS_FMF_H */
+#endif /* CVC5__THEORY__STRINGS__STRINGS_FMF_H */

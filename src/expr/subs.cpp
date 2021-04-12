@@ -16,9 +16,10 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 bool Subs::empty() const { return d_vars.empty(); }
 
@@ -44,8 +45,9 @@ Node Subs::getSubs(Node v) const
 
 void Subs::add(Node v)
 {
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // default, use a fresh skolem of the same type
-  Node s = NodeManager::currentNM()->mkSkolem("sk", v.getType());
+  Node s = sm->mkDummySkolem("sk", v.getType());
   add(v, s);
 }
 
@@ -176,4 +178,4 @@ std::ostream& operator<<(std::ostream& out, const Subs& s)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

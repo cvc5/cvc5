@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_HANDLER_H
-#define CVC4__OPTIONS__OPTIONS_HANDLER_H
+#ifndef CVC5__OPTIONS__OPTIONS_HANDLER_H
+#define CVC5__OPTIONS__OPTIONS_HANDLER_H
 
 #include <ostream>
 #include <string>
@@ -30,7 +30,7 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Options;
 
@@ -86,8 +86,6 @@ public:
    * initialization.
    */
   void setProduceAssertions(std::string option, bool value);
-  void proofEnabledBuild(std::string option, bool value);
-  void LFSCEnabledBuild(std::string option, bool value);
 
   void statsEnabledBuild(std::string option, bool value);
 
@@ -126,8 +124,8 @@ public:
 template<class T>
 void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 {
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL) \
-    && !defined(CVC4_USE_KISSAT)
+#if !defined(CVC5_USE_CRYPTOMINISAT) && !defined(CVC5_USE_CADICAL) \
+    && !defined(CVC5_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
      << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
@@ -135,7 +133,7 @@ void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 #endif
 }
 
-}/* CVC4::options namespace */
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace cvc5
 
-#endif /*  CVC4__OPTIONS__OPTIONS_HANDLER_H */
+#endif /*  CVC5__OPTIONS__OPTIONS_HANDLER_H */

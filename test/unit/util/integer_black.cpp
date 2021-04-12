@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Integer.
+ ** \brief Black box testing of cvc5::Integer.
  **
- ** Black box testing of CVC4::Integer.
+ ** Black box testing of cvc5::Integer.
  **/
 
 #include <limits>
@@ -21,7 +21,7 @@
 #include "test.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackInteger : public TestInternal
@@ -564,4 +564,4 @@ TEST_F(TestUtilBlackInteger, modInverse)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

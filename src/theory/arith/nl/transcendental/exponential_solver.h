@@ -12,14 +12,14 @@
  ** \brief Solving for handling exponential function.
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
 
 #include <map>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -108,6 +108,6 @@ class ExponentialSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

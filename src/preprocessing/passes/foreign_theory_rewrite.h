@@ -16,14 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
-#define CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
+#ifndef CVC5__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
+#define CVC5__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -62,6 +62,6 @@ class ForeignTheoryRewrite : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H */
+#endif /* CVC5__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H */

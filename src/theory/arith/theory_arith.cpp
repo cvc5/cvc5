@@ -17,6 +17,7 @@
 
 #include "theory/arith/theory_arith.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -29,9 +30,9 @@
 #include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -64,6 +65,11 @@ TheoryArith::~TheoryArith(){
 }
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryArith::getProofChecker()
+{
+  return d_internal->getProofChecker();
+}
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -139,8 +145,8 @@ TrustNode TheoryArith::ppRewriteEq(TNode atom)
     return TrustNode::null();
   }
   Assert(atom[0].getType().isReal());
-  Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
   Node rewritten = Rewriter::rewrite(leq.andNode(geq));
   Debug("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << endl;
@@ -161,7 +167,8 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   d_internal->ppStaticLearn(n, learned);
 }
 
@@ -199,7 +206,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
   }
 }
@@ -270,7 +277,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
+      bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
+      AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
     }
     return false;
   }
@@ -310,6 +318,6 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
   return d_im.getProofEqEngine();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

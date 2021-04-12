@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
 
 #include <string>
 #include <iostream>
@@ -26,7 +26,7 @@
 
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -359,6 +359,6 @@ struct TriggerInfo {
 
 } // namespace eq
 } // namespace theory
-} // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */
+#endif /* CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H */

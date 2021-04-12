@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_UF_MODEL_H
-#define CVC4__THEORY_UF_MODEL_H
+#ifndef CVC5__THEORY_UF_MODEL_H
+#define CVC5__THEORY_UF_MODEL_H
 
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -114,6 +114,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

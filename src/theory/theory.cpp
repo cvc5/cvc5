@@ -39,7 +39,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
@@ -75,7 +75,6 @@ Theory::Theory(TheoryId id,
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(nullptr),
-      d_decManager(nullptr),
       d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
@@ -127,9 +126,11 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 
 void Theory::setDecisionManager(DecisionManager* dm)
 {
-  Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
-  d_decManager = dm;
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setDecisionManager(dm);
+  }
 }
 
 void Theory::finishInitStandalone()
@@ -404,6 +405,23 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       }
     }
   }
+  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
+           && in[0][0].getType().isBoolean())
+  {
+    TNode eq = in[0];
+    if (eq[0].isVar())
+    {
+      Node res = eq[0].eqNode(eq[1].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+    else if (eq[1].isVar())
+    {
+      Node res = eq[1].eqNode(eq[0].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+  }
 
   return PP_ASSERT_STATUS_UNSOLVED;
 }
@@ -563,5 +581,5 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

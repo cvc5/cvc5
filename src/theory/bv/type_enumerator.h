@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__BV__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__BV__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__BV__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -26,7 +26,7 @@
 #include "util/bitvector.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -59,8 +59,8 @@ public:
   bool isFinished() override { return d_bits != d_bits.modByPow2(d_size); }
 };/* BitVectorEnumerator */
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__BV__TYPE_ENUMERATOR_H */

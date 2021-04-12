@@ -12,13 +12,13 @@
  ** \brief Check for monomial bound inference lemmas
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/constraint.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -86,6 +86,6 @@ class MonomialBoundsCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

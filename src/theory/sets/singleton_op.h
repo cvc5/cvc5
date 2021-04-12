@@ -14,12 +14,12 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SINGLETON_OP_H
-#define CVC4__SINGLETON_OP_H
+#ifndef CVC5__SINGLETON_OP_H
+#define CVC5__SINGLETON_OP_H
 
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -58,6 +58,6 @@ struct SingletonOpHashFunction
   size_t operator()(const SingletonOp& op) const;
 }; /* struct SingletonOpHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SINGLETON_OP_H */
+#endif /* CVC5__SINGLETON_OP_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_CHECKER_H
-#define CVC4__EXPR__PROOF_CHECKER_H
+#ifndef CVC5__EXPR__PROOF_CHECKER_H
+#define CVC5__EXPR__PROOF_CHECKER_H
 
 #include <map>
 
@@ -24,7 +24,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
@@ -202,6 +202,6 @@ class ProofChecker
                      bool enableOutput);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_CHECKER_H */
+#endif /* CVC5__EXPR__PROOF_CHECKER_H */

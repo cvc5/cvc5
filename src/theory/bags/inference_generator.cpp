@@ -21,7 +21,7 @@
 #include "theory/bags/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -270,4 +270,4 @@ Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

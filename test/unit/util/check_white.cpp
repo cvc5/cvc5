@@ -20,7 +20,7 @@
 #include "base/check.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilWhiteCheck : public TestInternal
@@ -31,7 +31,7 @@ class TestUtilWhiteCheck : public TestInternal
   // This test just checks that this statement compiles.
   std::string terminalCvc4Fatal() const
   {
-    CVC4_FATAL() << "This is a test that confirms that CVC4_FATAL can be a "
+    CVC5_FATAL() << "This is a test that confirms that CVC5_FATAL can be a "
                     "terminal statement in a function that has a non-void "
                     "return type.";
   }
@@ -45,8 +45,8 @@ TEST_F(TestUtilWhiteCheck, check)
 TEST_F(TestUtilWhiteCheck, dcheck)
 {
   Assert(K_ONE == 1) << "always passes";
-#ifndef CVC4_ASSERTIONS
-  Assert(false) << "Will not be compiled in when CVC4_ASSERTIONS off.";
+#ifndef CVC5_ASSERTIONS
+  Assert(false) << "Will not be compiled in when CVC5_ASSERTIONS off.";
 #endif
 }
 
@@ -63,4 +63,4 @@ TEST_F(TestUtilWhiteCheck, expect_abort)
   ASSERT_DEATH(AlwaysAssert(false), "false");
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,10 +16,9 @@
 
 #include "base/listener.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 Listener::Listener(){}
 Listener::~Listener(){}
 
-
-}/* CVC4 namespace */
+}  // namespace cvc5

@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__MSUM_H
-#define CVC4__THEORY__ARITH__MSUM_H
+#ifndef CVC5__THEORY__ARITH__MSUM_H
+#define CVC5__THEORY__ARITH__MSUM_H
 
 #include <map>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Arithmetic utilities regarding monomial sums.
@@ -182,7 +182,7 @@ class ArithMSum
   static void debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c);
 };
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__MSUM_H */
+#endif /* CVC5__THEORY__ARITH__MSUM_H */

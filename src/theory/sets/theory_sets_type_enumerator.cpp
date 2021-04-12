@@ -16,7 +16,7 @@
 
 #include "theory/sets/theory_sets_type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -130,4 +130,4 @@ bool SetEnumerator::isFinished()
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

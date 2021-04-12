@@ -12,13 +12,13 @@
  ** \brief Check for split zero lemma
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
 
 #include "expr/node.h"
 #include "context/cdhashset.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -50,6 +50,6 @@ class SplitZeroCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

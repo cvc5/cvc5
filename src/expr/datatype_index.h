@@ -14,12 +14,12 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__DATATYPE_INDEX_H
-#define CVC4__DATATYPE_INDEX_H
+#ifndef CVC5__DATATYPE_INDEX_H
+#define CVC5__DATATYPE_INDEX_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* stores an index to Datatype residing in NodeManager */
 class DatatypeIndexConstant
@@ -64,6 +64,6 @@ struct DatatypeIndexConstantHashFunction
   size_t operator()(const DatatypeIndexConstant& dic) const;
 }; /* struct DatatypeIndexConstantHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__DATATYPE_H */
+#endif /* CVC5__DATATYPE_H */

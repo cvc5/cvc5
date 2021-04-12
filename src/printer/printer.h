@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PRINTER__PRINTER_H
-#define CVC4__PRINTER__PRINTER_H
+#ifndef CVC5__PRINTER__PRINTER_H
+#define CVC5__PRINTER__PRINTER_H
 
 #include <string>
 
@@ -26,7 +26,7 @@
 #include "smt/model.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class CommandStatus;
@@ -308,6 +308,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__PRINTER_H */
+#endif /* CVC5__PRINTER__PRINTER_H */

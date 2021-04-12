@@ -16,10 +16,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__NORMAL_FORM_H
-#define CVC4__THEORY__SETS__NORMAL_FORM_H
+#ifndef CVC5__THEORY__SETS__NORMAL_FORM_H
+#define CVC5__THEORY__SETS__NORMAL_FORM_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -158,6 +158,6 @@ class NormalForm {
 };
 }
 }
-}
+}  // namespace cvc5
 
 #endif

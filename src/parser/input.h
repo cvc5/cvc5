@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__INPUT_H
-#define CVC4__PARSER__INPUT_H
+#ifndef CVC5__PARSER__INPUT_H
+#define CVC5__PARSER__INPUT_H
 
 #include <stdio.h>
 
@@ -25,12 +25,12 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "cvc4_export.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 
@@ -176,7 +176,7 @@ class CVC4_EXPORT Input
 
 }; /* class Input */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC5__PARSER__ANTLR_INPUT_H */

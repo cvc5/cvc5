@@ -14,11 +14,11 @@
  ** A simple demonstration of reasoning about strings with CVC4 via C++ API.
  **/
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main()
 {

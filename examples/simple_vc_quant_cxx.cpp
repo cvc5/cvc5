@@ -14,11 +14,11 @@
  ** A simple demonstration of the C++ interface for quantifiers.
  **/
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main() {
   Solver slv;

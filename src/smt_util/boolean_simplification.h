@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BOOLEAN_SIMPLIFICATION_H
-#define CVC4__BOOLEAN_SIMPLIFICATION_H
+#ifndef CVC5__BOOLEAN_SIMPLIFICATION_H
+#define CVC5__BOOLEAN_SIMPLIFICATION_H
 
 #include <vector>
 #include <algorithm>
@@ -25,7 +25,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A class to contain a number of useful functions for simple
@@ -39,7 +39,7 @@ class BooleanSimplification {
 
   static bool push_back_associative_commute_recursive(
       Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
-      CVC4_WARN_UNUSED_RESULT;
+      CVC5_WARN_UNUSED_RESULT;
 
  public:
   /**
@@ -82,7 +82,7 @@ class BooleanSimplification {
       return buffer[0];
     }
 
-    NodeBuilder<> nb(kind::AND);
+    NodeBuilder nb(kind::AND);
     nb.append(buffer);
     return nb;
   }
@@ -108,7 +108,7 @@ class BooleanSimplification {
       return buffer[0];
     }
 
-    NodeBuilder<> nb(kind::OR);
+    NodeBuilder nb(kind::OR);
     nb.append(buffer);
     return nb;
   }
@@ -128,7 +128,7 @@ class BooleanSimplification {
     TNode right = implication[1];
 
     Node notLeft = negate(left);
-    Node clause = NodeBuilder<2>(kind::OR) << notLeft << right;
+    Node clause = NodeBuilder(kind::OR) << notLeft << right;
 
     return simplifyClause(clause);
   }
@@ -165,8 +165,8 @@ class BooleanSimplification {
     AssertArgument(n.getKind() == k, n,
                    "expected node to have kind %s", kindToString(k).c_str());
 
-    bool b CVC4_UNUSED =
-      push_back_associative_commute_recursive(n, buffer, k, notK, false);
+    bool b CVC5_UNUSED =
+        push_back_associative_commute_recursive(n, buffer, k, notK, false);
 
     if(buffer.size() == 0) {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
@@ -223,6 +223,6 @@ class BooleanSimplification {
 
 };/* class BooleanSimplification */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__BOOLEAN_SIMPLIFICATION_H */
+#endif /* CVC5__BOOLEAN_SIMPLIFICATION_H */

@@ -14,15 +14,15 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__IAND_H
-#define CVC4__IAND_H
+#ifndef CVC5__IAND_H
+#define CVC5__IAND_H
 
 #include <iosfwd>
 
 #include "base/exception.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 struct IntAnd
 {
@@ -41,6 +41,6 @@ inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
   return os << "[" << ia.d_size << "]";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__IAND_H */
+#endif /* CVC5__IAND_H */

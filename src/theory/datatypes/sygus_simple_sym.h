@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
-#define CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
+#ifndef CVC5__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
+#define CVC5__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 
 #include "expr/dtype.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -98,6 +98,6 @@ class SygusSimpleSymBreak
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H */
+#endif /* CVC5__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H */

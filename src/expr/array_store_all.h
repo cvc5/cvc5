@@ -18,14 +18,13 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__ARRAY_STORE_ALL_H
-#define CVC4__ARRAY_STORE_ALL_H
+#ifndef CVC5__ARRAY_STORE_ALL_H
+#define CVC5__ARRAY_STORE_ALL_H
 
 #include <iosfwd>
 #include <memory>
 
-
-namespace CVC4 {
+namespace cvc5 {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -70,6 +69,6 @@ struct ArrayStoreAllHashFunction
   size_t operator()(const ArrayStoreAll& asa) const;
 }; /* struct ArrayStoreAllHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__ARRAY_STORE_ALL_H */
+#endif /* CVC5__ARRAY_STORE_ALL_H */

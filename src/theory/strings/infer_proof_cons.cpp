@@ -23,9 +23,9 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -1042,4 +1042,4 @@ std::string InferProofCons::identify() const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,16 +16,17 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__SYGUS_INPUT_H
-#define CVC4__PARSER__SYGUS_INPUT_H
+#ifndef CVC5__PARSER__SYGUS_INPUT_H
+#define CVC5__PARSER__SYGUS_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
 
-// extern void Smt2ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
+// extern void Smt2ParserSetAntlrParser(cvc5::parser::AntlrParser*
+// newAntlrParser);
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class Expr;
@@ -80,7 +81,7 @@ class SygusInput : public AntlrInput {
 
 };/* class SygusInput */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__SYGUS_INPUT_H */
+#endif /* CVC5__PARSER__SYGUS_INPUT_H */

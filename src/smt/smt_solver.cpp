@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 SmtSolver::SmtSolver(SmtEngine& smt,
@@ -65,7 +65,11 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   {
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
   }
-
+  // Add the proof checkers for each theory
+  if (d_pnm)
+  {
+    d_theoryEngine->initializeProofChecker(d_pnm->getChecker());
+  }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
   /* force destruction of referenced PropEngine to enforce that statistics
    * are unregistered by the obsolete PropEngine object before registered
@@ -264,4 +268,4 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

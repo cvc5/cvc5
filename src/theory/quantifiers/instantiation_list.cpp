@@ -17,7 +17,7 @@
 #include "options/base_options.h"
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist)
 {
@@ -31,4 +31,4 @@ std::ostream& operator<<(std::ostream& out, const SkolemList& skl)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -17,7 +17,7 @@
 
 #include "theory/arith/nl/cad/cdcac.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
 #include "theory/arith/nl/cad/projections.h"
@@ -29,12 +29,12 @@ namespace std {
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
-  CVC4::container_to_stream(os, v);
+  cvc5::container_to_stream(os, v);
   return os;
 }
 }  // namespace std
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -545,6 +545,6 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

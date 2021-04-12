@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_LISTENER_H
-#define CVC4__OPTIONS__OPTIONS_LISTENER_H
+#ifndef CVC5__OPTIONS__OPTIONS_LISTENER_H
+#define CVC5__OPTIONS__OPTIONS_LISTENER_H
 
 #include <string>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OptionsListener
 {
@@ -32,6 +32,6 @@ class OptionsListener
   virtual void notifySetOption(const std::string& key) = 0;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__OPTION_LISTENER_H */
+#endif /* CVC5__OPTIONS__OPTION_LISTENER_H */

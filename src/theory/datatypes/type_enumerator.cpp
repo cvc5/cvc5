@@ -19,7 +19,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-using namespace CVC4;
+using namespace cvc5;
 using namespace theory;
 using namespace datatypes;
 
@@ -138,7 +138,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        }
      }
      Debug("dt-enum-debug") << "Get constructor..." << std::endl;
-     NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+     NodeBuilder b(kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
        NodeManager* nm = NodeManager::currentNM();

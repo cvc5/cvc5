@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__DTYPE_H
-#define CVC4__EXPR__DTYPE_H
+#ifndef CVC5__EXPR__DTYPE_H
+#define CVC5__EXPR__DTYPE_H
 
 #include <map>
 #include <string>
@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // ----------------------- datatype attributes
 /**
@@ -696,6 +696,6 @@ struct DTypeIndexConstantHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

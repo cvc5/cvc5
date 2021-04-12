@@ -17,7 +17,7 @@
 #include <sstream>
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 void DotPrinter::cleanQuotes(std::string& s)
@@ -91,4 +91,4 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

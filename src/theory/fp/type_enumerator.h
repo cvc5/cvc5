@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__FP__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__FP__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__FP__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__FP__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -26,7 +26,7 @@
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -120,6 +120,6 @@ class RoundingModeEnumerator
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__FP__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__FP__TYPE_ENUMERATOR_H */

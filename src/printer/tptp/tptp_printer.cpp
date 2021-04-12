@@ -30,7 +30,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace tptp {
 
@@ -97,6 +97,6 @@ void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
   out << "% SZS output end UnsatCore " << std::endl;
 }
 
-}/* CVC4::printer::tptp namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace tptp
+}  // namespace printer
+}  // namespace cvc5

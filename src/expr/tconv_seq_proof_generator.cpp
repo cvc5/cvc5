@@ -18,7 +18,7 @@
 
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 TConvSeqProofGenerator::TConvSeqProofGenerator(
     ProofNodeManager* pnm,
@@ -168,4 +168,4 @@ theory::TrustNode TConvSeqProofGenerator::mkTrustRewriteSequence(
 
 std::string TConvSeqProofGenerator::identify() const { return d_name; }
 
-}  // namespace CVC4
+}  // namespace cvc5

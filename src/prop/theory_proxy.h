@@ -16,12 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__SAT_H
-#define CVC4__PROP__SAT_H
+#ifndef CVC5__PROP__SAT_H
+#define CVC5__PROP__SAT_H
 
 // Just defining this for now, since there's no other SAT solver bindings.
 // Optional blocks below will be unconditionally included
-#define CVC4_USE_MINISAT
+#define CVC5_USE_MINISAT
 
 #include <unordered_set>
 
@@ -35,7 +35,7 @@
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DecisionEngine;
 class TheoryEngine;
@@ -162,8 +162,8 @@ class TheoryProxy : public Registrar
   std::unique_ptr<SkolemDefManager> d_skdm;
 }; /* class TheoryProxy */
 
-}/* CVC4::prop namespace */
+}  // namespace prop
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__PROP__SAT_H */
+#endif /* CVC5__PROP__SAT_H */

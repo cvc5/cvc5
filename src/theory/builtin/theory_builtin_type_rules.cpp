@@ -17,8 +17,9 @@
 #include "theory/builtin/theory_builtin_type_rules.h"
 
 #include "expr/attribute.h"
+#include "expr/skolem_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -39,7 +40,8 @@ Node SortProperties::mkGroundTerm(TypeNode type)
   {
     return type.getAttribute(gta);
   }
-  Node k = NodeManager::currentNM()->mkSkolem(
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node k = sm->mkDummySkolem(
       "groundTerm", type, "a ground term created for type " + type.toString());
   type.setAttribute(gta, k);
   return k;
@@ -47,4 +49,4 @@ Node SortProperties::mkGroundTerm(TypeNode type)
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

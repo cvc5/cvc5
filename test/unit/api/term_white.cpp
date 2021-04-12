@@ -14,7 +14,7 @@
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -81,4 +81,4 @@ TEST_F(TestApiWhiteTerm, getOp)
   ASSERT_EQ(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

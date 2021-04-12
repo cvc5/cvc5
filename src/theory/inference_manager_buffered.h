@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
-#define CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
+#ifndef CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
+#define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
 #include "expr/node.h"
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -174,6 +174,6 @@ class InferenceManagerBuffered : public TheoryInferenceManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

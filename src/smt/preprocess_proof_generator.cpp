@@ -15,13 +15,15 @@
 
 #include "smt/preprocess_proof_generator.h"
 
+#include <sstream>
+
 #include "expr/proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "options/proof_options.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
@@ -252,4 +254,4 @@ void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

@@ -15,7 +15,10 @@
  ** \todo document this file
  **/
 
-#include <boost/algorithm/string.hpp> // include Boost, a C++ library
+#include <cvc5/cvc5.h>
+#include <cvc4/options/set_language.h>
+
+#include <boost/algorithm/string.hpp>  // include Boost, a C++ library
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -23,14 +26,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/options/set_language.h>
-
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::options;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::options;
 
 bool nonsense(char c) { return !isalnum(c); }
 

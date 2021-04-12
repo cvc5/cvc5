@@ -16,13 +16,13 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/uf/equality_engine_iterator.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
@@ -35,8 +35,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
   std::map<Node, std::vector<Node> > var_contains;
   for (const Node& pat : pats)
   {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(
-        q, pat, var_contains[pat]);
+    TermUtil::computeInstConstContainsForQuant(q, pat, var_contains[pat]);
   }
   // convert to indicies
   for (std::pair<const Node, std::vector<Node> >& vc : var_contains)
@@ -269,7 +268,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
     {
       return;
     }
-    quantifiers::QuantifiersState& qs = d_qstate;
+    QuantifiersState& qs = d_qstate;
     // check modulo equality for other possible instantiations
     if (!qs.hasTerm(n))
     {
@@ -314,5 +313,6 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

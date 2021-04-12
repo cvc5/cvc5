@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 
 #include <memory>
 #include <unordered_set>
@@ -26,7 +26,7 @@
 
 #include "prop/sat_solver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -85,5 +85,5 @@ class BitblastingRegistrar : public prop::Registrar
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
-#endif  //  CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
+}  // namespace cvc5
+#endif  //  CVC5__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H

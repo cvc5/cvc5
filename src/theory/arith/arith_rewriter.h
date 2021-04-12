@@ -17,13 +17,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_REWRITER_H
-#define CVC4__THEORY__ARITH__ARITH_REWRITER_H
+#ifndef CVC5__THEORY__ARITH__ARITH_REWRITER_H
+#define CVC5__THEORY__ARITH__ARITH_REWRITER_H
 
 #include "theory/arith/rewrites.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -71,8 +71,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
 }; /* class ArithRewriter */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_REWRITER_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_REWRITER_H */

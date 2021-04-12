@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_TO_SEXPR_H
-#define CVC4__EXPR__PROOF_NODE_TO_SEXPR_H
+#ifndef CVC5__EXPR__PROOF_NODE_TO_SEXPR_H
+#define CVC5__EXPR__PROOF_NODE_TO_SEXPR_H
 
 #include <map>
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 
@@ -64,6 +64,6 @@ class ProofNodeToSExpr
   Node getOrMkNodeVariable(Node n);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_RULE_H */
+#endif /* CVC5__EXPR__PROOF_RULE_H */

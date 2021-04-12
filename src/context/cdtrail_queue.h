@@ -19,13 +19,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDTRAIL_QUEUE_H
-#define CVC4__CONTEXT__CDTRAIL_QUEUE_H
+#ifndef CVC5__CONTEXT__CDTRAIL_QUEUE_H
+#define CVC5__CONTEXT__CDTRAIL_QUEUE_H
 
 #include "context/cdlist.h"
 #include "context/cdo.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 class Context;
@@ -89,7 +89,7 @@ public:
 
 };/* class CDTrailQueue<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDTRAIL_QUEUE_H */
+#endif /* CVC5__CONTEXT__CDTRAIL_QUEUE_H */

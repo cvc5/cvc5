@@ -38,7 +38,7 @@
 #include "base/check.h"
 #include "base/output.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
@@ -218,8 +218,8 @@ setupInputStream(pANTLR3_INPUT_STREAM input)
 
 static ANTLR3_UCHAR bufferedInputLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
-  CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
-      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
+  cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
   uint8_t* result = line_buffered_input->line_buffer->getPtrWithOffset(
       input->line, input->charPositionInLine, la - 1);
   return (result != NULL) ? *result : ANTLR3_CHARSTREAM_EOF;
@@ -255,8 +255,8 @@ static void bufferedInputRewind(pANTLR3_INT_STREAM is, ANTLR3_MARKER mark) {
 
 static void bufferedInputConsume(pANTLR3_INT_STREAM is) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
-  CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
-      (CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
+  cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM line_buffered_input =
+      (cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input;
 
   uint8_t* current = line_buffered_input->line_buffer->getPtr(
       input->line, input->charPositionInLine);
@@ -285,7 +285,7 @@ static void bufferedInputSeek(pANTLR3_INT_STREAM is, ANTLR3_MARKER seekPoint) {
   pANTLR3_INPUT_STREAM input = ((pANTLR3_INPUT_STREAM)(is->super));
 
   // Check that we are not seeking backwards.
-  Assert(!((CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)
+  Assert(!((cvc5::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)
               ->line_buffer->isPtrBefore(
                   (uint8_t*)seekPoint, input->line, input->charPositionInLine));
 
@@ -341,25 +341,25 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
   input->SetNewLineChar = bufferedInputSetNewLineChar;
   input->setUcaseLA = bufferedInputSetUcaseLA;
 
-#ifndef CVC4_ANTLR3_OLD_INPUT_STREAM
-    // We have the data in memory now so we can deal with it according to
-    // the encoding scheme we were given by the user.
-    //
-    input->encoding = encoding;
-#endif /* ! CVC4_ANTLR3_OLD_INPUT_STREAM */
+#ifndef CVC5_ANTLR3_OLD_INPUT_STREAM
+  // We have the data in memory now so we can deal with it according to
+  // the encoding scheme we were given by the user.
+  //
+  input->encoding = encoding;
+#endif /* ! CVC5_ANTLR3_OLD_INPUT_STREAM */
 
-    // Now we need to work out the endian type and install any
-    // API functions that differ from 8Bit
-    //
-    setupInputStream(input);
+  // Now we need to work out the endian type and install any
+  // API functions that differ from 8Bit
+  //
+  setupInputStream(input);
 
-    // Now we can set up the file name
-    //
-    input->istream->streamName =
-        input->strFactory->newStr8(input->strFactory, name);
-    input->fileName = input->istream->streamName;
+  // Now we can set up the file name
+  //
+  input->istream->streamName =
+      input->strFactory->newStr8(input->strFactory, name);
+  input->fileName = input->istream->streamName;
 
-    return input;
+  return input;
 }
 
 static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
@@ -391,16 +391,16 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
 // Call the common 8 bit input stream handler
 // initialization.
 //
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   antlr3AsciiSetupStream(input, ANTLR3_CHARSTREAM);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   antlr38BitSetupStream(input);
   // In some libantlr3c 3.4-beta versions, this call is not included in the
   // above.
   // This is probably an erroneously-deleted line in the libantlr3c source since
   // 3.2.
   antlr3GenericSetupStream(input);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   input->sizeBuf = 0;
   input->newlineChar = LineBuffer::NewLineChar;
@@ -411,5 +411,5 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
   return input;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_NOTIFY_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_NOTIFY_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_NOTIFY_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_NOTIFY_H
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -115,6 +115,6 @@ class EqualityEngineNotifyNone : public EqualityEngineNotify
 
 }  // Namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -16,14 +16,14 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATS_UTILS_H
-#define CVC4__UTIL__STATS_UTILS_H
+#ifndef CVC5__UTIL__STATS_UTILS_H
+#define CVC5__UTIL__STATS_UTILS_H
 
 #include <iosfwd>
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace timer_stat_detail {
 struct duration;
@@ -32,6 +32,6 @@ struct duration;
 std::ostream& operator<<(std::ostream& os,
                          const timer_stat_detail::duration& dur) CVC4_EXPORT;
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

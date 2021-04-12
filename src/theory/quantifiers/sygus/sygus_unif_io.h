@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -276,7 +276,7 @@ class SygusUnifIo : public SygusUnif
    * multiple functions can be separated.
    */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;
@@ -466,8 +466,8 @@ class SygusUnifIo : public SygusUnif
                                 const std::vector<Node>& conds) override;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */

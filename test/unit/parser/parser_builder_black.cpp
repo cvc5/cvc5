@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::parser::ParserBuilder.
+ ** \brief Black box testing of cvc5::parser::ParserBuilder.
  **
- ** Black box testing of CVC4::parser::ParserBuilder.
+ ** Black box testing of cvc5::parser::ParserBuilder.
  **/
 
 #include <stdio.h>
@@ -22,14 +22,14 @@
 #include <fstream>
 #include <iostream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace parser;
 using namespace language::input;
@@ -134,4 +134,4 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

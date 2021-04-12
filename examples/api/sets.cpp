@@ -14,12 +14,12 @@
  ** A simple demonstration of reasoning about sets with CVC4.
  **/
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-
 using namespace std;
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main()
 {

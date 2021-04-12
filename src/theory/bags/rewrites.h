@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAGS__REWRITES_H
-#define CVC4__THEORY__BAGS__REWRITES_H
+#ifndef CVC5__THEORY__BAGS__REWRITES_H
+#define CVC5__THEORY__BAGS__REWRITES_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -92,6 +92,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAGS__REWRITES_H */
+#endif /* CVC5__THEORY__BAGS__REWRITES_H */

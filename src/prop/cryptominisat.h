@@ -16,10 +16,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CRYPTOMINISAT_H
-#define CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC5__PROP__CRYPTOMINISAT_H
+#define CVC5__PROP__CRYPTOMINISAT_H
 
-#ifdef CVC4_USE_CRYPTOMINISAT
+#ifdef CVC5_USE_CRYPTOMINISAT
 
 #include "prop/sat_solver.h"
 #include "util/stats_timer.h"
@@ -33,7 +33,7 @@ namespace CMSat {
   class SATSolver;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class CryptoMinisatSolver : public SatSolver
@@ -106,7 +106,7 @@ class CryptoMinisatSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_CRYPTOMINISAT
-#endif  // CVC4__PROP__CRYPTOMINISAT_H
+#endif  // CVC5_USE_CRYPTOMINISAT
+#endif  // CVC5__PROP__CRYPTOMINISAT_H

@@ -16,15 +16,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
 
 #include "theory/type_enumerator.h"
 #include "expr/type_node.h"
 #include "expr/kind.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -155,8 +155,8 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 
 };/* class ArrayEnumerator */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H */

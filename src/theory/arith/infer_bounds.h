@@ -27,8 +27,7 @@
 #include "util/maybe.h"
 #include "util/rational.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -161,4 +160,4 @@ private:
 
 } /* namespace arith */
 } /* namespace theory */
-} /* namespace CVC4 */
+}  // namespace cvc5

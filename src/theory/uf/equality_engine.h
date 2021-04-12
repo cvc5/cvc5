@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_H
 
 #include <deque>
 #include <queue>
@@ -35,7 +35,7 @@
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -845,6 +845,6 @@ private:
 
 } // Namespace eq
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5
 
 #endif

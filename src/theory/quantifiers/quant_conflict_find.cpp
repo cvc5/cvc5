@@ -27,17 +27,19 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo() : d_unassigned_nvar(0), d_una_index(0), d_mg(nullptr) {}
+QuantInfo::QuantInfo()
+    : d_unassigned_nvar(0), d_una_index(0), d_parent(nullptr), d_mg(nullptr)
+{
+}
 
 QuantInfo::~QuantInfo() {
   delete d_mg;
@@ -49,8 +51,14 @@ QuantInfo::~QuantInfo() {
   d_var_mg.clear();
 }
 
+QuantifiersInferenceManager& QuantInfo::getInferenceManager()
+{
+  Assert(d_parent != nullptr);
+  return d_parent->getInferenceManager();
+}
 
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
+  d_parent = p;
   d_q = q;
   d_extra_var.clear();
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
@@ -588,7 +596,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       }
     }else{
       Node inst =
-          p->d_quantEngine->getInstantiate()->getInstantiation(d_q, terms);
+          getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
       Node inst_eval = p->getTermDatabase()->evaluateTerm(
           inst, options::qcfTConstraint(), true);
@@ -1845,11 +1853,11 @@ bool MatchGen::isHandled( TNode n ) {
   return true;
 }
 
-QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
-                                     QuantifiersState& qs,
+QuantConflictFind::QuantConflictFind(QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
-                                     QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
+                                     QuantifiersRegistry& qr,
+                                     TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1979,7 +1987,7 @@ inline QuantConflictFind::Effort QcfEffortEnd() {
 /** check */
 void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
 {
-  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
+  CodeTimer codeTimer(d_qstate.getStats().d_qcf_time);
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;
@@ -2018,7 +2026,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     Trace("qcf-debug") << std::endl;
   }
   bool isConflict = false;
-  FirstOrderModel* fm = d_quantEngine->getModel();
+  FirstOrderModel* fm = d_treg.getModel();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
   for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e)
@@ -2107,7 +2115,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
   }
   // try to make a matches making the body false or propagating
   Trace("qcf-check-debug") << "Get next match..." << std::endl;
-  Instantiate* qinst = d_quantEngine->getInstantiate();
+  Instantiate* qinst = d_qim.getInstantiate();
   while (qi->getNextMatch(this))
   {
     if (d_qstate.isInConflict())
@@ -2190,7 +2198,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // checked first on the next round. This is an optimization to
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
-        d_quantEngine->markRelevant(q);
+        d_treg.getModel()->markRelevant(q);
         if (options::qcfAllConflict())
         {
           isConflict = true;
@@ -2203,7 +2211,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       }
       else if (d_effort == EFFORT_PROP_EQ)
       {
-        d_quantEngine->markRelevant(q);
+        d_treg.getModel()->markRelevant(q);
       }
     }
     // clean up assigned
@@ -2341,6 +2349,6 @@ bool QuantConflictFind::isPropagatingInstance(Node n) const
   return true;
 }
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

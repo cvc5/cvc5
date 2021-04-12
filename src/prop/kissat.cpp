@@ -16,11 +16,11 @@
 
 #include "prop/kissat.h"
 
-#ifdef CVC4_USE_KISSAT
+#ifdef CVC5_USE_KISSAT
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 using KissatLit = int32_t;
@@ -173,6 +173,6 @@ KissatSolver::Statistics::~Statistics()
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_KISSAT
+#endif  // CVC5_USE_KISSAT

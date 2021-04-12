@@ -18,7 +18,7 @@
 #include "theory/bags/normal_form.h"
 #include "theory/strings/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -40,7 +40,7 @@ class TestTheoryWhiteBagsNormalForm : public TestSmt
   std::vector<Node> getNStrings(size_t n)
   {
     std::vector<Node> elements(n);
-    CVC4::theory::strings::StringEnumerator enumerator(
+    cvc5::theory::strings::StringEnumerator enumerator(
         d_nodeManager->stringType());
 
     for (size_t i = 0; i < n; i++)
@@ -586,4 +586,4 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
   ASSERT_EQ(output3, NormalForm::evaluate(input3));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

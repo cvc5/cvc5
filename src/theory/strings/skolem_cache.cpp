@@ -23,9 +23,9 @@
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -154,7 +154,8 @@ Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  Node n = NodeManager::currentNM()->mkSkolem(c, d_strType, "string skolem");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
 }
@@ -291,4 +292,4 @@ Node SkolemCache::mkIndexVar(Node t)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

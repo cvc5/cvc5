@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PROCESS_ASSERTIONS_H
-#define CVC4__SMT__PROCESS_ASSERTIONS_H
+#ifndef CVC5__SMT__PROCESS_ASSERTIONS_H
+#define CVC5__SMT__PROCESS_ASSERTIONS_H
 
 #include <unordered_map>
 
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -124,6 +124,6 @@ class ProcessAssertions
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

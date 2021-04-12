@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
-#define CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
+#ifndef CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H
+#define CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -56,6 +56,6 @@ class ModelManagerDistributed : public ModelManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H */

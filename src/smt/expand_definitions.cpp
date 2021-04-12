@@ -24,11 +24,11 @@
 #include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::preprocessing;
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::preprocessing;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ExpandDefs::ExpandDefs(SmtEngine& smt,
@@ -294,7 +294,7 @@ TrustNode ExpandDefs::expandDefinitions(
       if (node.getNumChildren() > 0)
       {
         // cout << "cons : " << node << std::endl;
-        NodeBuilder<> nb(node.getKind());
+        NodeBuilder nb(node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
           Debug("expand") << "op   : " << node.getOperator() << std::endl;
@@ -367,4 +367,4 @@ void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

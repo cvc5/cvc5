@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
 #include <gmpxx.h>
 
@@ -27,13 +27,13 @@
 
 #include "cvc4_export.h"  // remove when Cvc language support is removed
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Rational;
 
 class CVC4_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::Rational;
 
  public:
   /**
@@ -60,10 +60,10 @@ class CVC4_EXPORT Integer
   Integer(signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Integer(int64_t z) : d_value(static_cast<long>(z)) {}
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
   ~Integer() {}
@@ -330,7 +330,7 @@ class CVC4_EXPORT Integer
 
 struct IntegerHashFunction
 {
-  inline size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  inline size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)
@@ -338,6 +338,6 @@ inline std::ostream& operator<<(std::ostream& os, const Integer& n)
   return os << n.toString();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */

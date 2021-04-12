@@ -26,7 +26,7 @@
 #include "util/dense_map.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -157,8 +157,6 @@ private:
 
 };/* class Tableau */
 
-
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

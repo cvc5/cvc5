@@ -15,14 +15,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DECISION_MANAGER__H
-#define CVC4__THEORY__DECISION_MANAGER__H
+#ifndef CVC5__THEORY__DECISION_MANAGER__H
+#define CVC5__THEORY__DECISION_MANAGER__H
 
 #include <map>
 #include "context/cdlist.h"
 #include "theory/decision_strategy.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** DecisionManager
@@ -141,6 +141,6 @@ class DecisionManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DECISION_MANAGER__H */
+#endif /* CVC5__THEORY__DECISION_MANAGER__H */

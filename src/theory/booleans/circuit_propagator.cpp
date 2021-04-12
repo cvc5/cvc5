@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -716,7 +716,9 @@ TrustNode CircuitPropagator::propagate()
                     && (current[0].isVar() && current[1].isVar()));
 
     // If an atom, add to the list for simplification
-    if (atom)
+    if (atom
+        || (current.getKind() == kind::EQUAL
+            && (current[0].isVar() || current[1].isVar())))
     {
       Debug("circuit-prop")
           << "CircuitPropagator::propagate(): adding to learned: "
@@ -814,4 +816,4 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -17,7 +17,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 BufferedProofGenerator::BufferedProofGenerator(context::Context* c,
                                                ProofNodeManager* pnm)
@@ -80,4 +80,4 @@ std::shared_ptr<ProofNode> BufferedProofGenerator::getProofFor(Node fact)
   return cdp.getProofFor(fact);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

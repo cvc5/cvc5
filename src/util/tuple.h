@@ -16,14 +16,14 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__TUPLE_H
-#define CVC4__TUPLE_H
+#ifndef CVC5__TUPLE_H
+#define CVC5__TUPLE_H
 
 #include <iostream>
 #include <vector>
 #include <utility>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TupleUpdate
 {
@@ -49,6 +49,6 @@ inline std::ostream& operator<<(std::ostream& out, const TupleUpdate& t) {
   return out << "[" << t.getIndex() << "]";
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__TUPLE_H */
+#endif /* CVC5__TUPLE_H */

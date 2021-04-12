@@ -14,14 +14,14 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSE_OP_H
-#define CVC4__PARSER__PARSE_OP_H
+#ifndef CVC5__PARSER__PARSE_OP_H
+#define CVC5__PARSER__PARSE_OP_H
 
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /** A parsed operator
  *
@@ -79,6 +79,6 @@ struct ParseOp
 
 std::ostream& operator<<(std::ostream& os, const ParseOp& p);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSE_OP_H */
+#endif /* CVC5__PARSER__PARSE_OP_H */

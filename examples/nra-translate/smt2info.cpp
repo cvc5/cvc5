@@ -15,19 +15,18 @@
  ** \todo document this file
  **/
 
+#include <cvc5/cvc5.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::options;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::options;
 
 unsigned compute_degree(ExprManager& exprManager, const Expr& term) {
   unsigned n = term.getNumChildren();    

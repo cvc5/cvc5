@@ -14,16 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_LINEAR_H
-#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_LINEAR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_LINEAR_H
+#define CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_LINEAR_H
 
 #include <vector>
 
 #include "expr/node.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** InstMatchGeneratorMultiLinear class
@@ -82,7 +83,8 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
 };
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

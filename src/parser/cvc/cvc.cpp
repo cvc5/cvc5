@@ -17,7 +17,7 @@
 #include "parser/cvc/cvc.h"
 #include "smt/command.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 void Cvc::forceLogic(const std::string& logic)
@@ -35,4 +35,4 @@ bool Cvc::getTesterName(api::Term cons, std::string& name)
 }
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5

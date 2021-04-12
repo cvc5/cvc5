@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__SETS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__SETS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__SETS__INFERENCE_MANAGER_H
 
 #include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -100,6 +100,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__SETS__INFERENCE_MANAGER_H */

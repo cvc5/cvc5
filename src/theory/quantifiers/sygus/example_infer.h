@@ -15,13 +15,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
-#define CVC4__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
+#define CVC5__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -157,6 +157,6 @@ class ExampleInfer
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

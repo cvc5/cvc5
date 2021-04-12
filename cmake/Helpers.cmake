@@ -124,16 +124,22 @@ function(list_prepend in_list prepand_value out_list)
   set(${out_list} ${${out_list}} PARENT_SCOPE)
 endfunction()
 
+macro(print_info msg)
+  message("${Blue}${msg}${ResetColor}")
+endmacro()
+
 # Helper to print the configuration of a 2-valued or 3-valued option 'var'
 # with prefix 'str'.
-macro(print_config str var)
-  if(${var} STREQUAL "ON")
+function(print_config str var)
+  if("${var}" STREQUAL "ON")
     set(OPT_VAL_STR "on")
-  else()
+  elseif("${var}" STREQUAL "OFF" OR "${var}" STREQUAL "IGNORE")
     set(OPT_VAL_STR "off")
+  else()
+    set(OPT_VAL_STR "${var}")
   endif()
-  message("${str} ${OPT_VAL_STR}")
-endmacro()
+  message("${Blue}${str}: ${Green}${OPT_VAL_STR}${ResetColor}")
+endfunction()
 
 
 # Collect all source files that are required to build libcvc4 in LIBCVC4_SRCS
@@ -171,3 +177,24 @@ macro(libcvc4_add_sources)
     set(${_append_to} ${${_append_to}} PARENT_SCOPE)
   endif()
 endmacro()
+
+# Check if given Python module is installed and raises a FATAL_ERROR error
+# if the module cannot be found.
+function(check_python_module module)
+  execute_process(
+    COMMAND
+    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    RESULT_VARIABLE
+      RET_MODULE_TEST
+    ERROR_QUIET
+  )
+
+  if(RET_MODULE_TEST)
+    message(FATAL_ERROR
+        "Could not find module ${module} for Python "
+        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "Make sure to install ${module} for this Python version "
+        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module}'.\n"
+        "Note: You need to have pip installed for this Python version.")
+  endif()
+endfunction()

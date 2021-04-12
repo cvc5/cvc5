@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -193,7 +193,7 @@ bool ArithVariables::VarInfo::setAssignment(const DeltaRational& a, BoundsInfo& 
 void ArithVariables::releaseArithVar(ArithVar v){
   VarInfo& vi = d_vars.get(v);
 
-  size_t removed CVC4_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
+  size_t removed CVC5_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
   Assert(removed == 1);
 
   vi.uninitialize();
@@ -684,6 +684,6 @@ void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
   d_pm->popUpperBound(p);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

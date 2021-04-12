@@ -17,12 +17,12 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__THEORY__THEORY_ID_H
-#define CVC4__THEORY__THEORY_ID_H
+#ifndef CVC5__THEORY__THEORY_ID_H
+#define CVC5__THEORY__THEORY_ID_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -106,5 +106,5 @@ class TheoryIdSetUtil
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

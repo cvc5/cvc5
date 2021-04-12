@@ -9,17 +9,18 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::Node.
+ ** \brief White box testing of cvc5::Node.
  **
- ** White box testing of CVC4::Node.
+ ** White box testing of cvc5::Node.
  **/
 
 #include <string>
 
 #include "base/check.h"
+#include "expr/node_builder.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace expr;
@@ -36,7 +37,7 @@ TEST_F(TestNodeWhiteNode, copy_ctor) { Node e(Node::s_null); }
 
 TEST_F(TestNodeWhiteNode, builder)
 {
-  NodeBuilder<> b;
+  NodeBuilder b;
   ASSERT_TRUE(b.d_nv->getId() == 0);
   ASSERT_TRUE(b.d_nv->getKind() == UNDEFINED_KIND);
   ASSERT_EQ(b.d_nv->d_nchildren, 0u);
@@ -79,4 +80,4 @@ TEST_F(TestNodeWhiteNode, iterators)
   ASSERT_EQ(v[2], y);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

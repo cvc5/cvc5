@@ -60,7 +60,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /// Report a recognition problem.
@@ -436,4 +436,4 @@ AntlrInput::nextToken	    (pANTLR3_TOKEN_SOURCE toksource)
 
 
 } // namespace parser
-} // namespace CVC4
+}  // namespace cvc5

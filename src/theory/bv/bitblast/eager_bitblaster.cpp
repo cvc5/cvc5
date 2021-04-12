@@ -27,7 +27,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -288,4 +288,4 @@ bool EagerBitblaster::isSharedTerm(TNode node) {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

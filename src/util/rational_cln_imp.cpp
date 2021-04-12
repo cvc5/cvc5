@@ -20,15 +20,15 @@
 
 #include "cvc4autoconfig.h"
 
-#ifndef CVC4_CLN_IMP
-#  error "This source should only ever be built if CVC4_CLN_IMP is on !"
-#endif /* CVC4_CLN_IMP */
+#ifndef CVC5_CLN_IMP
+#error "This source should only ever be built if CVC5_CLN_IMP is on !"
+#endif /* CVC5_CLN_IMP */
 
 #include "base/check.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
@@ -117,4 +117,4 @@ Maybe<Rational> Rational::fromDouble(double d)
   }
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

@@ -23,10 +23,10 @@
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 void TheoryEngineModelBuilder::Assigner::initialize(
@@ -459,7 +459,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     bool evaluable = false;
     // Set to true if a term in the current equivalence class has been given an
     // assignment exclusion set.
-    bool hasESet CVC4_UNUSED = false;
+    bool hasESet CVC5_UNUSED = false;
     // Set to true if we found that a term in the current equivalence class has
     // been given an assignment exclusion set, and we have not seen this term
     // as part of a previous assignment exclusion group. In other words, when
@@ -838,7 +838,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         isCorecursive = dt.isCodatatype()
                         && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
       }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
       if (options::finiteModelFind())
       {
@@ -861,7 +861,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       }
       Trace("model-builder") << "  Assign phase, working on type: " << t
                              << endl;
-      bool assignable, evaluable CVC4_UNUSED;
+      bool assignable, evaluable CVC5_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
       set<Node>* repSet = typeRepSet.getSet(t);
@@ -935,7 +935,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               success = true;
               Trace("model-builder-debug") << "Check if excluded : " << n
                                            << std::endl;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
               if (isUSortFiniteRestricted)
               {
                 // must not involve uninterpreted constants beyond cardinality
@@ -1012,7 +1012,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Assert that all representatives have been converted to constants
   for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it)
   {
@@ -1024,7 +1024,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       Assert(false);
     }
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   Trace("model-builder") << "Copy representatives to model..." << std::endl;
   tm->d_reps.clear();
@@ -1081,7 +1081,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   if (tm->hasApproximations())
   {
     // models with approximations may fail the assertions below
@@ -1125,7 +1125,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       }
     }
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   // builder-specific debugging
   debugModel(tm);
@@ -1428,5 +1428,5 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Finished assigning function values." << std::endl;
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

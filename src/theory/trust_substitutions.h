@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__TRUST_SUBSTITUTIONS_H
-#define CVC4__THEORY__TRUST_SUBSTITUTIONS_H
+#ifndef CVC5__THEORY__TRUST_SUBSTITUTIONS_H
+#define CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 
 #include "context/cdlist.h"
 #include "context/context.h"
@@ -28,7 +28,7 @@
 #include "theory/theory_proof_step_buffer.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -133,6 +133,6 @@ class TrustSubstitutionMap
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__TRUST_SUBSTITUTIONS_H */
+#endif /* CVC5__THEORY__TRUST_SUBSTITUTIONS_H */

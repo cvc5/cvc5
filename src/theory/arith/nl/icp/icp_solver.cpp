@@ -26,13 +26,13 @@
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace icp {
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 namespace {
 /** A simple wrapper to nicely print an interval assignment. */
@@ -366,7 +366,7 @@ void ICPSolver::check()
   }
 }
 
-#else /* CVC4_POLY_IMP */
+#else /* CVC5_POLY_IMP */
 
 void ICPSolver::reset(const std::vector<Node>& assertions)
 {
@@ -378,10 +378,10 @@ void ICPSolver::check()
   Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
 }
 
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 }  // namespace icp
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

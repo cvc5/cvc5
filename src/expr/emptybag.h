@@ -14,13 +14,13 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EMPTY_BAG_H
-#define CVC4__EMPTY_BAG_H
+#ifndef CVC5__EMPTY_BAG_H
+#define CVC5__EMPTY_BAG_H
 
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -58,6 +58,6 @@ struct EmptyBagHashFunction
   size_t operator()(const EmptyBag& es) const;
 }; /* struct EmptyBagHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EMPTY_BAG_H */
+#endif /* CVC5__EMPTY_BAG_H */

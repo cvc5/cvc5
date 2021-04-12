@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TRANSITION_INFERENCE_H
-#define CVC4__THEORY__QUANTIFIERS__TRANSITION_INFERENCE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TRANSITION_INFERENCE_H
+#define CVC5__THEORY__QUANTIFIERS__TRANSITION_INFERENCE_H
 
 #include <map>
 #include <vector>
@@ -27,7 +27,7 @@
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -332,6 +332,6 @@ class TransitionInference
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

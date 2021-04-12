@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__LISTENERS_H
-#define CVC4__SMT__LISTENERS_H
+#ifndef CVC5__SMT__LISTENERS_H
+#define CVC5__SMT__LISTENERS_H
 
 #include <vector>
 
 #include "base/listener.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OutputManager;
 class SmtEngine;
@@ -75,6 +75,6 @@ class SmtNodeManagerListener : public NodeManagerListener
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

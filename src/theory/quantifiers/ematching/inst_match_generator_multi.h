@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_H
-#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_H
+#define CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_H
 
 #include <map>
 #include <vector>
@@ -23,8 +23,9 @@
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/inst_match_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** InstMatchGeneratorMulti
@@ -100,7 +101,8 @@ class InstMatchGeneratorMulti : public IMGenerator
 };
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

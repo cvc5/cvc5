@@ -17,7 +17,7 @@
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 SmtEngineState::SmtEngineState(context::Context* c,
@@ -96,7 +96,7 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
       && d_status != d_expectedStatus)
   {
-    CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+    CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
                  << d_status;
   }
   // clear expected status
@@ -308,4 +308,4 @@ void SmtEngineState::doPendingPops()
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

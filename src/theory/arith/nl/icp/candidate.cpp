@@ -14,7 +14,7 @@
 
 #include "theory/arith/nl/icp/candidate.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <iostream>
 
@@ -23,7 +23,7 @@
 #include "theory/arith/nl/icp/intersection.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -115,6 +115,6 @@ std::ostream& operator<<(std::ostream& os, const Candidate& c)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

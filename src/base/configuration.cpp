@@ -26,28 +26,22 @@
 #include "cvc4autoconfig.h"
 #include "base/configuration_private.h"
 
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 #  include "base/Debug_tags.h"
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 
-#ifdef CVC4_TRACING
+#ifdef CVC5_TRACING
 #  include "base/Trace_tags.h"
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
-string Configuration::getName() {
-  return CVC4_PACKAGE_NAME;
-}
+string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
 bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;
-}
-
-bool Configuration::isStatisticsBuild() {
-  return IS_STATISTICS_BUILD;
 }
 
 bool Configuration::isTracingBuild() {
@@ -64,10 +58,6 @@ bool Configuration::isMuzzledBuild() {
 
 bool Configuration::isAssertionBuild() {
   return IS_ASSERTIONS_BUILD;
-}
-
-bool Configuration::isProofBuild() {
-  return IS_PROOFS_BUILD;
 }
 
 bool Configuration::isCoverageBuild() {
@@ -90,36 +80,24 @@ bool Configuration::isCompetitionBuild() {
 
 bool Configuration::isStaticBuild()
 {
-#if defined(CVC4_STATIC_BUILD)
+#if defined(CVC5_STATIC_BUILD)
   return true;
 #else
   return false;
 #endif
 }
 
-string Configuration::getPackageName() {
-  return CVC4_PACKAGE_NAME;
-}
+string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }
 
-string Configuration::getVersionString() {
-  return CVC4_RELEASE_STRING;
-}
+string Configuration::getVersionString() { return CVC5_RELEASE_STRING; }
 
-unsigned Configuration::getVersionMajor() {
-  return CVC4_MAJOR;
-}
+unsigned Configuration::getVersionMajor() { return CVC5_MAJOR; }
 
-unsigned Configuration::getVersionMinor() {
-  return CVC4_MINOR;
-}
+unsigned Configuration::getVersionMinor() { return CVC5_MINOR; }
 
-unsigned Configuration::getVersionRelease() {
-  return CVC4_RELEASE;
-}
+unsigned Configuration::getVersionRelease() { return CVC5_RELEASE; }
 
-std::string Configuration::getVersionExtra() {
-  return CVC4_EXTRAVERSION;
-}
+std::string Configuration::getVersionExtra() { return CVC5_EXTRAVERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
@@ -144,8 +122,7 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
-      || Configuration::isBuiltWithCadical()
+  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithSymFPU()
@@ -156,11 +133,6 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithAbc()) {
       ss << "  ABC - A System for Sequential Synthesis and Verification\n"
          << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
-         << "  licensing information.\n\n";
-    }
-    if (Configuration::isBuiltWithLfsc()) {
-      ss << "  LFSC Proof Checker\n"
-         << "  See http://github.com/CVC4/LFSC for copyright and\n"
          << "  licensing information.\n\n";
     }
     if (Configuration::isBuiltWithCadical())
@@ -244,7 +216,7 @@ std::string Configuration::copyright() {
 
 std::string Configuration::about() {
   std::stringstream ss;
-  ss << "This is CVC4 version " << CVC4_RELEASE_STRING;
+  ss << "This is CVC4 version " << CVC5_RELEASE_STRING;
   if (Configuration::isGitBuild()) {
     ss << " [" << Configuration::getGitId() << "]";
   }
@@ -282,13 +254,7 @@ bool Configuration::isBuiltWithCryptominisat() {
 
 bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
 
-bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
-
 bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
-
-bool Configuration::isBuiltWithLfsc() {
-  return IS_LFSC_BUILD;
-}
 
 bool Configuration::isBuiltWithPoly()
 {
@@ -298,21 +264,21 @@ bool Configuration::isBuiltWithPoly()
 bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }
 
 unsigned Configuration::getNumDebugTags() {
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   /* -1 because a NULL pointer is inserted as the last value */
   return (sizeof(Debug_tags) / sizeof(Debug_tags[0])) - 1;
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else  /* CVC5_DEBUG && CVC5_TRACING */
   return 0;
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
 char const* const* Configuration::getDebugTags() {
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   return Debug_tags;
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else  /* CVC5_DEBUG && CVC5_TRACING */
   static char const* no_tags[] = { NULL };
   return no_tags;
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
 int strcmpptr(const char **s1, const char **s2){
@@ -320,7 +286,7 @@ int strcmpptr(const char **s1, const char **s2){
 }
 
 bool Configuration::isDebugTag(char const *tag){
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   unsigned ntags = getNumDebugTags();
   char const* const* tags = getDebugTags();
   for (unsigned i = 0; i < ntags; ++ i) {
@@ -328,30 +294,30 @@ bool Configuration::isDebugTag(char const *tag){
       return true;
     }
   }
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
   return false;
 }
 
 unsigned Configuration::getNumTraceTags() {
-#if CVC4_TRACING
+#if CVC5_TRACING
   /* -1 because a NULL pointer is inserted as the last value */
   return sizeof(Trace_tags) / sizeof(Trace_tags[0]) - 1;
-#else /* CVC4_TRACING */
+#else  /* CVC5_TRACING */
   return 0;
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 }
 
 char const* const* Configuration::getTraceTags() {
-#if CVC4_TRACING
+#if CVC5_TRACING
   return Trace_tags;
-#else /* CVC4_TRACING */
+#else  /* CVC5_TRACING */
   static char const* no_tags[] = { NULL };
   return no_tags;
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 }
 
 bool Configuration::isTraceTag(char const * tag){
-#if CVC4_TRACING
+#if CVC5_TRACING
   unsigned ntags = getNumTraceTags();
   char const* const* tags = getTraceTags();
   for (unsigned i = 0; i < ntags; ++ i) {
@@ -359,7 +325,7 @@ bool Configuration::isTraceTag(char const * tag){
       return true;
     }
   }
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
   return false;
 }
 
@@ -391,7 +357,8 @@ std::string Configuration::getGitId() {
 
   stringstream ss;
   ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
-     << ( ::CVC4::Configuration::hasGitModifications() ? " (with modifications)" : "" );
+     << (::cvc5::Configuration::hasGitModifications() ? " (with modifications)"
+                                                      : "");
   return ss.str();
 }
 
@@ -414,4 +381,4 @@ std::string Configuration::getCompiledDateTime() {
   return __DATE__ " " __TIME__;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

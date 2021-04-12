@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__ABSTRACTION_H
-#define CVC4__THEORY__BV__ABSTRACTION_H
+#ifndef CVC5__THEORY__BV__ABSTRACTION_H
+#define CVC5__THEORY__BV__ABSTRACTION_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -27,7 +27,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -246,6 +246,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

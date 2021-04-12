@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/fmf/full_model_check.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
@@ -21,21 +22,20 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::theory::inst;
-using namespace CVC4::theory::quantifiers::fmcheck;
+using namespace cvc5::kind;
+using namespace cvc5::context;
+
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
+namespace fmcheck {
 
 struct ModelBasisArgSort
 {
@@ -285,8 +285,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
 }
 
 FullModelChecker::FullModelChecker(QuantifiersState& qs,
-                                   QuantifiersRegistry& qr)
-    : QModelBuilder(qs, qr)
+                                   QuantifiersRegistry& qr,
+                                   QuantifiersInferenceManager& qim)
+    : QModelBuilder(qs, qr, qim)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -629,7 +630,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
     Trace("fmc") << std::endl;
 
     // consider all entries going to non-true
-    Instantiate* instq = d_qe->getInstantiate();
+    Instantiate* instq = d_qim.getInstantiate();
     for (unsigned i = 0, msize = mcond.size(); i < msize; i++)
     {
       if (d_quant_models[f].d_value[i] == d_true)
@@ -834,6 +835,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
     Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
     int addedLemmas = 0;
     //now do full iteration
+    Instantiate* ie = d_qim.getInstantiate();
     while( !riter.isFinished() ){
       d_triedLemmas++;
       Trace("fmc-exh-debug") << "Inst : ";
@@ -859,7 +861,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if (d_qe->getInstantiate()->addInstantiation(
+        if (ie->addInstantiation(
                 f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH, true))
         {
           Trace("fmc-exh-debug")  << " ...success.";
@@ -1348,6 +1350,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   for (const Node& v : q[0])
   {
@@ -1362,7 +1365,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     types.push_back(tn);
   }
   TypeNode typ = nm->mkFunctionType(types, nm->booleanType());
-  Node op = nm->mkSkolem("qfmc", typ, "op for full-model checking");
+  Node op = sm->mkDummySkolem("qfmc", typ, "op for full-model checking");
   d_quant_cond[q] = op;
 }
 
@@ -1370,3 +1373,8 @@ bool FullModelChecker::isHandled(Node q) const
 {
   return d_unhandledQuant.find(q) == d_unhandledQuant.end();
 }
+
+}  // namespace fmcheck
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H
 
 #include <map>
 #include <unordered_set>
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -65,6 +65,6 @@ class EnumValGeneratorBasic : public EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_BASIC_H */

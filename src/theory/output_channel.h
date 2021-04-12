@@ -16,13 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
-#define CVC4__THEORY__OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
+#define CVC5__THEORY__OUTPUT_CHANNEL_H
 
+#include "theory/incomplete_id.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Properties of lemmas */
@@ -66,7 +67,7 @@ class Theory;
 /**
  * Generic "theory output channel" interface.
  *
- * All methods can throw unrecoverable CVC4::Exception's unless otherwise
+ * All methods can throw unrecoverable cvc5::Exception's unless otherwise
  * documented.
  */
 class OutputChannel {
@@ -150,7 +151,7 @@ class OutputChannel {
    * this context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setIncomplete() = 0;
+  virtual void setIncomplete(IncompleteId id) = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
@@ -199,6 +200,6 @@ class OutputChannel {
 }; /* class OutputChannel */
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */

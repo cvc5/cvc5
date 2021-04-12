@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__DTYPE_SELECTOR_H
-#define CVC4__EXPR__DTYPE_SELECTOR_H
+#ifndef CVC5__EXPR__DTYPE_SELECTOR_H
+#define CVC5__EXPR__DTYPE_SELECTOR_H
 
 #include <string>
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DatatypeConstructorArg;
 class DType;
@@ -90,6 +90,6 @@ class DTypeSelector
 
 std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

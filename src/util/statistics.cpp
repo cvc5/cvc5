@@ -20,8 +20,7 @@
 #include "util/safe_print.h"
 #include "util/statistics_registry.h" // for details about class Stat
 
-
-namespace CVC4 {
+namespace cvc5 {
 
 bool StatisticsBase::StatCmp::operator()(const Stat* s1, const Stat* s2) const {
   return s1->getName() < s2->getName();
@@ -96,7 +95,7 @@ StatisticsBase::const_iterator StatisticsBase::end() const {
 }
 
 void StatisticsBase::flushInformation(std::ostream &out) const {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   for(StatSet::iterator i = d_stats.begin();
       i != d_stats.end();
       ++i) {
@@ -105,11 +104,11 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
     s->flushInformation(out);
     out << std::endl;
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
 }
 
 void StatisticsBase::safeFlushInformation(int fd) const {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   for (StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
     Stat* s = *i;
     safe_print(fd, s->getName());
@@ -117,7 +116,7 @@ void StatisticsBase::safeFlushInformation(int fd) const {
     s->safeFlushInformation(fd);
     safe_print(fd, "\n");
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
 }
 
 SExpr StatisticsBase::getStatistic(std::string name) const {
@@ -131,4 +130,4 @@ SExpr StatisticsBase::getStatistic(std::string name) const {
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

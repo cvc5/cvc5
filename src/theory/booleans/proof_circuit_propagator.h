@@ -16,15 +16,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
 
 #include <memory>
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 class ProofNodeManager;
@@ -212,6 +212,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

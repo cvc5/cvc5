@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_STATS_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_STATS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -53,6 +53,6 @@ class SygusStatistics
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

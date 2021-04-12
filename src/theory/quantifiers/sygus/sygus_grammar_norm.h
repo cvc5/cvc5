@@ -14,8 +14,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
 #include <map>
 #include <memory>
@@ -25,7 +25,7 @@
 #include "expr/sygus_datatype.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -426,6 +426,6 @@ class SygusGrammarNorm
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

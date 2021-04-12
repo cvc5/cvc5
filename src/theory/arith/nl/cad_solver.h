@@ -12,8 +12,8 @@
  ** \brief CAD-based solver based on https://arxiv.org/pdf/2003.05633.pdf.
  **/
 
-#ifndef CVC4__THEORY__ARITH__CAD_SOLVER_H
-#define CVC4__THEORY__ARITH__CAD_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__CAD_SOLVER_H
+#define CVC5__THEORY__ARITH__CAD_SOLVER_H
 
 #include <vector>
 
@@ -22,7 +22,7 @@
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -87,7 +87,7 @@ class CadSolver
    */
   Node d_ranVariable;
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   /**
    * The object implementing the actual decision procedure.
    */
@@ -110,6 +110,6 @@ class CadSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__CAD_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__CAD_SOLVER_H */

@@ -24,7 +24,7 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
@@ -70,4 +70,4 @@ PreprocessingPass::~PreprocessingPass() {
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

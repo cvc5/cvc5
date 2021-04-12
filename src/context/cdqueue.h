@@ -22,13 +22,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDQUEUE_H
-#define CVC4__CONTEXT__CDQUEUE_H
+#ifndef CVC5__CONTEXT__CDQUEUE_H
+#define CVC5__CONTEXT__CDQUEUE_H
 
 #include "context/context.h"
 #include "context/cdlist.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
@@ -162,7 +162,7 @@ public:
 
 };/* class CDQueue<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDQUEUE_H */
+#endif /* CVC5__CONTEXT__CDQUEUE_H */

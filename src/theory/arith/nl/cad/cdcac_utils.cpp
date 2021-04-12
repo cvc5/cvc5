@@ -16,11 +16,11 @@
 
 #include "theory/arith/nl/cad/cdcac_utils.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "theory/arith/nl/cad/projections.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -370,6 +370,6 @@ void makeFinestSquareFreeBasis(CACInterval& lhs, CACInterval& rhs)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

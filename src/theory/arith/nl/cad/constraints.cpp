@@ -16,14 +16,14 @@
 
 #include "theory/arith/nl/cad/constraints.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <algorithm>
 
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -79,6 +79,6 @@ void Constraints::sortConstraints()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

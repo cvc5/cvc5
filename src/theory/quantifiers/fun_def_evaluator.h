@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__QUANTIFIERS_FUN_DEF_EVALUATOR_H
-#define CVC4__QUANTIFIERS_FUN_DEF_EVALUATOR_H
+#ifndef CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
+#define CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
 
 #include <map>
 #include <vector>
 #include "expr/node.h"
 #include "theory/evaluator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -70,6 +70,6 @@ class FunDefEvaluator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

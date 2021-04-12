@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::context::CDList<>.
+ ** \brief Black box testing of cvc5::context::CDList<>.
  **
- ** Black box testing of CVC4::context::CDList<>.
+ ** Black box testing of cvc5::context::CDList<>.
  **/
 
 #include <limits.h>
@@ -24,7 +24,7 @@
 #include "memory.h"
 #include "test_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
@@ -138,7 +138,7 @@ TEST_F(TestContextBlackCDList, empty_iterator)
 
 TEST_F(TestContextBlackCDList, out_of_memory)
 {
-#ifndef CVC4_MEMORY_LIMITING_DISABLED
+#ifndef CVC5_MEMORY_LIMITING_DISABLED
   CDList<uint32_t> list(d_context.get());
   test::WithLimitedMemory wlm(1);
 
@@ -163,4 +163,4 @@ TEST_F(TestContextBlackCDList, pop_below_level_created)
   list.push_back(42);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

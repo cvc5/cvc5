@@ -18,14 +18,14 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONFIGURATION_H
-#define CVC4__CONFIGURATION_H
+#ifndef CVC5__CONFIGURATION_H
+#define CVC5__CONFIGURATION_H
 
 #include <string>
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * Represents the (static) configuration of CVC4.
@@ -48,7 +48,14 @@ public:
 
   static bool isDebugBuild();
 
-  static bool isStatisticsBuild();
+  static constexpr bool isStatisticsBuild()
+  {
+#ifdef CVC5_STATISTICS_ON
+    return true;
+#else
+    return false;
+#endif
+  }
 
   static bool isTracingBuild();
 
@@ -57,8 +64,6 @@ public:
   static bool isMuzzledBuild();
 
   static bool isAssertionBuild();
-
-  static bool isProofBuild();
 
   static bool isCoverageBuild();
 
@@ -106,11 +111,7 @@ public:
 
   static bool isBuiltWithKissat();
 
-  static bool isBuiltWithDrat2Er();
-
   static bool isBuiltWithEditline();
-
-  static bool isBuiltWithLfsc();
 
   static bool isBuiltWithPoly();
 
@@ -141,6 +142,6 @@ public:
 
 }; /* class Configuration */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__CONFIGURATION_H */
+#endif /* CVC5__CONFIGURATION_H */

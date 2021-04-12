@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__ASSERTIONS_H
-#define CVC4__SMT__ASSERTIONS_H
+#ifndef CVC5__SMT__ASSERTIONS_H
+#define CVC5__SMT__ASSERTIONS_H
 
 #include <vector>
 
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 class AbstractValues;
@@ -172,6 +172,6 @@ class Assertions
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -23,9 +23,9 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 AbductionSolver::AbductionSolver(SmtEngine* parent) : d_parent(parent) {}
@@ -195,4 +195,4 @@ void AbductionSolver::checkAbduct(Node a)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

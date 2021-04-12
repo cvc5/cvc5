@@ -14,19 +14,17 @@
 
 #include "theory/quantifiers/sygus/sygus_module.h"
 
-#include "theory/quantifiers_engine.h"
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusModule::SygusModule(QuantifiersEngine* qe,
-                         QuantifiersInferenceManager& qim,
+SygusModule::SygusModule(QuantifiersInferenceManager& qim,
+                         TermDbSygus* tds,
                          SynthConjecture* p)
-    : d_qe(qe), d_qim(qim), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
+    : d_qim(qim), d_tds(tds), d_parent(p)
 {
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

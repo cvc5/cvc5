@@ -17,10 +17,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__CLAUSE_ID_H
-#define CVC4__PROOF__CLAUSE_ID_H
+#ifndef CVC5__PROOF__CLAUSE_ID_H
+#define CVC5__PROOF__CLAUSE_ID_H
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * A ClauseId is a shared identifier between the proofs module and the sat
@@ -35,6 +35,6 @@ const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__PROOF__CLAUSE_ID_H */
+#endif /* CVC5__PROOF__CLAUSE_ID_H */

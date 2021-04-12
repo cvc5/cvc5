@@ -32,9 +32,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5::theory::bv::utils;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -741,7 +741,7 @@ EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {
@@ -828,4 +828,4 @@ void BVSolverLazy::setConflict(Node conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

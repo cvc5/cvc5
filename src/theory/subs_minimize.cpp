@@ -20,9 +20,9 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 SubstitutionMinimize::SubstitutionMinimize() {}
@@ -224,7 +224,7 @@ bool SubstitutionMinimize::findInternal(Node n,
       if (cur.getNumChildren() > 0)
       {
         std::vector<Node> children;
-        NodeBuilder<> nb(cur.getKind());
+        NodeBuilder nb(cur.getKind());
         if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           if (cur.getKind() == APPLY_UF)
@@ -466,4 +466,4 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

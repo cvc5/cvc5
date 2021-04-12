@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Attribute true for nodes that have been rewritten with proofs enabled */
@@ -89,7 +89,7 @@ struct RewriteStackElement {
   /** Index of the child this node is done rewriting */
   unsigned d_nextChild : 32;
   /** Builder for this node */
-  NodeBuilder<> d_builder;
+  NodeBuilder d_builder;
 };
 
 RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n)
@@ -191,7 +191,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          TConvProofGenerator* tcpg)
 {
   RewriteWithProofsAttribute rpfa;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
   if (d_rewriteStack == nullptr)
@@ -329,21 +329,21 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           // In the post rewrite if we've changed theories, we must do a full rewrite
           Assert(response.d_node != rewriteStackTop.d_node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
           Assert(d_rewriteStack->find(response.d_node)
                  == d_rewriteStack->end());
           d_rewriteStack->insert(response.d_node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.d_node, tcpg);
           rewriteStackTop.d_node = rewritten;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
           d_rewriteStack->erase(response.d_node);
 #endif
           break;
         }
         else if (response.d_status == REWRITE_DONE)
         {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
           RewriteResponse r2 =
               d_theoryRewriters[newTheoryId]->postRewrite(response.d_node);
           Assert(r2.d_node == response.d_node)
@@ -504,12 +504,12 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
 void Rewriter::clearCaches() {
   Rewriter* rewriter = getInstance();
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   rewriter->d_rewriteStack.reset(nullptr);
 #endif
 
   rewriter->clearCachesInternal();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__ITE_UTILITIES_H
-#define CVC4__ITE_UTILITIES_H
+#ifndef CVC5__ITE_UTILITIES_H
+#define CVC5__ITE_UTILITIES_H
 
 #include <unordered_map>
 #include <vector>
@@ -31,7 +31,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -417,6 +417,6 @@ class ITECareSimplifier
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

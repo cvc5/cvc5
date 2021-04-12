@@ -48,11 +48,11 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
-using namespace ::CVC4::context;
+using namespace ::cvc5::context;
 
 SymmetryBreaker::Template::Template() :
   d_template(),
@@ -370,7 +370,7 @@ Node SymmetryBreaker::normInternal(TNode n, size_t level) {
         Debug("ufsymm:eq") << "UFSYMM " << n[0] << " <==> " << n[1] << endl;
       }
     }
-    CVC4_FALLTHROUGH;
+    CVC5_FALLTHROUGH;
   case kind::XOR:
     // commutative binary operator handling
     return n[1] < n[0] ? NodeManager::currentNM()->mkNode(k, n[1], n[0]) : Node(n);
@@ -438,7 +438,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
       d_permutations.insert(p);
     }
     d_template.reset();
-    bool good CVC4_UNUSED = d_template.match(phi);
+    bool good CVC5_UNUSED = d_template.match(phi);
     Assert(good);
   }
 }
@@ -525,7 +525,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
           Debug("ufsymm") << "UFSYMM p == " << p << endl;
           if(i != p.end() || p.size() != cts.size()) {
             Debug("ufsymm") << "UFSYMM cts != p" << endl;
-            NodeBuilder<> disj(kind::OR);
+            NodeBuilder disj(kind::OR);
             NodeManager* nm = NodeManager::currentNM();
             for (const Node& nn : cts)
             {
@@ -800,8 +800,8 @@ void SymmetryBreaker::insertUsedIn(Term term, const Permutation& p, set<Node>& c
   }
 }
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
+}  // namespace uf
+}  // namespace theory
 
 std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::Permutation& p) {
   out << "{";
@@ -816,4 +816,4 @@ std::ostream& operator<<(std::ostream& out, const theory::uf::SymmetryBreaker::P
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

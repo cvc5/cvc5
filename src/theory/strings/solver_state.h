@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SOLVER_STATE_H
-#define CVC4__THEORY__STRINGS__SOLVER_STATE_H
+#ifndef CVC5__THEORY__STRINGS__SOLVER_STATE_H
+#define CVC5__THEORY__STRINGS__SOLVER_STATE_H
 
 #include <map>
 
@@ -29,7 +29,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -161,6 +161,6 @@ class SolverState : public TheoryState
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SOLVER_STATE_H */
+#endif /* CVC5__THEORY__STRINGS__SOLVER_STATE_H */

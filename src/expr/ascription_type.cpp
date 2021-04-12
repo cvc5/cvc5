@@ -18,7 +18,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 AscriptionType::AscriptionType(TypeNode t) : d_type(new TypeNode(t)) {}
 
@@ -55,4 +55,4 @@ std::ostream& operator<<(std::ostream& out, AscriptionType at)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

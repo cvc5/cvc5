@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 struct substitution_stack_element {
@@ -81,7 +81,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << Node(cache[current.getOperator()]);
       }
@@ -217,10 +217,10 @@ void SubstitutionMap::print(ostream& out) const {
 
 void SubstitutionMap::debugPrint() const { print(CVC4Message.getStream()); }
 
-}/* CVC4::theory namespace */
+}  // namespace theory
 
 std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i) {
   return out << "[CDMap-iterator]";
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

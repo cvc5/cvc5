@@ -4,25 +4,25 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_ARRAYS ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
+theory THEORY_ARRAYS ::cvc5::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
 typechecker "theory/arrays/theory_arrays_type_rules.h"
 
 properties polite stable-infinite parametric
 properties check presolve
 
-rewriter ::CVC4::theory::arrays::TheoryArraysRewriter "theory/arrays/theory_arrays_rewriter.h"
+rewriter ::cvc5::theory::arrays::TheoryArraysRewriter "theory/arrays/theory_arrays_rewriter.h"
 
 operator ARRAY_TYPE 2 "array type"
 cardinality ARRAY_TYPE \
-    "::CVC4::theory::arrays::ArraysProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::arrays::ArraysProperties::computeCardinality(%TYPE%)" \
     "theory/arrays/theory_arrays_type_rules.h"
 well-founded ARRAY_TYPE \
-    "::CVC4::theory::arrays::ArraysProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::arrays::ArraysProperties::mkGroundTerm(%TYPE%)" \
+    "::cvc5::theory::arrays::ArraysProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::arrays::ArraysProperties::mkGroundTerm(%TYPE%)" \
     "theory/arrays/theory_arrays_type_rules.h"
 
 enumerator ARRAY_TYPE \
-    "::CVC4::theory::arrays::ArrayEnumerator" \
+    "::cvc5::theory::arrays::ArrayEnumerator" \
     "theory/arrays/type_enumerator.h"
 
 # select a i  is  a[i]
@@ -36,10 +36,10 @@ operator EQ_RANGE 4 "equality of two arrays over an index range lower/upper"
 
 # storeall t e  is  \all i in indexType(t) <= e
 constant STORE_ALL \
-    ::CVC4::ArrayStoreAll \
-    ::CVC4::ArrayStoreAllHashFunction \
+    ::cvc5::ArrayStoreAll \
+    ::cvc5::ArrayStoreAllHashFunction \
     "expr/array_store_all.h" \
-    "array store-all; payload is an instance of the CVC4::ArrayStoreAll class (this is not supported by arrays decision procedure yet, but it is used for returned array models)"
+    "array store-all; payload is an instance of the cvc5::ArrayStoreAll class (this is not supported by arrays decision procedure yet, but it is used for returned array models)"
 
 # used internally by array theory
 operator ARR_TABLE_FUN 4 "array table function (internal-only symbol)"
@@ -51,19 +51,19 @@ operator ARR_TABLE_FUN 4 "array table function (internal-only symbol)"
 # as a shifted over one.
 operator ARRAY_LAMBDA 1 "array lambda (internal-only symbol)"
 
-typerule SELECT ::CVC4::theory::arrays::ArraySelectTypeRule
-typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
-typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
-typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
-typerule ARRAY_LAMBDA ::CVC4::theory::arrays::ArrayLambdaTypeRule
-typerule EQ_RANGE ::CVC4::theory::arrays::ArrayEqRangeTypeRule
+typerule SELECT ::cvc5::theory::arrays::ArraySelectTypeRule
+typerule STORE ::cvc5::theory::arrays::ArrayStoreTypeRule
+typerule STORE_ALL ::cvc5::theory::arrays::ArrayStoreTypeRule
+typerule ARR_TABLE_FUN ::cvc5::theory::arrays::ArrayTableFunTypeRule
+typerule ARRAY_LAMBDA ::cvc5::theory::arrays::ArrayLambdaTypeRule
+typerule EQ_RANGE ::cvc5::theory::arrays::ArrayEqRangeTypeRule
 
 operator PARTIAL_SELECT_0 0:2 "partial array select, for internal use only"
 operator PARTIAL_SELECT_1 0:2 "partial array select, for internal use only"
-typerule PARTIAL_SELECT_0 ::CVC4::theory::arrays::ArrayPartialSelectTypeRule
-typerule PARTIAL_SELECT_1 ::CVC4::theory::arrays::ArrayPartialSelectTypeRule
+typerule PARTIAL_SELECT_0 ::cvc5::theory::arrays::ArrayPartialSelectTypeRule
+typerule PARTIAL_SELECT_1 ::cvc5::theory::arrays::ArrayPartialSelectTypeRule
 
 # store operations that are ordered (by index) over a store-all are constant
-construle STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
+construle STORE ::cvc5::theory::arrays::ArrayStoreTypeRule
 
 endtheory

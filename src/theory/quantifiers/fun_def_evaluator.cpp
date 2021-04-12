@@ -19,9 +19,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -139,7 +139,7 @@ Node FunDefEvaluator::evaluate(Node n) const
                                   << cur[childIdxToEval] << "\n";
           continue;
         }
-        unsigned child CVC4_UNUSED = 0;
+        unsigned child CVC5_UNUSED = 0;
         for (const Node& cn : cur)
         {
           it = visited.find(cn);
@@ -252,4 +252,4 @@ bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

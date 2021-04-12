@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::InteractiveShell.
+ ** \brief Black box testing of cvc5::InteractiveShell.
  **
- ** Black box testing of CVC4::InteractiveShell.
+ ** Black box testing of cvc5::InteractiveShell.
  **/
 
 #include <sstream>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
@@ -27,7 +27,7 @@
 #include "smt/command.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestMainBlackInteractiveShell : public TestInternal
@@ -41,7 +41,7 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_options.set(options::in, d_sin.get());
     d_options.set(options::out, d_sout.get());
     d_options.set(options::inputLanguage, language::input::LANG_CVC4);
-    d_solver.reset(new CVC4::api::Solver(&d_options));
+    d_solver.reset(new cvc5::api::Solver(&d_options));
     d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
@@ -80,7 +80,7 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<SymbolManager> d_symman;
-  std::unique_ptr<CVC4::api::Solver> d_solver;
+  std::unique_ptr<cvc5::api::Solver> d_solver;
   Options d_options;
 };
 
@@ -133,4 +133,4 @@ TEST_F(TestMainBlackInteractiveShell, repeated_empty_lines)
   countCommands(shell, 0, 3);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

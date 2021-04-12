@@ -21,7 +21,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, CDPOverwrite opol)
 {
@@ -73,4 +73,4 @@ bool ProofGenerator::addProofTo(Node f,
   return false;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

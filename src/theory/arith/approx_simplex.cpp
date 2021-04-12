@@ -30,13 +30,13 @@
 #include "theory/arith/normal_form.h"
 #include "theory/eager_proof_generator.h"
 
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
 #include "theory/arith/partial_model.h"
 #endif
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -367,17 +367,17 @@ public:
   double sumInfeasibilities(bool mip) const override { return 0.0; }
 };
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 /* Begin the declaration of GLPK specific code. */
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
 extern "C" {
 #include <glpk.h>
 }/* extern "C" */
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -535,43 +535,42 @@ private:
 
 int ApproxGLPK::s_verbosity = 0;
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-#endif /*#ifdef CVC4_USE_GLPK */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
+#endif /*#ifdef CVC5_USE_GLPK */
 /* End the declaration of GLPK specific code. */
 
 /* Begin GPLK/NOGLPK Glue code. */
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s){
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
   return new ApproxGLPK(vars, l, s);
 #else
   return new ApproxNoOp(vars, l, s);
 #endif
 }
 bool ApproximateSimplex::enabled() {
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
   return true;
 #else
   return false;
 #endif
 }
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 /* End GPLK/NOGLPK Glue code. */
 
-
 /* Begin GPLK implementation. */
-#ifdef CVC4_USE_GLPK
-namespace CVC4 {
+#ifdef CVC5_USE_GLPK
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
 static CutInfoKlass fromGlpkClass(int klass){
   switch(klass){
   case GLP_RF_GMI: return GmiCutKlass;
@@ -1431,7 +1430,7 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
   int M = gmi->getMAtCreation();
 
   // Get the tableau row
-  int nrows CVC4_UNUSED = glp_ios_cut_get_aux_nrows(tree, gmi->poolOrdinal());
+  int nrows CVC5_UNUSED = glp_ios_cut_get_aux_nrows(tree, gmi->poolOrdinal());
   Assert(nrows == 1);
   int rows[1+1];
   glp_ios_cut_get_aux_rows(tree, gmi->poolOrdinal(), rows, NULL);
@@ -1786,7 +1785,7 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
 
 // Node explainSet(const set<ConstraintP>& inp){
 //   Assert(!inp.empty());
-//   NodeBuilder<> nb(kind::AND);
+//   NodeBuilder nb(kind::AND);
 //   set<ConstraintP>::const_iterator iter, end;
 //   for(iter = inp.begin(), end = inp.end(); iter != end; ++iter){
 //     const ConstraintP c = *iter;
@@ -3175,9 +3174,8 @@ void ApproxGLPK::tryCut(int nid, CutInfo& cut)
   }
 }
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-#endif /*#ifdef CVC4_USE_GLPK */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
+#endif /*#ifdef CVC5_USE_GLPK */
 /* End GPLK implementation. */

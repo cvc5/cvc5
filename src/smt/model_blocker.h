@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__MODEL_BLOCKER_H
-#define __CVC4__THEORY__MODEL_BLOCKER_H
+#ifndef __CVC5__THEORY__MODEL_BLOCKER_H
+#define __CVC5__THEORY__MODEL_BLOCKER_H
 
 #include <vector>
 
 #include "expr/node.h"
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 class TheoryModel;
@@ -69,6 +69,6 @@ class ModelBlocker
       const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__THEORY__MODEL_BLOCKER_H */
+#endif /* __CVC5__THEORY__MODEL_BLOCKER_H */

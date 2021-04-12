@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONTEXT_NODE_H
-#define CVC4__EXPR__TERM_CONTEXT_NODE_H
+#ifndef CVC5__EXPR__TERM_CONTEXT_NODE_H
+#define CVC5__EXPR__TERM_CONTEXT_NODE_H
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TCtxStack;
 class TermContext;
@@ -74,6 +74,6 @@ class TCtxNode
   const TermContext* d_tctx;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

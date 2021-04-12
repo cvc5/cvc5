@@ -15,15 +15,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
-#define CVC4__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
+#define CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -81,6 +81,6 @@ class NestedQe
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

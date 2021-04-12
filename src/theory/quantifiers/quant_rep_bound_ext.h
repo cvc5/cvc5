@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
-#define CVC4__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
+#define CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
 
 #include <map>
 
@@ -23,7 +23,7 @@
 #include "theory/rep_set.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -67,6 +67,6 @@ class QRepBoundExt : public RepBoundExt
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

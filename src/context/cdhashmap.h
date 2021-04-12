@@ -80,8 +80,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDHASHMAP_H
-#define CVC4__CONTEXT__CDHASHMAP_H
+#ifndef CVC5__CONTEXT__CDHASHMAP_H
+#define CVC5__CONTEXT__CDHASHMAP_H
 
 #include <functional>
 #include <iterator>
@@ -91,7 +91,7 @@
 #include "context/cdhashmap_forward.h"
 #include "context/context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 // Auxiliary class: almost the same as CDO (see cdo.h)
@@ -452,7 +452,7 @@ public:
 
 };/* class CDHashMap<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDHASHMAP_H */
+#endif /* CVC5__CONTEXT__CDHASHMAP_H */

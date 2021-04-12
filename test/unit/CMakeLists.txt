@@ -27,7 +27,7 @@ add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-units)
 
-set(CVC4_UNIT_TEST_FLAGS_BLACK
+set(CVC5_UNIT_TEST_FLAGS_BLACK
   -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
   -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
@@ -35,19 +35,19 @@ set(CVC4_UNIT_TEST_FLAGS_BLACK
 macro(cvc4_add_unit_test is_white name output_dir)
   set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
   add_executable(${name} ${test_src})
-  target_compile_definitions(${name} PRIVATE ${CVC4_UNIT_TEST_FLAGS_BLACK})
+  target_compile_definitions(${name} PRIVATE ${CVC5_UNIT_TEST_FLAGS_BLACK})
   gtest_add_tests(TARGET ${name})
-  target_link_libraries(${name} main-test)
-  target_link_libraries(${name} GTest::GTest)
-  target_link_libraries(${name} GTest::Main)
-  if(USE_LFSC)
-    # We don't link against LFSC, because CVC4 is already linked against it.
-    target_include_directories(${name} PRIVATE ${LFSC_INCLUDE_DIR})
+  target_link_libraries(${name} PUBLIC main-test)
+  target_link_libraries(${name} PUBLIC GTest::Main)
+  target_link_libraries(${name} PUBLIC GTest::GTest)
+
+  if(USE_CLN)
+    target_link_libraries(${name} PUBLIC CLN)
   endif()
   if(USE_POLY)
-    # We don't link against libpoly, because CVC4 is already linked against it.
-    target_include_directories(${name} PRIVATE ${POLY_INCLUDE_DIR})
+    target_link_libraries(${name} PUBLIC Polyxx)
   endif()
+  target_link_libraries(${name} PUBLIC GMP)
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()

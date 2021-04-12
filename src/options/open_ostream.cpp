@@ -28,7 +28,7 @@
 #include "lib/strtok_r.h"
 #include "options/parser_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 OstreamOpener::OstreamOpener(const char* channelName)
     : d_channelName(channelName)
@@ -98,4 +98,4 @@ std::string cvc4_errno_failreason() {
 #endif /* HAVE_STRERROR_R */
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

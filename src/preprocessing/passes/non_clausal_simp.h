@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
-#define CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
+#ifndef CVC5__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
+#define CVC5__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -97,6 +97,6 @@ class NonClausalSimp : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

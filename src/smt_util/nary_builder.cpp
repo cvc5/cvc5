@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace util {
 
 Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children)
@@ -185,7 +185,7 @@ Node RePairAssocCommutativeOperators::case_other(TNode n){
     return n;
   }
 
-  NodeBuilder<> nb(n.getKind());
+  NodeBuilder nb(n.getKind());
 
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << n.getOperator();
@@ -202,4 +202,4 @@ Node RePairAssocCommutativeOperators::case_other(TNode n){
 }
 
 }/* util namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5

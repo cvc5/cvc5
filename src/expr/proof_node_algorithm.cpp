@@ -16,7 +16,7 @@
 
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
@@ -172,4 +172,4 @@ bool containsSubproof(ProofNode* pn,
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

@@ -17,7 +17,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_to_sexpr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNode::ProofNode(PfRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -44,19 +44,6 @@ bool ProofNode::isClosed()
   return assumps.empty();
 }
 
-std::shared_ptr<ProofNode> ProofNode::clone() const
-{
-  std::vector<std::shared_ptr<ProofNode>> cchildren;
-  for (const std::shared_ptr<ProofNode>& cp : d_children)
-  {
-    cchildren.push_back(cp->clone());
-  }
-  std::shared_ptr<ProofNode> thisc =
-      std::make_shared<ProofNode>(d_rule, cchildren, d_args);
-  thisc->d_proven = d_proven;
-  return thisc;
-}
-
 void ProofNode::setValue(
     PfRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
@@ -81,4 +68,4 @@ std::ostream& operator<<(std::ostream& out, const ProofNode& pn)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

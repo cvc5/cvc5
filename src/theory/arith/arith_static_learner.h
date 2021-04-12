@@ -17,15 +17,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
-#define CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#ifndef CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#define CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include "context/cdhashmap.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -45,19 +45,22 @@ private:
 public:
   ArithStaticLearner(context::Context* userContext);
   ~ArithStaticLearner();
-  void staticLearning(TNode n, NodeBuilder<>& learned);
+  void staticLearning(TNode n, NodeBuilder& learned);
 
   void addBound(TNode n);
 
-private:
-  void process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue);
+ private:
+  void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
 
-  void iteMinMax(TNode n, NodeBuilder<>& learned);
-  void iteConstant(TNode n, NodeBuilder<>& learned);
+  void iteMinMax(TNode n, NodeBuilder& learned);
+  void iteConstant(TNode n, NodeBuilder& learned);
 
-  /** These fields are designed to be accessible to ArithStaticLearner methods. */
-  class Statistics {
-  public:
+  /**
+   * These fields are designed to be accessible to ArithStaticLearner methods.
+   */
+  class Statistics
+  {
+   public:
     IntStat d_iteMinMaxApplications;
     IntStat d_iteConstantApplications;
 
@@ -69,8 +72,8 @@ private:
 
 };/* class ArithStaticLearner */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H */

@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TConvProofGenerator;
 class ProofNodeManager;
@@ -225,11 +225,11 @@ class Rewriter {
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
       nullptr;
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 };/* class Rewriter */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

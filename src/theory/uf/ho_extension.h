@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__HO_EXTENSION_H
-#define __CVC4__THEORY__UF__HO_EXTENSION_H
+#ifndef __CVC5__THEORY__UF__HO_EXTENSION_H
+#define __CVC5__THEORY__UF__HO_EXTENSION_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -25,7 +25,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -198,6 +198,6 @@ class HoExtension
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__THEORY__UF__HO_EXTENSION_H */
+#endif /* __CVC5__THEORY__UF__HO_EXTENSION_H */

@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -57,12 +57,6 @@ TheoryUF::TheoryUF(context::Context* c,
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
-
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_ufProofChecker.registerTo(pc);
-  }
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -72,6 +66,8 @@ TheoryUF::~TheoryUF() {
 }
 
 TheoryRewriter* TheoryUF::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryUF::getProofChecker() { return &d_checker; }
 
 bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -112,7 +108,7 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
     return conjunctions[0];
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
@@ -181,7 +177,7 @@ bool TheoryUF::preNotifyFact(
       else
       {
         // support for cardinality constraints is not enabled, set incomplete
-        d_im.setIncomplete();
+        d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
       }
     }
     // don't need to assert cardinality constraints if not producing models
@@ -347,7 +343,8 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: end presolve()" << endl;
 }
 
-void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
   vector<TNode> workList;
@@ -466,7 +463,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   if(options::ufSymmetryBreaker()) {
     d_symb.assertFormula(n);
   }
-}/* TheoryUF::ppStaticLearn() */
+} /* TheoryUF::ppStaticLearn() */
 
 EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
@@ -691,6 +688,6 @@ bool TheoryUF::isHigherOrderType(TypeNode tn)
   return ret;
 }
 
-} /* namespace CVC4::theory::uf */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5

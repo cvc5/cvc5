@@ -17,7 +17,7 @@
 #include "theory/bags/bags_rewriter.h"
 #include "theory/strings/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -41,7 +41,8 @@ class TestTheoryWhiteBagsRewriter : public TestSmt
     std::vector<Node> elements(n);
     for (size_t i = 0; i < n; i++)
     {
-      elements[i] = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+      elements[i] =
+          d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
     }
     return elements;
   }
@@ -63,8 +64,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_equality)
   std::vector<Node> elements = getNStrings(2);
   Node x = elements[0];
   Node y = elements[1];
-  Node c = d_nodeManager->mkSkolem("c", d_nodeManager->integerType());
-  Node d = d_nodeManager->mkSkolem("d", d_nodeManager->integerType());
+  Node c = d_skolemManager->mkDummySkolem("c", d_nodeManager->integerType());
+  Node d = d_skolemManager->mkDummySkolem("d", d_nodeManager->integerType());
   Node A = d_nodeManager->mkBag(d_nodeManager->stringType(), x, c);
   Node B = d_nodeManager->mkBag(d_nodeManager->stringType(), y, d);
   Node emptyBag = d_nodeManager->mkConst(
@@ -129,7 +130,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, mkBag_constant_element)
 
 TEST_F(TestTheoryWhiteBagsRewriter, mkBag_variable_element)
 {
-  Node skolem = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node skolem =
+      d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node variable = d_nodeManager->mkBag(d_nodeManager->stringType(),
                                        skolem,
                                        d_nodeManager->mkConst(Rational(-1)));
@@ -160,7 +162,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, mkBag_variable_element)
 TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
 {
   int n = 3;
-  Node skolem = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node skolem =
+      d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(skolem.getType())));
   Node bag = d_nodeManager->mkBag(
@@ -181,7 +184,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
 
 TEST_F(TestTheoryWhiteBagsRewriter, duplicate_removal)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node bag = d_nodeManager->mkBag(
       d_nodeManager->stringType(), x, d_nodeManager->mkConst(Rational(5)));
 
@@ -585,7 +588,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, difference_remove)
 
 TEST_F(TestTheoryWhiteBagsRewriter, choose)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node c = d_nodeManager->mkConst(Rational(3));
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), x, c);
 
@@ -598,7 +601,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, choose)
 
 TEST_F(TestTheoryWhiteBagsRewriter, bag_card)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   Node zero = d_nodeManager->mkConst(Rational(0));
@@ -640,8 +643,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, is_singleton)
 {
   Node emptybag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
-  Node c = d_nodeManager->mkSkolem("c", d_nodeManager->integerType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
+  Node c = d_skolemManager->mkDummySkolem("c", d_nodeManager->integerType());
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), x, c);
 
   // TODO(projects#223): complete this function
@@ -662,7 +665,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, is_singleton)
 
 TEST_F(TestTheoryWhiteBagsRewriter, from_set)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node singleton = d_nodeManager->mkSingleton(d_nodeManager->stringType(), x);
 
   // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
@@ -676,7 +679,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, from_set)
 
 TEST_F(TestTheoryWhiteBagsRewriter, to_set)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->stringType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node bag = d_nodeManager->mkBag(
       d_nodeManager->stringType(), x, d_nodeManager->mkConst(Rational(5)));
 
@@ -688,4 +691,4 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
               && response.d_status == REWRITE_AGAIN_FULL);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

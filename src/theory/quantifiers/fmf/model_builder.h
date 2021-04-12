@@ -14,20 +14,21 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
-#define CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#define CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/theory_model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 class FirstOrderModel;
 class QuantifiersState;
 class QuantifiersRegistry;
+class QuantifiersInferenceManager;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
@@ -40,9 +41,9 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr);
-  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-  void finishInit(QuantifiersEngine* qe) { d_qe = qe; }
+  QModelBuilder(QuantifiersState& qs,
+                QuantifiersRegistry& qr,
+                QuantifiersInferenceManager& qim);
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
@@ -66,10 +67,12 @@ class QModelBuilder : public TheoryEngineModelBuilder
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

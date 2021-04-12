@@ -14,11 +14,12 @@
 
 #include "theory/sets/skolem_cache.h"
 
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -49,7 +50,8 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {
-  Node n = NodeManager::currentNM()->mkSkolem(c, tn, "sets skolem");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(c, tn, "sets skolem");
   d_allSkolems.insert(n);
   return n;
 }
@@ -61,4 +63,4 @@ bool SkolemCache::isSkolem(Node n) const
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

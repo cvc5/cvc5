@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NORMAL_FORM_H
-#define CVC4__THEORY__ARITH__NORMAL_FORM_H
+#ifndef CVC5__THEORY__ARITH__NORMAL_FORM_H
+#define CVC5__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
 
@@ -28,8 +28,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/rational.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -421,7 +420,7 @@ public:
 
 template <class GetNodeIterator>
 inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
-  NodeBuilder<> nb(k);
+  NodeBuilder nb(k);
 
   while(start != end) {
     nb << (*start).getNode();
@@ -1403,8 +1402,8 @@ public:
 
 };/* class Comparison */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NORMAL_FORM_H */
+#endif /* CVC5__THEORY__ARITH__NORMAL_FORM_H */

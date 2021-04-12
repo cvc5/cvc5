@@ -23,7 +23,7 @@
 
 ${typechecker_includes}
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -71,5 +71,5 @@ ${construles}
 
 }/* TypeChecker::computeIsConst */
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5

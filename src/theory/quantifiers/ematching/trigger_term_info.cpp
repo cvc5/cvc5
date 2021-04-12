@@ -16,10 +16,11 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 void TriggerTermInfo::init(Node q, Node n, int reqPol, Node reqPolEq)
@@ -111,5 +112,6 @@ int32_t TriggerTermInfo::getTriggerWeight(Node n)
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

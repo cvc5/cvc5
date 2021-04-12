@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -81,4 +81,4 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
   ASSERT_EQ(nr, Rewriter::rewrite(nr));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

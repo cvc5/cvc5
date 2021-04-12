@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
-#define __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
+#ifndef __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
+#define __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
 
 #include <map>
 #include <unordered_map>
@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -150,6 +150,6 @@ class HoElim : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H */
+#endif /* __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H */

@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::BinaryHeap
+ ** \brief Black box testing of cvc5::BinaryHeap
  **
- ** Black box testing of CVC4::BinaryHeap.
+ ** Black box testing of cvc5::BinaryHeap.
  **/
 
 #include <iostream>
@@ -20,7 +20,7 @@
 #include "test.h"
 #include "util/bin_heap.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackBinaryHeap : public TestInternal
@@ -60,7 +60,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   // First test a heap of 1 element
   ASSERT_EQ(heap.size(), 0u);
   ASSERT_TRUE(heap.empty());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif
@@ -77,7 +77,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_NO_THROW(heap.erase(h5));
   ASSERT_TRUE(heap.empty());
   ASSERT_EQ(heap.size(), 0u);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif
@@ -135,7 +135,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_TRUE(heap.begin() == heap.end());
   ASSERT_TRUE(heap.empty());
   ASSERT_EQ(heap.size(), 0u);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif
@@ -230,4 +230,4 @@ TEST_F(TestUtilBlackBinaryHeap, large_heap)
   ASSERT_TRUE(heap.empty());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

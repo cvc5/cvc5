@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
-#define CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#ifndef CVC5__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#define CVC5__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -154,7 +154,9 @@ protected:
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 
  public:
-  FullModelChecker(QuantifiersState& qs, QuantifiersRegistry& qr);
+  FullModelChecker(QuantifiersState& qs,
+                   QuantifiersRegistry& qr,
+                   QuantifiersInferenceManager& qim);
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
@@ -182,9 +184,9 @@ protected:
   bool isHandled(Node q) const;
 };/* class FullModelChecker */
 
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fmcheck
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */

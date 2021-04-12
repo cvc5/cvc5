@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__DUMP_MANAGER_H
-#define CVC4__SMT__DUMP_MANAGER_H
+#ifndef CVC5__SMT__DUMP_MANAGER_H
+#define CVC5__SMT__DUMP_MANAGER_H
 
 #include <memory>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class NodeCommand;
 
@@ -75,6 +75,6 @@ class DumpManager
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

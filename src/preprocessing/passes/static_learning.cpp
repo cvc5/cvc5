@@ -23,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -37,7 +37,7 @@ PreprocessingPassResult StaticLearning::applyInternal(
 
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    NodeBuilder<> learned(kind::AND);
+    NodeBuilder learned(kind::AND);
     learned << (*assertionsToPreprocess)[i];
     d_preprocContext->getTheoryEngine()->ppStaticLearn(
         (*assertionsToPreprocess)[i], learned);
@@ -57,4 +57,4 @@ PreprocessingPassResult StaticLearning::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

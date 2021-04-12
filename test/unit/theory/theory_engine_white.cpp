@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::theory::Theory.
+ ** \brief White box testing of cvc5::theory::Theory.
  **
- ** White box testing of CVC4::theory::Theory.  This test creates
+ ** White box testing of cvc5::theory::Theory.  This test creates
  ** "fake" theory interfaces and injects them into TheoryEngine, so we
  ** can test TheoryEngine's behavior without relying on independent
  ** theory behavior.  This is done in TheoryEngineWhite::setUp() by
@@ -33,7 +33,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace expr;
@@ -183,4 +183,4 @@ TEST_F(TestTheoryWhiteEngine, rewrite_rules)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

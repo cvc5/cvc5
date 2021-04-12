@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SYMBOL_TABLE_H
-#define CVC4__SYMBOL_TABLE_H
+#ifndef CVC5__SYMBOL_TABLE_H
+#define CVC5__SYMBOL_TABLE_H
 
 #include <memory>
 #include <string>
@@ -26,7 +26,7 @@
 #include "base/exception.h"
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -210,6 +210,6 @@ class CVC4_EXPORT SymbolTable
   std::unique_ptr<Implementation> d_implementation;
 }; /* class SymbolTable */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SYMBOL_TABLE_H */
+#endif /* CVC5__SYMBOL_TABLE_H */

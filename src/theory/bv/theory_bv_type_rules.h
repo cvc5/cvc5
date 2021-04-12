@@ -18,10 +18,10 @@
 
 #include <algorithm>
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
-#define CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#ifndef CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#define CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -450,6 +450,6 @@ class BitVectorAckermanizationUremTypeRule
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */
+#endif /* CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H */

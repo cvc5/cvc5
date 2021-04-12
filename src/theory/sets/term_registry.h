@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__TERM_REGISTRY_H
-#define CVC4__THEORY__SETS__TERM_REGISTRY_H
+#ifndef CVC5__THEORY__SETS__TERM_REGISTRY_H
+#define CVC5__THEORY__SETS__TERM_REGISTRY_H
 
 #include <map>
 #include <vector>
@@ -25,7 +25,7 @@
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -89,6 +89,6 @@ class TermRegistry
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__TERM_REGISTRY_H */
+#endif /* CVC5__THEORY__SETS__TERM_REGISTRY_H */

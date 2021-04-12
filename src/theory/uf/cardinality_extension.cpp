@@ -16,6 +16,7 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/logic_exception.h"
@@ -28,10 +29,10 @@
 #include "theory/uf/theory_uf.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -507,8 +508,8 @@ void SortModel::initialize()
     d_initialized = true;
     // Strategy is user-context-dependent, since it is in sync with
     // user-context-dependent flag d_initialized.
-    d_thss->getTheory()->getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_UF_CARD, d_c_dec_strat.get());
+    d_im.getDecisionManager()->registerStrategy(DecisionManager::STRAT_UF_CARD,
+                                                d_c_dec_strat.get());
   }
 }
 
@@ -1126,6 +1127,8 @@ void SortModel::debugPrint( const char* c ){
 
 bool SortModel::checkLastCall()
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TheoryModel* m = d_state.getModel();
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
@@ -1163,7 +1166,7 @@ bool SortModel::checkLastCall()
       {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = NodeManager::currentNM()->mkSkolem(
+        Node nn = sm->mkDummySkolem(
             ss.str(), d_type, "enumeration to meet negative card constraint");
         d_fresh_aloc_reps.push_back( nn );
       }
@@ -1184,8 +1187,7 @@ bool SortModel::checkLastCall()
           }
         }
         Node cl = getCardinalityLiteral( d_maxNegCard );
-        Node lem = NodeManager::currentNM()->mkNode(
-            OR, cl, NodeManager::currentNM()->mkAnd(force_cl));
+        Node lem = nm->mkNode(OR, cl, nm->mkAnd(force_cl));
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
         d_im.lemma(lem, InferenceId::UF_CARD_ENFORCE_NEGATIVE);
         return false;
@@ -1430,7 +1432,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       // cardinality constraint from user input, set incomplete   
       Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::UF_CARD_MODE);
     }
   }
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
@@ -1656,7 +1658,7 @@ void CardinalityExtension::initializeCombinedCardinality()
       && !d_initializedCombinedCardinality.get())
   {
     d_initializedCombinedCardinality = true;
-    d_th->getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_UF_COMBINED_CARD, d_cc_dec_strat.get());
   }
 }
@@ -1764,6 +1766,6 @@ CardinalityExtension::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5

@@ -24,7 +24,7 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 
@@ -156,4 +156,4 @@ TEST_F(TestTheoryWhiteEvaluator, code)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

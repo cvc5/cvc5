@@ -15,13 +15,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__BVSATSOLVERNOTIFY_H
-#define CVC4__PROP__BVSATSOLVERNOTIFY_H
+#ifndef CVC5__PROP__BVSATSOLVERNOTIFY_H
+#define CVC5__PROP__BVSATSOLVERNOTIFY_H
 
 #include "prop/sat_solver_types.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class BVSatSolverNotify {
@@ -45,6 +45,6 @@ public:
 };/* class BVSatSolverInterface::Notify */
 
 }
-}
+}  // namespace cvc5
 
 #endif

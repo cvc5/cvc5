@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/conjecture_generator.h"
@@ -30,7 +30,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus_inst.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
   
 class QuantifiersEngine;
@@ -45,7 +45,8 @@ namespace quantifiers {
  */
 class QuantifiersModules
 {
-  friend class ::CVC4::theory::QuantifiersEngine;
+  friend class ::cvc5::theory::QuantifiersEngine;
+
  public:
   QuantifiersModules();
   ~QuantifiersModules();
@@ -54,15 +55,11 @@ class QuantifiersModules
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules.
    */
-  void initialize(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  void initialize(QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
-                  DecisionManager* dm,
+                  TermRegistry& tr,
                   std::vector<QuantifiersModule*>& modules);
-
-  /** Whether we use the full model check builder and corresponding model */
-  static bool useFmcModel();
 
  private:
   //------------------------------ quantifier utilities
@@ -97,6 +94,6 @@ class QuantifiersModules
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */

@@ -23,13 +23,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
-#define CVC4__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
+#ifndef CVC5__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
+#define CVC5__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -48,6 +48,6 @@ class GlobalNegate : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING_PASSES__GLOBAL_NEGATE_H */
+#endif /* CVC5__PREPROCESSING_PASSES__GLOBAL_NEGATE_H */

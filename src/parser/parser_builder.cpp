@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "cvc/cvc.h"
 #include "options/options.h"
@@ -29,7 +29,7 @@
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
@@ -217,5 +217,5 @@ ParserBuilder& ParserBuilder::withStringInput(const std::string& input) {
   return *this;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

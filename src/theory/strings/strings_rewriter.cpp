@@ -19,9 +19,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -179,7 +179,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (const Node& nc : node[0])
     {
       concatBuilder << nm->mkNode(nk, nc);
@@ -324,4 +324,4 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

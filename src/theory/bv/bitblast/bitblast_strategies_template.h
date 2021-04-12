@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
-#define CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#ifndef CVC5__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#define CVC5__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
 
 #include <cmath>
 #include <ostream>
@@ -27,7 +27,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -899,6 +899,6 @@ void DefaultRotateLeftBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) 
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

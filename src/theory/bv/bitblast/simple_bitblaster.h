@@ -14,12 +14,12 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -75,6 +75,6 @@ class BBSimple : public TBitblaster<Node>
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -30,7 +30,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -411,7 +411,7 @@ bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
 
 void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   if (clause.size() > 1) {
-    NodeBuilder<> lemmab(kind::OR);
+    NodeBuilder lemmab(kind::OR);
     for (unsigned i = 0; i < clause.size(); ++ i) {
       lemmab << d_cnf->getNode(clause[i]);
     }
@@ -590,4 +590,4 @@ void TLazyBitblaster::clearSolver() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -18,11 +18,11 @@
 
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 Stat::Stat(const std::string& name) : d_name(name)
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     CheckArgument(d_name.find(", ") == std::string::npos,
                   name,
@@ -38,7 +38,7 @@ IntStat::IntStat(const std::string& name, int64_t init)
 /** Increment the underlying integer statistic. */
 IntStat& IntStat::operator++()
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     ++d_data;
   }
@@ -47,7 +47,7 @@ IntStat& IntStat::operator++()
 /** Increment the underlying integer statistic. */
 IntStat& IntStat::operator++(int)
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     ++d_data;
   }
@@ -57,7 +57,7 @@ IntStat& IntStat::operator++(int)
 /** Increment the underlying integer statistic by the given amount. */
 IntStat& IntStat::operator+=(int64_t val)
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     d_data += val;
   }
@@ -67,7 +67,7 @@ IntStat& IntStat::operator+=(int64_t val)
 /** Keep the maximum of the current statistic value and the given one. */
 void IntStat::maxAssign(int64_t val)
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     if (d_data < val)
     {
@@ -79,7 +79,7 @@ void IntStat::maxAssign(int64_t val)
 /** Keep the minimum of the current statistic value and the given one. */
 void IntStat::minAssign(int64_t val)
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     if (d_data > val)
     {
@@ -96,7 +96,7 @@ AverageStat::AverageStat(const std::string& name)
 /** Add an entry to the running-average calculation. */
 AverageStat& AverageStat::operator<<(double e)
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     ++d_count;
     d_sum += e;
@@ -112,4 +112,4 @@ SExpr AverageStat::getValue() const
   return SExpr(Rational::fromDecimal(ss.str()));
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

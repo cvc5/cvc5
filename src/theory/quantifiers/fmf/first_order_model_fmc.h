@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
-#define CVC4__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
+#define CVC5__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
 
 #include "theory/quantifiers/first_order_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -54,6 +54,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 }  // namespace fmcheck
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

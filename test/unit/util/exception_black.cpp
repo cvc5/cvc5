@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::Exception.
+ ** \brief Black box testing of cvc5::Exception.
  **
- ** Black box testing of CVC4::Exception.
+ ** Black box testing of cvc5::Exception.
  **/
 
 #include <iostream>
@@ -20,14 +20,14 @@
 #include "base/exception.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackException : public TestInternal
 {
 };
 
-// CVC4::Exception is a simple class, just test it all at once.
+// cvc5::Exception is a simple class, just test it all at once.
 TEST_F(TestUtilBlackException, exceptions)
 {
   Exception e1;
@@ -52,4 +52,4 @@ TEST_F(TestUtilBlackException, exceptions)
   ASSERT_EQ(s3.str(), std::string("three of 'em!"));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

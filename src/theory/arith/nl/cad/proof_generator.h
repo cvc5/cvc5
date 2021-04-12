@@ -14,10 +14,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
-#define CVC4__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
+#define CVC5__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
@@ -28,7 +28,7 @@
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/lazy_tree_proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 
@@ -144,7 +144,7 @@ std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 #endif

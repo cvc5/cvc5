@@ -24,7 +24,7 @@
 #include "theory/theory_engine.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace theory::arith;
@@ -122,4 +122,4 @@ TEST_F(TestTheoryWhiteArith, int_normal_form)
   ASSERT_EQ(Rewriter::rewrite(Rewriter::rewrite(t)), Rewriter::rewrite(t));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

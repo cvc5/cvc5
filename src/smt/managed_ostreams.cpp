@@ -24,7 +24,7 @@
 #include "options/smt_options.h"
 #include "smt/update_ostream.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ManagedOstream::ManagedOstream() : d_managed(NULL) {}
 
@@ -71,13 +71,13 @@ std::string ManagedDumpOStream::defaultSource() const{
 
 
 void ManagedDumpOStream::initialize(std::ostream* outStream) {
-#ifdef CVC4_DUMPING
+#ifdef CVC5_DUMPING
   DumpOstreamUpdate dumpGetStream;
   dumpGetStream.apply(outStream);
-#else /* CVC4_DUMPING */
+#else  /* CVC5_DUMPING */
   throw OptionException(
       "The dumping feature was disabled in this build of CVC4.");
-#endif /* CVC4_DUMPING */
+#endif /* CVC5_DUMPING */
 }
 
 void ManagedDumpOStream::addSpecialCases(OstreamOpener* opener) const {
@@ -164,4 +164,4 @@ void ManagedDiagnosticOutputChannel::addSpecialCases(OstreamOpener* opener)
   opener->addSpecialCase("stderr", &std::cerr);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

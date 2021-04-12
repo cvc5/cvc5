@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
 #include <memory>
 #include <unordered_map>
@@ -31,7 +31,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 class ProofNode;
@@ -103,7 +103,7 @@ class CircuitPropagator
    * @return a trust node encapsulating the proof for a conflict as a lemma that
    * proves false, or the null trust node otherwise
    */
-  TrustNode propagate() CVC4_WARN_UNUSED_RESULT;
+  TrustNode propagate() CVC5_WARN_UNUSED_RESULT;
 
   /**
    * Get the back edges of this circuit.
@@ -274,6 +274,6 @@ class CircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */
+#endif /* CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

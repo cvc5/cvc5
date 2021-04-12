@@ -17,15 +17,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPEN_OSTREAM_H
-#define CVC4__OPEN_OSTREAM_H
+#ifndef CVC5__OPEN_OSTREAM_H
+#define CVC5__OPEN_OSTREAM_H
 
 #include <iosfwd>
 #include <map>
 #include <string>
 #include <utility>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OstreamOpener {
  public:
@@ -55,6 +55,6 @@ class OstreamOpener {
 
 std::string cvc4_errno_failreason();
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__OPEN_OSTREAM_H */
+#endif /* CVC5__OPEN_OSTREAM_H */

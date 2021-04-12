@@ -28,15 +28,15 @@
 #include <iostream>
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::language;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::language;
 
 int runTest();
 

@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
@@ -28,7 +30,7 @@
 #include "util/random.h"
 #include "util/sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -841,6 +843,6 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

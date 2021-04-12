@@ -22,7 +22,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -36,7 +36,7 @@ bool RewriteRule<ConcatFlatten>::applies(TNode node) {
 template<> inline
 Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {
@@ -302,4 +302,4 @@ Node RewriteRule<ReflexivityEq>::apply(TNode node) {
 
 }
 }
-}
+}  // namespace cvc5

@@ -25,20 +25,23 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::theory;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
-                                                   ProofGenerator* pppg)
-    : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm)
+                                                   ProofGenerator* pppg,
+                                                   bool updateScopedAssumptions)
+    : d_pnm(pnm),
+      d_smte(smte),
+      d_pppg(pppg),
+      d_wfpm(pnm),
+      d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  // always check whether to update ASSUME
-  d_elimRules.insert(PfRule::ASSUME);
 }
 
 void ProofPostprocessCallback::initializeUpdate()
@@ -53,9 +56,26 @@ void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
-  return d_elimRules.find(pn->getRule()) != d_elimRules.end();
+  PfRule id = pn->getRule();
+  if (d_elimRules.find(id) != d_elimRules.end())
+  {
+    return true;
+  }
+  // other than elimination rules, we always update assumptions as long as
+  // d_updateScopedAssumptions is true or they are *not* in scope, i.e., not in
+  // fa
+  if (id != PfRule::ASSUME
+      || (!d_updateScopedAssumptions
+          && std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end()))
+  {
+    Trace("smt-proof-pp-debug")
+        << "... not updating in-scope assumption " << pn->getResult() << "\n";
+    return false;
+  }
+  return true;
 }
 
 bool ProofPostprocessCallback::update(Node res,
@@ -628,7 +648,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
-  else if (id == PfRule::MACRO_RESOLUTION)
+  else if (id == PfRule::MACRO_RESOLUTION
+           || id == PfRule::MACRO_RESOLUTION_TRUST)
   {
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
@@ -1108,6 +1129,7 @@ void ProofPostprocessFinalCallback::initializeUpdate()
 }
 
 bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
   PfRule r = pn->getRule();
@@ -1146,9 +1168,10 @@ bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
-                                     ProofGenerator* pppg)
+                                     ProofGenerator* pppg,
+                                     bool updateScopedAssumptions)
     : d_pnm(pnm),
-      d_cb(pnm, smte, pppg),
+      d_cb(pnm, smte, pppg, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(d_pnm, d_cb, true),
       d_finalCb(pnm),
@@ -1185,4 +1208,4 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

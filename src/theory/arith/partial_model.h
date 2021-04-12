@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__PARTIAL_MODEL_H
-#define CVC4__THEORY__ARITH__PARTIAL_MODEL_H
+#ifndef CVC5__THEORY__ARITH__PARTIAL_MODEL_H
+#define CVC5__THEORY__ARITH__PARTIAL_MODEL_H
 
 #include <vector>
 
@@ -32,7 +32,7 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -412,9 +412,8 @@ private:
 
 };/* class ArithVariables */
 
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__THEORY__ARITH__PARTIAL_MODEL_H */
+#endif /* CVC5__THEORY__ARITH__PARTIAL_MODEL_H */

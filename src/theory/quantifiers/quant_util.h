@@ -14,17 +14,18 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANT_UTIL_H
-#define CVC4__THEORY__QUANT_UTIL_H
+#ifndef CVC5__THEORY__QUANT_UTIL_H
+#define CVC5__THEORY__QUANT_UTIL_H
 
 #include <iostream>
 #include <map>
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/incomplete_id.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Quantifiers utility
@@ -49,9 +50,10 @@ public:
   /** Check complete?
    *
    * Returns false if the utility's reasoning was globally incomplete
-   * (e.g. "sat" must be replaced with "incomplete").
+   * (e.g. "sat" must be replaced with "incomplete"). If this method returns
+   * false, it should update incId to the reason for incompleteness.
    */
-  virtual bool checkComplete() { return true; }
+  virtual bool checkComplete(IncompleteId& incId) { return true; }
 };
 
 class QuantPhaseReq
@@ -78,6 +80,6 @@ public:
 };
 
 }
-}
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC5__THEORY__QUANT_UTIL_H */

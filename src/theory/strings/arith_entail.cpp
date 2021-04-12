@@ -22,9 +22,9 @@
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -174,7 +174,7 @@ bool ArithEntail::checkApprox(Node ar)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
-            CVC4_UNUSED bool ret =
+            CVC5_UNUSED bool ret =
                 ArithMSum::getMonomialSum(aa, approxMsums[aa]);
             Assert(ret);
           }
@@ -866,4 +866,4 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

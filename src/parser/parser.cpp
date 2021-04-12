@@ -23,7 +23,7 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
@@ -33,9 +33,9 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
@@ -908,5 +908,5 @@ api::Term Parser::mkStringConstant(const std::string& s)
   return d_solver->mkString(str);
 }
 
-} /* CVC4::parser namespace */
-} /* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

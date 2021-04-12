@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__LIB__CLOCK_GETTIME_H
-#define CVC4__LIB__CLOCK_GETTIME_H
+#ifndef CVC5__LIB__CLOCK_GETTIME_H
+#define CVC5__LIB__CLOCK_GETTIME_H
 
 #include "lib/replacements.h"
 
@@ -72,4 +72,4 @@ long clock_gettime(clockid_t which_clock, struct timespec* tp);
 #endif /* __cplusplus */
 
 #endif /* HAVE_CLOCK_GETTIME */
-#endif /*CVC4__LIB__CLOCK_GETTIME_H */
+#endif /*CVC5__LIB__CLOCK_GETTIME_H */

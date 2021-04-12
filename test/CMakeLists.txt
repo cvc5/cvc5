@@ -44,6 +44,7 @@ if(ENABLE_UNIT_TESTING)
   endif()
 endif()
 
-if(LFSC_BINARY)
-  add_subdirectory(signatures)
+# add Python bindings tests if building with Python bindings
+if (BUILD_BINDINGS_PYTHON)
+  add_subdirectory(python)
 endif()

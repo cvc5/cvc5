@@ -30,10 +30,10 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
+using namespace cvc5;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -131,7 +131,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // No conflict, go through the literals and solve them
   context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
-  CVC4_UNUSED SubstitutionMap& top_level_substs = ttls.get();
+  CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
@@ -261,7 +261,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // NOTE: When debugging this code, consider moving this check inside of the
   // loop over propagator->getLearnedLiterals(). This check has been moved
   // outside because it is costly for certain inputs (see bug 508).
@@ -288,7 +288,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
     Assert(cps.apply((*pos).second) == (*pos).second);
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   // Resize the learnt
   Trace("non-clausal-simplify")
@@ -491,4 +491,4 @@ Node NonClausalSimp::processRewrittenLearnedLit(theory::TrustNode trn)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

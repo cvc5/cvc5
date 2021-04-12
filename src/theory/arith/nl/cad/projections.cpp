@@ -16,11 +16,11 @@
 
 #include "theory/arith/nl/cad/projections.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -106,6 +106,6 @@ PolyVector projection_mccallum(const std::vector<Polynomial>& polys)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

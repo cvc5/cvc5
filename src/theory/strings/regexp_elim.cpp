@@ -21,9 +21,9 @@
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -613,4 +613,4 @@ bool RegExpElimination::isProofEnabled() const { return d_pnm != nullptr; }
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -20,10 +20,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__REGISTRAR_H
-#define CVC4__PROP__REGISTRAR_H
+#ifndef CVC5__PROP__REGISTRAR_H
+#define CVC5__PROP__REGISTRAR_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class Registrar {
@@ -39,7 +39,7 @@ public:
 
 };/* class NullRegistrar */
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5
 
-#endif /* CVC4__PROP__REGISTRAR_H */
+#endif /* CVC5__PROP__REGISTRAR_H */

@@ -14,7 +14,7 @@
 
 #include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
 {
@@ -132,4 +132,4 @@ void PolarityTermContext::getFlags(uint32_t val, bool& hasPol, bool& pol)
   pol = val == 2;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

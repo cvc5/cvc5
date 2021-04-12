@@ -18,7 +18,7 @@
 #include <memory>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine_scope.h"
@@ -27,7 +27,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -144,4 +144,4 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

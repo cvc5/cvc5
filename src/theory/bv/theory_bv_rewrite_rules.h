@@ -30,7 +30,7 @@
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -642,7 +642,7 @@ struct ApplyRuleToChildren {
     if (node.getKind() != kind) {
       return RewriteRule<rule>::template run<true>(node);
     }
-    NodeBuilder<> result(kind);
+    NodeBuilder result(kind);
     for (unsigned i = 0, end = node.getNumChildren(); i < end; ++ i) {
       result << RewriteRule<rule>::template run<true>(node[i]);
     }
@@ -770,4 +770,4 @@ struct FixpointRewriteStrategy {
 
 } // End namespace bv
 } // End namespace theory
-} // End namespace CVC4
+}  // End namespace cvc5

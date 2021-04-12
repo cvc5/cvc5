@@ -41,8 +41,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__SYMMETRY_BREAKER_H
-#define CVC4__THEORY__UF__SYMMETRY_BREAKER_H
+#ifndef CVC5__THEORY__UF__SYMMETRY_BREAKER_H
+#define CVC5__THEORY__UF__SYMMETRY_BREAKER_H
 
 #include <iostream>
 #include <list>
@@ -57,7 +57,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -65,7 +65,7 @@ class SymmetryBreaker : public context::ContextNotifyObj {
 
   class Template {
     Node d_template;
-    NodeBuilder<> d_assertions;
+    NodeBuilder d_assertions;
     std::unordered_map<TNode, std::set<TNode>, TNodeHashFunction> d_sets;
     std::unordered_map<TNode, TNode, TNodeHashFunction> d_reps;
 
@@ -170,11 +170,13 @@ private:
 
 };/* class SymmetryBreaker */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
+}  // namespace uf
+}  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const ::CVC4::theory::uf::SymmetryBreaker::Permutation& p);
+std::ostream& operator<<(
+    std::ostream& out,
+    const ::cvc5::theory::uf::SymmetryBreaker::Permutation& p);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__UF__SYMMETRY_BREAKER_H */
+#endif /* CVC5__THEORY__UF__SYMMETRY_BREAKER_H */

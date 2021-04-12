@@ -16,7 +16,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
@@ -60,4 +60,4 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_ENGINE_H
-#define CVC4__THEORY_ENGINE_H
+#ifndef CVC5__THEORY_ENGINE_H
+#define CVC5__THEORY_ENGINE_H
 
 #include <memory>
 #include <vector>
@@ -41,11 +41,12 @@
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ResourceManager;
 class OutputManager;
 class TheoryEngineProofGenerator;
+class ProofChecker;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -84,7 +85,7 @@ class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
-}/* CVC4::theory namespace */
+}  // namespace theory
 
 namespace prop {
 class PropEngine;
@@ -198,13 +199,14 @@ class TheoryEngine {
    * context level or below).
    */
   context::CDO<bool> d_incomplete;
+  /** The theory and identifier that (most recently) set incomplete */
+  context::CDO<theory::TheoryId> d_incompleteTheory;
+  context::CDO<theory::IncompleteId> d_incompleteId;
 
   /**
    * Called by the theories to notify that the current branch is incomplete.
    */
-  void setIncomplete(theory::TheoryId theory) {
-    d_incomplete = true;
-  }
+  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -321,6 +323,9 @@ class TheoryEngine {
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
+
+  /** Register theory proof rule checkers to the given proof checker */
+  void initializeProofChecker(ProofChecker* pc);
 
   void setPropEngine(prop::PropEngine* propEngine)
   {
@@ -498,7 +503,7 @@ class TheoryEngine {
    * Calls ppStaticLearn() on all theories, accumulating their
    * combined contributions in the "learned" builder.
    */
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   /**
    * Calls presolve() on all theories and returns true
@@ -668,6 +673,6 @@ private:
   void checkTheoryAssertionsWithModel(bool hardFailure);
 };/* class TheoryEngine */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY_ENGINE_H */
+#endif /* CVC5__THEORY_ENGINE_H */

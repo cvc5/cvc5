@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::Configuration.
+ ** \brief White box testing of cvc5::Configuration.
  **
- ** White box testing of CVC4::Configuration.
+ ** White box testing of cvc5::Configuration.
  **/
 
 #include <cstring>
@@ -20,7 +20,7 @@
 #include "base/check.h"
 #include "test.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilWhite : public TestInternal
@@ -29,7 +29,7 @@ class TestUtilWhite : public TestInternal
 
 TEST_F(TestUtilWhite, Assert)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(Assert(false), "false");
 #else
   ASSERT_NO_THROW(Assert(false));
@@ -41,7 +41,7 @@ TEST_F(TestUtilWhite, Assert)
 
 TEST_F(TestUtilWhite, AssertArgument)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_THROW(AssertArgument(false, "x"), AssertArgumentException);
 #else
   ASSERT_NO_THROW(AssertArgument(false, "x"));
@@ -86,4 +86,4 @@ TEST_F(TestUtilWhite, CheckArgument)
   ASSERT_THROW(CheckArgument(false, "x"), IllegalArgumentException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,15 +16,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__CARE_GRAPH_H
-#define CVC4__THEORY__CARE_GRAPH_H
+#ifndef CVC5__THEORY__CARE_GRAPH_H
+#define CVC5__THEORY__CARE_GRAPH_H
 
 #include <set>
 
 #include "expr/node.h"
 #include "theory/theory_id.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -60,6 +60,6 @@ struct CarePair {
 typedef std::set<CarePair> CareGraph;
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__CARE_GRAPH_H */
+#endif /* CVC5__THEORY__CARE_GRAPH_H */

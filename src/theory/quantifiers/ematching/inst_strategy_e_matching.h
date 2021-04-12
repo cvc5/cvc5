@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__INST_STRATEGY_E_MATCHING_H
-#define CVC4__INST_STRATEGY_E_MATCHING_H
+#ifndef CVC5__INST_STRATEGY_E_MATCHING_H
+#define CVC5__INST_STRATEGY_E_MATCHING_H
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_relevance.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -85,10 +85,11 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   std::map<Node, bool> d_hasUserPatterns;
 
  public:
-  InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+  InstStrategyAutoGenTriggers(inst::TriggerDatabase& td,
                               QuantifiersState& qs,
                               QuantifiersInferenceManager& qim,
                               QuantifiersRegistry& qr,
+                              TermRegistry& tr,
                               QuantRelevance* qrlv);
   ~InstStrategyAutoGenTriggers() {}
 
@@ -110,7 +111,7 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   QuantRelevance* d_quant_rel;
 }; /* class InstStrategyAutoGenTriggers */
 }
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

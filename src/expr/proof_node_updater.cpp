@@ -19,7 +19,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
@@ -125,28 +125,21 @@ void ProofNodeUpdater::processInternal(
       }
       traversing.push_back(cur);
       visit.push_back(cur);
-      if (d_mergeSubproofs)
+      // If we are not the top-level proof, we were a scope, or became a scope
+      // after updating, we do a separate recursive call to this method. This
+      // allows us to properly track the assumptions in scope, which is
+      // important for example to merge or to determine updates based on free
+      // assumptions.
+      if (cur->getRule() == PfRule::SCOPE && cur != pf)
       {
-        // If we are not the top-level proof, we were a scope, or became a
-        // scope after updating, we need to make a separate recursive call to
-        // this method. This is not necessary if we are not merging subproofs.
-        if (cur->getRule() == PfRule::SCOPE && cur != pf)
-        {
-          std::vector<Node> nfa;
-          // if we are debugging free assumptions, update the set
-          if (d_debugFreeAssumps)
-          {
-            nfa.insert(nfa.end(), fa.begin(), fa.end());
-            const std::vector<Node>& args = cur->getArguments();
-            nfa.insert(nfa.end(), args.begin(), args.end());
-            Trace("pfnu-debug2")
-                << "Process new scope with " << args << std::endl;
-          }
-          // Process in new call separately, since we should not cache
-          // the results of proofs that have a different scope.
-          processInternal(cur, nfa, traversing);
-          continue;
-        }
+        std::vector<Node> nfa;
+        nfa.insert(nfa.end(), fa.begin(), fa.end());
+        const std::vector<Node>& args = cur->getArguments();
+        nfa.insert(nfa.end(), args.begin(), args.end());
+        Trace("pfnu-debug2") << "Process new scope with " << args << std::endl;
+        // Process in new call separately
+        processInternal(cur, nfa, traversing);
+        continue;
       }
       const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
       // now, process children
@@ -180,7 +173,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
                                  bool& continueUpdate)
 {
   // should it be updated?
-  if (!d_cb.shouldUpdate(cur, continueUpdate))
+  if (!d_cb.shouldUpdate(cur, fa, continueUpdate))
   {
     return false;
   }
@@ -196,9 +189,9 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
     // store in the proof
     cpf.addProof(cp);
   }
-  Trace("pf-process-debug")
-      << "Updating (" << cur->getRule() << ")..." << std::endl;
   Node res = cur->getResult();
+  Trace("pf-process-debug")
+      << "Updating (" << cur->getRule() << "): " << res << std::endl;
   // only if the callback updated the node
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
   {
@@ -261,4 +254,4 @@ void ProofNodeUpdater::setDebugFreeAssumptions(
   d_debugFreeAssumps = true;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

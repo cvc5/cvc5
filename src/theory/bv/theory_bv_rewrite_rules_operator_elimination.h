@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -286,7 +286,7 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
   if(amount == 1) {
     return a; 
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   for(unsigned i = 0; i < amount; ++i) {
     result << node[0]; 
   }
@@ -788,4 +788,4 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 
 }
 }
-}
+}  // namespace cvc5

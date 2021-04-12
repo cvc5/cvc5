@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_MODEL_H
-#define CVC4__THEORY__THEORY_MODEL_H
+#ifndef CVC5__THEORY__THEORY_MODEL_H
+#define CVC5__THEORY__THEORY_MODEL_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -27,7 +27,7 @@
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Theory Model class.
@@ -432,7 +432,7 @@ public:
   //---------------------------- end function values
 };/* class TheoryModel */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_MODEL_H */
+#endif /* CVC5__THEORY__THEORY_MODEL_H */

@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H
-#define CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H
+#ifndef CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H
+#define CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H
 
 #include <map>
 
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -90,6 +90,6 @@ class SolverState : public TheoryState
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H */
+#endif /* CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H */

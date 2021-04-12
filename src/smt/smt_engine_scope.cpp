@@ -22,7 +22,7 @@
 #include "base/output.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 thread_local SmtEngine* s_smtEngine_current = NULL;
@@ -35,14 +35,8 @@ SmtEngine* currentSmtEngine() {
 bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 
 ProofManager* currentProofManager() {
-#if IS_PROOFS_BUILD
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->getProofManager();
-#else  /* IS_PROOFS_BUILD */
-  InternalError()
-      << "proofs/unsat cores are not on, but ProofManager requested";
-  return NULL;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ResourceManager* currentResourceManager()
@@ -68,8 +62,8 @@ SmtScope::~SmtScope() {
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->getStatisticsRegistry();
+  return &(s_smtEngine_current->getStatisticsRegistry());
 }
 
-}/* CVC4::smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace cvc5

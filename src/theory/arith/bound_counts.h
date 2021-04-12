@@ -22,7 +22,7 @@
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -229,6 +229,6 @@ public:
   virtual void operator()(ArithVar v, const BoundsInfo&  up) = 0;
 };
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

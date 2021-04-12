@@ -27,9 +27,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -57,8 +57,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_tangentPlaneSlv(&d_extState),
       d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model),
-      d_builtModel(containing.getSatContext(), false)
+      d_iandSlv(d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -246,11 +245,9 @@ void NonlinearExtension::check(Theory::Effort e)
 {
   d_im.reset();
   Trace("nl-ext") << std::endl;
-  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
-                  << ", built model = " << d_builtModel.get() << std::endl;
+  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
   if (e == Theory::EFFORT_FULL)
   {
-    d_extTheory.clearCache();
     d_needsLastCall = true;
     if (options::nlExtRewrites())
     {
@@ -301,7 +298,7 @@ void NonlinearExtension::check(Theory::Effort e)
   }
 }
 
-bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
+Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -403,7 +400,7 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
-        return true;
+        return Result::Sat::UNSAT;
       }
     }
     Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -424,7 +421,7 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
       if (d_im.hasUsed())
       {
         d_im.clearWaitingLemmas();
-        return true;
+        return Result::Sat::UNSAT;
       }
     }
 
@@ -438,7 +435,7 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
         d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
-        return true;
+        return Result::Sat::UNSAT;
       }
       // resort to splitting on shared terms with their model value
       // if we did not add any lemmas
@@ -464,7 +461,7 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
             d_im.flushWaitingLemmas();
             Trace("nl-ext") << "...added " << d_im.numPendingLemmas()
                             << " shared term value split lemmas." << std::endl;
-            return true;
+            return Result::Sat::UNSAT;
           }
         }
         else
@@ -491,19 +488,15 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
         Trace("nl-ext") << "...failed to send lemma in "
                            "NonLinearExtension, set incomplete"
                         << std::endl;
-        d_containing.getOutputChannel().setIncomplete();
+        d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
+        return Result::Sat::SAT_UNKNOWN;
       }
-    }
-    else
-    {
-      // we have built a model
-      d_builtModel = true;
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
-  return false;
+  return Result::Sat::SAT;
 }
 
 void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
@@ -517,12 +510,9 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
-  if (!d_builtModel.get())
-  {
-    Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement(termSet);
-  }
-  if (d_builtModel.get())
+  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
+  Result::Sat res = modelBasedRefinement(termSet);
+  if (res == Result::Sat::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     d_approximations.clear();
@@ -535,7 +525,6 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
-  d_builtModel = false;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
@@ -632,4 +621,4 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

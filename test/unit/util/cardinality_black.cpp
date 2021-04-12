@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Public-box testing of CVC4::Cardinality
+ ** \brief Public-box testing of cvc5::Cardinality
  **
- ** Public-box testing of CVC4::Cardinality.
+ ** Public-box testing of cvc5::Cardinality.
  **/
 
 #include <sstream>
@@ -22,7 +22,7 @@
 #include "util/cardinality.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackCardinality : public TestInternal
@@ -270,4 +270,4 @@ TEST_F(TestUtilBlackCardinality, cardinalities)
   ASSERT_EQ((z ^ z).getBethNumber(), 3);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

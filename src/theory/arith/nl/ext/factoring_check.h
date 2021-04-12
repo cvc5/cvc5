@@ -12,14 +12,14 @@
  ** \brief Check for factoring lemma
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
 
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 
@@ -69,6 +69,6 @@ class FactoringCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

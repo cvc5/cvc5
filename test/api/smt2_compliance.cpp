@@ -18,7 +18,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -26,8 +26,8 @@
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 
-using namespace CVC4;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 using namespace std;
 
 void testGetInfo(api::Solver* solver, const char* s);

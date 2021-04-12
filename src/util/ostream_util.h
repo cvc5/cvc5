@@ -16,13 +16,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTIL__OSTREAM_UTIL_H
-#define CVC4__UTIL__OSTREAM_UTIL_H
+#ifndef CVC5__UTIL__OSTREAM_UTIL_H
+#define CVC5__UTIL__OSTREAM_UTIL_H
 
 #include <ios>
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Saves the formatting of an ostream and restores the previous settings on
 // destruction. Example usage:
@@ -44,6 +44,6 @@ class StreamFormatScope
   std::streamsize d_precision;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__UTIL__OSTREAM_UTIL_H */
+#endif /* CVC5__UTIL__OSTREAM_UTIL_H */

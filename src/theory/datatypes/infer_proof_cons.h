@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H
-#define CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H
+#ifndef CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H
+#define CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "theory/datatypes/inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -95,6 +95,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H */
+#endif /* CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H */

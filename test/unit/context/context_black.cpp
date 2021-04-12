@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::context::Context.
+ ** \brief Black box testing of cvc5::context::Context.
  **
- ** Black box testing of CVC4::context::Context.
+ ** Black box testing of cvc5::context::Context.
  **/
 
 #include <iostream>
@@ -22,7 +22,7 @@
 #include "context/cdo.h"
 #include "test_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 
@@ -91,10 +91,10 @@ TEST_F(TestContextBlack, push_pop)
   // the interface doesn't declare any exceptions
   d_context->push();
   d_context->pop();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(d_context->pop(), "Cannot pop below level 0");
   ASSERT_DEATH(d_context->pop(), "Cannot pop below level 0");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 }
 
 TEST_F(TestContextBlack, dtor)
@@ -241,4 +241,4 @@ TEST_F(TestContextBlack, top_scope_context_obj)
 #endif
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

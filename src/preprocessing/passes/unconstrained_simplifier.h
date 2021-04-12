@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
-#define CVC4__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
+#ifndef CVC5__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
+#define CVC5__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -29,7 +29,7 @@
 #include "theory/substitutions.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -72,6 +72,6 @@ class UnconstrainedSimplifier : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

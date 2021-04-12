@@ -38,17 +38,16 @@
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 #include "util/safe_print.h"
 
-using CVC4::Exception;
+using cvc5::Exception;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace main {
 
 /**
- * If true, will not spin on segfault even when CVC4_DEBUG is on.
+ * If true, will not spin on segfault even when CVC5_DEBUG is on.
  * Useful for nightly regressions, noninteractive performance runs
  * etc.
  */
@@ -58,9 +57,10 @@ namespace signal_handlers {
 
 void print_statistics()
 {
-  if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
+  if (pExecutor != nullptr)
   {
-    pExecutor->safeFlushStatistics(STDERR_FILENO);
+    totalTime.reset();
+    pExecutor->printStatisticsSafe(STDERR_FILENO);
   }
 }
 
@@ -103,7 +103,7 @@ void segv_handler(int sig, siginfo_t* info, void* c)
 {
   uintptr_t extent = reinterpret_cast<uintptr_t>(cvc4StackBase) - cvc4StackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO, "CVC4 suffered a segfault in DEBUG mode.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
@@ -148,7 +148,7 @@ void segv_handler(int sig, siginfo_t* info, void* c)
       sleep(60);
     }
   }
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
   safe_print(STDERR_FILENO, "CVC4 suffered a segfault.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
@@ -167,14 +167,14 @@ void segv_handler(int sig, siginfo_t* info, void* c)
   }
   print_statistics();
   abort();
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGILL (illegal instruction). */
 void ill_handler(int sig, siginfo_t* info, void*)
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO,
              "CVC4 executed an illegal instruction in DEBUG mode.\n");
   if (!segvSpin)
@@ -201,11 +201,11 @@ void ill_handler(int sig, siginfo_t* info, void*)
       sleep(60);
     }
   }
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
   safe_print(STDERR_FILENO, "CVC4 executed an illegal instruction.\n");
   print_statistics();
   abort();
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 #endif /* __WIN32__ */
@@ -215,7 +215,7 @@ static terminate_handler default_terminator;
 void cvc4terminate()
 {
   set_terminate(default_terminator);
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   LastExceptionBuffer::setCurrent(NULL);
   delete current;
@@ -227,18 +227,18 @@ void cvc4terminate()
              "(Don't do that.)\n");
   print_statistics();
   default_terminator();
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
   safe_print(STDERR_FILENO,
              "CVC4 was terminated by the C++ runtime.\n"
              "Perhaps an exception was thrown during stack unwinding.\n");
   print_statistics();
   default_terminator();
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 void install()
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer::setCurrent(new LastExceptionBuffer());
 #endif
 
@@ -342,4 +342,4 @@ void cleanup() noexcept
 
 }  // namespace signal_handlers
 }  // namespace main
-}  // namespace CVC4
+}  // namespace cvc5

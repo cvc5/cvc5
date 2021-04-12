@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_MODEL_BUILDER_H
-#define CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#ifndef CVC5__THEORY__THEORY_MODEL_BUILDER_H
+#define CVC5__THEORY__THEORY_MODEL_BUILDER_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -313,7 +313,7 @@ class TheoryEngineModelBuilder
 
 }; /* class TheoryEngineModelBuilder */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_MODEL_BUILDER_H */
+#endif /* CVC5__THEORY__THEORY_MODEL_BUILDER_H */

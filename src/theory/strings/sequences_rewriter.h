@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
-#define CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
+#ifndef CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H
+#define CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H
 
 #include <vector>
 
@@ -26,7 +26,7 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -296,6 +296,6 @@ class SequencesRewriter : public TheoryRewriter
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H */
+#endif /* CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H */

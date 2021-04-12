@@ -20,6 +20,7 @@
 #include <ostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
@@ -30,12 +31,12 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
 Node ArithIteUtils::applyReduceVariablesInItes(Node n){
-  NodeBuilder<> nb(n.getKind());
+  NodeBuilder nb(n.getKind());
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << (n.getOperator());
   }
@@ -47,7 +48,7 @@ Node ArithIteUtils::applyReduceVariablesInItes(Node n){
 }
 
 Node ArithIteUtils::reduceVariablesInItes(Node n){
-  using namespace CVC4::kind;
+  using namespace cvc5::kind;
   if(d_reduceVar.find(n) != d_reduceVar.end()){
     Node res = d_reduceVar[n];
     return res.isNull() ? n : res;
@@ -239,7 +240,7 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   }
 
   if(n.getNumChildren() > 0){
-    NodeBuilder<> nb(n.getKind());
+    NodeBuilder nb(n.getKind());
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       nb << (n.getOperator());
     }
@@ -441,10 +442,11 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
         NodeManager* nm = NodeManager::currentNM();
+        SkolemManager* sm = nm->getSkolemManager();
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 
-        Node sk = nm->mkSkolem("deor", nm->booleanType());
+        Node sk = sm->mkDummySkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
         addSubstitution(sel, ite);
@@ -455,7 +457,6 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   return false;
 }
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

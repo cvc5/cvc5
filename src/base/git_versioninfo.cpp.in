@@ -16,7 +16,7 @@
  **/
 
 #include "base/configuration.h"
-const bool ::CVC4::Configuration::IS_GIT_BUILD = @GIT_BUILD@;
-const char* const ::CVC4::Configuration::GIT_BRANCH_NAME = "@GIT_BRANCH@";
-const char* const ::CVC4::Configuration::GIT_COMMIT = "@GIT_SHA1@";
-const bool ::CVC4::Configuration::GIT_HAS_MODIFICATIONS = @GIT_IS_DIRTY@;
+const bool ::cvc5::Configuration::IS_GIT_BUILD = @GIT_BUILD@;
+const char* const ::cvc5::Configuration::GIT_BRANCH_NAME = "@GIT_BRANCH@";
+const char* const ::cvc5::Configuration::GIT_COMMIT = "@GIT_SHA1@";
+const bool ::cvc5::Configuration::GIT_HAS_MODIFICATIONS = @GIT_IS_DIRTY@;

@@ -25,7 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -131,6 +131,8 @@ public:
 public:
   QuantInfo();
   ~QuantInfo();
+  /** Get quantifiers inference manager */
+  QuantifiersInferenceManager& getInferenceManager();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -143,6 +145,8 @@ public:
 
   typedef std::map< int, MatchGen * > VarMgMap;
  private:
+  /** The parent who owns this class */
+  QuantConflictFind* d_parent;
   MatchGen * d_mg;
   VarMgMap d_var_mg;
  public:
@@ -232,10 +236,10 @@ private:  //for equivalence classes
   bool areMatchDisequal( TNode n1, TNode n2 );
 
  public:
-  QuantConflictFind(QuantifiersEngine* qe,
-                    QuantifiersState& qs,
+  QuantConflictFind(QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
-                    QuantifiersRegistry& qr);
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;
@@ -307,8 +311,8 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

@@ -24,14 +24,14 @@
  **/
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__MAYBE_H
-#define CVC4__UTIL__MAYBE_H
+#ifndef CVC5__UTIL__MAYBE_H
+#define CVC5__UTIL__MAYBE_H
 
 #include <ostream>
 
 #include "base/exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <class T>
 class Maybe
@@ -84,6 +84,6 @@ inline std::ostream& operator<<(std::ostream& out, const Maybe<T>& m){
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__UTIL__MAYBE_H */
+#endif /* CVC5__UTIL__MAYBE_H */

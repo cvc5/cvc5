@@ -12,13 +12,13 @@
  ** \brief Test for issue #4889
  **/
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main()
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Solver slv;
   Sort sort_int = slv.getIntegerSort();
   Sort sort_array = slv.mkArraySort(sort_int, sort_int);

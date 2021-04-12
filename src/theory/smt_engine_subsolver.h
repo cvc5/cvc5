@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H
-#define CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H
+#ifndef CVC5__THEORY__SMT_ENGINE_SUBSOLVER_H
+#define CVC5__THEORY__SMT_ENGINE_SUBSOLVER_H
 
 #include <memory>
 #include <vector>
@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -91,6 +91,6 @@ Result checkWithSubsolver(Node query,
                           unsigned long timeout = 0);
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H */
+#endif /* CVC5__THEORY__SMT_ENGINE_SUBSOLVER_H */

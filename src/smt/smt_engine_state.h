@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_STATE_H
-#define CVC4__SMT__SMT_ENGINE_STATE_H
+#ifndef CVC5__SMT__SMT_ENGINE_STATE_H
+#define CVC5__SMT__SMT_ENGINE_STATE_H
 
 #include <string>
 
@@ -23,7 +23,7 @@
 #include "smt/smt_mode.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -261,6 +261,6 @@ class SmtEngineState
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

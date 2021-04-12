@@ -20,7 +20,7 @@
 #include "printer/printer.h"
 #include "smt/smt_engine_scope.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 UnsatCore::UnsatCore(const std::vector<Node>& core)
     : d_useNames(false), d_core(core), d_names()
@@ -58,4 +58,4 @@ std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

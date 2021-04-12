@@ -14,12 +14,12 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__REGEXP_H
-#define CVC4__UTIL__REGEXP_H
+#ifndef CVC5__UTIL__REGEXP_H
+#define CVC5__UTIL__REGEXP_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 struct RegExpRepeat
 {
@@ -69,6 +69,6 @@ std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv);
 
 std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__UTIL__REGEXP_H */
+#endif /* CVC5__UTIL__REGEXP_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__OUTPUT_H
-#define CVC4__OUTPUT_H
+#ifndef CVC5__OUTPUT_H
+#define CVC5__OUTPUT_H
 
 #include <cstdio>
 #include <ios>
@@ -28,7 +28,7 @@
 
 #include "cvc4_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <class T, class U>
 std::ostream& operator<<(std::ostream& out,
@@ -410,59 +410,79 @@ extern TraceC TraceChannel CVC4_EXPORT;
 /** The dump output singleton */
 extern DumpOutC DumpOutChannel CVC4_EXPORT;
 
-#ifdef CVC4_MUZZLE
+#ifdef CVC5_MUZZLE
 
-#  define Debug ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DebugChannel
-#  define Warning ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
-#  define WarningOnce ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
+#define Debug \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DebugChannel
+#define Warning \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::WarningChannel
+#define WarningOnce \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::WarningChannel
 #define CVC4Message \
-  ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::MessageChannel
-#  define Notice ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::NoticeChannel
-#  define Chat ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::ChatChannel
-#  define Trace ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::TraceChannel
-#  define DumpOut ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DumpOutChannel
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::MessageChannel
+#define Notice \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::NoticeChannel
+#define Chat \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::ChatChannel
+#define Trace \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::TraceChannel
+#define DumpOut \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DumpOutChannel
 
-#else /* CVC4_MUZZLE */
+#else /* CVC5_MUZZLE */
 
-#  if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
-#    define Debug ::CVC4::DebugChannel
-#  else /* CVC4_DEBUG && CVC4_TRACING */
-#    define Debug ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DebugChannel
-#  endif /* CVC4_DEBUG && CVC4_TRACING */
-#  define Warning (! ::CVC4::WarningChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
-#  define WarningOnce (! ::CVC4::WarningChannel.isOn() || ! ::CVC4::WarningChannel.warnOnce(__FILE__,__LINE__)) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
+#define Debug ::cvc5::DebugChannel
+#else /* CVC5_DEBUG && CVC5_TRACING */
+#define Debug \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DebugChannel
+#endif /* CVC5_DEBUG && CVC5_TRACING */
+#define Warning                                             \
+  (!::cvc5::WarningChannel.isOn()) ? ::cvc5::nullCvc4Stream \
+                                   : ::cvc5::WarningChannel
+#define WarningOnce                                         \
+  (!::cvc5::WarningChannel.isOn()                           \
+   || !::cvc5::WarningChannel.warnOnce(__FILE__, __LINE__)) \
+      ? ::cvc5::nullCvc4Stream                              \
+      : ::cvc5::WarningChannel
 #define CVC4Message                                         \
-  (!::CVC4::MessageChannel.isOn()) ? ::CVC4::nullCvc4Stream \
-                                   : ::CVC4::MessageChannel
-#  define Notice (! ::CVC4::NoticeChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::NoticeChannel
-#  define Chat (! ::CVC4::ChatChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::ChatChannel
-#  ifdef CVC4_TRACING
-#    define Trace ::CVC4::TraceChannel
-#  else /* CVC4_TRACING */
-#    define Trace ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::TraceChannel
-#  endif /* CVC4_TRACING */
-#  ifdef CVC4_DUMPING
-#    define DumpOut ::CVC4::DumpOutChannel
-#  else /* CVC4_DUMPING */
-#    define DumpOut ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DumpOutChannel
-#  endif /* CVC4_DUMPING */
+  (!::cvc5::MessageChannel.isOn()) ? ::cvc5::nullCvc4Stream \
+                                   : ::cvc5::MessageChannel
+#define Notice                                             \
+  (!::cvc5::NoticeChannel.isOn()) ? ::cvc5::nullCvc4Stream \
+                                  : ::cvc5::NoticeChannel
+#define Chat \
+  (!::cvc5::ChatChannel.isOn()) ? ::cvc5::nullCvc4Stream : ::cvc5::ChatChannel
+#ifdef CVC5_TRACING
+#define Trace ::cvc5::TraceChannel
+#else /* CVC5_TRACING */
+#define Trace \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::TraceChannel
+#endif /* CVC5_TRACING */
+#ifdef CVC5_DUMPING
+#define DumpOut ::cvc5::DumpOutChannel
+#else /* CVC5_DUMPING */
+#define DumpOut \
+  ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DumpOutChannel
+#endif /* CVC5_DUMPING */
 
-#endif /* CVC4_MUZZLE */
+#endif /* CVC5_MUZZLE */
 
 // Disallow e.g. !Debug("foo").isOn() forms
 // because the ! will apply before the ? .
 // If a compiler error has directed you here,
 // just parenthesize it e.g. !(Debug("foo").isOn())
 class __cvc4_true {
-  void operator!() CVC4_UNUSED;
-  void operator~() CVC4_UNUSED;
-  void operator-() CVC4_UNUSED;
-  void operator+() CVC4_UNUSED;
-public:
+  void operator!() CVC5_UNUSED;
+  void operator~() CVC5_UNUSED;
+  void operator-() CVC5_UNUSED;
+  void operator+() CVC5_UNUSED;
+
+ public:
   inline operator bool() { return true; }
 };/* __cvc4_true */
 
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 
 class ScopedDebug
 {
@@ -490,7 +510,7 @@ public:
   }
 }; /* class ScopedDebug */
 
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else /* CVC5_DEBUG && CVC5_TRACING */
 
 class ScopedDebug
 {
@@ -498,9 +518,9 @@ class ScopedDebug
   ScopedDebug(std::string tag, bool newSetting = true) {}
 }; /* class ScopedDebug */
 
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 
-#ifdef CVC4_TRACING
+#ifdef CVC5_TRACING
 
 class ScopedTrace
 {
@@ -528,7 +548,7 @@ public:
   }
 }; /* class ScopedTrace */
 
-#else /* CVC4_TRACING */
+#else /* CVC5_TRACING */
 
 class ScopedTrace
 {
@@ -536,7 +556,7 @@ class ScopedTrace
   ScopedTrace(std::string tag, bool newSetting = true) {}
 }; /* class ScopedTrace */
 
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 
 /**
  * Pushes an indentation level on construction, pop on destruction.
@@ -552,14 +572,14 @@ public:
   inline ~IndentedScope();
 }; /* class IndentedScope */
 
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 inline IndentedScope::IndentedScope(CVC4ostream out) : d_out(out) { d_out << push; }
 inline IndentedScope::~IndentedScope() { d_out << pop; }
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else  /* CVC5_DEBUG && CVC5_TRACING */
 inline IndentedScope::IndentedScope(CVC4ostream out) {}
 inline IndentedScope::~IndentedScope() {}
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__OUTPUT_H */
+#endif /* CVC5__OUTPUT_H */

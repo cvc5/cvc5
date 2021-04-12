@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_INFERENCE_H
-#define CVC4__THEORY__THEORY_INFERENCE_H
+#ifndef CVC5__THEORY__THEORY_INFERENCE_H
+#define CVC5__THEORY__THEORY_INFERENCE_H
 
 #include "expr/node.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryInferenceManager;
@@ -118,6 +118,6 @@ class SimpleTheoryInternalFact : public TheoryInference
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

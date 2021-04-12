@@ -14,14 +14,14 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
@@ -32,8 +32,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
   std::map<Node, std::vector<Node> > var_contains;
   for (const Node& pat : pats)
   {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(
-        q, pat, var_contains[pat]);
+    TermUtil::computeInstConstContainsForQuant(q, pat, var_contains[pat]);
   }
   std::map<Node, std::vector<Node> > var_to_node;
   for (std::pair<const Node, std::vector<Node> >& vc : var_contains)
@@ -174,5 +173,6 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

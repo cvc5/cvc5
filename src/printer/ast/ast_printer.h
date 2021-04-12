@@ -16,24 +16,24 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PRINTER__AST_PRINTER_H
-#define CVC4__PRINTER__AST_PRINTER_H
+#ifndef CVC5__PRINTER__AST_PRINTER_H
+#define CVC5__PRINTER__AST_PRINTER_H
 
 #include <iostream>
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LetBinding;
 
 namespace printer {
 namespace ast {
 
-class AstPrinter : public CVC4::Printer
+class AstPrinter : public cvc5::Printer
 {
  public:
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
@@ -196,6 +196,6 @@ class AstPrinter : public CVC4::Printer
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__AST_PRINTER_H */
+#endif /* CVC5__PRINTER__AST_PRINTER_H */

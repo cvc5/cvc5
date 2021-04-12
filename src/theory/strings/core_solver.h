@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__CORE_SOLVER_H
-#define CVC4__THEORY__STRINGS__CORE_SOLVER_H
+#ifndef CVC5__THEORY__STRINGS__CORE_SOLVER_H
+#define CVC5__THEORY__STRINGS__CORE_SOLVER_H
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
@@ -27,7 +27,7 @@
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -523,6 +523,6 @@ class CoreSolver
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__CORE_SOLVER_H */
+#endif /* CVC5__THEORY__STRINGS__CORE_SOLVER_H */

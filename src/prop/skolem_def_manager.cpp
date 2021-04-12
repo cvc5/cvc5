@@ -16,7 +16,7 @@
 
 #include "expr/attribute.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 SkolemDefManager::SkolemDefManager(context::Context* context,
@@ -170,4 +170,4 @@ void SkolemDefManager::getSkolems(
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_H
-#define CVC4__EXPR__PROOF_NODE_H
+#ifndef CVC5__EXPR__PROOF_NODE_H
+#define CVC5__EXPR__PROOF_NODE_H
 
 #include <vector>
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class ProofNode;
@@ -105,8 +105,6 @@ class ProofNode
   bool isClosed();
   /** Print debug on output strem os */
   void printDebug(std::ostream& os) const;
-  /** Clone, create a deep copy of this */
-  std::shared_ptr<ProofNode> clone() const;
 
  private:
   /**
@@ -141,6 +139,6 @@ inline size_t ProofNodeHashFunction::operator()(
  */
 std::ostream& operator<<(std::ostream& out, const ProofNode& pn);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_NODE_H */
+#endif /* CVC5__EXPR__PROOF_NODE_H */

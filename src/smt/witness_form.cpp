@@ -17,7 +17,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
@@ -152,4 +152,4 @@ ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

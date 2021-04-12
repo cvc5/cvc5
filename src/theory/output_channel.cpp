@@ -14,7 +14,7 @@
 
 #include "theory/output_channel.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
@@ -91,4 +91,4 @@ void OutputChannel::trustedLemma(TrustNode lem, LemmaProperty p)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -20,7 +20,7 @@
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* class NodeCommand                                                          */
@@ -158,4 +158,4 @@ NodeCommand* DefineFunctionNodeCommand::clone() const
   return new DefineFunctionNodeCommand(d_id, d_fun, d_formals, d_formula);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

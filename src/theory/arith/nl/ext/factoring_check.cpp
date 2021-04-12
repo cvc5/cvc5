@@ -23,7 +23,7 @@
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -207,4 +207,4 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

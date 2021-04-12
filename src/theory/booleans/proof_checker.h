@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H
-#define CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H
+#define CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -43,6 +43,6 @@ class BoolProofRuleChecker : public ProofRuleChecker
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H */

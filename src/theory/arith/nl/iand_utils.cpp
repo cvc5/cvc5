@@ -21,7 +21,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -276,4 +276,4 @@ Node IAndUtils::twoToKMinusOne(unsigned k) const
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

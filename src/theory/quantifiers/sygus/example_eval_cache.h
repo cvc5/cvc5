@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
-#define CVC4__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
+#define CVC5__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
 
 #include "expr/node_trie.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -160,6 +160,6 @@ class ExampleEvalCache
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

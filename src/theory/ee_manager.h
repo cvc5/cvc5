@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__EE_MANAGER__H
-#define CVC4__THEORY__EE_MANAGER__H
+#ifndef CVC5__THEORY__EE_MANAGER__H
+#define CVC5__THEORY__EE_MANAGER__H
 
 #include <map>
 #include <memory>
@@ -24,7 +24,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -95,6 +95,6 @@ class EqEngineManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__EE_MANAGER__H */
+#endif /* CVC5__THEORY__EE_MANAGER__H */

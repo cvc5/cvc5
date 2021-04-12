@@ -14,12 +14,12 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-cdef extern from "api/cvc4cpp.h" namespace "CVC4":
+cdef extern from "api/cpp/cvc5.h" namespace "CVC4":
     cdef cppclass Options:
         pass
 
 
-cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](size_t idx) except +
@@ -187,6 +187,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkBitVector(uint32_t size, uint64_t val) except +
         Term mkBitVector(const string& s) except +
         Term mkBitVector(const string& s, uint32_t base) except +
+        Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
         Term mkConstArray(Sort sort, Term val) except +
         Term mkPosInf(uint32_t exp, uint32_t sig) except +
         Term mkNegInf(uint32_t exp, uint32_t sig) except +
@@ -198,7 +199,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
         Term mkConst(Sort sort, const string& symbol) except +
-        # default value for symbol defined in cvc4cpp.h
+        # default value for symbol defined in cpp/cvc5.h
         Term mkConst(Sort sort) except +
         Term mkVar(Sort sort, const string& symbol) except +
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
@@ -208,7 +209,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         DatatypeDecl mkDatatypeDecl(const string& name, Sort param, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
-        # default value for symbol defined in cvc4cpp.h
+        # default value for symbol defined in cpp/cvc5.h
         Term mkVar(Sort sort) except +
         Term simplify(const Term& t) except +
         void assertFormula(Term term) except +
@@ -353,7 +354,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         size_t operator()(const Term & t) except +
 
 
-cdef extern from "api/cvc4cpp.h" namespace "CVC4::api::RoundingMode":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::RoundingMode":
     cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
     cdef RoundingMode ROUND_TOWARD_POSITIVE,
     cdef RoundingMode ROUND_TOWARD_NEGATIVE,

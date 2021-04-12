@@ -25,7 +25,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 ResourceOutListener::ResourceOutListener(SmtEngine& smt) : d_smt(smt) {}
@@ -71,7 +71,7 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
   {
     if (Configuration::isAssertionBuild())
     {
-      for (CVC4_UNUSED const TypeNode& dt : dtts)
+      for (CVC5_UNUSED const TypeNode& dt : dtts)
       {
         Assert(dt.isDatatype());
       }
@@ -103,4 +103,4 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

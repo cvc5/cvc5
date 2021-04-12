@@ -12,15 +12,15 @@
  ** \brief Implements a way to track the origins of ICP-style contractions.
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
-#define CVC4__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
+#ifndef CVC5__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
+#define CVC5__THEORY__ARITH__ICP__CONTRACTION_ORIGINS_H
 
 #include <memory>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -99,6 +99,6 @@ std::ostream& operator<<(std::ostream& os, const ContractionOriginManager& com);
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

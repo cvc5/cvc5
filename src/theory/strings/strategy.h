@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRATEGY_H
-#define CVC4__THEORY__STRINGS__STRATEGY_H
+#ifndef CVC5__THEORY__STRINGS__STRATEGY_H
+#define CVC5__THEORY__STRINGS__STRATEGY_H
 
 #include <map>
 #include <vector>
 
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -111,6 +111,6 @@ class Strategy
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__STRATEGY_H */
+#endif /* CVC5__THEORY__STRINGS__STRATEGY_H */

@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__DOT__DOT_PRINTER_H
-#define CVC4__PROOF__DOT__DOT_PRINTER_H
+#ifndef CVC5__PROOF__DOT__DOT_PRINTER_H
+#define CVC5__PROOF__DOT__DOT_PRINTER_H
 
 #include <iostream>
 
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 class DotPrinter
@@ -69,6 +69,6 @@ class DotPrinter
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

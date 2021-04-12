@@ -17,14 +17,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__SMT_ENGINE_SCOPE_H
-#define CVC4__SMT__SMT_ENGINE_SCOPE_H
+#ifndef CVC5__SMT__SMT_ENGINE_SCOPE_H
+#define CVC5__SMT__SMT_ENGINE_SCOPE_H
 
 #include "expr/node_manager.h"
 
 #include "options/options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofManager;
 class SmtEngine;
@@ -59,8 +59,7 @@ class SmtScope : public NodeManagerScope
   Options::OptionsScope d_optionsScope;
 };/* class SmtScope */
 
+}  // namespace smt
+}  // namespace cvc5
 
-}/* CVC4::smt namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__SMT__SMT_ENGINE_SCOPE_H */
+#endif /* CVC5__SMT__SMT_ENGINE_SCOPE_H */

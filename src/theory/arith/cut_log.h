@@ -28,7 +28,7 @@
 #include "theory/arith/constraint_forward.h"
 #include "util/dense_map.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -288,8 +288,6 @@ public:
   void printBranchInfo(std::ostream& os) const;
 };
 
-
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

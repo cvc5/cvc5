@@ -17,9 +17,9 @@
 #include "cvc4autoconfig.h"
 #include "util/real_algebraic_number.h"
 
-#ifndef CVC4_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
-#error "This source should only ever be built if CVC4_POLY_IMP is on!"
-#endif /* CVC4_POLY_IMP */
+#ifndef CVC5_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
+#error "This source should only ever be built if CVC5_POLY_IMP is on!"
+#endif /* CVC5_POLY_IMP */
 
 #include <poly/polyxx.h>
 
@@ -28,7 +28,7 @@
 #include "base/check.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
     : d_value(std::move(an))
@@ -60,7 +60,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
                                          long lower,
                                          long upper)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (long c : coefficients)
   {
     Assert(std::numeric_limits<std::int32_t>::min() <= c
@@ -174,4 +174,4 @@ int sgn(const RealAlgebraicNumber& ran) { return sgn(ran.getValue()); }
 bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
 
-}  // namespace CVC4
+}  // namespace cvc5

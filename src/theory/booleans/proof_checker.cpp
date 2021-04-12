@@ -16,7 +16,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -25,6 +25,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
+  pc->registerTrustedChecker(PfRule::MACRO_RESOLUTION_TRUST, this, 3);
   pc->registerChecker(PfRule::MACRO_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
@@ -298,6 +299,12 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                ? nm->mkConst(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
+  }
+  if (id == PfRule::MACRO_RESOLUTION_TRUST)
+  {
+    Assert(children.size() > 1);
+    Assert(args.size() == 2 * (children.size() - 1) + 1);
+    return args[0];
   }
   if (id == PfRule::MACRO_RESOLUTION)
   {
@@ -948,4 +955,4 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

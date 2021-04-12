@@ -14,14 +14,16 @@
 
 #include "expr/term_conversion_proof_generator.h"
 
+#include <sstream>
+
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
@@ -586,4 +588,4 @@ std::string TConvProofGenerator::toStringDebug() const
   return ss.str();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -22,10 +22,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryModel::TheoryModel(context::Context* c,
@@ -353,7 +353,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
     d_substitutions.addSubstitution( x, t, invalidateCache );
   } else {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
@@ -363,7 +363,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
           << "old mapping: " << d_substitutions.apply(oldX) << "\n"
           << "new mapping: " << d_substitutions.apply(t);
     }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
   }
 }
 
@@ -764,5 +764,5 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

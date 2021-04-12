@@ -16,14 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__SLICER_BV_H
-#define CVC4__THEORY__BV__SLICER_BV_H
+#ifndef CVC5__THEORY__BV__SLICER_BV_H
+#define CVC5__THEORY__BV__SLICER_BV_H
 
 #include <string>
 #include <vector>
 #include "util/index.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -47,10 +47,10 @@ public:
     }
     return true; 
   }
-}; 
+};
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__SLICER_BV_H */
+#endif /* CVC5__THEORY__BV__SLICER_BV_H */

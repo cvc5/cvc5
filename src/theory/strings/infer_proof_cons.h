@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__INFER_PROOF_CONS_H
-#define CVC4__THEORY__STRINGS__INFER_PROOF_CONS_H
+#ifndef CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H
+#define CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H
 
 #include <vector>
 
@@ -28,7 +28,7 @@
 #include "theory/theory_proof_step_buffer.h"
 #include "theory/uf/proof_equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -130,6 +130,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__INFER_PROOF_CONS_H */
+#endif /* CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H */

@@ -18,7 +18,7 @@
 #include "prop/minisat/minisat.h"
 #include "theory/builtin/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 ProofCnfStream::ProofCnfStream(context::UserContext* u,
@@ -127,7 +127,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       // negate
@@ -1012,4 +1012,4 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5

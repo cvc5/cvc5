@@ -16,6 +16,7 @@
  **/
 
 #include <cmath>
+#include <iomanip>
 #include <limits.h>
 #include <map>
 #include <math.h>
@@ -30,7 +31,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -701,6 +702,6 @@ void DenseVector::print(ostream& out, const DenseMap<Rational>& v){
   out << "]";
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

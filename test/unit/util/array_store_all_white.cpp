@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::ArrayStoreAll
+ ** \brief Black box testing of cvc5::ArrayStoreAll
  **
- ** Black box testing of CVC4::ArrayStoreAll.
+ ** Black box testing of cvc5::ArrayStoreAll.
  **/
 
 #include "expr/array_store_all.h"
 #include "test_smt.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilWhiteArrayStoreAll : public TestSmt
@@ -75,4 +75,4 @@ TEST_F(TestUtilWhiteArrayStoreAll, const_error)
       IllegalArgumentException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

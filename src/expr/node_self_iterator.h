@@ -16,15 +16,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__NODE_SELF_ITERATOR_H
-#define CVC4__EXPR__NODE_SELF_ITERATOR_H
+#ifndef CVC5__EXPR__NODE_SELF_ITERATOR_H
+#define CVC5__EXPR__NODE_SELF_ITERATOR_H
 
 #include <iterator>
 
 #include "base/check.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 class NodeSelfIterator : public std::iterator<std::input_iterator_tag, Node> {
@@ -122,7 +122,7 @@ inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
   return !(*this == i);
 }
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__NODE_SELF_ITERATOR_H */
+#endif /* CVC5__EXPR__NODE_SELF_ITERATOR_H */

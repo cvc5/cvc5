@@ -18,7 +18,8 @@
 #include "options/options_holder.h"
 #include "base/check.h"
 
-namespace CVC4 {
+// clang-format off
+namespace cvc5 {
 
 ${accs}$
 
@@ -30,4 +31,5 @@ ${defs}$
 ${modes}$
 
 }  // namespace options
-}  // namespace CVC4
+}  // namespace cvc5
+// clang-format on

@@ -16,14 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
+#ifndef CVC5__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
+#define CVC5__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
 
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 namespace utils {
@@ -220,6 +220,6 @@ unsigned getLoopMinOccurrences(TNode node);
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

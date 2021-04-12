@@ -17,7 +17,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -90,4 +90,4 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

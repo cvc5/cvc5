@@ -17,19 +17,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__${id}$_H
-#define CVC4__OPTIONS__${id}$_H
+#ifndef CVC5__OPTIONS__${id}$_H
+#define CVC5__OPTIONS__${id}$_H
 
 #include "options/options.h"
 
+// clang-format off
 ${includes}$
-
 
 ${holder_spec}$
 
-
-namespace CVC4 {
-
+namespace cvc5 {
 namespace options {
 
 ${modes}$
@@ -40,12 +38,11 @@ ${decls}$
 
 ${specs}$
 
-
 namespace options {
-
 ${inls}$
 
 }  // namespace options
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__${id}$_H */
+#endif /* CVC5__OPTIONS__${id}$_H */
+//clang-format on

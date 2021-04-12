@@ -14,13 +14,13 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -299,6 +299,6 @@ class EnumStreamConcrete : public EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

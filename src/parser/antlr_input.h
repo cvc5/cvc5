@@ -14,8 +14,8 @@
  ** Base for ANTLR parser classes.
  **/
 
-#ifndef CVC4__PARSER__ANTLR_INPUT_H
-#define CVC4__PARSER__ANTLR_INPUT_H
+#ifndef CVC5__PARSER__ANTLR_INPUT_H
+#define CVC5__PARSER__ANTLR_INPUT_H
 
 #include <antlr3.h>
 
@@ -36,7 +36,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
@@ -291,7 +291,7 @@ inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTL
   return BitVector(sz, val);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC5__PARSER__ANTLR_INPUT_H */

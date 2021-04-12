@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__LAZY_PROOF_H
-#define CVC4__EXPR__LAZY_PROOF_H
+#ifndef CVC5__EXPR__LAZY_PROOF_H
+#define CVC5__EXPR__LAZY_PROOF_H
 
 #include "expr/proof.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 class ProofNodeManager;
@@ -105,6 +105,6 @@ class LazyCDProof : public CDProof
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__LAZY_PROOF_H */
+#endif /* CVC5__EXPR__LAZY_PROOF_H */

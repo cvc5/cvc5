@@ -20,9 +20,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -237,7 +237,7 @@ bool CandidateRewriteFilter::notify(Node s,
       Trace("crf-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned i = 0, size = vars.size(); i < size; i++)
   {
     // By using internal representation of terms, we ensure polymorphism is
@@ -277,4 +277,4 @@ bool CandidateRewriteFilter::notify(Node s,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

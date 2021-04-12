@@ -17,13 +17,13 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EMPTY_SET_H
-#define CVC4__EMPTY_SET_H
+#ifndef CVC5__EMPTY_SET_H
+#define CVC5__EMPTY_SET_H
 
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -60,6 +60,6 @@ struct EmptySetHashFunction
   size_t operator()(const EmptySet& es) const;
 }; /* struct EmptySetHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EMPTY_SET_H */
+#endif /* CVC5__EMPTY_SET_H */

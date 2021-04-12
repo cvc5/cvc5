@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-#define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
+#ifndef CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
+#define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
@@ -24,7 +24,7 @@
 #include "expr/proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class LazyCDProof;
 class ProofNodeManager;
@@ -144,6 +144,6 @@ class PreprocessProofGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

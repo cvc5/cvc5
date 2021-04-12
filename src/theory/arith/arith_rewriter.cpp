@@ -16,6 +16,7 @@
  **/
 
 #include <set>
+#include <sstream>
 #include <stack>
 #include <vector>
 
@@ -27,7 +28,7 @@
 #include "theory/theory.h"
 #include "util/iand.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -227,14 +228,14 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           if(exp.sgn() == 0){
             return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
-            CVC4::Rational r(expr::NodeValue::MAX_CHILDREN);
+            cvc5::Rational r(expr::NodeValue::MAX_CHILDREN);
             if (exp <= r)
             {
               unsigned num = exp.getNumerator().toUnsignedInt();
               if( num==1 ){
                 return RewriteResponse(REWRITE_AGAIN, base);
               }else{
-                NodeBuilder<> nb(kind::MULT);
+                NodeBuilder nb(kind::MULT);
                 for(unsigned i=0; i < num; ++i){
                   nb << base;
                 }
@@ -898,6 +899,6 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

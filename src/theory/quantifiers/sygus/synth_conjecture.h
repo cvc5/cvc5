@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
-#define CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#define CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
 
 #include <memory>
 
@@ -32,7 +32,7 @@
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/template_infer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -81,10 +81,10 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  SynthConjecture(QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
@@ -199,15 +199,18 @@ class SynthConjecture
    */
   bool checkSideCondition(const std::vector<Node>& cvals) const;
 
+  /** get a reference to the statistics of parent */
+  SygusStatistics& getSygusStatistics() { return d_stats; };
+
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
@@ -387,7 +390,7 @@ class SynthConjecture
    * the sygus datatype constructor corresponding to variable x.
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
-                                 std::vector<int>& status);
+                                 std::vector<int8_t>& status);
   //-------------------------------- sygus stream
   /**
    * Prints the current synthesis solution to the output stream indicated by
@@ -423,6 +426,6 @@ class SynthConjecture
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

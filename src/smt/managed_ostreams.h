@@ -17,12 +17,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__MANAGED_OSTREAMS_H
-#define CVC4__MANAGED_OSTREAMS_H
+#ifndef CVC5__MANAGED_OSTREAMS_H
+#define CVC5__MANAGED_OSTREAMS_H
 
 #include <ostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class OstreamOpener;
 
@@ -141,6 +141,6 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
   void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedRegularOutputChannel */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__MANAGED_OSTREAMS_H */
+#endif /* CVC5__MANAGED_OSTREAMS_H */

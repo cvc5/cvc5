@@ -16,15 +16,15 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UNINTERPRETED_CONSTANT_H
-#define CVC4__UNINTERPRETED_CONSTANT_H
+#ifndef CVC5__UNINTERPRETED_CONSTANT_H
+#define CVC5__UNINTERPRETED_CONSTANT_H
 
 #include <iosfwd>
 #include <memory>
 
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -60,6 +60,6 @@ struct UninterpretedConstantHashFunction
   size_t operator()(const UninterpretedConstant& uc) const;
 }; /* struct UninterpretedConstantHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__UNINTERPRETED_CONSTANT_H */
+#endif /* CVC5__UNINTERPRETED_CONSTANT_H */

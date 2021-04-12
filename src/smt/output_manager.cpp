@@ -18,7 +18,7 @@
 
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 OutputManager::OutputManager(SmtEngine* smt) : d_smt(smt) {}
 
@@ -29,4 +29,4 @@ std::ostream& OutputManager::getDumpOut() const
   return *d_smt->getOptions().getOut();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

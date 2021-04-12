@@ -14,7 +14,7 @@
 
 #include "expr/node_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 template <bool ref_count>
@@ -92,4 +92,4 @@ template void NodeTemplateTrie<true>::debugPrint(const char* c,
                                                  unsigned depth) const;
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

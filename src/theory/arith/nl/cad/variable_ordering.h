@@ -16,17 +16,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
-#define CVC4__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
+#define CVC5__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
 #include "theory/arith/nl/cad/constraints.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -65,7 +65,7 @@ std::vector<poly_utils::VariableInformation> collectInformation(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif
 

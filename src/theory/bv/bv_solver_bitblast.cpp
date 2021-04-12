@@ -23,7 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -256,7 +256,7 @@ Node BVSolverBitblast::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder<> nb(cur.getKind());
+      NodeBuilder nb(cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();
@@ -281,4 +281,4 @@ Node BVSolverBitblast::getValue(TNode node)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

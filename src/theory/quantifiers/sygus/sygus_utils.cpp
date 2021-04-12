@@ -17,12 +17,13 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -42,8 +43,9 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
 {
   Assert(!fs.empty());
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   SygusAttribute ca;
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
+  Node sygusVar = sm->mkDummySkolem("sygus", nm->booleanType());
   sygusVar.setAttribute(ca, true);
   std::vector<Node> ipls{nm->mkNode(INST_ATTRIBUTE, sygusVar)};
   // insert the remaining instantiation attributes
@@ -65,6 +67,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
 {
   Assert(!fs.empty());
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> iattrs;
   // take existing properties, without the previous solves
   SygusSolutionAttribute ssa;
@@ -72,7 +75,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
   for (size_t i = 0, nsolved = solvedf.size(); i < nsolved; i++)
   {
     Node eq = solvedf.getEquality(i);
-    Node var = nm->mkSkolem("solved", nm->booleanType());
+    Node var = sm->mkDummySkolem("solved", nm->booleanType());
     var.setAttribute(ssa, eq);
     Node ipv = nm->mkNode(INST_ATTRIBUTE, var);
     iattrs.push_back(ipv);
@@ -179,4 +182,4 @@ TypeNode SygusUtils::getSygusTypeForSynthFun(Node f)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,14 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDHASHSET_H
-#define CVC4__CONTEXT__CDHASHSET_H
+#ifndef CVC5__CONTEXT__CDHASHSET_H
+#define CVC5__CONTEXT__CDHASHSET_H
 
 #include "base/check.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 template <class V, class HashFcn>
@@ -155,7 +155,7 @@ public:
 
 };/* class CDHashSet */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDHASHSET_H */
+#endif /* CVC5__CONTEXT__CDHASHSET_H */

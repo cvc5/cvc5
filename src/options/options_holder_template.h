@@ -16,23 +16,24 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_HOLDER_H
-#define CVC4__OPTIONS__OPTIONS_HOLDER_H
+#ifndef CVC5__OPTIONS__OPTIONS_HOLDER_H
+#define CVC5__OPTIONS__OPTIONS_HOLDER_H
 
+// clang-format off
 ${headers_module}$
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace options {
 
-struct OptionsHolder {
+struct OptionsHolder
+{
   OptionsHolder();
   ${macros_module}$
 
-
-};/* struct OptionsHolder */
+}; /* struct OptionsHolder */
 
 }  // namespace options
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__OPTIONS_HOLDER_H */
+#endif /* CVC5__OPTIONS__OPTIONS_HOLDER_H */
+// clang-format on

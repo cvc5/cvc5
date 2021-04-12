@@ -25,9 +25,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -36,8 +36,8 @@ RegExpOpr::RegExpOpr(SkolemCache* sc)
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
                                                      std::vector<Node>{})),
-      d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
-      d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
+      d_zero(NodeManager::currentNM()->mkConst(::cvc5::Rational(0))),
+      d_one(NodeManager::currentNM()->mkConst(::cvc5::Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
       d_sigma_star(
@@ -266,13 +266,15 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 }
 
 // 0-unknown, 1-yes, 2-no
-int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
+int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
+{
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
 
   int ret = 1;
   retNode = d_emptyRegexp;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -301,8 +303,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       case kind::REGEXP_RANGE: {
-        CVC4::String a = r[0].getConst<String>();
-        CVC4::String b = r[1].getConst<String>();
+        cvc5::String a = r[0].getConst<String>();
+        cvc5::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -354,7 +356,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
             }
           }
           if(ret == 0) {
-            Node sk = NodeManager::currentNM()->mkSkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
+            Node sk =
+                sm->mkDummySkolem("rsp", nm->stringType(), "Split RegExp");
             retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));
@@ -520,7 +523,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
   return ret;
 }
 
-Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
+Node RegExpOpr::derivativeSingle(Node r, cvc5::String c)
+{
   Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
@@ -553,8 +557,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       case kind::REGEXP_RANGE: {
-        CVC4::String a = r[0].getConst<String>();
-        CVC4::String b = r[1].getConst<String>();
+        cvc5::String a = r[0].getConst<String>();
+        cvc5::String b = r[1].getConst<String>();
         retNode = (a <= c && c <= b) ? d_emptySingleton : d_emptyRegexp;
         break;
       }
@@ -1310,7 +1314,9 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             rt = itr2->second;
           } else {
             std::map< PairNodes, Node > cache2(cache);
-            cache2[ p ] = NodeManager::currentNM()->mkNode(kind::REGEXP_RV, NodeManager::currentNM()->mkConst(CVC4::Rational(cnt)));
+            cache2[p] = NodeManager::currentNM()->mkNode(
+                kind::REGEXP_RV,
+                NodeManager::currentNM()->mkConst(cvc5::Rational(cnt)));
             rt = intersectInternal(r1l, r2l, cache2, cnt+1);
             cacheX[ pp ] = rt;
           }
@@ -1613,6 +1619,6 @@ Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
   return eform;
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

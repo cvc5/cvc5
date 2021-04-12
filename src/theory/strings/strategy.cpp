@@ -16,7 +16,7 @@
 
 #include "options/strings_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -158,4 +158,4 @@ void Strategy::initializeStrategy()
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

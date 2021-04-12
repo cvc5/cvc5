@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__SKOLEM_CACHE_H
-#define CVC4__THEORY__ARRAYS__SKOLEM_CACHE_H
+#ifndef CVC5__THEORY__ARRAYS__SKOLEM_CACHE_H
+#define CVC5__THEORY__ARRAYS__SKOLEM_CACHE_H
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -52,6 +52,6 @@ class SkolemCache
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -17,6 +17,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
@@ -32,21 +33,20 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::datatypes;
+using namespace cvc5;
+using namespace cvc5::kind;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::datatypes;
 
 SygusExtension::SygusExtension(TheoryState& s,
                                InferenceManager& im,
-                               quantifiers::TermDbSygus* tds,
-                               DecisionManager* dm)
+                               quantifiers::TermDbSygus* tds)
     : d_state(s),
       d_im(im),
       d_tds(tds),
-      d_dm(dm),
       d_ssb(tds),
       d_testers(s.getSatContext()),
       d_testers_exp(s.getSatContext()),
@@ -436,10 +436,11 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
     return itt->second;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   types.push_back(tn);
   TypeNode ptn = nm->mkPredicateType(types);
-  Node pred = nm->mkSkolem(isPre ? "pre" : "post", ptn);
+  Node pred = sm->mkDummySkolem(isPre ? "pre" : "post", ptn);
   d_traversal_pred[index][tn][n] = pred;
   return pred;
 }
@@ -447,6 +448,7 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 Node SygusExtension::eliminateTraversalPredicates(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::map<Node, Node>::iterator ittb;
@@ -472,7 +474,7 @@ Node SygusExtension::eliminateTraversalPredicates(Node n)
         {
           std::stringstream ss;
           ss << "v_" << cur;
-          ret = nm->mkSkolem(ss.str(), cur.getType());
+          ret = sm->mkDummySkolem(ss.str(), cur.getType());
           d_traversal_bool[cur] = ret;
         }
         else
@@ -1331,8 +1333,9 @@ void SygusExtension::registerSizeTerm(Node e)
                                         d_state.getSatContext(),
                                         d_state.getValuation()));
     }
-    d_dm->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
-                           d_anchor_to_ag_strategy[e].get());
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
+        d_anchor_to_ag_strategy[e].get());
   }
   Node m;
   if (!ag.isNull())
@@ -1367,9 +1370,9 @@ void SygusExtension::registerSizeTerm(Node e)
       slem = nm->mkNode(LEQ, ds, d_szinfo[m]->getOrMkMeasureValue());
     }else{
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue();
-      Node new_mt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
+      Node newMt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(nm->mkNode(PLUS, new_mt, ds));
+      slem = mt.eqNode(nm->mkNode(PLUS, newMt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);
@@ -1412,8 +1415,8 @@ void SygusExtension::registerMeasureTerm( Node m ) {
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
     d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_im, m, d_state));
     // register this as a decision strategy
-    d_dm->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE,
-                           d_szinfo[m].get());
+    d_im.getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
   }
 }
 
@@ -1761,7 +1764,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
   if (d_measure_value.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
-    d_measure_value = nm->mkSkolem("mt", nm->integerType());
+    SkolemManager* sm = nm->getSkolemManager();
+    d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem =
         nm->mkNode(kind::GEQ, d_measure_value, nm->mkConst(Rational(0)));
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
@@ -1775,7 +1779,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
   if (mkNew)
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node new_mt = nm->mkSkolem("mt", nm->integerType());
+    SkolemManager* sm = nm->getSkolemManager();
+    Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConst(Rational(0)));
     d_measure_value_active = new_mt;
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);

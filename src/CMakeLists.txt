@@ -12,10 +12,10 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
-  api/checks.h
-  api/cvc4cpp.cpp
-  api/cvc4cpp.h
-  api/cvc4cppkind.h
+  api/cpp/cvc5.cpp
+  api/cpp/cvc5.h
+  api/cpp/cvc5_checks.h
+  api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
   context/cdhashmap.h
@@ -47,6 +47,12 @@ libcvc4_add_sources(
   lib/replacements.h
   lib/strtok_r.c
   lib/strtok_r.h
+  omt/bitvector_optimizer.cpp
+  omt/bitvector_optimizer.h
+  omt/integer_optimizer.cpp
+  omt/integer_optimizer.h
+  omt/omt_optimizer.cpp
+  omt/omt_optimizer.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/passes/ackermann.cpp
@@ -490,6 +496,7 @@ libcvc4_add_sources(
   theory/bags/theory_bags_type_enumerator.cpp
   theory/bags/theory_bags_type_enumerator.h
   theory/bags/theory_bags_type_rules.h
+  theory/bags/theory_bags_type_rules.cpp
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
   theory/booleans/proof_circuit_propagator.cpp
@@ -549,6 +556,7 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/int_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
   theory/bv/slicer.cpp
@@ -621,8 +629,11 @@ libcvc4_add_sources(
   theory/fp/theory_fp_rewriter.cpp
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
+  theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/incomplete_id.cpp
+  theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
   theory/inference_manager_buffered.cpp
@@ -693,6 +704,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/pattern_term_selector.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
+  theory/quantifiers/ematching/trigger_database.cpp
+  theory/quantifiers/ematching/trigger_database.h
   theory/quantifiers/ematching/trigger_term_info.cpp
   theory/quantifiers/ematching/trigger_term_info.h
   theory/quantifiers/ematching/trigger_trie.cpp
@@ -763,6 +776,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
   theory/quantifiers/quantifiers_state.h
+  theory/quantifiers/quantifiers_statistics.cpp
+  theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
@@ -773,12 +788,12 @@ libcvc4_add_sources(
   theory/quantifiers/skolemize.h
   theory/quantifiers/solution_filter.cpp
   theory/quantifiers/solution_filter.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_tuple_enumerator.cpp
   theory/quantifiers/term_tuple_enumerator.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
-  theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
-  theory/quantifiers/sygus/ce_guided_single_inv_sol.h
   theory/quantifiers/sygus/cegis.cpp
   theory/quantifiers/sygus/cegis.h
   theory/quantifiers/sygus/cegis_core_connective.cpp
@@ -797,6 +812,10 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/rcons_obligation_info.cpp
+  theory/quantifiers/sygus/rcons_obligation_info.h
+  theory/quantifiers/sygus/rcons_type_info.cpp
+  theory/quantifiers/sygus/rcons_type_info.h
   theory/quantifiers/sygus/sygus_abduct.cpp
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
@@ -823,6 +842,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
+  theory/quantifiers/sygus/sygus_reconstruct.cpp
+  theory/quantifiers/sygus/sygus_reconstruct.h
   theory/quantifiers/sygus/sygus_qe_preproc.cpp
   theory/quantifiers/sygus/sygus_qe_preproc.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
@@ -1101,7 +1122,7 @@ install(TARGETS cvc4
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc4
   PRIVATE
     -D__BUILDING_CVC4LIB
@@ -1116,55 +1137,40 @@ if(ENABLE_VALGRIND)
   target_include_directories(cvc4 PRIVATE ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_link_libraries(cvc4 ${ABC_LIBRARIES})
+  target_link_libraries(cvc4 PRIVATE ${ABC_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
 if(USE_CADICAL)
-  target_link_libraries(cvc4 ${CaDiCaL_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${CaDiCaL_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE CaDiCaL)
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
-  target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE CryptoMiniSat)
 endif()
 if(USE_KISSAT)
-  target_link_libraries(cvc4 ${Kissat_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
-endif()
-if(USE_DRAT2ER)
-  target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE Kissat)
 endif()
 if(USE_GLPK)
-  target_link_libraries(cvc4 ${GLPK_LIBRARIES})
+  target_link_libraries(cvc4 PRIVATE ${GLPK_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
-if(USE_LFSC)
-  target_link_libraries(cvc4 ${LFSC_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
-endif()
 if(USE_POLY)
-  target_link_libraries(cvc4 ${POLY_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
+  target_link_libraries(cvc4 PRIVATE Polyxx)
 endif()
 if(USE_SYMFPU)
-  target_include_directories(cvc4
-    PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
+  target_link_libraries(cvc4 PRIVATE SymFPU)
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
-target_link_libraries(cvc4 ${GMP_LIBRARIES})
-target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
+target_link_libraries(cvc4 PRIVATE GMP)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
-target_link_libraries(cvc4 ${RT_LIBRARIES})
+target_link_libraries(cvc4 PRIVATE ${RT_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc4. For target main, we have
@@ -1180,14 +1186,14 @@ endif()
 # Install public API headers
 
 install(FILES
-          api/cvc4cpp.h
-          api/cvc4cppkind.h
+          api/cpp/cvc5.h
+          api/cpp/cvc5_kind.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

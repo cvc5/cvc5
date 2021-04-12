@@ -12,14 +12,14 @@
  ** \brief Check for some monomial lemmas
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -194,6 +194,6 @@ class MonomialCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_EQ_NOTIFY_H
-#define CVC4__THEORY__THEORY_EQ_NOTIFY_H
+#ifndef CVC5__THEORY__THEORY_EQ_NOTIFY_H
+#define CVC5__THEORY__THEORY_EQ_NOTIFY_H
 
 #include "expr/node.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine_notify.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -77,6 +77,6 @@ class TheoryEqNotifyClass : public eq::EqualityEngineNotify
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__EXPAND_DEFINITIONS_H
-#define CVC4__SMT__EXPAND_DEFINITIONS_H
+#ifndef CVC5__SMT__EXPAND_DEFINITIONS_H
+#define CVC5__SMT__EXPAND_DEFINITIONS_H
 
 #include <unordered_map>
 
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 class ResourceManager;
@@ -95,6 +95,6 @@ class ExpandDefs
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

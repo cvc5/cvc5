@@ -25,7 +25,7 @@
 #include "theory/bv/slicer.h"
 #include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -245,4 +245,4 @@ class AlgebraicSolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -16,13 +16,13 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__CVC_H
-#define CVC4__PARSER__CVC_H
+#ifndef CVC5__PARSER__CVC_H
+#define CVC5__PARSER__CVC_H
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parser.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace parser {
 
@@ -48,6 +48,6 @@ class Cvc : public Parser
 };
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__CVC_H */
+#endif /* CVC5__PARSER__CVC_H */

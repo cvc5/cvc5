@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H
-#define CVC4__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H
+#define CVC5__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H
 
 #include <vector>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class RepSetIterator;
@@ -122,6 +122,6 @@ class QuantifiersBoundInference
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H */

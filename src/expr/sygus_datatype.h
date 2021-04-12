@@ -13,8 +13,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__SYGUS_DATATYPE_H
-#define CVC4__EXPR__SYGUS_DATATYPE_H
+#ifndef CVC5__EXPR__SYGUS_DATATYPE_H
+#define CVC5__EXPR__SYGUS_DATATYPE_H
 
 #include <string>
 #include <vector>
@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /** Attribute true for variables that represent any constant */
 struct SygusAnyConstAttributeId
@@ -134,6 +134,6 @@ class SygusDatatype
   DType d_dt;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

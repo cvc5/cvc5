@@ -23,16 +23,16 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONTEXT__CDINSERT_HASHMAP_FORWARD_H
-#define CVC4__CONTEXT__CDINSERT_HASHMAP_FORWARD_H
+#ifndef CVC5__CONTEXT__CDINSERT_HASHMAP_FORWARD_H
+#define CVC5__CONTEXT__CDINSERT_HASHMAP_FORWARD_H
 
 #include <functional>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class CDInsertHashMap;
 }  // namespace context
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDINSERT_HASHMAP_FORWARD_H */
+#endif /* CVC5__CONTEXT__CDINSERT_HASHMAP_FORWARD_H */

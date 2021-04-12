@@ -14,13 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -91,6 +91,6 @@ class DtInstantiator : public Instantiator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */

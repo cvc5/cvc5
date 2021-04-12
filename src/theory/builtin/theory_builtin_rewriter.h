@@ -17,12 +17,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
-#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -117,8 +117,8 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node getArrayRepresentationForLambda(TNode n);
 }; /* class TheoryBuiltinRewriter */
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */
+#endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */

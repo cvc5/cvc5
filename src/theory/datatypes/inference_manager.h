@@ -14,14 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__INFERENCE_MANAGER_H
-#define CVC4__THEORY__DATATYPES__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__DATATYPES__INFERENCE_MANAGER_H
+#define CVC5__THEORY__DATATYPES__INFERENCE_MANAGER_H
 
 #include "expr/node.h"
 #include "theory/datatypes/infer_proof_cons.h"
 #include "theory/inference_manager_buffered.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class EagerProofGenerator;
@@ -109,6 +109,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

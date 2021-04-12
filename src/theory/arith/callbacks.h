@@ -24,7 +24,7 @@
 #include "theory/inference_id.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 
@@ -197,6 +197,6 @@ public:
   BoundCounts hasBounds(ArithVar basic) const;
 };
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

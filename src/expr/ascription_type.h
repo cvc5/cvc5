@@ -16,13 +16,13 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__ASCRIPTION_TYPE_H
-#define CVC4__ASCRIPTION_TYPE_H
+#ifndef CVC5__ASCRIPTION_TYPE_H
+#define CVC5__ASCRIPTION_TYPE_H
 
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -60,6 +60,6 @@ struct AscriptionTypeHashFunction
 /** An output routine for AscriptionTypes */
 std::ostream& operator<<(std::ostream& out, AscriptionType at);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__ASCRIPTION_TYPE_H */
+#endif /* CVC5__ASCRIPTION_TYPE_H */

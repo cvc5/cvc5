@@ -14,15 +14,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
-#define CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
+#ifndef CVC5__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
+#define CVC5__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
 
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -88,8 +88,8 @@ class EqualityQuery : public QuantifiersUtil
   int32_t getRepScore(Node n, Node f, size_t index, TypeNode v_tn);
 }; /* EqualityQuery */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H */
+#endif /* CVC5__THEORY__QUANTIFIERS_EQUALITY_QUERY_H */

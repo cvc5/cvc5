@@ -27,7 +27,7 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -358,4 +358,4 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

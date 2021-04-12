@@ -8,11 +8,8 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-find_package(ANTLR REQUIRED)
 
-if(NOT HAVE_ANTLR3_FILE_STREAM_NEW)
-  add_definitions(-DCVC4_ANTLR3_OLD_INPUT_STREAM)
-endif()
+find_package(ANTLR3 3.4 REQUIRED)
 
 # Java runtime is required for ANTLR
 find_package(Java COMPONENTS Runtime REQUIRED)
@@ -76,7 +73,7 @@ foreach(lang Cvc Smt2 Tptp)
       ${CMAKE_CURRENT_BINARY_DIR}/${lang_dir}/${lang}Parser.h
       ${CMAKE_CURRENT_BINARY_DIR}/${lang_dir}/${lang}.tokens
     COMMAND
-      ${ANTLR_BINARY}
+      ${ANTLR3_COMMAND}
         ${CMAKE_CURRENT_SOURCE_DIR}/${lang_dir}/${lang}.g
         -fo ${CMAKE_CURRENT_BINARY_DIR}/${lang_dir}
     DEPENDS
@@ -102,10 +99,17 @@ endforeach()
 # libcvc4parser configuration
 
 add_library(cvc4parser ${libcvc4parser_src_files})
-set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
-target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})
-target_include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
+target_link_libraries(cvc4parser PUBLIC cvc4)
+target_link_libraries(cvc4parser PRIVATE ANTLR3)
+
+if(USE_CLN)
+  target_link_libraries(cvc4parser PRIVATE ${CLN_LIBRARIES})
+  target_include_directories(cvc4parser PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
+endif()
+target_link_libraries(cvc4parser PRIVATE GMP)
+
 install(TARGETS cvc4parser
   EXPORT cvc4-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -115,7 +119,7 @@ install(TARGETS cvc4parser
 # unresolved symbols when linking against libcvc4parser.
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
-if(CVC4_WINDOWS_BUILD)
+if(CVC5_WINDOWS_BUILD)
   set_target_properties(cvc4parser
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
