@@ -3385,7 +3385,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   for (std::size_t i = 0; i < nPivots; ++i)
   {
     d_containing.d_out->spendResource(
-        ResourceManager::Resource::ArithPivotStep);
+        Resource::ArithPivotStep);
   }
 
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit

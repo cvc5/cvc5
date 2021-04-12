@@ -120,8 +120,8 @@ class TLazyBitblaster : public TBitblaster<Node>
 
     bool notify(prop::SatLiteral lit) override;
     void notify(prop::SatClause& clause) override;
-    void spendResource(ResourceManager::Resource r) override;
-    void safePoint(ResourceManager::Resource r) override;
+    void spendResource(Resource r) override;
+    void safePoint(Resource r) override;
   };
 
   BVSolverLazy* d_bv;

@@ -225,7 +225,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
   }
   Assert(node.getType().isBitVector());
 
-  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
+  d_bv->spendResource(Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
@@ -410,12 +410,12 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
+void TLazyBitblaster::MinisatNotify::spendResource(Resource r)
 {
   d_bv->spendResource(r);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
+void TLazyBitblaster::MinisatNotify::safePoint(Resource r)
 {
   d_bv->d_im.safePoint(r);
 }

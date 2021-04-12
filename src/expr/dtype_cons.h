@@ -24,6 +24,7 @@
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/cardinality_class.h"
 
 namespace cvc5 {
 
@@ -147,18 +148,15 @@ class DTypeConstructor
   Cardinality getCardinality(TypeNode t) const;
 
   /**
-   * Return true iff this constructor is finite (it is nullary or
-   * each of its argument types are finite).  This function can
-   * only be called for resolved constructors.
+   * Return the cardinality class, which indicates if the type has cardinality
+   * one, is finite or infinite, possibly dependent on uninterpreted sorts being
+   * finite.
+   *
+   * Note that the cardinality of a constructor is equivalent to asking how
+   * many applications of this constructor exist.
    */
-  bool isFinite(TypeNode t) const;
-  /**
-   * Return true iff this constructor is finite (it is nullary or
-   * each of its argument types are finite) under assumption
-   * uninterpreted sorts are finite.  This function can
-   * only be called for resolved constructors.
-   */
-  bool isInterpretedFinite(TypeNode t) const;
+  CardinalityClass getCardinalityClass(TypeNode t) const;
+
   /**
    * Has finite external argument type. This returns true if this constructor
    * has an argument type that is not a datatype and is interpreted as a
@@ -237,17 +235,6 @@ class DTypeConstructor
   void toStream(std::ostream& out) const;
 
  private:
-  /** Constructor cardinality type */
-  enum class CardinalityType
-  {
-    // the constructor is finite
-    FINITE,
-    // the constructor is interpreted-finite (finite under the assumption that
-    // uninterpreted sorts are finite)
-    INTERPRETED_FINITE,
-    // the constructor is infinte
-    INFINITE
-  };
   /** resolve
    *
    * This resolves (initializes) the constructor. For details
@@ -311,7 +298,7 @@ class DTypeConstructor
    * type t, and a Boolean indicating whether the constructor has any arguments
    * that have finite external type.
    */
-  std::pair<CardinalityType, bool> computeCardinalityInfo(TypeNode t) const;
+  std::pair<CardinalityClass, bool> computeCardinalityInfo(TypeNode t) const;
   /** compute shared selectors
    * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */
@@ -351,7 +338,7 @@ class DTypeConstructor
    */
   mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;
   /**  A cache for computeCardinalityInfo. */
-  mutable std::map<TypeNode, std::pair<CardinalityType, bool> > d_cardInfo;
+  mutable std::map<TypeNode, std::pair<CardinalityClass, bool> > d_cardInfo;
 }; /* class DTypeConstructor */
 
 /**

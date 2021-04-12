@@ -360,12 +360,12 @@ class TheoryInferenceManager
   /**
    * Forward to OutputChannel::spendResource() to spend resources.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Forward to OutputChannel::safePoint() to spend resources.
    */
-  void safePoint(ResourceManager::Resource r);
+  void safePoint(Resource r);
   /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.

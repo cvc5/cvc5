@@ -40,7 +40,7 @@ IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
 
 PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   // Remove all of the ITE occurrences and normalize

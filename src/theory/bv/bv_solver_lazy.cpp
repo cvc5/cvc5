@@ -118,7 +118,7 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(Resource r)
 {
   d_im.spendResource(r);
 }

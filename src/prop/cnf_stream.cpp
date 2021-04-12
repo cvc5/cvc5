@@ -755,7 +755,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
+  d_resourceManager->spendResource(Resource::CnfStep);
 
   switch(node.getKind()) {
     case kind::AND: convertAndAssertAnd(node, negated); break;

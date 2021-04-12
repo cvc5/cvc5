@@ -72,7 +72,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   Assert(!options::unsatCores() || isProofEnabled())
       << "Unsat cores with non-clausal simp only supported with new proofs";
 
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();

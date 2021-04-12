@@ -107,7 +107,7 @@ class ProcessAssertions
    */
   unsigned d_simplifyAssertionsDepth;
   /** Spend resource r by the resource manager of this class. */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
   /**
    * Perform non-clausal simplification of a Node.  This involves
    * Theory implementations, but does NOT involve the SAT solver in

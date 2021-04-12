@@ -299,9 +299,14 @@ class TheoryEngineModelBuilder
   bool isCdtValueMatch(Node v, Node r, Node eqc, Node& eqc_m);
   //------------------------------------end for codatatypes
 
+  /**
+   * Is the given type constrained to be finite? This depends on whether
+   * finite model finding is enabled.
+   */
+  bool isFiniteType(TypeNode tn) const;
   //---------------------------------for debugging finite model finding
   /** does type tn involve an uninterpreted sort? */
-  bool involvesUSort(TypeNode tn);
+  bool involvesUSort(TypeNode tn) const;
   /** is v an excluded value based on uninterpreted sorts?
    * This gives an assertion failure in the case that v contains
    * an uninterpreted constant whose index is out of the bounds

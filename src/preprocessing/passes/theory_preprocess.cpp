@@ -37,7 +37,7 @@ TheoryPreprocess::TheoryPreprocess(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult TheoryPreprocess::applyInternal(
     AssertionPipeline* assertions)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   prop::PropEngine* propEngine = d_preprocContext->getPropEngine();

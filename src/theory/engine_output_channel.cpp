@@ -49,7 +49,7 @@ EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
 {
 }
 
-void EngineOutputChannel::safePoint(ResourceManager::Resource r)
+void EngineOutputChannel::safePoint(Resource r)
 {
   spendResource(r);
   if (d_engine->d_interrupted)
@@ -135,7 +135,7 @@ void EngineOutputChannel::setIncomplete(IncompleteId id)
   d_engine->setIncomplete(d_theory, id);
 }
 
-void EngineOutputChannel::spendResource(ResourceManager::Resource r)
+void EngineOutputChannel::spendResource(Resource r)
 {
   d_engine->spendResource(r);
 }

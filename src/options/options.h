@@ -182,7 +182,6 @@ public:
   std::ostream* getOut();
   std::ostream* getOutConst() const; // TODO: Remove this.
   std::string getBinaryName() const;
-  unsigned getParseStep() const;
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
