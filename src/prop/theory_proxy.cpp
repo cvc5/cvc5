@@ -53,26 +53,16 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
-void TheoryProxy::notifyPreprocessedAssertions(
-    const std::vector<Node>& assertions)
-{
-  d_theoryEngine->notifyPreprocessedAssertions(assertions);
-  for (const Node& assertion : assertions)
-  {
-    d_decisionEngine->addAssertion(assertion);
-  }
-}
-
-void TheoryProxy::notifyAssertion(Node lem, TNode skolem)
+void TheoryProxy::notifyAssertion(Node a, TNode skolem)
 {
   if (skolem.isNull())
   {
-    d_decisionEngine->addAssertion(lem);
+    d_decisionEngine->addAssertion(a);
   }
   else
   {
-    d_skdm->notifySkolemDefinition(skolem, lem);
-    d_decisionEngine->addSkolemDefinition(lem, skolem);
+    d_skdm->notifySkolemDefinition(skolem, a);
+    d_decisionEngine->addSkolemDefinition(a, skolem);
   }
 }
 
