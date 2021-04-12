@@ -466,6 +466,14 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "enable resource limiting per query"
 
+# --rweight is used to override the default of one particular resource weight.
+# It can be given multiple times to override multiple weights. When options are
+# parsed, the resource manager might now be created yet, and it is not clear
+# how an option handler would access it in a reasonable way. The option handler
+# thus merely puts the data in another option that holds a vector of strings.
+# This other option "resourceWeightHolder" has the sole purpose of storing
+# this data in a way so that the resource manager can access it in its
+# constructor.
 [[option]]
   smt_name   = "resourceWeight"
   category   = "expert"
