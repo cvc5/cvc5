@@ -18,7 +18,6 @@ find_jar(JUnit_JAR junit-platform-console-standalone
   PATHS
     ${DEPS_BASE}/share/java
     $ENV{PATH} $ENV{HOME} $ENV{CLASSPATH} $ENV{JUNIT_HOME}
-  VERSIONS 1.7.1
 )
 
 set(JUnit_FOUND_SYSTEM FALSE)
@@ -27,24 +26,26 @@ if(JUnit_JAR)
 endif()
 
 if(NOT JUnit_FOUND_SYSTEM)
+
+  set(JUNIT_VERSION 1.7.1)
   include(ExternalProject)
 
   # Download junit generator jar
   ExternalProject_Add(
     JUnit
     PREFIX ${DEPS_PREFIX}
-    URL https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.7.1/junit-platform-console-standalone-1.7.1.jar
+    URL https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/${JUNIT_VERSION}/junit-platform-console-standalone-${JUNIT_VERSION}.jar
     URL_HASH SHA1=99245bde65d028a8b8ff604be26e929ab6ff2e58
     DOWNLOAD_NO_EXTRACT ON
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
-      <SOURCE_DIR>/../junit-platform-console-standalone-1.7.1.jar
-      <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
-    BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/junit-platform-console-standalone-1.7.1.jar
+      <SOURCE_DIR>/../junit-platform-console-standalone-${JUNIT_VERSION}.jar
+      <INSTALL_DIR>/share/java/junit-platform-console-standalone-${JUNIT_VERSION}.jar
+    BUILD_BYPRODUCTS <INSTALL_DIR>/share/java/junit-platform-console-standalone-${JUNIT_VERSION}.jar
   )
 
-  set(JUnit_JAR "${DEPS_BASE}/share/java/junit-platform-console-standalone-1.7.1.jar")
+  set(JUnit_JAR "${DEPS_BASE}/share/java/junit-platform-console-standalone-${JUNIT_VERSION}.jar")
 endif()
 
 set(JUnit_FOUND TRUE)
