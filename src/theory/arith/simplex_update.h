@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file simplex_update.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This provides a class for summarizing pivot proposals.
- **
- ** This shares with the theory a Tableau, and a PartialModel that:
- **  - satisfies the equalities in the Tableau, and
- **  - the assignment for the non-basic variables satisfies their bounds.
- ** This maintains the relationship needed by the SimplexDecisionProcedure.
- **
- ** In the language of Simplex for DPLL(T), this provides:
- ** - update()
- ** - pivotAndUpdate()
- **
- ** This class also provides utility functions that require
- ** using both the Tableau and PartialModel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This provides a class for summarizing pivot proposals.
+ *
+ * This shares with the theory a Tableau, and a PartialModel that:
+ *  - satisfies the equalities in the Tableau, and
+ *  - the assignment for the non-basic variables satisfies their bounds.
+ * This maintains the relationship needed by the SimplexDecisionProcedure.
+ *
+ * In the language of Simplex for DPLL(T), this provides:
+ * - update()
+ * - pivotAndUpdate()
+ *
+ * This class also provides utility functions that require
+ * using both the Tableau and PartialModel.
+ */
 
 #include "cvc4_private.h"
 

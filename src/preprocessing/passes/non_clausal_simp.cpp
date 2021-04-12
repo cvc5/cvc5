@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file non_clausal_simp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Non-clausal simplification preprocessing pass.
- **
- ** Run the nonclausal solver and try to solve all assigned theory literals.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Non-clausal simplification preprocessing pass.
+ *
+ * Run the nonclausal solver and try to solve all assigned theory literals.
+ */
 
 #include "preprocessing/passes/non_clausal_simp.h"
 
