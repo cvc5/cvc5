@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__ASSERTION_LIST_H
-#define CVC4__DECISION__ASSERTION_LIST_H
+#ifndef CVC5__DECISION__ASSERTION_LIST_H
+#define CVC5__DECISION__ASSERTION_LIST_H
 
 #include <iosfwd>
 
@@ -79,4 +79,4 @@ class AssertionList
 
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__ASSERTION_LIST_H */
+#endif /* CVC5__DECISION__ASSERTION_LIST_H */

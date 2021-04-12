@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__JUSTIFY_STACK_H
-#define CVC4__DECISION__JUSTIFY_STACK_H
+#ifndef CVC5__DECISION__JUSTIFY_STACK_H
+#define CVC5__DECISION__JUSTIFY_STACK_H
 
 #include "context/cdlist.h"
 #include "context/cdo.h"
@@ -64,4 +64,4 @@ class JustifyStack
 
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__JUSTIFY_INFO_H */
+#endif /* CVC5__DECISION__JUSTIFY_INFO_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__JUSTIFY_STATS_H
-#define CVC4__DECISION__JUSTIFY_STATS_H
+#ifndef CVC5__DECISION__JUSTIFY_STATS_H
+#define CVC5__DECISION__JUSTIFY_STATS_H
 
 #include "util/statistics_registry.h"
 
@@ -36,4 +36,4 @@ class JustifyStatistics
 
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__JUSTIFY_STATS_H */
+#endif /* CVC5__DECISION__JUSTIFY_STATS_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__JUSTIFY_INFO_H
-#define CVC4__DECISION__JUSTIFY_INFO_H
+#ifndef CVC5__DECISION__JUSTIFY_INFO_H
+#define CVC5__DECISION__JUSTIFY_INFO_H
 
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -54,4 +54,4 @@ class JustifyInfo
 
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__JUSTIFY_INFO_H */
+#endif /* CVC5__DECISION__JUSTIFY_INFO_H */
