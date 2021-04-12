@@ -3463,7 +3463,8 @@ bool Datatype::isFinite() const
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  // we do not assume that finite model finding is enabled
+  // we assume that finite model finding is disabled by passing false as the
+  // second argument
   return isCardinalityClassFinite(d_dtype->getCardinalityClass(), false);
   ////////
   CVC4_API_TRY_CATCH_END;

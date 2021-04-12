@@ -517,6 +517,16 @@ CardinalityClass DType::getCardinalityClass() const
   return getCardinalityClass(d_self);
 }
 
+bool DType::isFinite(TypeNode t, bool fmfEnabled) const
+{
+  return isCardinalityClassFinite(getCardinalityClass(t), fmfEnabled);
+}
+
+bool DType::isFinite(bool fmfEnabled) const
+{
+  return isFinite(d_self, fmfEnabled);
+}
+
 bool DType::isWellFounded() const
 {
   Assert(isResolved());

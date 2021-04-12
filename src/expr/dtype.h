@@ -265,6 +265,22 @@ class DType
   CardinalityClass getCardinalityClass(TypeNode t) const;
   CardinalityClass getCardinalityClass() const;
 
+  /**
+   * Return true iff this DType has finite cardinality. If the
+   * datatype is not well-founded, this method returns false. The
+   * DType must be resolved or an assertion is violated.
+   *
+   * The version of this method that takes type t is required
+   * for parametric datatypes, where t is an instantiated
+   * parametric datatype type whose datatype is this class.
+   *
+   * @param t The datatype type we are computing finiteness for
+   * @param fmfEnabled Whether finite model finding is enabled
+   * @return true if finite model finding is enabled
+   */
+  bool isFinite(TypeNode t, bool fmfEnabled=false) const;
+  bool isFinite(bool fmfEnabled) const;
+
   /** is well-founded
    *
    * Return true iff this datatype is well-founded (there exist finite
