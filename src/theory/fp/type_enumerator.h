@@ -1,7 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
  *   Tim King, Martin Brain, Aina Niemetz
- * Copyright (c) 2009-2015  New York University and The University of Iowa
  *
  * This file is part of the cvc5 project.
  *
