@@ -995,6 +995,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
   theory/strings/theory_strings_preprocess.h
+  theory/strings/theory_strings_type_rules.cpp
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
