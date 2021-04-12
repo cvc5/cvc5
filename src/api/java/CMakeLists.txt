@@ -10,8 +10,9 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/")
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/jni")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5")
+set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/jni")
+file(MAKE_DIRECTORY ${JNI_DIR})
 
 # Generate cvc5/Kind.java
 configure_file(genkinds.py.in genkinds.py)
@@ -53,7 +54,7 @@ set(JAVA_FILES
 
 # specify generated jni headers
 set(JNI_HEADERS
-  ${CMAKE_CURRENT_BINARY_DIR}/jni/cvc5_Solver.h
+  ${JNI_DIR}/cvc5_Solver.h
 )
 
 # generate jni headers
@@ -65,7 +66,7 @@ add_custom_command(
   ALL
   COMMAND
     # generate jni header files
-    ${Java_JAVAC_EXECUTABLE} -h jni ${JAVA_FILES} -d jni
+    ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR}
   DEPENDS
     ${JAVA_FILES}
   COMMENT "Generate jni headers"
@@ -93,7 +94,7 @@ add_dependencies(cvc5jni generate-jni-headers)
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
-target_include_directories(cvc5jni PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/jni)
+target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni ${JNI_LIBRARIES})
 target_link_libraries(cvc5jni cvc4)
 
