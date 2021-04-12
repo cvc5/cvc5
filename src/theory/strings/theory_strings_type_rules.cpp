@@ -10,10 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Typing rules for the theory of strings and regexps.
  */
 #include "theory/strings/theory_strings_type_rules.h"
 
