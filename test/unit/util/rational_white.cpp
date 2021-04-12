@@ -92,7 +92,7 @@ TEST_F(TestUtilWhiteRational, constructors)
   ASSERT_EQ(dz, qz.getDenominator());
 
   // Not sure how to catch this...
-  // TS_ASSERT_THROWS(Rational div_0(0,0),__gmp_exception );
+  // ASSERT_THROW(Rational div_0(0,0),__gmp_exception );
 }
 
 TEST_F(TestUtilWhiteRational, destructor)

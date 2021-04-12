@@ -15,15 +15,12 @@
  * Use it like this (for example):
  *
  *   cvc5::test::WithLimitedMemory wlm(amount);
- *   TS_ASSERT_THROWS( foo(), bad_alloc );
+ *   ASSERT_THROW( foo(), bad_alloc );
  *
  * The WithLimitedMemory destructor will re-establish the previous limit.
  *
  * This class does not exist in CVC4_MEMORY_LIMITING_DISABLED is defined.
  * This can be disabled for a variety of reasons.
- * If this is disabled, there will be a function:
- *   void WarnWithLimitedMemoryDisabledReason()
- * uses TS_WARN to alert users that these tests are disabled.
  */
 
 #include "test.h"
