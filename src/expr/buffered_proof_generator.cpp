@@ -99,26 +99,4 @@ bool BufferedProofGenerator::hasProofFor(Node f)
   return true;
 }
 
-bool BufferedProofGenerator::hasProofFor(Node f, ProofStep& ps)
-{
-  NodeProofStepMap::iterator it = d_facts.find(f);
-  if (it == d_facts.end())
-  {
-    Node symFact = CDProof::getSymmFact(f);
-    if (symFact.isNull())
-    {
-      return false;
-    }
-    it = d_facts.find(symFact);
-    if (it == d_facts.end())
-    {
-      return false;
-    }
-  }
-  ps.d_rule = it->second->d_rule;
-  ps.d_children = it->second->d_children;
-  ps.d_args = it->second->d_args;
-  return true;
-}
-
 }  // namespace cvc5

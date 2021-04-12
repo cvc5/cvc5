@@ -47,11 +47,8 @@ class BufferedProofGenerator : public ProofGenerator
                CDPOverwrite opolicy = CDPOverwrite::NEVER);
   /** Get proof for. It is robust to (dis)equality symmetry. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Whether a step has been registered for f.
-   *
-   * If finds the proof step, assigns it to argument. */
+  /** Whether a step has been registered for f. */
   bool hasProofFor(Node f) override;
-  bool hasProofFor(Node f, ProofStep& ps);
   /** identify */
   std::string identify() const override { return "BufferedProofGenerator"; }
 
