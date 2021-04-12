@@ -274,12 +274,12 @@ class DType
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    *
-   * @param t The datatype type we are computing finiteness for
+   * @param t The (instantiated) datatype type we are computing finiteness for
    * @param fmfEnabled Whether finite model finding is enabled
    * @return true if finite model finding is enabled
    */
   bool isFinite(TypeNode t, bool fmfEnabled=false) const;
-  bool isFinite(bool fmfEnabled) const;
+  bool isFinite(bool fmfEnabled=false) const;
 
   /** is well-founded
    *
