@@ -48,7 +48,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
-  ${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc5/Kind.java
+  ${JAVA_KIND_FILE}
 )
 
 # specify generated jni headers

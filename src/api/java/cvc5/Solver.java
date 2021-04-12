@@ -43,6 +43,4 @@ public class Solver implements IPointer
   }
 
   private native void setLogic(long solverPointer, String logic) throws CVC5ApiException;
-
-  // endregion
 }
