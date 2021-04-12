@@ -12,7 +12,7 @@
  *
  * The TheoryRewriter class.
  *
- * ~he interface that theory rewriters implement.
+ * The interface that theory rewriters implement.
  */
 
 #include "theory/theory_rewriter.h"
