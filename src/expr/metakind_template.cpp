@@ -29,7 +29,9 @@ MetaKind metaKindOf(Kind k) {
   static const MetaKind metaKinds[] = {
     metakind::INVALID, /* UNDEFINED_KIND */
     metakind::INVALID, /* NULL_EXPR */
+// clang-format off
 ${metakind_kinds}
+// clang-format on
     metakind::INVALID /* LAST_KIND */
   };/* metaKinds[] */
 
@@ -45,7 +47,9 @@ ${metakind_kinds}
 
 namespace expr {
 
+// clang-format off
 ${metakind_constantMaps}
+// clang-format on
 
 }  // namespace expr
 
@@ -58,7 +62,9 @@ size_t NodeValueCompare::constHash(const ::cvc5::expr::NodeValue* nv)
 
   switch (nv->d_kind)
   {
+// clang-format off
 ${metakind_constHashes}
+// clang-format on
 default: Unhandled() << ::cvc5::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
@@ -75,7 +81,9 @@ bool NodeValueCompare::compare(const ::cvc5::expr::NodeValue* nv1,
   {
     switch (nv1->d_kind)
     {
+// clang-format off
 ${metakind_compares}
+// clang-format on
 default: Unhandled() << ::cvc5::expr::NodeValue::dKindToKind(nv1->d_kind);
     }
   }
@@ -111,7 +119,9 @@ void NodeValueConstPrinter::toStream(std::ostream& out,
 
   switch (nv->d_kind)
   {
+// clang-format off
 ${metakind_constPrinters}
+// clang-format on
 default: Unhandled() << ::cvc5::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
@@ -142,7 +152,9 @@ void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv)
 
   switch (nv->d_kind)
   {
+// clang-format off
 ${metakind_constDeleters}
+// clang-format on
 default: Unhandled() << ::cvc5::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
@@ -154,7 +166,9 @@ uint32_t getMinArityForKind(::cvc5::Kind k)
 {
   static const unsigned lbs[] = {
     0, /* NULL_EXPR */
+// clang-format off
 ${metakind_lbchildren}
+// clang-format on
 
     0 /* LAST_KIND */
   };
@@ -166,7 +180,9 @@ uint32_t getMaxArityForKind(::cvc5::Kind k)
 {
   static const unsigned ubs[] = {
     0, /* NULL_EXPR */
+// clang-format off
 ${metakind_ubchildren}
+// clang-format on
 
     0, /* LAST_KIND */
   };
@@ -188,11 +204,13 @@ Kind operatorToKind(::cvc5::expr::NodeValue* nv)
     return kind::APPLY_UF;
   }
 
-  switch(Kind k CVC4_UNUSED = nv->getKind()) {
-${metakind_operatorKinds}
+  switch (Kind k CVC5_UNUSED = nv->getKind())
+  {
+// clang-format off
+    ${metakind_operatorKinds}
+// clang-format on
 
-  default:
-    return kind::UNDEFINED_KIND;  /* LAST_KIND */
+    default: return kind::UNDEFINED_KIND; /* LAST_KIND */
   };
 }
 

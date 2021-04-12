@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H
-#define CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
+#define CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -159,4 +159,4 @@ class Skolemize
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H */

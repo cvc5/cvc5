@@ -17,9 +17,9 @@
 #include "cvc4autoconfig.h"
 #include "util/real_algebraic_number.h"
 
-#ifndef CVC4_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
-#error "This source should only ever be built if CVC4_POLY_IMP is on!"
-#endif /* CVC4_POLY_IMP */
+#ifndef CVC5_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
+#error "This source should only ever be built if CVC5_POLY_IMP is on!"
+#endif /* CVC5_POLY_IMP */
 
 #include <poly/polyxx.h>
 
@@ -60,7 +60,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
                                          long lower,
                                          long upper)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (long c : coefficients)
   {
     Assert(std::numeric_limits<std::int32_t>::min() <= c

@@ -98,7 +98,7 @@ void AssertArgumentException::construct(const char* header,
 
   setMessage(std::string(buf));
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
   if (buffer != NULL)
   {
@@ -107,7 +107,7 @@ void AssertArgumentException::construct(const char* header,
       buffer->setContents(buf);
     }
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   delete[] buf;
 }
 
@@ -157,7 +157,7 @@ void AssertArgumentException::construct(const char* header,
 
   setMessage(std::string(buf));
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer* buffer = LastExceptionBuffer::getCurrent();
   if (buffer != NULL)
   {
@@ -166,7 +166,7 @@ void AssertArgumentException::construct(const char* header,
       buffer->setContents(buf);
     }
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   delete[] buf;
 }
 

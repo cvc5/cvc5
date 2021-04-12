@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
 #include "expr/node.h"
@@ -156,4 +156,4 @@ class SygusEvalUnfold
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */

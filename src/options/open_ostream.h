@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPEN_OSTREAM_H
-#define CVC4__OPEN_OSTREAM_H
+#ifndef CVC5__OPEN_OSTREAM_H
+#define CVC5__OPEN_OSTREAM_H
 
 #include <iosfwd>
 #include <map>
@@ -57,4 +57,4 @@ std::string cvc4_errno_failreason();
 
 }  // namespace cvc5
 
-#endif /* CVC4__OPEN_OSTREAM_H */
+#endif /* CVC5__OPEN_OSTREAM_H */

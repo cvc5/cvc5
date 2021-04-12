@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SYMBOL_TABLE_H
-#define CVC4__SYMBOL_TABLE_H
+#ifndef CVC5__SYMBOL_TABLE_H
+#define CVC5__SYMBOL_TABLE_H
 
 #include <memory>
 #include <string>
@@ -212,4 +212,4 @@ class CVC4_EXPORT SymbolTable
 
 }  // namespace cvc5
 
-#endif /* CVC4__SYMBOL_TABLE_H */
+#endif /* CVC5__SYMBOL_TABLE_H */

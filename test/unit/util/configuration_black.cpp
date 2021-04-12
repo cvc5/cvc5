@@ -27,46 +27,46 @@ class TestUtilBlackConfiguration : public TestInternal
 TEST_F(TestUtilBlackConfiguration, static_flags)
 {
   const bool debug =
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
       true;
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
       false;
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
   const bool tracing =
-#ifdef CVC4_TRACING
+#ifdef CVC5_TRACING
       true;
-#else  /* CVC4_TRACING */
+#else  /* CVC5_TRACING */
       false;
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 
   const bool muzzled =
-#ifdef CVC4_MUZZLE
+#ifdef CVC5_MUZZLE
       true;
-#else  /* CVC4_MUZZLE */
+#else  /* CVC5_MUZZLE */
       false;
-#endif /* CVC4_MUZZLE */
+#endif /* CVC5_MUZZLE */
 
   const bool assertions =
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       true;
-#else  /* CVC4_ASSERTIONS */
+#else  /* CVC5_ASSERTIONS */
       false;
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   const bool coverage =
-#ifdef CVC4_COVERAGE
+#ifdef CVC5_COVERAGE
       true;
-#else  /* CVC4_COVERAGE */
+#else  /* CVC5_COVERAGE */
       false;
-#endif /* CVC4_COVERAGE */
+#endif /* CVC5_COVERAGE */
 
   const bool profiling =
-#ifdef CVC4_PROFILING
+#ifdef CVC5_PROFILING
       true;
-#else  /* CVC4_PROFILING */
+#else  /* CVC5_PROFILING */
       false;
-#endif /* CVC4_PROFILING */
+#endif /* CVC5_PROFILING */
 
   ASSERT_EQ(Configuration::isDebugBuild(), debug);
   ASSERT_EQ(Configuration::isTracingBuild(), tracing);

@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SINGLETON_OP_H
-#define CVC4__SINGLETON_OP_H
+#ifndef CVC5__SINGLETON_OP_H
+#define CVC5__SINGLETON_OP_H
 
 #include <memory>
 
@@ -60,4 +60,4 @@ struct SingletonOpHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__SINGLETON_OP_H */
+#endif /* CVC5__SINGLETON_OP_H */

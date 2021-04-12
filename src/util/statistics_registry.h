@@ -33,45 +33,45 @@
 
 /**
  * On the design of the statistics:
- * 
+ *
  * Stat is the abstract base class for all statistic values.
  * It stores the name and provides (fully virtual) methods
  * flushInformation() and safeFlushInformation().
- * 
+ *
  * BackedStat is an abstract templated base class for statistic values
  * that store the data themselves. It takes care of printing them already
  * and derived classes usually only need to provide methods to set the
  * value.
- * 
- * ReferenceStat holds a reference (conceptually, it is implemented as a 
+ *
+ * ReferenceStat holds a reference (conceptually, it is implemented as a
  * const pointer) to some data that is stored outside of the statistic.
- * 
+ *
  * IntStat is a BackedStat<std::int64_t>.
- * 
+ *
  * SizeStat holds a const reference to some container and provides the
  * size of this container.
- * 
+ *
  * AverageStat is a BackedStat<double>.
- * 
+ *
  * HistogramStat counts instances of some type T. It is implemented as a
  * std::map<T, std::uint64_t>.
- * 
+ *
  * IntegralHistogramStat is a (conceptual) specialization of HistogramStat
- * for types that are (convertible to) integral. This allows to use a 
+ * for types that are (convertible to) integral. This allows to use a
  * std::vector<std::uint64_t> instead of a std::map.
- * 
+ *
  * TimerStat uses std::chrono to collect timing information. It is
  * implemented as BackedStat<std::chrono::duration> and provides methods
  * start() and stop(), accumulating times it was activated. It provides
  * the convenience class CodeTimer to allow for RAII-style usage.
- * 
- * 
+ *
+ *
  * All statistic classes should protect their custom methods using
- *   if (CVC4_USE_STATISTICS) { ... }
+ *   if (CVC5_USE_STATISTICS) { ... }
  * Output methods (flushInformation() and safeFlushInformation()) are only
  * called when statistics are enabled and need no protection.
- * 
- * 
+ *
+ *
  * The statistic classes try to implement a consistent interface:
  * - if we store some generic data, we implement set()
  * - if we (conceptually) store a set of values, we implement operator<<()
@@ -81,8 +81,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__STATISTICS_REGISTRY_H
-#define CVC4__STATISTICS_REGISTRY_H
+#ifndef CVC5__STATISTICS_REGISTRY_H
+#define CVC5__STATISTICS_REGISTRY_H
 
 #include <ctime>
 #include <iomanip>
@@ -90,10 +90,10 @@
 #include <sstream>
 #include <vector>
 
-#ifdef CVC4_STATISTICS_ON
-#  define CVC4_USE_STATISTICS true
+#ifdef CVC5_STATISTICS_ON
+#define CVC5_USE_STATISTICS true
 #else
-#  define CVC4_USE_STATISTICS false
+#define CVC5_USE_STATISTICS false
 #endif
 
 #include "base/exception.h"
@@ -198,4 +198,4 @@ private:
 
 }  // namespace cvc5
 
-#endif /* CVC4__STATISTICS_REGISTRY_H */
+#endif /* CVC5__STATISTICS_REGISTRY_H */

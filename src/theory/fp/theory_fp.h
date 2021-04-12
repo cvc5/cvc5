@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__FP__THEORY_FP_H
-#define CVC4__THEORY__FP__THEORY_FP_H
+#ifndef CVC5__THEORY__FP__THEORY_FP_H
+#define CVC5__THEORY__FP__THEORY_FP_H
 
 #include <string>
 #include <utility>
@@ -193,4 +193,4 @@ class TheoryFp : public Theory
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC5__THEORY__FP__THEORY_FP_H */

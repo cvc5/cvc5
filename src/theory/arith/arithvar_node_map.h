@@ -17,9 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITHVAR_NODE_MAP_H
-#define CVC4__THEORY__ARITH__ARITHVAR_NODE_MAP_H
-
+#ifndef CVC5__THEORY__ARITH__ARITHVAR_NODE_MAP_H
+#define CVC5__THEORY__ARITH__ARITHVAR_NODE_MAP_H
 
 #include "theory/arith/arithvar.h"
 #include "context/context.h"
@@ -92,4 +91,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITHVAR_NODE_MAP_H */
+#endif /* CVC5__THEORY__ARITH__ARITHVAR_NODE_MAP_H */

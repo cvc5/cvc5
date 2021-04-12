@@ -24,7 +24,7 @@
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
 
 extern "C" {
 #include "base/abc/abc.h"
@@ -168,7 +168,7 @@ AigBitblaster::AigBitblaster()
       solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
                                                     "AigBitblaster");
       break;
-    default: CVC4_FATAL() << "Unknown SAT solver type";
+    default: CVC5_FATAL() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);
 }
@@ -497,4 +497,4 @@ AigBitblaster::Statistics::~Statistics() {
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5
-#endif // CVC4_USE_ABC
+#endif  // CVC5_USE_ABC

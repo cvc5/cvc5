@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CARDINALITY_H
-#define CVC4__CARDINALITY_H
+#ifndef CVC5__CARDINALITY_H
+#define CVC5__CARDINALITY_H
 
 #include <iosfwd>
 
@@ -227,4 +227,4 @@ std::ostream& operator<<(std::ostream& out, const Cardinality& c);
 
 }  // namespace cvc5
 
-#endif /* CVC4__CARDINALITY_H */
+#endif /* CVC5__CARDINALITY_H */

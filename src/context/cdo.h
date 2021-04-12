@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDO_H
-#define CVC4__CONTEXT__CDO_H
+#ifndef CVC5__CONTEXT__CDO_H
+#define CVC5__CONTEXT__CDO_H
 
 #include "context/context.h"
 
@@ -178,4 +178,4 @@ public:
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDO_H */
+#endif /* CVC5__CONTEXT__CDO_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
-#define CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#ifndef CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#define CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include "context/cdhashmap.h"
 #include "theory/arith/arith_utilities.h"
@@ -76,4 +76,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
-#define CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
+#ifndef CVC5__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
+#define CVC5__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
 
 #include <antlr3input.h>
 #include <string>
@@ -39,4 +39,4 @@ MemoryMappedInputBufferNew(const std::string& filename);
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H */
+#endif /* CVC5__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H */

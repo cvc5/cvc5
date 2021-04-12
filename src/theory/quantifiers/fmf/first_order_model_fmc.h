@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
-#define CVC4__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
+#define CVC5__THEORY__QUANTIFIERS__FMF__FIRST_ORDER_MODEL_FMC_H
 
 #include "theory/quantifiers/first_order_model.h"
 
@@ -56,4 +56,4 @@ class FirstOrderModelFmc : public FirstOrderModel
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

@@ -87,14 +87,14 @@ libcvc4_add_sources(
   utility.h
 )
 
-if(CVC4_USE_CLN_IMP)
+if(CVC5_USE_CLN_IMP)
   libcvc4_add_sources(rational_cln_imp.cpp integer_cln_imp.cpp)
 endif()
 
-if(CVC4_USE_GMP_IMP)
+if(CVC5_USE_GMP_IMP)
   libcvc4_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
 endif()
 
-if(CVC4_USE_POLY_IMP)
+if(CVC5_USE_POLY_IMP)
   libcvc4_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
 endif()

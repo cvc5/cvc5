@@ -67,7 +67,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
                      std::vector<std::shared_ptr<ProofNode>>,
                      NodeHashFunction>
       assumptionsToExpand;
-  // invariant of the loop below, the first iteration notwhistanding:
+  // invariant of the loop below, the first iteration notwithstanding:
   //   visit = domain(assumptionsToExpand) \ domain(toConnect)
   std::vector<Node> visit{fact};
   std::unordered_map<Node, bool, NodeHashFunction> visited;
@@ -121,13 +121,22 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       expr::getFreeAssumptionsMap(curPfn, famap);
       if (Trace.isOn("lazy-cdproofchain"))
       {
+        unsigned alreadyToVisit = 0;
         Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: free assumptions:\n";
+            << "LazyCDProofChain::getProofFor: " << famap.size()
+            << " free assumptions:\n";
         for (auto fap : famap)
         {
           Trace("lazy-cdproofchain")
               << "LazyCDProofChain::getProofFor:  - " << fap.first << "\n";
+          alreadyToVisit +=
+              std::find(visit.begin(), visit.end(), fap.first) != visit.end()
+                  ? 1
+                  : 0;
         }
+        Trace("lazy-cdproofchain")
+            << "LazyCDProofChain::getProofFor: " << alreadyToVisit
+            << " already to visit\n";
       }
       // mark for post-traversal if we are controlling cycles
       if (d_cyclic)

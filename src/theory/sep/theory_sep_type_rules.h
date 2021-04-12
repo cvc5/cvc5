@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
-#define CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
+#ifndef CVC5__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
+#define CVC5__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 
 namespace cvc5 {
 namespace theory {
@@ -111,4 +111,4 @@ struct SepNilTypeRule {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SEP__THEORY_SEP_TYPE_RULES_H */
+#endif /* CVC5__THEORY__SEP__THEORY_SEP_TYPE_RULES_H */

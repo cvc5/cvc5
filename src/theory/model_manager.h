@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__MODEL_MANAGER__H
-#define CVC4__THEORY__MODEL_MANAGER__H
+#ifndef CVC5__THEORY__MODEL_MANAGER__H
+#define CVC5__THEORY__MODEL_MANAGER__H
 
 #include <memory>
 
@@ -154,4 +154,4 @@ class ModelManager
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__MODEL_MANAGER__H */
+#endif /* CVC5__THEORY__MODEL_MANAGER__H */

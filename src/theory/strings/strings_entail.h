@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRING_ENTAIL_H
-#define CVC4__THEORY__STRINGS__STRING_ENTAIL_H
+#ifndef CVC5__THEORY__STRINGS__STRING_ENTAIL_H
+#define CVC5__THEORY__STRINGS__STRING_ENTAIL_H
 
 #include <vector>
 
@@ -381,4 +381,4 @@ class StringsEntail
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__STRING_ENTAIL_H */
+#endif /* CVC5__THEORY__STRINGS__STRING_ENTAIL_H */

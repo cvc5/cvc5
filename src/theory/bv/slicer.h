@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__SLICER_BV_H
-#define CVC4__THEORY__BV__SLICER_BV_H
+#ifndef CVC5__THEORY__BV__SLICER_BV_H
+#define CVC5__THEORY__BV__SLICER_BV_H
 
 #include <string>
 #include <vector>
@@ -53,4 +53,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__SLICER_BV_H */
+#endif /* CVC5__THEORY__BV__SLICER_BV_H */

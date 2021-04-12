@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_H
-#define CVC4__THEORY__BV__BV_SOLVER_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_H
+#define CVC5__THEORY__BV__BV_SOLVER_H
 
 #include "theory/theory.h"
 
@@ -119,4 +119,4 @@ class BVSolver
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_SOLVER_H */
+#endif /* CVC5__THEORY__BV__BV_SOLVER_H */

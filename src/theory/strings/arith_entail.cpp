@@ -174,7 +174,7 @@ bool ArithEntail::checkApprox(Node ar)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
-            CVC4_UNUSED bool ret =
+            CVC5_UNUSED bool ret =
                 ArithMSum::getMonomialSum(aa, approxMsums[aa]);
             Assert(ret);
           }

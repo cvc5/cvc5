@@ -136,7 +136,7 @@ Node normalizePvMult(
   return result;
 }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
 namespace {
 bool isLinearPlus(
     TNode n,
