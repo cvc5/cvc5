@@ -124,7 +124,8 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
   for (std::size_t id = 0; id <= resman_detail::ResourceMax; ++id)
   {
     Resource r = static_cast<Resource>(id);
-    d_resourceSteps.emplace_back(stats.registerInt("resource::res::" + std::string(toString(r))));
+    d_resourceSteps.emplace_back(
+        stats.registerInt("resource::res::" + std::string(toString(r))));
   }
 }
 
