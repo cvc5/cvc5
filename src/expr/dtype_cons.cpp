@@ -158,34 +158,28 @@ Cardinality DTypeConstructor::getCardinality(TypeNode t) const
   return c;
 }
 
-bool DTypeConstructor::isFinite(TypeNode t) const
+CardinalityClass DTypeConstructor::getCardinalityClass(TypeNode t) const
 {
-  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
-  return cinfo.first == CardinalityType::FINITE;
-}
-
-bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
-{
-  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
-  return cinfo.first != CardinalityType::INFINITE;
+  std::pair<CardinalityClass, bool> cinfo = computeCardinalityInfo(t);
+  return cinfo.first;
 }
 
 bool DTypeConstructor::hasFiniteExternalArgType(TypeNode t) const
 {
-  std::pair<CardinalityType, bool> cinfo = computeCardinalityInfo(t);
+  std::pair<CardinalityClass, bool> cinfo = computeCardinalityInfo(t);
   return cinfo.second;
 }
 
-std::pair<DTypeConstructor::CardinalityType, bool>
-DTypeConstructor::computeCardinalityInfo(TypeNode t) const
+std::pair<CardinalityClass, bool> DTypeConstructor::computeCardinalityInfo(
+    TypeNode t) const
 {
-  std::map<TypeNode, std::pair<CardinalityType, bool> >::iterator it =
+  std::map<TypeNode, std::pair<CardinalityClass, bool> >::iterator it =
       d_cardInfo.find(t);
   if (it != d_cardInfo.end())
   {
     return it->second;
   }
-  std::pair<CardinalityType, bool> ret(CardinalityType::FINITE, false);
+  std::pair<CardinalityClass, bool> ret(CardinalityClass::ONE, false);
   std::vector<TypeNode> instTypes;
   std::vector<TypeNode> paramTypes;
   bool isParam = t.isParametricDatatype();
@@ -204,27 +198,16 @@ DTypeConstructor::computeCardinalityInfo(TypeNode t) const
                          instTypes.begin(),
                          instTypes.end());
     }
-    if (tc.isFinite())
+    // get the current cardinality class
+    CardinalityClass cctc = tc.getCardinalityClass();
+    // update ret.first to the max cardinality class
+    ret.first = maxCardinalityClass(ret.first, cctc);
+    if (cctc != CardinalityClass::INFINITE)
     {
-      // do nothing
+      // if the argument is (interpreted) finite and external, set the flag
+      // for indicating it has a finite external argument
+      ret.second = ret.second || !tc.isDatatype();
     }
-    else if (tc.isInterpretedFinite())
-    {
-      if (ret.first == CardinalityType::FINITE)
-      {
-        // not simply finite, it depends on uninterpreted sorts being finite
-        ret.first = CardinalityType::INTERPRETED_FINITE;
-      }
-    }
-    else
-    {
-      // infinite implies the constructor is infinite cardinality
-      ret.first = CardinalityType::INFINITE;
-      continue;
-    }
-    // if the argument is (interpreted) finite and external, set the flag
-    // for indicating it has a finite external argument
-    ret.second = ret.second || !tc.isDatatype();
   }
   d_cardInfo[t] = ret;
   return ret;

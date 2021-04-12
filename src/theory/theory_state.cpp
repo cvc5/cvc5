@@ -172,6 +172,11 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
   return d_valuation.factsEnd(tid);
 }
 
+bool TheoryState::isFiniteType(TypeNode tn) const
+{
+  return d_valuation.isFiniteType(tn);
+}
+
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
