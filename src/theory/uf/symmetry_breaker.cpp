@@ -10,9 +10,6 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of algorithm suggested by Deharbe, Fontaine,
- * Merz, and Paleo, "Exploiting symmetry in SMT problems," CADE 2011
- *
  * Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
  * and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
  *
