@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/node_self_iterator.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -201,6 +202,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
   Node trueNode = nm->mkConst(true);
 
@@ -522,7 +524,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               stringstream ss;
               ss << "mipvar_" << *ii;
-              Node newVar = nm->mkSkolem(
+              Node newVar = sm->mkDummySkolem(
                   ss.str(),
                   nm->integerType(),
                   "a variable introduced due to scrubbing a miplib encoding",
@@ -535,8 +537,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
-              CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
-              Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
+              CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
+              Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";

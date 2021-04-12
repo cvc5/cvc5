@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/partial_model.h"
@@ -29,8 +30,11 @@ namespace theory {
 namespace arith {
 
 inline Node makeIntegerVariable(){
-  NodeManager* curr = NodeManager::currentNM();
-  return curr->mkSkolem("intvar", curr->integerType(), "is an integer variable created by the dio solver");
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkDummySkolem("intvar",
+                           nm->integerType(),
+                           "is an integer variable created by the dio solver");
 }
 
 DioSolver::DioSolver(context::Context* ctxt)
@@ -615,7 +619,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
 
   Debug("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 
@@ -651,7 +655,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 

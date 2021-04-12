@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__SMT_MODE_H
-#define CVC4__SMT__SMT_MODE_H
+#ifndef CVC5__SMT__SMT_MODE_H
+#define CVC5__SMT__SMT_MODE_H
 
 #include <iosfwd>
 

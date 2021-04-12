@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__IAND_H
-#define CVC4__IAND_H
+#ifndef CVC5__IAND_H
+#define CVC5__IAND_H
 
 #include <iosfwd>
 
@@ -43,4 +43,4 @@ inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
 
 }  // namespace cvc5
 
-#endif /* CVC4__IAND_H */
+#endif /* CVC5__IAND_H */

@@ -19,6 +19,7 @@
 #include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
+#include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
@@ -33,7 +34,27 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
-      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
+      d_pfpp(new ProofPostproccess(
+          d_pnm.get(),
+          smte,
+          d_pppg.get(),
+          // by default the post-processor will update all assumptions, which
+          // can lead to SCOPE subproofs of the form
+          //   A
+          //  ...
+          //   B1    B2
+          //  ...   ...
+          // ------------
+          //      C
+          // ------------- SCOPE [B1, B2]
+          // B1 ^ B2 => C
+          //
+          // where A is an available assumption from outside the scope (note
+          // that B1 was an assumption of this SCOPE subproof but since it could
+          // be inferred from A, it was updated). This shape is problematic for
+          // the veriT reconstruction, so we disable the update of scoped
+          // assumptions (which would disable the update of B1 in this case).
+          options::proofFormatMode() != options::ProofFormatMode::VERIT)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -43,6 +64,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
     if (options::proofGranularityMode()
         != options::ProofGranularityMode::REWRITE)
@@ -121,9 +143,16 @@ void PfManager::printProof(std::ostream& out,
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
+  // if we are in incremental mode, we don't want to invalidate the proof
+  // nodes in fp, since these may be reused in further check-sat calls
+  if (options::incrementalSolving()
+      && options::proofFormatMode() != options::ProofFormatMode::NONE)
+  {
+    fp = d_pnm->clone(fp);
+  }
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  
+
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter::print(out, fp.get());

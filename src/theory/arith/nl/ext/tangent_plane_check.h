@@ -12,8 +12,8 @@
  ** \brief Check for tangent_plane lemma
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
 
 #include <map>
 

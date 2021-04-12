@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DUMP_H
-#define CVC4__DUMP_H
+#ifndef CVC5__DUMP_H
+#define CVC5__DUMP_H
 
 #include "base/output.h"
 
@@ -26,7 +26,7 @@ namespace cvc5 {
 class Command;
 class NodeCommand;
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
 class CVC4dumpstream
 {
@@ -62,7 +62,7 @@ class CVC4dumpstream
   CVC4dumpstream& operator<<(const NodeCommand& nc);
 }; /* class CVC4dumpstream */
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 /** The dump class */
 class DumpC
@@ -114,4 +114,4 @@ extern DumpC DumpChannel;
 
 }  // namespace cvc5
 
-#endif /* CVC4__DUMP_H */
+#endif /* CVC5__DUMP_H */

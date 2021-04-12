@@ -14,11 +14,12 @@
 
 #include "theory/arith/nl/cad_solver.h"
 
-#include "theory/inference_id.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/inference_id.h"
 
 namespace cvc5 {
 namespace theory {
@@ -30,19 +31,18 @@ CadSolver::CadSolver(InferenceManager& im,
                      context::Context* ctx,
                      ProofNodeManager* pnm)
     :
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
       d_CAC(ctx, pnm),
 #endif
       d_foundSatisfiability(false),
       d_im(im),
       d_model(model)
 {
-  d_ranVariable =
-      NodeManager::currentNM()->mkSkolem("__z",
-                                         NodeManager::currentNM()->realType(),
-                                         "",
-                                         NodeManager::SKOLEM_EXACT_NAME);
-#ifdef CVC4_POLY_IMP
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  d_ranVariable = sm->mkDummySkolem(
+      "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
+#ifdef CVC5_POLY_IMP
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
@@ -56,7 +56,7 @@ CadSolver::~CadSolver() {}
 
 void CadSolver::initLastCall(const std::vector<Node>& assertions)
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (Trace.isOn("nl-cad"))
   {
     Trace("nl-cad") << "CadSolver::initLastCall" << std::endl;
@@ -83,7 +83,7 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
 
 void CadSolver::checkFull()
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
@@ -115,7 +115,7 @@ void CadSolver::checkFull()
 
 void CadSolver::checkPartial()
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
@@ -165,7 +165,7 @@ void CadSolver::checkPartial()
 
 bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 {
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
   if (!d_foundSatisfiability)
   {
     return false;

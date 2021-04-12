@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
-#define CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#ifndef CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#define CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
@@ -122,7 +122,9 @@ class TheorySetsPrivate {
    * is incomplete for some reason (for instance, if we combine cardinality
    * with a relation or extended function kind).
    */
-  bool d_full_check_incomplete;
+  bool d_fullCheckIncomplete;
+  /** The reason we set the above flag to true */
+  IncompleteId d_fullCheckIncompleteId;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
 
@@ -238,4 +240,4 @@ class TheorySetsPrivate {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */
+#endif /* CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H */

@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONFIGURATION_H
-#define CVC4__CONFIGURATION_H
+#ifndef CVC5__CONFIGURATION_H
+#define CVC5__CONFIGURATION_H
 
 #include <string>
 
@@ -50,7 +50,7 @@ public:
 
   static constexpr bool isStatisticsBuild()
   {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
     return true;
 #else
     return false;
@@ -144,4 +144,4 @@ public:
 
 }  // namespace cvc5
 
-#endif /* CVC4__CONFIGURATION_H */
+#endif /* CVC5__CONFIGURATION_H */

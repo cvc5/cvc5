@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UNINTERPRETED_CONSTANT_H
-#define CVC4__UNINTERPRETED_CONSTANT_H
+#ifndef CVC5__UNINTERPRETED_CONSTANT_H
+#define CVC5__UNINTERPRETED_CONSTANT_H
 
 #include <iosfwd>
 #include <memory>
@@ -62,4 +62,4 @@ struct UninterpretedConstantHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__UNINTERPRETED_CONSTANT_H */
+#endif /* CVC5__UNINTERPRETED_CONSTANT_H */

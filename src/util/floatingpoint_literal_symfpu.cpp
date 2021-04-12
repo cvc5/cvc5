@@ -15,7 +15,7 @@
 
 #include "base/check.h"
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
 #include "symfpu/core/compare.h"
@@ -34,10 +34,10 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 namespace symfpu {
 
-#define CVC4_LIT_ITE_DFN(T)                                            \
+#define CVC5_LIT_ITE_DFN(T)                                            \
   template <>                                                          \
   struct ite<::cvc5::symfpuLiteral::Cvc5Prop, T>                       \
   {                                                                    \
@@ -49,12 +49,12 @@ namespace symfpu {
     }                                                                  \
   }
 
-CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::rm);
-CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::prop);
-CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::sbv);
-CVC4_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::ubv);
+CVC5_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::rm);
+CVC5_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::prop);
+CVC5_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::sbv);
+CVC5_LIT_ITE_DFN(::cvc5::symfpuLiteral::traits::ubv);
 
-#undef CVC4_LIT_ITE_DFN
+#undef CVC5_LIT_ITE_DFN
 }  // namespace symfpu
 #endif
 
@@ -64,7 +64,7 @@ namespace cvc5 {
 
 uint32_t FloatingPointLiteral::getUnpackedExponentWidth(FloatingPointSize& size)
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return SymFPUUnpackedFloatLiteral::exponentWidth(size);
 #else
   unimplemented();
@@ -75,7 +75,7 @@ uint32_t FloatingPointLiteral::getUnpackedExponentWidth(FloatingPointSize& size)
 uint32_t FloatingPointLiteral::getUnpackedSignificandWidth(
     FloatingPointSize& size)
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return SymFPUUnpackedFloatLiteral::significandWidth(size);
 #else
   unimplemented();
@@ -87,7 +87,7 @@ FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
                                            uint32_t sig_size,
                                            const BitVector& bv)
     : d_fp_size(exp_size, sig_size)
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       ,
       d_symuf(symfpu::unpack<symfpuLiteral::traits>(
           symfpuLiteral::Cvc5FPSize(exp_size, sig_size), bv))
@@ -98,7 +98,7 @@ FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
 FloatingPointLiteral::FloatingPointLiteral(
     const FloatingPointSize& size, FloatingPointLiteral::SpecialConstKind kind)
     : d_fp_size(size)
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       ,
       d_symuf(SymFPUUnpackedFloatLiteral::makeNaN(size))
 #endif
@@ -111,7 +111,7 @@ FloatingPointLiteral::FloatingPointLiteral(
     FloatingPointLiteral::SpecialConstKind kind,
     bool sign)
     : d_fp_size(size)
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       ,
       d_symuf(kind == FloatingPointLiteral::SpecialConstKind::FPINF
                   ? SymFPUUnpackedFloatLiteral::makeInf(size, sign)
@@ -125,7 +125,7 @@ FloatingPointLiteral::FloatingPointLiteral(
 FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
                                            const BitVector& bv)
     : d_fp_size(size)
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       ,
       d_symuf(symfpu::unpack<symfpuLiteral::traits>(size, bv))
 #endif
@@ -137,7 +137,7 @@ FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
                                            const BitVector& bv,
                                            bool signedBV)
     : d_fp_size(size)
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       ,
       d_symuf(signedBV ? symfpu::convertSBVToFloat<symfpuLiteral::traits>(
                   symfpuLiteral::Cvc5FPSize(size),
@@ -153,7 +153,7 @@ FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
 
 BitVector FloatingPointLiteral::pack(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   BitVector bv(symfpu::pack<symfpuLiteral::traits>(d_fp_size, d_symuf));
 #else
   unimplemented();
@@ -164,7 +164,7 @@ BitVector FloatingPointLiteral::pack(void) const
 
 FloatingPointLiteral FloatingPointLiteral::absolute(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return FloatingPointLiteral(
       d_fp_size, symfpu::absolute<symfpuLiteral::traits>(d_fp_size, d_symuf));
 #else
@@ -175,7 +175,7 @@ FloatingPointLiteral FloatingPointLiteral::absolute(void) const
 
 FloatingPointLiteral FloatingPointLiteral::negate(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return FloatingPointLiteral(
       d_fp_size, symfpu::negate<symfpuLiteral::traits>(d_fp_size, d_symuf));
 #else
@@ -187,7 +187,7 @@ FloatingPointLiteral FloatingPointLiteral::negate(void) const
 FloatingPointLiteral FloatingPointLiteral::add(
     const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(d_fp_size,
                               symfpu::add<symfpuLiteral::traits>(
@@ -201,7 +201,7 @@ FloatingPointLiteral FloatingPointLiteral::add(
 FloatingPointLiteral FloatingPointLiteral::sub(
     const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(d_fp_size,
                               symfpu::add<symfpuLiteral::traits>(
@@ -215,7 +215,7 @@ FloatingPointLiteral FloatingPointLiteral::sub(
 FloatingPointLiteral FloatingPointLiteral::mult(
     const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(d_fp_size,
                               symfpu::multiply<symfpuLiteral::traits>(
@@ -229,7 +229,7 @@ FloatingPointLiteral FloatingPointLiteral::mult(
 FloatingPointLiteral FloatingPointLiteral::div(
     const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(d_fp_size,
                               symfpu::divide<symfpuLiteral::traits>(
@@ -245,7 +245,7 @@ FloatingPointLiteral FloatingPointLiteral::fma(
     const FloatingPointLiteral& arg1,
     const FloatingPointLiteral& arg2) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg1.d_fp_size);
   Assert(d_fp_size == arg2.d_fp_size);
   return FloatingPointLiteral(
@@ -260,7 +260,7 @@ FloatingPointLiteral FloatingPointLiteral::fma(
 
 FloatingPointLiteral FloatingPointLiteral::sqrt(const RoundingMode& rm) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return FloatingPointLiteral(
       d_fp_size, symfpu::sqrt<symfpuLiteral::traits>(d_fp_size, rm, d_symuf));
 #else
@@ -271,7 +271,7 @@ FloatingPointLiteral FloatingPointLiteral::sqrt(const RoundingMode& rm) const
 
 FloatingPointLiteral FloatingPointLiteral::rti(const RoundingMode& rm) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return FloatingPointLiteral(
       d_fp_size,
       symfpu::roundToIntegral<symfpuLiteral::traits>(d_fp_size, rm, d_symuf));
@@ -284,7 +284,7 @@ FloatingPointLiteral FloatingPointLiteral::rti(const RoundingMode& rm) const
 FloatingPointLiteral FloatingPointLiteral::rem(
     const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(d_fp_size,
                               symfpu::remainder<symfpuLiteral::traits>(
@@ -298,7 +298,7 @@ FloatingPointLiteral FloatingPointLiteral::rem(
 FloatingPointLiteral FloatingPointLiteral::maxTotal(
     const FloatingPointLiteral& arg, bool zeroCaseLeft) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(
       d_fp_size,
@@ -313,7 +313,7 @@ FloatingPointLiteral FloatingPointLiteral::maxTotal(
 FloatingPointLiteral FloatingPointLiteral::minTotal(
     const FloatingPointLiteral& arg, bool zeroCaseLeft) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return FloatingPointLiteral(
       d_fp_size,
@@ -327,7 +327,7 @@ FloatingPointLiteral FloatingPointLiteral::minTotal(
 
 bool FloatingPointLiteral::operator==(const FloatingPointLiteral& fp) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return ((d_fp_size == fp.d_fp_size)
           && symfpu::smtlibEqual<symfpuLiteral::traits>(
               d_fp_size, d_symuf, fp.d_symuf));
@@ -339,7 +339,7 @@ bool FloatingPointLiteral::operator==(const FloatingPointLiteral& fp) const
 
 bool FloatingPointLiteral::operator<=(const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return symfpu::lessThanOrEqual<symfpuLiteral::traits>(
       d_fp_size, d_symuf, arg.d_symuf);
@@ -351,7 +351,7 @@ bool FloatingPointLiteral::operator<=(const FloatingPointLiteral& arg) const
 
 bool FloatingPointLiteral::operator<(const FloatingPointLiteral& arg) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Assert(d_fp_size == arg.d_fp_size);
   return symfpu::lessThan<symfpuLiteral::traits>(
       d_fp_size, d_symuf, arg.d_symuf);
@@ -363,7 +363,7 @@ bool FloatingPointLiteral::operator<(const FloatingPointLiteral& arg) const
 
 BitVector FloatingPointLiteral::getExponent() const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return d_symuf.exponent;
 #else
   unimplemented();
@@ -374,7 +374,7 @@ BitVector FloatingPointLiteral::getExponent() const
 
 BitVector FloatingPointLiteral::getSignificand() const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return d_symuf.significand;
 #else
   unimplemented();
@@ -385,7 +385,7 @@ BitVector FloatingPointLiteral::getSignificand() const
 
 bool FloatingPointLiteral::getSign() const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return d_symuf.sign;
 #else
   unimplemented();
@@ -396,7 +396,7 @@ bool FloatingPointLiteral::getSign() const
 
 bool FloatingPointLiteral::isNormal(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isNormal<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -406,7 +406,7 @@ bool FloatingPointLiteral::isNormal(void) const
 
 bool FloatingPointLiteral::isSubnormal(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isSubnormal<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -416,7 +416,7 @@ bool FloatingPointLiteral::isSubnormal(void) const
 
 bool FloatingPointLiteral::isZero(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isZero<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -426,7 +426,7 @@ bool FloatingPointLiteral::isZero(void) const
 
 bool FloatingPointLiteral::isInfinite(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isInfinite<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -436,7 +436,7 @@ bool FloatingPointLiteral::isInfinite(void) const
 
 bool FloatingPointLiteral::isNaN(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isNaN<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -446,7 +446,7 @@ bool FloatingPointLiteral::isNaN(void) const
 
 bool FloatingPointLiteral::isNegative(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isNegative<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -456,7 +456,7 @@ bool FloatingPointLiteral::isNegative(void) const
 
 bool FloatingPointLiteral::isPositive(void) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::isPositive<symfpuLiteral::traits>(d_fp_size, d_symuf);
 #else
   unimplemented();
@@ -467,7 +467,7 @@ bool FloatingPointLiteral::isPositive(void) const
 FloatingPointLiteral FloatingPointLiteral::convert(
     const FloatingPointSize& target, const RoundingMode& rm) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return FloatingPointLiteral(
       target,
       symfpu::convertFloatToFloat<symfpuLiteral::traits>(
@@ -482,7 +482,7 @@ BitVector FloatingPointLiteral::convertToSBVTotal(BitVectorSize width,
                                                   const RoundingMode& rm,
                                                   BitVector undefinedCase) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::convertFloatToSBV<symfpuLiteral::traits>(
       d_fp_size, rm, d_symuf, width, undefinedCase);
 #else
@@ -495,7 +495,7 @@ BitVector FloatingPointLiteral::convertToUBVTotal(BitVectorSize width,
                                                   const RoundingMode& rm,
                                                   BitVector undefinedCase) const
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return symfpu::convertFloatToUBV<symfpuLiteral::traits>(
       d_fp_size, rm, d_symuf, width, undefinedCase);
 #else
@@ -504,7 +504,7 @@ BitVector FloatingPointLiteral::convertToUBVTotal(BitVectorSize width,
 #endif
 }
 
-#ifndef CVC4_USE_SYMFPU
+#ifndef CVC5_USE_SYMFPU
 void FloatingPointLiteral::unimplemented(void)
 {
   Unimplemented() << "no concrete implementation of FloatingPointLiteral";

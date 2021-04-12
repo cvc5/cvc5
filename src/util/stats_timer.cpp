@@ -33,7 +33,7 @@ void safe_print(int fd, const timer_stat_detail::duration& t)
 
 void TimerStat::start()
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     PrettyCheckArgument(!d_running, *this, "timer already running");
     d_start = timer_stat_detail::clock::now();
@@ -43,7 +43,7 @@ void TimerStat::start()
 
 void TimerStat::stop()
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     AlwaysAssert(d_running) << "timer not running";
     d_data += timer_stat_detail::clock::now() - d_start;
@@ -56,7 +56,7 @@ bool TimerStat::running() const { return d_running; }
 timer_stat_detail::duration TimerStat::get() const
 {
   auto data = d_data;
-  if (CVC4_USE_STATISTICS && d_running)
+  if (CVC5_USE_STATISTICS && d_running)
   {
     data += timer_stat_detail::clock::now() - d_start;
   }
@@ -66,7 +66,7 @@ timer_stat_detail::duration TimerStat::get() const
 SExpr TimerStat::getValue() const
 {
   auto data = d_data;
-  if (CVC4_USE_STATISTICS && d_running)
+  if (CVC5_USE_STATISTICS && d_running)
   {
     data += timer_stat_detail::clock::now() - d_start;
   }

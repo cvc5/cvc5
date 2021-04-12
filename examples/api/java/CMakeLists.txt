@@ -28,7 +28,7 @@ set(EXAMPLES_API_JAVA
 
 foreach(example ${EXAMPLES_API_JAVA})
   add_jar(${example} ${example}.java
-          INCLUDE_JARS "${CVC4_JAR}"
+          INCLUDE_JARS "${CVC5_JAR}"
           OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/api/java")
 
   set(EXAMPLE_TEST_NAME api/java/${example})
@@ -37,8 +37,8 @@ foreach(example ${EXAMPLES_API_JAVA})
     NAME ${EXAMPLE_TEST_NAME}
     COMMAND
       ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
-        -Djava.library.path=${CVC4_JNI_PATH}
+        -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
+        -Djava.library.path=${CVC5_JNI_PATH}
         ${example}
   )
   set_tests_properties(${EXAMPLE_TEST_NAME} PROPERTIES SKIP_RETURN_CODE 77)

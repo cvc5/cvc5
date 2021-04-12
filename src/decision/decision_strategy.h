@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__DECISION_STRATEGY_H
-#define CVC4__DECISION__DECISION_STRATEGY_H
+#ifndef CVC5__DECISION__DECISION_STRATEGY_H
+#define CVC5__DECISION__DECISION_STRATEGY_H
 
 #include <vector>
 
@@ -71,4 +71,4 @@ public:
 }  // namespace decision
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__DECISION_STRATEGY_H */
+#endif /* CVC5__DECISION__DECISION_STRATEGY_H */

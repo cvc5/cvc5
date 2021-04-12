@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_BUILDER_H
-#define CVC4__PARSER__PARSER_BUILDER_H
+#ifndef CVC5__PARSER__PARSER_BUILDER_H
+#define CVC5__PARSER__PARSER_BUILDER_H
 
 #include <string>
 
@@ -191,4 +191,4 @@ class CVC4_EXPORT ParserBuilder
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_BUILDER_H */
+#endif /* CVC5__PARSER__PARSER_BUILDER_H */

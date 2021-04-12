@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATS_BASE_H
-#define CVC4__UTIL__STATS_BASE_H
+#ifndef CVC5__UTIL__STATS_BASE_H
+#define CVC5__UTIL__STATS_BASE_H
 
 #include <iomanip>
 #include <sstream>
@@ -28,10 +28,10 @@
 #include "util/sexpr.h"
 #include "util/stats_utils.h"
 
-#ifdef CVC4_STATISTICS_ON
-#define CVC4_USE_STATISTICS true
+#ifdef CVC5_STATISTICS_ON
+#define CVC5_USE_STATISTICS true
 #else
-#define CVC4_USE_STATISTICS false
+#define CVC5_USE_STATISTICS false
 #endif
 
 namespace cvc5 {
@@ -103,7 +103,7 @@ class BackedStat : public Stat
   /** Set the underlying data value to the given value. */
   void set(const T& t)
   {
-    if (CVC4_USE_STATISTICS)
+    if (CVC5_USE_STATISTICS)
     {
       d_data = t;
     }
@@ -164,7 +164,7 @@ class ReferenceStat : public Stat
   /** Set this reference statistic to refer to the given data cell. */
   void set(const T& t)
   {
-    if (CVC4_USE_STATISTICS)
+    if (CVC5_USE_STATISTICS)
     {
       d_data = &t;
     }

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_UTILITIES_H
-#define CVC4__THEORY__ARITH__ARITH_UTILITIES_H
+#ifndef CVC5__THEORY__ARITH__ARITH_UTILITIES_H
+#define CVC5__THEORY__ARITH__ARITH_UTILITIES_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -47,20 +47,6 @@ inline Node mkRationalNode(const Rational& q){
 
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
-}
-
-inline Node mkIntSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->integerType());
-}
-
-inline Node mkRealSkolem(const std::string& name){
-  return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->realType());
-}
-
-inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
-  NodeManager* currNM = NodeManager::currentNM();
-  TypeNode functionType = currNM->mkFunctionType(dom, range);
-  return currNM->mkSkolem(name, functionType);
 }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
@@ -348,4 +334,4 @@ Node negateProofLiteral(TNode n);
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_UTILITIES_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_UTILITIES_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__PROOF_POST_PROCESSOR_H
-#define CVC4__PROP__PROOF_POST_PROCESSOR_H
+#ifndef CVC5__PROP__PROOF_POST_PROCESSOR_H
+#define CVC5__PROP__PROOF_POST_PROCESSOR_H
 
 #include <map>
 #include <unordered_set>
@@ -54,6 +54,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * cancelled, i.e., continueUpdate is set to false.
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application.
    *

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
-#define CVC4__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
+#ifndef CVC5__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
+#define CVC5__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -53,4 +53,4 @@ class TheoryRewriteEq : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H */
+#endif /* CVC5__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H */

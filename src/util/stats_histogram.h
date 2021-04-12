@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATS_HISTOGRAM_H
-#define CVC4__UTIL__STATS_HISTOGRAM_H
+#ifndef CVC5__UTIL__STATS_HISTOGRAM_H
+#define CVC5__UTIL__STATS_HISTOGRAM_H
 
 #include <map>
 #include <vector>
@@ -97,7 +97,7 @@ class IntegralHistogramStat : public Stat
 
   IntegralHistogramStat& operator<<(Integral val)
   {
-    if (CVC4_USE_STATISTICS)
+    if (CVC5_USE_STATISTICS)
     {
       int64_t v = static_cast<int64_t>(val);
       if (d_hist.empty())

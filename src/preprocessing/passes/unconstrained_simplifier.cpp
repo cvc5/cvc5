@@ -19,6 +19,7 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
@@ -126,7 +127,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  Node n = NodeManager::currentNM()->mkSkolem(
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(
       "unconstrained",
       t,
       "a new var introduced because of unconstrained variable "
@@ -278,7 +280,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             checkParent = true;
             break;
           }
-          CVC4_FALLTHROUGH;
+          CVC5_FALLTHROUGH;
         case kind::BITVECTOR_COMP:
         case kind::LT:
         case kind::LEQ:
@@ -452,7 +454,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           {
             break;
           }
-          CVC4_FALLTHROUGH;
+          CVC5_FALLTHROUGH;
         case kind::XOR:
         case kind::BITVECTOR_XOR:
         case kind::BITVECTOR_XNOR:

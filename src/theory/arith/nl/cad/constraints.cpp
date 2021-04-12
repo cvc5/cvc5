@@ -16,7 +16,7 @@
 
 #include "theory/arith/nl/cad/constraints.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <algorithm>
 

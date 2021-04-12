@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
 #include <cln/input.h>
 #include <cln/integer.h>
@@ -75,10 +75,10 @@ class CVC4_EXPORT Integer
   Integer(signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Integer(int64_t z) : d_value(static_cast<long>(z)) {}
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
   ~Integer() {}
@@ -387,4 +387,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n);
 
 }  // namespace cvc5
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */

@@ -17,10 +17,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
-#define CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
+#define CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 

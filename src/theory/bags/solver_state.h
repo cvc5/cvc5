@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H
-#define CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H
+#ifndef CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H
+#define CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H
 
 #include <map>
 
@@ -92,4 +92,4 @@ class SolverState : public TheoryState
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H */
+#endif /* CVC5__THEORY__BAGS__THEORY_SOLVER_STATE_H */

@@ -12,9 +12,9 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
-  api/checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5.h
+  api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
@@ -644,6 +644,8 @@ libcvc4_add_sources(
   theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/incomplete_id.cpp
+  theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
   theory/inference_manager_buffered.cpp
@@ -798,6 +800,8 @@ libcvc4_add_sources(
   theory/quantifiers/skolemize.h
   theory/quantifiers/solution_filter.cpp
   theory/quantifiers/solution_filter.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_tuple_enumerator.cpp
   theory/quantifiers/term_tuple_enumerator.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
@@ -1130,7 +1134,7 @@ install(TARGETS cvc4
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc4
   PRIVATE
     -D__BUILDING_CVC4LIB

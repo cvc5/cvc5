@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_EQ_NOTIFY_H
-#define CVC4__THEORY__THEORY_EQ_NOTIFY_H
+#ifndef CVC5__THEORY__THEORY_EQ_NOTIFY_H
+#define CVC5__THEORY__THEORY_EQ_NOTIFY_H
 
 #include "expr/node.h"
 #include "theory/theory_inference_manager.h"

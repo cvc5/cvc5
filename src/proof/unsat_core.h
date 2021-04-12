@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UNSAT_CORE_H
-#define CVC4__UNSAT_CORE_H
+#ifndef CVC5__UNSAT_CORE_H
+#define CVC5__UNSAT_CORE_H
 
 #include <iosfwd>
 #include <vector>
@@ -70,4 +70,4 @@ std::ostream& operator<<(std::ostream& out, const UnsatCore& core);
 
 }  // namespace cvc5
 
-#endif /* CVC4__UNSAT_CORE_H */
+#endif /* CVC5__UNSAT_CORE_H */
