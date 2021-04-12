@@ -27,7 +27,7 @@
  * their bounds.
  * As elimination from the queue is more efficient to be done lazily,
  * we do not maintain that the queue of variables needs to be only basic
- *( variables or only variables that satisfy their bounds.
+ * variables or only variables that satisfy their bounds.
  *
  * The simplex procedure roughly follows Alberto's thesis. (citation?)
  * There is one round of selecting using a heuristic pivoting rule.
