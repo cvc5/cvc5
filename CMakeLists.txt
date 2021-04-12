@@ -320,7 +320,7 @@ else()
   find_package(PythonInterp 3 REQUIRED)
 endif()
 
-find_package(GMP 6.2 REQUIRED)
+find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
