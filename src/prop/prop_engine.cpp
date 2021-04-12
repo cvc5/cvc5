@@ -171,27 +171,35 @@ theory::TrustNode PropEngine::removeItes(
   return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
 
-void PropEngine::notifyPreprocessedAssertions(
-    const std::vector<Node>& assertions)
-{
-  // notify the theory proxy of preprocessed assertions
-  d_theoryProxy->notifyPreprocessedAssertions(assertions);
-}
-
-void PropEngine::assertFormula(TNode node) {
-  Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  // NOTE: we do not notify the theory proxy here, since we've already
-  // notified the theory proxy during notifyPreprocessedAssertions
-  assertInternal(node, false, false, true);
-}
-
-void PropEngine::assertSkolemDefinition(TNode node, TNode skolem)
+void PropEngine::assertInputFormulas(
+    const std::vector<Node>& assertions,
+    std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_theoryProxy->notifyAssertion(node, skolem);
-  assertInternal(node, false, false, true);
+  // notify the theory engine of preprocessed assertions
+  d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  // Now, notify the theory proxy of the assertions and skolem definitions.
+  // Notice we do this before asserting the formulas to the CNF stream below,
+  // since (preregistration) lemmas may occur during calls to assertInternal.
+  // These lemmas we want to be notified about after the theory proxy has
+  // been notified about all input assertions.
+  std::unordered_map<size_t, Node>::iterator it;
+  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
+  {
+    // is the assertion a skolem definition?
+    it = skolemMap.find(i);
+    Node skolem;
+    if (it != skolemMap.end())
+    {
+      skolem = it->second;
+    }
+    d_theoryProxy->notifyAssertion(assertions[i], skolem);
+  }
+  for (const Node& node : assertions)
+  {
+    Debug("prop") << "assertFormula(" << node << ")" << std::endl;
+    assertInternal(node, false, false, true);
+  }
 }
 
 void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
