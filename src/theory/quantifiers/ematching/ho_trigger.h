@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H
-#define CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
+#define CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
 
 #include <map>
 #include <unordered_set>
@@ -277,4 +277,4 @@ class HigherOrderTrigger : public Trigger
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H */

@@ -12,14 +12,14 @@
  ** \brief Implements a ICP-based solver for nonlinear arithmetic.
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
-#define CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
+#define CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
 
 #include "cvc4_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 #include "expr/node.h"
 #include "theory/arith/bound_inference.h"
@@ -37,7 +37,7 @@ class InferenceManager;
 namespace nl {
 namespace icp {
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 /**
  * This class implements an ICP-based solver. As it is intended to be used in
@@ -137,7 +137,7 @@ class ICPSolver
   void check();
 };
 
-#else /* CVC4_POLY_IMP */
+#else /* CVC5_POLY_IMP */
 
 class ICPSolver
 {
@@ -147,7 +147,7 @@ class ICPSolver
   void check();
 };
 
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 }  // namespace icp
 }  // namespace nl

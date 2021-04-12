@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include <unordered_set>
 
@@ -469,4 +469,4 @@ class TermDbSygus {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_H */

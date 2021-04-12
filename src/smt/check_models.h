@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__CHECK_MODELS_H
-#define CVC4__SMT__CHECK_MODELS_H
+#ifndef CVC5__SMT__CHECK_MODELS_H
+#define CVC5__SMT__CHECK_MODELS_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"

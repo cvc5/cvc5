@@ -263,7 +263,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
 
-  #ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
 #endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
@@ -284,7 +284,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
     /* lhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
     {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       for (size_t k = 0; k < pcol; ++k)
       {
         Assert(lhs[j][k] == 0);
@@ -577,7 +577,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     return BVGauss::Result::INVALID;
   }
   size_t nrows = vars.begin()->second.size();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& p : vars)
   {
     Assert(p.second.size() == nrows);
@@ -597,7 +597,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& row : lhs)
   {
     Assert(row.size() == nvars);

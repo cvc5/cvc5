@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__ENV_H
-#define CVC4__SMT__ENV_H
+#ifndef CVC5__SMT__ENV_H
+#define CVC5__SMT__ENV_H
 
 #include <memory>
 
@@ -184,4 +184,4 @@ class Env
 
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__ENV_H */
+#endif /* CVC5__SMT__ENV_H */

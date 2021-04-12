@@ -23,8 +23,8 @@
 // circular dependency
 #include "expr/metakind.h"
 
-#ifndef CVC4__EXPR__NODE_VALUE_H
-#define CVC4__EXPR__NODE_VALUE_H
+#ifndef CVC5__EXPR__NODE_VALUE_H
+#define CVC5__EXPR__NODE_VALUE_H
 
 #include <iterator>
 #include <string>
@@ -518,7 +518,7 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
 
 }  // namespace expr
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -542,8 +542,8 @@ static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* 
   nv->printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__NODE_VALUE_H */
+#endif /* CVC5__EXPR__NODE_VALUE_H */

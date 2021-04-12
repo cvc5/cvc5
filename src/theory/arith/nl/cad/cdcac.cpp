@@ -17,7 +17,7 @@
 
 #include "theory/arith/nl/cad/cdcac.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
 #include "theory/arith/nl/cad/projections.h"

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BV_INVERTER_UTILS_H
-#define CVC4__BV_INVERTER_UTILS_H
+#ifndef CVC5__BV_INVERTER_UTILS_H
+#define CVC5__BV_INVERTER_UTILS_H
 
 #include "expr/node.h"
 

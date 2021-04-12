@@ -16,7 +16,7 @@
 
 #include "theory/arith/nl/cad/projections.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "base/check.h"
 

@@ -92,7 +92,7 @@ g_getopt_long_start = 256
 
 ### Source code templates
 
-TPL_HOLDER_MACRO_NAME = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
+TPL_HOLDER_MACRO_NAME = 'CVC5_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
 TPL_RUN_HANDLER = \
 """template <> options::{name}__option_t::type runHandlerAndPredicates(

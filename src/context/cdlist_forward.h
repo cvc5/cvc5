@@ -29,8 +29,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONTEXT__CDLIST_FORWARD_H
-#define CVC4__CONTEXT__CDLIST_FORWARD_H
+#ifndef CVC5__CONTEXT__CDLIST_FORWARD_H
+#define CVC5__CONTEXT__CDLIST_FORWARD_H
 
 #include <memory>
 
@@ -42,7 +42,7 @@ namespace context {
 template <class T>
 class DefaultCleanUp {
 public:
-  inline void operator()(T* t CVC4_UNUSED) const{}
+ inline void operator()(T* t CVC5_UNUSED) const {}
 };
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
@@ -53,4 +53,4 @@ class CDList;
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDLIST_FORWARD_H */
+#endif /* CVC5__CONTEXT__CDLIST_FORWARD_H */

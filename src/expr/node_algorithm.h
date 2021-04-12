@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__NODE_ALGORITHM_H
-#define CVC4__EXPR__NODE_ALGORITHM_H
+#ifndef CVC5__EXPR__NODE_ALGORITHM_H
+#define CVC5__EXPR__NODE_ALGORITHM_H
 
 #include <unordered_map>
 #include <vector>

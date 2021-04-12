@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__WITNESS_FORM_H
-#define CVC4__SMT__WITNESS_FORM_H
+#ifndef CVC5__SMT__WITNESS_FORM_H
+#define CVC5__SMT__WITNESS_FORM_H
 
 #include <unordered_set>
 

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REWRITES_H
-#define CVC4__THEORY__STRINGS__REWRITES_H
+#ifndef CVC5__THEORY__STRINGS__REWRITES_H
+#define CVC5__THEORY__STRINGS__REWRITES_H
 
 #include <iosfwd>
 
@@ -241,4 +241,4 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__REWRITES_H */
+#endif /* CVC5__THEORY__STRINGS__REWRITES_H */

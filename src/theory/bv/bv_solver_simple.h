@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
-#define CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_SIMPLE_H
+#define CVC5__THEORY__BV__BV_SOLVER_SIMPLE_H
 
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"

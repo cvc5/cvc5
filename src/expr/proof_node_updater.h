@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_UPDATER_H
-#define CVC4__EXPR__PROOF_NODE_UPDATER_H
+#ifndef CVC5__EXPR__PROOF_NODE_UPDATER_H
+#define CVC5__EXPR__PROOF_NODE_UPDATER_H
 
 #include <map>
 #include <memory>

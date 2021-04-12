@@ -14,8 +14,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSE_OP_H
-#define CVC4__PARSER__PARSE_OP_H
+#ifndef CVC5__PARSER__PARSE_OP_H
+#define CVC5__PARSER__PARSE_OP_H
 
 #include <string>
 
@@ -81,4 +81,4 @@ std::ostream& operator<<(std::ostream& os, const ParseOp& p);
 
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSE_OP_H */
+#endif /* CVC5__PARSER__PARSE_OP_H */

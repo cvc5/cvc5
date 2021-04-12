@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_H
-#define CVC4__OPTIONS__OPTIONS_H
+#ifndef CVC5__OPTIONS__OPTIONS_H
+#define CVC5__OPTIONS__OPTIONS_H
 
 #include <fstream>
 #include <ostream>
@@ -307,4 +307,4 @@ public:
 
 }  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__OPTIONS_H */
+#endif /* CVC5__OPTIONS__OPTIONS_H */

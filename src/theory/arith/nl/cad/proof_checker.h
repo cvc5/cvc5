@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
-#define CVC4__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
+#define CVC5__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
@@ -55,4 +55,4 @@ class CADProofRuleChecker : public ProofRuleChecker
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__STRINGS__PROOF_CHECKER_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__INTERPOLATION_SOLVER_H
-#define CVC4__SMT__INTERPOLATION_SOLVER_H
+#ifndef CVC5__SMT__INTERPOLATION_SOLVER_H
+#define CVC5__SMT__INTERPOLATION_SOLVER_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -83,4 +83,4 @@ class InterpolationSolver
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__INTERPOLATION_SOLVER_H */
+#endif /* CVC5__SMT__INTERPOLATION_SOLVER_H */

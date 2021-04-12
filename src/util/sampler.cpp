@@ -76,27 +76,27 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
 
       // +/- inf
       // sign = x, exp = 11...11, sig = 00...00
-      case 1: sign = one; CVC4_FALLTHROUGH;
+      case 1: sign = one; CVC5_FALLTHROUGH;
       case 2: exp = BitVector::mkOnes(e); break;
 
       // +/- zero
       // sign = x, exp = 00...00, sig = 00...00
-      case 3: sign = one; CVC4_FALLTHROUGH;
+      case 3: sign = one; CVC5_FALLTHROUGH;
       case 4: break;
 
       // +/- max subnormal
       // sign = x, exp = 00...00, sig = 11...11
-      case 5: sign = one; CVC4_FALLTHROUGH;
+      case 5: sign = one; CVC5_FALLTHROUGH;
       case 6: sig = BitVector::mkOnes(s - 1); break;
 
       // +/- min subnormal
       // sign = x, exp = 00...00, sig = 00...01
-      case 7: sign = one; CVC4_FALLTHROUGH;
+      case 7: sign = one; CVC5_FALLTHROUGH;
       case 8: sig = BitVector(s - 1, static_cast<unsigned int>(1)); break;
 
       // +/- max normal
       // sign = x, exp = 11...10, sig = 11...11
-      case 9: sign = one; CVC4_FALLTHROUGH;
+      case 9: sign = one; CVC5_FALLTHROUGH;
       case 10:
         exp = BitVector::mkOnes(e) - BitVector(e, static_cast<unsigned int>(1));
         sig = BitVector::mkOnes(s - 1);
@@ -104,7 +104,7 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
 
       // +/- min normal
       // sign = x, exp = 00...01, sig = 00...00
-      case 11: sign = one; CVC4_FALLTHROUGH;
+      case 11: sign = one; CVC5_FALLTHROUGH;
       case 12: exp = BitVector(e, static_cast<unsigned int>(1)); break;
 
       default: Unreachable();

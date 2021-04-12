@@ -83,23 +83,23 @@ if(TARGET CVC4::cvc4jar)
   include(UseJava)
 
   ## disabled until bindings for the new API are in place (issue #2284)
-  # get_target_property(CVC4_JAR CVC4::cvc4jar JAR_FILE)
+  # get_target_property(CVC5_JAR CVC4::cvc4jar JAR_FILE)
   #
-  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
+  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
   #
   # add_test(
   #   NAME java/SimpleVC
   #   COMMAND
   #     ${Java_JAVA_EXECUTABLE}
-  #       -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
-  #       -Djava.library.path=${CVC4_JNI_PATH}
+  #       -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
+  #       -Djava.library.path=${CVC5_JNI_PATH}
   #       SimpleVC
   # )
   # TODO(project wishue #83): enable java examples
   # add_subdirectory(api/java)
 endif()
 
-if(CVC4_BINDINGS_PYTHON)
+if(CVC5_BINDINGS_PYTHON)
   # If legacy Python API has been built
   add_subdirectory(api/python)
 endif()

@@ -12,8 +12,8 @@
  ** \brief Function definition processor for finite model finding
  **/
 
-#ifndef CVC4__PREPROCESSING__PASSES__FUN_DEF_FMF_H
-#define CVC4__PREPROCESSING__PASSES__FUN_DEF_FMF_H
+#ifndef CVC5__PREPROCESSING__PASSES__FUN_DEF_FMF_H
+#define CVC5__PREPROCESSING__PASSES__FUN_DEF_FMF_H
 
 #include <map>
 #include <vector>
@@ -102,4 +102,4 @@ class FunDefFmf : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */
+#endif /* CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */

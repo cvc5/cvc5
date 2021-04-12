@@ -12,8 +12,8 @@
  ** \brief Common header for API unit test.
  **/
 
-#ifndef CVC4__TEST__UNIT__TEST_API_H
-#define CVC4__TEST__UNIT__TEST_API_H
+#ifndef CVC5__TEST__UNIT__TEST_API_H
+#define CVC5__TEST__UNIT__TEST_API_H
 
 #include "api/cpp/cvc5.h"
 #include "gtest/gtest.h"

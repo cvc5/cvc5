@@ -12,12 +12,12 @@
  ** \brief
  **/
 
-#ifndef CVC4__THEORY__ARITH__ICP__INTERVAL_H
-#define CVC4__THEORY__ARITH__ICP__INTERVAL_H
+#ifndef CVC5__THEORY__ARITH__ICP__INTERVAL_H
+#define CVC5__THEORY__ARITH__ICP__INTERVAL_H
 
 #include "cvc4_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
 
 #include "expr/node.h"

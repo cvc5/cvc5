@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_H
-#define CVC4__PARSER__PARSER_H
+#ifndef CVC5__PARSER__PARSER_H
+#define CVC5__PARSER__PARSER_H
 
 #include <list>
 #include <set>
@@ -776,4 +776,4 @@ public:
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_STATE_H */
+#endif /* CVC5__PARSER__PARSER_STATE_H */

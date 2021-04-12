@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
-#define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"

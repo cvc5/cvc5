@@ -16,10 +16,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__KISSAT_H
-#define CVC4__PROP__KISSAT_H
+#ifndef CVC5__PROP__KISSAT_H
+#define CVC5__PROP__KISSAT_H
 
-#ifdef CVC4_USE_KISSAT
+#ifdef CVC5_USE_KISSAT
 
 #include "prop/sat_solver.h"
 #include "util/stats_timer.h"
@@ -99,5 +99,5 @@ class KissatSolver : public SatSolver
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC4_USE_KISSAT
-#endif  // CVC4__PROP__KISSAT_H
+#endif  // CVC5_USE_KISSAT
+#endif  // CVC5__PROP__KISSAT_H

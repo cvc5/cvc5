@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
-#define CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H
+#define CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/quant_module.h"
@@ -73,4 +73,4 @@ private:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H */
