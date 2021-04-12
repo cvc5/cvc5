@@ -24,6 +24,11 @@
 
 namespace cvc5 {
 
+/**
+ * A justify stack, which tracks the progress in justifying a formula. It
+ * maintains a stack of justification infos in a SAT-context dependent
+ * manner.
+ */
 class JustifyStack
 {
  public:
@@ -56,7 +61,13 @@ class JustifyStack
   context::Context* d_context;
   /** The current assertion we are trying to satisfy */
   context::CDO<TNode> d_current;
-  /** Stack of justify info, valid up to index d_stackSizeValid-1 */
+  /**
+   * Stack of justify info, valid up to index d_stackSizeValid-1. Notice the
+   * size of this list may be larger than the current size we are using in
+   * cases where we considered an assertion requiring a larger stack size
+   * than the current one. This is because we do not erase elements from
+   * CDList in a context-dependent manner.
+   */
   context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
   /** Current number of entries in the stack that are valid */
   context::CDO<size_t> d_stackSizeValid;

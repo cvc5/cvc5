@@ -26,11 +26,17 @@ class JustifyStatistics
  public:
   JustifyStatistics();
   ~JustifyStatistics();
+  /** Number of times we considered an assertion not leading to a decision */
   IntStat d_numStatusNoDecision;
+  /** Number of times we considered an assertion that led to a decision */
   IntStat d_numStatusDecision;
+  /** Number of times we considered an assertion that led to backtracking */
   IntStat d_numStatusBacktrack;
+  /** Maximum stack size we considered */
   IntStat d_maxStackSize;
+  /** Maximum assertion size we considered */
   IntStat d_maxAssertionsSize;
+  /** Maximum skolem definition size we considered */
   IntStat d_maxSkolemDefsSize;
 };
 
