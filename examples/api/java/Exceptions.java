@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file Exceptions.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Catching CVC4 exceptions via the Java API.
- **
- ** A simple demonstration of catching CVC4 execptions via the Java API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Catching CVC4 exceptions via the Java API.
+ *
+ * A simple demonstration of catching CVC4 execptions via the Java API.
+ */
 
 import edu.stanford.CVC4.*;
 

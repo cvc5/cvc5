@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_to_bool.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Yoni Zohar, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- **
- ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Yoni Zohar, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Preprocessing pass that lifts bit-vectors of size 1 to booleans.
+ */
 
 #include "cvc4_private.h"
 

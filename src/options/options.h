@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file options.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Global (command-line, set-option, ...) parameters for SMT.
- **
- ** Global (command-line, set-option, ...) parameters for SMT.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Paul Meng
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Global (command-line, set-option, ...) parameters for SMT.
+ */
 
 #include "cvc4_public.h"
 
@@ -184,7 +183,6 @@ public:
   std::ostream* getOut();
   std::ostream* getOutConst() const; // TODO: Remove this.
   std::string getBinaryName() const;
-  unsigned getParseStep() const;
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);

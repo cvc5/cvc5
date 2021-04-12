@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file engine_output_channel.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine output channel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine output channel.
+ */
 
 #include "theory/engine_output_channel.h"
 
@@ -59,7 +60,7 @@ EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
 {
 }
 
-void EngineOutputChannel::safePoint(ResourceManager::Resource r)
+void EngineOutputChannel::safePoint(Resource r)
 {
   spendResource(r);
   if (d_engine->d_interrupted)
@@ -145,7 +146,7 @@ void EngineOutputChannel::setIncomplete(IncompleteId id)
   d_engine->setIncomplete(d_theory, id);
 }
 
-void EngineOutputChannel::spendResource(ResourceManager::Resource r)
+void EngineOutputChannel::spendResource(Resource r)
 {
   d_engine->spendResource(r);
 }

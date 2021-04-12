@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_lazy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy bit-vector solver.
+ */
 
 #include "theory/bv/bv_solver_lazy.h"
 
@@ -118,7 +118,7 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(Resource r)
 {
   d_im.spendResource(r);
 }

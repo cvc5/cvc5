@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file type_checker_util.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Templates for simple type rules
- **
- ** This file defines templates for simple type rules. If a kind has the a
- ** type rule where each argument matches exactly a specific sort, these
- ** templates can be used to define typechecks without writing dedicated classes
- ** for them.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Templates for simple type rules
+ *
+ * This file defines templates for simple type rules. If a kind has the a
+ * type rule where each argument matches exactly a specific sort, these
+ * templates can be used to define typechecks without writing dedicated classes
+ * for them.
+ */
 
 #include "cvc4_private.h"
 

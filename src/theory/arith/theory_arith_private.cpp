@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_arith_private.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/theory_arith_private.h"
 
@@ -3496,7 +3497,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   for (std::size_t i = 0; i < nPivots; ++i)
   {
     d_containing.d_out->spendResource(
-        ResourceManager::Resource::ArithPivotStep);
+        Resource::ArithPivotStep);
   }
 
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit

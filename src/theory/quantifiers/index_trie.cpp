@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file index_trie.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mikolas Janota
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a trie that store subsets of tuples of term indices
- ** that are not yielding  useful instantiations. of quantifier instantiation.
- ** This is used in the term_tuple_enumerator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   MikolasJanota
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a trie that store subsets of tuples of term indices
+ * that are not yielding  useful instantiations. of quantifier instantiation.
+ * This is used in the term_tuple_enumerator.
+ */
 #include "theory/quantifiers/index_trie.h"
 
 namespace cvc5 {
