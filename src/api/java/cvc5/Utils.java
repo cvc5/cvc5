@@ -65,7 +65,7 @@ class Utils
     for (int i = 0; i < pointers.length; i++)
     {
       pointers[i] = new long[objects[i].length];
-      for(int j = 0; j < objects[i].length; j++)
+      for (int j = 0; j < objects[i].length; j++)
       {
         pointers[i][j] = objects[i][j].getPointer();
       }
@@ -75,38 +75,40 @@ class Utils
 
   public static void validateUnsigned(int integer, String name) throws CVC5ApiException
   {
-    if(integer < 0)
+    if (integer < 0)
     {
-      throw new CVC5ApiException("Expected "+name+" '" + integer + "' to be non negative.");
+      throw new CVC5ApiException("Expected " + name + " '" + integer + "' to be non negative.");
     }
   }
 
   public static void validateUnsigned(long integer, String name) throws CVC5ApiException
   {
-    if(integer < 0)
+    if (integer < 0)
     {
-      throw new CVC5ApiException("Expected "+name+" '" + integer + "' to be non negative.");
+      throw new CVC5ApiException("Expected " + name + " '" + integer + "' to be non negative.");
     }
   }
 
-  public static void validateUnsigned(int [] integers, String name) throws CVC5ApiException
+  public static void validateUnsigned(int[] integers, String name) throws CVC5ApiException
   {
-    for(int i = 0; i < integers.length; i++)
+    for (int i = 0; i < integers.length; i++)
     {
-      if(integers[i] < 0)
+      if (integers[i] < 0)
       {
-        throw new CVC5ApiException("Expected "+name+"[" + i + "] '" + integers[i] + "' to be non negative.");
+        throw new CVC5ApiException(
+            "Expected " + name + "[" + i + "] '" + integers[i] + "' to be non negative.");
       }
     }
   }
 
-  public static void validateUnsigned(long [] integers, String name) throws CVC5ApiException
+  public static void validateUnsigned(long[] integers, String name) throws CVC5ApiException
   {
-    for(int i = 0; i < integers.length; i++)
+    for (int i = 0; i < integers.length; i++)
     {
-      if(integers[i] < 0)
+      if (integers[i] < 0)
       {
-        throw new CVC5ApiException("Expected "+name+"[" + i + "] '" + integers[i] + "' to be non negative.");
+        throw new CVC5ApiException(
+            "Expected " + name + "[" + i + "] '" + integers[i] + "' to be non negative.");
       }
     }
   }

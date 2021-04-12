@@ -16,7 +16,7 @@ public class DatatypeDecl extends AbstractPointer
   }
 
   // endregion
-/**
+  /**
    * Add datatype constructor declaration.
    * @param ctor the datatype constructor declaration to add
    */
@@ -37,21 +37,21 @@ public class DatatypeDecl extends AbstractPointer
 
   /** Is this Datatype declaration parametric? */
   public boolean isParametric()
-   {
-        return isParametric(pointer);
-      }
+  {
+    return isParametric(pointer);
+  }
 
-      private native boolean isParametric(long pointer);
+  private native boolean isParametric(long pointer);
 
   /**
    * @return true if this DatatypeDecl is a null object
    */
   public boolean isNull()
-    {
-      return isNull(pointer);
-    }
-  
-    private native boolean isNull(long pointer);
+  {
+    return isNull(pointer);
+  }
+
+  private native boolean isNull(long pointer);
 
   /**
    * @return a string representation of this datatype declaration

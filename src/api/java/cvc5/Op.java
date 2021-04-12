@@ -45,7 +45,7 @@ public class Op extends AbstractPointer
       int value = getKind(pointer);
       return Kind.fromInt(value);
     }
-    catch(CVC5ApiException e)
+    catch (CVC5ApiException e)
     {
       e.printStackTrace();
       throw new RuntimeException(e.getMessage());

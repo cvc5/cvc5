@@ -17,41 +17,41 @@ public class DatatypeConstructorDecl extends AbstractPointer
 
   // endregion
 
-   /**
-    * Add datatype selector declaration.
-    * @param name the name of the datatype selector declaration to add
-    * @param sort the range sort of the datatype selector declaration to add
-    */
-   public void addSelector(String name, Sort sort)
-   {
-     addSelector(pointer, name, sort.getPointer());
-   }
+  /**
+   * Add datatype selector declaration.
+   * @param name the name of the datatype selector declaration to add
+   * @param sort the range sort of the datatype selector declaration to add
+   */
+  public void addSelector(String name, Sort sort)
+  {
+    addSelector(pointer, name, sort.getPointer());
+  }
 
-   private native void addSelector(long pointer, String name, long sortPointer);
+  private native void addSelector(long pointer, String name, long sortPointer);
 
-   /**
-    * Add datatype selector declaration whose range type is the datatype itself.
-    * @param name the name of the datatype selector declaration to add
-    */
-   public void addSelectorSelf(String name)
-   {
-     addSelectorSelf(pointer, name);
-   }
+  /**
+   * Add datatype selector declaration whose range type is the datatype itself.
+   * @param name the name of the datatype selector declaration to add
+   */
+  public void addSelectorSelf(String name)
+  {
+    addSelectorSelf(pointer, name);
+  }
 
-   private native void addSelectorSelf(long pointer, String name);
+  private native void addSelectorSelf(long pointer, String name);
 
-   /**
-    * @return true if this DatatypeConstructorDecl is a null declaration.
-    */
-   public boolean isNull()
-   {
-     return isNull(pointer);
-   }
+  /**
+   * @return true if this DatatypeConstructorDecl is a null declaration.
+   */
+  public boolean isNull()
+  {
+    return isNull(pointer);
+  }
 
-   private native boolean isNull(long pointer);
+  private native boolean isNull(long pointer);
 
-   /**
-    * @return a string representation of this datatype constructor declaration
-    */
+  /**
+   * @return a string representation of this datatype constructor declaration
+   */
   protected native String toString(long pointer);
 }

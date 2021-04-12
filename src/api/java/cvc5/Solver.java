@@ -1,7 +1,7 @@
 package cvc5;
 
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
 public class Solver implements IPointer
 {
