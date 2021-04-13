@@ -66,11 +66,8 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
 
 void QuantifierMacros::clearMaps()
 {
-  d_macro_basis.clear();
-  d_macro_defs.clear();
-  d_macro_defs_new.clear();
-  d_macro_def_contains.clear();
-  d_simplify_cache.clear();
+  d_macroDefs.clear();
+  d_macroDefs_new.clear();
   d_quant_macros.clear();
   d_ground_macros = false;
 }
@@ -100,13 +97,13 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
         i--;
       }
     }
-    Trace("macros") << "...finished process, #new def = " << d_macro_defs_new.size() << std::endl;
-    if( doRewrite && !d_macro_defs_new.empty() ){
+    Trace("macros") << "...finished process, #new def = " << d_macroDefs_new.size() << std::endl;
+    if( doRewrite && !d_macroDefs_new.empty() ){
       bool retVal = false;
       Trace("macros") << "Do simplifications..." << std::endl;
       //now, rewrite based on macro definitions
-      for( unsigned i=0; i<assertions.size(); i++ ){
-        Node curr = simplify( assertions[i] );
+      for( size_t i=0, nassert = assertions.size(); i<nassert; i++ ){
+        Node curr = assertions[i].substitute(d_macroDefs_new.begin(), d_macroDefs_new.end());
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
@@ -130,15 +127,10 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
           retVal = true;
         }
       }
-      d_macro_defs_new.clear();
+      d_macroDefs_new.clear();
       if( retVal ){
         return true;
       }
-    }
-  }
-  if( Trace.isOn("macros-warn") ){
-    for( unsigned i=0; i<assertions.size(); i++ ){
-      debugMacroDefinition( assertions[i], assertions[i] );
     }
   }
   return false;
@@ -152,16 +144,11 @@ bool QuantifierMacros::processAssertion( Node n ) {
       }
     }
   }else if( n.getKind()==FORALL && d_quant_macros.find( n )==d_quant_macros.end() ){
-    std::vector< Node > args;
-    for( size_t j=0; j<n[0].getNumChildren(); j++ ){
-      args.push_back( n[0][j] );
-    }
+    std::vector< Node > args(n[0].begin(), n[0].end());
     Node nproc = n[1];
-    if( !d_macro_defs_new.empty() ){
-      nproc = simplify( nproc );
-      if( nproc!=n[1] ){
-        nproc = Rewriter::rewrite( nproc );
-      }
+    if( !d_macroDefs_new.empty() ){
+      nproc = nproc.substitute(d_macroDefs_new.begin(), d_macroDefs_new.end());
+      nproc = Rewriter::rewrite( nproc );
     }
     //look at the body of the quantifier for macro definition
     if( process( nproc, true, args, n ) ){
@@ -177,7 +164,7 @@ bool QuantifierMacros::containsBadOp( Node n, Node op, std::vector< Node >& opc,
     visited[n] = true;
     if( n.getKind()==APPLY_UF ){
       Node nop = n.getOperator();
-      if( nop==op || d_macro_defs.find( nop )!=d_macro_defs.end()  ){
+      if( nop==op || d_macroDefs.find( nop )!=d_macroDefs.end()  ){
         return true;
       }
       if( std::find( opc.begin(), opc.end(), nop )==opc.end() ){
@@ -193,10 +180,6 @@ bool QuantifierMacros::containsBadOp( Node n, Node op, std::vector< Node >& opc,
     }
   }
   return false;
-}
-
-bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
-  return pol && n.getKind()==EQUAL;
 }
 
 bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
@@ -306,48 +289,25 @@ bool QuantifierMacros::getFreeVariables( Node n, std::vector< Node >& v_quant, s
   return false;
 }
 
-bool QuantifierMacros::getSubstitution( std::vector< Node >& v_quant, std::map< Node, Node >& solved,
-                                        std::vector< Node >& vars, std::vector< Node >& subs, bool reqComplete ){
-  bool success = true;
-  for( size_t a=0; a<v_quant.size(); a++ ){
-    if( !solved[ v_quant[a] ].isNull() ){
-      vars.push_back( v_quant[a] );
-      subs.push_back( solved[ v_quant[a] ] );
-    }else{
-      if( reqComplete ){
-        success = false;
-        break;
-      }
-    }
-  }
-  return success;
-}
-
 bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Node f ){
   Trace("macros-debug") << "  process " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   if( n.getKind()==NOT ){
     return process( n[0], !pol, args, f );
-  }else if( n.getKind()==AND || n.getKind()==OR ){
-    //bool favorPol = (n.getKind()==AND)==pol;
-    //conditional?
-  }else if( n.getKind()==ITE ){
-    //can not do anything
   }else if( n.getKind()==APPLY_UF ){
     //predicate case
     if( isBoundVarApplyUf( n ) ){
       Node op = n.getOperator();
-      if( d_macro_defs.find( op )==d_macro_defs.end() ){
+      if( d_macroDefs.find( op )==d_macroDefs.end() ){
         Node n_def = nm->mkConst(pol);
         //add the macro
-        addMacroEq( n, n_def, op_contains );
+        addMacroEq( n, n_def );
         return true;
       }
     }
   }else{
     //literal case
-    if( isMacroLiteral( n, pol ) ){
+    if( pol && n.getKind()==EQUAL ){
       Trace("macros-debug") << "Check macro literal : " << n << std::endl;
       std::map< Node, bool > visited;
       std::vector< Node > candidates;
@@ -358,7 +318,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
         Node m = candidates[i];
         Node op = m.getOperator();
         Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
-        if( d_macro_defs.find( op )==d_macro_defs.end() ){
+        if( d_macroDefs.find( op )==d_macroDefs.end() ){
           std::vector< Node > fvs;
           visited.clear();
           getFreeVariables( m, args, fvs, false, visited );
@@ -382,30 +342,8 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
                     || isGroundUfTerm(f, n_def))
                 {
                   Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
-                  //now we must rewrite candidates[i] to a term of form g( x1, ..., xn ) where
-                  // x1 ... xn are distinct variables
-                  if( d_macro_basis[op].empty() ){
-                    for( size_t a=0; a<m.getNumChildren(); a++ ){
-                      std::stringstream ss;
-                      ss << "mda_" << op << "";
-                      Node v = sm->mkDummySkolem(
-                          ss.str(),
-                          m[a].getType(),
-                          "created during macro definition recognition");
-                      d_macro_basis[op].push_back( v );
-                    }
-                  }
-                  std::map< Node, Node > solved;
-                  for( size_t a=0; a<m.getNumChildren(); a++ ){
-                    solved[m[a]] = d_macro_basis[op][a];
-                  }
-                  std::vector< Node > vars;
-                  std::vector< Node > subs;
-                  if( getSubstitution( fvs, solved, vars, subs, true ) ){
-                    n_def = n_def.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-                    addMacro( op, n_def, opc );
-                    return true;
-                  }
+                  addMacroEq( n, n_def );
+                  return true;
                 }
               }
             }
@@ -417,158 +355,44 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
   return false;
 }
 
-Node QuantifierMacros::simplify( Node n ){
-  if( n.getNumChildren()==0 ){
-    return n;
-  }else{
-    std::map< Node, Node >::iterator itn = d_simplify_cache.find( n );
-    if( itn!=d_simplify_cache.end() ){
-      return itn->second;
-    }else{
-      Node ret = n;
-      Trace("macros-debug") << "  simplify " << n << std::endl;
-      std::vector< Node > children;
-      bool childChanged = false;
-      for( size_t i=0; i<n.getNumChildren(); i++ ){
-        Node nn = simplify( n[i] );
-        children.push_back( nn );
-        childChanged = childChanged || nn!=n[i];
-      }
-      bool retSet = false;
-      if( n.getKind()==APPLY_UF ){
-        Node op = n.getOperator();
-        std::map< Node, Node >::iterator it = d_macro_defs.find( op );
-        if( it!=d_macro_defs.end() && !it->second.isNull() ){
-          //only apply if children are subtypes of arguments
-          bool success = true;
-          // FIXME : this can be eliminated when we have proper typing rules
-          std::vector< Node > cond;
-          TypeNode tno = op.getType();
-          for( unsigned i=0; i<children.size(); i++ ){
-            Node etc = TypeNode::getEnsureTypeCondition( children[i], tno[i] );
-            if( etc.isNull() ){
-              // if this does fail, we are incomplete, since we are eliminating
-              // quantified formula corresponding to op,
-              //  and not ensuring it applies to n when its types are correct.
-              success = false;
-              break;
-            }else if( !etc.isConst() ){
-              cond.push_back( etc );
-            }
-            Assert(children[i].getType().isSubtypeOf(tno[i]));
-          }
-          if( success ){
-            //do substitution if necessary
-            ret = it->second;
-            std::map< Node, std::vector< Node > >::iterator itb = d_macro_basis.find( op );
-            if( itb!=d_macro_basis.end() ){
-              ret = ret.substitute( itb->second.begin(), itb->second.end(), children.begin(), children.end() );
-            }
-            if( !cond.empty() ){
-              Node cc = cond.size()==1 ? cond[0] : NodeManager::currentNM()->mkNode( kind::AND, cond );
-              ret = NodeManager::currentNM()->mkNode( kind::ITE, cc, ret, n );
-            }
-            retSet = true;
-          }
-        }
-      }
-      if( !retSet && childChanged ){
-        if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.insert( children.begin(), n.getOperator() );
-        }
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-      d_simplify_cache[n] = ret;
-      return ret;
-    }
-  }
-}
-
-void QuantifierMacros::debugMacroDefinition( Node oo, Node n ) {
-  //for debugging, ensure that all previous definitions have been eliminated
-  if( n.getKind()==APPLY_UF ){
-    Node op = n.getOperator();
-    if( d_macro_defs.find( op )!=d_macro_defs.end() ){
-      if( d_macro_defs.find( oo )!=d_macro_defs.end() ){
-        Trace("macros-warn") << "BAD DEFINITION for macro " << oo << " : " << d_macro_defs[oo] << std::endl;
-      }else{
-        Trace("macros-warn") << "BAD ASSERTION " << oo << std::endl;
-      }
-      Trace("macros-warn") << "  contains defined function " << op << "!!!" << std::endl;
-    }
-  }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    debugMacroDefinition( oo, n[i] );
-  }
-}
-
 void QuantifierMacros::finalizeDefinitions() {
-  bool doDefs = false;
-  if( Trace.isOn("macros-warn") ){
-    doDefs = true;
-  }
-  if( options::incrementalSolving() || options::produceModels() || doDefs ){
+  if( options::incrementalSolving() || options::produceModels() ){
     Trace("macros") << "Store as defined functions..." << std::endl;
     //also store as defined functions
     SmtEngine* smt = d_preprocContext->getSmt();
-    for( std::map< Node, Node >::iterator it = d_macro_defs.begin(); it != d_macro_defs.end(); ++it ){
+    for( std::map< Node, Node >::iterator it = d_macroDefs.begin(); it != d_macroDefs.end(); ++it ){
       Trace("macros-def") << "Macro definition for " << it->first << " : " << it->second << std::endl;
       Trace("macros-def") << "  basis is : ";
-      std::vector< Node > nargs;
-      std::vector<Node> args;
-      for( unsigned i=0; i<d_macro_basis[it->first].size(); i++ ){
-        Node bv = NodeManager::currentNM()->mkBoundVar( d_macro_basis[it->first][i].getType() );
-        Trace("macros-def") << d_macro_basis[it->first][i] << " ";
-        nargs.push_back( bv );
-        args.push_back(bv);
-      }
-      Trace("macros-def") << std::endl;
-      Node sbody = it->second.substitute( d_macro_basis[it->first].begin(), d_macro_basis[it->first].end(), nargs.begin(), nargs.end() );
+      std::vector<Node> args(it->second[0].begin(), it->second[0].end());
+      Node sbody = it->second[1];
       smt->defineFunction(it->first, args, sbody);
-
-      if( Trace.isOn("macros-warn") ){
-        debugMacroDefinition( it->first, sbody );
-      }
     }
     Trace("macros") << "done." << std::endl;
   }
 }
 
-void QuantifierMacros::addMacroEq(Node n, Node ndef)
+bool QuantifierMacros::addMacroEq(Node n, Node ndef)
 {
+  Assert (n.getKind()==APPLY_UF);
+  NodeManager * nm = NodeManager::currentNM();
+  Trace("macros-debug") << "Add macro eq for " << n << std::endl;
+  Trace("macros-debug") << "  def: " << ndef << std::endl;
+  std::vector<Node> vars;
+  std::vector<Node> fvars;
+  for (const Node& nc : n)
+  {
+    vars.push_back(nc);
+    Node v = nm->mkBoundVar(nc.getType());
+    fvars.push_back(v);
+  }
+  Node fdef = ndef.substitute(vars.begin(), vars.end(), fvars.begin(), fvars.end());
+  fdef = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, fvars), fdef);
+  Node op = n.getOperator();
+  Assert (op.getType().isComparableTo(fdef.getType()));
+  d_macroDefs_new[op] = fdef;
   
+  return true;
 }
-
-void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
-  Trace("macros") << "* " << n << " is a macro for " << op << ", #op contain = " << opc.size() << std::endl;
-  d_simplify_cache.clear();
-  d_macro_defs[op] = n;
-  d_macro_defs_new[op] = n;
-  //substitute into all previous
-  std::vector< Node > dep_ops;
-  dep_ops.push_back( op );
-  Trace("macros-debug") << "...substitute into " << d_macro_def_contains[op].size() << " previous definitions." << std::endl;
-  for( unsigned i=0; i<d_macro_def_contains[op].size(); i++ ){
-    Node cop = d_macro_def_contains[op][i];
-    Node def = d_macro_defs[cop];
-    def = simplify( def );
-    d_macro_defs[cop] = def;
-    if( d_macro_defs_new.find( cop )!=d_macro_defs_new.end() ){
-      d_macro_defs_new[cop] = def;
-    }
-    dep_ops.push_back( cop );
-  }
-  //store the contains op information
-  for( unsigned i=0; i<opc.size(); i++ ){
-    for( unsigned j=0; j<dep_ops.size(); j++ ){
-      Node dop = dep_ops[j];
-      if( std::find( d_macro_def_contains[opc[i]].begin(), d_macro_def_contains[opc[i]].end(), dop )==d_macro_def_contains[opc[i]].end() ){
-        d_macro_def_contains[opc[i]].push_back( dop );
-      }
-    }
-  }
-}
-
 
 }  // passes
 }  // preprocessing

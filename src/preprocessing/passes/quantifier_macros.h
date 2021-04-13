@@ -55,14 +55,7 @@ class QuantifierMacros : public PreprocessingPass
                         std::vector<Node>& vars,
                         bool retOnly,
                         std::map<Node, bool>& visited);
-  bool getSubstitution(std::vector<Node>& v_quant,
-                       std::map<Node, Node>& solved,
-                       std::vector<Node>& vars,
-                       std::vector<Node>& subs,
-                       bool reqComplete);
-  void addMacroEq(Node n, Node ndef);
-  void addMacro(Node op, Node n, std::vector<Node>& opc);
-  void debugMacroDefinition(Node oo, Node n);
+  bool addMacroEq(Node n, Node ndef);
   /**
    * This applies macro elimination to the given pipeline, which discovers
    * whether there are any quantified formulas corresponding to macros.
@@ -74,17 +67,12 @@ class QuantifierMacros : public PreprocessingPass
    * based on them.
    */
   bool simplify(AssertionPipeline* ap, bool doRewrite = false);
-  Node simplify(Node n);
   void finalizeDefinitions();
   void clearMaps();
 
-  // map from operators to macro basis terms
-  std::map<Node, std::vector<Node> > d_macro_basis;
   // map from operators to macro definition
-  std::map<Node, Node> d_macro_defs;
-  std::map<Node, Node> d_macro_defs_new;
-  // operators to macro ops that contain them
-  std::map<Node, std::vector<Node> > d_macro_def_contains;
+  std::map<Node, Node> d_macroDefs;
+  std::map<Node, Node> d_macroDefs_new;
   // simplify caches
   std::map<Node, Node> d_simplify_cache;
   std::map<Node, bool> d_quant_macros;
