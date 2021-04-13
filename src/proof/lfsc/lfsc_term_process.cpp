@@ -544,7 +544,7 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
 Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
 {
   Assert(n.hasOperator());
-  Assert (!n.isClosure());
+  Assert(!n.isClosure());
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   std::stringstream opName;
@@ -602,7 +602,9 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
   if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
-      || k == LEQ || k == LT || k == MINUS || k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS || k==INTS_MODULUS_TOTAL || k==UMINUS)
+      || k == LEQ || k == LT || k == MINUS || k == DIVISION
+      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS)
   {
     if (n[0].getType().isInteger())
     {
@@ -613,12 +615,13 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
       opName << "real.";
     }
   }
-  if (k==UMINUS)
+  if (k == UMINUS)
   {
     opName << "u";
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
-  if (k==DIVISION_TOTAL || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS_TOTAL)
+  if (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS_TOTAL)
   {
     opName << "_total";
   }

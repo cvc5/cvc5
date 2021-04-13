@@ -163,7 +163,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       {
         // FIXME
         return false;
-        if (res[0][0]!=res[1][0])
+        if (res[0][0] != res[1][0])
         {
           // TODO: cannot convert congruence with different variables currently
           return false;
@@ -176,7 +176,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
           // CONG rules for each variable
-          Node v = res[0][0][nvars-1-i];
+          Node v = res[0][0][nvars - 1 - i];
           Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
           Node vopEq = vop.eqNode(vop);
           cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
