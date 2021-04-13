@@ -403,6 +403,7 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   fdef = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, fvars), fdef);
   Node op = n.getOperator();
   Assert(op.getType().isComparableTo(fdef.getType()));
+  d_macroDefs[op] = fdef;
   d_macroDefs_new[op] = fdef;
   Trace("macros") << "(macro " << op << " " << fdef[0] << " " << fdef[1] << ")"
                   << std::endl;
