@@ -404,7 +404,8 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   Node op = n.getOperator();
   Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs_new[op] = fdef;
-  Trace("macros") << "(macro " << op << " " << fdef[0] << " " << fdef[1] << ")" << std::endl;
+  Trace("macros") << "(macro " << op << " " << fdef[0] << " " << fdef[1] << ")"
+                  << std::endl;
   return true;
 }
 
