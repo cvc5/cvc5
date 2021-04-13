@@ -70,13 +70,28 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
-  if (options::checkUnsatCores() || options::checkUnsatCoresNew()
-      || options::dumpUnsatCores() || options::unsatAssumptions())
+  if ((options::unsatCores() && options::unsatCoresNew())
+      || (options::checkUnsatCores() && options::checkUnsatCoresNew()))
   {
-    Notice() << "SmtEngine: setting unsatCores" << std::endl;
+    AlwaysAssert(false) << "Can't have both unsat cores modes, pick one.\n";
+  }
+  if (options::checkUnsatCores())
+  {
     options::unsatCores.set(true);
   }
-  if (options::checkProofs() || options::checkUnsatCoresNew()
+  if (options::checkUnsatCoresNew())
+  {
+    options::unsatCoresNew.set(true);
+  }
+  if (options::dumpUnsatCores() || options::unsatAssumptions())
+  {
+    if (!options::unsatCoresNew())
+    {
+      Notice() << "SmtEngine: setting unsatCores" << std::endl;
+      options::unsatCores.set(true);
+    }
+  }
+  if (options::checkProofs() || options::unsatCoresNew()
       || options::dumpProofs())
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
@@ -278,9 +293,16 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   // !!! must disable proofs if using the old unsat core infrastructure
   // TODO (#project 37) remove this
-  if (options::unsatCores() && !options::checkUnsatCoresNew())
+  if (options::unsatCores())
   {
     disableProofs = true;
+  }
+
+  // new unsat core specific restrictions for proofs
+  if (options::unsatCoresNew())
+  {
+    // no fine-graininess
+    options::proofGranularityMode.set(options::ProofGranularityMode::OFF);
   }
 
   if (options::arraysExp())
@@ -366,7 +388,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
-  if (options::incrementalSolving() || options::unsatCores())
+  if (options::incrementalSolving() || options::unsatCores()
+      || options::unsatCoresNew())
   {
     if (options::unconstrainedSimp())
     {
@@ -428,7 +451,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (options::unsatCores())
+  if (options::unsatCores() || options::unsatCoresNew())
   {
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
@@ -707,7 +730,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !options::incrementalSolving()
-                       && !options::unsatCores();
+                       && !options::unsatCores() && !options::unsatCoresNew();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
@@ -756,7 +779,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
-                      && !options::unsatCores();
+                      && !options::unsatCores() && !options::unsatCoresNew();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
