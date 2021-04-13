@@ -388,7 +388,12 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   {
     return false;
   }
-  Node op = n.getOperator();
+  TNode op = n.getOperator();
+  TNode fdeft = fdef;
+  for (std::pair<const Node, Node>& prev : d_macroDefs_new)
+  {
+    d_macroDefs_new[prev.first] = prev.second.substitute(op, fdeft);
+  }
   Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs[op] = fdef;
   d_macroDefs_new[op] = fdef;
