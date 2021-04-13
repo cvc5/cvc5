@@ -63,12 +63,13 @@ class QuantifierMacros : public PreprocessingPass
   void finalizeDefinitions();
   void clearMaps();
 
-  // map from operators to macro definition
+  /** All macros inferred by this class */
   std::map<Node, Node> d_macroDefs;
-  std::map<Node, Node> d_macroDefs_new;
-  // simplify caches
-  std::map<Node, Node> d_simplify_cache;
+  /** The current list of macros inferring during a call to simplify */
+  std::map<Node, Node> d_macroDefsNew;
+  /** Map from quantified formulas to whether they are macro definitions */
   std::map<Node, bool> d_quant_macros;
+  /** Whether we are currently limited to inferring ground macros */
   bool d_ground_macros;
 };
 

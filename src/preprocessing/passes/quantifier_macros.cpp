@@ -68,7 +68,7 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
 void QuantifierMacros::clearMaps()
 {
   d_macroDefs.clear();
-  d_macroDefs_new.clear();
+  d_macroDefsNew.clear();
   d_quant_macros.clear();
   d_ground_macros = false;
 }
@@ -99,16 +99,16 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap)
       }
     }
     Trace("macros") << "...finished process, #new def = "
-                    << d_macroDefs_new.size() << std::endl;
-    if (!d_macroDefs_new.empty())
+                    << d_macroDefsNew.size() << std::endl;
+    if (!d_macroDefsNew.empty())
     {
       bool retVal = false;
       Trace("macros") << "Do simplifications..." << std::endl;
       //now, rewrite based on macro definitions
       for (size_t i = 0, nassert = assertions.size(); i < nassert; i++)
       {
-        Node curr = assertions[i].substitute(d_macroDefs_new.begin(),
-                                             d_macroDefs_new.end());
+        Node curr = assertions[i].substitute(d_macroDefsNew.begin(),
+                                             d_macroDefsNew.end());
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
@@ -132,7 +132,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap)
           retVal = true;
         }
       }
-      d_macroDefs_new.clear();
+      d_macroDefsNew.clear();
       if( retVal ){
         return true;
       }
@@ -151,9 +151,9 @@ bool QuantifierMacros::processAssertion( Node n ) {
   }else if( n.getKind()==FORALL && d_quant_macros.find( n )==d_quant_macros.end() ){
     std::vector<Node> args(n[0].begin(), n[0].end());
     Node nproc = n[1];
-    if (!d_macroDefs_new.empty())
+    if (!d_macroDefsNew.empty())
     {
-      nproc = nproc.substitute(d_macroDefs_new.begin(), d_macroDefs_new.end());
+      nproc = nproc.substitute(d_macroDefsNew.begin(), d_macroDefsNew.end());
       nproc = Rewriter::rewrite(nproc);
     }
     //look at the body of the quantifier for macro definition
@@ -350,15 +350,13 @@ void QuantifierMacros::finalizeDefinitions() {
     Trace("macros-def") << "Store as defined functions..." << std::endl;
     //also store as defined functions
     SmtEngine* smt = d_preprocContext->getSmt();
-    for (std::map<Node, Node>::iterator it = d_macroDefs.begin();
-         it != d_macroDefs.end();
-         ++it)
+    for (const std::pair<const Node, Node>& m : d_macroDefs)
     {
-      Trace("macros-def") << "Macro definition for " << it->first << " : " << it->second << std::endl;
+      Trace("macros-def") << "Macro definition for " << m.first << " : " << m.second << std::endl;
       Trace("macros-def") << "  basis is : ";
-      std::vector<Node> args(it->second[0].begin(), it->second[0].end());
-      Node sbody = it->second[1];
-      smt->defineFunction(it->first, args, sbody);
+      std::vector<Node> args(m.second[0].begin(), m.second[0].end());
+      Node sbody = m.second[1];
+      smt->defineFunction(m.first, args, sbody);
     }
     Trace("macros-def") << "done." << std::endl;
   }
@@ -390,13 +388,13 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   }
   TNode op = n.getOperator();
   TNode fdeft = fdef;
-  for (std::pair<const Node, Node>& prev : d_macroDefs_new)
+  for (std::pair<const Node, Node>& prev : d_macroDefsNew)
   {
-    d_macroDefs_new[prev.first] = prev.second.substitute(op, fdeft);
+    d_macroDefsNew[prev.first] = prev.second.substitute(op, fdeft);
   }
   Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs[op] = fdef;
-  d_macroDefs_new[op] = fdef;
+  d_macroDefsNew[op] = fdef;
   Trace("macros") << "(macro " << op << " " << fdef[0] << " " << fdef[1] << ")"
                   << std::endl;
   return true;
