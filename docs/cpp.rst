@@ -53,9 +53,6 @@ Class Hierarchy
 Full API Documentation
 ----------------------
 
-Classes
-^^^^^^^
-
 .. toctree::
    :maxdepth: 2
 
@@ -64,20 +61,12 @@ Classes
    cpp/datatypeconstructordecl
    cpp/datatypedecl
    cpp/datatypeselector
+   cpp/exceptions
    cpp/grammar
+   cpp/kind
    cpp/op
    cpp/result
+   cpp/roundingmode
    cpp/solver
    cpp/sort
    cpp/term
-
-
-Helper classes
-^^^^^^^^^^^^^^
-
-.. toctree::
-  :maxdepth: 2
-
-  cpp/exceptions
-  cpp/kind
-  cpp/roundingmode

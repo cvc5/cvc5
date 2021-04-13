@@ -9,9 +9,6 @@ If any method fails with a :cpp:class:`CVC4ApiRecoverableException <cvc5::api::C
 If, however, a method fails with a :cpp:class:`CVC4ApiException <cvc5::api::CVC4ApiException>`, the associated object may be in an unsafe state and it should no longer be used.
 
 
-Class Documentation
-^^^^^^^^^^^^^^^^^^^
-
 .. doxygenclass:: cvc5::api::CVC4ApiException
     :project: cvc5
     :members:
