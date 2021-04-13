@@ -51,16 +51,6 @@ Env::Env(NodeManager* nm, Options* opts)
 
 Env::~Env() {}
 
-void Env::setOptions(Options* optr)
-{
-  if (optr != nullptr)
-  {
-    // if we provided a set of options, copy their values to the options
-    // owned by this Env.
-    d_options.copyValues(*optr);
-  }
-}
-
 void Env::setProofNodeManager(ProofNodeManager* pnm)
 {
   d_proofNodeManager = pnm;
