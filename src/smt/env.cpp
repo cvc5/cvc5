@@ -30,7 +30,7 @@ using namespace cvc5::smt;
 
 namespace cvc5 {
 
-Env::Env(NodeManager* nm)
+Env::Env(NodeManager* nm, Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
@@ -39,8 +39,11 @@ Env::Env(NodeManager* nm)
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
-      d_resourceManager(std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options))
+      d_options(),
+      d_resourceManager()
 {
+  d_options.copyValues(*opts);
+  d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
 Env::~Env() {}

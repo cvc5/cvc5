@@ -61,7 +61,7 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm);
+  Env(NodeManager* nm, Options* opts);
   /** Destruct the env.  */
   ~Env();
 
