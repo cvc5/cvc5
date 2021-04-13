@@ -13,7 +13,6 @@
  * Pool-based instantiation strategy
  */
 
-
 #include "cvc4_private.h"
 
 #ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
