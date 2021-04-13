@@ -45,10 +45,10 @@ set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 add_custom_target(docs ALL
                   DEPENDS docs-doxygen
                   COMMAND
-                  ${SPHINX_EXECUTABLE} -b html
-                  # Tell Breathe where to find the Doxygen output
-                  -Dbreathe_projects.cvc5=${DOXYGEN_OUTPUT_DIR}/xml
-                  ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
+                    ${SPHINX_EXECUTABLE} -b html
+                    # Tell Breathe where to find the Doxygen output
+                    -Dbreathe_projects.cvc5=${DOXYGEN_OUTPUT_DIR}/xml
+                    ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                   COMMENT "Generating Sphinx Api docs")
 
@@ -64,7 +64,8 @@ add_custom_target(docs-gh ALL
                   COMMAND ${CMAKE_COMMAND} -E remove
                     ${SPHINX_GH_OUTPUT_DIR}/objects.inv
                   COMMAND ${CMAKE_COMMAND} -E rename
-                  ${SPHINX_GH_OUTPUT_DIR}/_static ${SPHINX_GH_OUTPUT_DIR}/static
+                    ${SPHINX_GH_OUTPUT_DIR}/_static
+                    ${SPHINX_GH_OUTPUT_DIR}/static
                   COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f |
                     xargs sed -i'orig' 's/_static/static/'
                   COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
