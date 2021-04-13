@@ -265,6 +265,8 @@ enum class InferenceId
   QUANTIFIERS_INST_SYQI,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
+  // instantiations from pool instantiation
+  QUANTIFIERS_INST_POOL,
   //-------------------- bounded integers
   // a proxy lemma from bounded integers, used to control bounds on ground terms
   QUANTIFIERS_BINT_PROXY,
