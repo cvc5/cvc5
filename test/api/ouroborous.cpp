@@ -47,7 +47,7 @@ int main()
   {
     return runTest();
   }
-  catch (api::CVC4ApiException& e)
+  catch (api::CVC5ApiException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
