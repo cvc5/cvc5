@@ -34,7 +34,8 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Should proof pn be updated?
    *
    * @param pn the proof node that maybe should be updated
-   * @param continueUpdate indicates whether we should continue recursively updating pn
+   * @param continueUpdate indicates whether we should continue recursively
+   * updating pn
    * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -95,11 +96,11 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return True if the step could be added, or false if not.
    */
   bool addVeritStep(Node res,
-		    VeritRule rule,
-		    Node conclusion,
-		    const std::vector<Node>& children,
-		    const std::vector<Node>& args,
-		    CDProof& cdp);
+                    VeritRule rule,
+                    Node conclusion,
+                    const std::vector<Node>& children,
+                    const std::vector<Node>& args,
+                    CDProof& cdp);
   /**
    * This method adds a new step to the proof applying the veriT rule while
    * replacing the outermost or by cl, i.e. (cl F1 ... Fn). The kind of the
@@ -111,7 +112,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
-  */
+   */
   bool addVeritStepFromOr(Node res,
                           VeritRule rule,
                           const std::vector<Node>& children,
@@ -176,6 +177,7 @@ class VeritProofPostprocess
   ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;

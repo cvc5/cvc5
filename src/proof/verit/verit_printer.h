@@ -50,7 +50,8 @@ class VeritProofPrinter
   /** The current prefix which is updated whenever a subproof is encountered
    * E.g. prefix = "t19.t2." */
   std::string prefix;
-  /** A list of assumption lists, one for every level of the nested proof node */
+  /** A list of assumption lists, one for every level of the nested proof node
+   */
   std::vector<std::unordered_map<Node, int, NodeHashFunction>> assumptions;
   /** A list of step lists, one for every level of the nested proof node */
   std::vector<std::unordered_map<Node, int, NodeHashFunction>> steps;

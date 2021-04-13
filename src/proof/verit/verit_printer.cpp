@@ -48,7 +48,7 @@ void VeritProofPrinter::veritPrinter(std::ostream& out,
     assumptions[0][pfn->getArguments()[i]] = i;
   }
 
-  //Then, print the rest of the proof node
+  // Then, print the rest of the proof node
   veritPrinterInternal(out, pfn->getChildren()[0]);
 }
 
@@ -58,7 +58,8 @@ std::string VeritProofPrinter::veritPrinterInternal(
   // Store current id in case a subproof overwrites step_id
   int current_step_id = step_id;
 
-  // If the proof node is untranslated a problem might have occured during postprocessing
+  // If the proof node is untranslated a problem might have occured during
+  // postprocessing
   if (pfn->getArguments().size() < 3 || pfn->getRule() != PfRule::VERIT_RULE)
   {
     Trace("verit-printer")
@@ -244,15 +245,18 @@ std::string VeritProofPrinter::veritPrinterInternal(
     out << " :args (";
     for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
     {
-      if(vrule == VeritRule::FORALL_INST){
-        out << "(:= " << pfn->getArguments()[i][1].toString() << " " << pfn->getArguments()[i][0].toString() << ")";
+      if (vrule == VeritRule::FORALL_INST)
+      {
+        out << "(:= " << pfn->getArguments()[i][1].toString() << " "
+            << pfn->getArguments()[i][0].toString() << ")";
       }
-      else{
+      else
+      {
         out << pfn->getArguments()[i].toString();
       }
       if (i != pfn->getArguments().size() - 1)
       {
-          out << " ";
+        out << " ";
       }
     }
     out << ")";
@@ -277,7 +281,6 @@ std::string VeritProofPrinter::veritPrinterInternal(
   ++step_id;
   return prefix + current_t;
 }
-
 
 }  // namespace proof
 

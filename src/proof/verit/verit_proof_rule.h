@@ -316,13 +316,16 @@ enum class VeritRule : uint32_t
   NOT_ITE2,
   // ======== ite_intro
   // > i. (= F (and F F1 ... Fn))
-  // where F contains the ite operator. Let G1,...,Gn be the terms starting with ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if Hi is of sort Bool
+  // where F contains the ite operator. Let G1,...,Gn be the terms starting with
+  // ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if
+  // Hi is of sort Bool
   ITE_INTRO,
   // ======== duplicated_literals
   // > i. (cl F1 ... Fn)
   // ...
   // > j. (cl Fk1 ... Fkm)
-  // where m <= n and k1,...,km is a monotonic map to 1,...,n such that Fk1 ... Fkm are pairwise distinct and {F1,...,Fn} = {Fk1 ... Fkm}
+  // where m <= n and k1,...,km is a monotonic map to 1,...,n such that Fk1 ...
+  // Fkm are pairwise distinct and {F1,...,Fn} = {Fk1 ... Fkm}
   DUPLICATED_LITERALS,
   // ======== connective_def
   //  G > i. (= (xor F1 F2) (or (and (not F1) F2) (and F1 (not F2))))
@@ -332,7 +335,8 @@ enum class VeritRule : uint32_t
   //  G > i. (= (ite F1 F2 F3) (and (=> F1 F2) (=> (not F1) (not F3))))
   CONNECTIVE_DEF,
   // ======== Simplify rules
-  // The following rules are simplfy rules introduced as tautologies that can be verified by a number of simple transformations
+  // The following rules are simplfy rules introduced as tautologies that can be
+  // verified by a number of simple transformations
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
   AND_SIMPLIFY,
@@ -381,7 +385,8 @@ enum class VeritRule : uint32_t
   // > i1. F1
   // ...
   // > j. F2
-  // where set representation of F1 and F2 are the same and the number of literals in C2 is the same of that of C1.
+  // where set representation of F1 and F2 are the same and the number of
+  // literals in C2 is the same of that of C1.
   REORDER,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
@@ -389,11 +394,11 @@ enum class VeritRule : uint32_t
 };
 
 /**
-  * Converts a verit proof rule to a string.
-  *
-  * @param id The verit proof rule
-  * @return The name of the verit proof rule
-  */
+ * Converts a verit proof rule to a string.
+ *
+ * @param id The verit proof rule
+ * @return The name of the verit proof rule
+ */
 const char* veritRuleToString(VeritRule id);
 
 /**
