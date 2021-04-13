@@ -28,7 +28,7 @@ namespace api {
 /* -------------------------------------------------------------------------- */
 
 /**
- * The kind of a CVC4 term.
+ * The kind of a cvc5 term.
  *
  * Note that the underlying type of Kind must be signed (to enable range
  * checks for validity). The size of this type depends on the size of
@@ -624,7 +624,7 @@ enum CVC4_EXPORT Kind : int32_t
    * Convert Term to Real.
    * Parameters: 1
    *   -[1]: Term of sort Integer, Real
-   * This is a no-op in CVC4, as Integer is a subtype of Real.
+   * This is a no-op in cvc5, as Integer is a subtype of Real.
    */
   TO_REAL,
   /**

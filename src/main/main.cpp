@@ -38,7 +38,7 @@ using namespace cvc5::main;
 using namespace cvc5::language;
 
 /**
- * CVC4's main() routine is just an exception-safe wrapper around CVC4.
+ * cvc5's main() routine is just an exception-safe wrapper around cvc5.
  * Please don't construct anything here.  Even if the constructor is
  * inside the try { }, an exception during destruction can cause
  * problems.  That's why main() wraps runCvc4() in the first place.

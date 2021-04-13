@@ -124,7 +124,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
     d_conflictVariables.purge();
     if (verbose)
     {
-      CVC4Message() << "fcFindModel(" << instance << ") early conflict" << endl;
+      CVC5Message() << "fcFindModel(" << instance << ") early conflict" << endl;
     }
     Debug("soi::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
     Assert(d_conflictVariables.empty());
@@ -158,25 +158,25 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
       ++(d_statistics.d_soiFoundUnsat);
       if (verbose)
       {
-        CVC4Message() << "fc found unsat";
+        CVC5Message() << "fc found unsat";
       }
     }else if(d_errorSet.errorEmpty()){
       ++(d_statistics.d_soiFoundSat);
       if (verbose)
       {
-        CVC4Message() << "fc found model";
+        CVC5Message() << "fc found model";
       }
     }else{
       ++(d_statistics.d_soiMissed);
       if (verbose)
       {
-        CVC4Message() << "fc missed";
+        CVC5Message() << "fc missed";
       }
     }
   }
   if (verbose)
   {
-    CVC4Message() << "(" << instance << ") pivots " << d_pivots << endl;
+    CVC5Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
   Assert(!d_errorSet.moreSignals());
@@ -387,7 +387,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     }
     if(degenerate(w) && selected.describesPivot()){
       ArithVar leaving = selected.leaving();
-      CVC4Message() << "degenerate " << leaving << ", atBounds "
+      CVC5Message() << "degenerate " << leaving << ", atBounds "
                     << d_linEq.basicsAtBounds(selected) << ", len "
                     << d_tableau.basicRowLength(leaving) << ", bc "
                     << d_linEq.debugBasicAtBoundCount(leaving) << endl;
@@ -438,8 +438,8 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
 
   if (verbose)
   {
-    CVC4Message() << "conflict variable " << selected << endl;
-    CVC4Message() << ss.str();
+    CVC5Message() << "conflict variable " << selected << endl;
+    CVC5Message() << ss.str();
   }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
@@ -998,7 +998,7 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
 
     if (verbose)
     {
-      debugSOI(w, CVC4Message(), instance);
+      debugSOI(w, CVC5Message(), instance);
     }
     Assert(debugSOI(w, Debug("dualLike"), instance));
   }

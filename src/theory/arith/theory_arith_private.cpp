@@ -3215,7 +3215,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //               mipRes = approxSolver->solveMIP(true);
 //             }
 //             d_errorSet.reduceToSignals();
-//             //CVC4Message() << "here" << endl;
+//             //CVC5Message() << "here" << endl;
 //             if(mipRes == ApproximateSimplex::ApproxSat){
 //               mipSolution = approxSolver->extractMIP();
 //               d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
@@ -3233,7 +3233,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
 //           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus =
 //           simplex.findModel(false); }
-//           //CVC4Message() << "done" << endl;
+//           //CVC5Message() << "done" << endl;
 //         }
 //         break;
 //       case ApproximateSimplex::ApproxUnsat:
@@ -3259,13 +3259,13 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //   }else{
 
 //     if(d_qflraStatus == Result::SAT_UNKNOWN){
-//       //CVC4Message() << "got sat unknown" << endl;
+//       //CVC5Message() << "got sat unknown" << endl;
 //       vector<ArithVar> toCut = cutAllBounded();
 //       if(toCut.size() > 0){
 //         //branchVector(toCut);
 //         emmittedConflictOrSplit = true;
 //       }else{
-//         //CVC4Message() << "splitting" << endl;
+//         //CVC5Message() << "splitting" << endl;
 
 //         d_qflraStatus = simplex.findModel(noPivotLimit);
 //       }

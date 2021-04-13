@@ -46,7 +46,7 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
   res->init();
   return res;
 #else
-  Unreachable() << "CVC4 was not compiled with Cryptominisat support.";
+  Unreachable() << "cvc5 was not compiled with Cryptominisat support.";
 #endif
 }
 
@@ -58,7 +58,7 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
   res->init();
   return res;
 #else
-  Unreachable() << "CVC4 was not compiled with CaDiCaL support.";
+  Unreachable() << "cvc5 was not compiled with CaDiCaL support.";
 #endif
 }
 
@@ -70,7 +70,7 @@ SatSolver* SatSolverFactory::createKissat(StatisticsRegistry* registry,
   res->init();
   return res;
 #else
-  Unreachable() << "CVC4 was not compiled with Kissat support.";
+  Unreachable() << "cvc5 was not compiled with Kissat support.";
 #endif
 }
 

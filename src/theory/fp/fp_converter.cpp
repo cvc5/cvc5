@@ -633,7 +633,7 @@ symbolicProposition symbolicBitVector<isSigned>::operator>(
 }
 
 /*** Type conversion ***/
-// CVC4 nodes make no distinction between signed and unsigned, thus ...
+// cvc5 nodes make no distinction between signed and unsigned, thus ...
 template <bool isSigned>
 symbolicBitVector<true> symbolicBitVector<isSigned>::toSigned(void) const
 {

@@ -37,7 +37,7 @@ namespace inst {
  * InstMatchGeneratorMultiLinear at the head and a list of trailing
  * InstMatchGenerators.
  *
- * CVC4 employs techniques that ensure that the number of instantiations
+ * cvc5 employs techniques that ensure that the number of instantiations
  * is worst-case polynomial wrt the number of ground terms, where this class
  * lifts this policy to multi-triggers. In particular consider
  *

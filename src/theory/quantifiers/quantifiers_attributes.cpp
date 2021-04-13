@@ -173,7 +173,7 @@ void QuantAttributes::computeAttributes( Node q ) {
   {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
-      CVC4Message() << "Cannot define function " << f << " more than once."
+      CVC5Message() << "Cannot define function " << f << " more than once."
                     << std::endl;
       AlwaysAssert(false);
     }

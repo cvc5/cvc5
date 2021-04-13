@@ -80,8 +80,8 @@ struct ProofNodeHashFunction
  * An external proof checker is expected to formalize the ProofNode only in
  * terms of *witness* forms.
  *
- * However, the rest of CVC4 sees only the *Skolem* form of arguments and
- * conclusions in ProofNode, since this is what is used throughout CVC4.
+ * However, the rest of cvc5 sees only the *Skolem* form of arguments and
+ * conclusions in ProofNode, since this is what is used throughout cvc5.
  */
 class ProofNode
 {

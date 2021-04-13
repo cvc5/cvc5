@@ -14,7 +14,7 @@
  *
  * By default, ANTLR expects the whole input to be in a single, consecutive
  * buffer. When doing incremental solving and the input is coming from the
- * standard input, this is problematic because CVC4 might receive new input
+ * standard input, this is problematic because cvc5 might receive new input
  * based on the result of solving the existing input.
  *
  * This file overwrites the _LA and the consume functions of the input streamto

@@ -45,7 +45,7 @@ header = "options/parser_options.h"
 # is still permitted to read the input file given on the command-line if any.
 # creation/use of temp files are still permitted (but the paths aren't given by
 # the user).  Also note this is only safe for the version invoked through the
-# main driver, there are ways via the API to get the CVC4 library to open a file
+# main driver, there are ways via the API to get the cvc5 library to open a file
 # for reading or writing and thus leak information from an existing file, or
 # overwrite an existing file with malicious content.
 [[option]]

@@ -47,7 +47,7 @@ class CVC4_EXPORT Stat
 {
  public:
   /**
-   * Construct a statistic with the given name.  Debug builds of CVC4
+   * Construct a statistic with the given name.  Debug builds of cvc5
    * will throw an assertion exception if the given name contains the
    * statistic delimiter string.
    */

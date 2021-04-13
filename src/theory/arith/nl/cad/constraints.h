@@ -75,7 +75,7 @@ class Constraints
   ConstraintVector d_constraints;
 
   /**
-   * A mapping from CVC4 variables to poly variables.
+   * A mapping from cvc5 variables to poly variables.
    */
   VariableMapper d_varMapper;
 

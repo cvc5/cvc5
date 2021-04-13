@@ -131,7 +131,7 @@ void MinisatSatSolver::initialize(context::Context* context,
 // Like initialize() above, but called just before each search when in
 // incremental mode
 void MinisatSatSolver::setupOptions() {
-  // Copy options from CVC4 options structure into minisat, as appropriate
+  // Copy options from cvc5 options structure into minisat, as appropriate
 
   // Set up the verbosity
   d_minisat->verbosity = (options::verbosity() > 0) ? 1 : -1;

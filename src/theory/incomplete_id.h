@@ -24,7 +24,7 @@ namespace cvc5 {
 namespace theory {
 
 /**
- * Reasons for incompleteness in CVC4.
+ * Reasons for incompleteness in cvc5.
  */
 enum class IncompleteId
 {

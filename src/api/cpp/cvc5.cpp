@@ -22,7 +22,7 @@
  * The only special case is when we use 3rd party back-ends we have no control
  * over, and which throw (invalid_argument) exceptions anyways. In this case,
  * we do not replicate argument checks but delegate them to the back-end,
- * catch thrown exceptions, and raise a CVC4ApiException.
+ * catch thrown exceptions, and raise a CVC5ApiException.
  *
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
@@ -783,18 +783,18 @@ size_t KindHashFunction::operator()(Kind k) const { return k; }
 
 namespace {
 
-class CVC4ApiExceptionStream
+class CVC5ApiExceptionStream
 {
  public:
-  CVC4ApiExceptionStream() {}
+  CVC5ApiExceptionStream() {}
   /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
    * a destructor that throws an exception and in C++11 all destructors
    * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC4ApiExceptionStream() noexcept(false)
+  ~CVC5ApiExceptionStream() noexcept(false)
   {
     if (std::uncaught_exceptions() == 0)
     {
-      throw CVC4ApiException(d_stream.str());
+      throw CVC5ApiException(d_stream.str());
     }
   }
 
@@ -804,18 +804,18 @@ class CVC4ApiExceptionStream
   std::stringstream d_stream;
 };
 
-class CVC4ApiRecoverableExceptionStream
+class CVC5ApiRecoverableExceptionStream
 {
  public:
-  CVC4ApiRecoverableExceptionStream() {}
+  CVC5ApiRecoverableExceptionStream() {}
   /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
    * a destructor that throws an exception and in C++11 all destructors
    * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC4ApiRecoverableExceptionStream() noexcept(false)
+  ~CVC5ApiRecoverableExceptionStream() noexcept(false)
   {
     if (std::uncaught_exceptions() == 0)
     {
-      throw CVC4ApiRecoverableException(d_stream.str());
+      throw CVC5ApiRecoverableException(d_stream.str());
     }
   }
 
@@ -832,14 +832,14 @@ class CVC4ApiRecoverableExceptionStream
   }                                                                            \
   catch (const UnrecognizedOptionException& e)                                 \
   {                                                                            \
-    throw CVC4ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiRecoverableException(e.getMessage());                         \
   }                                                                            \
   catch (const cvc5::RecoverableModalException& e)                             \
   {                                                                            \
-    throw CVC4ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiRecoverableException(e.getMessage());                         \
   }                                                                            \
-  catch (const cvc5::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
-  catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
+  catch (const cvc5::Exception& e) { throw CVC5ApiException(e.getMessage()); } \
+  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
 
 }  // namespace
 
@@ -4135,7 +4135,7 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
   catch (const std::invalid_argument& e)
   {
     /* Catch to throw with a more meaningful error message. To be caught in
-     * enclosing CVC5_API_TRY_CATCH_* block to throw CVC4ApiException. */
+     * enclosing CVC5_API_TRY_CATCH_* block to throw CVC5ApiException. */
     std::stringstream message;
     message << "Cannot construct Real or Int from string argument '" << s << "'"
             << std::endl;
@@ -4260,18 +4260,18 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
     if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
         || kind == DIVISION || kind == HO_APPLY || kind == REGEXP_DIFF)
     {
-      // left-associative, but CVC4 internally only supports 2 args
+      // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);
     }
     else if (kind == IMPLIES)
     {
-      // right-associative, but CVC4 internally only supports 2 args
+      // right-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkRightAssociative(k, echildren);
     }
     else if (kind == EQUAL || kind == LT || kind == GT || kind == LEQ
              || kind == GEQ)
     {
-      // "chainable", but CVC4 internally only supports 2 args
+      // "chainable", but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkChain(k, echildren);
     }
     else if (kind::isAssociative(k))
@@ -4605,7 +4605,7 @@ Sort Solver::getRoundingModeSort(void) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return Sort(this, getNodeManager()->roundingModeType());
   ////////
@@ -4643,7 +4643,7 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
   //////// all checks before this line
@@ -5143,7 +5143,7 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
@@ -5156,7 +5156,7 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
@@ -5169,7 +5169,7 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
@@ -5182,7 +5182,7 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
@@ -5195,7 +5195,7 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
@@ -5208,7 +5208,7 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
   ////////
@@ -5263,7 +5263,7 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";

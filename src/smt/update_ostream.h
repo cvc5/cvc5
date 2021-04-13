@@ -95,8 +95,8 @@ class WarningOstreamUpdate : public OstreamUpdate {
 
 class MessageOstreamUpdate : public OstreamUpdate {
  public:
-  std::ostream& get() override { return CVC4Message.getStream(); }
-  void set(std::ostream* setTo) override { CVC4Message.setStream(setTo); }
+  std::ostream& get() override { return CVC5Message.getStream(); }
+  void set(std::ostream* setTo) override { CVC5Message.setStream(setTo); }
 };  /* class MessageOstreamUpdate */
 
 class NoticeOstreamUpdate : public OstreamUpdate {

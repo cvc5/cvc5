@@ -48,8 +48,8 @@ enum CVC4_EXPORT Language
   LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
   /** The TPTP input language */
   LANG_TPTP,
-  /** The CVC4 input language */
-  LANG_CVC4,
+  /** The cvc5 input language */
+  LANG_CVC,
   /** The SyGuS input language version 2.0 */
   LANG_SYGUS_V2,
 
@@ -72,9 +72,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
-  case LANG_CVC4:
-    out << "LANG_CVC4";
-    break;
+  case LANG_CVC: out << "LANG_CVC"; break;
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
@@ -106,8 +104,8 @@ enum CVC4_EXPORT Language
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
   /** The TPTP output language */
   LANG_TPTP = input::LANG_TPTP,
-  /** The CVC4 output language */
-  LANG_CVC4 = input::LANG_CVC4,
+  /** The cvc5 output language */
+  LANG_CVC = input::LANG_CVC,
   /** The sygus output language version 2.0 */
   LANG_SYGUS_V2 = input::LANG_SYGUS_V2,
 
@@ -130,9 +128,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
-  case LANG_CVC4:
-    out << "LANG_CVC4";
-    break;
+  case LANG_CVC: out << "LANG_CVC"; break;
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";

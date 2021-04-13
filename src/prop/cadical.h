@@ -12,7 +12,7 @@
  *
  * Wrapper for CaDiCaL SAT Solver.
  *
- * Implementation of the CaDiCaL SAT solver for CVC4 (bit-vectors).
+ * Implementation of the CaDiCaL SAT solver for cvc5 (bit-vectors).
  */
 
 #include "cvc4_private.h"

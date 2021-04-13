@@ -391,7 +391,7 @@ public:
    */
   void checkFunctionLike(api::Term fun);
 
-  /** Create a new CVC4 variable expression of the given type.
+  /** Create a new cvc5 variable expression of the given type.
    *
    * It is inserted at context level zero in the symbol table if levelZero is
    * true, or if we are using global declarations.
@@ -407,7 +407,7 @@ public:
                     bool doOverload = false);
 
   /**
-   * Create a set of new CVC4 variable expressions of the given type.
+   * Create a set of new cvc5 variable expressions of the given type.
    *
    * It is inserted at context level zero in the symbol table if levelZero is
    * true, or if we are using global declarations.
@@ -423,12 +423,12 @@ public:
                                   bool doOverload = false);
 
   /**
-   * Create a new CVC4 bound variable expression of the given type. This binds
+   * Create a new cvc5 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
   api::Term bindBoundVar(const std::string& name, const api::Sort& type);
   /**
-   * Create a new CVC4 bound variable expressions of the given names and types.
+   * Create a new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
@@ -436,11 +436,12 @@ public:
       std::vector<std::pair<std::string, api::Sort> >& sortedVarNames);
 
   /**
-   * Create a set of new CVC4 bound variable expressions of the given type.
+   * Create a set of new cvc5 bound variable expressions of the given type.
    *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
                                        const api::Sort& type);

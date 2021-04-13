@@ -11,7 +11,7 @@
  * ****************************************************************************
  *
  * An exception that is thrown when a feature is used outside
- * the logic that CVC4 is currently using (for example, a quantifier
+ * the logic that cvc5 is currently using (for example, a quantifier
  * is used while running in a quantifier-free logic).
  */
 

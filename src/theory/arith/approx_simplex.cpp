@@ -641,8 +641,8 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
 
     if (s_verbosity >= 2)
     {
-      // CVC4Message() << v  << " ";
-      // d_vars.printModel(v, CVC4Message());
+      // CVC5Message() << v  << " ";
+      // d_vars.printModel(v, CVC5Message());
     }
 
     int type;
@@ -776,8 +776,8 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
 
     if (s_verbosity >= 2)
     {
-      CVC4Message() << v << " ";
-      d_vars.printModel(v, CVC4Message());
+      CVC5Message() << v << " ";
+      d_vars.printModel(v, CVC5Message());
     }
 
     int type;
@@ -880,9 +880,9 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       if(len >= rowLengthReq){
         if (s_verbosity >= 1)
         {
-          CVC4Message() << "high row " << r << " " << len << " " << avgRowLength
+          CVC5Message() << "high row " << r << " " << len << " " << avgRowLength
                         << " " << dir << endl;
-          d_vars.printModel(r, CVC4Message());
+          d_vars.printModel(r, CVC5Message());
         }
         ret.push_back(ArithRatPair(r, Rational(dir)));
       }
@@ -903,9 +903,9 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       if(ubScore  >= .9 || lbScore >= .9){
         if (s_verbosity >= 1)
         {
-          CVC4Message() << "high col " << c << " " << bc << " " << ubScore
+          CVC5Message() << "high col " << c << " " << bc << " " << ubScore
                         << " " << lbScore << " " << dir << endl;
-          d_vars.printModel(c, CVC4Message());
+          d_vars.printModel(c, CVC5Message());
         }
         ret.push_back(ArithRatPair(c, Rational(c)));
       }
@@ -1028,14 +1028,14 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
       : glp_get_col_stat(prob, glpk_index);
     if (s_verbosity >= 2)
     {
-      CVC4Message() << "assignment " << vi << endl;
+      CVC5Message() << "assignment " << vi << endl;
     }
 
     bool useDefaultAssignment = false;
 
     switch(status){
     case GLP_BS:
-      // CVC4Message() << "basic" << endl;
+      // CVC5Message() << "basic" << endl;
       newBasis.add(vi);
       useDefaultAssignment = true;
       break;
@@ -1044,7 +1044,7 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
       if(!mip){
         if (s_verbosity >= 2)
         {
-          CVC4Message() << "non-basic lb" << endl;
+          CVC5Message() << "non-basic lb" << endl;
         }
         newValues.set(vi, d_vars.getLowerBound(vi));
       }else{// intentionally fall through otherwise
@@ -1055,7 +1055,7 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
       if(!mip){
         if (s_verbosity >= 2)
         {
-          CVC4Message() << "non-basic ub" << endl;
+          CVC5Message() << "non-basic ub" << endl;
         }
         newValues.set(vi, d_vars.getUpperBound(vi));
       }else {// intentionally fall through otherwise
@@ -1072,7 +1072,7 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
     if(useDefaultAssignment){
       if (s_verbosity >= 2)
       {
-        CVC4Message() << "non-basic other" << endl;
+        CVC5Message() << "non-basic other" << endl;
       }
 
       double newAssign;
@@ -1089,7 +1089,7 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
           && roughlyEqual(newAssign,
                           d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA)))
       {
-        // CVC4Message() << "  to lb" << endl;
+        // CVC5Message() << "  to lb" << endl;
 
         newValues.set(vi, d_vars.getLowerBound(vi));
       }
@@ -1099,20 +1099,20 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
                    d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA)))
       {
         newValues.set(vi, d_vars.getUpperBound(vi));
-        // CVC4Message() << "  to ub" << endl;
+        // CVC5Message() << "  to ub" << endl;
       }
       else
       {
         double rounded = round(newAssign);
         if (roughlyEqual(newAssign, rounded))
         {
-          // CVC4Message() << "roughly equal " << rounded << " " << newAssign <<
+          // CVC5Message() << "roughly equal " << rounded << " " << newAssign <<
           // " " << oldAssign << endl;
           newAssign = rounded;
         }
         else
         {
-          // CVC4Message() << "not roughly equal " << rounded << " " <<
+          // CVC5Message() << "not roughly equal " << rounded << " " <<
           // newAssign << " " << oldAssign << endl;
         }
 
@@ -1129,26 +1129,26 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 
         if (roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA)))
         {
-          // CVC4Message() << "  to prev value" << newAssign << " " << oldAssign
+          // CVC5Message() << "  to prev value" << newAssign << " " << oldAssign
           // << endl;
           proposal = d_vars.getAssignment(vi);
         }
 
         if (d_vars.strictlyLessThanLowerBound(vi, proposal))
         {
-          // CVC4Message() << "  round to lb " << d_vars.getLowerBound(vi) <<
+          // CVC5Message() << "  round to lb " << d_vars.getLowerBound(vi) <<
           // endl;
           proposal = d_vars.getLowerBound(vi);
         }
         else if (d_vars.strictlyGreaterThanUpperBound(vi, proposal))
         {
-          // CVC4Message() << "  round to ub " << d_vars.getUpperBound(vi) <<
+          // CVC5Message() << "  round to ub " << d_vars.getUpperBound(vi) <<
           // endl;
           proposal = d_vars.getUpperBound(vi);
         }
         else
         {
-          // CVC4Message() << "  use proposal" << proposal << " " << oldAssign
+          // CVC5Message() << "  use proposal" << proposal << " " << oldAssign
           // << endl;
         }
         newValues.set(vi, proposal);

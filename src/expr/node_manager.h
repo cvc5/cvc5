@@ -344,7 +344,7 @@ class NodeManager
    * these functions, as they may only be needed in CNF conversion,
    * where it's pointless to do a lazy isAtomic determination by
    * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 CVC4
+   * only be used once.  For more details see the 4/27/2010 cvc5
    * developer's meeting notes at:
    *
    * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
@@ -364,7 +364,7 @@ class NodeManager
    * lookup is done on the name.  If you mkVar("a", type) and then
    * mkVar("a", type) again, you have two variables.  The NodeManager
    * version of this is private to avoid internal uses of mkVar() from
-   * within CVC4.  Such uses should employ SkolemManager::mkSkolem() instead.
+   * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
    */
   Node mkVar(const std::string& name, const TypeNode& type);
   Node* mkVarPtr(const std::string& name, const TypeNode& type);
@@ -390,7 +390,7 @@ class NodeManager
   explicit NodeManager();
   ~NodeManager();
 
-  /** The node manager in the current public-facing CVC4 library context */
+  /** The node manager in the current public-facing cvc5 library context */
   static NodeManager* currentNM() { return s_current; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
@@ -1093,7 +1093,7 @@ class NodeManager
  * previous thread-global <code>NodeManager</code> when it is
  * destroyed, effectively maintaining a set of nested
  * <code>NodeManager</code> scopes.  This is especially useful on
- * public-interface calls into the CVC4 library, where CVC4's notion
+ * public-interface calls into the cvc5 library, where cvc5's notion
  * of the "current" <code>NodeManager</code> should be set to match
  * the calling context.  See, for example, the implementations of
  * public calls in the <code>SmtEngine</code> class.

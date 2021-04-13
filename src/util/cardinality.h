@@ -12,7 +12,7 @@
  *
  * Representation of cardinality.
  *
- * Simple class to represent a cardinality; used by the CVC4 type system
+ * Simple class to represent a cardinality; used by the cvc5 type system
  * give the cardinality of sorts.
  */
 

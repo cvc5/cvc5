@@ -14,9 +14,9 @@
  * libraries and driver binary, and also exported to the user.
  */
 
-#ifndef __CVC4PARSER_PUBLIC_H
-#define __CVC4PARSER_PUBLIC_H
+#ifndef CVC5PARSER_PUBLIC_H
+#define CVC5PARSER_PUBLIC_H
 
 #include "cvc4_public.h"
 
-#endif /* __CVC4PARSER_PUBLIC_H */
+#endif /* CVC5PARSER_PUBLIC_H */

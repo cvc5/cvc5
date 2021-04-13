@@ -124,7 +124,7 @@ typedef NodeTemplate<true> Node;
  * creation.  If this is returned as a TNode rather than a Node, the
  * count drops to zero, marking the expression as eligible for reclamation.)
  *
- * More guidelines on when to use TNodes is available in the CVC4
+ * More guidelines on when to use TNodes is available in the cvc5
  * Developer's Guide:
  * http://cvc4.cs.stanford.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
  */
@@ -395,7 +395,7 @@ public:
    * these functions, as they may only be needed in CNF conversion,
    * where it's pointless to do a lazy isAtomic determination by
    * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 CVC4
+   * only be used once.  For more details see the 4/27/2010 cvc5
    * developer's meeting notes at:
    *
    * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
