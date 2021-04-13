@@ -56,19 +56,6 @@ class VeritProofPrinter
   std::vector<std::unordered_map<Node, int, NodeHashFunction>> steps;
 };
 
-/**
- * This method prints a proof node that has been transformed into the veriT
- * proof format
- *
- * @param out The stream to write to
- * @param pfn The proof node to be printed
- */
-/*static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn, bool extended)
-{
-  VeritProofPrinter vpp(extended);
-  vpp.veritPrinter(out, pfn);
-}*/
-
 }  // namespace proof
 
 }  // namespace cvc5
