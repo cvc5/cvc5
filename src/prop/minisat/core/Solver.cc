@@ -225,8 +225,8 @@ Solver::Solver(cvc5::prop::TheoryProxy* proxy,
 {
   if (pnm)
   {
-    d_pfManager.reset(new SatProofManager(
-        this, proxy->getCnfStream(), userContext, pnm, options::unsatCores()));
+    d_pfManager.reset(
+        new SatProofManager(this, proxy->getCnfStream(), userContext, pnm));
   }
   else if (options::unsatCores())
   {
