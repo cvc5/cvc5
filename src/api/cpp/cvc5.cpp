@@ -4215,7 +4215,8 @@ const Stat& Statistics::get(const std::string& name)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   auto it = d_stats.find(name);
-  CVC5_API_CHECK(it != d_stats.end()) << "No stat with name \"" << name << "\" exists.";
+  CVC5_API_CHECK(it != d_stats.end())
+      << "No stat with name \"" << name << "\" exists.";
   return it->second;
   CVC5_API_TRY_CATCH_END;
 }

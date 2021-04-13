@@ -213,7 +213,6 @@ class TSatProof {
    * hasResolution(id) does not hold. */
   const ResolutionChain& getResolutionChain(ClauseId id) const;
 
-  const std::string& getName() const { return d_name; }
   const ClauseId& getEmptyClauseId() const { return d_emptyClauseId; }
   const IdSet& getSeenLearnt() const { return d_seenLearnt; }
   const IdToConflicts& getAssumptionConflicts() const
@@ -290,8 +289,6 @@ class TSatProof {
     HistogramStat<uint64_t> d_usedClauseGlue;
     Statistics(const std::string& name);
   };
-
-  std::string d_name;
 
   const ClauseId d_emptyClauseId;
   IdSet d_seenLearnt;

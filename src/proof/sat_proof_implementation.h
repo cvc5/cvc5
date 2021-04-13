@@ -182,10 +182,11 @@ void ResChain<Solver>::addRedundantLit(typename Solver::TLit lit) {
 
 /// SatProof
 template <class Solver>
-TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
-                             const std::string& name, bool checkRes)
-    : d_name(name),
-      d_emptyClauseId(ClauseIdEmpty),
+TSatProof<Solver>::TSatProof(Solver* solver,
+                             context::Context* context,
+                             const std::string& name,
+                             bool checkRes)
+    : d_emptyClauseId(ClauseIdEmpty),
       d_seenLearnt(),
       d_assumptionConflictsDebug(),
       d_solver(solver),
@@ -211,7 +212,8 @@ TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
       d_seenInputs(),
       d_seenLemmas(),
       d_satProofConstructed(false),
-      d_statistics(name) {
+      d_statistics(name)
+{
 }
 
 template <class Solver>
@@ -1008,22 +1010,22 @@ void TSatProof<Solver>::storeClauseGlue(ClauseId clause, int glue) {
 
 template <class Solver>
 TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
-    : d_numLearnedClauses(smtStatisticsRegistry().registerInt(
-        "satproof::" + prefix + "NumLearnedClauses")),
-      d_numLearnedInProof(smtStatisticsRegistry().registerInt(
-          "satproof::" + prefix + "NumLearnedInProof")),
-      d_numLemmasInProof(smtStatisticsRegistry().registerInt(
-          "satproof::" + prefix + "NumLemmasInProof")),
+    : d_numLearnedClauses(
+        smtStatisticsRegistry().registerInt(prefix + "NumLearnedClauses")),
+      d_numLearnedInProof(
+          smtStatisticsRegistry().registerInt(prefix + "NumLearnedInProof")),
+      d_numLemmasInProof(
+          smtStatisticsRegistry().registerInt(prefix + "NumLemmasInProof")),
       d_avgChainLength(smtStatisticsRegistry().registerAverage(
-          "satproof::" + prefix + "AvgResChainLength")),
+          prefix + "AvgResChainLength")),
       d_resChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "ResChainLengthsHist")),
+          prefix + "ResChainLengthsHist")),
       d_usedResChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "UsedResChainLengthsHist")),
+          prefix + "UsedResChainLengthsHist")),
       d_clauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "ClauseGlueHist")),
+          prefix + "ClauseGlueHist")),
       d_usedClauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>(
-          "satproof::" + prefix + "UsedClauseGlueHist"))
+          prefix + "UsedClauseGlueHist"))
 {
 }
 
