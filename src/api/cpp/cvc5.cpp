@@ -6282,14 +6282,14 @@ std::vector<Term> Solver::getUnsatCore(void) const
  */
 std::string Solver::getProof(void) const
 {
-  CVC4_API_TRY_CATCH_BEGIN;
+  CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceProofs])
+  CVC5_API_CHECK(d_smtEngine->getOptions()[options::produceProofs])
       << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
-  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   return d_smtEngine->getProof();
-  CVC4_API_TRY_CATCH_END;
+  CVC5_API_TRY_CATCH_END;
 }
 
 /**

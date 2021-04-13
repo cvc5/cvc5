@@ -241,7 +241,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     {
       // TODO: use rule with side condition, delete this block
       uint32_t i;
-      bool b CVC4_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
+      bool b CVC5_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
       Assert(b);
       // we start with the n-ary AND
       Node cur = children[0];
