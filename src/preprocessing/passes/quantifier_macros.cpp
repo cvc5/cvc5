@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -35,7 +36,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::theory;
@@ -211,7 +211,8 @@ bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
   TypeNode tno = n.getOperator().getType();
   std::map< Node, bool > vars;
   // allow if a vector of unique variables of the same type as UF arguments
-  for( size_t i=0, nchild = n.getNumChildren(); i<nchild; i++ ){
+  for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+  {
     if( n[i].getKind()!=BOUND_VARIABLE ){
       return false;
     }
@@ -296,36 +297,42 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
   {
     //literal case
     Trace("macros-debug") << "Check macro literal : " << n << std::endl;
-    std::map< Node, bool > visited;
-    std::vector< Node > candidates;
-    for( size_t i=0; i<n.getNumChildren(); i++ ){
-      getMacroCandidates( n[i], candidates, visited );
+    std::map<Node, bool> visited;
+    std::vector<Node> candidates;
+    for (size_t i = 0; i < n.getNumChildren(); i++)
+    {
+      getMacroCandidates(n[i], candidates, visited);
     }
-    for (const Node& m : candidates){
+    for (const Node& m : candidates)
+    {
       Node op = m.getOperator();
       Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
       if (d_macroDefs.find(op) != d_macroDefs.end())
       {
         continue;
       }
-      //get definition and condition
-      Node n_def = solveInEquality( m, n ); //definition for the macro
-      if( n_def.isNull() ){
+      // get definition and condition
+      Node n_def = solveInEquality(m, n);  // definition for the macro
+      if (n_def.isNull())
+      {
         continue;
       }
       Trace("macros-debug") << m << " is possible macro in " << f << std::endl;
-      Trace("macros-debug") << "  corresponding definition is : " << n_def << std::endl;
+      Trace("macros-debug")
+          << "  corresponding definition is : " << n_def << std::endl;
       visited.clear();
-      //cannot contain a defined operator, opc is list of functions it contains
-      std::vector< Node > opc;
-      if( !containsBadOp( n_def, op, opc, visited ) ){
-        Trace("macros-debug") << "...does not contain bad (recursive) operator." << std::endl;
-        //must be ground UF term if mode is GROUND_UF
-        if (options::macrosQuantMode()
-                != options::MacrosQuantMode::GROUND_UF
+      // cannot contain a defined operator, opc is list of functions it contains
+      std::vector<Node> opc;
+      if (!containsBadOp(n_def, op, opc, visited))
+      {
+        Trace("macros-debug")
+            << "...does not contain bad (recursive) operator." << std::endl;
+        // must be ground UF term if mode is GROUND_UF
+        if (options::macrosQuantMode() != options::MacrosQuantMode::GROUND_UF
             || isGroundUfTerm(f, n_def))
         {
-          Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
+          Trace("macros-debug")
+              << "...respects ground-uf constraint." << std::endl;
           if (addMacroEq(m, n_def))
           {
             return true;
