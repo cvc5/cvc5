@@ -2238,15 +2238,37 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
-/*!
- * A CVC4 floating point rounding mode.
+/**
+ * Rounding modes for floating point numbers.
+ *
+ * For many floating point operations, exact results would exceed the
+ * available bits for storing it. Thus, the results are rounded in a certain
+ * way to one of the representable floating point numbers.
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * These rounding modes directly follow the SMT-LIB theory for floating point
+ * numbers, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
+ * The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
+ * Standard 754.
+ * \endverbatim
  */
 enum CVC4_EXPORT RoundingMode
 {
+  /**
+   * Round to the nearest number. If both neighbours are equally near, the one
+   * with even least significant digit is chosen.
+   */
   ROUND_NEAREST_TIES_TO_EVEN,
+  /** Round towards positive infinity. */
   ROUND_TOWARD_POSITIVE,
+  /** Round towards minus infinity. */
   ROUND_TOWARD_NEGATIVE,
+  /** Round towards zero. */
   ROUND_TOWARD_ZERO,
+  /**
+   * Round to the nearest number. If both neighbours are equally near, the one
+   * with larger magnitude is chosen.
+   */
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
