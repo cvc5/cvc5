@@ -350,13 +350,6 @@ void SatProofManager::explainLit(
     Trace("sat-proof") << "SatProofManager::explainLit: no SAT reason\n" << pop;
     return;
   }
-  bool repeated = false;
-  if (Trace.isOn("sat-proof") && d_resChains.hasGenerator(litNode))
-  {
-    Trace("sat-proof")
-        << "SatProofManager::explainLit: explaining lit with a res chain\n";
-    repeated = true;
-  }
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
       << d_solver->ca.size() << "\n";
