@@ -1926,7 +1926,7 @@ void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 
 bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
-Node SmtEngine::getOption(const std::string& key) const
+std::string SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(getNodeManager());
   NodeManager* nm = d_env->getNodeManager();
@@ -1939,14 +1939,14 @@ Node SmtEngine::getOption(const std::string& key) const
         d_commandVerbosity.find(key.c_str() + 18);
     if (i != d_commandVerbosity.end())
     {
-      return nm->mkConst(Rational(i->second));
+      return i->second.toString();
     }
     i = d_commandVerbosity.find("*");
     if (i != d_commandVerbosity.end())
     {
-      return nm->mkConst(Rational(i->second));
+      return i->second.toString();
     }
-    return nm->mkConst(Rational(2));
+    return "2";
   }
 
   if (Dump.isOn("benchmark"))
@@ -1984,30 +1984,24 @@ Node SmtEngine::getOption(const std::string& key) const
                                     nm->mkConst(Rational(2)));
     }
     result.push_back(defaultVerbosity);
-    return nm->mkNode(Kind::SEXPR, result);
+    return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  // parse atom string
   std::string atom = getOptions().getOption(key);
 
-  if (atom == "true")
+  if (atom != "true" && atom != "false")
   {
-    return nm->mkConst<bool>(true);
+    try
+    {
+      Integer z(atom);
+    }
+    catch (std::invalid_argument&)
+    {
+      atom = "\"" + atom + "\"";
+    }
   }
-  else if (atom == "false")
-  {
-    return nm->mkConst<bool>(false);
-  }
-  try
-  {
-    Integer z(atom);
-    return nm->mkConst(Rational(z));
-  }
-  catch (std::invalid_argument&)
-  {
-    // Fall through to the next case
-  }
-  return nm->mkConst(String(atom));
+
+  return atom;
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }

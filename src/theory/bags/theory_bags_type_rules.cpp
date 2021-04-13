@@ -278,6 +278,17 @@ TypeNode ToSetTypeRule::computeType(NodeManager* nodeManager,
   TypeNode setType = nodeManager->mkSetType(elementType);
   return setType;
 }
+
+bool BagsProperties::isWellFounded(TypeNode type)
+{
+  return type[0].isWellFounded();
+}
+
+Node BagsProperties::mkGroundTerm(TypeNode type)
+{
+  Assert(type.isBag());
+  return NodeManager::currentNM()->mkConst(EmptyBag(type));
+}
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5
