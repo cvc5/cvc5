@@ -1,18 +1,17 @@
-/* *******************                                                        */
-/*! \file Cvc.g
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Parser for CVC presentation input language
- **
- ** Parser for CVC presentation input language.
- **/
+/* ****************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Parser for CVC presentation input language.
+ */
 
 grammar Cvc;
 
@@ -509,13 +508,15 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 }/* @parser::members */
 
 @header {
-/**
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.
- **/
+/* ****************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ */
 }/* @header */
 
 @lexer::includes {
@@ -525,7 +526,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
 #pragma GCC system_header
 
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
 /* This improves performance by ~10 percent on big inputs.
  * This option is only valid if we know the input is ASCII (or some 8-bit encoding).
  * If we know the input is UTF-16, we can use ANTLR3_INLINE_INPUT_UTF16.
@@ -533,7 +534,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
  */
 #  define ANTLR3_INLINE_INPUT_ASCII
 #  define ANTLR3_INLINE_INPUT_8BIT
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
 
 #include "parser/antlr_input.h"
 #include "parser/antlr_tracing.h"

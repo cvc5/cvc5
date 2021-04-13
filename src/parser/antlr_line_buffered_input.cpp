@@ -1,32 +1,31 @@
-/*********************                                                        */
-/*! \file antlr_line_buffered_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A custom ANTLR input stream that reads from the input stream lazily
- **
- ** WARNING: edits to this and related files should be done carefully due to the
- *interaction with ANTLR internals.
- **
- ** This overwrites the _LA and the consume functions of the ANTLR input stream
- ** to use a LineBuffer instead of accessing a buffer. The lines are kept in
- ** memory to make sure that existing tokens remain valid (tokens store pointers
- ** to the corresponding input). We do not overwrite mark(), etc.
- *because
- ** we can use the line number and the position within that line to index into
- *the
- ** line buffer and the default markers already store and restore that
- ** information. The line buffer guarantees that lines are consecutive in
- ** memory, so ANTLR3_INPUT_STREAM::getLineBuf() should work as intended and
- ** tokens themselves are consecutive in memory (we are assuming that tokens
- ** are not split across multiple lines).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A custom ANTLR input stream that reads from the input stream lazily
+ *
+ * WARNING: Edits to this and related files should be done carefully due to the
+ *          interaction with ANTLR internals.
+ *
+ * This overwrites the _LA and the consume functions of the ANTLR input stream
+ * to use a LineBuffer instead of accessing a buffer. The lines are kept in
+ * memory to make sure that existing tokens remain valid (tokens store pointers
+ * to the corresponding input). We do not overwrite mark(), etc. because
+ * we can use the line number and the position within that line to index into
+ * the line buffer and the default markers already store and restore that
+ * information. The line buffer guarantees that lines are consecutive in
+ * memory, so ANTLR3_INPUT_STREAM::getLineBuf() should work as intended and
+ * tokens themselves are consecutive in memory (we are assuming that tokens
+ * are not split across multiple lines).
+ */
 
 #include "parser/antlr_line_buffered_input.h"
 
@@ -341,25 +340,25 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
   input->SetNewLineChar = bufferedInputSetNewLineChar;
   input->setUcaseLA = bufferedInputSetUcaseLA;
 
-#ifndef CVC4_ANTLR3_OLD_INPUT_STREAM
-    // We have the data in memory now so we can deal with it according to
-    // the encoding scheme we were given by the user.
-    //
-    input->encoding = encoding;
-#endif /* ! CVC4_ANTLR3_OLD_INPUT_STREAM */
+#ifndef CVC5_ANTLR3_OLD_INPUT_STREAM
+  // We have the data in memory now so we can deal with it according to
+  // the encoding scheme we were given by the user.
+  //
+  input->encoding = encoding;
+#endif /* ! CVC5_ANTLR3_OLD_INPUT_STREAM */
 
-    // Now we need to work out the endian type and install any
-    // API functions that differ from 8Bit
-    //
-    setupInputStream(input);
+  // Now we need to work out the endian type and install any
+  // API functions that differ from 8Bit
+  //
+  setupInputStream(input);
 
-    // Now we can set up the file name
-    //
-    input->istream->streamName =
-        input->strFactory->newStr8(input->strFactory, name);
-    input->fileName = input->istream->streamName;
+  // Now we can set up the file name
+  //
+  input->istream->streamName =
+      input->strFactory->newStr8(input->strFactory, name);
+  input->fileName = input->istream->streamName;
 
-    return input;
+  return input;
 }
 
 static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
@@ -391,16 +390,16 @@ static pANTLR3_INPUT_STREAM antlr3CreateLineBufferedStream(
 // Call the common 8 bit input stream handler
 // initialization.
 //
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   antlr3AsciiSetupStream(input, ANTLR3_CHARSTREAM);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   antlr38BitSetupStream(input);
   // In some libantlr3c 3.4-beta versions, this call is not included in the
   // above.
   // This is probably an erroneously-deleted line in the libantlr3c source since
   // 3.2.
   antlr3GenericSetupStream(input);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   input->sizeBuf = 0;
   input->newlineChar = LineBuffer::NewLineChar;

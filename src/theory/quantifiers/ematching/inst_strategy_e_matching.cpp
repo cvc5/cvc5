@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inst_strategy_e_matching.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of e matching instantiation strategies
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of e matching instantiation strategies.
+ */
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 

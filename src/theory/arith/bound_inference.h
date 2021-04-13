@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file bound_inference.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Extract bounds on variables from theory atoms.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extract bounds on variables from theory atoms.
+ */
 
-#ifndef CVC4__THEORY__ARITH__BOUND_INFERENCE_H
-#define CVC4__THEORY__ARITH__BOUND_INFERENCE_H
+#ifndef CVC5__THEORY__ARITH__BOUND_INFERENCE_H
+#define CVC5__THEORY__ARITH__BOUND_INFERENCE_H
 
 #include <map>
 #include <utility>

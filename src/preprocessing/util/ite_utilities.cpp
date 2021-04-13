@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file ite_utilities.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simplifications for ITE expressions
- **
- ** This module implements preprocessing phases designed to simplify ITE
- ** expressions.  Based on:
- ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
- ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simplifications for ITE expressions.
+ *
+ * This module implements preprocessing phases designed to simplify ITE
+ * expressions.  Based on:
+ * Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
+ * Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
  *'96
- **/
+ */
 #include "preprocessing/util/ite_utilities.h"
 
 #include <utility>
@@ -167,9 +168,7 @@ void ITEUtilities::clear()
   d_containsVisitor->garbageCollect();
 }
 
-/*********************                                                        */
-/* ContainsTermITEVisitor
- */
+/** ContainsTermITEVisitor. */
 ContainsTermITEVisitor::ContainsTermITEVisitor() : d_cache() {}
 ContainsTermITEVisitor::~ContainsTermITEVisitor() {}
 bool ContainsTermITEVisitor::containsTermITE(TNode e)
@@ -240,9 +239,7 @@ bool ContainsTermITEVisitor::containsTermITE(TNode e)
 }
 void ContainsTermITEVisitor::garbageCollect() { d_cache.clear(); }
 
-/*********************                                                        */
-/* IncomingArcCounter
- */
+/** IncomingArcCounter. */
 IncomingArcCounter::IncomingArcCounter(bool skipVars, bool skipConstants)
     : d_reachCount(), d_skipVariables(skipVars), d_skipConstants(skipConstants)
 {
@@ -289,9 +286,7 @@ void IncomingArcCounter::computeReachability(
 
 void IncomingArcCounter::clear() { d_reachCount.clear(); }
 
-/*********************                                                        */
-/* ITECompressor
- */
+/** ITECompressor. */
 ITECompressor::ITECompressor(ContainsTermITEVisitor* contains)
     : d_contains(contains), d_assertions(NULL), d_incoming(true, true)
 {
@@ -1476,7 +1471,7 @@ uint32_t countReachable(TNode x, Kind k)
 
 Node ITESimplifier::simpITEAtom(TNode atom)
 {
-  static int CVC4_UNUSED instance = 0;
+  static int CVC5_UNUSED instance = 0;
   Debug("ite::atom") << "still simplifying " << (++instance) << endl;
   Node attempt = transformAtom(atom);
   Debug("ite::atom") << "  finished " << instance << endl;

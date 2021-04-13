@@ -466,176 +466,27 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "enable resource limiting per query"
 
+# --rweight is used to override the default of one particular resource weight.
+# It can be given multiple times to override multiple weights. When options are
+# parsed, the resource manager might now be created yet, and it is not clear
+# how an option handler would access it in a reasonable way. The option handler
+# thus merely puts the data in another option that holds a vector of strings.
+# This other option "resourceWeightHolder" has the sole purpose of storing
+# this data in a way so that the resource manager can access it in its
+# constructor.
 [[option]]
-  name       = "arithPivotStep"
+  smt_name   = "resourceWeight"
   category   = "expert"
-  long       = "arith-pivot-step=N"
-  type       = "unsigned"
-  default    = "1"
+  long       = "rweight=VAL=N"
+  type       = "std::string"
+  handler    = "setResourceWeight"
   read_only  = true
-  help       = "amount of resources spent for each arithmetic pivot step"
+  help       = "set a single resource weight"
 
 [[option]]
-  name       = "arithNlLemmaStep"
-  category   = "expert"
-  long       = "arith-nl-lemma-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each arithmetic nonlinear lemma step"
-
-[[option]]
-  name       = "rewriteStep"
-  category   = "expert"
-  long       = "rewrite-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each rewrite step"
-
-[[option]]
-  name       = "theoryCheckStep"
-  category   = "expert"
-  long       = "theory-check-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each theory check call"
-
-[[option]]
-  name       = "decisionStep"
-  category   = "expert"
-  long       = "decision-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of getNext decision calls in the decision engine"
-
-[[option]]
-  name       = "bitblastStep"
-  category   = "expert"
-  long       = "bitblast-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each bitblast step"
-
-[[option]]
-  name       = "bvPropagationStep"
-  category   = "expert"
-  long       = "bv-propagation-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each BV propagation step"
-
-[[option]]
-  name       = "bvEagerAssertStep"
-  category   = "expert"
-  long       = "bv-eager-assert-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each eager BV assert step"
-
-[[option]]
-  name       = "parseStep"
-  category   = "expert"
-  long       = "parse-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each command/expression parsing"
-
-[[option]]
-  name       = "lemmaStep"
-  category   = "expert"
-  long       = "lemma-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent when adding lemmas"
-
-[[option]]
-  name       = "newSkolemStep"
-  category   = "expert"
-  long       = "new-skolem-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent when adding new skolems"
-
-[[option]]
-  name       = "restartStep"
-  category   = "expert"
-  long       = "restart-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each theory restart"
-
-[[option]]
-  name       = "cnfStep"
-  category   = "expert"
-  long       = "cnf-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each call to cnf conversion"
-
-[[option]]
-  name       = "preprocessStep"
-  category   = "expert"
-  long       = "preprocess-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each preprocessing step in SmtEngine"
-
-[[option]]
-  name       = "quantifierStep"
-  category   = "expert"
-  long       = "quantifier-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for quantifier instantiations"
-
-[[option]]
-  name       = "satConflictStep"
-  category   = "expert"
-  long       = "sat-conflict-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat conflict (main sat solver)"
-
-[[option]]
-  name       = "bvSatConflictStep"
-  category   = "expert"
-  long       = "bv-sat-conflict-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat conflict (bitvectors)"
-
-[[option]]
-  name       = "bvSatPropagateStep"
-  category   = "expert"
-  long       = "bv-sat-propagate-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat propagate (bitvectors)"
-
-[[option]]
-  name       = "bvSatSimplifyStep"
-  category   = "expert"
-  long       = "bv-sat-simplify-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat simplify (bitvectors)"
+  name       = "resourceWeightHolder"
+  category   = "undocumented"
+  type       = "std::vector<std::string>"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"

@@ -1,21 +1,21 @@
-/*********************                                                        */
-/*! \file cdmaybe.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A context-dependent "maybe" template type
- **
- ** This implements a CDMaybe.
- ** This has either been set in the context or it has not.
- ** Template parameter T must have a default constructor and support
- ** assignment.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * A context-dependent "maybe" template type
+ *
+ * This implements a CDMaybe.
+ * This has either been set in the context or it has not.
+ * Template parameter T must have a default constructor and support
+ * assignment.
+ */
 
 #include "cvc4_private.h"
 

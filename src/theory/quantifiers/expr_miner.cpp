@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file expr_miner.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of expr_miner
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of expr_miner.
+ */
 
 #include "theory/quantifiers/expr_miner.h"
 
@@ -75,7 +76,14 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
                                   Node query)
 {
   Assert (!query.isNull());
-  initializeSubsolver(checker);
+  if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+  {
+    initializeSubsolver(checker, true, options::sygusExprMinerCheckTimeout());
+  }
+  else
+  {
+    initializeSubsolver(checker);
+  }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");
   checker->setOption("input-language", "smt2");

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base for theory interface.
- **
- ** Base for theory interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base for theory interface.
+ */
 
 #include "theory/theory.h"
 
@@ -405,6 +404,23 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       }
     }
   }
+  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
+           && in[0][0].getType().isBoolean())
+  {
+    TNode eq = in[0];
+    if (eq[0].isVar())
+    {
+      Node res = eq[0].eqNode(eq[1].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+    else if (eq[1].isVar())
+    {
+      Node res = eq[1].eqNode(eq[0].notNode());
+      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
+      return ppAssert(tn, outSubstitutions);
+    }
+  }
 
   return PP_ASSERT_STATUS_UNSOLVED;
 }
@@ -473,7 +489,7 @@ void Theory::check(Effort level)
   }
   Assert(d_theoryState!=nullptr);
   // standard calls for resource, stats
-  d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_out->spendResource(Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
                         << std::endl;

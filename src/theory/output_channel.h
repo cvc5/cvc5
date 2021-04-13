@@ -1,24 +1,24 @@
-/*********************                                                        */
-/*! \file output_channel.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory output channel interface
- **
- ** The theory output channel interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory output channel interface.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
-#define CVC4__THEORY__OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
+#define CVC5__THEORY__OUTPUT_CHANNEL_H
 
+#include "theory/incomplete_id.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 
@@ -90,7 +90,7 @@ class OutputChannel {
    *
    * @throws Interrupted if the theory can be safely interrupted.
    */
-  virtual void safePoint(ResourceManager::Resource r) {}
+  virtual void safePoint(Resource r) {}
 
   /**
    * Indicate a theory conflict has arisen.
@@ -150,7 +150,7 @@ class OutputChannel {
    * this context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setIncomplete() = 0;
+  virtual void setIncomplete(IncompleteId id) = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
@@ -163,7 +163,7 @@ class OutputChannel {
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(ResourceManager::Resource r) {}
+  virtual void spendResource(Resource r) {}
 
   /**
    * Handle user attribute.
@@ -201,4 +201,4 @@ class OutputChannel {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */

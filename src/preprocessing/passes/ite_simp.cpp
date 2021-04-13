@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file ite_simp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ITE simplification preprocessing pass.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ITE simplification preprocessing pass.
+ */
 
 #include "preprocessing/passes/ite_simp.h"
 
@@ -235,12 +236,12 @@ ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ITESimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t nasserts = assertionsToPreprocess->size();
   for (size_t i = 0; i < nasserts; ++i)
   {
-    d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+    d_preprocContext->spendResource(Resource::PreprocessStep);
     Node simp = simpITE(&d_iteUtilities, (*assertionsToPreprocess)[i]);
     assertionsToPreprocess->replace(i, simp);
     if (simp.isConst() && !simp.getConst<bool>())

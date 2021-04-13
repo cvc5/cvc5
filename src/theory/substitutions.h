@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file substitutions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A substitution mapping for theory simplification
- **
- ** A substitution mapping for theory simplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A substitution mapping for theory simplification.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SUBSTITUTIONS_H
-#define CVC4__THEORY__SUBSTITUTIONS_H
+#ifndef CVC5__THEORY__SUBSTITUTIONS_H
+#define CVC5__THEORY__SUBSTITUTIONS_H
 
 //#include <algorithm>
 #include <utility>
@@ -181,4 +180,4 @@ std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::itera
 
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SUBSTITUTIONS_H */
+#endif /* CVC5__THEORY__SUBSTITUTIONS_H */

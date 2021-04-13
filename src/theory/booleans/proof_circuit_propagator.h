@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file proof_circuit_propagator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proofs for the non-clausal circuit propagator.
- **
- ** Proofs for the non-clausal circuit propagator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proofs for the non-clausal circuit propagator.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
 
 #include <memory>
 

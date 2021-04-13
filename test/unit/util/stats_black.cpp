@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file stats_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Aina Niemetz, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::Stat and associated classes
- **
- ** Black box testing of cvc5::Stat and associated classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Stat and associated classes.
+ */
 
 #include <fcntl.h>
 
@@ -36,7 +35,7 @@ class TestUtilBlackStats : public TestInternal
 
 TEST_F(TestUtilBlackStats, stats)
 {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   std::string empty, bar = "bar", baz = "baz";
   ReferenceStat<std::string> refStr("stat #1", empty);
   ReferenceStat<std::string> refStr2("refStr2", bar);

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file aig_bitblaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AIG bitblaster.
- **
- ** AIG bitblaster.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AIG bitblaster.
+ */
 
 #include "theory/bv/bitblast/aig_bitblaster.h"
 
@@ -24,7 +23,7 @@
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 
-#ifdef CVC4_USE_ABC
+#ifdef CVC5_USE_ABC
 
 extern "C" {
 #include "base/abc/abc.h"
@@ -168,7 +167,7 @@ AigBitblaster::AigBitblaster()
       solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
                                                     "AigBitblaster");
       break;
-    default: CVC4_FATAL() << "Unknown SAT solver type";
+    default: CVC5_FATAL() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);
 }
@@ -497,4 +496,4 @@ AigBitblaster::Statistics::~Statistics() {
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5
-#endif // CVC4_USE_ABC
+#endif  // CVC5_USE_ABC

@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file sat_proof_implementation.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Guy Katz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Resolution proof
- **
- ** Resolution proof
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Tim King, Guy Katz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Resolution proof.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SAT__PROOF_IMPLEMENTATION_H
-#define CVC4__SAT__PROOF_IMPLEMENTATION_H
+#ifndef CVC5__SAT__PROOF_IMPLEMENTATION_H
+#define CVC5__SAT__PROOF_IMPLEMENTATION_H
 
 #include "proof/clause_id.h"
 #include "proof/sat_proof.h"
@@ -1055,4 +1054,4 @@ inline std::ostream& operator<<(std::ostream& out, cvc5::ClauseKind k)
 
 }  // namespace cvc5
 
-#endif /* CVC4__SAT__PROOF_IMPLEMENTATION_H */
+#endif /* CVC5__SAT__PROOF_IMPLEMENTATION_H */

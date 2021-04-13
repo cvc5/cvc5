@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of equality proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of equality proof checker.
+ */
 
 #include "theory/booleans/proof_checker.h"
 #include "expr/skolem_manager.h"
@@ -25,6 +26,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
+  pc->registerTrustedChecker(PfRule::MACRO_RESOLUTION_TRUST, this, 3);
   pc->registerChecker(PfRule::MACRO_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
@@ -298,6 +300,12 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                ? nm->mkConst(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
+  }
+  if (id == PfRule::MACRO_RESOLUTION_TRUST)
+  {
+    Assert(children.size() > 1);
+    Assert(args.size() == 2 * (children.size() - 1) + 1);
+    return args[0];
   }
   if (id == PfRule::MACRO_RESOLUTION)
   {

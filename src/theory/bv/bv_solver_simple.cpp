@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_simple.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Gereon Kremer, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple bit-blast solver
- **
- ** Simple bit-blast solver that sends bitblast lemmas directly to MiniSat.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Gereon Kremer, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple bit-blast solver that sends bitblast lemmas directly to MiniSat.
+ */
 
 #include "theory/bv/bv_solver_simple.h"
 

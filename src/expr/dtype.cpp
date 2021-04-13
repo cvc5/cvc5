@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file dtype.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class representing a datatype definition
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class representing a datatype definition.
+ */
 #include "expr/dtype.h"
 
 #include <sstream>
@@ -487,64 +488,44 @@ bool DType::computeCardinalityRecSingleton(
   return true;
 }
 
-bool DType::isFinite(TypeNode t) const
+CardinalityClass DType::getCardinalityClass(TypeNode t) const
 {
   Trace("datatypes-init") << "DType::isFinite " << std::endl;
   Assert(isResolved());
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
   // is this already in the cache ?
-  if (d_self.getAttribute(DTypeFiniteComputedAttr()))
+  std::map<TypeNode, CardinalityClass>::const_iterator it = d_cardClass.find(t);
+  if (it != d_cardClass.end())
   {
-    return d_self.getAttribute(DTypeFiniteAttr());
+    return it->second;
   }
+  // it is the max cardinality class of a constructor, with base case ONE
+  // if we have one constructor and FINITE otherwise.
+  CardinalityClass c = d_constructors.size() == 1 ? CardinalityClass::ONE
+                                                  : CardinalityClass::FINITE;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
-    if (!ctor->isFinite(t))
-    {
-      d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-      d_self.setAttribute(DTypeFiniteAttr(), false);
-      return false;
-    }
+    CardinalityClass cc = ctor->getCardinalityClass(t);
+    c = maxCardinalityClass(c, cc);
   }
-  d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeFiniteAttr(), true);
-  return true;
+  d_cardClass[t] = c;
+  return c;
 }
-bool DType::isFinite() const
+CardinalityClass DType::getCardinalityClass() const
 {
   Assert(isResolved() && !isParametric());
-  return isFinite(d_self);
+  return getCardinalityClass(d_self);
 }
 
-bool DType::isInterpretedFinite(TypeNode t) const
+bool DType::isFinite(TypeNode t, bool fmfEnabled) const
 {
-  Trace("datatypes-init") << "DType::isInterpretedFinite " << std::endl;
-  Assert(isResolved());
-  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
-  // is this already in the cache ?
-  if (d_self.getAttribute(DTypeUFiniteComputedAttr()))
-  {
-    return d_self.getAttribute(DTypeUFiniteAttr());
-  }
-  // start by assuming it is not
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
-  {
-    if (!ctor->isInterpretedFinite(t))
-    {
-      return false;
-    }
-  }
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), true);
-  return true;
+  return isCardinalityClassFinite(getCardinalityClass(t), fmfEnabled);
 }
-bool DType::isInterpretedFinite() const
+
+bool DType::isFinite(bool fmfEnabled) const
 {
-  Assert(isResolved() && !isParametric());
-  return isInterpretedFinite(d_self);
+  return isFinite(d_self, fmfEnabled);
 }
 
 bool DType::isWellFounded() const

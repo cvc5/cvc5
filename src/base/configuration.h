@@ -1,25 +1,23 @@
-/*********************                                                        */
-/*! \file configuration.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Francois Bobot, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface to a public class that provides compile-time information
- ** about the CVC4 library.
- **
- ** Interface to a public class that provides compile-time information
- ** about the CVC4 library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface to a public class that provides compile-time information
+ * about the CVC4 library.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__CONFIGURATION_H
-#define CVC4__CONFIGURATION_H
+#ifndef CVC5__CONFIGURATION_H
+#define CVC5__CONFIGURATION_H
 
 #include <string>
 
@@ -50,7 +48,7 @@ public:
 
   static constexpr bool isStatisticsBuild()
   {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
     return true;
 #else
     return false;
@@ -144,4 +142,4 @@ public:
 
 }  // namespace cvc5
 
-#endif /* CVC4__CONFIGURATION_H */
+#endif /* CVC5__CONFIGURATION_H */

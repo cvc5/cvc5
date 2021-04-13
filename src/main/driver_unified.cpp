@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file driver_unified.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Driver for CVC4 executable (cvc4)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Driver for CVC4 executable (cvc4).
+ */
 
 #include <stdio.h>
 #include <unistd.h>
@@ -121,9 +122,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   segvSpin = opts.getSegvSpin();
 
   // If in competition mode, set output stream option to flush immediately
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
   *(opts.getOut()) << unitbuf;
-#endif /* CVC4_COMPETITION_MODE */
+#endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
   if(filenames.size() > 1) {
@@ -260,11 +261,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                   opts);
 
       if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
         parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#else  /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
         parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
       }
 
       vector< vector<Command*> > allCommands;
@@ -416,11 +417,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                   opts);
 
       if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
         parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#else  /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
         parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
       }
 
       std::unique_ptr<Parser> parser(parserBuilder.build());
@@ -461,26 +462,26 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       returnValue = 1;
     }
 
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
     opts.flushOut();
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
     // or other on_exit/atexit stuff.
     _exit(returnValue);
-#endif /* CVC4_COMPETITION_MODE */
+#endif /* CVC5_COMPETITION_MODE */
 
     totalTime.reset();
     pExecutor->flushOutputStreams();
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
     if(opts.getEarlyExit() && opts.wasSetByUserEarlyExit()) {
       _exit(returnValue);
     }
-#else /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
     if(opts.getEarlyExit()) {
       _exit(returnValue);
     }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   }
 
   pExecutor.reset();

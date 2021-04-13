@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file bv_inverter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BV_INVERTER_H
-#define CVC4__BV_INVERTER_H
+#ifndef CVC5__BV_INVERTER_H
+#define CVC5__BV_INVERTER_H
 
 #include <map>
 #include <unordered_map>
@@ -130,4 +131,4 @@ class BvInverter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__BV_INVERTER_H */
+#endif /* CVC5__BV_INVERTER_H */

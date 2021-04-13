@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_inference_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An inference manager for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An inference manager for Theory.
+ */
 
 #include "theory/theory_inference_manager.h"
 
@@ -507,17 +508,20 @@ void TheoryInferenceManager::requirePhase(TNode n, bool pol)
   return d_out.requirePhase(n, pol);
 }
 
-void TheoryInferenceManager::spendResource(ResourceManager::Resource r)
+void TheoryInferenceManager::spendResource(Resource r)
 {
   d_out.spendResource(r);
 }
 
-void TheoryInferenceManager::safePoint(ResourceManager::Resource r)
+void TheoryInferenceManager::safePoint(Resource r)
 {
   d_out.safePoint(r);
 }
 
-void TheoryInferenceManager::setIncomplete() { d_out.setIncomplete(); }
+void TheoryInferenceManager::setIncomplete(IncompleteId id)
+{
+  d_out.setIncomplete(id);
+}
 
 }  // namespace theory
 }  // namespace cvc5

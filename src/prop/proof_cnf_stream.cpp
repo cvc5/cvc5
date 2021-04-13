@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_cnf_stream.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof-producing CNF stream
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof-producing CNF stream.
+ */
 
 #include "prop/proof_cnf_stream.h"
 
@@ -127,7 +128,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       // negate

@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file integer_cln_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multiprecision integer constant; wraps a CLN multiprecision
- ** integer.
- **
- ** A multiprecision integer constant; wraps a CLN multiprecision integer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multiprecision integer constant; wraps a CLN multiprecision integer.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
 #include <cln/input.h>
 #include <cln/integer.h>
@@ -75,10 +73,10 @@ class CVC4_EXPORT Integer
   Integer(signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Integer(int64_t z) : d_value(static_cast<long>(z)) {}
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
   ~Integer() {}
@@ -387,4 +385,4 @@ std::ostream& operator<<(std::ostream& os, const Integer& n);
 
 }  // namespace cvc5
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */
