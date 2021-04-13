@@ -2239,15 +2239,15 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Rounding modes for floating point numbers.
+ * Rounding modes for floating-point numbers.
  *
- * For many floating point operations, exact results would exceed the
+ * For many floating-point operations, exact results would exceed the
  * available bits for storing it. Thus, the results are rounded in a certain
- * way to one of the representable floating point numbers.
+ * way to one of the representable floating-point numbers.
  *
  * \verbatim embed:rst:leading-asterisk
- * These rounding modes directly follow the SMT-LIB theory for floating point
- * numbers, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
+ * These rounding modes directly follow the SMT-LIB theory for floating-point
+ * arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
  * The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
  * Standard 754.
  * \endverbatim
@@ -2255,19 +2255,35 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 enum CVC4_EXPORT RoundingMode
 {
   /**
-   * Round to the nearest number. If both neighbours are equally near, the one
-   * with even least significant digit is chosen.
+   * Round to the nearest number.
+   * If the two nearest floating-point numbers bracketing an unrepresentable
+   * infinitely precise result are equally near, the one with an even least
+   * significant digit will be delivered.
    */
   ROUND_NEAREST_TIES_TO_EVEN,
-  /** Round towards positive infinity. */
+  /**
+   * Round towards positive infinity (+oo).
+   * The result shall be the format’s floating-point number (possibly +oo) closest
+   * to and no less than the infinitely precise result.
+   */
   ROUND_TOWARD_POSITIVE,
-  /** Round towards minus infinity. */
+  /**
+   * Round towards negative infinity (-oo).
+   * The result shall be the format’s floating-point number (possibly -oo) closest
+   * to and no less than the infinitely precise result.
+   */
   ROUND_TOWARD_NEGATIVE,
-  /** Round towards zero. */
+  /**
+   * Round towards zero.
+   * The result shall be the format’s floating-point number closest to and no greater
+   * in magnitude than the infinitely precise result.
+   */
   ROUND_TOWARD_ZERO,
   /**
-   * Round to the nearest number. If both neighbours are equally near, the one
-   * with larger magnitude is chosen.
+   * Round to the nearest number.
+   * If the two nearest floating-point numbers bracketing an unrepresentable
+   * infinitely precise result are equally near, the one with larger magnitude
+   * will be selected.
    */
   ROUND_NEAREST_TIES_TO_AWAY,
 };
