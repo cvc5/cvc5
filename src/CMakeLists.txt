@@ -19,24 +19,6 @@ libcvc4_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
-  context/backtrackable.h
-  context/cddense_set.h
-  context/cdhashmap.h
-  context/cdhashmap_forward.h
-  context/cdhashset.h
-  context/cdhashset_forward.h
-  context/cdinsert_hashmap.h
-  context/cdinsert_hashmap_forward.h
-  context/cdlist.h
-  context/cdlist_forward.h
-  context/cdmaybe.h
-  context/cdo.h
-  context/cdqueue.h
-  context/cdtrail_queue.h
-  context/context.cpp
-  context/context.h
-  context/context_mm.cpp
-  context/context_mm.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
@@ -1098,6 +1080,7 @@ set(KINDS_FILES
 # Add subdirectories
 
 add_subdirectory(base)
+add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
@@ -1105,6 +1088,14 @@ if (NOT BUILD_LIB_ONLY)
 endif()
 add_subdirectory(theory)
 add_subdirectory(util)
+
+#-----------------------------------------------------------------------------#
+# Build support library from base and context that can be used in the main
+# library as well as the parser library.
+
+add_library(cvc4support INTERFACE)
+target_link_libraries(cvc4support INTERFACE cvc4base)
+target_link_libraries(cvc4support INTERFACE cvc4context)
 
 #-----------------------------------------------------------------------------#
 # All sources for libcvc4 are now collected in LIBCVC4_SRCS and (if generated)
@@ -1117,6 +1108,7 @@ target_include_directories(cvc4
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(cvc4 PRIVATE cvc4support)
 
 include(GenerateExportHeader)
 generate_export_header(cvc4)
