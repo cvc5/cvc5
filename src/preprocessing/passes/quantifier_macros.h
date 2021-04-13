@@ -49,6 +49,12 @@ class QuantifierMacros : public PreprocessingPass
                           std::vector<Node>& candidates,
                           std::map<Node, bool>& visited);
   Node solveInEquality(Node n, Node lit);
+  /**
+   * Called when we have inferred a quantified formula is of the form
+   *   forall x1 ... xn. n = ndef
+   * where n is of the form U(x1...xn). Returns true if this is a legal
+   * macro definition for U.
+   */
   bool addMacroEq(Node n, Node ndef);
   /**
    * This applies macro elimination to the given pipeline, which discovers
