@@ -180,14 +180,14 @@ void PfManager::printProof(std::ostream& out,
     proof::VeritProofPostprocess vpfpp(d_pnm.get());
     vpfpp.process(fp);
     proof::VeritProofPrinter vpp(false);
-    vpp.veritPrinter(out,pfn);
+    vpp.veritPrinter(out,fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT_EXTENDED)
   {
     proof::VeritProofPostprocess vpfpp(d_pnm.get());
     vpfpp.process(fp);
     proof::VeritProofPrinter vpp(true);
-    vpp.veritPrinter(out,pfn);
+    vpp.veritPrinter(out,fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
