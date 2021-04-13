@@ -137,10 +137,17 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       // turn into binary
       Node cur = children[0];
+      std::unordered_set<Node, NodeHashFunction> processed;
+      processed.insert(children.begin(), children.end());
       for (size_t i = 1, size = children.size(); i < size; i++)
       {
         std::vector<Node> newChildren{cur, children[i]};
         cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
+        if (processed.find(cur)!=processed.end())
+        {
+          continue;
+        }
+        processed.insert(cur);
         cdp->addStep(cur, PfRule::TRANS, newChildren, {});
       }
     }
