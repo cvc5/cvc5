@@ -30,6 +30,8 @@ add_custom_target(
   VERBATIM
 )
 
+# make sure junit jar file is present
+add_dependencies(build-junit-tests JUnit)
 # make sure cvc.jar file is built first
 add_dependencies(build-junit-tests cvc5jar)
 
