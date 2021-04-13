@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file tptp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Francois Bobot, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definition of TPTP parser
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Francois Bobot, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of TPTP parser.
+ */
 
 #include "parser/antlr_input.h" // Needs to go first.
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__TPTP_H
-#define CVC4__PARSER__TPTP_H
+#ifndef CVC5__PARSER__TPTP_H
+#define CVC5__PARSER__TPTP_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -240,4 +241,4 @@ enum NonAssoc {
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC5__PARSER__TPTP_INPUT_H */

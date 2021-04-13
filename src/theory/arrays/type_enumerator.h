@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An enumerator for arrays
- **
- ** An enumerator for arrays.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An enumerator for arrays.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
 
 #include "theory/type_enumerator.h"
 #include "expr/type_node.h"
@@ -159,4 +158,4 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H */

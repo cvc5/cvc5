@@ -1,23 +1,25 @@
-/*********************                                                        */
-/*! \file dio_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Diophantine equation solver
- **
- ** A Diophantine equation solver for the theory of arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Diophantine equation solver
+ *
+ * A Diophantine equation solver for the theory of arithmetic.
+ */
 #include "theory/arith/dio_solver.h"
 
 #include <iostream>
 
 #include "base/output.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/partial_model.h"
@@ -29,8 +31,11 @@ namespace theory {
 namespace arith {
 
 inline Node makeIntegerVariable(){
-  NodeManager* curr = NodeManager::currentNM();
-  return curr->mkSkolem("intvar", curr->integerType(), "is an integer variable created by the dio solver");
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkDummySkolem("intvar",
+                           nm->integerType(),
+                           "is an integer variable created by the dio solver");
 }
 
 DioSolver::DioSolver(context::Context* ctxt)
@@ -615,7 +620,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
 
   Debug("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 
@@ -651,7 +656,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 

@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file attribute_internals.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Node attributes' internals.
- **
- ** Node attributes' internals.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node attributes' internals.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #  error expr/attribute_internals.h should only be included by expr/attribute.h
-#endif /* CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
-#ifndef CVC4__EXPR__ATTRIBUTE_INTERNALS_H
-#define CVC4__EXPR__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5__EXPR__ATTRIBUTE_INTERNALS_H
+#define CVC5__EXPR__ATTRIBUTE_INTERNALS_H
 
 #include <unordered_map>
 
@@ -514,4 +513,4 @@ const uint64_t Attribute<T, bool, context_dep>::s_id =
 }  // namespace expr
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_INTERNALS_H */

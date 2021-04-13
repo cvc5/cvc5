@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file theory_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The TheoryRewriter class
- **
- ** The TheoryRewriter class is the interface that theory rewriters implement.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The TheoryRewriter class.
+ *
+ * The interface that theory rewriters implement.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_REWRITER_H
-#define CVC4__THEORY__THEORY_REWRITER_H
+#ifndef CVC5__THEORY__THEORY_REWRITER_H
+#define CVC5__THEORY__THEORY_REWRITER_H
 
 #include "expr/node.h"
 #include "theory/trust_node.h"
@@ -142,4 +143,4 @@ class TheoryRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_REWRITER_H */
+#endif /* CVC5__THEORY__THEORY_REWRITER_H */

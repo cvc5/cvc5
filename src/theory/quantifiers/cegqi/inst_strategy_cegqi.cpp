@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file inst_strategy_cegqi.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of counterexample-guided quantifier instantiation
- **  strategies
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of counterexample-guided quantifier instantiation strategies.
+ */
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -295,9 +296,10 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool InstStrategyCegqi::checkComplete()
+bool InstStrategyCegqi::checkComplete(IncompleteId& incId)
 {
   if( ( !options::cegqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
+    incId = IncompleteId::QUANTIFIERS_CEGQI;
     return false;
   }else{
     return true;
@@ -463,7 +465,8 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
     return it->second;
   }
   NodeManager * nm = NodeManager::currentNM();
-  Node g = nm->mkSkolem("g", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  Node g = sm->mkDummySkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
   Node ceLit = d_qstate.getValuation().ensureLiteral(g);
   d_ce_lit[q] = ceLit;

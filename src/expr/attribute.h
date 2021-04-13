@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file attribute.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Node attributes.
- **
- ** Node attributes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node attributes.
+ */
 
 #include "cvc4_private.h"
 
@@ -21,16 +20,16 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef CVC4__EXPR__ATTRIBUTE_H
-#define CVC4__EXPR__ATTRIBUTE_H
+#ifndef CVC5__EXPR__ATTRIBUTE_H
+#define CVC5__EXPR__ATTRIBUTE_H
 
 #include <string>
 #include "expr/attribute_unique_id.h"
 
 // include supporting templates
-#define CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#define CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #include "expr/attribute_internals.h"
-#undef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#undef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
 namespace cvc5 {
 namespace expr {
@@ -623,4 +622,4 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__ATTRIBUTE_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_H */

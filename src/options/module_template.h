@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file module_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Contains code for handling command-line options.
- **
- ** For each <module>_options.toml configuration file, mkoptions.py
- ** expands this template and generates a <module>_options.h file.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Contains code for handling command-line options.
+ *
+ * For each <module>_options.toml configuration file, mkoptions.py
+ * expands this template and generates a <module>_options.h file.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__${id}$_H
-#define CVC4__OPTIONS__${id}$_H
+#ifndef CVC5__OPTIONS__${id}$_H
+#define CVC5__OPTIONS__${id}$_H
 
 #include "options/options.h"
 
@@ -44,5 +45,5 @@ ${inls}$
 }  // namespace options
 }  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__${id}$_H */
+#endif /* CVC5__OPTIONS__${id}$_H */
 //clang-format on

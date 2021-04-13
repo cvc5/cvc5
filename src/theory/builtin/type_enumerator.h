@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerator for uninterpreted sorts and functions.
- **
- ** Enumerator for uninterpreted sorts and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerator for uninterpreted sorts and functions.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__BUILTIN__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__BUILTIN__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__BUILTIN__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -108,4 +107,4 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN_TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__BUILTIN_TYPE_ENUMERATOR_H */

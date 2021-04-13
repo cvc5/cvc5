@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file prop_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The PropEngine (propositional engine); main interface point
- ** between CVC4's SMT infrastructure and the SAT solver
- **
- ** The PropEngine (propositional engine); main interface point
- ** between CVC4's SMT infrastructure and the SAT solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The PropEngine (propositional engine).
+ *
+ * Main interface point between cvc5's SMT infrastructure and the SAT solver.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP_ENGINE_H
-#define CVC4__PROP_ENGINE_H
+#ifndef CVC5__PROP_ENGINE_H
+#define CVC5__PROP_ENGINE_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -111,34 +110,20 @@ class PropEngine
   theory::TrustNode removeItes(TNode node,
                                std::vector<theory::TrustNode>& ppLemmas,
                                std::vector<Node>& ppSkolems);
-  /**
-   * Notify preprocessed assertions. This method is called just before the
-   * assertions are asserted to this prop engine. This method notifies the
-   * theory engine of the given assertions. Notice this vector includes
-   * both the input formulas and the skolem definitions.
-   */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /**
-   * Converts the given formula to CNF and assert the CNF to the SAT solver.
-   * The formula is asserted permanently for the current context. Note the
-   * formula should correspond to an input formula and not a lemma introduced
-   * by term formula removal (which instead should use the interface below).
-   * @param node the formula to assert
-   */
-  void assertFormula(TNode node);
-  /**
-   * Same as above, but node corresponds to the skolem definition of the given
-   * skolem.
-   * @param node the formula to assert
-   * @param skolem the skolem that this lemma defines.
+   * Converts the given formulas to CNF and assert the CNF to the SAT solver.
+   * These formulas are asserted permanently for the current context.
+   * Information about which assertions correspond to skolem definitions is
+   * contained in skolemMap.
    *
-   * For example, if k is introduced by ITE removal of (ite C x y), then node
-   * is the formula (ite C (= k x) (= k y)).  It is important to distinguish
-   * these kinds of lemmas from input assertions, as the justification decision
-   * heuristic treates them specially.
+   * @param assertions the formulas to assert
+   * @param skolemMap a map which says which skolem (if any) each assertion
+   * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
+   * assertion, then skolemMap may contain the entry { i -> k }.
    */
-  void assertSkolemDefinition(TNode node, TNode skolem);
+  void assertInputFormulas(const std::vector<Node>& assertions,
+                           std::unordered_map<size_t, Node>& skolemMap);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -267,7 +252,7 @@ class PropEngine
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed
@@ -383,4 +368,4 @@ class PropEngine
 }  // namespace prop
 }  // namespace cvc5
 
-#endif /* CVC4__PROP_ENGINE_H */
+#endif /* CVC5__PROP_ENGINE_H */

@@ -1,13 +1,18 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Andrew V. Jones, Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Andrew V. Jones, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
@@ -24,14 +29,14 @@ add_custom_target(apitests
   COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-apitests)
 
-set(CVC4_API_TEST_FLAGS
-  -D__BUILDING_CVC4_API_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
+set(CVC5_API_TEST_FLAGS
+  -D__BUILDING_CVC5_API_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
 macro(cvc4_add_api_test name)
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/)
   add_executable(${name} ${name}.cpp)
   target_link_libraries(${name} PUBLIC main-test)
-  target_compile_definitions(${name} PRIVATE ${CVC4_API_TEST_FLAGS})
+  target_compile_definitions(${name} PRIVATE ${CVC5_API_TEST_FLAGS})
   if(USE_CLN)
     target_link_libraries(${name} PRIVATE CLN)
   endif()

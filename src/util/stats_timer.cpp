@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file stats_timer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Timer statistics
- **
- ** Stat classes that hold timers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Timer statistics.
+ *
+ * Stat classes that hold timers.
+ */
 
 #include "util/stats_timer.h"
 
@@ -33,7 +34,7 @@ void safe_print(int fd, const timer_stat_detail::duration& t)
 
 void TimerStat::start()
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     PrettyCheckArgument(!d_running, *this, "timer already running");
     d_start = timer_stat_detail::clock::now();
@@ -43,7 +44,7 @@ void TimerStat::start()
 
 void TimerStat::stop()
 {
-  if (CVC4_USE_STATISTICS)
+  if (CVC5_USE_STATISTICS)
   {
     AlwaysAssert(d_running) << "timer not running";
     d_data += timer_stat_detail::clock::now() - d_start;
@@ -56,7 +57,7 @@ bool TimerStat::running() const { return d_running; }
 timer_stat_detail::duration TimerStat::get() const
 {
   auto data = d_data;
-  if (CVC4_USE_STATISTICS && d_running)
+  if (CVC5_USE_STATISTICS && d_running)
   {
     data += timer_stat_detail::clock::now() - d_start;
   }
@@ -66,7 +67,7 @@ timer_stat_detail::duration TimerStat::get() const
 SExpr TimerStat::getValue() const
 {
   auto data = d_data;
-  if (CVC4_USE_STATISTICS && d_running)
+  if (CVC5_USE_STATISTICS && d_running)
   {
     data += timer_stat_detail::clock::now() - d_start;
   }

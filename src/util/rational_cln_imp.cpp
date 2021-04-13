@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file rational_cln_imp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Christopher L. Conway, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multi-precision rational constant.
- **
- ** A multi-precision rational constant.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Christopher L. Conway, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multi-precision rational constant.
+ */
 #include "util/rational.h"
 
 #include <sstream>
@@ -20,9 +19,9 @@
 
 #include "cvc4autoconfig.h"
 
-#ifndef CVC4_CLN_IMP
-#  error "This source should only ever be built if CVC4_CLN_IMP is on !"
-#endif /* CVC4_CLN_IMP */
+#ifndef CVC5_CLN_IMP
+#error "This source should only ever be built if CVC5_CLN_IMP is on !"
+#endif /* CVC5_CLN_IMP */
 
 #include "base/check.h"
 

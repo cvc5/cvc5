@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file theory_strings_preprocess.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Strings Preprocess
- **
- ** Strings Preprocess.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Strings Preprocess.
+ */
 
 #include "theory/strings/theory_strings_preprocess.h"
 
 #include "expr/kind.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
@@ -58,6 +58,7 @@ Node StringsPreprocess::reduce(Node t,
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0));
   Node one = nm->mkConst(Rational(1));
   Node negOne = nm->mkConst(Rational(-1));
@@ -266,7 +267,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node u =
+        sm->mkDummySkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
 
     Node lem = nm->mkNode(GEQ, leni, one);
     conc.push_back(lem);
@@ -345,7 +347,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(s.getType());
     Node sEmpty = s.eqNode(emp);
-    Node k = nm->mkSkolem("k", nm->integerType());
+    Node k = sm->mkDummySkolem("k", nm->integerType());
     Node kc1 = nm->mkNode(GEQ, k, zero);
     Node kc2 = nm->mkNode(LT, k, lens);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
@@ -361,7 +363,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc2;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node u =
+        sm->mkDummySkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
 
     lem = stoit.eqNode(nm->mkNode(APPLY_UF, u, lens));
     conc2.push_back(lem);
@@ -531,7 +534,7 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node us =
-        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
+        sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkTypedSkolemCached(
         ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
@@ -670,7 +673,8 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), x, y, SkolemCache::SK_NUM_OCCUR, "numOcc");
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
-    Node us = nm->mkSkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
+    Node us =
+        sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkTypedSkolemCached(
         ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
@@ -1013,7 +1017,8 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   }
   else
   {
-    qvar = nm->mkSkolem("qinternal", nm->booleanType());
+    SkolemManager* sm = nm->getSkolemManager();
+    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
     // this dummy variable marks that the quantified formula is internal
     qvar.setAttribute(InternalQuantAttribute(), true);
     // remember the dummy variable

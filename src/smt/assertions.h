@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file assertions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for storing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for storing assertions for an SMT engine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__ASSERTIONS_H
-#define CVC4__SMT__ASSERTIONS_H
+#ifndef CVC5__SMT__ASSERTIONS_H
+#define CVC5__SMT__ASSERTIONS_H
 
 #include <vector>
 

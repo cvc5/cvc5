@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file icp_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements a ICP-based solver for nonlinear arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements a ICP-based solver for nonlinear arithmetic.
+ */
 
 #include "theory/arith/nl/icp/icp_solver.h"
 
@@ -32,7 +33,7 @@ namespace arith {
 namespace nl {
 namespace icp {
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 namespace {
 /** A simple wrapper to nicely print an interval assignment. */
@@ -366,7 +367,7 @@ void ICPSolver::check()
   }
 }
 
-#else /* CVC4_POLY_IMP */
+#else /* CVC5_POLY_IMP */
 
 void ICPSolver::reset(const std::vector<Node>& assertions)
 {
@@ -378,7 +379,7 @@ void ICPSolver::check()
   Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
 }
 
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 }  // namespace icp
 }  // namespace nl

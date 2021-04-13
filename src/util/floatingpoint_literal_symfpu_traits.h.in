@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file floatingpoint_literal_symfpu_traits.h.in
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SymFPU glue code for floating-point values.
- **
- ** !!! This header is only to be included in floating-point literal headers !!!
- **/
-
-/**
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Martin Brain, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SymFPU glue code for floating-point values.
+ *
+ * !!! This header is only to be included in floating-point literal headers !!!
+ *
  * This is a symfpu literal "back-end".  It allows the library to be used as
  * an arbitrary precision floating-point implementation.  This is effectively
  * the glue between symfpu's notion of "signed bit-vector" and CVC4's
@@ -23,11 +22,11 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
-#define CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
+#ifndef CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
+#define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
 // clang-format on
 
 #include "util/bitvector.h"

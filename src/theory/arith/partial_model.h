@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file partial_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Datastructures that track variable by variable information.
- **
- ** This is a datastructure that tracks variable specific information.
- ** This is partially context dependent to back track upper/lower bounds
- ** and information derived from these.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Datastructures that track variable by variable information.
+ *
+ * This is a datastructure that tracks variable specific information.
+ * This is partially context dependent to back track upper/lower bounds
+ * and information derived from these.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__PARTIAL_MODEL_H
-#define CVC4__THEORY__ARITH__PARTIAL_MODEL_H
+#ifndef CVC5__THEORY__ARITH__PARTIAL_MODEL_H
+#define CVC5__THEORY__ARITH__PARTIAL_MODEL_H
 
 #include <vector>
 
@@ -416,4 +417,4 @@ private:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__PARTIAL_MODEL_H */
+#endif /* CVC5__THEORY__ARITH__PARTIAL_MODEL_H */

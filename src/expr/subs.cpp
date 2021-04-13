@@ -1,21 +1,23 @@
-/*********************                                                        */
-/*! \file subs.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple substitution utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple substitution utility.
+ */
 
 #include "expr/subs.h"
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -44,8 +46,9 @@ Node Subs::getSubs(Node v) const
 
 void Subs::add(Node v)
 {
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // default, use a fresh skolem of the same type
-  Node s = NodeManager::currentNM()->mkSkolem("sk", v.getType());
+  Node s = sm->mkDummySkolem("sk", v.getType());
   add(v, s);
 }
 

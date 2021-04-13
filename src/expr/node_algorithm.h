@@ -1,25 +1,25 @@
-/*********************                                                        */
-/*! \file node_algorithm.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common algorithms on nodes
- **
- ** This file implements common algorithms applied to nodes, such as checking if
- ** a node contains a free or a bound variable. This file should generally only
- ** be included in source files.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Common algorithms on nodes.
+ *
+ * This file implements common algorithms applied to nodes, such as checking if
+ * a node contains a free or a bound variable. This file should generally only
+ * be included in source files.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__NODE_ALGORITHM_H
-#define CVC4__EXPR__NODE_ALGORITHM_H
+#ifndef CVC5__EXPR__NODE_ALGORITHM_H
+#define CVC5__EXPR__NODE_ALGORITHM_H
 
 #include <unordered_map>
 #include <vector>

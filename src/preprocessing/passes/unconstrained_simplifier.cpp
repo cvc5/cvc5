@@ -1,24 +1,26 @@
-/*********************                                                        */
-/*! \file unconstrained_simplifier.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Andres Noetzli, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simplifications based on unconstrained variables
- **
- ** This module implements a preprocessing phase which replaces certain
- ** "unconstrained" expressions by variables.  Based on Roberto
- ** Bruttomesso's PhD thesis.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simplifications based on unconstrained variables.
+ *
+ * This module implements a preprocessing phase which replaces certain
+ * "unconstrained" expressions by variables.  Based on Roberto
+ * Bruttomesso's PhD thesis.
+ */
 
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
@@ -126,7 +128,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  Node n = NodeManager::currentNM()->mkSkolem(
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(
       "unconstrained",
       t,
       "a new var introduced because of unconstrained variable "
@@ -278,7 +281,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             checkParent = true;
             break;
           }
-          CVC4_FALLTHROUGH;
+          CVC5_FALLTHROUGH;
         case kind::BITVECTOR_COMP:
         case kind::LT:
         case kind::LEQ:
@@ -452,7 +455,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           {
             break;
           }
-          CVC4_FALLTHROUGH;
+          CVC5_FALLTHROUGH;
         case kind::XOR:
         case kind::BITVECTOR_XOR:
         case kind::BITVECTOR_XNOR:
@@ -843,7 +846,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   const std::vector<Node>& assertions = assertionsToPreprocess->ref();
 

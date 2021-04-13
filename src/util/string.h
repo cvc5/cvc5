@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file string.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The string data type.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The string data type.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__STRING_H
-#define CVC4__UTIL__STRING_H
+#ifndef CVC5__UTIL__STRING_H
+#define CVC5__UTIL__STRING_H
 
 #include <iosfwd>
 #include <string>
@@ -277,4 +278,4 @@ std::ostream& operator<<(std::ostream& os, const String& s);
 
 }  // namespace cvc5
 
-#endif /* CVC4__UTIL__STRING_H */
+#endif /* CVC5__UTIL__STRING_H */
