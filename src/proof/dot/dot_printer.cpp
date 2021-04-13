@@ -16,6 +16,7 @@
 #include "proof/dot/dot_printer.h"
 
 #include <sstream>
+
 #include "expr/proof_checker.h"
 #include "expr/proof_node_manager.h"
 #include "printer/smt2/smt2_printer.h"
