@@ -16,7 +16,10 @@ header = "options/proof_options.h"
 [[option.mode.DOT]]
   name       = "dot"
   help       = "Output DOT proof"
-  
+[[option.mode.VERIT]]
+  name       = "verit"
+  help       = "Output veriT proof"
+
 [[option]]
   name       = "proofPrintConclusion"
   category   = "regular"

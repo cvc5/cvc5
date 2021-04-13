@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file expr_iomanip.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Expr IO manipulation classes.
- **
- ** Expr IO manipulation classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Expr IO manipulation classes.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__EXPR__EXPR_IOMANIP_H
-#define CVC4__EXPR__EXPR_IOMANIP_H
+#ifndef CVC5__EXPR__EXPR_IOMANIP_H
+#define CVC5__EXPR__EXPR_IOMANIP_H
 
 #include <iosfwd>
 
@@ -175,4 +174,4 @@ std::ostream& operator<<(std::ostream& out, ExprSetDepth sd);
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__EXPR_IOMANIP_H */
+#endif /* CVC5__EXPR__EXPR_IOMANIP_H */

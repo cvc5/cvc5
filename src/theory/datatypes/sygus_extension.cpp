@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the sygus extension of the theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the sygus extension of the theory of datatypes.
+ */
 
 #include "theory/datatypes/sygus_extension.h"
 
@@ -785,7 +786,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           TypeNode tnc = children[c1].getType();
           // we may only apply this symmetry breaking scheme (which introduces
           // disequalities) if the types are infinite.
-          if (tnc == children[c2].getType() && !tnc.isInterpretedFinite())
+          if (tnc == children[c2].getType() && !d_state.isFiniteType(tnc))
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
             // notice that this symmetry breaking still allows for

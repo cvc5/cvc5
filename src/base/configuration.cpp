@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file configuration.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of Configuration class, which provides compile-time
- ** configuration information about the CVC4 library
- **
- ** Implementation of Configuration class, which provides compile-time
- ** configuration information about the CVC4 library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of Configuration class, which provides compile-time
+ * configuration information about the CVC4 library.
+ */
 #include "base/configuration.h"
 
 #include <stdlib.h>
@@ -26,21 +24,19 @@
 #include "cvc4autoconfig.h"
 #include "base/configuration_private.h"
 
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 #  include "base/Debug_tags.h"
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 
-#ifdef CVC4_TRACING
+#ifdef CVC5_TRACING
 #  include "base/Trace_tags.h"
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 
 using namespace std;
 
 namespace cvc5 {
 
-string Configuration::getName() {
-  return CVC4_PACKAGE_NAME;
-}
+string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
 bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;
@@ -82,36 +78,24 @@ bool Configuration::isCompetitionBuild() {
 
 bool Configuration::isStaticBuild()
 {
-#if defined(CVC4_STATIC_BUILD)
+#if defined(CVC5_STATIC_BUILD)
   return true;
 #else
   return false;
 #endif
 }
 
-string Configuration::getPackageName() {
-  return CVC4_PACKAGE_NAME;
-}
+string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }
 
-string Configuration::getVersionString() {
-  return CVC4_RELEASE_STRING;
-}
+string Configuration::getVersionString() { return CVC5_RELEASE_STRING; }
 
-unsigned Configuration::getVersionMajor() {
-  return CVC4_MAJOR;
-}
+unsigned Configuration::getVersionMajor() { return CVC5_MAJOR; }
 
-unsigned Configuration::getVersionMinor() {
-  return CVC4_MINOR;
-}
+unsigned Configuration::getVersionMinor() { return CVC5_MINOR; }
 
-unsigned Configuration::getVersionRelease() {
-  return CVC4_RELEASE;
-}
+unsigned Configuration::getVersionRelease() { return CVC5_RELEASE; }
 
-std::string Configuration::getVersionExtra() {
-  return CVC4_EXTRAVERSION;
-}
+std::string Configuration::getVersionExtra() { return CVC5_EXTRAVERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
@@ -230,7 +214,7 @@ std::string Configuration::copyright() {
 
 std::string Configuration::about() {
   std::stringstream ss;
-  ss << "This is CVC4 version " << CVC4_RELEASE_STRING;
+  ss << "This is CVC4 version " << CVC5_RELEASE_STRING;
   if (Configuration::isGitBuild()) {
     ss << " [" << Configuration::getGitId() << "]";
   }
@@ -278,21 +262,21 @@ bool Configuration::isBuiltWithPoly()
 bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }
 
 unsigned Configuration::getNumDebugTags() {
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   /* -1 because a NULL pointer is inserted as the last value */
   return (sizeof(Debug_tags) / sizeof(Debug_tags[0])) - 1;
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else  /* CVC5_DEBUG && CVC5_TRACING */
   return 0;
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
 char const* const* Configuration::getDebugTags() {
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   return Debug_tags;
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else  /* CVC5_DEBUG && CVC5_TRACING */
   static char const* no_tags[] = { NULL };
   return no_tags;
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
 int strcmpptr(const char **s1, const char **s2){
@@ -300,7 +284,7 @@ int strcmpptr(const char **s1, const char **s2){
 }
 
 bool Configuration::isDebugTag(char const *tag){
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   unsigned ntags = getNumDebugTags();
   char const* const* tags = getDebugTags();
   for (unsigned i = 0; i < ntags; ++ i) {
@@ -308,30 +292,30 @@ bool Configuration::isDebugTag(char const *tag){
       return true;
     }
   }
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
   return false;
 }
 
 unsigned Configuration::getNumTraceTags() {
-#if CVC4_TRACING
+#if CVC5_TRACING
   /* -1 because a NULL pointer is inserted as the last value */
   return sizeof(Trace_tags) / sizeof(Trace_tags[0]) - 1;
-#else /* CVC4_TRACING */
+#else  /* CVC5_TRACING */
   return 0;
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 }
 
 char const* const* Configuration::getTraceTags() {
-#if CVC4_TRACING
+#if CVC5_TRACING
   return Trace_tags;
-#else /* CVC4_TRACING */
+#else  /* CVC5_TRACING */
   static char const* no_tags[] = { NULL };
   return no_tags;
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 }
 
 bool Configuration::isTraceTag(char const * tag){
-#if CVC4_TRACING
+#if CVC5_TRACING
   unsigned ntags = getNumTraceTags();
   char const* const* tags = getTraceTags();
   for (unsigned i = 0; i < ntags; ++ i) {
@@ -339,7 +323,7 @@ bool Configuration::isTraceTag(char const * tag){
       return true;
     }
   }
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
   return false;
 }
 

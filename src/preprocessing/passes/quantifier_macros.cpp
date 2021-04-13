@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file quantifier_macros.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sort inference module
- **
- ** This class implements quantifiers macro definitions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sort inference module.
+ *
+ * This class implements quantifiers macro definitions.
+ */
 
 #include "preprocessing/passes/quantifier_macros.h"
 

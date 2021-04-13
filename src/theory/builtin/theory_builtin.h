@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_builtin.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Built-in theory.
- **
- ** Built-in theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Built-in theory.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
-#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
+#ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
+#define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
 
 #include "theory/builtin/proof_checker.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
@@ -58,4 +57,4 @@ class TheoryBuiltin : public Theory
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H */
+#endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H */

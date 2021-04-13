@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager of the SMT engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Diego Della Rocca de Camargos
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager of the SMT engine.
+ */
 
 #include "smt/proof_manager.h"
 
@@ -34,7 +35,27 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
-      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
+      d_pfpp(new ProofPostproccess(
+          d_pnm.get(),
+          smte,
+          d_pppg.get(),
+          // by default the post-processor will update all assumptions, which
+          // can lead to SCOPE subproofs of the form
+          //   A
+          //  ...
+          //   B1    B2
+          //  ...   ...
+          // ------------
+          //      C
+          // ------------- SCOPE [B1, B2]
+          // B1 ^ B2 => C
+          //
+          // where A is an available assumption from outside the scope (note
+          // that B1 was an assumption of this SCOPE subproof but since it could
+          // be inferred from A, it was updated). This shape is problematic for
+          // the veriT reconstruction, so we disable the update of scoped
+          // assumptions (which would disable the update of B1 in this case).
+          options::proofFormatMode() != options::ProofFormatMode::VERIT)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -44,6 +65,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
     if (options::proofGranularityMode()
         != options::ProofGranularityMode::REWRITE)
@@ -131,7 +153,7 @@ void PfManager::printProof(std::ostream& out,
   }
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  
+
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter::print(out, fp.get());

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file antlr_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A super-class for ANTLR-generated input language parsers.
- **
- ** A super-class for ANTLR-generated input language parsers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Kshitij Bansal, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A super-class for ANTLR-generated input language parsers.
+ */
 
 #include "parser/antlr_input.h"
 
@@ -42,7 +41,7 @@ namespace cvc5 {
 namespace parser {
 
 // These functions exactly wrap the antlr3 source inconsistencies.
-// These are the only location CVC4_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
+// These are the only location CVC5_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
 // No other sanity checking happens;
 pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
                                              const std::string& name,
@@ -58,13 +57,13 @@ pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   inputStream =
       antlr3LineBufferedStreamNew(input, 0, name_duplicate, line_buffer);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   inputStream = antlr3LineBufferedStreamNew(input, ANTLR3_ENC_8BIT,
                                             name_duplicate, line_buffer);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
   return inputStream;
@@ -75,11 +74,11 @@ pANTLR3_INPUT_STREAM newAntlr3FileStream(const std::string& name){
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
   // libantlr3c v3.2 isn't source-compatible with v3.4
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   input = antlr3AsciiFileStreamNew(name_duplicate);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   input = antlr3FileStreamNew(name_duplicate, ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
   return input;
@@ -92,14 +91,14 @@ pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
   pANTLR3_INPUT_STREAM inputStream = NULL;
   /* Create an ANTLR input backed by the buffer. */
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   inputStream =
     antlr3NewAsciiStringInPlaceStream(basep, size, name_duplicate);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   inputStream =
     antlr3StringStreamNew(basep, ANTLR3_ENC_8BIT, size,
                           name_duplicate);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   free(name_duplicate);
   return inputStream;
 }

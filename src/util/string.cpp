@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file string.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the string data type.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the string data type.
+ */
 
 #include "util/string.h"
 
@@ -31,7 +32,7 @@ static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
 String::String(const std::vector<unsigned> &s) : d_str(s)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned u : d_str)
   {
     Assert(u < num_codes());
@@ -226,7 +227,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       str.insert(str.end(), nonEscCache.begin(), nonEscCache.end());
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned u : str)
   {
     Assert(u < num_codes());

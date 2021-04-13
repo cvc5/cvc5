@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file assert_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of cvc5::Configuration.
- **
- ** White box testing of cvc5::Configuration.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::Configuration.
+ */
 
 #include <cstring>
 #include <string>
@@ -29,7 +28,7 @@ class TestUtilWhite : public TestInternal
 
 TEST_F(TestUtilWhite, Assert)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(Assert(false), "false");
 #else
   ASSERT_NO_THROW(Assert(false));
@@ -41,7 +40,7 @@ TEST_F(TestUtilWhite, Assert)
 
 TEST_F(TestUtilWhite, AssertArgument)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_THROW(AssertArgument(false, "x"), AssertArgumentException);
 #else
   ASSERT_NO_THROW(AssertArgument(false, "x"));

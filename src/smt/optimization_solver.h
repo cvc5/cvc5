@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file optimization_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Michael Chang, Yancheng Ou
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for optimization queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for optimization queries.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__OPTIMIZATION_SOLVER_H
-#define CVC4__SMT__OPTIMIZATION_SOLVER_H
+#ifndef CVC5__SMT__OPTIMIZATION_SOLVER_H
+#define CVC5__SMT__OPTIMIZATION_SOLVER_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -70,7 +71,7 @@ enum class OptResult
  * - the optimization target node,
  * - whether it's maximize/minimize
  * - and whether it's signed for BitVectors
- **/
+ */
 class Objective
 {
  public:
@@ -152,4 +153,4 @@ class OptimizationSolver
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__OPTIMIZATION_SOLVER_H */
+#endif /* CVC5__SMT__OPTIMIZATION_SOLVER_H */

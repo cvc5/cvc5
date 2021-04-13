@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_reconstruct.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief implementation for reconstruct
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation for reconstruct.
+ */
 
 #include "theory/quantifiers/sygus/sygus_reconstruct.h"
 
@@ -283,7 +284,11 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
 
     if (isSolved)
     {
-      Node s = sz.substitute(d_sol);
+      // As it traverses sz, substitute populates its input cache with TNodes
+      // that are not preserved by this module and maybe destroyed after the
+      // method call. To avoid referencing those unsafe TNodes throughout this
+      // module, we pass a iterators of d_sol instead.
+      Node s = sz.substitute(d_sol.cbegin(), d_sol.cend());
       markSolved(k, s);
     }
     else
@@ -339,7 +344,8 @@ void SygusReconstruct::markSolved(Node k, Node s)
       {
         // then it is completely solved and can be used as a solution of its
         // corresponding obligation
-        Node parentSol = parent.substitute(d_sol);
+        // pass iterators of d_sol to avoid populating it with unsafe TNodes
+        Node parentSol = parent.substitute(d_sol.cbegin(), d_sol.cend());
         Node parentOb = d_parentOb[parent];
         // proceed only if parent obligation is not already solved
         if (d_sol[parentOb].isNull())

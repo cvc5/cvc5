@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sat_proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof manager for Minisat
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof manager for Minisat.
+ */
 
 #include "prop/sat_proof_manager.h"
 
@@ -35,6 +36,7 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
       d_assumptions(userContext),
       d_conflictLit(undefSatVariable)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
@@ -169,7 +171,6 @@ void SatProofManager::endResChain(Node conclusion,
   }
   d_redundantLits.clear();
   // build resolution chain
-  NodeManager* nm = NodeManager::currentNM();
   // the conclusion is stored already in the arguments because of the
   // possibility of reordering
   std::vector<Node> children, args{conclusion};
@@ -212,7 +213,7 @@ void SatProofManager::endResChain(Node conclusion,
     Trace("sat-proof") << " : ";
     if (i > 0)
     {
-      args.push_back(nm->mkConst(posFirst));
+      args.push_back(posFirst ? d_true : d_false);
       args.push_back(pivot);
       Trace("sat-proof") << "{" << posFirst << "} [" << pivot << "] ";
     }
@@ -249,7 +250,7 @@ void SatProofManager::endResChain(Node conclusion,
   // step, which bypasses these. Note that we could generate a chain resolution
   // rule here by explicitly computing the detailed steps, but leave this for
   // post-processing.
-  ProofStep ps(PfRule::MACRO_RESOLUTION, children, args);
+  ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
   d_resChainPg.addStep(conclusion, ps);
   // the premises of this resolution may not have been justified yet, so we do
   // not pass assumptions to check closedness
@@ -352,7 +353,7 @@ void SatProofManager::explainLit(
     printClause(reason);
     Trace("sat-proof") << "\n";
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // pedantically check that the negation of the literal to explain *does not*
   // occur in the reason, otherwise we will loop forever
   for (unsigned i = 0; i < size; ++i)
@@ -369,11 +370,10 @@ void SatProofManager::explainLit(
   // SAT solver, we directly get the literals we need to explain so we no
   // longer depend on the reference to reason
   std::vector<Node> toExplain{children.back().begin(), children.back().end()};
-  NodeManager* nm = NodeManager::currentNM();
   Trace("sat-proof") << push;
   for (unsigned i = 0; i < size; ++i)
   {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     // pedantically make sure that the reason stays the same
     const Minisat::Clause& reloadedReason = d_solver->ca[reasonRef];
     AlwaysAssert(size == static_cast<unsigned>(reloadedReason.size()));
@@ -397,7 +397,7 @@ void SatProofManager::explainLit(
     // note this is the opposite of what is done in addResolutionStep. This is
     // because here the clause, which contains the literal being analyzed, is
     // the first clause rather than the second
-    args.push_back(nm->mkConst(!negated));
+    args.push_back(!negated ? d_true : d_false);
     args.push_back(negated ? currLitNode[0] : currLitNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
@@ -429,7 +429,7 @@ void SatProofManager::explainLit(
   Trace("sat-proof") << pop;
   // create step
   args.insert(args.begin(), litNode);
-  ProofStep ps(PfRule::MACRO_RESOLUTION, children, args);
+  ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
   d_resChainPg.addStep(litNode, ps);
   // the premises in the limit of the justification may correspond to other
   // links in the chain which have, themselves, literals yet to be justified. So
@@ -490,7 +490,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       // get resolution
       Node cur = link.first;
       std::shared_ptr<ProofNode> pfn = link.second;
-      while (pfn->getRule() != PfRule::MACRO_RESOLUTION)
+      while (pfn->getRule() != PfRule::MACRO_RESOLUTION_TRUST)
       {
         Assert(pfn->getChildren().size() == 1
                && pfn->getChildren()[0]->getRule() == PfRule::ASSUME)
@@ -539,7 +539,6 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   // arguments for the resolution step to conclude false.
   std::vector<Node> children{inConflictNode}, args;
   std::unordered_set<TNode, TNodeHashFunction> premises;
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
     Assert(d_cnfStream->getNodeCache().find(inConflict[i])
@@ -555,7 +554,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     // note this is the opposite of what is done in addResolutionStep. This is
     // because here the clause, which contains the literal being analyzed, is
     // the first clause rather than the second
-    args.push_back(nm->mkConst(!negated));
+    args.push_back(!negated ? d_true : d_false);
     args.push_back(negated ? litNode[0] : litNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
@@ -578,7 +577,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   }
   // create step
   args.insert(args.begin(), d_false);
-  ProofStep ps(PfRule::MACRO_RESOLUTION, children, args);
+  ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
   d_resChainPg.addStep(d_false, ps);
   // not yet ready to check closedness because maybe only now we will justify
   // literals used in resolutions

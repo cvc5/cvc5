@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file theory_uf.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This is the interface to TheoryUF implementations
- **
- ** This is the interface to TheoryUF implementations.  All
- ** implementations of TheoryUF should inherit from this class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This is the interface to TheoryUF implementations
+ *
+ * All implementations of TheoryUF should inherit from this class.
+ */
 
 #include "theory/uf/theory_uf.h"
 
@@ -177,7 +177,7 @@ bool TheoryUF::preNotifyFact(
       else
       {
         // support for cardinality constraints is not enabled, set incomplete
-        d_im.setIncomplete();
+        d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
       }
     }
     // don't need to assert cardinality constraints if not producing models

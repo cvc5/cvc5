@@ -59,8 +59,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource(ResourceManager::Resource r) = 0;
-  virtual void safePoint(ResourceManager::Resource r) = 0;
+  virtual void spendResource(Resource r) = 0;
+  virtual void safePoint(Resource r) = 0;
 };
 
 //=================================================================================================
@@ -379,7 +379,7 @@ protected:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool withinBudget(ResourceManager::Resource r) const;
+    bool withinBudget(Resource r) const;
 
     // Static helpers:
     //

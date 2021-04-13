@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file type_node.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information.
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 #include "expr/type_node.h"
 
 #include <vector>
@@ -66,160 +65,123 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
-/** Attribute true for types that are finite */
-struct IsFiniteTag
+/** Attribute true for types that have cardinality one */
+struct TypeCardinalityClassTag
 {
 };
-typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsFiniteComputedTag
-{
-};
-typedef expr::Attribute<IsFiniteComputedTag, bool> IsFiniteComputedAttr;
+typedef expr::Attribute<TypeCardinalityClassTag, uint64_t>
+    TypeCardinalityClassAttr;
 
-/** Attribute true for types that are interpreted as finite */
-struct IsInterpretedFiniteTag
-{
-};
-typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
-/** Attribute true for types which we have computed the above attribute */
-struct IsInterpretedFiniteComputedTag
-{
-};
-typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
-    IsInterpretedFiniteComputedAttr;
-
-bool TypeNode::isFinite() { return isFiniteInternal(false); }
-
-bool TypeNode::isInterpretedFinite()
-{
-  return isFiniteInternal(options::finiteModelFind());
-}
-
-bool TypeNode::isFiniteInternal(bool usortFinite)
+CardinalityClass TypeNode::getCardinalityClass()
 {
   // check it is already cached
-  if (usortFinite)
+  if (hasAttribute(TypeCardinalityClassAttr()))
   {
-    if (getAttribute(IsInterpretedFiniteComputedAttr()))
-    {
-      return getAttribute(IsInterpretedFiniteAttr());
-    }
+    return static_cast<CardinalityClass>(
+        getAttribute(TypeCardinalityClassAttr()));
   }
-  else if (getAttribute(IsFiniteComputedAttr()))
-  {
-    return getAttribute(IsFiniteAttr());
-  }
-  bool ret = false;
+  CardinalityClass ret = CardinalityClass::INFINITE;
   if (isSort())
   {
-    ret = usortFinite;
+    ret = CardinalityClass::INTERPRETED_ONE;
   }
   else if (isBoolean() || isBitVector() || isFloatingPoint()
            || isRoundingMode())
   {
-    ret = true;
+    ret = CardinalityClass::FINITE;
   }
-  else if (isString() || isRegExp() || isSequence() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal() || isBag())
   {
-    ret = false;
+    ret = CardinalityClass::INFINITE;
   }
   else
   {
     // recursive case (this may be a parametric sort), we assume infinite for
-    // the moment here to prevent infinite loops
-    if (usortFinite)
-    {
-      setAttribute(IsInterpretedFiniteAttr(), false);
-      setAttribute(IsInterpretedFiniteComputedAttr(), true);
-    }
-    else
-    {
-      setAttribute(IsFiniteAttr(), false);
-      setAttribute(IsFiniteComputedAttr(), true);
-    }
+    // the moment here to prevent infinite loops, which may occur when
+    // computing the cardinality of datatype types with foreign types
+    setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
+
     if (isDatatype())
     {
       TypeNode tn = *this;
       const DType& dt = getDType();
-      ret = usortFinite ? dt.isInterpretedFinite(tn) : dt.isFinite(tn);
+      ret = dt.getCardinalityClass(tn);
     }
     else if (isArray())
     {
-      TypeNode tnc = getArrayConstituentType();
-      if (!tnc.isFiniteInternal(usortFinite))
+      ret = getArrayConstituentType().getCardinalityClass();
+      if (ret == CardinalityClass::FINITE
+          || ret == CardinalityClass::INTERPRETED_FINITE)
       {
-        // arrays with constituent type that is infinite are infinite
-        ret = false;
+        CardinalityClass cci = getArrayIndexType().getCardinalityClass();
+        // arrays with both finite element types, we take the max with its
+        // index type.
+        ret = maxCardinalityClass(ret, cci);
       }
-      else if (getArrayIndexType().isFiniteInternal(usortFinite))
-      {
-        // arrays with both finite constituent and index types are finite
-        ret = true;
-      }
-      else
-      {
-        // If the consistuent type of the array has cardinality one, then the
-        // array type has cardinality one, independent of the index type.
-        ret = tnc.getCardinality().isOne();
-      }
+      // else, array types whose element type is INFINITE, ONE, or
+      // INTERPRETED_ONE have the same cardinality class as their range.
     }
     else if (isSet())
     {
-      ret = getSetElementType().isFiniteInternal(usortFinite);
-    }
-    else if (isBag())
-    {
-      // there are infinite bags for all element types
-      ret = false;
-    }
-    else if (isFunction())
-    {
-      ret = true;
-      TypeNode tnr = getRangeType();
-      if (!tnr.isFiniteInternal(usortFinite))
+      CardinalityClass cc = getSetElementType().getCardinalityClass();
+      if (cc == CardinalityClass::ONE)
       {
-        ret = false;
+        // 1 -> 2
+        ret = CardinalityClass::FINITE;
+      }
+      else if (ret == CardinalityClass::INTERPRETED_ONE)
+      {
+        // maybe 1 -> maybe finite
+        ret = CardinalityClass::INTERPRETED_FINITE;
       }
       else
       {
+        // finite or infinite is unchanged
+        ret = cc;
+      }
+    }
+    else if (isFunction())
+    {
+      ret = getRangeType().getCardinalityClass();
+      if (ret == CardinalityClass::FINITE
+          || ret == CardinalityClass::INTERPRETED_FINITE)
+      {
+        // we may have a larger cardinality class based on the
+        // arguments of the function
         std::vector<TypeNode> argTypes = getArgTypes();
-        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+        for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
-          if (!argTypes[i].isFiniteInternal(usortFinite))
-          {
-            ret = false;
-            break;
-          }
+          CardinalityClass cca = argTypes[i].getCardinalityClass();
+          ret = maxCardinalityClass(ret, cca);
         }
-        if (!ret)
-        {
-          // similar to arrays, functions are finite if their range type
-          // has cardinality one, regardless of the arguments.
-          ret = tnr.getCardinality().isOne();
-        }
+      }
+      // else, function types whose range type is INFINITE, ONE, or
+      // INTERPRETED_ONE have the same cardinality class as their range.
+    }
+    else if (isConstructor())
+    {
+      // notice that we require computing the cardinality class of the
+      // constructor type, which is equivalent to asking how many
+      // constructor applications of the given constructor exist. This
+      // is used in several places in the decision procedure for datatypes.
+      // The cardinality starts with one.
+      ret = CardinalityClass::ONE;
+      // we may have a larger cardinality class based on the
+      // arguments of the constructor
+      std::vector<TypeNode> argTypes = getArgTypes();
+      for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
+      {
+        CardinalityClass cca = argTypes[i].getCardinalityClass();
+        ret = maxCardinalityClass(ret, cca);
       }
     }
     else
     {
-      // all types should be handled above
+      // all types we care about should be handled above
       Assert(false);
-      // by default, compute the exact cardinality for the type and check
-      // whether it is finite. This should be avoided in general, since
-      // computing cardinalities for types can be highly expensive.
-      ret = getCardinality().isFinite();
     }
   }
-  if (usortFinite)
-  {
-    setAttribute(IsInterpretedFiniteAttr(), ret);
-    setAttribute(IsInterpretedFiniteComputedAttr(), true);
-  }
-  else
-  {
-    setAttribute(IsFiniteAttr(), ret);
-    setAttribute(IsFiniteComputedAttr(), true);
-  }
+  setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
 }
 

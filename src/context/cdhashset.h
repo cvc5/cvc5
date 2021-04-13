@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file cdhashset.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent set class.
- **
- ** Context-dependent set class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context-dependent set class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDHASHSET_H
-#define CVC4__CONTEXT__CDHASHSET_H
+#ifndef CVC5__CONTEXT__CDHASHSET_H
+#define CVC5__CONTEXT__CDHASHSET_H
 
 #include "base/check.h"
 #include "context/cdinsert_hashmap.h"
@@ -158,4 +157,4 @@ public:
 }  // namespace context
 }  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDHASHSET_H */
+#endif /* CVC5__CONTEXT__CDHASHSET_H */

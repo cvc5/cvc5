@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file lazy_tree_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The lazy tree proof generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The lazy tree proof generator class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__LAZY_TREE_PROOF_GENERATOR_H
-#define CVC4__THEORY__LAZY_TREE_PROOF_GENERATOR_H
+#ifndef CVC5__THEORY__LAZY_TREE_PROOF_GENERATOR_H
+#define CVC5__THEORY__LAZY_TREE_PROOF_GENERATOR_H
 
 #include <iostream>
 

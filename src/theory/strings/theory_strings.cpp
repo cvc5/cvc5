@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_strings.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of strings.
+ */
 
 #include "theory/strings/theory_strings.h"
 
@@ -559,7 +560,6 @@ TrustNode TheoryStrings::expandDefinition(Node node)
   if (node.getKind() == kind::SEQ_NTH)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemCache* sc = d_termReg.getSkolemCache();
     Node s = node[0];
     Node n = node[1];
     // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
@@ -567,7 +567,7 @@ TrustNode TheoryStrings::expandDefinition(Node node)
                            nm->mkNode(LEQ, d_zero, n),
                            nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
     Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
-    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
     Node u = nm->mkNode(APPLY_UF, uf, s, n);
     Node ret = nm->mkNode(ITE, cond, ss, u);
     Trace("strings-exp-def") << "...return " << ret << std::endl;

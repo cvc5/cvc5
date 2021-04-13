@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file cadical.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Aina Niemetz, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper for CaDiCaL SAT Solver.
- **
- ** Implementation of the CaDiCaL SAT solver for CVC4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Aina Niemetz, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper for CaDiCaL SAT Solver.
+ *
+ * Implementation of the CaDiCaL SAT solver for CVC4 (bit-vectors).
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CADICAL_H
-#define CVC4__PROP__CADICAL_H
+#ifndef CVC5__PROP__CADICAL_H
+#define CVC5__PROP__CADICAL_H
 
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
 
 #include "prop/sat_solver.h"
 #include "util/stats_timer.h"
@@ -105,5 +106,5 @@ class CadicalSolver : public SatSolver
 }  // namespace prop
 }  // namespace cvc5
 
-#endif  // CVC4_USE_CADICAL
-#endif  // CVC4__PROP__CADICAL_H
+#endif  // CVC5_USE_CADICAL
+#endif  // CVC5__PROP__CADICAL_H
