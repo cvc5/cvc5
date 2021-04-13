@@ -1988,7 +1988,8 @@ std::string SmtEngine::getOption(const std::string& key) const
 
   std::string atom = getOptions().getOption(key);
 
-  if (atom != "true" && atom != "false") {
+  if (atom != "true" && atom != "false")
+  {
     try
     {
       Integer z(atom);
