@@ -517,7 +517,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   /**  a list of terms for each id */
   std::map<size_t, std::vector<Node> > d_poolList;
   /** gets the terms from the pool */
-  virtual size_t prepareTerms(size_t variableIx) override
+  size_t prepareTerms(size_t variableIx) override
   {
     Assert(d_pool.getNumChildren() > variableIx);
     // prepare terms from pool
@@ -527,7 +527,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
                        << d_poolList[variableIx] << std::endl;
     return d_poolList[variableIx].size();
   }
-  virtual Node getTerm(size_t variableIx, size_t term_index) override
+  Node getTerm(size_t variableIx, size_t term_index) override
   {
     Assert(term_index < d_poolList[variableIx].size());
     return d_poolList[variableIx][term_index];
