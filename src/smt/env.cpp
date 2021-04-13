@@ -42,7 +42,10 @@ Env::Env(NodeManager* nm, Options* opts)
       d_options(),
       d_resourceManager()
 {
-  d_options.copyValues(*opts);
+  if (opts != nullptr)
+  {
+    d_options.copyValues(*opts);
+  }
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
