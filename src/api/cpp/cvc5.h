@@ -2235,15 +2235,15 @@ class CVC4_EXPORT Grammar
 std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
-/* Rounding Mode for Floating Points                                          */
+/* Rounding Mode for Floating-Points                                          */
 /* -------------------------------------------------------------------------- */
 
 /**
  * Rounding modes for floating-point numbers.
  *
- * For many floating-point operations, exact results would exceed the
- * available bits for storing it. Thus, the results are rounded in a certain
- * way to one of the representable floating-point numbers.
+ * For many floating-point operations, infinitely precise results may not be
+ * representable with the number of available bits. Thus, the results are rounded in
+ * a certain way to one of the representable floating-point numbers.
  *
  * \verbatim embed:rst:leading-asterisk
  * These rounding modes directly follow the SMT-LIB theory for floating-point
