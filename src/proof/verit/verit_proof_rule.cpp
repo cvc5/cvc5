@@ -20,7 +20,7 @@ namespace cvc5 {
 
 namespace proof {
 
-const char* veritRuleToString(VeritRule id)  // TODO: RENAME veritRuleToString?
+const char* veritRuleToString(VeritRule id)
 {
   switch (id)
   {
