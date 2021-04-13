@@ -1,13 +1,19 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Michael Chang
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Yoni Zohar, Yancheng Ou
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
+# Add unit tests.
 cvc4_add_unit_test_black(regexp_operation_black theory)
 cvc4_add_unit_test_black(theory_black theory)
 cvc4_add_unit_test_white(evaluator_white theory)

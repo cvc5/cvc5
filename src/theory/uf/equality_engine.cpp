@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file equality_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * [[ Add one-line brief description here ]]
+ *
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/uf/equality_engine.h"
 
@@ -1387,7 +1388,7 @@ void EqualityEngine::getExplanation(
   cache[cacheKey] = eqp;
 
   // We can only explain the nodes that got merged
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool canExplain = getEqualityNode(t1Id).getFind() == getEqualityNode(t2Id).getFind()
                   || (d_done && isConstant(t1Id) && isConstant(t2Id));
 
@@ -2385,7 +2386,7 @@ EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(
 bool EqualityEngine::hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNodeId rhsId) const {
   EqualityPair eq(lhsId, rhsId);
   bool propagated = d_propagatedDisequalities.find(eq) != d_propagatedDisequalities.end();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool stored = d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end();
   Assert(propagated == stored) << "These two should be in sync";
 #endif
@@ -2439,7 +2440,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
     Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end())
         << "There can't be a proof if you're adding a new one";
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     // Check that the reasons are valid
     for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
     {

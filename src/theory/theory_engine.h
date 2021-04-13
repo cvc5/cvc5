@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine
- **
- ** The theory engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_ENGINE_H
-#define CVC4__THEORY_ENGINE_H
+#ifndef CVC5__THEORY_ENGINE_H
+#define CVC5__THEORY_ENGINE_H
 
 #include <memory>
 #include <vector>
@@ -199,13 +198,14 @@ class TheoryEngine {
    * context level or below).
    */
   context::CDO<bool> d_incomplete;
+  /** The theory and identifier that (most recently) set incomplete */
+  context::CDO<theory::TheoryId> d_incompleteTheory;
+  context::CDO<theory::IncompleteId> d_incompleteId;
 
   /**
    * Called by the theories to notify that the current branch is incomplete.
    */
-  void setIncomplete(theory::TheoryId theory) {
-    d_incomplete = true;
-  }
+  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -302,7 +302,7 @@ class TheoryEngine {
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
@@ -631,6 +631,24 @@ class TheoryEngine {
    */
   std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
+  //---------------------- information about cardinality of types
+  /**
+   * Is the cardinality of type tn finite? This method depends on whether
+   * finite model finding is enabled. If finite model finding is enabled, then
+   * we assume that all uninterpreted sorts have finite cardinality.
+   *
+   * Notice that if finite model finding is enabled, this method returns true
+   * if tn is an uninterpreted sort. It also returns true for the sort
+   * (Array Int U) where U is an uninterpreted sort. This type
+   * is finite if and only if U has cardinality one; for cases like this,
+   * we conservatively return that tn has finite cardinality.
+   *
+   * This method does *not* depend on the state of the theory engine, e.g.
+   * if U in the above example currently is entailed to have cardinality >1
+   * based on the assertions.
+   */
+  bool isFiniteType(TypeNode tn) const;
+  //---------------------- end information about cardinality of types
  private:
 
   /** Dump the assertions to the dump */
@@ -674,4 +692,4 @@ private:
 
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY_ENGINE_H */
+#endif /* CVC5__THEORY_ENGINE_H */

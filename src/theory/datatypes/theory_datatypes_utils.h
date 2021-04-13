@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_datatypes_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for theory datatypes.
- **
- ** Util functions for theory datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for theory datatypes.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
-#define CVC4__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
+#ifndef CVC5__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
+#define CVC5__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
 
 #include <vector>
 

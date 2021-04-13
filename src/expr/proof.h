@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file proof.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_H
-#define CVC4__EXPR__PROOF_H
+#ifndef CVC5__EXPR__PROOF_H
+#define CVC5__EXPR__PROOF_H
 
 #include <vector>
 
@@ -275,4 +276,4 @@ class CDProof : public ProofGenerator
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_MANAGER_H */
+#endif /* CVC5__EXPR__PROOF_MANAGER_H */

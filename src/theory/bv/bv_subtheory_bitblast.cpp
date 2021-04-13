@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_subtheory_bitblast.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
 #include "theory/bv/bv_subtheory_bitblast.h"
 
@@ -173,7 +172,7 @@ bool BitblastSolver::check(Theory::Effort e)
   // We need to ensure we are fully propagated, so propagate now
   if (d_useSatPropagation)
   {
-    d_bv->spendResource(ResourceManager::Resource::BvPropagationStep);
+    d_bv->spendResource(Resource::BvPropagationStep);
     bool ok = d_bitblaster->propagate();
     if (!ok)
     {

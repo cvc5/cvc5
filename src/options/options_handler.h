@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file options_handler.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface for custom handlers and predicates options.
- **
- ** Interface for custom handlers and predicates options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface for custom handlers and predicates options.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_HANDLER_H
-#define CVC4__OPTIONS__OPTIONS_HANDLER_H
+#ifndef CVC5__OPTIONS__OPTIONS_HANDLER_H
+#define CVC5__OPTIONS__OPTIONS_HANDLER_H
 
 #include <ostream>
 #include <string>
@@ -90,6 +89,7 @@ public:
   void statsEnabledBuild(std::string option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);
+  void setResourceWeight(std::string option, std::string optarg);
 
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(std::string option, int depth);
@@ -124,8 +124,8 @@ public:
 template<class T>
 void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 {
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL) \
-    && !defined(CVC4_USE_KISSAT)
+#if !defined(CVC5_USE_CRYPTOMINISAT) && !defined(CVC5_USE_CADICAL) \
+    && !defined(CVC5_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
      << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
@@ -136,4 +136,4 @@ void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 }  // namespace options
 }  // namespace cvc5
 
-#endif /*  CVC4__OPTIONS__OPTIONS_HANDLER_H */
+#endif /*  CVC5__OPTIONS__OPTIONS_HANDLER_H */

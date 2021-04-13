@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file cegis.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief cegis
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * cegis
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_H
-#define CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGIS_H
+#define CVC5__THEORY__QUANTIFIERS__CEGIS_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_module.h"
@@ -229,4 +230,4 @@ class Cegis : public SygusModule
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEGIS_H */

@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file floatingpoint.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Mathias Preiner
- ** Copyright (c) 2013  University of Oxford
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A floating-point value.
- **
- ** This file contains the data structures used by the constant and parametric
- ** types of the floating point theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Martin Brain, Mathias Preiner
+ * Copyright (c) 2013  University of Oxford
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A floating-point value.
+ *
+ * This file contains the data structures used by the constant and parametric
+ * types of the floating point theory.
+ */
 #include "cvc4_public.h"
 
-#ifndef CVC4__FLOATINGPOINT_H
-#define CVC4__FLOATINGPOINT_H
+#ifndef CVC5__FLOATINGPOINT_H
+#define CVC5__FLOATINGPOINT_H
 
 #include <memory>
 
@@ -535,4 +536,4 @@ std::ostream& operator<<(std::ostream& os,
 
 }  // namespace cvc5
 
-#endif /* CVC4__FLOATINGPOINT_H */
+#endif /* CVC5__FLOATINGPOINT_H */

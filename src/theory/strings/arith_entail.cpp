@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file arith_entail.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of arithmetic entailment computation for string terms.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of arithmetic entailment computation for string terms.
+ */
 
 #include "theory/strings/arith_entail.h"
 
@@ -174,7 +175,7 @@ bool ArithEntail::checkApprox(Node ar)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
-            CVC4_UNUSED bool ret =
+            CVC5_UNUSED bool ret =
                 ArithMSum::getMonomialSum(aa, approxMsums[aa]);
             Assert(ret);
           }

@@ -1,20 +1,17 @@
-/*********************                                                        */
-/*! \file node_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Expression manager implementation.
- **
- ** Expression manager implementation.
- **
- ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A manager for Nodes.
+ */
 #include "expr/node_manager.h"
 
 #include <algorithm>
@@ -448,7 +445,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   // already did type check eagerly upon creation in node builder
   bool doTypeCheck = false;
 #else
@@ -599,9 +596,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    AlwaysAssert(nameResolutions.find(dtp->getName()) == nameResolutions.end())
-        << "cannot construct two datatypes at the same time "
-           "with the same name";
+    if (nameResolutions.find(dtp->getName()) != nameResolutions.end())
+    {
+      throw Exception(
+          "cannot construct two datatypes at the same time with the same name");
+    }
     nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);
   }
@@ -624,9 +623,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     std::string name = ut.getAttribute(expr::VarNameAttr());
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
-    AlwaysAssert(resolver != nameResolutions.end())
-        << "cannot resolve type " + name
-               + "; it's not among the datatypes being defined";
+    if (resolver == nameResolutions.end())
+    {
+      throw Exception("cannot resolve type " + name
+                      + "; it's not among the datatypes being defined");
+    }
     // We will instruct the Datatype to substitute "ut" (the
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
@@ -660,10 +661,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& c = dt[i];
-      TypeNode testerType CVC4_UNUSED = c.getTester().getType();
+      TypeNode testerType CVC5_UNUSED = c.getTester().getType();
       Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
-      TypeNode ctorType CVC4_UNUSED = c.getConstructor().getType();
+      TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isConstructor()
             && ctorType.getNumChildren() == c.getNumArgs() + 1
             && ctorType.getRangeType() == ut)
@@ -679,8 +680,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
         // cvc5::DType class, but this actually needs to be checked.
-        AlwaysAssert(!selectorType.getRangeType().isFunctionLike())
-            << "cannot put function-like things in datatypes";
+        if (selectorType.getRangeType().isFunctionLike())
+        {
+          throw Exception("cannot put function-like things in datatypes");
+        }
       }
     }
   }

@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file smt2_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add file-specific comments here ]]
+ */
 
 #include "parser/smt2/smt2_input.h"
 

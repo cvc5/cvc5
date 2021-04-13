@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file sexpr.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple representation of S-expressions
- **
- ** Simple representation of S-expressions.
- **
- ** SExprs have their own language specific printing procedures. The reason for
- ** this being implemented on SExpr and not on the Printer class is that the
- ** Printer class lives in libcvc4. It has to currently as it prints fairly
- ** complicated objects, like Model, which in turn uses SmtEngine pointers.
- ** However, SExprs need to be printed by Statistics. To get the output
- ** consistent with the previous version, the printing of SExprs in different
- ** languages is handled in the SExpr class and the libexpr library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple representation of S-expressions.
+ *
+ * SExprs have their own language specific printing procedures. The reason for
+ * this being implemented on SExpr and not on the Printer class is that the
+ * Printer class lives in libcvc4. It has to currently as it prints fairly
+ * complicated objects, like Model, which in turn uses SmtEngine pointers.
+ * However, SExprs need to be printed by Statistics. To get the output
+ * consistent with the previous version, the printing of SExprs in different
+ * languages is handled in the SExpr class and the libexpr library.
+ */
 
 #include "util/sexpr.h"
 

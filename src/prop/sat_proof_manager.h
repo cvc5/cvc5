@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sat_proof_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager for Minisat
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager for Minisat.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SAT_PROOF_MANAGER_H
-#define CVC4__SAT_PROOF_MANAGER_H
+#ifndef CVC5__SAT_PROOF_MANAGER_H
+#define CVC5__SAT_PROOF_MANAGER_H
 
 #include "context/cdhashset.h"
 #include "expr/buffered_proof_generator.h"
@@ -561,7 +562,8 @@ class SatProofManager
   /** The proof generator for resolution chains */
   BufferedProofGenerator d_resChainPg;
 
-  /** The false node */
+  /** The true/false nodes */
+  Node d_true;
   Node d_false;
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
@@ -589,4 +591,4 @@ class SatProofManager
 }  // namespace prop
 }  // namespace cvc5
 
-#endif /* CVC4__SAT_PROOF_MANAGER_H */
+#endif /* CVC5__SAT_PROOF_MANAGER_H */

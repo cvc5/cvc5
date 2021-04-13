@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information.
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 #include "expr/node.h"
 
 #include <cstring>
@@ -32,7 +31,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
     : Exception(message), d_node(new Node(node))
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
@@ -48,7 +47,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
     string ssstring = ss.str();
     current->setContents(ssstring.c_str());
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }

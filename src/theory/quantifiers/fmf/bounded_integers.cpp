@@ -1,23 +1,25 @@
-/*********************                                                        */
-/*! \file bounded_integers.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bounded integers module
- **
- ** This class manages integer bounds for quantifiers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bounded integers module
+ *
+ * This class manages integer bounds for quantifiers.
+ */
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -43,7 +45,8 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
-    d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }else{
     d_proxy_range = r;
   }
@@ -315,6 +318,7 @@ void BoundedIntegers::checkOwnership(Node f)
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
   do{
@@ -353,7 +357,7 @@ void BoundedIntegers::checkOwnership(Node f)
           // supported for finite element types #1123). Regardless, this is
           // typically not a limitation since this variable can be bound in a
           // standard way below since its type is finite.
-          if (!v.getType().isInterpretedFinite())
+          if (!d_qstate.isFiniteType(v.getType()))
           {
             setBoundedVar(f, v, BOUND_SET_MEMBER);
             setBoundVar = true;
@@ -413,7 +417,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && tn.isInterpretedFinite())
+          if ((tn.isSort() && d_qstate.isFiniteType(tn))
               || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
@@ -484,8 +488,8 @@ void BoundedIntegers::checkOwnership(Node f)
         if (expr::hasBoundVar(r))
         {
           // introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem(
-              "bir", r.getType(), "bound for term");
+          Node new_range =
+              sm->mkDummySkolem("bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;

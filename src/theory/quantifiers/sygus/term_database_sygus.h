@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_database_sygus.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief term database sygus class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term database sygus class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include <unordered_set>
 
@@ -469,4 +470,4 @@ class TermDbSygus {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_H */

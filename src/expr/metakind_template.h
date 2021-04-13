@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file metakind_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Template for the metakind header.
- **
- ** Template for the metakind header.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Template for the metakind header.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__KIND__METAKIND_H
-#define CVC4__KIND__METAKIND_H
+#ifndef CVC5__KIND__METAKIND_H
+#define CVC5__KIND__METAKIND_H
 
 #include <iosfwd>
 
@@ -128,11 +127,11 @@ struct NodeValuePoolEq {
 
 #include "expr/node_value.h"
 
-#endif /* CVC4__KIND__METAKIND_H */
+#endif /* CVC5__KIND__METAKIND_H */
 
 ${metakind_includes}
 
-#ifdef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace cvc5 {
 
@@ -207,4 +206,4 @@ Kind operatorToKind(::cvc5::expr::NodeValue* nv);
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */
+#endif /* CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP */

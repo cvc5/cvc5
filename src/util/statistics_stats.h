@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file statistics_stats.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistic proxy objects
- **
- ** Conceptually, every statistic consists of a data object and a proxy
- ** object. The proxy objects are issued by the `StatisticsRegistry` and
- ** maintained by the user. They only hold a pointer to a matching data
- ** object. The purpose of proxy objects is to implement methods to easily
- ** change the statistic data, but shield the regular user from the internals.
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Statistic proxy objects
+ *
+ * Conceptually, every statistic consists of a data object and a proxy
+ * object. The proxy objects are issued by the `StatisticsRegistry` and
+ * maintained by the user. They only hold a pointer to a matching data
+ * object. The purpose of proxy objects is to implement methods to easily
+ * change the statistic data, but shield the regular user from the internals.
  */
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATISTICS_STATS_H
-#define CVC4__UTIL__STATISTICS_STATS_H
+#ifndef CVC5__UTIL__STATISTICS_STATS_H
+#define CVC5__UTIL__STATISTICS_STATS_H
 
 #include <optional>
 

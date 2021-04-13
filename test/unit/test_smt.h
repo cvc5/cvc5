@@ -1,24 +1,26 @@
-/*********************                                                        */
-/*! \file test_smt.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common header for unit tests that need an SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common header for unit tests that need an SmtEngine.
+ */
 
-#ifndef CVC4__TEST__UNIT__TEST_SMT_H
-#define CVC4__TEST__UNIT__TEST_SMT_H
+#ifndef CVC5__TEST__UNIT__TEST_SMT_H
+#define CVC5__TEST__UNIT__TEST_SMT_H
 
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "expr/proof_checker.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
@@ -43,6 +45,7 @@ class TestSmt : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager());
+    d_skolemManager = d_nodeManager->getSkolemManager();
     d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
     d_smtEngine->finishInit();
@@ -50,6 +53,7 @@ class TestSmt : public TestInternal
 
   std::unique_ptr<NodeManagerScope> d_nmScope;
   std::unique_ptr<NodeManager> d_nodeManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
 
@@ -59,12 +63,14 @@ class TestSmtNoFinishInit : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager());
+    d_skolemManager = d_nodeManager->getSkolemManager();
     d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
   }
 
   std::unique_ptr<NodeManagerScope> d_nmScope;
   std::unique_ptr<NodeManager> d_nodeManager;
+  SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
 
@@ -106,7 +112,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   DummyOutputChannel() {}
   ~DummyOutputChannel() override {}
 
-  void safePoint(ResourceManager::Resource r) override {}
+  void safePoint(Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
   void trustedConflict(theory::TrustNode n) override
@@ -132,7 +138,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   }
 
   void requirePhase(TNode, bool) override {}
-  void setIncomplete() override {}
+  void setIncomplete(theory::IncompleteId id) override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
   void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }

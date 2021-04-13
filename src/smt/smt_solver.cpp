@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file smt_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for SMT queries in an SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for SMT queries in an SmtEngine.
+ */
 
 #include "smt/smt_solver.h"
 
@@ -220,7 +221,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
-  d_rm->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_rm->spendResource(Resource::PreprocessStep);
   Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
@@ -232,14 +233,7 @@ void SmtSolver::processAssertions(Assertions& as)
   }
 
   // process the assertions with the preprocessor
-  bool noConflict = d_pp.process(as);
-
-  // Notify the input formulas to theory engine
-  if (noConflict)
-  {
-    Chat() << "notifying theory engine..." << std::endl;
-    d_propEngine->notifyPreprocessedAssertions(ap.ref());
-  }
+  d_pp.process(as);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
@@ -253,23 +247,7 @@ void SmtSolver::processAssertions(Assertions& as)
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    preprocessing::IteSkolemMap::iterator it;
-    for (size_t i = 0, asize = assertions.size(); i < asize; i++)
-    {
-      // is the assertion a skolem definition?
-      it = ism.find(i);
-      if (it == ism.end())
-      {
-        Chat() << "+ input " << assertions[i] << std::endl;
-        d_propEngine->assertFormula(assertions[i]);
-      }
-      else
-      {
-        Chat() << "+ skolem definition " << assertions[i] << " (from "
-               << it->second << ")" << std::endl;
-        d_propEngine->assertSkolemDefinition(assertions[i], it->second);
-      }
-    }
+    d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file arithvar.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Defines ArithVar which is the internal representation of variables in
- ** arithmetic
- **
- ** This defines ArithVar which is the internal representation of variables in
- ** arithmetic. This is a typedef from Index to ArithVar.
- ** This file also provides utilities for ArithVars.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Defines ArithVar which is the internal representation of variables in
+ * arithmetic
+ *
+ * This defines ArithVar which is the internal representation of variables in
+ * arithmetic. This is a typedef from Index to ArithVar.
+ * This file also provides utilities for ArithVars.
+ */
 
 #include "cvc4_private.h"
 
