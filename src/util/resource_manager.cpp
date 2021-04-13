@@ -112,8 +112,6 @@ struct ResourceManager::Statistics
     Assert(stats.size() > id);
     stats[id] += amount;
   }
-
-  StatisticsRegistry& d_statisticsRegistry;
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
