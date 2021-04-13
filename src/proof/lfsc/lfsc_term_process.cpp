@@ -203,24 +203,19 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (n.isClosure())
   {
-    TypeNode intType = nm->integerType();
     // (forall ((x1 T1) ... (xn Tk)) P) is
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
-    TypeNode bodyType = nm->mkFunctionType(ret.getType(), tn, false);
-    // We permit non-flat function types here
-    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
-    Node forallOp = getSymbolInternal(
-        k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+    Node cop = getOperatorOfClosure(n);
     for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
     {
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
-      Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
-      Node tc = typeAsNode(convertType(v.getType()));
-      ret = nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, forallOp, x, tc), ret);
+      Node vop = getOperatorOfBoundVar(cop, v);
+      ret = nm->mkNode(APPLY_UF, vop, ret);
     }
+    // notice that intentionally we drop annotations here
     return ret;
   }
   else if (k == REGEXP_LOOP)
@@ -549,6 +544,7 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
 Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
 {
   Assert(n.hasOperator());
+  Assert (!n.isClosure());
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   std::stringstream opName;
@@ -606,7 +602,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
   if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
-      || k == LEQ || k == LT || k == MINUS || k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS || k==INTS_MODULUS_TOTAL)
+      || k == LEQ || k == LT || k == MINUS || k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS || k==INTS_MODULUS_TOTAL || k==UMINUS)
   {
     if (n[0].getType().isInteger())
     {
@@ -616,6 +612,10 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     {
       opName << "real.";
     }
+  }
+  if (k==UMINUS)
+  {
+    opName << "u";
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
   if (k==DIVISION_TOTAL || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS_TOTAL)
@@ -633,6 +633,27 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     return nm->mkNode(APPLY_UF, iteSym, typeNode);
   }
   return getSymbolInternal(k, ftype, opName.str());
+}
+
+Node LfscTermProcessor::getOperatorOfClosure(Node q)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType(), false);
+  // We permit non-flat function types here
+  // intType is used here for variable indices
+  TypeNode intType = nm->integerType();
+  TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
+  Kind k = q.getKind();
+  return getSymbolInternal(
+      k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+}
+
+Node LfscTermProcessor::getOperatorOfBoundVar(Node cop, Node v)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
+  Node tc = typeAsNode(convertType(v.getType()));
+  return nm->mkNode(APPLY_UF, cop, x, tc);
 }
 
 size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)

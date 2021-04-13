@@ -47,6 +47,10 @@ class LfscTermProcessor : public TermProcessor
    * a term. An example is for the base REFL step of nested CONG.
    */
   Node getOperatorOfTerm(Node n, bool macroApply = false);
+  /** get closure operator */
+  Node getOperatorOfClosure(Node q);
+  /** get closure operator, cop is return  */
+  Node getOperatorOfBoundVar(Node cop, Node v);
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
   /**

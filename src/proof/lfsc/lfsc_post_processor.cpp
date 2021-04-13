@@ -158,6 +158,45 @@ bool LfscProofPostprocessCallback::update(Node res,
       // require a REFL step.
       Assert(res.getKind() == EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
+      // different for closures
+      if (res[0].isClosure())
+      {
+        // FIXME
+        return false;
+        if (res[0][0]!=res[1][0])
+        {
+          // TODO: cannot convert congruence with different variables currently
+          return false;
+        }
+        Node cop = d_tproc.getOperatorOfClosure(res[0]);
+        // start with base case body = body'
+        Node curL = children[1][0];
+        Node curR = children[1][1];
+        Node currEq = children[1];
+        for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
+        {
+          // CONG rules for each variable
+          Node v = res[0][0][nvars-1-i];
+          Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
+          Node vopEq = vop.eqNode(vop);
+          cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
+          Node nextEq;
+          if (i + 1 == nvars)
+          {
+            // if we are at the end, we prove the final equality
+            nextEq = res;
+          }
+          else
+          {
+            curL = nm->mkNode(HO_APPLY, vop, children[i][0]);
+            curR = nm->mkNode(HO_APPLY, vop, children[i][1]);
+            nextEq = curL.eqNode(curR);
+          }
+          addLfscRule(cdp, nextEq, {currEq, vopEq}, LfscRule::CONG, {});
+          currEq = nextEq;
+        }
+        return true;
+      }
       Kind k = res[0].getKind();
       // We are proving f(t1, ..., tn) = f(s1, ..., sn), nested.
       // First, get the operator, which will be used for printing the base
