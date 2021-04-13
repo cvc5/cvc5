@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file regexp_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the regular expression solver for the theory of
- ** strings.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the regular expression solver for the theory of strings.
+ */
 
 #include "theory/strings/regexp_solver.h"
 
@@ -303,7 +302,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
           else
           {
             // otherwise we are incomplete
-            d_im.setIncomplete();
+            d_im.setIncomplete(IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY);
           }
         }
         if (d_state.isInConflict())
@@ -361,14 +360,14 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           {
             // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
             //   mark ~str.in.re(x, R2) as reduced
-            d_im.markReduced(m2Lit);
+            d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
             remove.insert(m2);
           }
           else
           {
             // str.in.re(x, R1) includes str.in.re(x, R2) --->
             //   mark str.in.re(x, R1) as reduced
-            d_im.markReduced(m1Lit);
+            d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
             remove.insert(m1);
 
             // We don't need to process m1 anymore
@@ -489,12 +488,12 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
-      d_im.markReduced(m);
+      d_im.markReduced(m, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
     }
     else if (mresr == m)
     {
       // same as above, opposite direction
-      d_im.markReduced(mi);
+      d_im.markReduced(mi, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
     }
     else
     {
@@ -510,8 +509,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       d_im.sendInference(
           vec_nodes, mres, InferenceId::STRINGS_RE_INTER_INFER, false, true);
       // both are reduced
-      d_im.markReduced(m);
-      d_im.markReduced(mi);
+      d_im.markReduced(m, ExtReducedId::STRINGS_REGEXP_INTER);
+      d_im.markReduced(mi, ExtReducedId::STRINGS_REGEXP_INTER);
       // do not send more than one lemma for this class
       return true;
     }

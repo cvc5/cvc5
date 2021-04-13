@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file context_mm_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::context::ContextMemoryManager.
- **
- ** Black box testing of cvc5::context::ContextMemoryManager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Dejan Jovanovic, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::context::ContextMemoryManager.
+ */
 
 #include <cstring>
 #include <iostream>
@@ -36,7 +35,7 @@ class TestContextBlackMM : public TestInternal
 
 TEST_F(TestContextBlackMM, push_pop)
 {
-#ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifdef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 #warning "Using the debug context memory manager, omitting unit tests"
 #else
   // Push, then allocate, then pop

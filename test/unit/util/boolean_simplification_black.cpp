@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file boolean_simplification_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::BooleanSimplification
- **
- ** Black box testing of cvc5::BooleanSimplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::BooleanSimplification.
+ */
 
 #include <algorithm>
 #include <set>
@@ -124,7 +123,7 @@ TEST_F(TestUtilBlackBooleanSimplification, negate)
   out = d_fa.andNode(d_ac).notNode();
   test_nodes_equal(out, BooleanSimplification::negate(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = Node();
   ASSERT_THROW(BooleanSimplification::negate(in), AssertArgumentException);
 #endif
@@ -166,7 +165,7 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyClause)
                               << d_hfc << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = d_nodeManager->mkNode(kind::AND, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyClause(in),
                AssertArgumentException);
@@ -212,7 +211,7 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyHornClause)
         << d_hfc << d_ac << d_d.notNode();
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = d_nodeManager->mkNode(kind::OR, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyHornClause(in),
                AssertArgumentException);
@@ -241,7 +240,7 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
                                << d_hfc.orNode(d_ac) << d_d << d_b;
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = d_nodeManager->mkNode(kind::OR, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyConflict(in),
                AssertArgumentException);

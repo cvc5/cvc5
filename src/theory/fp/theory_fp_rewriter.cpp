@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file theory_fp_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Aina Niemetz
- ** Copyright (c) 2013  University of Oxford
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewrite rules for floating point theories.
- **
- ** \todo - Single argument constant propagate / simplify
- **       - Push negations through arithmetic operators (include max and min?
- **         maybe not due to +0/-0)
- **       - classifications to normal tests (maybe)
- **       - (= x (fp.neg x)) --> (isNaN x)
- **       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
- **             should be sufficient)
- **       - (fp.eq x const) --> various = depending on const
- **       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
- **       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
- **       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
- **       - (fp.isNegative (fp.abs x)) --> false
- **       - A -> castA --> A
- **       - A -> castB -> castC  -->  A -> castC if A <= B <= C
- **       - A -> castB -> castA  -->  A if A <= B
- **       - promotion converts can ignore rounding mode
- **       - Samuel Figuer results
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Andres Noetzli, Aina Niemetz
+ * Copyright (c) 2013  University of Oxford
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite rules for floating point theories.
+ *
+ * \todo - Single argument constant propagate / simplify
+ *       - Push negations through arithmetic operators (include max and min?
+ *         maybe not due to +0/-0)
+ *       - classifications to normal tests (maybe)
+ *       - (= x (fp.neg x)) --> (isNaN x)
+ *       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
+ *             should be sufficient)
+ *       - (fp.eq x const) --> various = depending on const
+ *       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
+ *       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
+ *       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
+ *       - (fp.isNegative (fp.abs x)) --> false
+ *       - A -> castA --> A
+ *       - A -> castB -> castC  -->  A -> castC if A <= B <= C
+ *       - A -> castB -> castA  -->  A if A <= B
+ *       - promotion converts can ignore rounding mode
+ *       - Samuel Figuer results
+ */
 
 #include <algorithm>
 
@@ -194,7 +195,7 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
     Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
            || (k == kind::FLOATINGPOINT_MIN_TOTAL)
@@ -885,7 +886,7 @@ namespace constantFold {
     bool result;
     switch (k)
     {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
       case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
       case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
@@ -909,7 +910,7 @@ namespace constantFold {
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
 #else
         node
@@ -925,7 +926,7 @@ namespace constantFold {
 
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
 #else
         node
@@ -939,7 +940,7 @@ namespace constantFold {
 
     BitVector value;
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model class.
+ */
 #include "theory/theory_model.h"
 
 #include "expr/node_algorithm.h"
@@ -353,7 +354,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
     d_substitutions.addSubstitution( x, t, invalidateCache );
   } else {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
@@ -363,7 +364,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
           << "old mapping: " << d_substitutions.apply(oldX) << "\n"
           << "new mapping: " << d_substitutions.apply(t);
     }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
   }
 }
 

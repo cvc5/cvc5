@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file node_self_iterator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Iterator supporting Node "self-iteration"
- **
- ** Iterator supporting Node "self-iteration."
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Iterator supporting Node "self-iteration."
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__NODE_SELF_ITERATOR_H
-#define CVC4__EXPR__NODE_SELF_ITERATOR_H
+#ifndef CVC5__EXPR__NODE_SELF_ITERATOR_H
+#define CVC5__EXPR__NODE_SELF_ITERATOR_H
 
 #include <iterator>
 
@@ -125,4 +124,4 @@ inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
 }  // namespace expr
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__NODE_SELF_ITERATOR_H */
+#endif /* CVC5__EXPR__NODE_SELF_ITERATOR_H */

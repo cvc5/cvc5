@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file test_smt.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common header for unit tests that need an SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common header for unit tests that need an SmtEngine.
+ */
 
-#ifndef CVC4__TEST__UNIT__TEST_SMT_H
-#define CVC4__TEST__UNIT__TEST_SMT_H
+#ifndef CVC5__TEST__UNIT__TEST_SMT_H
+#define CVC5__TEST__UNIT__TEST_SMT_H
 
 #include "expr/dtype_cons.h"
 #include "expr/node.h"
@@ -111,7 +112,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   DummyOutputChannel() {}
   ~DummyOutputChannel() override {}
 
-  void safePoint(ResourceManager::Resource r) override {}
+  void safePoint(Resource r) override {}
   void conflict(TNode n) override { push(CONFLICT, n); }
 
   void trustedConflict(theory::TrustNode n) override
@@ -137,7 +138,7 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   }
 
   void requirePhase(TNode, bool) override {}
-  void setIncomplete() override {}
+  void setIncomplete(theory::IncompleteId id) override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
   void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }

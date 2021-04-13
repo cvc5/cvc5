@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file type_properties_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Template for the Type properties header
- **
- ** Template for the Type properties header.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Template for the Type properties header.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__TYPE_PROPERTIES_H
-#define CVC4__TYPE_PROPERTIES_H
+#ifndef CVC5__TYPE_PROPERTIES_H
+#define CVC5__TYPE_PROPERTIES_H
 
 #include <sstream>
 
@@ -116,4 +115,4 @@ ${type_groundterms}
 }  // namespace kind
 }  // namespace cvc5
 
-#endif /* CVC4__TYPE_PROPERTIES_H */
+#endif /* CVC5__TYPE_PROPERTIES_H */

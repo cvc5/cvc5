@@ -1,12 +1,16 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Gereon Kremer, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
 
 find_package(ANTLR3 3.4 REQUIRED)
@@ -99,7 +103,7 @@ endforeach()
 # libcvc4parser configuration
 
 add_library(cvc4parser ${libcvc4parser_src_files})
-set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
 target_link_libraries(cvc4parser PUBLIC cvc4)
 target_link_libraries(cvc4parser PRIVATE ANTLR3)
@@ -119,7 +123,7 @@ install(TARGETS cvc4parser
 # unresolved symbols when linking against libcvc4parser.
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
-if(CVC4_WINDOWS_BUILD)
+if(CVC5_WINDOWS_BUILD)
   set_target_properties(cvc4parser
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()

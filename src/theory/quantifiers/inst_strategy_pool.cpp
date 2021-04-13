@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inst_strategy_pool.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a pool instantiation strategy.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Pool-based instantiation strategy
+ */
 
 #include "theory/quantifiers/inst_strategy_pool.h"
 
@@ -65,8 +66,7 @@ void InstStrategyPool::registerQuantifier(Node q)
 
 void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
 {
-  bool doCheck = !d_userPools.empty();
-  if (!doCheck)
+  if (d_userPools.empty())
   {
     return;
   }
@@ -157,7 +157,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
     {
       Trace("pool-inst") << "Fail with " << terms << std::endl;
       // notify the enumerator of the failure
-      /// enumerator->failureReason(failMask);
+      enumerator->failureReason(failMask);
     }
   }
   return false;

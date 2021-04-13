@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file theory_bv_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitvector theory typing rules
- **
- ** Bitvector theory typing rules.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitvector theory typing rules.
+ */
 
 #include "cvc4_private.h"
 
 #include <algorithm>
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
-#define CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#ifndef CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#define CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H
 
 namespace cvc5 {
 namespace theory {
@@ -452,4 +451,4 @@ class BitVectorAckermanizationUremTypeRule
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */
+#endif /* CVC5__THEORY__BV__THEORY_BV_TYPE_RULES_H */

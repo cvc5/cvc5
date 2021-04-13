@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file valuation.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A "valuation" proxy for TheoryEngine
- **
- ** A "valuation" proxy for TheoryEngine.  This class breaks the dependence
- ** of theories' getValue() implementations on TheoryEngine.  getValue()
- ** takes a Valuation, which delegates to TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A "valuation" proxy for TheoryEngine
+ *
+ * A "valuation" proxy for TheoryEngine.  This class breaks the dependence
+ * of theories' getValue() implementations on TheoryEngine.  getValue()
+ * takes a Valuation, which delegates to TheoryEngine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__VALUATION_H
-#define CVC4__THEORY__VALUATION_H
+#ifndef CVC5__THEORY__VALUATION_H
+#define CVC5__THEORY__VALUATION_H
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -150,7 +151,7 @@ public:
    * differ from the input due to theory-rewriting and preprocessing,
    * as well as CNF conversion
    */
-  Node ensureLiteral(TNode n) CVC4_WARN_UNUSED_RESULT;
+  Node ensureLiteral(TNode n) CVC5_WARN_UNUSED_RESULT;
 
   /**
    * This returns the theory-preprocessed form of term n. The theory
@@ -214,9 +215,14 @@ public:
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
+  /**
+   * Is the cardinality of type tn finite? This method depends on whether
+   * finite model finding is enabled. For details, see theory_engine.h.
+   */
+  bool isFiniteType(TypeNode tn) const;
 };/* class Valuation */
 
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__VALUATION_H */
+#endif /* CVC5__THEORY__VALUATION_H */

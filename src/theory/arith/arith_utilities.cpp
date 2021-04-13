@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file arith_utilities.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Alex Ozdemir, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of common functions for dealing with nodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Alex Ozdemir, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of common functions for dealing with nodes.
+ */
 
 #include "arith_utilities.h"
 

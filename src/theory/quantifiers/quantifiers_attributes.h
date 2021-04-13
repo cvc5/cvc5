@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file quantifiers_attributes.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Attributes for the theory quantifiers
- **
- ** Attributes for the theory quantifiers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Attributes for the theory quantifiers.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
 #include "expr/attribute.h"
 #include "expr/node.h"

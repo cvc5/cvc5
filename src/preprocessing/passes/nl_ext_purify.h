@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file nl_ext_purify.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The NlExtPurify preprocessing pass
- **
- ** Purifies non-linear terms by replacing sums under multiplications by fresh
- ** variables
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The NlExtPurify preprocessing pass.
+ *
+ * Purifies non-linear terms by replacing sums under multiplications by fresh
+ * variables.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
-#define CVC4__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
+#ifndef CVC5__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
+#define CVC5__PREPROCESSING__PASSES__NL_EXT_PURIFY_H
 
 #include <unordered_map>
 #include <vector>
@@ -53,4 +54,4 @@ class NlExtPurify : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__NL_EXT_PURIFY_H */
+#endif /* CVC5__PREPROCESSING__PASSES__NL_EXT_PURIFY_H */

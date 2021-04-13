@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file ho_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the higher-order extension of TheoryUF.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the higher-order extension of TheoryUF.
+ */
 
 #include "theory/uf/ho_extension.h"
 
@@ -202,15 +202,17 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                  << isCollectModel << "..." << std::endl;
   std::map<TypeNode, std::vector<Node> > func_eqcs;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  bool hasFunctions = false;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if (tn.isFunction())
     {
+      hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (tn.isInterpretedFinite() != isCollectModel)
+      if (d_state.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -218,6 +220,16 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       }
     }
     ++eqcs_i;
+  }
+  if (!options::ufHoExt())
+  {
+    // we are not applying extensionality, thus we are incomplete if functions
+    // are present
+    if (hasFunctions)
+    {
+      d_im.setIncomplete(IncompleteId::UF_HO_EXT_DISABLED);
+    }
+    return 0;
   }
 
   for (std::map<TypeNode, std::vector<Node> >::iterator itf = func_eqcs.begin();
@@ -403,17 +415,14 @@ unsigned HoExtension::check()
     }
   } while (num_facts > 0);
 
-  if (options::ufHoExt())
-  {
-    unsigned num_lemmas = 0;
+  unsigned num_lemmas = 0;
 
-    num_lemmas = checkExtensionality();
-    if (num_lemmas > 0)
-    {
-      Trace("uf-ho") << "...extensionality returned " << num_lemmas
-                     << " lemmas." << std::endl;
-      return num_lemmas;
-    }
+  num_lemmas = checkExtensionality();
+  if (num_lemmas > 0)
+  {
+    Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas."
+                   << std::endl;
+    return num_lemmas;
   }
 
   Trace("uf-ho") << "...finished check higher order." << std::endl;

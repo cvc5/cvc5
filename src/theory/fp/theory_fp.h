@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file theory_fp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Martin Brain, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Martin Brain, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of floating-point arithmetic.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__FP__THEORY_FP_H
-#define CVC4__THEORY__FP__THEORY_FP_H
+#ifndef CVC5__THEORY__FP__THEORY_FP_H
+#define CVC5__THEORY__FP__THEORY_FP_H
 
 #include <string>
 #include <utility>
@@ -193,4 +191,4 @@ class TheoryFp : public Theory
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC5__THEORY__FP__THEORY_FP_H */

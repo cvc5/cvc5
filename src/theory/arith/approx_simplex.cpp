@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file approx_simplex.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "theory/arith/approx_simplex.h"
 
 #include <math.h>
@@ -30,7 +31,7 @@
 #include "theory/arith/normal_form.h"
 #include "theory/eager_proof_generator.h"
 
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
 #include "theory/arith/partial_model.h"
 #endif
 
@@ -372,7 +373,7 @@ public:
 }  // namespace cvc5
 
 /* Begin the declaration of GLPK specific code. */
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
 extern "C" {
 #include <glpk.h>
 }/* extern "C" */
@@ -538,7 +539,7 @@ int ApproxGLPK::s_verbosity = 0;
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5
-#endif /*#ifdef CVC4_USE_GLPK */
+#endif /*#ifdef CVC5_USE_GLPK */
 /* End the declaration of GLPK specific code. */
 
 /* Begin GPLK/NOGLPK Glue code. */
@@ -546,14 +547,14 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 ApproximateSimplex* ApproximateSimplex::mkApproximateSimplexSolver(const ArithVariables& vars, TreeLog& l, ApproximateStatistics& s){
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
   return new ApproxGLPK(vars, l, s);
 #else
   return new ApproxNoOp(vars, l, s);
 #endif
 }
 bool ApproximateSimplex::enabled() {
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
   return true;
 #else
   return false;
@@ -565,12 +566,12 @@ bool ApproximateSimplex::enabled() {
 /* End GPLK/NOGLPK Glue code. */
 
 /* Begin GPLK implementation. */
-#ifdef CVC4_USE_GLPK
+#ifdef CVC5_USE_GLPK
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
 static CutInfoKlass fromGlpkClass(int klass){
   switch(klass){
   case GLP_RF_GMI: return GmiCutKlass;
@@ -1430,7 +1431,7 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
   int M = gmi->getMAtCreation();
 
   // Get the tableau row
-  int nrows CVC4_UNUSED = glp_ios_cut_get_aux_nrows(tree, gmi->poolOrdinal());
+  int nrows CVC5_UNUSED = glp_ios_cut_get_aux_nrows(tree, gmi->poolOrdinal());
   Assert(nrows == 1);
   int rows[1+1];
   glp_ios_cut_get_aux_rows(tree, gmi->poolOrdinal(), rows, NULL);
@@ -3177,5 +3178,5 @@ void ApproxGLPK::tryCut(int nid, CutInfo& cut)
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5
-#endif /*#ifdef CVC4_USE_GLPK */
+#endif /*#ifdef CVC5_USE_GLPK */
 /* End GPLK implementation. */

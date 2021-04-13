@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file preprocessing_pass_context.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessing pass context for passes
- **
- ** Implementation of the preprocessing pass context for passes. This context
- ** allows preprocessing passes to retrieve information besides the assertions
- ** from the solver and interact with it without getting full access.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessing pass context for passes
+ *
+ * Implementation of the preprocessing pass context for passes. This context
+ * allows preprocessing passes to retrieve information besides the assertions
+ * from the solver and interact with it without getting full access.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
-#define CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
+#ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
+#define CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
 #include "context/cdhashset.h"
 #include "smt/smt_engine.h"
@@ -61,7 +62,7 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(ResourceManager::Resource r)
+  void spendResource(Resource r)
   {
     d_resourceManager->spendResource(r);
   }
@@ -108,4 +109,4 @@ class PreprocessingPassContext
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */
+#endif /* CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */

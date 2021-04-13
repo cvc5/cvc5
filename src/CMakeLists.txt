@@ -1,20 +1,23 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-#-----------------------------------------------------------------------------#
-# Collect libcvc4 source files
 
+# Collect libcvc4 source files
 libcvc4_add_sources(
-  api/checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5.h
+  api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
   context/backtrackable.h
   context/cddense_set.h
@@ -632,6 +635,8 @@ libcvc4_add_sources(
   theory/fp/theory_fp_type_rules.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/incomplete_id.cpp
+  theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
   theory/inference_manager_buffered.cpp
@@ -994,6 +999,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
   theory/strings/theory_strings_preprocess.h
+  theory/strings/theory_strings_type_rules.cpp
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
@@ -1124,7 +1130,7 @@ install(TARGETS cvc4
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc4
   PRIVATE
     -D__BUILDING_CVC4LIB

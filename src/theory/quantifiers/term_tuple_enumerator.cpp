@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file  term_tuple_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mikolas Janota
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of an enumeration of tuples of terms for the purpose
- *of quantifier instantiation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   MikolasJanota, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of an enumeration of tuples of terms for the purpose of
+ * quantifier instantiation.
+ */
 #include "theory/quantifiers/term_tuple_enumerator.h"
 
 #include <algorithm>
@@ -154,7 +155,7 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
   virtual size_t prepareTerms(size_t variableIx) = 0;
   /** Get a given term for a given variable.  */
   virtual Node getTerm(size_t variableIx,
-                       size_t term_index) CVC4_WARN_UNUSED_RESULT = 0;
+                       size_t term_index) CVC5_WARN_UNUSED_RESULT = 0;
 };
 
 /**
@@ -515,8 +516,8 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   Node d_pool;
   /**  a list of terms for each id */
   std::map<size_t, std::vector<Node> > d_poolList;
-  /** prepare terms gets the terms from the pool */
-  virtual size_t prepareTerms(size_t variableIx) override
+  /** gets the terms from the pool */
+  size_t prepareTerms(size_t variableIx) override
   {
     Assert(d_pool.getNumChildren() > variableIx);
     // prepare terms from pool
@@ -526,7 +527,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
                        << d_poolList[variableIx] << std::endl;
     return d_poolList[variableIx].size();
   }
-  virtual Node getTerm(size_t variableIx, size_t term_index) override
+  Node getTerm(size_t variableIx, size_t term_index) override
   {
     Assert(term_index < d_poolList[variableIx].size());
     return d_poolList[variableIx][term_index];

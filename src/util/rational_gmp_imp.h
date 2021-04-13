@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file rational_gmp_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Gereon Kremer, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Multiprecision rational constants; wraps a GMP multiprecision
- ** rational.
- **
- ** Multiprecision rational constants; wraps a GMP multiprecision rational.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Multiprecision rational constants; wraps a GMP multiprecision rational.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__RATIONAL_H
-#define CVC4__RATIONAL_H
+#ifndef CVC5__RATIONAL_H
+#define CVC5__RATIONAL_H
 
 #include <gmp.h>
 
@@ -32,19 +30,19 @@
 namespace cvc5 {
 
 /**
- ** A multi-precision rational constant.
- ** This stores the rational as a pair of multi-precision integers,
- ** one for the numerator and one for the denominator.
- ** The number is always stored so that the gcd of the numerator and denominator
- ** is 1.  (This is referred to as referred to as canonical form in GMP's
- ** literature.) A consequence is that that the numerator and denominator may be
- ** different than the values used to construct the Rational.
- **
- ** NOTE: The correct way to create a Rational from an int is to use one of the
- ** int numerator/int denominator constructors with the denominator 1.  Trying
- ** to construct a Rational with a single int, e.g., Rational(0), will put you
- ** in danger of invoking the char* constructor, from whence you will segfault.
- **/
+ * A multi-precision rational constant.
+ * This stores the rational as a pair of multi-precision integers,
+ * one for the numerator and one for the denominator.
+ * The number is always stored so that the gcd of the numerator and denominator
+ * is 1.  (This is referred to as referred to as canonical form in GMP's
+ * literature.) A consequence is that that the numerator and denominator may be
+ * different than the values used to construct the Rational.
+ *
+ * NOTE: The correct way to create a Rational from an int is to use one of the
+ * int numerator/int denominator constructors with the denominator 1.  Trying
+ * to construct a Rational with a single int, e.g., Rational(0), will put you
+ * in danger of invoking the char* constructor, from whence you will segfault.
+ */
 
 class CVC4_EXPORT Rational
 {
@@ -97,7 +95,7 @@ class CVC4_EXPORT Rational
   Rational(signed long int n) : d_value(n, 1) { d_value.canonicalize(); }
   Rational(unsigned long int n) : d_value(n, 1) { d_value.canonicalize(); }
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Rational(int64_t n) : d_value(static_cast<long>(n), 1)
   {
     d_value.canonicalize();
@@ -106,7 +104,7 @@ class CVC4_EXPORT Rational
   {
     d_value.canonicalize();
   }
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /**
    * Constructs a canonical Rational from a numerator and denominator.
@@ -128,7 +126,7 @@ class CVC4_EXPORT Rational
     d_value.canonicalize();
   }
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Rational(int64_t n, int64_t d)
       : d_value(static_cast<long>(n), static_cast<long>(d))
   {
@@ -139,7 +137,7 @@ class CVC4_EXPORT Rational
   {
     d_value.canonicalize();
   }
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   Rational(const Integer& n, const Integer& d)
       : d_value(n.get_mpz(), d.get_mpz())
@@ -333,4 +331,4 @@ std::ostream& operator<<(std::ostream& os, const Rational& n) CVC4_EXPORT;
 
 }  // namespace cvc5
 
-#endif /* CVC4__RATIONAL_H */
+#endif /* CVC5__RATIONAL_H */

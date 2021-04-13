@@ -886,7 +886,7 @@ bool Solver::simplify()
 
   if (nAssigns() == simpDB_assigns || (simpDB_props > 0)) return true;
 
-  d_notify->spendResource(ResourceManager::Resource::BvSatSimplifyStep);
+  d_notify->spendResource(Resource::BvSatSimplifyStep);
 
   // Remove satisfied clauses:
   removeSatisfied(learnts);
@@ -927,7 +927,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
 
   for (;;)
   {
-    d_notify->safePoint(ResourceManager::Resource::BvSatPropagateStep);
+    d_notify->safePoint(Resource::BvSatPropagateStep);
     CRef confl = propagate();
     if (confl != CRef_Undef)
     {
@@ -1026,7 +1026,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
       try
       {
         isWithinBudget =
-            withinBudget(ResourceManager::Resource::BvSatConflictsStep);
+            withinBudget(Resource::BvSatConflictsStep);
       }
       catch (const cvc5::theory::Interrupted& e)
       {
@@ -1197,7 +1197,7 @@ lbool Solver::solve_()
     while (status == l_Undef){
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
         status = search(rest_base * restart_first);
-        if (!withinBudget(ResourceManager::Resource::BvSatConflictsStep)) break;
+        if (!withinBudget(Resource::BvSatConflictsStep)) break;
         curr_restarts++;
     }
 
@@ -1406,7 +1406,7 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 }
 
 void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
-bool Solver::withinBudget(ResourceManager::Resource r) const
+bool Solver::withinBudget(Resource r) const
 {
   AlwaysAssert(d_notify);
   d_notify->safePoint(r);

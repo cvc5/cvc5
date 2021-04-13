@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file proof_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bit-Vector proof checker utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bit-Vector proof checker utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__PROOF_CHECKER_H
-#define CVC4__THEORY__BV__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__BV__PROOF_CHECKER_H
+#define CVC5__THEORY__BV__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
@@ -47,4 +48,4 @@ class BVProofRuleChecker : public ProofRuleChecker
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__BV__PROOF_CHECKER_H */

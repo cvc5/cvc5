@@ -88,6 +88,7 @@ jobs:
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
+        brew update
         brew install \
           ccache \
           cln \
@@ -187,7 +188,7 @@ jobs:
       run: make -j2 check
       env:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
-        CVC4_REGRESSION_ARGS: --no-early-exit
+        CVC5_REGRESSION_ARGS: --no-early-exit
         RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
       working-directory: build
 

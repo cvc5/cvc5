@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file cardinality_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of theory of UF with cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of theory of UF with cardinality.
+ */
 
 #include "theory/uf/cardinality_extension.h"
 
@@ -1432,7 +1433,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       // cardinality constraint from user input, set incomplete   
       Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::UF_CARD_MODE);
     }
   }
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
