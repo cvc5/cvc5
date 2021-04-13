@@ -143,7 +143,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       {
         std::vector<Node> newChildren{cur, children[i]};
         cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
-        if (processed.find(cur)!=processed.end())
+        if (processed.find(cur) != processed.end())
         {
           continue;
         }
