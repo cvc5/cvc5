@@ -1,16 +1,18 @@
-/*********************                                                        */
-/*! \file inst_strategy_pool.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerative instantiation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Pool-based instantiation strategy
+ */
+
 
 #include "cvc4_private.h"
 
@@ -31,7 +33,8 @@ namespace quantifiers {
  * INST_POOL annotation on quantified formulas. For each annotation, it
  * instantiates the associated quantified formula with the Cartesian
  * product of terms currently in the pool, using efficient techniques for
- * enumerating over tuples of terms.
+ * enumerating over tuples of terms, as implemented in the term tuple
+ * enumerator utilities (see quantifiers/term_tuple_enumerator.h).
  */
 class InstStrategyPool : public QuantifiersModule
 {
