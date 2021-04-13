@@ -1,7 +1,7 @@
 #####################
 ## test_solver.py
 ## Top contributors (to current version):
-##   Yoni Zohar
+##   Yoni Zohar, Ying Sheng
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
@@ -34,3 +34,49 @@ def test_supports_floating_point(solver):
     else:
         with pytest.raises(RuntimeError):
           solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+
+def test_get_boolean_sort(solver):
+    try:
+        solver.getBooleanSort()
+    except RuntimeError:
+        pytest.fail()
+
+def test_get_integer_sort(solver):
+    try:
+        solver.getIntegerSort()
+    except RuntimeError:
+        pytest.fail()
+
+#def test_get_null_sort(solver):
+#    try:
+#        solver.getNullSort()
+#    except RuntimeError:
+#        pytest.fail()
+
+def test_get_real_sort(solver):
+    try:
+        solver.getRealSort()
+    except RuntimeError:
+        pytest.fail()
+
+def test_get_reg_exp_sort(solver):
+    try:
+        solver.getRegExpSort()
+    except RuntimeError:
+        pytest.fail()
+
+def test_get_string_sort(solver):
+    try:
+        solver.getStringSort()
+    except RuntimeError:
+        pytest.fail()
+
+def test_get_rounding_mode_sort(solver):
+    if solver.supportsFloatingPoint():
+      try:
+          solver.getRoundingModeSort()
+      except RuntimeError:
+          pytest.fail()
+    else:
+        with pytest.raises(RuntimeError):
+          solver.getRoundingModeSort()
