@@ -60,6 +60,7 @@ class QuantifierMacros : public PreprocessingPass
                        std::vector<Node>& vars,
                        std::vector<Node>& subs,
                        bool reqComplete);
+  void addMacroEq(Node n, Node ndef);
   void addMacro(Node op, Node n, std::vector<Node>& opc);
   void debugMacroDefinition(Node oo, Node n);
   /**

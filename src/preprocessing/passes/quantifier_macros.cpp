@@ -340,19 +340,8 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
       Node op = n.getOperator();
       if( d_macro_defs.find( op )==d_macro_defs.end() ){
         Node n_def = nm->mkConst(pol);
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          std::stringstream ss;
-          ss << "mda_" << op << "";
-          Node v =
-              sm->mkDummySkolem(ss.str(),
-                                n[i].getType(),
-                                "created during macro definition recognition");
-          d_macro_basis[op].push_back( v );
-        }
-        //contains no ops
-        std::vector< Node > op_contains;
         //add the macro
-        addMacro( op, n_def, op_contains );
+        addMacroEq( n, n_def, op_contains );
         return true;
       }
     }
@@ -543,6 +532,11 @@ void QuantifierMacros::finalizeDefinitions() {
     }
     Trace("macros") << "done." << std::endl;
   }
+}
+
+void QuantifierMacros::addMacroEq(Node n, Node ndef)
+{
+  
 }
 
 void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
