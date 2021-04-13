@@ -51,3 +51,22 @@ add_custom_target(docs ALL
                   ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                   COMMENT "Generating Sphinx Api docs")
+
+set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
+add_custom_target(docs-gh ALL
+                  DEPENDS docs
+                  COMMAND ${CMAKE_COMMAND} -E remove_directory
+                    ${SPHINX_GH_OUTPUT_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${SPHINX_OUTPUT_DIR} ${SPHINX_GH_OUTPUT_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E remove_directory
+                    ${SPHINX_GH_OUTPUT_DIR}/_sources
+                  COMMAND ${CMAKE_COMMAND} -E remove
+                    ${SPHINX_GH_OUTPUT_DIR}/objects.inv
+                  COMMAND ${CMAKE_COMMAND} -E rename
+                  ${SPHINX_GH_OUTPUT_DIR}/_static ${SPHINX_GH_OUTPUT_DIR}/static
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f |
+                    xargs sed -i'orig' 's/_static/static/'
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
+                  COMMENT "Generating GitHub Api docs")
+
