@@ -111,7 +111,7 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == APPLY_UF)
   {
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
-    return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+    return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER)
   {
@@ -606,7 +606,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
   if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
-      || k == LEQ || k == LT || k == MINUS)
+      || k == LEQ || k == LT || k == MINUS || k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS || k==INTS_MODULUS_TOTAL)
   {
     if (n[0].getType().isInteger())
     {
@@ -618,6 +618,10 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     }
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
+  if (k==DIVISION_TOTAL || k==INTS_DIVISION_TOTAL || k==INTS_MODULUS_TOTAL)
+  {
+    opName << "_total";
+  }
   if (k == ITE)
   {
     // ITE is indexed by its type
