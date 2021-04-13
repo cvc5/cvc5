@@ -6219,8 +6219,7 @@ std::string Solver::getOption(const std::string& option) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Node res = d_smtEngine->getOption(option);
-  return res.toString();
+  return d_smtEngine->getOption(option);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

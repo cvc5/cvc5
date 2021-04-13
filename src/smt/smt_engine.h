@@ -317,7 +317,7 @@ class CVC4_EXPORT SmtEngine
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
-  Node getOption(const std::string& key) const;
+  std::string getOption(const std::string& key) const;
 
   /**
    * Define function func in the current context to be:
