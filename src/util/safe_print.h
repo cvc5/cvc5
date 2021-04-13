@@ -1,41 +1,42 @@
-/*********************                                                        */
-/*! \file safe_print.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Print functions that are safe to use in a signal handler.
- **
- ** Signal handlers only allow a very limited set of operations, e.g. dynamic
- ** memory allocation is not possible. This set of functions can be used to
- ** print information from a signal handler.
- **
- ** The safe_print function takes a template parameter T and prints an argument
- ** of type const T& to avoid copying, e.g. when printing std::strings. For
- ** consistency, we also pass primitive types by reference (otherwise, functions
- ** in statistics_registry.h would require specialization or we would have to
- ** use function overloading).
- **
- ** If there exists a function `toString(obj)` for a given object, it will be
- ** used automatically. This is useful for printing enum values for example.
- ** IMPORTANT: The `toString(obj)` function *must not* perform any allocations
- ** or call other functions that are not async-signal-safe.
- **
- ** This header is a "cvc4_private_library.h" header because it is private but
- ** the safe_print functions are used in the driver. See also the description
- ** of "statistics_registry.h" for more information on
- ** "cvc4_private_library.h".
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Print functions that are safe to use in a signal handler.
+ *
+ * Signal handlers only allow a very limited set of operations, e.g. dynamic
+ * memory allocation is not possible. This set of functions can be used to
+ * print information from a signal handler.
+ *
+ * The safe_print function takes a template parameter T and prints an argument
+ * of type const T& to avoid copying, e.g. when printing std::strings. For
+ * consistency, we also pass primitive types by reference (otherwise, functions
+ * in statistics_registry.h would require specialization or we would have to
+ * use function overloading).
+ *
+ * If there exists a function `toString(obj)` for a given object, it will be
+ * used automatically. This is useful for printing enum values for example.
+ * IMPORTANT: The `toString(obj)` function *must not* perform any allocations
+ * or call other functions that are not async-signal-safe.
+ *
+ * This header is a "cvc4_private_library.h" header because it is private but
+ * the safe_print functions are used in the driver. See also the description
+ * of "statistics_registry.h" for more information on
+ * "cvc4_private_library.h".
+ */
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__SAFE_PRINT_H
-#define CVC4__SAFE_PRINT_H
+#ifndef CVC5__SAFE_PRINT_H
+#define CVC5__SAFE_PRINT_H
 
 #include <unistd.h>
 
@@ -138,4 +139,4 @@ void safe_print_right_aligned(int fd, uint64_t i, ssize_t width);
 
 }  // namespace cvc5
 
-#endif /* CVC4__SAFE_PRINT_H */
+#endif /* CVC5__SAFE_PRINT_H */

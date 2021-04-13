@@ -1,82 +1,83 @@
-/*********************                                                        */
-/*! \file constraint.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Defines Constraint and ConstraintDatabase which is the internal
- ** representation of variables in arithmetic
- **
- ** This file defines Constraint and ConstraintDatabase.
- ** A Constraint is the internal representation of literals in TheoryArithmetic.
- ** Constraints are fundamentally a triple:
- **  - ArithVar associated with the constraint,
- **  - a DeltaRational value,
- **  - and a ConstraintType.
- **
- ** Literals:
- **   The constraint may also keep track of a node corresponding to the
- **   Constraint.
- **   This can be accessed by getLiteral() in O(1) if it has been set.
- **   This node must be in normal form and may be used for communication with
- **   the TheoryEngine.
- **
- ** In addition, Constraints keep track of the following:
- **  - A Constraint that is the negation of the Constraint.
- **  - An iterator into a set of Constraints for the ArithVar sorted by
- **    DeltaRational value.
- **  - A context dependent internal proof of the node that can be used for
- **    explanations.
- **  - Whether an equality/disequality has been split in the user context via a
- **    lemma.
- **  - Whether a constraint, be be used in explanations sent to the context
- **
- ** Looking up constraints:
- **  - All of the Constraints with associated nodes in the ConstraintDatabase
- **    can be accessed via a single hashtable lookup until the Constraint is
- **    removed.
- **  - Nodes that have not been associated to a constraints can be
- **    inserted/associated to existing nodes in O(log n) time.
- **
- ** Implications:
- **  - A Constraint can be used to find unate implications.
- **  - A unate implication is an implication based purely on the ArithVar
- **    matching  and the DeltaRational value.
- **    (implies (<= x c) (<= x d)) given c <= d
- **  - This is done using the iterator into the sorted set of constraints.
- **  - Given a tight constraint and previous tightest constraint, this will
- **    efficiently propagate internally.
- **
- ** Additing and Removing Constraints
- **  - Adding Constraints takes O(log n) time where n is the number of
- **    constraints associated with the ArithVar.
- **  - Removing Constraints takes O(1) time.
- **
- ** Internals:
- **  - Constraints are pointers to ConstraintValues.
- **  - Undefined Constraints are NullConstraint.
- **
- ** Assumption vs. Assertion:
- ** - An assertion is anything on the theory d_fact queue.
- **   This includes any thing propagated and returned to the fact queue.
- **   These can be used in external conflicts and propagations of earlier
- **   proofs.
- ** - An assumption is anything on the theory d_fact queue that has no further
- **   explanation i.e. this theory did not propagate it.
- ** - To set something an assumption, first set it as being as assertion.
- ** - Internal assumptions have no explanations and must be regressed out of the
- **   proof.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Defines Constraint and ConstraintDatabase which is the internal
+ * representation of variables in arithmetic
+ *
+ * This file defines Constraint and ConstraintDatabase.
+ * A Constraint is the internal representation of literals in TheoryArithmetic.
+ * Constraints are fundamentally a triple:
+ *  - ArithVar associated with the constraint,
+ *  - a DeltaRational value,
+ *  - and a ConstraintType.
+ *
+ * Literals:
+ *   The constraint may also keep track of a node corresponding to the
+ *   Constraint.
+ *   This can be accessed by getLiteral() in O(1) if it has been set.
+ *   This node must be in normal form and may be used for communication with
+ *   the TheoryEngine.
+ *
+ * In addition, Constraints keep track of the following:
+ *  - A Constraint that is the negation of the Constraint.
+ *  - An iterator into a set of Constraints for the ArithVar sorted by
+ *    DeltaRational value.
+ *  - A context dependent internal proof of the node that can be used for
+ *    explanations.
+ *  - Whether an equality/disequality has been split in the user context via a
+ *    lemma.
+ *  - Whether a constraint, be be used in explanations sent to the context
+ *
+ * Looking up constraints:
+ *  - All of the Constraints with associated nodes in the ConstraintDatabase
+ *    can be accessed via a single hashtable lookup until the Constraint is
+ *    removed.
+ *  - Nodes that have not been associated to a constraints can be
+ *    inserted/associated to existing nodes in O(log n) time.
+ *
+ * Implications:
+ *  - A Constraint can be used to find unate implications.
+ *  - A unate implication is an implication based purely on the ArithVar
+ *    matching  and the DeltaRational value.
+ *    (implies (<= x c) (<= x d)) given c <= d
+ *  - This is done using the iterator into the sorted set of constraints.
+ *  - Given a tight constraint and previous tightest constraint, this will
+ *    efficiently propagate internally.
+ *
+ * Additing and Removing Constraints
+ *  - Adding Constraints takes O(log n) time where n is the number of
+ *    constraints associated with the ArithVar.
+ *  - Removing Constraints takes O(1) time.
+ *
+ * Internals:
+ *  - Constraints are pointers to ConstraintValues.
+ *  - Undefined Constraints are NullConstraint.
+ *
+ * Assumption vs. Assertion:
+ * - An assertion is anything on the theory d_fact queue.
+ *   This includes any thing propagated and returned to the fact queue.
+ *   These can be used in external conflicts and propagations of earlier
+ *   proofs.
+ * - An assumption is anything on the theory d_fact queue that has no further
+ *   explanation i.e. this theory did not propagate it.
+ * - To set something an assumption, first set it as being as assertion.
+ * - Internal assumptions have no explanations and must be regressed out of the
+ *   proof.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__CONSTRAINT_H
-#define CVC4__THEORY__ARITH__CONSTRAINT_H
+#ifndef CVC5__THEORY__ARITH__CONSTRAINT_H
+#define CVC5__THEORY__ARITH__CONSTRAINT_H
 
 #include <unordered_map>
 #include <vector>
@@ -1278,4 +1279,4 @@ private:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__CONSTRAINT_H */
+#endif /* CVC5__THEORY__ARITH__CONSTRAINT_H */

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file set_defaults.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Method for setting the default options of an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Method for setting the default options of an SMT engine.
+ */
 
-#ifndef CVC4__SMT__SET_DEFAULTS_H
-#define CVC4__SMT__SET_DEFAULTS_H
+#ifndef CVC5__SMT__SET_DEFAULTS_H
+#define CVC5__SMT__SET_DEFAULTS_H
 
 #include "theory/logic_info.h"
 
@@ -38,4 +39,4 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver);
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__SET_DEFAULTS_H */
+#endif /* CVC5__SMT__SET_DEFAULTS_H */

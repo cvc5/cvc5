@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file quant_bound_inference.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifiers bound inference
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of quantifiers bound inference.
+ */
 
 #include "theory/quantifiers/quant_bound_inference.h"
 
@@ -47,8 +48,14 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn)
 
 bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
 {
+  if (!tn.isClosedEnumerable())
+  {
+    return false;
+  }
   bool mc = false;
-  if (tn.isClosedEnumerable() && tn.isInterpretedFinite())
+  // we cannot use FMF to complete interpreted types, thus we pass
+  // false for fmfEnabled here
+  if (isCardinalityClassFinite(tn.getCardinalityClass(), false))
   {
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())

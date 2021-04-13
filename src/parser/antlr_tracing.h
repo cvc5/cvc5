@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file antlr_tracing.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#ifndef CVC4__PARSER__ANTLR_TRACING_H
-#define CVC4__PARSER__ANTLR_TRACING_H
+#ifndef CVC5__PARSER__ANTLR_TRACING_H
+#define CVC5__PARSER__ANTLR_TRACING_H
 
-// only enable the hack with -DCVC4_TRACE_ANTLR
-#ifdef CVC4_TRACE_ANTLR
+// only enable the hack with -DCVC5_TRACE_ANTLR
+#ifdef CVC5_TRACE_ANTLR
 
 #include <iostream>
 #include <string>
@@ -81,6 +82,6 @@ static struct __Cvc4System {
 #undef ANTLR3_PRINTF
 #define ANTLR3_PRINTF(args...) {int failed=0;printf(args);}
 
-#endif /* CVC4_TRACE_ANTLR */
+#endif /* CVC5_TRACE_ANTLR */
 
-#endif /* CVC4__PARSER__ANTLR_TRACING_H */
+#endif /* CVC5__PARSER__ANTLR_TRACING_H */

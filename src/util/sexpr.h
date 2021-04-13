@@ -1,30 +1,30 @@
-/*********************                                                        */
-/*! \file sexpr.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple representation of S-expressions
- **
- ** Simple representation of S-expressions.
- ** These are used when a simple, and obvious interface for basic
- ** expressions is appropriate.
- **
- ** These are quite ineffecient.
- ** These are totally disconnected from any ExprManager.
- ** These keep unique copies of all of their children.
- ** These are VERY overly verbose and keep much more data than is needed.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple representation of S-expressions
+ *
+ * These are used when a simple, and obvious interface for basic
+ * expressions is appropriate.
+ *
+ * These are quite ineffecient.
+ * These are totally disconnected from any ExprManager.
+ * These keep unique copies of all of their children.
+ * These are VERY overly verbose and keep much more data than is needed.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SEXPR_H
-#define CVC4__SEXPR_H
+#ifndef CVC5__SEXPR_H
+#define CVC5__SEXPR_H
 
 #include <iosfwd>
 #include <string>
@@ -303,4 +303,4 @@ std::ostream& operator<<(std::ostream& out, PrettySExprs ps);
 
 }  // namespace cvc5
 
-#endif /* CVC4__SEXPR_H */
+#endif /* CVC5__SEXPR_H */

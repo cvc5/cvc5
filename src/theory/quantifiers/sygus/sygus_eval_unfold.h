@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_eval_unfold.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_eval_unfold
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_eval_unfold
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
 #include "expr/node.h"
@@ -156,4 +157,4 @@ class SygusEvalUnfold
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file arith_utilities.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common functions for dealing with nodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common functions for dealing with nodes.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_UTILITIES_H
-#define CVC4__THEORY__ARITH__ARITH_UTILITIES_H
+#ifndef CVC5__THEORY__ARITH__ARITH_UTILITIES_H
+#define CVC5__THEORY__ARITH__ARITH_UTILITIES_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -334,4 +335,4 @@ Node negateProofLiteral(TNode n);
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__ARITH_UTILITIES_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_UTILITIES_H */

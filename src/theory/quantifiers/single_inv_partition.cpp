@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file single_inv_partition.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility for processing single invocation synthesis conjectures
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for processing single invocation synthesis conjectures.
+ */
 #include "theory/quantifiers/single_inv_partition.h"
 
 #include <sstream>
@@ -139,7 +139,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
   if (!funcs.empty())
   {
     TypeNode tn0 = funcs[0].getType();
-    if (tn0.getNumChildren() > 0)
+    if (tn0.isFunction())
     {
       for (unsigned i = 0, nargs = tn0.getNumChildren() - 1; i < nargs; i++)
       {
@@ -155,7 +155,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
         Trace("si-prt") << "...type mismatch" << std::endl;
         return false;
       }
-      else if (tni.getNumChildren() > 0)
+      else if (tni.isFunction())
       {
         for (unsigned j = 0, nargs = tni.getNumChildren() - 1; j < nargs; j++)
         {

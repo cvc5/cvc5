@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file theory_preprocess.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The TheoryPreprocess preprocessing pass
- **
- ** Calls Theory::preprocess(...) on every assertion of the formula.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The TheoryPreprocess preprocessing pass.
+ *
+ * Calls Theory::preprocess(...) on every assertion of the formula.
+ */
 
 #include "preprocessing/passes/theory_preprocess.h"
 
@@ -36,7 +37,7 @@ TheoryPreprocess::TheoryPreprocess(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult TheoryPreprocess::applyInternal(
     AssertionPipeline* assertions)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   prop::PropEngine* propEngine = d_preprocContext->getPropEngine();

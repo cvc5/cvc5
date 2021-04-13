@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file ceg_bv_instantiator_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Aina Niemetz, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of ceg_bv_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of ceg_bv_instantiator.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BV_INSTANTIATOR_UTILS_H
-#define CVC4__BV_INSTANTIATOR_UTILS_H
+#ifndef CVC5__BV_INSTANTIATOR_UTILS_H
+#define CVC5__BV_INSTANTIATOR_UTILS_H
 
 #include "expr/attribute.h"
 #include "expr/node.h"

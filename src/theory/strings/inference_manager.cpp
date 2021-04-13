@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inference_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the inference manager for the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the inference manager for the theory of strings.
+ */
 
 #include "theory/strings/inference_manager.h"
 
@@ -241,8 +242,6 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   return true;
 }
 
-void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
-
 void InferenceManager::addToExplanation(Node a,
                                         Node b,
                                         std::vector<Node>& exp) const
@@ -270,18 +269,9 @@ bool InferenceManager::hasProcessed() const
   return d_state.isInConflict() || hasPending();
 }
 
-void InferenceManager::markCongruent(Node a, Node b)
+void InferenceManager::markReduced(Node n, ExtReducedId id, bool contextDepend)
 {
-  Assert(a.getKind() == b.getKind());
-  if (d_extt.hasFunctionKind(a.getKind()))
-  {
-    d_extt.markCongruent(a, b);
-  }
-}
-
-void InferenceManager::markReduced(Node n, bool contextDepend)
-{
-  d_extt.markReduced(n, contextDepend);
+  d_extt.markReduced(n, id, contextDepend);
 }
 
 void InferenceManager::processConflict(const InferInfo& ii)

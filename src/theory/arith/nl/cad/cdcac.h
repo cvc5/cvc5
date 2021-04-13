@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file cdcac.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements the CDCAC approach.
- **
- ** Implements the CDCAC approach as described in
- ** https://arxiv.org/pdf/2003.05633.pdf.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements the CDCAC approach as described in
+ * https://arxiv.org/pdf/2003.05633.pdf.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
-#define CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
+#ifndef CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
+#define CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 

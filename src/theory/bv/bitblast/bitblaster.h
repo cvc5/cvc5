@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file bitblaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper around the SAT solver used for bitblasting
- **
- ** Wrapper around the SAT solver used for bitblasting.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper around the SAT solver used for bitblasting.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__BITBLASTER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -109,12 +108,12 @@ class MinisatEmptyNotify : public prop::BVSatSolverNotify
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) override { return true; }
   void notify(prop::SatClause& clause) override {}
-  void spendResource(ResourceManager::Resource r) override
+  void spendResource(Resource r) override
   {
     smt::currentResourceManager()->spendResource(r);
   }
 
-  void safePoint(ResourceManager::Resource r) override {}
+  void safePoint(Resource r) override {}
 };
 
 // Bitblaster implementation
@@ -270,4 +269,4 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BITBLAST__BITBLASTER_H */
+#endif /* CVC5__THEORY__BV__BITBLAST__BITBLASTER_H */

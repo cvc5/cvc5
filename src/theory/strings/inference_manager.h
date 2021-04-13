@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Customized inference manager for the theory of strings
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Customized inference manager for the theory of strings.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
 
 #include <map>
 #include <vector>
@@ -201,12 +202,6 @@ class InferenceManager : public InferenceManagerBuffered
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
   bool sendSplit(Node a, Node b, InferenceId infer, bool preq = true);
-  /**
-   * Set that we are incomplete for the current set of assertions (in other
-   * words, we must answer "unknown" instead of "sat"); this calls the output
-   * channel's setIncomplete method.
-   */
-  void setIncomplete();
 
   //----------------------------constructing antecedants
   /**
@@ -226,18 +221,11 @@ class InferenceManager : public InferenceManagerBuffered
 
   // ------------------------------------------------- extended theory
   /**
-   * Mark that terms a and b are congruent in the current context.
-   * This makes a call to markCongruent in the extended theory object of
-   * the parent theory if the kind of a (and b) is owned by the extended
-   * theory.
-   */
-  void markCongruent(Node a, Node b);
-  /**
    * Mark that extended function is reduced. If contextDepend is true,
    * then this mark is SAT-context dependent, otherwise it is user-context
    * dependent (see ExtTheory::markReduced).
    */
-  void markReduced(Node n, bool contextDepend = true);
+  void markReduced(Node n, ExtReducedId id, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
   /**
