@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_lazy.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Lazy bit-vector solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy bit-vector solver.
+ */
 
 #include "cvc4_private.h"
 
@@ -124,7 +125,7 @@ class BVSolverLazy : public BVSolver
   Statistics d_statistics;
 
   void check(Theory::Effort e);
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;

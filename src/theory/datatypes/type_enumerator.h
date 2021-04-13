@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An enumerator for datatypes
- **
- ** An enumerator for datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An enumerator for datatypes.
+ */
 
 #include "cvc4_private.h"
 
@@ -64,7 +63,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   bool hasCyclesDt(const DType& dt)
   {
-    return dt.isRecursiveSingleton(d_type) || !dt.isFinite(d_type);
+    return dt.isRecursiveSingleton(d_type)
+           || dt.getCardinalityClass(d_type) == CardinalityClass::INFINITE;
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){

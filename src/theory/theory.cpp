@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base for theory interface.
- **
- ** Base for theory interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base for theory interface.
+ */
 
 #include "theory/theory.h"
 
@@ -490,7 +489,7 @@ void Theory::check(Effort level)
   }
   Assert(d_theoryState!=nullptr);
   // standard calls for resource, stats
-  d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_out->spendResource(Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
                         << std::endl;

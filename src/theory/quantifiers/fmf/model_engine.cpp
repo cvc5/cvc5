@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file model_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Kshitij Bansal
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model engine class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Kshitij Bansal
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model engine class.
+ */
 
 #include "theory/quantifiers/fmf/model_engine.h"
 
@@ -132,7 +133,7 @@ void ModelEngine::registerQuantifier( Node f ){
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
       if( !tn.isSort() ){
-        if (!tn.isInterpretedFinite())
+        if (!d_qstate.isFiniteType(tn))
         {
           if( tn.isInteger() ){
             if( !options::fmfBound() ){

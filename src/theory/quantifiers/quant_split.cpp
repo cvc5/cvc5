@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file quant_split.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of dynamic quantifiers splitting
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of dynamic quantifiers splitting.
+ */
 
 #include "theory/quantifiers/quant_split.h"
 
@@ -51,6 +52,7 @@ void QuantDSplit::checkOwnership(Node q)
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
+      bool isFinite = d_qstate.isFiniteType(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {
@@ -61,14 +63,14 @@ void QuantDSplit::checkOwnership(Node q)
         if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
-          doSplit = dt.isInterpretedFinite(tn);
+          doSplit = isFinite;
         }
         else if (options::quantDynamicSplit()
                  == options::QuantDSplitMode::DEFAULT)
         {
           if (!qbi.isFiniteBound(q, q[0][i]))
           {
-            if (dt.isInterpretedFinite(tn))
+            if (isFinite)
             {
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort

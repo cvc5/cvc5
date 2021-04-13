@@ -1,16 +1,19 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Andrew Reynolds, Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-#-----------------------------------------------------------------------------#
-# Regression level 0 tests
 
+# Regression level 0 tests
 set(regress_0_tests
   regress0/arith/ackermann.real.smt2
   regress0/arith/arith-eq.smt2
@@ -707,6 +710,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
+  regress0/options/ast-and-sexpr.smt2
   regress0/options/invalid_dump.smt2
   regress0/options/set-and-get-options.smt2
   regress0/parallel-let.smt2

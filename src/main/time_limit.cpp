@@ -1,44 +1,43 @@
-/*********************                                                        */
-/*! \file time_limit.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of time limits.
- **
- ** Implementation of time limits that are imposed by the --tlimit option.
- **
- ** There are various strategies to implement time limits, with different
- ** advantages and disadvantages:
- **
- ** std::thread: we can spawn a new thread which waits for the time limit.
- ** Unless we use std::jthread (from C++20), std::thread is not interruptible
- ** and thus we need a synchronization mechanism so that the main thread can
- ** communicate to the timer thread that it wants to finish. Apparently, this
- ** is the only platform independent way.
- **
- ** POSIX setitimer: a very simple way that instructs the kernel to send a
- ** signal after some time. If available, this is what we want!
- **
- ** Win32 CreateWaitableTimer: unfortunately, this mechanism only calls the
- ** completion routine (the callback) when the main thread "enters an
- ** alertable wait state", i.e. it sleeps. We don't want our main thread to
- ** sleep, thus this approach is not appropriate.
- **
- ** Win32 SetTimer: while we can specify a callback function, we still need
- ** to process the windows event queue for the callback to be called. (see
- ** https://stackoverflow.com/a/15406527/2375725). We don't want our main
- ** thread to continuously monitor the event queue.
- **
- **
- ** We thus use the setitimer variant whenever possible, and the std::thread
- ** variant otherwise.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of time limits that are imposed by the --tlimit option.
+ *
+ * There are various strategies to implement time limits, with different
+ * advantages and disadvantages:
+ *
+ * std::thread: we can spawn a new thread which waits for the time limit.
+ * Unless we use std::jthread (from C++20), std::thread is not interruptible
+ * and thus we need a synchronization mechanism so that the main thread can
+ * communicate to the timer thread that it wants to finish. Apparently, this
+ * is the only platform independent way.
+ *
+ * POSIX setitimer: a very simple way that instructs the kernel to send a
+ * signal after some time. If available, this is what we want!
+ *
+ * Win32 CreateWaitableTimer: unfortunately, this mechanism only calls the
+ * completion routine (the callback) when the main thread "enters an
+ * alertable wait state", i.e. it sleeps. We don't want our main thread to
+ * sleep, thus this approach is not appropriate.
+ *
+ * Win32 SetTimer: while we can specify a callback function, we still need
+ * to process the windows event queue for the callback to be called. (see
+ * https://stackoverflow.com/a/15406527/2375725). We don't want our main
+ * thread to continuously monitor the event queue.
+ *
+ *
+ * We thus use the setitimer variant whenever possible, and the std::thread
+ * variant otherwise.
+ */
 
 #include "time_limit.h"
 

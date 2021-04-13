@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file bv_to_bool.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Liana Hadarean, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- **
- ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- ** Implemented recursively.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Preprocessing pass that lifts bit-vectors of size 1 to booleans.
+ *
+ * Implemented recursively.
+ */
 
 #include "preprocessing/passes/bv_to_bool.h"
 
@@ -48,7 +48,7 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
   std::vector<Node> new_assertions;
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)

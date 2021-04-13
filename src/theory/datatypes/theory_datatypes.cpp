@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_datatypes.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of datatypes
- **
- ** Implementation of the theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of datatypes.
+ */
 #include "theory/datatypes/theory_datatypes.h"
 
 #include <map>
@@ -219,7 +218,7 @@ void TheoryDatatypes::postCheck(Effort level)
             const DType& dt = tt.getDType();
             Trace("datatypes-debug")
                 << "Datatype " << dt.getName() << " is "
-                << dt.isInterpretedFinite(tt) << " "
+                << dt.getCardinalityClass(tt) << " "
                 << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
@@ -274,14 +273,21 @@ void TheoryDatatypes::postCheck(Effort level)
               int consIndex = -1;
               int fconsIndex = -1;
               bool needSplit = true;
-              for( unsigned int j=0; j<pcons.size(); j++ ) {
+              for (size_t j = 0, psize = pcons.size(); j < psize; j++)
+              {
                 if( pcons[j] ) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                  bool ifin = dt[j].isInterpretedFinite(tt);
+                  // Notice that we split here on all datatypes except the
+                  // truly infinite ones. It is possible to also not split
+                  // on those that are interpreted-finite when finite model
+                  // finding is disabled, but as a heuristic we choose to split
+                  // on those too.
+                  bool ifin = dt[j].getCardinalityClass(tt)
+                              != CardinalityClass::INFINITE;
                   Trace("datatypes-debug") << "...returned " << ifin
                                            << std::endl;
                   if (!ifin)
@@ -1328,8 +1334,9 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
       for( unsigned r=0; r<2; r++ ){
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
-            //must try the infinite ones first
-            bool cfinite = dt[ i ].isInterpretedFinite( tt );
+            // must try the infinite ones first
+            bool cfinite =
+                d_state.isFiniteType(dt[i].getSpecializedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

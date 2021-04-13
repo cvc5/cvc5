@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file prop_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The PropEngine (propositional engine); main interface point
- ** between CVC4's SMT infrastructure and the SAT solver
- **
- ** The PropEngine (propositional engine); main interface point
- ** between CVC4's SMT infrastructure and the SAT solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The PropEngine (propositional engine).
+ *
+ * Main interface point between cvc5's SMT infrastructure and the SAT solver.
+ */
 
 #include "cvc4_private.h"
 
@@ -253,7 +252,7 @@ class PropEngine
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed

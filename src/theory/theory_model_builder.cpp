@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_model_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of theory model buidler class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of theory model buidler class.
+ */
 #include "theory/theory_model_builder.h"
 
 #include "expr/dtype.h"
@@ -272,7 +273,13 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn)
+bool TheoryEngineModelBuilder::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  options::finiteModelFind());
+}
+
+bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
   if (tn.isSort())
   {
@@ -836,7 +843,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         const DType& dt = t.getDType();
         isCorecursive = dt.isCodatatype()
-                        && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
+                        && (!isFiniteType(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
@@ -913,13 +920,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !t.isInterpretedFinite())
+          else if (t.isSort() || !isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.
             // Note we also consider uninterpreted sorts to be infinite here
-            // regardless of whether isInterpretedFinite is true (which is true
-            // for uninterpreted sorts iff finite model finding is enabled).
+            // regardless of whether the cardinality class of t is
+            // CardinalityClass::INTERPRETED_FINITE.
             // This is required because the UF solver does not explicitly
             // assign uninterpreted constants to equivalence classes in its
             // collectModelValues method. Doing so would have the same effect

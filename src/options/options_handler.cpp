@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file options_handler.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface for custom handlers and predicates options.
- **
- ** Interface for custom handlers and predicates options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface for custom handlers and predicates options.
+ */
 
 #include "options/options_handler.h"
 
@@ -35,6 +34,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/options_holder.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -81,6 +81,12 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
+
+void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
+{
+  d_options->d_holder->resourceWeightHolder.emplace_back(optarg);
+}
+
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)

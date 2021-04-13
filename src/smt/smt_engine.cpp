@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file smt_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The main entry point into the CVC4 library's SMT interface
- **
- ** The main entry point into the CVC4 library's SMT interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The main entry point into the cvc5 library's SMT interface.
+ */
 
 #include "smt/smt_engine.h"
 
@@ -1149,7 +1148,7 @@ Node SmtEngine::simplify(const Node& ex)
 Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
   getResourceManager()->spendResource(
-      ResourceManager::Resource::PreprocessStep);
+      Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
@@ -1927,7 +1926,7 @@ void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 
 bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
-Node SmtEngine::getOption(const std::string& key) const
+std::string SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(getNodeManager());
   NodeManager* nm = d_env->getNodeManager();
@@ -1940,14 +1939,14 @@ Node SmtEngine::getOption(const std::string& key) const
         d_commandVerbosity.find(key.c_str() + 18);
     if (i != d_commandVerbosity.end())
     {
-      return nm->mkConst(Rational(i->second));
+      return i->second.toString();
     }
     i = d_commandVerbosity.find("*");
     if (i != d_commandVerbosity.end())
     {
-      return nm->mkConst(Rational(i->second));
+      return i->second.toString();
     }
-    return nm->mkConst(Rational(2));
+    return "2";
   }
 
   if (Dump.isOn("benchmark"))
@@ -1985,30 +1984,24 @@ Node SmtEngine::getOption(const std::string& key) const
                                     nm->mkConst(Rational(2)));
     }
     result.push_back(defaultVerbosity);
-    return nm->mkNode(Kind::SEXPR, result);
+    return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  // parse atom string
   std::string atom = getOptions().getOption(key);
 
-  if (atom == "true")
+  if (atom != "true" && atom != "false")
   {
-    return nm->mkConst<bool>(true);
+    try
+    {
+      Integer z(atom);
+    }
+    catch (std::invalid_argument&)
+    {
+      atom = "\"" + atom + "\"";
+    }
   }
-  else if (atom == "false")
-  {
-    return nm->mkConst<bool>(false);
-  }
-  try
-  {
-    Integer z(atom);
-    return nm->mkConst(Rational(z));
-  }
-  catch (std::invalid_argument&)
-  {
-    // Fall through to the next case
-  }
-  return nm->mkConst(String(atom));
+
+  return atom;
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }

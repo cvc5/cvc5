@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file cardinality_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of an extension of the theory sets for handling
- ** cardinality constraints.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of an extension of the theory sets for handling
+ * cardinality constraints.
+ */
 
 #include "theory/sets/cardinality_extension.h"
 
@@ -84,8 +85,9 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode setType = nm->mkSetType(t);
+  bool finiteType = d_state.isFiniteType(t);
   // skip infinite types that do not have univset terms
-  if (!t.isInterpretedFinite() && d_state.getUnivSetEqClass(setType).isNull())
+  if (!finiteType && d_state.getUnivSetEqClass(setType).isNull())
   {
     return;
   }
@@ -95,7 +97,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 
   // cardinality of an interpreted finite type t is infinite when t
   // is infinite without --fmf
-  if (t.isInterpretedFinite() && card.isInfinite())
+  if (finiteType && card.isInfinite())
   {
     // TODO (#1123): support uninterpreted sorts with --finite-model-find
     std::stringstream message;
@@ -125,7 +127,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   // get all equivalent classes of type t
   vector<Node> representatives = d_state.getSetsEqClasses(t);
 
-  if (t.isInterpretedFinite())
+  if (finiteType)
   {
     Node typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
     Node cardUniv = nm->mkNode(kind::CARD, proxy);
@@ -997,6 +999,7 @@ void CardinalityExtension::mkModelValueElementsFor(
     TheoryModel* model)
 {
   TypeNode elementType = eqc.getType().getSetElementType();
+  bool elementTypeFinite = d_state.isFiniteType(elementType);
   if (isModelValueBasic(eqc))
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
@@ -1017,14 +1020,14 @@ void CardinalityExtension::mkModelValueElementsFor(
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
-      if (elementType.isInterpretedFinite())
+      if (elementTypeFinite)
       {
         // get all members of this finite type
         collectFiniteTypeSetElements(model);
       }
       while (els.size() < vu)
       {
-        if (elementType.isInterpretedFinite())
+        if (elementTypeFinite)
         {
           // At this point we are sure the formula is satisfiable and all
           // cardinality constraints are satisfied. Since this type is finite,
@@ -1084,7 +1087,7 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
   }
   for (const Node& set : getOrderedSetsEqClasses())
   {
-    if (!set.getType().isInterpretedFinite())
+    if (!d_state.isFiniteType(set.getType()))
     {
       continue;
     }

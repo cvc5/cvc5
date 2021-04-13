@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file smt_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SmtEngine: the main public entry point of libcvc4.
- **
- ** SmtEngine: the main public entry point of libcvc4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SmtEngine: the main public entry point of libcvc5.
+ */
 
 #include "cvc4_public.h"
 
@@ -318,7 +317,7 @@ class CVC4_EXPORT SmtEngine
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
-  Node getOption(const std::string& key) const;
+  std::string getOption(const std::string& key) const;
 
   /**
    * Define function func in the current context to be:
