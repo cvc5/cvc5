@@ -97,13 +97,17 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
         i--;
       }
     }
-    Trace("macros") << "...finished process, #new def = " << d_macroDefs_new.size() << std::endl;
-    if( doRewrite && !d_macroDefs_new.empty() ){
+    Trace("macros") << "...finished process, #new def = "
+                    << d_macroDefs_new.size() << std::endl;
+    if (doRewrite && !d_macroDefs_new.empty())
+    {
       bool retVal = false;
       Trace("macros") << "Do simplifications..." << std::endl;
       //now, rewrite based on macro definitions
-      for( size_t i=0, nassert = assertions.size(); i<nassert; i++ ){
-        Node curr = assertions[i].substitute(d_macroDefs_new.begin(), d_macroDefs_new.end());
+      for (size_t i = 0, nassert = assertions.size(); i < nassert; i++)
+      {
+        Node curr = assertions[i].substitute(d_macroDefs_new.begin(),
+                                             d_macroDefs_new.end());
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
@@ -144,11 +148,12 @@ bool QuantifierMacros::processAssertion( Node n ) {
       }
     }
   }else if( n.getKind()==FORALL && d_quant_macros.find( n )==d_quant_macros.end() ){
-    std::vector< Node > args(n[0].begin(), n[0].end());
+    std::vector<Node> args(n[0].begin(), n[0].end());
     Node nproc = n[1];
-    if( !d_macroDefs_new.empty() ){
+    if (!d_macroDefs_new.empty())
+    {
       nproc = nproc.substitute(d_macroDefs_new.begin(), d_macroDefs_new.end());
-      nproc = Rewriter::rewrite( nproc );
+      nproc = Rewriter::rewrite(nproc);
     }
     //look at the body of the quantifier for macro definition
     if( process( nproc, true, args, n ) ){
@@ -164,7 +169,8 @@ bool QuantifierMacros::containsBadOp( Node n, Node op, std::vector< Node >& opc,
     visited[n] = true;
     if( n.getKind()==APPLY_UF ){
       Node nop = n.getOperator();
-      if( nop==op || d_macroDefs.find( nop )!=d_macroDefs.end()  ){
+      if (nop == op || d_macroDefs.find(nop) != d_macroDefs.end())
+      {
         return true;
       }
       if( std::find( opc.begin(), opc.end(), nop )==opc.end() ){
@@ -298,16 +304,18 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
     //predicate case
     if( isBoundVarApplyUf( n ) ){
       Node op = n.getOperator();
-      if( d_macroDefs.find( op )==d_macroDefs.end() ){
+      if (d_macroDefs.find(op) == d_macroDefs.end())
+      {
         Node n_def = nm->mkConst(pol);
         //add the macro
-        addMacroEq( n, n_def );
+        addMacroEq(n, n_def);
         return true;
       }
     }
   }else{
     //literal case
-    if( pol && n.getKind()==EQUAL ){
+    if (pol && n.getKind() == EQUAL)
+    {
       Trace("macros-debug") << "Check macro literal : " << n << std::endl;
       std::map< Node, bool > visited;
       std::vector< Node > candidates;
@@ -318,7 +326,8 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
         Node m = candidates[i];
         Node op = m.getOperator();
         Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
-        if( d_macroDefs.find( op )==d_macroDefs.end() ){
+        if (d_macroDefs.find(op) == d_macroDefs.end())
+        {
           std::vector< Node > fvs;
           visited.clear();
           getFreeVariables( m, args, fvs, false, visited );
@@ -342,7 +351,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
                     || isGroundUfTerm(f, n_def))
                 {
                   Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
-                  addMacroEq( n, n_def );
+                  addMacroEq(n, n_def);
                   return true;
                 }
               }
@@ -356,11 +365,15 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
 }
 
 void QuantifierMacros::finalizeDefinitions() {
-  if( options::incrementalSolving() || options::produceModels() ){
+  if (options::incrementalSolving() || options::produceModels())
+  {
     Trace("macros") << "Store as defined functions..." << std::endl;
     //also store as defined functions
     SmtEngine* smt = d_preprocContext->getSmt();
-    for( std::map< Node, Node >::iterator it = d_macroDefs.begin(); it != d_macroDefs.end(); ++it ){
+    for (std::map<Node, Node>::iterator it = d_macroDefs.begin();
+         it != d_macroDefs.end();
+         ++it)
+    {
       Trace("macros-def") << "Macro definition for " << it->first << " : " << it->second << std::endl;
       Trace("macros-def") << "  basis is : ";
       std::vector<Node> args(it->second[0].begin(), it->second[0].end());
@@ -373,8 +386,8 @@ void QuantifierMacros::finalizeDefinitions() {
 
 bool QuantifierMacros::addMacroEq(Node n, Node ndef)
 {
-  Assert (n.getKind()==APPLY_UF);
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(n.getKind() == APPLY_UF);
+  NodeManager* nm = NodeManager::currentNM();
   Trace("macros-debug") << "Add macro eq for " << n << std::endl;
   Trace("macros-debug") << "  def: " << ndef << std::endl;
   std::vector<Node> vars;
@@ -385,12 +398,13 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
     Node v = nm->mkBoundVar(nc.getType());
     fvars.push_back(v);
   }
-  Node fdef = ndef.substitute(vars.begin(), vars.end(), fvars.begin(), fvars.end());
+  Node fdef =
+      ndef.substitute(vars.begin(), vars.end(), fvars.begin(), fvars.end());
   fdef = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, fvars), fdef);
   Node op = n.getOperator();
-  Assert (op.getType().isComparableTo(fdef.getType()));
+  Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs_new[op] = fdef;
-  
+
   return true;
 }
 
