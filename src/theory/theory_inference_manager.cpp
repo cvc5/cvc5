@@ -15,6 +15,7 @@
 
 #include "theory/theory_inference_manager.h"
 
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
@@ -121,6 +122,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   d_conflictIdStats << id;
+  smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
   d_theoryState.notifyInConflict();
@@ -253,6 +255,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
     }
   }
   d_lemmaIdStats << id;
+  smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
@@ -373,6 +376,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  ProofGenerator* pg)
 {
   d_factIdStats << iid;
+  smt::currentResourceManager()->spendResource(iid);
   Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
               << ")" << std::endl;
   // make the node corresponding to the explanation
