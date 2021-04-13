@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 
 #include "cvc4_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__NODE_H
-#define CVC4__NODE_H
+#ifndef CVC5__NODE_H
+#define CVC5__NODE_H
 
 #include <iostream>
 #include <map>
@@ -1435,7 +1434,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1488,8 +1487,8 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

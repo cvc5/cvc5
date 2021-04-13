@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file main.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Main driver for CVC4 executable
- **
- ** Main driver for CVC4 executable.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Main driver for cvc5 executable.
+ */
 #include "main/main.h"
 
 #include <cstdlib>
@@ -50,14 +49,14 @@ int main(int argc, char* argv[]) {
   try {
     return runCvc4(argc, argv, opts);
   } catch(OptionException& e) {
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
     cerr << "(error \"" << e << "\")" << endl
          << endl
          << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
     if (language::isOutputLang_smt2(opts.getOutputLanguage()))

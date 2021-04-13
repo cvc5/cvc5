@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file expand_definitions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of expand definitions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of expand definitions for an SMT engine.
+ */
 
 #include "smt/expand_definitions.h"
 
@@ -66,7 +67,7 @@ TrustNode ExpandDefs::expandDefinitions(
 
   do
   {
-    d_resourceManager.spendResource(ResourceManager::Resource::PreprocessStep);
+    d_resourceManager.spendResource(Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result

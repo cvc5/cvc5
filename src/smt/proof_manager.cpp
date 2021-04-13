@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager of the SMT engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Diego Della Rocca de Camargos
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager of the SMT engine.
+ */
 
 #include "smt/proof_manager.h"
 
@@ -72,6 +73,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
     d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options::proofGranularityMode()

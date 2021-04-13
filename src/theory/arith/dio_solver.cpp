@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file dio_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Diophantine equation solver
- **
- ** A Diophantine equation solver for the theory of arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Diophantine equation solver
+ *
+ * A Diophantine equation solver for the theory of arithmetic.
+ */
 #include "theory/arith/dio_solver.h"
 
 #include <iostream>
@@ -619,7 +620,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
 
   Debug("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 
@@ -655,7 +656,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
 #endif
 

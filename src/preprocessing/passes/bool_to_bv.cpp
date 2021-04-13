@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file bool_to_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Makai Mann, Yoni Zohar, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BoolToBV preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Makai Mann, Yoni Zohar, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BoolToBV preprocessing pass.
+ *
+ */
 
 #include "preprocessing/passes/bool_to_bv.h"
 
@@ -40,7 +41,7 @@ BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BoolToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t size = assertionsToPreprocess->size();
 

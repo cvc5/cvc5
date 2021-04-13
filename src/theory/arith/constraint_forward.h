@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file constraint_forward.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Forward declarations of the ConstraintValue and ConstraintDatabase
- ** classes.
- **
- ** This is the forward declarations of the ConstraintValue and
- ** ConstraintDatabase and the typedef for Constraint.
- ** This is used to break circular dependencies and minimize interaction
- ** between header files.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Forward declarations of the ConstraintValue and ConstraintDatabase
+ * classes.
+ *
+ * This is the forward declarations of the ConstraintValue and
+ * ConstraintDatabase and the typedef for Constraint.
+ * This is used to break circular dependencies and minimize interaction
+ * between header files.
+ */
 
-#ifndef CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
-#define CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
+#ifndef CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H
+#define CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H
 
 #include "cvc4_private.h"
 #include <vector>
@@ -48,4 +49,4 @@ static const RationalVectorP RationalVectorPSentinel = NULL;
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H */
+#endif /* CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H */

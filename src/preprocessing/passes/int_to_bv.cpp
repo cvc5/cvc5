@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file int_to_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Yoni Zohar, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The IntToBV preprocessing pass
- **
- ** Converts integer operations into bitvector operations. The width of the
- ** bitvectors is controlled through the `--solve-int-as-bv` command line
- ** option.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Yoni Zohar, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The IntToBV preprocessing pass.
+ *
+ * Converts integer operations into bitvector operations. The width of the
+ * bitvectors is controlled through the `--solve-int-as-bv` command line
+ * option.
+ */
 
 #include "preprocessing/passes/int_to_bv.h"
 

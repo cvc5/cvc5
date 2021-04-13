@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file cardinality_class.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for cardinality classes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for cardinality classes.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__UTIL__CARDINALITY_CLASS_H
-#define CVC4__UTIL__CARDINALITY_CLASS_H
+#ifndef CVC5__UTIL__CARDINALITY_CLASS_H
+#define CVC5__UTIL__CARDINALITY_CLASS_H
 
 #include <iosfwd>
 

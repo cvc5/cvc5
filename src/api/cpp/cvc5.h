@@ -1,14 +1,15 @@
-/***
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
- ** This file is part of the cvc5 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.
- */
-
-/**
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
  * The cvc5 C++ API.
  */
 
@@ -30,9 +31,11 @@
 
 namespace cvc5 {
 
+#ifndef DOXYGEN_SKIP
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
+#endif
 
 class Command;
 class DType;
@@ -687,7 +690,7 @@ class CVC4_EXPORT Sort
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -817,7 +820,7 @@ class CVC4_EXPORT Op
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1214,7 +1217,7 @@ class CVC4_EXPORT Term
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1380,7 +1383,7 @@ class CVC4_EXPORT DatatypeConstructorDecl
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1486,7 +1489,7 @@ class CVC4_EXPORT DatatypeDecl
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1556,7 +1559,7 @@ class CVC4_EXPORT DatatypeSelector
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1783,7 +1786,7 @@ class CVC4_EXPORT DatatypeConstructor
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -1800,7 +1803,7 @@ class CVC4_EXPORT DatatypeConstructor
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
 
-/*
+/**
  * A CVC4 datatype.
  */
 class CVC4_EXPORT Datatype
@@ -2005,7 +2008,7 @@ class CVC4_EXPORT Datatype
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
-   * CVC4_API_CHECK_NOT_NULL
+   * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
 
@@ -2259,7 +2262,7 @@ struct CVC4_EXPORT RoundingModeHashFunction
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * A CVC4 solver.
  */
 class CVC4_EXPORT Solver

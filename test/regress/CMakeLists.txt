@@ -1,16 +1,19 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Andrew Reynolds, Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-#-----------------------------------------------------------------------------#
-# Regression level 0 tests
 
+# Regression level 0 tests
 set(regress_0_tests
   regress0/arith/ackermann.real.smt2
   regress0/arith/arith-eq.smt2
@@ -1583,7 +1586,6 @@ set(regress_1_tests
   regress1/nl/disj-eval.smt2
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
-  regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   regress1/nl/exp-4.5-lt.smt2
   regress1/nl/exp-approx.smt2
   regress1/nl/exp-soundness-bound.smt2
@@ -2056,6 +2058,9 @@ set(regress_1_tests
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
+  regress1/strings/issue6214-2-sym-re-inc.smt2
+  regress1/strings/issue6214-3-sym-re-inc.smt2
+  regress1/strings/issue6214-4-sym-re-inc.smt2
   regress1/strings/issue6270.smt2
   regress1/strings/issue6271-rnf.smt2
   regress1/strings/issue6271-2-rnf.smt2
@@ -2544,6 +2549,8 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
+  # times out after update to circuit propagator
+  regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds

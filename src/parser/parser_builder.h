@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file parser_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A builder for parsers.
- **
- ** A builder for parsers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A builder for parsers.
+ */
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_BUILDER_H
-#define CVC4__PARSER__PARSER_BUILDER_H
+#ifndef CVC5__PARSER__PARSER_BUILDER_H
+#define CVC5__PARSER__PARSER_BUILDER_H
 
 #include <string>
 
@@ -191,4 +190,4 @@ class CVC4_EXPORT ParserBuilder
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_BUILDER_H */
+#endif /* CVC5__PARSER__PARSER_BUILDER_H */

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_post_processor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of module for processing proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of module for processing proof nodes.
+ */
 
 #include "smt/proof_post_processor.h"
 
@@ -649,7 +650,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
-  else if (id == PfRule::MACRO_RESOLUTION)
+  else if (id == PfRule::MACRO_RESOLUTION
+           || id == PfRule::MACRO_RESOLUTION_TRUST)
   {
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};

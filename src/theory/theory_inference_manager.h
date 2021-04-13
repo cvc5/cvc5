@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file theory_inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An inference manager for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An inference manager for Theory.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
-#define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
+#define CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
 
 #include <memory>
 
@@ -360,17 +361,17 @@ class TheoryInferenceManager
   /**
    * Forward to OutputChannel::spendResource() to spend resources.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Forward to OutputChannel::safePoint() to spend resources.
    */
-  void safePoint(ResourceManager::Resource r);
+  void safePoint(Resource r);
   /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.
    */
-  void setIncomplete();
+  void setIncomplete(IncompleteId id);
 
  protected:
   /**
@@ -463,4 +464,4 @@ class TheoryInferenceManager
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__THEORY_INFERENCE_MANAGER_H */

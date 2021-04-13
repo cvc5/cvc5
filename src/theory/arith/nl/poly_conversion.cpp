@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file poly_conversion.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for converting to and from LibPoly objects.
- **
- ** Utilities for converting to and from LibPoly objects.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for converting to and from LibPoly objects.
+ */
 
 #include "poly_conversion.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
@@ -451,7 +450,7 @@ Node lower_bound_as_node(const Node& var,
       poly::get_upper(poly::get_isolating_interval(alg)));
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   int su = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_upper(poly::get_isolating_interval(alg)));
   Assert(sl != 0 && su != 0 && sl != su);
@@ -507,7 +506,7 @@ Node upper_bound_as_node(const Node& var,
       poly::get_lower(poly::get_isolating_interval(alg)));
   Rational u = poly_utils::toRational(
       poly::get_upper(poly::get_isolating_interval(alg)));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
 #endif

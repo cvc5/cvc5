@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_proxy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "prop/theory_proxy.h"
 
 #include "context/context.h"
@@ -53,26 +54,16 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
-void TheoryProxy::notifyPreprocessedAssertions(
-    const std::vector<Node>& assertions)
-{
-  d_theoryEngine->notifyPreprocessedAssertions(assertions);
-  for (const Node& assertion : assertions)
-  {
-    d_decisionEngine->addAssertion(assertion);
-  }
-}
-
-void TheoryProxy::notifyAssertion(Node lem, TNode skolem)
+void TheoryProxy::notifyAssertion(Node a, TNode skolem)
 {
   if (skolem.isNull())
   {
-    d_decisionEngine->addAssertion(lem);
+    d_decisionEngine->addAssertion(a);
   }
   else
   {
-    d_skdm->notifySkolemDefinition(skolem, lem);
-    d_decisionEngine->addSkolemDefinition(lem, skolem);
+    d_skdm->notifySkolemDefinition(skolem, a);
+    d_decisionEngine->addSkolemDefinition(a, skolem);
   }
 }
 
@@ -171,11 +162,11 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource(ResourceManager::Resource::RestartStep);
+  d_propEngine->spendResource(Resource::RestartStep);
   d_theoryEngine->notifyRestart();
 }
 
-void TheoryProxy::spendResource(ResourceManager::Resource r)
+void TheoryProxy::spendResource(Resource r)
 {
   d_theoryEngine->spendResource(r);
 }

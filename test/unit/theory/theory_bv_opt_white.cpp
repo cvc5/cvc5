@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_bv_opt_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yancheng Ou
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White-box testing for optimization module for BitVectors.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yancheng Ou, Michael Chang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White-box testing for optimization module for BitVectors.
+ */
 #include <iostream>
 
 #include "smt/optimization_solver.h"

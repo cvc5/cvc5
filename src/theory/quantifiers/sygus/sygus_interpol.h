@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file sygus_interpol.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus interpolation utility, which transforms an input of axioms and
- ** conjecture into an interpolation problem, and solve it.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus interpolation utility, which transforms an input of axioms and
+ * conjecture into an interpolation problem, and solve it.
+ */
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
 
 #include <string>
 #include <vector>
@@ -215,4 +216,4 @@ class SygusInterpol
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */

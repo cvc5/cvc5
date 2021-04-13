@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file solver_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Makai Mann, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the Solver class of the  C++ API.
- **
- ** Black box testing of the Solver class of the  C++ API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Makai Mann, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the Solver class of the  C++ API.
+ */
 
 #include "base/configuration.h"
 #include "test_api.h"

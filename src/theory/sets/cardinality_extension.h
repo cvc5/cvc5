@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file cardinality_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An extension of the theory sets for handling cardinality constraints
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An extension of the theory sets for handling cardinality constraints.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__CARDINALITY_EXTENSION_H
-#define CVC4__THEORY__SETS__CARDINALITY_EXTENSION_H
+#ifndef CVC5__THEORY__SETS__CARDINALITY_EXTENSION_H
+#define CVC5__THEORY__SETS__CARDINALITY_EXTENSION_H
 
 #include "context/cdhashset.h"
 #include "context/context.h"

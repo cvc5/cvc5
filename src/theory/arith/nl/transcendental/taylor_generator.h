@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file taylor_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Generate taylor approximations transcendental lemmas.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Generate taylor approximations transcendental lemmas.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 
 #include "expr/node.h"
 
@@ -120,4 +121,4 @@ class TaylorGenerator
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

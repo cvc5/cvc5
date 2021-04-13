@@ -1,29 +1,30 @@
-/*********************                                                        */
-/*! \file cnf_stream.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Haniel Barbosa, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This class transforms a sequence of formulas into clauses.
- **
- ** This class takes a sequence of formulas.
- ** It outputs a stream of clauses that is propositionally
- ** equi-satisfiable with the conjunction of the formulas.
- ** This stream is maintained in an online fashion.
- **
- ** Unlike other parts of the system it is aware of the PropEngine's
- ** internals such as the representation and translation of [??? -Chris]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Haniel Barbosa, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This class transforms a sequence of formulas into clauses.
+ *
+ * This class takes a sequence of formulas.
+ * It outputs a stream of clauses that is propositionally
+ * equi-satisfiable with the conjunction of the formulas.
+ * This stream is maintained in an online fashion.
+ *
+ * Unlike other parts of the system it is aware of the PropEngine's
+ * internals such as the representation and translation of [??? -Chris]
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CNF_STREAM_H
-#define CVC4__PROP__CNF_STREAM_H
+#ifndef CVC5__PROP__CNF_STREAM_H
+#define CVC5__PROP__CNF_STREAM_H
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
@@ -320,4 +321,4 @@ class CnfStream {
 }  // namespace prop
 }  // namespace cvc5
 
-#endif /* CVC4__PROP__CNF_STREAM_H */
+#endif /* CVC5__PROP__CNF_STREAM_H */

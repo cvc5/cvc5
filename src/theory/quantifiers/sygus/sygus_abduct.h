@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file sygus_abduct.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus abduction utility, which transforms an arbitrary input into an
- ** abduction problem.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus abduction utility, which transforms an arbitrary input into an
+ * abduction problem.
+ */
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
 
 #include <string>
 #include <vector>
@@ -87,4 +88,4 @@ class SygusAbduct
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::Node.
- **
- ** Black box testing of cvc5::Node.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Node.
+ */
 
 #include <algorithm>
 #include <sstream>
@@ -186,7 +185,7 @@ TEST_F(TestNodeBlackNode, operator_not_equals)
 /* operator[] */
 TEST_F(TestNodeBlackNode, operator_square)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Basic bounds check on a node w/out children
   ASSERT_DEATH(Node::null()[-1], "i >= 0 && unsigned\\(i\\) < d_nchildren");
   ASSERT_DEATH(Node::null()[0], "i >= 0 && unsigned\\(i\\) < d_nchildren");
@@ -205,7 +204,7 @@ TEST_F(TestNodeBlackNode, operator_square)
   ASSERT_EQ(tb, ite[1]);
   ASSERT_EQ(eb, ite[2]);
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Bounds check on a node with children
   ASSERT_DEATH(ite == ite[-1], "i >= 0 && unsigned\\(i\\) < d_nchildren");
   ASSERT_DEATH(ite == ite[4], "i >= 0 && unsigned\\(i\\) < d_nchildren");
@@ -422,7 +421,7 @@ TEST_F(TestNodeBlackNode, getOperator)
   ASSERT_EQ(a.getNumChildren(), 0);
 
   ASSERT_EQ(f, fa.getOperator());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(f.getOperator(), "mk == kind::metakind::PARAMETERIZED");
   ASSERT_DEATH(a.getOperator(), "mk == kind::metakind::PARAMETERIZED");
 #endif
@@ -443,7 +442,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
     testNaryExpForSize(AND, n);
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(testNaryExpForSize(AND, 0),
                "getNumChildren\\(\\) >= "
                "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
@@ -456,7 +455,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
   ASSERT_DEATH(testNaryExpForSize(NOT, 2),
                "getNumChildren\\(\\) <= "
                "kind::metakind::getMaxArityForKind\\(getKind\\(\\)\\)");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 }
 
 TEST_F(TestNodeBlackNode, iterator)

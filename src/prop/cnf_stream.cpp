@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file cnf_stream.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Haniel Barbosa, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A CNF converter that takes in asserts and has the side effect
- ** of given an equisatisfiable stream of assertions to PropEngine.
- **
- ** A CNF converter that takes in asserts and has the side effect
- ** of given an equisatisfiable stream of assertions to PropEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Haniel Barbosa, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A CNF converter that takes in asserts and has the side effect of given an
+ * equisatisfiable stream of assertions to PropEngine.
+ */
 #include "prop/cnf_stream.h"
 
 #include <queue>
@@ -757,7 +755,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
+  d_resourceManager->spendResource(Resource::CnfStep);
 
   switch(node.getKind()) {
     case kind::AND: convertAndAssertAnd(node, negated); break;
@@ -772,7 +770,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       Node nnode = node;

@@ -1,26 +1,24 @@
-/*********************                                                        */
-/*! \file modal_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An exception that is thrown when an interactive-only
- ** feature while CVC4 is being used in a non-interactive setting
- **
- ** An exception that is thrown when an interactive-only feature while
- ** CVC4 is being used in a non-interactive setting (for example, the
- ** "(get-assertions)" command in an SMT-LIBv2 script).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An exception that is thrown when an interactive-only feature while
+ * CVC4 is being used in a non-interactive setting (for example, the
+ * "(get-assertions)" command in an SMT-LIBv2 script).
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__MODAL_EXCEPTION_H
-#define CVC4__SMT__MODAL_EXCEPTION_H
+#ifndef CVC5__SMT__MODAL_EXCEPTION_H
+#define CVC5__SMT__MODAL_EXCEPTION_H
 
 #include "base/exception.h"
 
@@ -60,4 +58,4 @@ class RecoverableModalException : public cvc5::ModalException
 
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__MODAL_EXCEPTION_H */
+#endif /* CVC5__SMT__MODAL_EXCEPTION_H */

@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_arrays_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Typing and cardinality rules for the theory of arrays
- **
- ** Typing and cardinality rules for the theory of arrays.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Clark Barrett, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Typing and cardinality rules for the theory of arrays.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
 
 #include "theory/arrays/theory_arrays_rewriter.h" // for array-constant attributes
 #include "theory/type_enumerator.h"
@@ -278,4 +277,4 @@ struct ArrayEqRangeTypeRule
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */

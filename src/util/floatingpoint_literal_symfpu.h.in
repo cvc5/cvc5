@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file floatingpoint_literal_symfpu.h.in
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SymFPU glue code for floating-point values.
- **
- ** !!! This header is not to be included in any other headers !!!
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SymFPU glue code for floating-point values.
+ *
+ * !!! This header is not to be included in any other headers !!!
+ */
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
-#define CVC4__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
+#ifndef CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
+#define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
 
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
@@ -28,7 +29,7 @@
 namespace cvc5 {
 
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
 // clang-format on
 using SymFPUUnpackedFloatLiteral =
     ::symfpu::unpackedFloat<symfpuLiteral::traits>;
@@ -65,7 +66,7 @@ class FloatingPointLiteral
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
 // clang-format off
-#if !@CVC4_USE_SYMFPU@
+#if !@CVC5_USE_SYMFPU@
   // clang-format on
   /** Catch-all for unimplemented functions. */
   static void unimplemented(void);
@@ -197,7 +198,7 @@ class FloatingPointLiteral
                               const RoundingMode& rm,
                               BitVector undefinedCase) const;
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
   // clang-format on
   /** Return wrapped floating-point literal. */
   const SymFPUUnpackedFloatLiteral& getSymUF() const { return d_symuf; }
@@ -224,7 +225,7 @@ class FloatingPointLiteral
                        const BitVector& sig)
       : d_fp_size(size)
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
         // clang-format on
         ,
         d_symuf(SymFPUUnpackedFloatLiteral(sign, exp, sig))
@@ -233,7 +234,7 @@ class FloatingPointLiteral
   }
 
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
   // clang-format on
 
   /** Create a FP literal from a symFPU unpacked float. */
@@ -245,7 +246,7 @@ class FloatingPointLiteral
   /** The floating-point size of this floating-point literal. */
   FloatingPointSize d_fp_size;
 // clang-format off
-#if @CVC4_USE_SYMFPU@
+#if @CVC5_USE_SYMFPU@
   // clang-format on
   /** The actual floating-point value, a SymFPU unpackedFloat. */
   SymFPUUnpackedFloatLiteral d_symuf;

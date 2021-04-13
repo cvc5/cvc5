@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file quantifiers_modules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Class for initializing the modules of quantifiers engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for initializing the modules of quantifiers engine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/conjecture_generator.h"
@@ -97,4 +98,4 @@ class QuantifiersModules
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */
