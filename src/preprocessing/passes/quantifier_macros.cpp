@@ -35,6 +35,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::theory;
@@ -210,7 +211,7 @@ bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
   TypeNode tno = n.getOperator().getType();
   std::map< Node, bool > vars;
   // allow if a vector of unique variables of the same type as UF arguments
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+  for( size_t i=0, nchild = n.getNumChildren(); i<nchild; i++ ){
     if( n[i].getKind()!=BOUND_VARIABLE ){
       return false;
     }
@@ -274,27 +275,6 @@ Node QuantifierMacros::solveInEquality( Node n, Node lit ){
   return Node::null();
 }
 
-bool QuantifierMacros::getFreeVariables( Node n, std::vector< Node >& v_quant, std::vector< Node >& vars, bool retOnly, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( std::find( v_quant.begin(), v_quant.end(), n )!=v_quant.end() ){
-      if( std::find( vars.begin(), vars.end(), n )==vars.end() ){
-        if( retOnly ){
-          return true;
-        }else{
-          vars.push_back( n );
-        }
-      }
-    }
-    for( size_t i=0; i<n.getNumChildren(); i++ ){
-      if( getFreeVariables( n[i], v_quant, vars, retOnly, visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Node f ){
   Trace("macros-debug") << "  process " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -308,54 +288,47 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
       {
         Node n_def = nm->mkConst(pol);
         //add the macro
-        addMacroEq(n, n_def);
-        return true;
+        return addMacroEq(n, n_def);
       }
     }
-  }else{
+  }
+  else if (pol && n.getKind() == EQUAL)
+  {
     //literal case
-    if (pol && n.getKind() == EQUAL)
-    {
-      Trace("macros-debug") << "Check macro literal : " << n << std::endl;
-      std::map< Node, bool > visited;
-      std::vector< Node > candidates;
-      for( size_t i=0; i<n.getNumChildren(); i++ ){
-        getMacroCandidates( n[i], candidates, visited );
+    Trace("macros-debug") << "Check macro literal : " << n << std::endl;
+    std::map< Node, bool > visited;
+    std::vector< Node > candidates;
+    for( size_t i=0; i<n.getNumChildren(); i++ ){
+      getMacroCandidates( n[i], candidates, visited );
+    }
+    for (const Node& m : candidates){
+      Node op = m.getOperator();
+      Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
+      if (d_macroDefs.find(op) != d_macroDefs.end())
+      {
+        continue;
       }
-      for( size_t i=0; i<candidates.size(); i++ ){
-        Node m = candidates[i];
-        Node op = m.getOperator();
-        Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
-        if (d_macroDefs.find(op) == d_macroDefs.end())
+      //get definition and condition
+      Node n_def = solveInEquality( m, n ); //definition for the macro
+      if( n_def.isNull() ){
+        continue;
+      }
+      Trace("macros-debug") << m << " is possible macro in " << f << std::endl;
+      Trace("macros-debug") << "  corresponding definition is : " << n_def << std::endl;
+      visited.clear();
+      //cannot contain a defined operator, opc is list of functions it contains
+      std::vector< Node > opc;
+      if( !containsBadOp( n_def, op, opc, visited ) ){
+        Trace("macros-debug") << "...does not contain bad (recursive) operator." << std::endl;
+        //must be ground UF term if mode is GROUND_UF
+        if (options::macrosQuantMode()
+                != options::MacrosQuantMode::GROUND_UF
+            || isGroundUfTerm(f, n_def))
         {
-          std::vector< Node > fvs;
-          visited.clear();
-          getFreeVariables( m, args, fvs, false, visited );
-          //get definition and condition
-          Node n_def = solveInEquality( m, n ); //definition for the macro
-          if( !n_def.isNull() ){
-            Trace("macros-debug") << m << " is possible macro in " << f << std::endl;
-            Trace("macros-debug") << "  corresponding definition is : " << n_def << std::endl;
-            visited.clear();
-            //definition must exist and not contain any free variables apart from fvs
-            if( !getFreeVariables( n_def, args, fvs, true, visited ) ){
-              Trace("macros-debug") << "...free variables are contained." << std::endl;
-              visited.clear();
-              //cannot contain a defined operator, opc is list of functions it contains
-              std::vector< Node > opc;
-              if( !containsBadOp( n_def, op, opc, visited ) ){
-                Trace("macros-debug") << "...does not contain bad (recursive) operator." << std::endl;
-                //must be ground UF term if mode is GROUND_UF
-                if (options::macrosQuantMode()
-                        != options::MacrosQuantMode::GROUND_UF
-                    || isGroundUfTerm(f, n_def))
-                {
-                  Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
-                  addMacroEq(m, n_def);
-                  return true;
-                }
-              }
-            }
+          Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
+          if (addMacroEq(m, n_def))
+          {
+            return true;
           }
         }
       }
@@ -401,6 +374,13 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   Node fdef =
       ndef.substitute(vars.begin(), vars.end(), fvars.begin(), fvars.end());
   fdef = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, fvars), fdef);
+  // If the definition has a free variable, it is malformed. This can happen
+  // if the right hand side of a macro definition contains a variable not
+  // contained in the left hand side
+  if (expr::hasFreeVar(fdef))
+  {
+    return false;
+  }
   Node op = n.getOperator();
   Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs[op] = fdef;

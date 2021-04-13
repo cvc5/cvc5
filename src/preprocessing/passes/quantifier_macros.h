@@ -49,11 +49,6 @@ class QuantifierMacros : public PreprocessingPass
                           std::vector<Node>& candidates,
                           std::map<Node, bool>& visited);
   Node solveInEquality(Node n, Node lit);
-  bool getFreeVariables(Node n,
-                        std::vector<Node>& v_quant,
-                        std::vector<Node>& vars,
-                        bool retOnly,
-                        std::map<Node, bool>& visited);
   bool addMacroEq(Node n, Node ndef);
   /**
    * This applies macro elimination to the given pipeline, which discovers
