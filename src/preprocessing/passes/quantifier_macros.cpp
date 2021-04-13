@@ -352,7 +352,8 @@ void QuantifierMacros::finalizeDefinitions() {
     SmtEngine* smt = d_preprocContext->getSmt();
     for (const std::pair<const Node, Node>& m : d_macroDefs)
     {
-      Trace("macros-def") << "Macro definition for " << m.first << " : " << m.second << std::endl;
+      Trace("macros-def") << "Macro definition for " << m.first << " : "
+                          << m.second << std::endl;
       Trace("macros-def") << "  basis is : ";
       std::vector<Node> args(m.second[0].begin(), m.second[0].end());
       Node sbody = m.second[1];
