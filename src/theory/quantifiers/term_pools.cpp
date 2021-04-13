@@ -156,4 +156,4 @@ void TermPools::processInternal(Node q,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
