@@ -236,6 +236,11 @@ Node LfscTermProcessor::runConvert(Node n)
     Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
   }
+  else if (k == MATCH)
+  {
+    // FIXME
+    return n;
+  }
   else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
     size_t nchild = n.getNumChildren();
