@@ -57,22 +57,37 @@ struct Statistics;
 /* Exception                                                                  */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Base class for all API exceptions.
+ * If thrown, all API objects may be in an unsafe state.
+ */
 class CVC4_EXPORT CVC4ApiException : public std::exception
 {
  public:
+  /** Construct with message from a string. */
   CVC4ApiException(const std::string& str) : d_msg(str) {}
+  /** Construct with message from a string stream. */
   CVC4ApiException(const std::stringstream& stream) : d_msg(stream.str()) {}
-  std::string getMessage() const { return d_msg; }
+  /** Retrieve the message from this exception. */
+  const std::string& getMessage() const { return d_msg; }
+  /** Retrieve the message as a C-style array. */
   const char* what() const noexcept override { return d_msg.c_str(); }
 
  private:
+  /** The stored message. */
   std::string d_msg;
 };
 
+/**
+ * A recoverable API exception.
+ * If thrown, API objects can still be used.
+ */
 class CVC4_EXPORT CVC4ApiRecoverableException : public CVC4ApiException
 {
  public:
+  /** Construct with message from a string. */
   CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  /** Construct with message from a string stream. */
   CVC4ApiRecoverableException(const std::stringstream& stream)
       : CVC4ApiException(stream.str())
   {

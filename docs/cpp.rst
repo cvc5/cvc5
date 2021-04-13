@@ -8,9 +8,9 @@ Class Hierarchy
 
   * namespace ``api``
 
-    * class :ref:`CVC4ApiException<exceptions>`
+    * class :cpp:class:`cvc5::api::CVC4ApiException`
 
-    * class :ref:`CVC4ApiRecoverableException<exceptions>`
+    * class :cpp:class:`cvc5::api::CVC4ApiRecoverableException`
 
     * class :doc:`cpp/datatype`
 
@@ -48,32 +48,10 @@ Class Hierarchy
 
     * struct :ref:`SortHashFunction<sort>`
 
-    * struct :ref:`TermHashFunction<term>`
 
 
 Full API Documentation
 ----------------------
-
-Exceptions
-^^^^^^^^^^
-.. doxygenclass:: cvc5::api::CVC4ApiException
-    :project: cvc5
-    :members:
-
-.. doxygenclass:: cvc5::api::CVC4ApiRecoverableException
-    :project: cvc5
-    :members:
-
-
-Enums
-^^^^^
-
-.. toctree::
-   :maxdepth: 2
-
-   cpp/kind
-   cpp/roundingmode
-
 
 Classes
 ^^^^^^^
@@ -93,3 +71,13 @@ Classes
    cpp/sort
    cpp/term
 
+
+Helper classes
+^^^^^^^^^^^^^^
+
+.. toctree::
+  :maxdepth: 2
+
+  cpp/exceptions
+  cpp/kind
+  cpp/roundingmode
