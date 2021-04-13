@@ -65,8 +65,7 @@ void InstStrategyPool::registerQuantifier(Node q)
 
 void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
 {
-  bool doCheck = !d_userPools.empty();
-  if (!doCheck)
+    if (d_userPools.empty())
   {
     return;
   }

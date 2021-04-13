@@ -515,7 +515,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   Node d_pool;
   /**  a list of terms for each id */
   std::map<size_t, std::vector<Node> > d_poolList;
-  /** prepare terms gets the terms from the pool */
+  /** gets the terms from the pool */
   virtual size_t prepareTerms(size_t variableIx) override
   {
     Assert(d_pool.getNumChildren() > variableIx);
