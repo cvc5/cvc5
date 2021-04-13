@@ -44,7 +44,6 @@ class QuantifierMacros : public PreprocessingPass
                      Node op,
                      std::vector<Node>& opc,
                      std::map<Node, bool>& visited);
-  bool isMacroLiteral(Node n, bool pol);
   bool isGroundUfTerm(Node f, Node n);
   void getMacroCandidates(Node n,
                           std::vector<Node>& candidates,
@@ -58,15 +57,14 @@ class QuantifierMacros : public PreprocessingPass
   bool addMacroEq(Node n, Node ndef);
   /**
    * This applies macro elimination to the given pipeline, which discovers
-   * whether there are any quantified formulas corresponding to macros.
+   * whether there are any quantified formulas corresponding to macros,
+   * and rewrites the given assertions pipeline.
    *
    * @param ap The pipeline to apply macros to.
-   * @param doRewrite Whether we also wish to rewrite the assertions based on
-   * the discovered macro definitions.
    * @return Whether new definitions were inferred and we rewrote the assertions
    * based on them.
    */
-  bool simplify(AssertionPipeline* ap, bool doRewrite = false);
+  bool simplify(AssertionPipeline* ap);
   void finalizeDefinitions();
   void clearMaps();
 

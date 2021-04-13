@@ -57,7 +57,7 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
   bool success;
   do
   {
-    success = simplify(assertionsToPreprocess, true);
+    success = simplify(assertionsToPreprocess);
   } while (success);
   finalizeDefinitions();
   clearMaps();
@@ -72,7 +72,7 @@ void QuantifierMacros::clearMaps()
   d_ground_macros = false;
 }
 
-bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
+bool QuantifierMacros::simplify(AssertionPipeline* ap)
 {
   const std::vector<Node>& assertions = ap->ref();
   unsigned rmax =
@@ -99,7 +99,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
     }
     Trace("macros") << "...finished process, #new def = "
                     << d_macroDefs_new.size() << std::endl;
-    if (doRewrite && !d_macroDefs_new.empty())
+    if (!d_macroDefs_new.empty())
     {
       bool retVal = false;
       Trace("macros") << "Do simplifications..." << std::endl;
@@ -367,7 +367,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
 void QuantifierMacros::finalizeDefinitions() {
   if (options::incrementalSolving() || options::produceModels())
   {
-    Trace("macros") << "Store as defined functions..." << std::endl;
+    Trace("macros-def") << "Store as defined functions..." << std::endl;
     //also store as defined functions
     SmtEngine* smt = d_preprocContext->getSmt();
     for (std::map<Node, Node>::iterator it = d_macroDefs.begin();
@@ -380,7 +380,7 @@ void QuantifierMacros::finalizeDefinitions() {
       Node sbody = it->second[1];
       smt->defineFunction(it->first, args, sbody);
     }
-    Trace("macros") << "done." << std::endl;
+    Trace("macros-def") << "done." << std::endl;
   }
 }
 
@@ -404,7 +404,7 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   Node op = n.getOperator();
   Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs_new[op] = fdef;
-
+  Trace("macros") << "(macro " << op << " " << fdef << ")" << std::endl;
   return true;
 }
 
