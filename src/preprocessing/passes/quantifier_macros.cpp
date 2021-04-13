@@ -351,7 +351,7 @@ bool QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
                     || isGroundUfTerm(f, n_def))
                 {
                   Trace("macros-debug") << "...respects ground-uf constraint." << std::endl;
-                  addMacroEq(n, n_def);
+                  addMacroEq(m, n_def);
                   return true;
                 }
               }
@@ -404,7 +404,7 @@ bool QuantifierMacros::addMacroEq(Node n, Node ndef)
   Node op = n.getOperator();
   Assert(op.getType().isComparableTo(fdef.getType()));
   d_macroDefs_new[op] = fdef;
-  Trace("macros") << "(macro " << op << " " << fdef << ")" << std::endl;
+  Trace("macros") << "(macro " << op << " " << fdef[0] << " " << fdef[1] << ")" << std::endl;
   return true;
 }
 
