@@ -41,14 +41,20 @@ endif()
 
 macro(check_auto_download name disable_option)
     if(NOT ENABLE_AUTO_DOWNLOAD)
-        if("${disable_option}" STREQUAL "")
-            message(FATAL_ERROR "Could not find the required dependency ${name} \
-in the system. Please install it yourself or use --auto-download to let us \
-download and build it for you.")
+        if (${name}_FIND_VERSION)
+            set(depname "${name} (>= ${${name}_FIND_VERSION})")
         else()
-            message(FATAL_ERROR "Could not find the optional dependency ${name} \
-in the system. You can disable this dependency with ${disable_option}, install \
-it yourself or use --auto-download to let us download and build it for you.")
+            set(depname "${name}")
+        endif()
+        if("${disable_option}" STREQUAL "")
+            message(FATAL_ERROR "Could not find the required dependency
+${depname} in the system. Please install it yourself or use --auto-download to \
+let us download and build it for you.")
+        else()
+            message(FATAL_ERROR "Could not find the optional dependency
+${depname} in the system. You can disable this dependency with \
+${disable_option}, install it yourself or use --auto-download to let us \
+download and build it for you.")
         endif()
     endif()
 endmacro(check_auto_download)
