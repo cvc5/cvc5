@@ -15,6 +15,8 @@
 
 #include "rcons_obligation_info.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
@@ -22,13 +24,24 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtin(builtin) {}
+RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtins({builtin})
+{
+}
 
-Node RConsObligationInfo::getBuiltin() const { return d_builtin; }
+const std::unordered_set<Node, NodeHashFunction>&
+RConsObligationInfo::getBuiltins() const
+{
+  return d_builtins;
+}
 
 void RConsObligationInfo::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
+}
+
+void RConsObligationInfo::addBuiltin(Node builtin)
+{
+  d_builtins.emplace(builtin);
 }
 
 const std::unordered_set<Node, NodeHashFunction>&
@@ -51,8 +64,19 @@ RConsObligationInfo::getWatchSet() const
 std::string RConsObligationInfo::obToString(Node k,
                                             const RConsObligationInfo& obInfo)
 {
-  return "ob<" + obInfo.getBuiltin().toString() + ", " + k.getType().toString()
-         + ">";
+  std::stringstream ss;
+  ss << "([";
+  std::unordered_set<Node, NodeHashFunction>::const_iterator it =
+      obInfo.getBuiltins().cbegin();
+  ss << *it;
+  ++it;
+  while (it != obInfo.getBuiltins().cend())
+  {
+    ss << ", " << *it;
+    ++it;
+  }
+  ss << "]), " << k.getType() << ')' << std::endl;
+  return ss.str();
 }
 
 void RConsObligationInfo::printCandSols(
