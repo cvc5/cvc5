@@ -13,7 +13,7 @@
  * Iterator class for equality engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_ITERATOR_H
 #define CVC5__THEORY__UF__EQUALITY_ENGINE_ITERATOR_H

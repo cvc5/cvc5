@@ -23,17 +23,9 @@ namespace arith {
 namespace nl {
 
 NlStats::NlStats()
-    : d_mbrRuns("nl::mbrRuns", 0),
-      d_checkRuns("nl::checkRuns", 0)
+    : d_mbrRuns(smtStatisticsRegistry().registerInt("nl::mbrRuns")),
+      d_checkRuns(smtStatisticsRegistry().registerInt("nl::checkRuns"))
 {
-  smtStatisticsRegistry()->registerStat(&d_mbrRuns);
-  smtStatisticsRegistry()->registerStat(&d_checkRuns);
-}
-
-NlStats::~NlStats()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_mbrRuns);
-  smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
 }
 
 }  // namespace nl

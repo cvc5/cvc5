@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 #define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H

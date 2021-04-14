@@ -13,7 +13,7 @@
  * Theory instantiator, Instantiation Engine classes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS_ENGINE_H
@@ -172,7 +172,8 @@ public:
   * SynthConjecture::getSynthSolutions.
   */
  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
+ /** Declare pool */
+ void declarePool(Node p, const std::vector<Node>& initValue);
  //----------end user interface for instantiations
 
  private:

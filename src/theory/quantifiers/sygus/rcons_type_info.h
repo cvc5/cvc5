@@ -13,7 +13,7 @@
  * Utility class for Sygus Reconstruct module.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H
 #define CVC5__THEORY__QUANTIFIERS__RCONS_TYPE_INFO_H

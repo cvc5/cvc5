@@ -23,7 +23,7 @@
  *   Nothing using a value of T
  * - High level of assurance that a value is not used before it is set.
  */
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UTIL__MAYBE_H
 #define CVC5__UTIL__MAYBE_H

@@ -13,7 +13,7 @@
  * Theory of separation logic.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SEP__THEORY_SEP_H
 #define CVC5__THEORY__SEP__THEORY_SEP_H
@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {

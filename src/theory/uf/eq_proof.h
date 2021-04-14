@@ -13,7 +13,7 @@
  * A proof as produced by the equality engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "expr/node.h"
 #include "theory/uf/equality_engine_types.h"
 

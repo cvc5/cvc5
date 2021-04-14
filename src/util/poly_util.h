@@ -13,7 +13,7 @@
  * Utilities for working with LibPoly.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__POLY_UTIL_H
 #define CVC5__POLY_UTIL_H

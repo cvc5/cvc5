@@ -13,7 +13,7 @@
  * Quantifiers representative bound utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
 #define CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H

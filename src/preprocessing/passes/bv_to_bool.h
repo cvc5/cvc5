@@ -13,14 +13,14 @@
  * Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H
 #define CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -45,7 +45,6 @@ class BVToBool : public PreprocessingPass
     IntStat d_numAtomsLifted;
     IntStat d_numTermsForcedLifted;
     Statistics();
-    ~Statistics();
   };
   void addToBoolCache(TNode term, Node new_term);
   Node getBoolCache(TNode term) const;

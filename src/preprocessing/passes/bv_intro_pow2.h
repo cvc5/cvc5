@@ -17,7 +17,7 @@
  * can be enabled via option `--bv-intro-pow2`.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BV_INTRO_POW2_H
 #define CVC5__PREPROCESSING__PASSES__BV_INTRO_POW2_H

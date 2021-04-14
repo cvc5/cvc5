@@ -13,7 +13,7 @@
  * Utility for constructing and maintaining abstract values.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__ABSTRACT_VALUES_H
 #define CVC5__SMT__ABSTRACT_VALUES_H

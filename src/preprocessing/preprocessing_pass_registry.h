@@ -15,7 +15,7 @@
  * This file defines the classes PreprocessingPassRegistry, which keeps track
  * of the available preprocessing passes.
  */
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
 #define CVC5__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H

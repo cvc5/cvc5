@@ -13,7 +13,7 @@
  * Utils for indexed root predicates.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UTIL__INDEXED_ROOT_PREDICATE_H
 #define CVC5__UTIL__INDEXED_ROOT_PREDICATE_H
