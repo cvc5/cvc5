@@ -79,19 +79,11 @@ class ProofCnfStream : public ProofGenerator
                         ProofGenerator* pg);
 
   /**
-   * Clausifies the given propagation lemma *without* registering the
-   * resoluting clause in the SAT solver, as this is handled internally by the
-   * SAT solver. The clausification steps and the generator within the trust
-   * node are saved in d_proof. */
+   * Clausifies the given propagation lemma *without* registering the resoluting
+   * clause in the SAT solver, as this is handled internally by the SAT
+   * solver. The clausification steps and the generator within the trust node
+   * are saved in d_proof if we are producing proofs in the theory engine. */
   void convertPropagation(theory::TrustNode ttn);
-  /** As above but without logging the steps in d_proof.
-   *
-   * This method is used so that the SAT proof manager, even when we are not
-   * producing proofs in the theory engine (and thus do not have a trust node
-   * with a proof generator of the propagation lemma), can properly track what
-   * are the assumptions for the SAT proof. */
-  void convertPropagationTrusted(Node exp, Node lit);
-
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node

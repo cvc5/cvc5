@@ -98,16 +98,8 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Node theoryExplanation = tte.getNode();
   if (options::produceProofs())
   {
-    // no proof tracking for propagations if we're producing unsat cores
-    if (!options::unsatCoresNew())
-    {
-      d_propEngine->getProofCnfStream()->convertPropagation(tte);
-    }
-    else
-    {
-      d_propEngine->getProofCnfStream()->convertPropagationTrusted(
-          theoryExplanation, lNode);
-    }
+    Assert(options::unsatCoresNew() || tte.getGenerator());
+    d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
   else if (options::unsatCores())
   {
