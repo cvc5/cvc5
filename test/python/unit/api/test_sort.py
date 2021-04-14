@@ -17,6 +17,31 @@ from pycvc4 import Sort
 def solver():
     return pycvc4.Solver()
 
+def create_datatype_sort(solver):
+    solver = pycvc4.Solver()
+    intSort = solver.getIntegerSort()
+    # create datatype sort to test
+    dtypeSpec = solver.mkDatatypeDecl("list")
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    cons.addSelector("head", intSort)
+    cons.addSelectorSelf("tail")
+    dtypeSpec.addConstructor(cons)
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    dtypeSpec.addConstructor(nil)
+    dtypeSort = solver.mkDatatypeSort(dtypeSpec)
+    return dtypeSort
+
+def create_param_datatype_sort(solver):
+    sort = solver.mkParamSort("T")
+    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", sort)
+    paramCons = solver.mkDatatypeConstructorDecl("cons")
+    paramNil = solver.mkDatatypeConstructorDecl("nil")
+    paramCons.addSelector("head", sort)
+    paramDtypeSpec.addConstructor(paramCons)
+    paramDtypeSpec.addConstructor(paramNil)
+    paramDtypeSort = solver.mkDatatypeSort(paramDtypeSpec)
+    return paramDtypeSort
+
 def test_operators_comparison(solver):
     try:
         solver.getIntegerSort() == Sort(solver)
@@ -96,6 +121,199 @@ def test_is_floating_point(solver):
             pytest.fail()
 
 
+def test_is_datatype(solver):
+  dt_sort = create_datatype_sort(solver)
+  assert(dt_sort.isDatatype())
+  try:
+      Sort(solver).isDatatype()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_parametric_datatype(solver):
+  param_dt_sort = create_param_datatype_sort(solver)
+  assert(param_dt_sort.isParametricDatatype())
+  try:
+      Sort(solver).isParametricDatatype()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_constructor(solver):
+  dt_sort = create_datatype_sort(solver)
+  dt = dt_sort.getDatatype()
+  cons_sort = dt[0].getConstructorTerm().getSort()
+  assert(cons_sort.isConstructor())
+  try:
+      Sort(solver).isConstructor()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_selector(solver):
+  dt_sort = create_datatype_sort(solver)
+  dt = dt_sort.getDatatype()
+  dt0 = dt[0]
+  dt01 = dt0[1]
+  cons_sort = dt01.getSelectorTerm().getSort()
+  assert(cons_sort.isSelector())
+  try:
+      Sort(solver).isSelector()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_tester(solver):
+  dt_sort = create_datatype_sort(solver)
+  dt = dt_sort.getDatatype()
+  cons_sort = dt[0].getTesterTerm().getSort()
+  assert(cons_sort.isTester())
+  try:
+      Sort(solver).isTester()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_function(solver):
+  fun_sort = solver.mkFunctionSort(solver.getRealSort(),
+                                          solver.getIntegerSort())
+  assert(fun_sort.isFunction())
+  try:
+      Sort(solver).isFunction()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_predicate(solver):
+  pred_sort = solver.mkPredicateSort(solver.getRealSort())
+  assert(pred_sort.isPredicate())
+  try:
+      Sort(solver).isPredicate()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_tuple(solver):
+  tup_sort = solver.mkTupleSort(solver.getRealSort())
+  assert(tup_sort.isTuple())
+  try:
+      Sort(solver).isTuple()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_record(solver):
+  rec_sort = solver.mkRecordSort([("asdf", solver.getRealSort())])
+  assert(rec_sort.isRecord())
+  try:
+      Sort(solver).isRecord()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_array(solver):
+  arr_sort = solver.mkArraySort(solver.getRealSort(), solver.getIntegerSort())
+  assert(arr_sort.isArray())
+  try:
+      Sort(solver).isArray()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_set(solver):
+  set_sort = solver.mkSetSort(solver.getRealSort())
+  assert(set_sort.isSet())
+  try:
+      Sort(solver).isSet()
+  except RuntimeError:
+      pytest.fail()
+
+#TODO missing api
+#def test_is_bag(solver):
+#  bag_sort = solver.mkBagSort(solver.getRealSort())
+#  assert(bag_sort.isBag())
+#  try:
+#      Sort(solver).isBag()
+#  except RuntimeError:
+#      pytest.fail()
+
+
+def test_is_sequence(solver):
+  seq_sort = solver.mkSequenceSort(solver.getRealSort())
+  assert(seq_sort.isSequence())
+  try:
+      Sort(solver).isSequence()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_uninterpreted(solver):
+  un_sort = solver.mkUninterpretedSort("asdf")
+  assert(un_sort.isUninterpretedSort())
+  try:
+      Sort(solver).isUninterpretedSort()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_sortconstructor(solver):
+  sc_sort = solver.mkSortConstructorSort("asdf", 1)
+  assert(sc_sort.isSortConstructor())
+  try:
+      Sort(solver).isSortConstructor()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_firstclass(solver):
+  fun_sort = solver.mkFunctionSort(solver.getRealSort(),
+                                          solver.getIntegerSort())
+  assert(solver.getIntegerSort().isFirstClass())
+  assert(fun_sort.isFirstClass())
+  reSort = solver.getRegExpSort()
+  assert(not reSort.isFirstClass())
+  try:
+      Sort(solver).isFirstClass()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_functionlike(solver):
+  fun_sort = solver.mkFunctionSort(solver.getRealSort(),
+                                          solver.getIntegerSort())
+  assert(not solver.getIntegerSort().isFunctionLike())
+  assert(fun_sort.isFunctionLike())
+
+  dt_sort = create_datatype_sort(solver)
+  dt = dt_sort.getDatatype()
+  cons_sort = dt[0][1].getSelectorTerm().getSort()
+  assert(cons_sort.isFunctionLike())
+
+  try:
+      Sort(solver).isFunctionLike()
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_subsortof(solver):
+  assert(solver.getIntegerSort().isSubsortOf(solver.getIntegerSort()))
+  assert(solver.getIntegerSort().isSubsortOf(solver.getRealSort()))
+  assert(not solver.getIntegerSort().isSubsortOf(solver.getBooleanSort()))
+  try:
+      Sort(solver).isSubsortOf(Sort(solver))
+  except RuntimeError:
+      pytest.fail()
+
+
+def test_is_comparableto(solver):
+  assert(
+      solver.getIntegerSort().isComparableTo(solver.getIntegerSort()))
+  assert(solver.getIntegerSort().isComparableTo(solver.getRealSort()))
+  assert(not solver.getIntegerSort().isComparableTo(solver.getBooleanSort()))
+  try:
+      Sort(solver).isComparableTo(Sort(solver))
+  except RuntimeError:
+      pytest.fail()
 
 
 
@@ -118,7 +336,7 @@ def test_is_floating_point(solver):
 
 
 
-#def testGetDatatype():
+#def testgetdatatype(solver):
 #    dtypeSpec = solver.mkDatatypeDecl("list")
 #    cons = solver.mkDatatypeConstructorDecl("cons")
 #    cons.addSelector("head", solver.getIntegerSort())
@@ -136,7 +354,7 @@ def test_is_floating_point(solver):
 #        bvSort.getDatatype()
 #
 #
-#def testDatatypeSorts():
+#def testDatatypeSorts(solver):
 #    solver = pycvc4.Solver()
 #    intSort = solver.getIntegerSort()
 #    # create datatype sort to test
@@ -183,7 +401,7 @@ def test_is_floating_point(solver):
 #    assert tailTerm.getSort().isSelector()
 #
 #
-#def testInstantiate():
+#def testInstantiate(solver):
 #    solver = pycvc4.Solver()
 #    # instantiate parametric datatype, check should not fail
 #    sort = solver.mkParamSort("T")
@@ -209,7 +427,7 @@ def test_is_floating_point(solver):
 #        dtypeSort.instantiate([solver.getIntegerSort()])
 #
 #
-#def testGetFunctionArity():
+#def testGetFunctionArity(solver):
 #    solver = pycvc4.Solver()
 #    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
 #                                            solver.getIntegerSort())
@@ -220,7 +438,7 @@ def test_is_floating_point(solver):
 #        bvSort.getFunctionArity()
 #
 #
-#def testGetFunctionDomainSorts():
+#def testGetFunctionDomainSorts(solver):
 #    solver = pycvc4.Solver()
 #    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
 #                                            solver.getIntegerSort())
@@ -231,7 +449,7 @@ def test_is_floating_point(solver):
 #        bvSort.getFunctionDomainSorts()
 #
 #
-#def testGetFunctionCodomainSort():
+#def testGetFunctionCodomainSort(solver):
 #    solver = pycvc4.Solver()
 #    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
 #                                            solver.getIntegerSort())
@@ -241,7 +459,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getFunctionCodomainSort()
 #
-#def testGetArrayIndexSort():
+#def testGetArrayIndexSort(solver):
 #    solver = pycvc4.Solver()
 #    elementSort = solver.mkBitVectorSort(32)
 #    indexSort = solver.mkBitVectorSort(32)
@@ -251,7 +469,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        indexSort.getArrayIndexSort()
 #
-#def testGetArrayElementSort():
+#def testGetArrayElementSort(solver):
 #    solver = pycvc4.Solver()
 #    elementSort = solver.mkBitVectorSort(32)
 #    indexSort = solver.mkBitVectorSort(32)
@@ -261,7 +479,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        indexSort.getArrayElementSort()
 #
-#def testGetSetElementSort():
+#def testGetSetElementSort(solver):
 #    solver = pycvc4.Solver()
 #    setSort = solver.mkSetSort(solver.getIntegerSort())
 #    setSort.getSetElementSort()
@@ -270,7 +488,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getSetElementSort()
 #
-#def testGetSequenceElementSort():
+#def testGetSequenceElementSort(solver):
 #    solver = pycvc4.Solver()
 #    seqSort = solver.mkSequenceSort(solver.getIntegerSort())
 #    seqSort.getSequenceElementSort()
@@ -280,7 +498,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getSetElementSort()
 #
-#def testGetUninterpretedSortName():
+#def testGetUninterpretedSortName(solver):
 #    solver = pycvc4.Solver()
 #    uSort = solver.mkUninterpretedSort("u")
 #    uSort.getUninterpretedSortName()
@@ -289,7 +507,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getUninterpretedSortName()
 #
-#def testIsUninterpretedSortParameterized():
+#def testIsUninterpretedSortParameterized(solver):
 #    solver = pycvc4.Solver()
 #    uSort = solver.mkUninterpretedSort("u")
 #    uSort.isUninterpretedSortParameterized()
@@ -298,7 +516,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.isUninterpretedSortParameterized()
 #
-#def testGetUninterpretedSortParamSorts():
+#def testGetUninterpretedSortParamSorts(solver):
 #    solver = pycvc4.Solver()
 #    uSort = solver.mkUninterpretedSort("u")
 #    uSort.getUninterpretedSortParamSorts()
@@ -307,7 +525,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getUninterpretedSortParamSorts()
 #
-#def testGetUninterpretedSortConstructorName():
+#def testGetUninterpretedSortConstructorName(solver):
 #    solver = pycvc4.Solver()
 #    sSort = solver.mkSortConstructorSort("s", 2)
 #    sSort.getSortConstructorName()
@@ -316,7 +534,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getSortConstructorName()
 #
-#def testGetUninterpretedSortConstructorArity():
+#def testGetUninterpretedSortConstructorArity(solver):
 #    solver = pycvc4.Solver()
 #    sSort = solver.mkSortConstructorSort("s", 2)
 #    sSort.getSortConstructorArity()
@@ -325,7 +543,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getSortConstructorArity()
 #
-#def testGetBVSize():
+#def testGetBVSize(solver):
 #    solver = pycvc4.Solver()
 #    bvSort = solver.mkBitVectorSort(32)
 #    bvSort.getBVSize()
@@ -334,10 +552,10 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        setSort.getBVSize()
 #
-#def testGetFPExponentSize():
+#def testGetFPExponentSize(solver):
 #    solver = pycvc4.Solver()
 #
-#    if solver.supportsFloatingPoint():
+#    if solver.supportsFloatingPoint(solver):
 #        fpSort = solver.mkFloatingPointSort(4, 8)
 #        fpSort.getFPExponentSize()
 #        setSort = solver.mkSetSort(solver.getIntegerSort())
@@ -348,10 +566,10 @@ def test_is_floating_point(solver):
 #        with pytest.raises(Exception):
 #            solver.mkFloatingPointSort(4, 8)
 #
-#def testGetFPSignificandSize():
+#def testGetFPSignificandSize(solver):
 #    solver = pycvc4.Solver()
 #
-#    if solver.supportsFloatingPoint():
+#    if solver.supportsFloatingPoint(solver):
 #        fpSort = solver.mkFloatingPointSort(4, 8)
 #        fpSort.getFPSignificandSize()
 #        setSort = solver.mkSetSort(solver.getIntegerSort())
@@ -362,7 +580,7 @@ def test_is_floating_point(solver):
 #        with pytest.raises(Exception):
 #            solver.mkFloatingPointSort(4, 8)
 #
-#def testGetDatatypeParamSorts():
+#def testGetDatatypeParamSorts(solver):
 #    solver = pycvc4.Solver()
 #    # create parametric datatype, check should not fail
 #    sort = solver.mkParamSort("T")
@@ -387,7 +605,7 @@ def test_is_floating_point(solver):
 #        dtypeSort.getDatatypeParamSorts()
 #
 #
-#def testGetDatatypeArity():
+#def testGetDatatypeArity(solver):
 #    solver = pycvc4.Solver()
 #    # create datatype sort, check should not fail
 #    dtypeSpec = solver.mkDatatypeDecl("list")
@@ -404,7 +622,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getDatatypeArity()
 #
-#def testGetTupleLength():
+#def testGetTupleLength(solver):
 #    solver = pycvc4.Solver()
 #    tupleSort = solver.mkTupleSort([solver.getIntegerSort(), solver.getIntegerSort()])
 #    tupleSort.getTupleLength()
@@ -413,7 +631,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getTupleLength()
 #
-#def testGetTupleSorts():
+#def testGetTupleSorts(solver):
 #    solver = pycvc4.Solver()
 #    tupleSort = solver.mkTupleSort([solver.getIntegerSort(), solver.getIntegerSort()])
 #    tupleSort.getTupleSorts()
@@ -422,7 +640,7 @@ def test_is_floating_point(solver):
 #    with pytest.raises(Exception):
 #        bvSort.getTupleSorts()
 #
-#def testSortCompare():
+#def testSortCompare(solver):
 #    solver = pycvc4.Solver()
 #    boolSort = solver.getBooleanSort()
 #    intSort = solver.getIntegerSort()
@@ -433,7 +651,7 @@ def test_is_floating_point(solver):
 #    assert (intSort > boolSort) != (intSort < boolSort)
 #    assert (intSort > bvSort or intSort == bvSort) == (intSort >= bvSort)
 #
-#def testSortSubtyping():
+#def testSortSubtyping(solver):
 #    solver = pycvc4.Solver()
 #    intSort = solver.getIntegerSort()
 #    realSort = solver.getRealSort()
