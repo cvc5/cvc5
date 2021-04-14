@@ -34,6 +34,7 @@ if(ANTLR3_BINARY AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
 endif()
 
 if(NOT ANTLR3_FOUND_SYSTEM)
+    check_auto_download("ANTLR3" "")
     include(ExternalProject)
 
     set(ANTLR3_VERSION "3.4")

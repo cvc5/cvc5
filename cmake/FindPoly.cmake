@@ -38,6 +38,7 @@ if(Poly_INCLUDE_DIR
 endif()
 
 if(NOT Poly_FOUND_SYSTEM)
+  check_auto_download("Poly" "--no-poly")
   include(ExternalProject)
 
   # TODO(#4706): Use proper release, after the next release
