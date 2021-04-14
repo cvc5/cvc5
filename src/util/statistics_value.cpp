@@ -95,10 +95,8 @@ bool StatisticTimerValue::isDefault() const
 
 void StatisticTimerValue::printSafe(int fd) const
 {
-  duration dur = get();
-  safe_print<uint64_t>(fd, dur / std::chrono::seconds(1));
-  safe_print(fd, ".");
-  safe_print_right_aligned(fd, (dur % std::chrono::seconds(1)).count(), 9);
+  int64_t ms = static_cast<int64_t>(get() / std::chrono::milliseconds(1));
+  safe_print<int64_t>(fd, ms);
 }
 
 /** Make sure that we include the time of a currently running timer */
