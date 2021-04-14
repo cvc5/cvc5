@@ -1,0 +1,22 @@
+; COMMAND-LINE: --sygus-si=all  --sygus-out=status
+; EXPECT: unsat
+
+; This regression tests the behavior of the reconstruction algorithm when the
+; term to reconstruct contains two equivalent sub-terms, but one is easier to
+; reconstruct than the other.
+
+(set-logic UF)
+
+(synth-fun f ((p Bool) (q Bool) (r Bool)) Bool
+  ((Start Bool))
+  ((Start Bool (true false p q r (not Start) (and Start Start) (or Start Start)))))
+
+(define-fun eqReduce ((p Bool) (q Bool)) Bool (or (and p q) (and (not p) (not q))))
+
+(declare-var p Bool)
+(declare-var q Bool)
+(declare-var r Bool)
+
+(constraint (= (f p q r) (and (= (and p q) (and q r)) (eqReduce (and p q) (and q r)))))
+
+(check-synth)

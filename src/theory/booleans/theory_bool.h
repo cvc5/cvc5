@@ -13,7 +13,7 @@
  * The theory of booleans.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BOOLEANS__THEORY_BOOL_H
 #define CVC5__THEORY__BOOLEANS__THEORY_BOOL_H

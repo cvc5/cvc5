@@ -14,7 +14,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -28,7 +28,7 @@
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -163,7 +163,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
                       context::Context* context,
                       context::UserContext* userContext,
                       ProofNodeManager* pnm);
-  ~SharedTermsDatabase();
 
   //-------------------------------------------- initialization
   /** Called to set the equality engine. */

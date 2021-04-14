@@ -1,5 +1,5 @@
 ; EXPECT: unknown
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status -q
 (set-logic ALL)
 (synth-fun inv-fn ((i Int) (x (Array Int Int)) (c Int)) Bool)
 

@@ -20,6 +20,7 @@
 #ifdef CVC5_USE_KISSAT
 
 #include "base/check.h"
+#include "util/statistics_registry.h"
 
 namespace cvc5 {
 namespace prop {
@@ -61,7 +62,7 @@ KissatVar toKissatVar(SatVariable var) { return var; }
 
 }  // namespace
 
-KissatSolver::KissatSolver(StatisticsRegistry* registry,
+KissatSolver::KissatSolver(StatisticsRegistry& registry,
                            const std::string& name)
     : d_solver(kissat_init()),
       // Note: Kissat variables start with index 1 rather than 0 since negated
@@ -151,26 +152,13 @@ unsigned KissatSolver::getAssertionLevel() const
 
 bool KissatSolver::ok() const { return d_okay; }
 
-KissatSolver::Statistics::Statistics(StatisticsRegistry* registry,
+KissatSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                      const std::string& prefix)
-    : d_registry(registry),
-      d_numSatCalls("theory::bv::" + prefix + "::Kissat::calls_to_solve", 0),
-      d_numVariables("theory::bv::" + prefix + "::Kissat::variables", 0),
-      d_numClauses("theory::bv::" + prefix + "::Kissat::clauses", 0),
-      d_solveTime("theory::bv::" + prefix + "::Kissat::solve_time")
+    : d_numSatCalls(registry.registerInt(prefix + "Kissat::calls_to_solve")),
+      d_numVariables(registry.registerInt(prefix + "Kissat::variables")),
+      d_numClauses(registry.registerInt(prefix + "Kissat::clauses")),
+      d_solveTime(registry.registerTimer(prefix + "Kissat::solve_time"))
 {
-  d_registry->registerStat(&d_numSatCalls);
-  d_registry->registerStat(&d_numVariables);
-  d_registry->registerStat(&d_numClauses);
-  d_registry->registerStat(&d_solveTime);
-}
-
-KissatSolver::Statistics::~Statistics()
-{
-  d_registry->unregisterStat(&d_numSatCalls);
-  d_registry->unregisterStat(&d_numVariables);
-  d_registry->unregisterStat(&d_numClauses);
-  d_registry->unregisterStat(&d_solveTime);
 }
 
 }  // namespace prop

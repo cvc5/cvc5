@@ -13,7 +13,7 @@
  * quantifier util
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANT_UTIL_H
 #define CVC5__THEORY__QUANT_UTIL_H
@@ -43,9 +43,9 @@ public:
    * Returns false if the reset failed. When reset fails, the utility should
    * have added a lemma via a call to d_qim.addPendingLemma.
    */
-  virtual bool reset( Theory::Effort e ) = 0;
+  virtual bool reset(Theory::Effort e) { return true; }
   /* Called for new quantifiers */
-  virtual void registerQuantifier(Node q) = 0;
+  virtual void registerQuantifier(Node q) {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
   /** Check complete?

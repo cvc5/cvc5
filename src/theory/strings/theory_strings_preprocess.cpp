@@ -25,6 +25,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
+#include "util/statistics_registry.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -41,7 +42,7 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     IntegralHistogramStat<Kind>* statReductions)
+                                     HistogramStat<Kind>* statReductions)
     : d_sc(sc), d_statReductions(statReductions)
 {
 }
@@ -445,7 +446,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
     // nodes for the case where `seq.nth` is undefined.
-    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
 
     // the full ite, split on definedness of `seq.nth`

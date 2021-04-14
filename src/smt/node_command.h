@@ -13,7 +13,7 @@
  * Datastructures used for printing commands internally.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__NODE_COMMAND_H
 #define CVC5__SMT__NODE_COMMAND_H

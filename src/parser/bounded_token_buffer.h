@@ -23,7 +23,7 @@
  *       "hidden".
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H
 #define CVC5__PARSER__BOUNDED_TOKEN_BUFFER_H

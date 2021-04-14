@@ -51,12 +51,12 @@
  *   These are theory valid and are currently turned into lemmas
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include "theory/arith/simplex.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -108,7 +108,6 @@ private:
     ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
     Statistics(uint32_t& pivots);
-    ~Statistics();
   } d_statistics;
 };/* class DualSimplexDecisionProcedure */
 

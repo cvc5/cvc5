@@ -15,7 +15,7 @@
  * Wrapper for the Kissat SAT solver (for theory of bit-vectors).
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__KISSAT_H
 #define CVC5__PROP__KISSAT_H
@@ -23,7 +23,6 @@
 #ifdef CVC5_USE_KISSAT
 
 #include "prop/sat_solver.h"
-#include "util/stats_timer.h"
 
 extern "C" {
 #include <kissat/kissat.h>
@@ -67,20 +66,18 @@ class KissatSolver : public SatSolver
  private:
   struct Statistics
   {
-    StatisticsRegistry* d_registry;
     IntStat d_numSatCalls;
     IntStat d_numVariables;
     IntStat d_numClauses;
     TimerStat d_solveTime;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
+    Statistics(StatisticsRegistry& registry, const std::string& prefix);
   };
 
   /**
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  KissatSolver(StatisticsRegistry* registry, const std::string& name = "");
+  KissatSolver(StatisticsRegistry& registry, const std::string& name = "");
   /**
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.

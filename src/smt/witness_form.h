@@ -13,7 +13,7 @@
  * The module for managing witness form conversion in proofs.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__WITNESS_FORM_H
 #define CVC5__SMT__WITNESS_FORM_H

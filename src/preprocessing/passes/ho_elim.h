@@ -15,7 +15,7 @@
  * Eliminates higher-order constraints.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H
 #define __CVC5__PREPROCESSING__PASSES__HO_ELIM_PASS_H

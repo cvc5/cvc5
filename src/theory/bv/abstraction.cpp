@@ -532,8 +532,6 @@ void AbstractionModule::finalizeSignatures()
     d_funcToSignature[abs_func] = signature;
   }
 
-  d_statistics.d_numFunctionsAbstracted.set(d_signatureToFunc.size());
-
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted "
                           << d_signatureToFunc.size() << " signatures. \n";
 }
@@ -1090,19 +1088,14 @@ AbstractionModule::ArgsTableEntry& AbstractionModule::ArgsTable::getEntry(TNode 
   return d_data.find(signature)->second;
 }
 
-AbstractionModule::Statistics::Statistics(const std::string& name)
-    : d_numFunctionsAbstracted(name + "::abstraction::NumFunctionsAbstracted",
-                               0),
-      d_numArgsSkolemized(name + "::abstraction::NumArgsSkolemized", 0),
-      d_abstractionTime(name + "::abstraction::AbstractionTime")
+AbstractionModule::Statistics::Statistics(
+    const std::string& name, const NodeNodeMap& functionsAbstracted)
+    : d_numFunctionsAbstracted(
+        smtStatisticsRegistry().registerSize<NodeNodeMap>(
+            name + "NumFunctionsAbstracted", functionsAbstracted)),
+      d_numArgsSkolemized(
+          smtStatisticsRegistry().registerInt(name + "NumArgsSkolemized")),
+      d_abstractionTime(
+          smtStatisticsRegistry().registerTimer(name + "AbstractionTime"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numFunctionsAbstracted);
-  smtStatisticsRegistry()->registerStat(&d_numArgsSkolemized);
-  smtStatisticsRegistry()->registerStat(&d_abstractionTime);
-}
-
-AbstractionModule::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numFunctionsAbstracted);
-  smtStatisticsRegistry()->unregisterStat(&d_numArgsSkolemized);
-  smtStatisticsRegistry()->unregisterStat(&d_abstractionTime);
 }

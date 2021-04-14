@@ -13,7 +13,7 @@
  * Pattern term selector class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__PATTERN_TERM_SELECTOR_H
 #define CVC5__THEORY__QUANTIFIERS__PATTERN_TERM_SELECTOR_H

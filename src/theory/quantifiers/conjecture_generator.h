@@ -13,7 +13,7 @@
  * conjecture generator class
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CONJECTURE_GENERATOR_H
 #define CONJECTURE_GENERATOR_H

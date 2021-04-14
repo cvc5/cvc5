@@ -13,7 +13,7 @@
  * Type node identifier trie data structure.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
