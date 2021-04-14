@@ -296,6 +296,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
         Sort getConstructorCodomainSort() except +
+        Sort getSelectorDomainSort() except +
+        Sort getSelectorCodomainSort() except +
+        Sort getTesterDomainSort() except +
+        Sort getTesterCodomainSort() except +
         size_t getFunctionArity() except +
         vector[Sort] getFunctionDomainSorts() except +
         Sort getFunctionCodomainSort() except +

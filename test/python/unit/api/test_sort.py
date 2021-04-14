@@ -355,24 +355,23 @@ def test_datatype_sorts(solver):
   booleanSort = solver.getBooleanSort()
 
 
-# TODO missing api
-#  assert(isConsTerm.getSort().getTesterDomainSort() == dtypeSort)
-#  assert(isConsTerm.getSort().getTesterCodomainSort() == booleanSort)
-#  with pytest.raises(RuntimeError):
-#      booleanSort.getTesterDomainSort()
-#  with pytest.raises(RuntimeError):
-#      booleanSort.getTesterCodomainSort()
+  assert(isConsTerm.getSort().getTesterDomainSort() == dtypeSort)
+  assert(isConsTerm.getSort().getTesterCodomainSort() == booleanSort)
+  with pytest.raises(RuntimeError):
+      booleanSort.getTesterDomainSort()
+  with pytest.raises(RuntimeError):
+      booleanSort.getTesterCodomainSort()
 
-#   # get selector
-#   dselTail = dcons[1]
-#   tailTerm = dselTail.getSelectorTerm()
-#   assert(tailTerm.getSort().isSelector())
-#   assert(tailTerm.getSort().getSelectorDomainSort() == dtypeSort)
-#   assert(tailTerm.getSort().getSelectorCodomainSort() == dtypeSort)
-#   with pytest.raises(RuntimeError):
-#       booleanSort.getSelectorDomainSort()
-#   with pytest.raises(RuntimeError):
-#       booleanSort.getSelectorCodomainSort()
+  # get selector
+  dselTail = dcons[1]
+  tailTerm = dselTail.getSelectorTerm()
+  assert(tailTerm.getSort().isSelector())
+  assert(tailTerm.getSort().getSelectorDomainSort() == dtypeSort)
+  assert(tailTerm.getSort().getSelectorCodomainSort() == dtypeSort)
+  with pytest.raises(RuntimeError):
+      booleanSort.getSelectorDomainSort()
+  with pytest.raises(RuntimeError):
+      booleanSort.getSelectorCodomainSort()
 
 
 def test_instantiate(solver):
