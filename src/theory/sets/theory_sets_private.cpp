@@ -16,6 +16,7 @@
 #include "theory/sets/theory_sets_private.h"
 
 #include <algorithm>
+#include <climits>
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
