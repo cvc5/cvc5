@@ -38,16 +38,11 @@ using namespace cvc5::theory;
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
-      d_numUnconstrainedElim("preprocessor::number of unconstrained elims", 0),
+      d_numUnconstrainedElim(smtStatisticsRegistry().registerInt(
+          "preprocessor::number of unconstrained elims")),
       d_context(preprocContext->getDecisionContext()),
       d_substitutions(preprocContext->getDecisionContext())
 {
-  smtStatisticsRegistry()->registerStat(&d_numUnconstrainedElim);
-}
-
-UnconstrainedSimplifier::~UnconstrainedSimplifier()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numUnconstrainedElim);
 }
 
 struct unc_preprocess_stack_element

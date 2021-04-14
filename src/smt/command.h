@@ -17,7 +17,7 @@
  * code.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__COMMAND_H
 #define CVC5__COMMAND_H

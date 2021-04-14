@@ -15,7 +15,7 @@
 
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
@@ -47,23 +47,25 @@ EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
     {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
-              d_nullContext.get(), smtStatisticsRegistry(), "EagerBitblaster");
+              d_nullContext.get(),
+              smtStatisticsRegistry(),
+              "theory::bv::EagerBitblaster::");
       d_notify.reset(new MinisatEmptyNotify());
       minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }
     case options::SatSolverMode::CADICAL:
-      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
-                                                     "EagerBitblaster");
+      solver = prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "theory::bv::EagerBitblaster::");
       break;
     case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "EagerBitblaster");
+          smtStatisticsRegistry(), "theory::bv::EagerBitblaster::");
       break;
     case options::SatSolverMode::KISSAT:
-      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
-                                                    "EagerBitblaster");
+      solver = prop::SatSolverFactory::createKissat(
+          smtStatisticsRegistry(), "theory::bv::EagerBitblaster::");
       break;
     default: Unreachable() << "Unknown SAT solver type";
   }

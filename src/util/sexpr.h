@@ -21,7 +21,7 @@
  * These are VERY overly verbose and keep much more data than is needed.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SEXPR_H
 #define CVC5__SEXPR_H

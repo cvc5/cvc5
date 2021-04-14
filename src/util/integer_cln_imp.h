@@ -13,7 +13,7 @@
  * A multiprecision integer constant; wraps a CLN multiprecision integer.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__INTEGER_H
 #define CVC5__INTEGER_H

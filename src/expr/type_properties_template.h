@@ -13,7 +13,7 @@
  * Template for the Type properties header.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__TYPE_PROPERTIES_H
 #define CVC5__TYPE_PROPERTIES_H

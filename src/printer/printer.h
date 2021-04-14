@@ -13,7 +13,7 @@
  * Base of the pretty-printer interface.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PRINTER__PRINTER_H
 #define CVC5__PRINTER__PRINTER_H

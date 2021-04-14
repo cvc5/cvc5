@@ -13,7 +13,7 @@
  * Algebraic solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -41,7 +41,6 @@ class BitblastSolver : public SubtheorySolver
     IntStat d_numCallstoCheck;
     IntStat d_numBBLemmas;
     Statistics();
-    ~Statistics();
   };
   /** Bitblaster */
   std::unique_ptr<TLazyBitblaster> d_bitblaster;

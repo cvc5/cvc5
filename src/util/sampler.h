@@ -16,7 +16,7 @@
  * with biased and unbiased distributions.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTIL_FLOATINGPOINT_SAMPLER_H
 #define CVC5__UTIL_FLOATINGPOINT_SAMPLER_H

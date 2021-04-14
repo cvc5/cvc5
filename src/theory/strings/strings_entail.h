@@ -13,7 +13,7 @@
  * Entailment tests involving strings.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__STRING_ENTAIL_H
 #define CVC5__THEORY__STRINGS__STRING_ENTAIL_H

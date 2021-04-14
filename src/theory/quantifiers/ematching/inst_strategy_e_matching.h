@@ -13,7 +13,7 @@
  * E-matching instantiation strategies.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__INST_STRATEGY_E_MATCHING_H
 #define CVC5__INST_STRATEGY_E_MATCHING_H

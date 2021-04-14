@@ -18,10 +18,9 @@
  * for them.
  */
 
-#include "cvc4_private.h"
-
 #include <sstream>
 
+#include "cvc5_private.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"

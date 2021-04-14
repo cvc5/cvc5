@@ -13,7 +13,7 @@
  * A let binding.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PRINTER__LET_BINDING_H
 #define CVC5__PRINTER__LET_BINDING_H

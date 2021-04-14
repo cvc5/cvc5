@@ -13,7 +13,7 @@
  * The inference manager for the theory of sets.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__INFERENCE_MANAGER_H
 #define CVC5__THEORY__SETS__INFERENCE_MANAGER_H

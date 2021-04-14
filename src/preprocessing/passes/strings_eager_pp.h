@@ -13,7 +13,7 @@
  * The strings eager preprocess utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__STRINGS_EAGER_PP_H
 #define CVC5__PREPROCESSING__PASSES__STRINGS_EAGER_PP_H

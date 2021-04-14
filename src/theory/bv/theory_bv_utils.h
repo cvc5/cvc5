@@ -13,7 +13,7 @@
  * Util functions for theory BV.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 

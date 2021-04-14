@@ -13,7 +13,7 @@
  * Utilities for skolemization.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
 #define CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H

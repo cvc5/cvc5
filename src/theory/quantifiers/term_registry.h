@@ -13,7 +13,7 @@
  * Term registry class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
 #define CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H

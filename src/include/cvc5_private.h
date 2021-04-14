@@ -17,12 +17,11 @@
 #ifndef CVC5_PRIVATE_H
 #define CVC5_PRIVATE_H
 
-#if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
+#if !(defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
 #  error A private CVC4 header was included when not building the library or private unit test code.
 #endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
 
-
-#include "cvc4_public.h"
 #include "cvc4autoconfig.h"
+#include "cvc5_public.h"
 
 #endif /* CVC5_PRIVATE_H */

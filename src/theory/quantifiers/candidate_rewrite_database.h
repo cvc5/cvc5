@@ -13,7 +13,7 @@
  * candidate_rewrite_database
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 #define CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H

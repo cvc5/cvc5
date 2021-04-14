@@ -17,7 +17,7 @@
  * Bruttomesso's PhD thesis.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
 #define CVC5__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/substitutions.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace context {
@@ -41,7 +41,6 @@ class UnconstrainedSimplifier : public PreprocessingPass
 {
  public:
   UnconstrainedSimplifier(PreprocessingPassContext* preprocContext);
-  ~UnconstrainedSimplifier() override;
 
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;

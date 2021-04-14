@@ -13,7 +13,7 @@
  * Typing and cardinality rules for the theory of sep.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SEP__THEORY_SEP_TYPE_RULES_H
 #define CVC5__THEORY__SEP__THEORY_SEP_TYPE_RULES_H

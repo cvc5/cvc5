@@ -13,7 +13,7 @@
  * A builder for parsers.
  */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__PARSER_BUILDER_H
 #define CVC5__PARSER__PARSER_BUILDER_H

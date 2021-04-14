@@ -19,7 +19,7 @@
  *'96
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__ITE_UTILITIES_H
 #define CVC5__ITE_UTILITIES_H
@@ -29,8 +29,7 @@
 
 #include "expr/node.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -199,7 +198,6 @@ class ITECompressor
     IntStat d_compressCalls;
     IntStat d_skolemsAdded;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
 }; /* class ITECompressor */
@@ -307,10 +305,9 @@ class ITESimplifier
     IntStat d_specialEqualityFolds;
     IntStat d_simpITEVisits;
 
-    IntegralHistogramStat<uint32_t> d_inSmaller;
+    HistogramStat<uint32_t> d_inSmaller;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;
