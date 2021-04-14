@@ -69,7 +69,7 @@ The following flags enable optional packages (disable with --no-<option name>).
 Optional Path to Optional Packages:
   --abc-dir=PATH           path to top level of ABC source tree
   --glpk-dir=PATH          path to top level of GLPK installation
-  --dep-path=PATH          path to dependency installation dir
+  --dep-path=PATH          path to a dependency installation dir
 
 Build limitations:
   --lib-only               only build the library, but not the executable or
@@ -293,7 +293,7 @@ do
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
     --dep-path) die "missing argument to $1 (try -h)" ;;
-    --dep-path=*) dep_path=${1##*=} ;;
+    --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
     --lib-only) lib_only=ON ;;
 
