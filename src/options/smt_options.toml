@@ -207,6 +207,7 @@ header = "options/smt_options.h"
   type       = "bool"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
+# Temporary option until old unsat cores are removed and this becomes the standard
 [[option]]
   name       = "unsatCoresNew"
   category   = "regular"
@@ -214,6 +215,7 @@ header = "options/smt_options.h"
   type       = "bool"
   help       = "turn on unsat core generation using the new proof infrastructure"
 
+# Temporary option until old unsat cores are removed and this becomes the standard
 [[option]]
   name       = "checkUnsatCoresNew"
   category   = "regular"
