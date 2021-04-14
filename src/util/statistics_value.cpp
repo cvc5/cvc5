@@ -85,7 +85,7 @@ double StatisticAverageValue::get() const { return d_sum / d_count; }
 
 StatExportData StatisticTimerValue::getViewer() const
 {
-  return static_cast<int64_t>(get() / std::chrono::milliseconds(1));
+  return std::to_string(get()) + "ms";
 }
 
 bool StatisticTimerValue::isDefault() const
@@ -95,19 +95,19 @@ bool StatisticTimerValue::isDefault() const
 
 void StatisticTimerValue::printSafe(int fd) const
 {
-  int64_t ms = static_cast<int64_t>(get() / std::chrono::milliseconds(1));
-  safe_print<int64_t>(fd, ms);
+  safe_print<uint64_t>(fd, get());
+  safe_print<std::string>(fd, "ms");
 }
 
 /** Make sure that we include the time of a currently running timer */
-StatisticTimerValue::duration StatisticTimerValue::get() const
+uint64_t StatisticTimerValue::get() const
 {
   auto data = d_duration;
   if (d_running)
   {
     data += clock::now() - d_start;
   }
-  return data;
+  return static_cast<int64_t>(data / std::chrono::milliseconds(1));
 }
 
 }  // namespace cvc5

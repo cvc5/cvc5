@@ -351,8 +351,11 @@ struct StatisticTimerValue : StatisticBaseValue
   bool isDefault() const override;
   /** Prints seconds in fixed-point format */
   void printSafe(int fd) const override;
-  /** Make sure that we include the time of a currently running timer */
-  duration get() const;
+  /**
+   * Returns the elapsed time in milliseconds.
+   * Make sure that we include the time of a currently running timer
+   */
+  uint64_t get() const;
 
   /**
    * The cumulative duration of the timer so far. 
