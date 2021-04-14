@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file arith_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include <set>
 #include <sstream>
@@ -28,7 +29,7 @@
 #include "theory/theory.h"
 #include "util/iand.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -228,14 +229,14 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           if(exp.sgn() == 0){
             return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
-            CVC4::Rational r(expr::NodeValue::MAX_CHILDREN);
+            cvc5::Rational r(expr::NodeValue::MAX_CHILDREN);
             if (exp <= r)
             {
               unsigned num = exp.getNumerator().toUnsignedInt();
               if( num==1 ){
                 return RewriteResponse(REWRITE_AGAIN, base);
               }else{
-                NodeBuilder<> nb(kind::MULT);
+                NodeBuilder nb(kind::MULT);
                 for(unsigned i=0; i < num; ++i){
                   nb << base;
                 }
@@ -899,6 +900,6 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

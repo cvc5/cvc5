@@ -1,33 +1,35 @@
-/*********************                                                        */
-/*! \file inst_strategy.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Instantiation engine strategy base class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Instantiation engine strategy base class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_H
-#define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_H
 
 #include <vector>
 #include "expr/node.h"
 #include "options/quantifiers_options.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+namespace inst {
+class TriggerDatabase;
+}
 
 class QuantifiersState;
 class QuantifiersInferenceManager;
@@ -49,7 +51,7 @@ enum class InstStrategyStatus
 class InstStrategy
 {
  public:
-  InstStrategy(QuantifiersEngine* qe,
+  InstStrategy(inst::TriggerDatabase& td,
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,
@@ -70,8 +72,8 @@ class InstStrategy
    * maintained by the quantifiers state.
    */
   options::UserPatMode getInstUserPatMode() const;
-  /** reference to the instantiation engine */
-  QuantifiersEngine* d_quantEngine;
+  /** reference to the trigger database */
+  inst::TriggerDatabase& d_td;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager object */
@@ -84,6 +86,6 @@ class InstStrategy
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

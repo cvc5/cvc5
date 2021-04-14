@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file bitvectors.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Makai Mann
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the solving capabilities of the CVC4
- ** bit-vector solver.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Liana Hadarean, Makai Mann
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the solving capabilities of the CVC4
+ * bit-vector solver.
+ *
+ */
+
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-
 using namespace std;
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main()
 {

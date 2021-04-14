@@ -1,21 +1,23 @@
-/*********************                                                        */
-/*! \file fun_def_fmf.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Function definition processor for finite model finding
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Function definition processor for finite model finding.
+ */
 
 #include "preprocessing/passes/fun_def_fmf.h"
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -26,11 +28,11 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -92,6 +94,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
   std::map<int, Node> subs_head;
   // first pass : find defined functions, transform quantifiers
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
     Node n = QuantAttributes::getFunDefHead(assertions[i]);
@@ -129,8 +132,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(
-              nm->mkSkolem(ssf.str(), typ, "op created during fun def fmf"));
+          d_input_arg_inj[f].push_back(sm->mkDummySkolem(
+              ssf.str(), typ, "op created during fun def fmf"));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
@@ -466,4 +469,4 @@ void FunDefFmf::getConstraints(Node n,
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

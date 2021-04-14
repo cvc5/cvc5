@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file skolemize.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utilities for skolemization
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for skolemization.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H
-#define CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
+#define CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -26,17 +27,15 @@
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class DTypeConstructor;
 
 namespace theory {
-
-class SortInference;
-
 namespace quantifiers {
 
 class QuantifiersState;
+class TermRegistry;
 
 /** Skolemization utility
  *
@@ -69,7 +68,7 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersState& qs, ProofNodeManager* pnm);
+  Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -142,6 +141,8 @@ class Skolemize
                          std::vector<Node>& selfSel);
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */
@@ -155,8 +156,8 @@ class Skolemize
   std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H */

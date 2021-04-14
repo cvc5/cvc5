@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_node_to_sexpr.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of proof node to s-expression
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of proof node to s-expression.
+ */
 
 #include "expr/proof_node_to_sexpr.h"
 
@@ -20,16 +21,15 @@
 #include "expr/proof_node.h"
 #include "options/proof_options.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->mkSExprType(types));
-  d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
+  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->sExprType());
+  d_argsMarker = nm->mkBoundVar(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
@@ -125,8 +125,7 @@ Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
   std::stringstream ss;
   ss << r;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
   d_pfrMap[r] = var;
   return var;
 }
@@ -141,10 +140,9 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(Node n)
   std::stringstream ss;
   ss << n;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
   d_nodeMap[n] = var;
   return var;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

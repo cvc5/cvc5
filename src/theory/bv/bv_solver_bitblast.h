@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file bv_solver_bitblast.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bit-blasting solver
- **
- ** Bit-blasting solver that supports multiple SAT back ends.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bit-blasting solver that supports multiple SAT back ends.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_BITBLAST_H
-#define CVC4__THEORY__BV__BV_SOLVER_BITBLAST_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
+#define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 
 #include <unordered_map>
 
@@ -29,7 +28,7 @@
 #include "theory/bv/proof_checker.h"
 #include "theory/eager_proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -143,6 +142,6 @@ class BVSolverBitblast : public BVSolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

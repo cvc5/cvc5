@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file logic_info_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit testing for CVC4::LogicInfo class
- **
- ** Unit testing for CVC4::LogicInfo class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit testing for cvc5::LogicInfo class.
+ */
 
 #include "base/configuration.h"
 #include "expr/kind.h"
 #include "test.h"
 #include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 
@@ -544,33 +543,33 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   LogicInfo info;
   ASSERT_FALSE(info.isLocked());
 
-  ASSERT_THROW(info.getLogicString(), CVC4::IllegalArgumentException);
+  ASSERT_THROW(info.getLogicString(), cvc5::IllegalArgumentException);
   ASSERT_THROW(info.isTheoryEnabled(THEORY_BUILTIN),
-               CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
   ASSERT_THROW(info.isTheoryEnabled(THEORY_BOOL),
-               CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isTheoryEnabled(THEORY_UF), CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isTheoryEnabled(THEORY_UF), cvc5::IllegalArgumentException);
   ASSERT_THROW(info.isTheoryEnabled(THEORY_ARITH),
-               CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
   ASSERT_THROW(info.isTheoryEnabled(THEORY_ARRAYS),
-               CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isTheoryEnabled(THEORY_BV), CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isTheoryEnabled(THEORY_BV), cvc5::IllegalArgumentException);
   ASSERT_THROW(info.isTheoryEnabled(THEORY_DATATYPES),
-               CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
   ASSERT_THROW(info.isTheoryEnabled(THEORY_QUANTIFIERS),
-               CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_BUILTIN), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_BOOL), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_UF), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_ARITH), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_ARRAYS), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_BV), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_DATATYPES), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isPure(THEORY_QUANTIFIERS), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isQuantified(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.areIntegersUsed(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.areRealsUsed(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.isLinear(), CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_BUILTIN), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_BOOL), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_UF), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_ARITH), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_ARRAYS), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_BV), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_DATATYPES), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isPure(THEORY_QUANTIFIERS), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isQuantified(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.areIntegersUsed(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.areRealsUsed(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.isLinear(), cvc5::IllegalArgumentException);
 
   info.lock();
   ASSERT_TRUE(info.isLocked());
@@ -598,17 +597,17 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   ASSERT_TRUE(info.areTranscendentalsUsed());
   ASSERT_FALSE(info.isLinear());
 
-  ASSERT_THROW(info.arithOnlyLinear(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.disableIntegers(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.disableQuantifiers(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.disableTheory(THEORY_BV), CVC4::IllegalArgumentException);
+  ASSERT_THROW(info.arithOnlyLinear(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.disableIntegers(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.disableQuantifiers(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.disableTheory(THEORY_BV), cvc5::IllegalArgumentException);
   ASSERT_THROW(info.disableTheory(THEORY_DATATYPES),
-               CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.enableIntegers(), CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.disableReals(), CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.enableIntegers(), cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.disableReals(), cvc5::IllegalArgumentException);
   ASSERT_THROW(info.disableTheory(THEORY_ARITH),
-               CVC4::IllegalArgumentException);
-  ASSERT_THROW(info.disableTheory(THEORY_UF), CVC4::IllegalArgumentException);
+               cvc5::IllegalArgumentException);
+  ASSERT_THROW(info.disableTheory(THEORY_UF), cvc5::IllegalArgumentException);
   info = info.getUnlockedCopy();
   ASSERT_FALSE(info.isLocked());
   info.disableTheory(THEORY_STRINGS);
@@ -617,7 +616,7 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   info.arithOnlyLinear();
   info.disableIntegers();
   info.lock();
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (cvc5::Configuration::isBuiltWithSymFPU())
   {
     ASSERT_EQ(info.getLogicString(), "SEP_AUFBVFPDTLRA");
   }
@@ -631,7 +630,7 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   info.disableQuantifiers();
   info.disableTheory(THEORY_BAGS);
   info.lock();
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (cvc5::Configuration::isBuiltWithSymFPU())
   {
     ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
   }
@@ -648,7 +647,7 @@ TEST_F(TestTheoryWhiteLogicInfo, default_logic)
   info.enableIntegers();
   info.disableReals();
   info.lock();
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (cvc5::Configuration::isBuiltWithSymFPU())
   {
     ASSERT_EQ(info.getLogicString(), "QF_SEP_AUFFPLIA");
   }
@@ -1371,4 +1370,4 @@ TEST_F(TestTheoryWhiteLogicInfo, comparison)
   gt(ufHo, "QF_UF");
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

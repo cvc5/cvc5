@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_preprocessor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory preprocessor
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory preprocessor.
+ */
 
 #include "theory/theory_preprocessor.h"
 
@@ -23,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
@@ -320,7 +321,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     if (stackHead.children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -396,7 +397,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
   Node newTerm = term;
   if (!term.isClosure())
   {
-    NodeBuilder<> newNode(term.getKind());
+    NodeBuilder newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       newNode << term.getOperator();
@@ -520,4 +521,4 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
@@ -30,7 +31,7 @@
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -642,7 +643,7 @@ struct ApplyRuleToChildren {
     if (node.getKind() != kind) {
       return RewriteRule<rule>::template run<true>(node);
     }
-    NodeBuilder<> result(kind);
+    NodeBuilder result(kind);
     for (unsigned i = 0, end = node.getNumChildren(); i < end; ++ i) {
       result << RewriteRule<rule>::template run<true>(node[i]);
     }
@@ -770,4 +771,4 @@ struct FixpointRewriteStrategy {
 
 } // End namespace bv
 } // End namespace theory
-} // End namespace CVC4
+}  // End namespace cvc5

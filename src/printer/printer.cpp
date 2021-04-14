@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base of the pretty-printer interface
- **
- ** Base of the pretty-printer interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base of the pretty-printer interface.
+ */
 #include "printer/printer.h"
 
 #include <string>
@@ -30,13 +29,13 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 unique_ptr<Printer> Printer::d_printers[language::output::LANG_MAX];
 
 unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 {
-  using namespace CVC4::language::output;
+  using namespace cvc5::language::output;
 
   switch(lang) {
   case LANG_SMTLIB_V2_6:
@@ -459,4 +458,4 @@ void Printer::toStreamCmdDeclarationSequence(
   printUnknownCommand(out, "sequence");
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

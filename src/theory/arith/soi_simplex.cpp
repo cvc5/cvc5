@@ -1,19 +1,18 @@
-/*********************                                                        */
-/*! \file soi_simplex.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This is an implementation of the Simplex Module for the Simplex for
+ * DPLL(T) decision procedure.
+ */
 #include "theory/arith/soi_simplex.h"
 
 #include <algorithm>
@@ -28,7 +27,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -846,7 +845,8 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
       d_conflictBuilder->addConstraint(c, coeff);
     }
     ConstraintCP conflicted = d_conflictBuilder->commitConflict();
-    d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
+    d_conflictChannel.raiseConflict(conflicted,
+                                    InferenceId::ARITH_CONF_SOI_SIMPLEX);
   }
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
@@ -1021,6 +1021,6 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
   }
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

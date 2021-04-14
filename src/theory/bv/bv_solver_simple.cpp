@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_simple.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Gereon Kremer, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple bit-blast solver
- **
- ** Simple bit-blast solver that sends bitblast lemmas directly to MiniSat.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Gereon Kremer, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple bit-blast solver that sends bitblast lemmas directly to MiniSat.
+ */
 
 #include "theory/bv/bv_solver_simple.h"
 
@@ -20,7 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -74,10 +73,6 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
                 : nullptr)
 {
-  if (pnm != nullptr)
-  {
-    d_bvProofChecker.registerTo(pnm->getChecker());
-  }
 }
 
 void BVSolverSimple::addBBLemma(TNode fact)
@@ -149,6 +144,8 @@ bool BVSolverSimple::collectModelValues(TheoryModel* m,
   return d_bitblaster->collectModelValues(m, termSet);
 }
 
+BVProofRuleChecker* BVSolverSimple::getProofChecker() { return &d_checker; }
+
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

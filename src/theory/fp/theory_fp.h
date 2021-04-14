@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file theory_fp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Martin Brain, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Martin Brain, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of floating-point arithmetic.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__FP__THEORY_FP_H
-#define CVC4__THEORY__FP__THEORY_FP_H
+#ifndef CVC5__THEORY__FP__THEORY_FP_H
+#define CVC5__THEORY__FP__THEORY_FP_H
 
 #include <string>
 #include <utility>
@@ -31,7 +29,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -51,6 +49,8 @@ class TheoryFp : public Theory
   //--------------------------------- initialization
   /** Get the official theory rewriter of this theory. */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -189,6 +189,6 @@ class TheoryFp : public Theory
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC5__THEORY__FP__THEORY_FP_H */

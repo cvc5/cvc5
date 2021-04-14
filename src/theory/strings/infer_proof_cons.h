@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file infer_proof_cons.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Inference to proof conversion
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inference to proof conversion.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__INFER_PROOF_CONS_H
-#define CVC4__THEORY__STRINGS__INFER_PROOF_CONS_H
+#ifndef CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H
+#define CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H
 
 #include <vector>
 
@@ -28,7 +29,7 @@
 #include "theory/theory_proof_step_buffer.h"
 #include "theory/uf/proof_equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -130,6 +131,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__INFER_PROOF_CONS_H */
+#endif /* CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H */

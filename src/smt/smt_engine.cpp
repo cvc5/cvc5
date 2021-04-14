@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file smt_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The main entry point into the CVC4 library's SMT interface
- **
- ** The main entry point into the CVC4 library's SMT interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The main entry point into the cvc5 library's SMT interface.
+ */
 
 #include "smt/smt_engine.h"
 
@@ -24,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/printer_options.h"
@@ -72,13 +72,13 @@
 #include "base/configuration_private.h"
 
 using namespace std;
-using namespace CVC4::smt;
-using namespace CVC4::preprocessing;
-using namespace CVC4::prop;
-using namespace CVC4::context;
-using namespace CVC4::theory;
+using namespace cvc5::smt;
+using namespace cvc5::preprocessing;
+using namespace cvc5::prop;
+using namespace cvc5::context;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm)),
@@ -98,7 +98,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_originalOptions(),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
@@ -237,7 +236,10 @@ void SmtEngine::finishInit()
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(logic);
+  // if proofs and unsat cores, proofs are used solely for unsat core
+  // production, so we don't generate proofs in the theory engine, which is
+  // communicated via the second argument
+  d_smtSolver->finishInit(logic, options::unsatCoresNew());
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
@@ -337,8 +339,10 @@ SmtEngine::~SmtEngine()
     d_asserts.reset(nullptr);
     d_model.reset(nullptr);
 
+    d_abductSolver.reset(nullptr);
+    d_interpolSolver.reset(nullptr);
+    d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
-
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
@@ -412,7 +416,6 @@ void SmtEngine::notifyStartParsing(const std::string& filename)
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
-  d_originalOptions.copyValues(getOptions());
 }
 
 const std::string& SmtEngine::getFilename() const
@@ -505,7 +508,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   return false;
 }
 
-CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
+cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
 {
   SmtScope smts(this);
 
@@ -513,13 +516,11 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    for (StatisticsRegistry::const_iterator i = d_env->getStatisticsRegistry()->begin();
-         i != d_env->getStatisticsRegistry()->end();
-         ++i)
+    for (const auto& s: d_env->getStatisticsRegistry())
     {
       vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
+      v.push_back(s.first);
+      v.push_back(s.second);
       stats.push_back(v);
     }
     return SExpr(stats);
@@ -1137,6 +1138,14 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
+void SmtEngine::declarePool(const Node& p, const std::vector<Node>& initValue)
+{
+  Assert(p.isVar() && p.getType().isSet());
+  finishInit();
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
+  qe->declarePool(p, initValue);
+}
+
 Node SmtEngine::simplify(const Node& ex)
 {
   SmtScope smts(this);
@@ -1150,7 +1159,7 @@ Node SmtEngine::simplify(const Node& ex)
 Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
   getResourceManager()->spendResource(
-      ResourceManager::Resource::PreprocessStep);
+      Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
@@ -1401,17 +1410,18 @@ void SmtEngine::checkProof()
   }
 }
 
-StatisticsRegistry* SmtEngine::getStatisticsRegistry()
+StatisticsRegistry& SmtEngine::getStatisticsRegistry()
 {
   return d_env->getStatisticsRegistry();
 }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
-  if (!options::unsatCores())
+  if (!options::unsatCores() && !options::unsatCoresNew())
   {
     throw ModalException(
-        "Cannot get an unsat core when produce-unsat-cores option is off.");
+        "Cannot get an unsat core when produce-unsat-cores[-new] option is "
+        "off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
@@ -1448,7 +1458,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
 }
 
 void SmtEngine::checkUnsatCore() {
-  Assert(options::unsatCores())
+  Assert(options::unsatCores() || options::unsatCoresNew())
       << "cannot check unsat core if unsat cores are turned off";
 
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
@@ -1649,7 +1659,8 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::produceProofs() && getSmtMode() == SmtMode::UNSAT)
+  if (options::produceProofs() && !options::unsatCoresNew()
+      && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);
@@ -1805,24 +1816,6 @@ void SmtEngine::pop() {
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
-void SmtEngine::reset()
-{
-  // save pointer to the current node manager
-  NodeManager* nm = getNodeManager();
-  Trace("smt") << "SMT reset()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
-  }
-  std::string filename = d_state->getFilename();
-  Options opts;
-  opts.copyValues(d_originalOptions);
-  this->~SmtEngine();
-  new (this) SmtEngine(nm, &opts);
-  // Restore data set after creation
-  notifyStartParsing(filename);
-}
-
 void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
@@ -1894,22 +1887,22 @@ NodeManager* SmtEngine::getNodeManager() const
 
 Statistics SmtEngine::getStatistics() const
 {
-  return Statistics(*d_env->getStatisticsRegistry());
+  return Statistics(d_env->getStatisticsRegistry());
 }
 
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  return d_env->getStatisticsRegistry()->getStatistic(name);
+  return d_env->getStatisticsRegistry().getStatistic(name);
 }
 
-void SmtEngine::flushStatistics(std::ostream& out) const
+void SmtEngine::printStatistics(std::ostream& out) const
 {
-  d_env->getStatisticsRegistry()->flushInformation(out);
+  d_env->getStatisticsRegistry().flushInformation(out);
 }
 
-void SmtEngine::safeFlushStatistics(int fd) const
+void SmtEngine::printStatisticsSafe(int fd) const
 {
-  d_env->getStatisticsRegistry()->safeFlushInformation(fd);
+  d_env->getStatisticsRegistry().safeFlushInformation(fd);
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
@@ -1968,7 +1961,7 @@ void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 
 bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
-Node SmtEngine::getOption(const std::string& key) const
+std::string SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(getNodeManager());
   NodeManager* nm = d_env->getNodeManager();
@@ -1981,14 +1974,14 @@ Node SmtEngine::getOption(const std::string& key) const
         d_commandVerbosity.find(key.c_str() + 18);
     if (i != d_commandVerbosity.end())
     {
-      return nm->mkConst(Rational(i->second));
+      return i->second.toString();
     }
     i = d_commandVerbosity.find("*");
     if (i != d_commandVerbosity.end())
     {
-      return nm->mkConst(Rational(i->second));
+      return i->second.toString();
     }
-    return nm->mkConst(Rational(2));
+    return "2";
   }
 
   if (Dump.isOn("benchmark"))
@@ -2026,30 +2019,24 @@ Node SmtEngine::getOption(const std::string& key) const
                                     nm->mkConst(Rational(2)));
     }
     result.push_back(defaultVerbosity);
-    return nm->mkNode(Kind::SEXPR, result);
+    return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  // parse atom string
   std::string atom = getOptions().getOption(key);
 
-  if (atom == "true")
+  if (atom != "true" && atom != "false")
   {
-    return nm->mkConst<bool>(true);
+    try
+    {
+      Integer z(atom);
+    }
+    catch (std::invalid_argument&)
+    {
+      atom = "\"" + atom + "\"";
+    }
   }
-  else if (atom == "false")
-  {
-    return nm->mkConst<bool>(false);
-  }
-  try
-  {
-    Integer z(atom);
-    return nm->mkConst(Rational(z));
-  }
-  catch (std::invalid_argument&)
-  {
-    // Fall through to the next case
-  }
-  return nm->mkConst(String(atom));
+
+  return atom;
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }
@@ -2069,4 +2056,4 @@ OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 
 theory::Rewriter* SmtEngine::getRewriter() { return d_env->getRewriter(); }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

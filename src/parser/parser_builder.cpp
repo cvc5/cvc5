@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file parser_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A builder for parsers.
- **
- ** A builder for parsers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A builder for parsers.
+ */
 
 // This must be included first.
 #include "parser/parser_builder.h"
 
 #include <string>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "cvc/cvc.h"
 #include "options/options.h"
@@ -29,7 +28,7 @@
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
@@ -217,5 +216,5 @@ ParserBuilder& ParserBuilder::withStringInput(const std::string& input) {
   return *this;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

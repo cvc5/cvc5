@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file proof_circuit_propagator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proofs for the non-clausal circuit propagator.
- **
- ** Proofs for the non-clausal circuit propagator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proofs for the non-clausal circuit propagator.
+ */
 
 #include "theory/booleans/proof_circuit_propagator.h"
 
@@ -21,7 +20,7 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace booleans {
 
@@ -587,4 +586,4 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

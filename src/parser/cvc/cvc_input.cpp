@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file cvc_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ */
 
 #include "parser/cvc/cvc_input.h"
 
@@ -24,7 +25,7 @@
 #include "parser/cvc/CvcParser.h"
 #include "parser/parser_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=3 */
@@ -72,5 +73,5 @@ pANTLR3_LEXER CvcInput::getLexer() {
 }
 */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file parser.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Parser state implementation.
- **
- ** Parser state implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Parser state implementation.
+ */
 
 #include "parser/parser.h"
 
@@ -23,7 +22,7 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
@@ -33,9 +32,9 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
@@ -908,5 +907,5 @@ api::Term Parser::mkStringConstant(const std::string& s)
   return d_solver->mkString(str);
 }
 
-} /* CVC4::parser namespace */
-} /* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file sat_proof.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Resolution proof
- **
- ** Resolution proof
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Resolution proof.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SAT__PROOF_H
-#define CVC4__SAT__PROOF_H
+#ifndef CVC5__SAT__PROOF_H
+#define CVC5__SAT__PROOF_H
 
 #include <iosfwd>
 #include <set>
@@ -34,11 +33,11 @@
 #include "util/stats_histogram.h"
 
 // Forward declarations.
-namespace CVC4 {
+namespace cvc5 {
 class CnfProof;
-} /* namespace CVC4 */
+}  // namespace cvc5
 
-namespace CVC4 {
+namespace cvc5 {
 /**
  * Helper debugging functions
  */
@@ -369,6 +368,6 @@ template <class Solver>
 void toSatClause(const typename Solver::TClause& minisat_cl,
                  prop::SatClause& sat_cl);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__SAT__PROOF_H */
+#endif /* CVC5__SAT__PROOF_H */

@@ -18,17 +18,22 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
 void LfscPrintChannelOut::printNode(TNode n)
 {
   d_nodeCount++;
-  d_out << " " << n;
+  d_out << " ";
+  printNodeInternal(d_out, n);
 }
 
-void LfscPrintChannelOut::printTypeNode(TypeNode tn) { d_out << " " << tn; }
+void LfscPrintChannelOut::printTypeNode(TypeNode tn)
+{
+  d_out << " ";
+  printTypeNodeInternal(d_out, tn);
+}
 
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
@@ -69,6 +74,26 @@ void LfscPrintChannelOut::printAssumeId(size_t id)
 
 void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
 
+void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
+{
+  // must clean indexed symbols
+  std::stringstream ss;
+  n.toStream(ss, -1, 0, language::output::LANG_SMTLIB_V2_6);
+  std::string s = ss.str();
+  cleanIndexedSymbols(s);
+  out << s;
+}
+
+void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
+{
+  // must clean indexed symbols
+  std::stringstream ss;
+  tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
+  std::string s = ss.str();
+  cleanIndexedSymbols(s);
+  out << s;
+}
+
 void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
 {
   if (pn->getRule() == PfRule::LFSC_RULE)
@@ -103,6 +128,16 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
   out << "__a" << id;
 }
 
+void LfscPrintChannelOut::cleanIndexedSymbols(std::string& s)
+{
+  size_t start_pos = 0;
+  while ((start_pos = s.find("(_ ", start_pos)) != std::string::npos)
+  {
+    s.replace(start_pos, 3, "(");
+    start_pos += 1;
+  }
+}
+
 LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
     : d_lbind(lbind)
 {
@@ -120,4 +155,4 @@ void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

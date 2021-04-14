@@ -1,19 +1,21 @@
-/*********************                                                        */
-/*! \file term_database.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term databse class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term database class.
+ */
 
 #include "theory/quantifiers/term_database.h"
 
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -25,13 +27,13 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
+#include "theory/uf/equality_engine.h"
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -154,11 +156,11 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
       d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
     ss << language::SetLanguage(options::outputLanguage());
     ss << "e_" << tn;
-    Node k = NodeManager::currentNM()->mkSkolem(
-        ss.str(), tn, "is a termDb fresh variable");
+    Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
                    << std::endl;
     if (options::instMaxLevel() != -1)
@@ -168,10 +170,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
     d_type_fv[tn] = k;
     return k;
   }
-  else
-  {
-    return it->second;
-  }
+  return it->second;
 }
 
 Node TermDb::getMatchOperator( Node n ) {
@@ -468,6 +467,7 @@ void TermDb::addTermHo(Node n)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node curr = n;
   std::vector<Node> args;
   while (curr.getKind() == HO_APPLY)
@@ -481,9 +481,9 @@ void TermDb::addTermHo(Node n)
       Node psk;
       if (itp == d_ho_fun_op_purify.end())
       {
-        psk = nm->mkSkolem("pfun",
-                           curr.getType(),
-                           "purify for function operator term indexing");
+        psk = sm->mkDummySkolem("pfun",
+                                curr.getType(),
+                                "purify for function operator term indexing");
         d_ho_fun_op_purify[curr] = psk;
         // we do not add it to d_ops since it is an internal operator
       }
@@ -1224,12 +1224,13 @@ Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
     return ithp->second;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
-  Node k = nm->mkSkolem("U", ptn, "predicate to force higher-order types");
+  Node k = sm->mkDummySkolem("U", ptn, "predicate to force higher-order types");
   d_ho_type_match_pred[tn] = k;
   return k;
 }
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

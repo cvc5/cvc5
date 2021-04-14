@@ -1,18 +1,19 @@
 #!/usr/bin/env python
-#####################
-## exceptions.py
-## Top contributors (to current version):
-##   Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## Catching CVC4 exceptions with the legacy Python API.
-##
-## A simple demonstration of catching CVC4 execptions with the legacy Python
-## API.
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Catching cvc5 exceptions with the legacy Python API.
+#
+# A simple demonstration of catching cvc5 exceptions with the legacy Python API.
 ##
 
 import pycvc4

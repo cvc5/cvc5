@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file monomial_check.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check for some monomial lemmas
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check for some monomial lemmas.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
 #include "expr/node.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -194,6 +195,6 @@ class MonomialCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

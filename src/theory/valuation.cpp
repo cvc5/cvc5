@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file valuation.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A "valuation" proxy for TheoryEngine
- **
- ** Implementation of Valuation class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A "valuation" proxy for TheoryEngine.
+ */
 
 #include "theory/valuation.h"
 
@@ -24,7 +23,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, EqualityStatus s)
@@ -221,5 +220,10 @@ context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
   return theory->facts_end();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+bool Valuation::isFiniteType(TypeNode tn) const
+{
+  return d_engine->isFiniteType(tn);
+}
+
+}  // namespace theory
+}  // namespace cvc5

@@ -14,7 +14,7 @@
 
 #include "proof/proof_letify.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 bool ProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
@@ -120,4 +120,4 @@ void ProofLetify::convertProofCountToLet(
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

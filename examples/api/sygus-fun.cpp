@@ -1,55 +1,56 @@
-/*********************                                                        */
-/*! \file sygus-fun.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the Sygus API.
- **
- ** A simple demonstration of how to use the Sygus API to synthesize max and min
- ** functions. Here is the same problem written in Sygus V2 format:
- **
- ** (set-logic LIA)
- **
- ** (synth-fun max ((x Int) (y Int)) Int
- **   ((Start Int) (StartBool Bool))
- **   ((Start Int (0 1 x y
- **                (+ Start Start)
- **                (- Start Start)
- **                (ite StartBool Start Start)))
- **    (StartBool Bool ((and StartBool StartBool)
- **                     (not StartBool)
- **                     (<= Start Start)))))
- **
- ** (synth-fun min ((x Int) (y Int)) Int)
- **
- ** (declare-var x Int)
- ** (declare-var y Int)
- **
- ** (constraint (>= (max x y) x))
- ** (constraint (>= (max x y) y))
- ** (constraint (or (= x (max x y))
- **                 (= y (max x y))))
- ** (constraint (= (+ (max x y) (min x y))
- **                (+ x y)))
- **
- ** (check-synth)
- **
- ** The printed output to this example should be equivalent to:
- ** (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
- ** (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Mudathir Mohamed, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the Sygus API.
+ *
+ * A simple demonstration of how to use the Sygus API to synthesize max and min
+ * functions. Here is the same problem written in Sygus V2 format:
+ *
+ * (set-logic LIA)
+ *
+ * (synth-fun max ((x Int) (y Int)) Int
+ *   ((Start Int) (StartBool Bool))
+ *   ((Start Int (0 1 x y
+ *                (+ Start Start)
+ *                (- Start Start)
+ *                (ite StartBool Start Start)))
+ *    (StartBool Bool ((and StartBool StartBool)
+ *                     (not StartBool)
+ *                     (<= Start Start)))))
+ *
+ * (synth-fun min ((x Int) (y Int)) Int)
+ *
+ * (declare-var x Int)
+ * (declare-var y Int)
+ *
+ * (constraint (>= (max x y) x))
+ * (constraint (>= (max x y) y))
+ * (constraint (or (= x (max x y))
+ *                 (= y (max x y))))
+ * (constraint (= (+ (max x y) (min x y))
+ *                (+ x y)))
+ *
+ * (check-synth)
+ *
+ * The printed output to this example should be equivalent to:
+ * (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+ * (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+ */
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main()
 {

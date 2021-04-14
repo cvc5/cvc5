@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 /**
@@ -85,6 +85,6 @@ class TermProcessor
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

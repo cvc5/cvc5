@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file combination_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Management of a care graph based approach for theory combination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Management of a care graph based approach for theory combination.
+ */
 
 #include "theory/combination_engine.h"
 
@@ -24,7 +25,7 @@
 #include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 CombinationEngine::CombinationEngine(TheoryEngine& te,
@@ -118,4 +119,4 @@ void CombinationEngine::resetRound()
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

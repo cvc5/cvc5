@@ -1,30 +1,20 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-# Check if the toml Python module is installed.
-execute_process(
-  COMMAND
-  ${PYTHON_EXECUTABLE} -c "import toml"
-  RESULT_VARIABLE
-    RET_TOML
-  ERROR_QUIET
-)
 
-if(RET_TOML)
-  message(FATAL_ERROR
-      "Could not find toml for Python "
-      "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
-      "Make sure to install toml for this Python version "
-      "via \n`${PYTHON_EXECUTABLE} -m pip install toml'.\nNote: You need to "
-      "have pip installed for this Python version.")
-endif()
+# Check if the toml Python module is installed.
+check_python_module("toml")
 
 libcvc4_add_sources(
   base_handlers.h

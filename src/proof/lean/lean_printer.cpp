@@ -21,7 +21,7 @@
 #include "expr/proof_node.h"
 #include "proof/lean/lean_rules.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -280,4 +280,4 @@ void LeanPrinter::print(std::ostream& out,
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

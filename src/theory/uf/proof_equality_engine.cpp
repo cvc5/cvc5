@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_equality_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof-producing equality engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof-producing equality engine.
+ */
 
 #include "theory/uf/proof_equality_engine.h"
 
@@ -22,9 +23,9 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -349,7 +350,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy
-  pfBody = pfBody->clone();
+  pfBody = d_pnm->clone(pfBody);
   Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
   // The free assumptions must be closed by assumps, which should be passed
   // as arguments of SCOPE. However, some of the free assumptions may not
@@ -549,4 +550,4 @@ void ProofEqEngine::explainWithProof(Node lit,
 
 }  // namespace eq
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

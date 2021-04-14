@@ -1,24 +1,23 @@
-/*********************                                                        */
-/*! \file smt2_compliance.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A test of SMT-LIBv2 commands, checks for compliant output
- **
- ** A test of SMT-LIBv2 commands, checks for compliant output.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A test of SMT-LIBv2 commands, checks for compliant output.
+ */
 
 #include <cassert>
 #include <iostream>
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -26,8 +25,8 @@
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 
-using namespace CVC4;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 using namespace std;
 
 void testGetInfo(api::Solver* solver, const char* s);

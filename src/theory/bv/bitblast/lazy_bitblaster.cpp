@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file lazy_bitblaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitblaster for the lazy bv solver.
- **
- ** Bitblaster for the lazy bv solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for the lazy bv solver.
+ */
 
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
@@ -30,7 +29,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -226,7 +225,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
   }
   Assert(node.getType().isBitVector());
 
-  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
+  d_bv->spendResource(Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
@@ -411,7 +410,7 @@ bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
 
 void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   if (clause.size() > 1) {
-    NodeBuilder<> lemmab(kind::OR);
+    NodeBuilder lemmab(kind::OR);
     for (unsigned i = 0; i < clause.size(); ++ i) {
       lemmab << d_cnf->getNode(clause[i]);
     }
@@ -422,12 +421,12 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
+void TLazyBitblaster::MinisatNotify::spendResource(Resource r)
 {
   d_bv->spendResource(r);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
+void TLazyBitblaster::MinisatNotify::safePoint(Resource r)
 {
   d_bv->d_im.safePoint(r);
 }
@@ -590,4 +589,4 @@ void TLazyBitblaster::clearSolver() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

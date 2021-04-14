@@ -20,7 +20,7 @@
 #include "expr/proof_node_manager.h"
 #include "proof/lean/lean_rules.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -36,6 +36,7 @@ LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
 }
 
 bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa,
                                                 bool& continueUpdate)
 {
   return pn->getRule() != PfRule::LEAN_RULE;
@@ -116,4 +117,4 @@ void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

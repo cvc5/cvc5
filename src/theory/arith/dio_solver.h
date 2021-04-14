@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file dio_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Diophantine equation solver
- **
- ** A Diophantine equation solver for the theory of arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A Diophantine equation solver for the theory of arithmetic.
+ */
 
 #include "cvc4_private.h"
 
-
-#ifndef CVC4__THEORY__ARITH__DIO_SOLVER_H
-#define CVC4__THEORY__ARITH__DIO_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__DIO_SOLVER_H
+#define CVC5__THEORY__ARITH__DIO_SOLVER_H
 
 #include <unordered_map>
 #include <utility>
@@ -33,7 +31,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 class Context;
 }
@@ -421,8 +419,8 @@ public:
   Statistics d_statistics;
 };/* class DioSolver */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__DIO_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__DIO_SOLVER_H */

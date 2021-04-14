@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_enumeration.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utilities for term enumeration
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for term enumeration.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
 
 #include <unordered_map>
 #include <vector>
@@ -24,7 +25,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -69,8 +70,8 @@ class TermEnumeration
   std::vector<TypeEnumerator> d_typ_enum;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */

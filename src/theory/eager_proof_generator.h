@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file eager_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The eager proof generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Alex Ozdemir, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The eager proof generator class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__EAGER_PROOF_GENERATOR_H
-#define CVC4__THEORY__EAGER_PROOF_GENERATOR_H
+#ifndef CVC5__THEORY__EAGER_PROOF_GENERATOR_H
+#define CVC5__THEORY__EAGER_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
@@ -23,7 +24,7 @@
 #include "expr/proof_rule.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNode;
 class ProofNodeManager;
@@ -193,6 +194,6 @@ class EagerProofGenerator : public ProofGenerator
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__PROOF_GENERATOR_H */
+#endif /* CVC5__THEORY__PROOF_GENERATOR_H */

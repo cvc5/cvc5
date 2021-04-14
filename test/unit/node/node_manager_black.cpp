@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node_manager_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Christopher L. Conway, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::NodeManager.
- **
- ** Black box testing of CVC4::NodeManager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Dejan Jovanovic, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::NodeManager.
+ */
 
 #include <string>
 #include <vector>
@@ -24,7 +23,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace expr;
@@ -37,7 +36,7 @@ class TestNodeBlackNodeManager : public TestNode
 
 TEST_F(TestNodeBlackNodeManager, mkNode_not)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(NOT, x);
   ASSERT_EQ(n.getNumChildren(), 1u);
   ASSERT_EQ(n.getKind(), NOT);
@@ -46,8 +45,8 @@ TEST_F(TestNodeBlackNodeManager, mkNode_not)
 
 TEST_F(TestNodeBlackNodeManager, mkNode_binary)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
-  Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(IMPLIES, x, y);
   ASSERT_EQ(n.getNumChildren(), 2u);
   ASSERT_EQ(n.getKind(), IMPLIES);
@@ -57,9 +56,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_binary)
 
 TEST_F(TestNodeBlackNodeManager, mkNode_three_children)
 {
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
-  Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
-  Node z = d_nodeManager->mkSkolem("z", d_nodeManager->booleanType());
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
+  Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
+  Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(AND, x, y, z);
   ASSERT_EQ(n.getNumChildren(), 3u);
   ASSERT_EQ(n.getKind(), AND);
@@ -70,10 +69,10 @@ TEST_F(TestNodeBlackNodeManager, mkNode_three_children)
 
 TEST_F(TestNodeBlackNodeManager, mkNode_four_children)
 {
-  Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
-  Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
-  Node x3 = d_nodeManager->mkSkolem("x3", d_nodeManager->booleanType());
-  Node x4 = d_nodeManager->mkSkolem("x4", d_nodeManager->booleanType());
+  Node x1 = d_skolemManager->mkDummySkolem("x1", d_nodeManager->booleanType());
+  Node x2 = d_skolemManager->mkDummySkolem("x2", d_nodeManager->booleanType());
+  Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
+  Node x4 = d_skolemManager->mkDummySkolem("x4", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(AND, x1, x2, x3, x4);
   ASSERT_EQ(n.getNumChildren(), 4u);
   ASSERT_EQ(n.getKind(), AND);
@@ -85,11 +84,11 @@ TEST_F(TestNodeBlackNodeManager, mkNode_four_children)
 
 TEST_F(TestNodeBlackNodeManager, mkNode_five_children)
 {
-  Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
-  Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
-  Node x3 = d_nodeManager->mkSkolem("x3", d_nodeManager->booleanType());
-  Node x4 = d_nodeManager->mkSkolem("x4", d_nodeManager->booleanType());
-  Node x5 = d_nodeManager->mkSkolem("x5", d_nodeManager->booleanType());
+  Node x1 = d_skolemManager->mkDummySkolem("x1", d_nodeManager->booleanType());
+  Node x2 = d_skolemManager->mkDummySkolem("x2", d_nodeManager->booleanType());
+  Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
+  Node x4 = d_skolemManager->mkDummySkolem("x4", d_nodeManager->booleanType());
+  Node x5 = d_skolemManager->mkDummySkolem("x5", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(AND, x1, x2, x3, x4, x5);
   ASSERT_EQ(n.getNumChildren(), 5u);
   ASSERT_EQ(n.getKind(), AND);
@@ -102,9 +101,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_five_children)
 
 TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_node)
 {
-  Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
-  Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
-  Node x3 = d_nodeManager->mkSkolem("x3", d_nodeManager->booleanType());
+  Node x1 = d_skolemManager->mkDummySkolem("x1", d_nodeManager->booleanType());
+  Node x2 = d_skolemManager->mkDummySkolem("x2", d_nodeManager->booleanType());
+  Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
   std::vector<Node> args;
   args.push_back(x1);
   args.push_back(x2);
@@ -120,9 +119,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_node)
 
 TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 {
-  Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
-  Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
-  Node x3 = d_nodeManager->mkSkolem("x3", d_nodeManager->booleanType());
+  Node x1 = d_skolemManager->mkDummySkolem("x1", d_nodeManager->booleanType());
+  Node x2 = d_skolemManager->mkDummySkolem("x2", d_nodeManager->booleanType());
+  Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
   std::vector<TNode> args;
   args.push_back(x1);
   args.push_back(x2);
@@ -138,7 +137,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 
 TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
-  Node x = d_nodeManager->mkSkolem(
+  Node x = d_skolemManager->mkDummySkolem(
       "x", *d_boolTypeNode, "", NodeManager::SKOLEM_EXACT_NAME);
   ASSERT_EQ(x.getKind(), SKOLEM);
   ASSERT_EQ(x.getNumChildren(), 0u);
@@ -302,8 +301,8 @@ TEST_F(TestNodeBlackNodeManager, mkPredicateType)
 /* This test is only valid if assertions are enabled. */
 TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 {
-#ifdef CVC4_ASSERTIONS
-  Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
+#ifdef CVC5_ASSERTIONS
+  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   ASSERT_DEATH(d_nodeManager->mkNode(AND, x),
                "Nodes with kind AND must have at least 2 children");
 #endif
@@ -312,12 +311,12 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 /* This test is only valid if assertions are enabled. */
 TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   std::vector<Node> vars;
   const uint32_t max = metakind::getMaxArityForKind(AND);
   TypeNode boolType = d_nodeManager->booleanType();
-  Node skolem_i = d_nodeManager->mkSkolem("i", boolType);
-  Node skolem_j = d_nodeManager->mkSkolem("j", boolType);
+  Node skolem_i = d_skolemManager->mkDummySkolem("i", boolType);
+  Node skolem_j = d_skolemManager->mkDummySkolem("j", boolType);
   Node andNode = skolem_i.andNode(skolem_j);
   Node orNode = skolem_i.orNode(skolem_j);
   while (vars.size() <= max)
@@ -330,4 +329,4 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 #endif
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

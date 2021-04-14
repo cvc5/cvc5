@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file assertions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for storing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for storing assertions for an SMT engine.
+ */
 
 #include "smt/assertions.h"
 
@@ -18,16 +19,17 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/abstract_values.h"
 #include "smt/smt_engine.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 Assertions::Assertions(context::UserContext* u, AbstractValues& absv)
@@ -176,7 +178,7 @@ void Assertions::addFormula(
   }
 
   // Give it to the old proof manager
-  if (options::unsatCores() && !isProofEnabled())
+  if (options::unsatCores())
   {
     if (inInput)
     {  // n is an input assertion
@@ -243,4 +245,4 @@ bool Assertions::isProofEnabled() const
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

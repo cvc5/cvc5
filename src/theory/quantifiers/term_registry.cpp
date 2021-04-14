@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file term_registry.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief term registry class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term registry class.
+ */
 
 #include "theory/quantifiers/term_registry.h"
 
@@ -18,9 +19,11 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -29,6 +32,7 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
+      d_termPools(new TermPools(qs)),
       d_termDb(new TermDb(qs, qr)),
       d_sygusTdb(nullptr)
 {
@@ -116,6 +120,21 @@ Node TermRegistry::getTermForType(TypeNode tn)
   return d_termDb->getOrMakeTypeGroundTerm(tn);
 }
 
+void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
+{
+  d_termPools->registerPool(p, initValue);
+}
+
+void TermRegistry::processInstantiation(Node q, const std::vector<Node>& terms)
+{
+  d_termPools->processInstantiation(q, terms);
+}
+void TermRegistry::processSkolemization(Node q,
+                                        const std::vector<Node>& skolems)
+{
+  d_termPools->processSkolemization(q, skolems);
+}
+
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() const
@@ -128,10 +147,12 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
   return d_termEnum.get();
 }
 
+TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
+
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }
 
 bool TermRegistry::useFmcModel() const { return d_useFmcModel; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

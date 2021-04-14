@@ -1,36 +1,38 @@
-/*********************                                                        */
-/*! \file  term_tuple_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mikolas Janota
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of an enumeration of tuples of terms for the purpose
- *of quantifier instantiation.
- **/
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
+/******************************************************************************
+ * Top contributors (to current version):
+ *   MikolasJanota, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of an enumeration of tuples of terms for the purpose
+ * of quantifier instantiation.
+ */
+#ifndef CVC5__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__TERM_TUPLE_ENUMERATOR_H
+
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
+class TermPools;
+class QuantifiersState;
+class TermDb;
 class RelevantDomain;
 
 /**  Interface for enumeration of tuples of terms.
  *
  * The interface should be used as follows. Firstly, init is called, then,
- * repeatedly,  verify if there are any combinations left by calling hasNext
+ * repeatedly, verify if there are any combinations left by calling hasNext
  * and obtaining the next combination by calling next.
  *
  *  Optionally, if the  most recent combination is determined to be undesirable
@@ -53,37 +55,51 @@ class TermTupleEnumeratorInterface
 };
 
 /** A struct bundling up parameters for term tuple enumerator.*/
-struct TermTupleEnumeratorContext
+struct TermTupleEnumeratorEnv
 {
-  QuantifiersEngine* d_quantEngine;
-  RelevantDomain* d_rd;
+  /**
+   * Whether we should put full effort into finding an instantiation. If this
+   * is false, then we allow for incompleteness, e.g. the tuple enumerator
+   * may heuristically give up before it has generated all tuples.
+   */
   bool d_fullEffort;
+  /** Whether we increase tuples based on sum instead of max (see below) */
   bool d_increaseSum;
-  bool d_isRd;
 };
 
 /**  A function to construct a tuple enumerator.
  *
- * Currently we support the enumerators based on the following idea.
+ * In the methods below, we support the enumerators based on the following idea.
  * The tuples are represented as tuples of
  * indices of  terms, where the tuple has as many elements as there are
- * quantified variables in the considered quantifier.
+ * quantified variables in the considered quantifier q.
  *
  * Like so, we see a tuple as a number, where the digits may have different
  * ranges. The most significant digits are stored first.
  *
- * Tuples are enumerated  in a lexicographic order in stages. There are 2
- * possible strategies, either  all tuples in a given stage have the same sum of
- * digits, or, the maximum  over these digits is the same (controlled by
- * d_increaseSum).
+ * Tuples are enumerated in a lexicographic order in stages. There are 2
+ * possible strategies, either all tuples in a given stage have the same sum of
+ * digits, or, the maximum over these digits is the same (controlled by
+ * TermTupleEnumeratorEnv::d_increaseSum).
  *
- * Further, an enumerator  either draws ground terms from the term database or
- * using the relevant domain class  (controlled by d_isRd).
+ * In this method, the returned enumerator draws ground terms from the term
+ * database (provided by td). The quantifiers state (qs) is used to eliminate
+ * duplicates modulo equality.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node quantifier, const TermTupleEnumeratorContext* context);
+    Node q,
+    const TermTupleEnumeratorEnv* env,
+    QuantifiersState& qs,
+    TermDb* td);
+/** Same as above, but draws terms from the relevant domain utility (rd). */
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
+    Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd);
+
+/** Make term pool enumerator */
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node p);
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 #endif /* TERM_TUPLE_ENUMERATOR_H_7640 */

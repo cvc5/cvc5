@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_enumerator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_enumerator.
+ */
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
@@ -24,9 +25,9 @@
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -772,8 +773,10 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   // have we run out of constructor classes for this size?
   if (d_ccCons.empty())
   {
-    // check whether we should terminate
-    if (d_tn.isInterpretedFinite())
+    // check whether we should terminate, which notice always treats
+    // uninterpreted sorts as infinite, since we do not put bounds on them
+    // in our enumeration.
+    if (isCardinalityClassFinite(d_tn.getCardinalityClass(), false))
     {
       if (ncc == tc.getNumConstructorClasses())
       {
@@ -1214,4 +1217,4 @@ bool SygusEnumerator::TermEnumMasterFv::increment()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

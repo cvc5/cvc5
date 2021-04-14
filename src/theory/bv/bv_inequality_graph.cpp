@@ -1,33 +1,31 @@
-/*********************                                                        */
-/*! \file bv_inequality_graph.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A graph representation of the currently asserted bv inequalities.
- **
- ** A graph representation of the currently asserted bv inequalities.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A graph representation of the currently asserted bv inequalities.
+ */
 
 #include "theory/bv/bv_inequality_graph.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
+using namespace cvc5::theory::bv::utils;
 
-const TermId CVC4::theory::bv::UndefinedTermId = -1; 
-const ReasonId CVC4::theory::bv::UndefinedReasonId = -1;
-const ReasonId CVC4::theory::bv::AxiomReasonId = -2;
-
+const TermId cvc5::theory::bv::UndefinedTermId = -1;
+const ReasonId cvc5::theory::bv::UndefinedReasonId = -1;
+const ReasonId cvc5::theory::bv::AxiomReasonId = -2;
 
 bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason) {
   Debug("bv-inequality") << "InequalityGraph::addInequality " << a << " " << b << " strict: " << strict << "\n"; 

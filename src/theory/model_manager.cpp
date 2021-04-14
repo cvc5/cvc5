@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file model_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract management of models for TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract management of models for TheoryEngine.
+ */
 
 #include "theory/model_manager.h"
 
@@ -22,7 +23,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
@@ -239,4 +240,4 @@ void ModelManager::collectTerms(TheoryId tid,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

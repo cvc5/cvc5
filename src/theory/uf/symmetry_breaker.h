@@ -1,48 +1,46 @@
-/*********************                                                        */
-/*! \file symmetry_breaker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of algorithm suggested by Deharbe, Fontaine,
- ** Merz, and Paleo, "Exploiting symmetry in SMT problems," CADE 2011
- **
- ** Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
- ** and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
- **
- ** From the paper:
- **
- ** <pre>
- **   \f$ P := guess\_permutations(\phi) \f$
- **   foreach \f$ {c_0, ..., c_n} \in P \f$ do
- **     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
- **       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
- **       cts := \f$ \emptyset \f$
- **       while T != \f$ \empty \wedge |cts| <= n \f$ do
- **         \f$ t := select\_most\_promising\_term(T, \phi) \f$
- **         \f$ T := T \setminus {t} \f$
- **         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
- **         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
- **         cts := cts \f$ \cup {c} \f$
- **         if cts != \f$ {c_0, ..., c_n} \f$ then
- **           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
- **         end
- **       end
- **     end
- **   end
- **   return \f$ \phi \f$
- ** </pre>
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
+ * and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
+ *
+ * From the paper:
+ *
+ * <pre>
+ *   \f$ P := guess\_permutations(\phi) \f$
+ *   foreach \f$ {c_0, ..., c_n} \in P \f$ do
+ *     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
+ *       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
+ *       cts := \f$ \emptyset \f$
+ *       while T != \f$ \empty \wedge |cts| <= n \f$ do
+ *         \f$ t := select\_most\_promising\_term(T, \phi) \f$
+ *         \f$ T := T \setminus {t} \f$
+ *         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
+ *         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
+ *         cts := cts \f$ \cup {c} \f$
+ *         if cts != \f$ {c_0, ..., c_n} \f$ then
+ *           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
+ *         end
+ *       end
+ *     end
+ *   end
+ *   return \f$ \phi \f$
+ * </pre>
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__SYMMETRY_BREAKER_H
-#define CVC4__THEORY__UF__SYMMETRY_BREAKER_H
+#ifndef CVC5__THEORY__UF__SYMMETRY_BREAKER_H
+#define CVC5__THEORY__UF__SYMMETRY_BREAKER_H
 
 #include <iostream>
 #include <list>
@@ -57,7 +55,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -65,7 +63,7 @@ class SymmetryBreaker : public context::ContextNotifyObj {
 
   class Template {
     Node d_template;
-    NodeBuilder<> d_assertions;
+    NodeBuilder d_assertions;
     std::unordered_map<TNode, std::set<TNode>, TNodeHashFunction> d_sets;
     std::unordered_map<TNode, TNode, TNodeHashFunction> d_reps;
 
@@ -170,11 +168,13 @@ private:
 
 };/* class SymmetryBreaker */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
+}  // namespace uf
+}  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const ::CVC4::theory::uf::SymmetryBreaker::Permutation& p);
+std::ostream& operator<<(
+    std::ostream& out,
+    const ::cvc5::theory::uf::SymmetryBreaker::Permutation& p);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__UF__SYMMETRY_BREAKER_H */
+#endif /* CVC5__THEORY__UF__SYMMETRY_BREAKER_H */

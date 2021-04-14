@@ -5,33 +5,33 @@
 #
 
 theory THEORY_BAGS \
-    ::CVC4::theory::bags::TheoryBags \
+    ::cvc5::theory::bags::TheoryBags \
     "theory/bags/theory_bags.h"
 typechecker "theory/bags/theory_bags_type_rules.h"
-rewriter ::CVC4::theory::bags::BagsRewriter \
+rewriter ::cvc5::theory::bags::BagsRewriter \
     "theory/bags/bags_rewriter.h"
 
 properties parametric
-properties check propagate presolve
+properties check presolve
 
 # constants
 constant EMPTYBAG \
-    ::CVC4::EmptyBag \
-    ::CVC4::EmptyBagHashFunction \
+    ::cvc5::EmptyBag \
+    ::cvc5::EmptyBagHashFunction \
     "expr/emptybag.h" \
-    "the empty bag constant; payload is an instance of the CVC4::EmptyBag class"
+    "the empty bag constant; payload is an instance of the cvc5::EmptyBag class"
 
 # the type
 operator BAG_TYPE 1 "bag type, takes as parameter the type of the elements"
 cardinality BAG_TYPE \
-    "::CVC4::theory::bags::BagsProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::bags::BagsProperties::computeCardinality(%TYPE%)" \
     "theory/bags/theory_bags_type_rules.h"
 well-founded BAG_TYPE \
-    "::CVC4::theory::bags::BagsProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::bags::BagsProperties::mkGroundTerm(%TYPE%)" \
+    "::cvc5::theory::bags::BagsProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::bags::BagsProperties::mkGroundTerm(%TYPE%)" \
     "theory/bags/theory_bags_type_rules.h"
 enumerator BAG_TYPE \
-    "::CVC4::theory::bags::BagEnumerator" \
+    "::cvc5::theory::bags::BagEnumerator" \
     "theory/bags/theory_bags_type_enumerator.h"
 
 # operators
@@ -50,10 +50,10 @@ operator BAG_COUNT         2  "multiplicity of an element in a bag"
 operator DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
 
 constant MK_BAG_OP \
-	::CVC4::MakeBagOp \
-	::CVC4::MakeBagOpHashFunction \
+	::cvc5::MakeBagOp \
+	::cvc5::MakeBagOpHashFunction \
 	"theory/bags/make_bag_op.h" \
-	"operator for MK_BAG; payload is an instance of the CVC4::MakeBagOp class"
+	"operator for MK_BAG; payload is an instance of the cvc5::MakeBagOp class"
 parameterized MK_BAG MK_BAG_OP 2 \
 "constructs a bag from one element along with its multiplicity"
 
@@ -70,24 +70,24 @@ operator BAG_TO_SET        1  "converts a bag to a set"
 # If the bag has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator BAG_CHOOSE        1  "return an element in the bag given as a parameter"
 
-typerule UNION_MAX           ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule UNION_DISJOINT      ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule INTERSECTION_MIN    ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule DIFFERENCE_SUBTRACT ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule DIFFERENCE_REMOVE   ::CVC4::theory::bags::BinaryOperatorTypeRule
-typerule SUBBAG              ::CVC4::theory::bags::SubBagTypeRule
-typerule BAG_COUNT           ::CVC4::theory::bags::CountTypeRule
-typerule DUPLICATE_REMOVAL   ::CVC4::theory::bags::DuplicateRemovalTypeRule
+typerule UNION_MAX           ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule UNION_DISJOINT      ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule INTERSECTION_MIN    ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule DIFFERENCE_SUBTRACT ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule DIFFERENCE_REMOVE   ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule SUBBAG              ::cvc5::theory::bags::SubBagTypeRule
+typerule BAG_COUNT           ::cvc5::theory::bags::CountTypeRule
+typerule DUPLICATE_REMOVAL   ::cvc5::theory::bags::DuplicateRemovalTypeRule
 typerule MK_BAG_OP           "SimpleTypeRule<RBuiltinOperator>"
-typerule MK_BAG              ::CVC4::theory::bags::MkBagTypeRule
-typerule EMPTYBAG            ::CVC4::theory::bags::EmptyBagTypeRule
-typerule BAG_CARD            ::CVC4::theory::bags::CardTypeRule
-typerule BAG_CHOOSE          ::CVC4::theory::bags::ChooseTypeRule
-typerule BAG_IS_SINGLETON    ::CVC4::theory::bags::IsSingletonTypeRule
-typerule BAG_FROM_SET        ::CVC4::theory::bags::FromSetTypeRule
-typerule BAG_TO_SET          ::CVC4::theory::bags::ToSetTypeRule
+typerule MK_BAG              ::cvc5::theory::bags::MkBagTypeRule
+typerule EMPTYBAG            ::cvc5::theory::bags::EmptyBagTypeRule
+typerule BAG_CARD            ::cvc5::theory::bags::CardTypeRule
+typerule BAG_CHOOSE          ::cvc5::theory::bags::ChooseTypeRule
+typerule BAG_IS_SINGLETON    ::cvc5::theory::bags::IsSingletonTypeRule
+typerule BAG_FROM_SET        ::cvc5::theory::bags::FromSetTypeRule
+typerule BAG_TO_SET          ::cvc5::theory::bags::ToSetTypeRule
 
-construle UNION_DISJOINT     ::CVC4::theory::bags::BinaryOperatorTypeRule
-construle MK_BAG             ::CVC4::theory::bags::MkBagTypeRule
+construle UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
+construle MK_BAG             ::cvc5::theory::bags::MkBagTypeRule
 
 endtheory

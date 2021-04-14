@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file stats_timer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Timer statistics
- **
- ** Stat classes that hold timers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Timer statistics.
+ *
+ * Stat classes that hold timers.
+ */
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATS_TIMER_H
-#define CVC4__UTIL__STATS_TIMER_H
+#ifndef CVC5__UTIL__STATS_TIMER_H
+#define CVC5__UTIL__STATS_TIMER_H
 
 #include <chrono>
 
 #include "cvc4_export.h"
 #include "util/stats_base.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace timer_stat_detail {
 using clock = std::chrono::steady_clock;
 using time_point = clock::time_point;
@@ -46,7 +47,7 @@ class CodeTimer;
 class CVC4_EXPORT TimerStat : public BackedStat<timer_stat_detail::duration>
 {
  public:
-  typedef CVC4::CodeTimer CodeTimer;
+  typedef cvc5::CodeTimer CodeTimer;
 
   /**
    * Construct a timer statistic with the given name.  Newly-constructed
@@ -108,6 +109,6 @@ private:
   CodeTimer& operator=(const CodeTimer& timer) = delete;
 }; /* class CodeTimer */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

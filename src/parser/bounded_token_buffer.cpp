@@ -1,20 +1,20 @@
-/*********************                                                        */
-/*! \file bounded_token_buffer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An ANTLR3 bounded token stream implementation.
- **
- ** An ANTLR3 bounded token stream implementation.
- ** This code is largely based on the original token buffer implementation
- ** in libantlr3c, by Jim Idle.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An ANTLR3 bounded token stream implementation.
+ *
+ * This code is largely based on the original token buffer implementation
+ * in libantlr3c, by Jim Idle.
+ */
 
 /// \file 
 /// Default implementation of CommonTokenStream
@@ -57,7 +57,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 #ifdef	ANTLR3_WINDOWS
@@ -525,6 +525,5 @@ getSourceName				(pANTLR3_INT_STREAM is)
 	return ((pANTLR3_TOKEN_STREAM)(is->super))->tokenSource->fileName;
 }
 
-
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

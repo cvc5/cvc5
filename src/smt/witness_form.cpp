@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file witness_form.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for managing witness form conversion in proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for managing witness form conversion in proofs.
+ */
 
 #include "smt/witness_form.h"
 
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
@@ -152,4 +153,4 @@ ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

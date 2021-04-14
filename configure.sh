@@ -25,6 +25,7 @@ General options;
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --docs                   build Api documentation
 
 
 Features:
@@ -66,7 +67,6 @@ The following flags enable optional packages (disable with --no-<option name>).
 
 Optional Path to Optional Packages:
   --abc-dir=PATH           path to top level of ABC source tree
-  --antlr-dir=PATH         path to ANTLR C headers and libraries
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
   --glpk-dir=PATH          path to top level of GLPK installation
@@ -118,6 +118,7 @@ coverage=default
 cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
+docs=default
 dumping=default
 glpk=default
 gpl=default
@@ -144,7 +145,6 @@ arm64=default
 werror=default
 
 abc_dir=default
-antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
 glpk_dir=default
@@ -240,6 +240,9 @@ do
 
     --ninja) ninja=ON;;
 
+    --docs) docs=ON;;
+    --no-docs) docs=OFF;;
+
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
 
@@ -292,9 +295,6 @@ do
     --abc-dir) die "missing argument to $1 (try -h)" ;;
     --abc-dir=*) abc_dir=${1##*=} ;;
 
-    --antlr-dir) die "missing argument to $1 (try -h)" ;;
-    --antlr-dir=*) antlr_dir=${1##*=} ;;
-
     --cadical-dir) die "missing argument to $1 (try -h)" ;;
     --cadical-dir=*) cadical_dir=${1##*=} ;;
 
@@ -332,20 +332,6 @@ do
   esac
   shift
 done
-
-#--------------------------------------------------------------------------#
-# Automatically set up dependencies based on configure options
-#--------------------------------------------------------------------------#
-
-if [ "$arm64" == "ON" ]; then
-  echo "Setting up dependencies for ARM 64-bit build"
-  contrib/get-antlr-3.4 --host=aarch64-linux-gnu || exit 1
-  contrib/get-gmp-dev --host=aarch64-linux-gnu || exit 1
-elif [ "$win64" == "ON" ]; then
-  echo "Setting up dependencies for Windows 64-bit build"
-  contrib/get-antlr-3.4 --host=x86_64-w64-mingw32 || exit 1
-  contrib/get-gmp-dev --host=x86_64-w64-mingw32 || exit 1
-fi
 
 #--------------------------------------------------------------------------#
 
@@ -398,6 +384,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
 [ $python2 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
+[ $docs != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $java_bindings != default ] \
@@ -426,8 +414,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
-[ "$antlr_dir" != default ] \
-  && cmake_opts="$cmake_opts -DANTLR_DIR=$antlr_dir"
 [ "$cadical_dir" != default ] \
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ "$cryptominisat_dir" != default ] \

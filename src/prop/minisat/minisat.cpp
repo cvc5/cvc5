@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file minisat.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the minisat interface for cvc4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Liana Hadarean, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the minisat interface for cvc5.
+ */
 
 #include "prop/minisat/minisat.h"
 
@@ -25,7 +26,7 @@
 #include "proof/sat_proof.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 //// DPllMinisatSatSolver
@@ -333,20 +334,21 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
   d_statTotLiterals.set(minisat->tot_literals);
 }
 
-} /* namespace CVC4::prop */
-} /* namespace CVC4 */
+}  // namespace prop
+}  // namespace cvc5
 
-
-namespace CVC4 {
-template<>
-prop::SatLiteral toSatLiteral< CVC4::Minisat::Solver>(Minisat::Solver::TLit lit) {
+namespace cvc5 {
+template <>
+prop::SatLiteral toSatLiteral<cvc5::Minisat::Solver>(Minisat::Solver::TLit lit)
+{
   return prop::MinisatSatSolver::toSatLiteral(lit);
 }
 
-template<>
-void toSatClause< CVC4::Minisat::Solver> (const CVC4::Minisat::Solver::TClause& minisat_cl,
-                                      prop::SatClause& sat_cl) {
+template <>
+void toSatClause<cvc5::Minisat::Solver>(
+    const cvc5::Minisat::Solver::TClause& minisat_cl, prop::SatClause& sat_cl)
+{
   prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

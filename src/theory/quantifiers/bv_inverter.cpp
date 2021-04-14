@@ -1,30 +1,32 @@
-/*********************                                                        */
-/*! \file bv_inverter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
 #include "theory/quantifiers/bv_inverter.h"
 
 #include <algorithm>
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -35,14 +37,12 @@ Node BvInverter::getSolveVariable(TypeNode tn)
   std::map<TypeNode, Node>::iterator its = d_solve_var.find(tn);
   if (its == d_solve_var.end())
   {
-    Node k = NodeManager::currentNM()->mkSkolem("slv", tn);
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    Node k = sm->mkDummySkolem("slv", tn);
     d_solve_var[tn] = k;
     return k;
   }
-  else
-  {
-    return its->second;
-  }
+  return its->second;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -202,7 +202,7 @@ static Node dropChild(Node n, unsigned index)
   if (nchildren < 2) return Node::null();
 
   Kind k = n.getKind();
-  NodeBuilder<> nb(k);
+  NodeBuilder nb(k);
   for (unsigned i = 0; i < nchildren; ++i)
   {
     if (i == index) continue;
@@ -350,7 +350,7 @@ Node BvInverter::solveBvLit(Node sv,
         unsigned upper, lower;
         upper = bv::utils::getSize(t) - 1;
         lower = 0;
-        NodeBuilder<> nb(BITVECTOR_CONCAT);
+        NodeBuilder nb(BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
           if (i < index)
@@ -442,4 +442,4 @@ Node BvInverter::solveBvLit(Node sv,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The sygus extension of the theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The sygus extension of the theory of datatypes.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__SYGUS_EXTENSION_H
-#define CVC4__THEORY__DATATYPES__SYGUS_EXTENSION_H
+#ifndef CVC5__THEORY__DATATYPES__SYGUS_EXTENSION_H
+#define CVC5__THEORY__DATATYPES__SYGUS_EXTENSION_H
 
 #include <iostream>
 #include <map>
@@ -29,7 +30,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 class SynthConjecture;
@@ -71,8 +72,7 @@ class SygusExtension
  public:
   SygusExtension(TheoryState& s,
                  InferenceManager& im,
-                 quantifiers::TermDbSygus* tds,
-                 DecisionManager* dm);
+                 quantifiers::TermDbSygus* tds);
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
@@ -113,8 +113,6 @@ class SygusExtension
   InferenceManager& d_im;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
-  /** Pointer to the decision manager */
-  DecisionManager* d_dm;
   /** the simple symmetry breaking utility */
   SygusSimpleSymBreak d_ssb;
   /**
@@ -712,7 +710,7 @@ private:
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif
 

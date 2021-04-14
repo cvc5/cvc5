@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file alpha_equivalence.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Alpha equivalence checking
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Paul Meng
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Alpha equivalence checking.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__ALPHA_EQUIVALENCE_H
-#define CVC4__ALPHA_EQUIVALENCE_H
+#ifndef CVC5__ALPHA_EQUIVALENCE_H
+#define CVC5__ALPHA_EQUIVALENCE_H
 
 #include "theory/quantifiers/quant_util.h"
 
 #include "expr/term_canonize.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class CDProof;
 
@@ -89,7 +90,7 @@ class AlphaEquivalenceDb
 class AlphaEquivalence
 {
  public:
-  AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm = nullptr);
+  AlphaEquivalence(ProofNodeManager* pnm = nullptr);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
@@ -117,6 +118,6 @@ class AlphaEquivalence
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+CVC4_CHECK_DIR=/space/ajreynol/cvc4/deps/bin/
+CVC4_BINARY=cvc4
+TIMEOUT=30
+
+echo -n "Call run_regression_lfsc $@ "
+
+# call with timeout
+ulimit -t $TIMEOUT; $CVC4_CHECK_DIR/cvc4-proof.sh $CVC4_BINARY $@ >& proof.plf
+
+if grep -q "(check" proof.plf; then
+  # ensure it checks with LFSC
+  ulimit -t $TIMEOUT; $CVC4_CHECK_DIR/lfsc-check.sh proof.plf >& lfsc-check-res.txt
+  if grep -q "successfully" lfsc-check-res.txt; then
+    if grep -q "WARNING" proof.plf; then
+      # remove allowed rules
+      sed -i '/THEORY_REWRITE/d' proof.plf
+      sed -i '/EVALUATE/d' proof.plf
+      if grep -q "WARNING" proof.plf; then
+        echo "WARNING"
+      else
+        echo "SUCCESS"
+      fi
+    else
+      echo "PERFECT"
+    fi
+  else
+    echo "ERROR-LFSC"
+  fi
+else
+  echo "ERROR-CVC4"
+fi
+
+#rm proof.plf
+#rm lfsc-check-res.plf
+
+

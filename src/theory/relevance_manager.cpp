@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file relevance_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of relevance manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of relevance manager.
+ */
 
 #include "theory/relevance_manager.h"
 
 #include <sstream>
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
@@ -84,12 +85,12 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
 void RelevanceManager::resetRound()
 {
   d_computed = false;
-  d_rset.clear();
 }
 
 void RelevanceManager::computeRelevance()
 {
   d_computed = true;
+  d_rset.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int, TNodeHashFunction> cache;
   for (const Node& node: d_input)
@@ -104,6 +105,7 @@ void RelevanceManager::computeRelevance()
       Trace("rel-manager") << serr.str() << std::endl;
       Assert(false) << serr.str();
       d_success = false;
+      d_rset.clear();
       return;
     }
   }
@@ -313,5 +315,17 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
+const std::unordered_set<TNode, TNodeHashFunction>&
+RelevanceManager::getRelevantAssertions(bool& success)
+{
+  if (!d_computed)
+  {
+    computeRelevance();
+  }
+  // update success flag
+  success = d_success;
+  return d_rset;
+}
+
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

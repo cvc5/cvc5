@@ -4,31 +4,31 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_DATATYPES ::CVC4::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
+theory THEORY_DATATYPES ::cvc5::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
 typechecker "theory/datatypes/theory_datatypes_type_rules.h"
 
 properties check parametric
 
-rewriter ::CVC4::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
+rewriter ::cvc5::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
 
 # constructor type has a list of selector types followed by a return type
 operator CONSTRUCTOR_TYPE 1: "constructor"
 cardinality CONSTRUCTOR_TYPE \
-    "::CVC4::theory::datatypes::ConstructorProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::datatypes::ConstructorProperties::computeCardinality(%TYPE%)" \
     "theory/datatypes/theory_datatypes_type_rules.h"
 
 # selector type has domain type and a range type
 operator SELECTOR_TYPE 2 "selector"
 # can re-use function cardinality
 cardinality SELECTOR_TYPE \
-    "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
 # tester type has a constructor type
 operator TESTER_TYPE 1 "tester"
 # can re-use function cardinality
 cardinality TESTER_TYPE \
-    "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
 parameterized APPLY_CONSTRUCTOR APPLY_TYPE_ASCRIPTION 0: "constructor application; first parameter is the constructor, remaining parameters (if any) are parameters to the constructor"
@@ -39,8 +39,8 @@ parameterized APPLY_SELECTOR_TOTAL [SELECTOR_TYPE] 1 "selector application; para
 parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is a tester, second is a datatype term"
 
 constant DATATYPE_TYPE \
-    ::CVC4::DatatypeIndexConstant \
-    "::CVC4::DatatypeIndexConstantHashFunction" \
+    ::cvc5::DatatypeIndexConstant \
+    "::cvc5::DatatypeIndexConstantHashFunction" \
     "expr/datatype_index.h" \
     "a datatype type index"
 cardinality DATATYPE_TYPE \
@@ -52,7 +52,7 @@ well-founded DATATYPE_TYPE \
     "expr/dtype.h"
 
 enumerator DATATYPE_TYPE \
-    "::CVC4::theory::datatypes::DatatypesEnumerator" \
+    "::cvc5::theory::datatypes::DatatypesEnumerator" \
     "theory/datatypes/type_enumerator.h"
 
 operator PARAMETRIC_DATATYPE 1: "parametric datatype"
@@ -65,59 +65,59 @@ well-founded PARAMETRIC_DATATYPE \
     "expr/dtype.h"
 
 enumerator PARAMETRIC_DATATYPE \
-    "::CVC4::theory::datatypes::DatatypesEnumerator" \
+    "::cvc5::theory::datatypes::DatatypesEnumerator" \
     "theory/datatypes/type_enumerator.h"
 
 parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
     "type ascription, for datatype constructor applications; first parameter is an ASCRIPTION_TYPE, second is the datatype constructor application being ascribed"
 constant ASCRIPTION_TYPE \
-    ::CVC4::AscriptionType \
-    ::CVC4::AscriptionTypeHashFunction \
+    ::cvc5::AscriptionType \
+    ::cvc5::AscriptionTypeHashFunction \
     "expr/ascription_type.h" \
-    "a type parameter for type ascription; payload is an instance of the CVC4::AscriptionType class"
+    "a type parameter for type ascription; payload is an instance of the cvc5::AscriptionType class"
 
-typerule APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
-typerule APPLY_SELECTOR ::CVC4::theory::datatypes::DatatypeSelectorTypeRule
-typerule APPLY_SELECTOR_TOTAL ::CVC4::theory::datatypes::DatatypeSelectorTypeRule
-typerule APPLY_TESTER ::CVC4::theory::datatypes::DatatypeTesterTypeRule
-typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionTypeRule
+typerule APPLY_CONSTRUCTOR ::cvc5::theory::datatypes::DatatypeConstructorTypeRule
+typerule APPLY_SELECTOR ::cvc5::theory::datatypes::DatatypeSelectorTypeRule
+typerule APPLY_SELECTOR_TOTAL ::cvc5::theory::datatypes::DatatypeSelectorTypeRule
+typerule APPLY_TESTER ::cvc5::theory::datatypes::DatatypeTesterTypeRule
+typerule APPLY_TYPE_ASCRIPTION ::cvc5::theory::datatypes::DatatypeAscriptionTypeRule
 
 # constructor applications are constant if they are applied only to constants
-construle APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
+construle APPLY_CONSTRUCTOR ::cvc5::theory::datatypes::DatatypeConstructorTypeRule
 
 constant TUPLE_UPDATE_OP \
-        ::CVC4::TupleUpdate \
-        ::CVC4::TupleUpdateHashFunction \
+        ::cvc5::TupleUpdate \
+        ::cvc5::TupleUpdateHashFunction \
         "util/tuple.h" \
-        "operator for a tuple update; payload is an instance of the CVC4::TupleUpdate class"
+        "operator for a tuple update; payload is an instance of the cvc5::TupleUpdate class"
 parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
-typerule TUPLE_UPDATE_OP ::CVC4::theory::datatypes::TupleUpdateOpTypeRule
-typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
+typerule TUPLE_UPDATE_OP ::cvc5::theory::datatypes::TupleUpdateOpTypeRule
+typerule TUPLE_UPDATE ::cvc5::theory::datatypes::TupleUpdateTypeRule
 
 constant RECORD_UPDATE_OP \
-        ::CVC4::RecordUpdate \
-        ::CVC4::RecordUpdateHashFunction \
+        ::cvc5::RecordUpdate \
+        ::cvc5::RecordUpdateHashFunction \
         "expr/record.h" \
-        "operator for a record update; payload is an instance CVC4::RecordUpdate class"
+        "operator for a record update; payload is an instance cvc5::RecordUpdate class"
 parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
-typerule RECORD_UPDATE_OP ::CVC4::theory::datatypes::RecordUpdateOpTypeRule
-typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule
+typerule RECORD_UPDATE_OP ::cvc5::theory::datatypes::RecordUpdateOpTypeRule
+typerule RECORD_UPDATE ::cvc5::theory::datatypes::RecordUpdateTypeRule
 
 
 operator DT_SIZE 1 "datatypes size"
-typerule DT_SIZE ::CVC4::theory::datatypes::DtSizeTypeRule
+typerule DT_SIZE ::cvc5::theory::datatypes::DtSizeTypeRule
 
 operator DT_HEIGHT_BOUND 2 "datatypes height bound"
-typerule DT_HEIGHT_BOUND ::CVC4::theory::datatypes::DtBoundTypeRule
+typerule DT_HEIGHT_BOUND ::cvc5::theory::datatypes::DtBoundTypeRule
 
 operator DT_SIZE_BOUND 2 "datatypes height bound"
-typerule DT_SIZE_BOUND ::CVC4::theory::datatypes::DtBoundTypeRule
+typerule DT_SIZE_BOUND ::cvc5::theory::datatypes::DtBoundTypeRule
 
 operator DT_SYGUS_BOUND 2 "datatypes sygus bound"
-typerule DT_SYGUS_BOUND ::CVC4::theory::datatypes::DtSygusBoundTypeRule
+typerule DT_SYGUS_BOUND ::cvc5::theory::datatypes::DtSygusBoundTypeRule
 
 operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
-typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSyguEvalTypeRule
+typerule DT_SYGUS_EVAL ::cvc5::theory::datatypes::DtSyguEvalTypeRule
 
 
 # Kinds for match terms. For example, the match term
@@ -134,21 +134,21 @@ operator MATCH 2: "match construct"
 operator MATCH_CASE 2 "a match case"
 operator MATCH_BIND_CASE 3 "a match case with bound variables"
 
-typerule MATCH ::CVC4::theory::datatypes::MatchTypeRule
-typerule MATCH_CASE ::CVC4::theory::datatypes::MatchCaseTypeRule
-typerule MATCH_BIND_CASE ::CVC4::theory::datatypes::MatchBindCaseTypeRule
+typerule MATCH ::cvc5::theory::datatypes::MatchTypeRule
+typerule MATCH_CASE ::cvc5::theory::datatypes::MatchCaseTypeRule
+typerule MATCH_BIND_CASE ::cvc5::theory::datatypes::MatchBindCaseTypeRule
 
 
 constant TUPLE_PROJECT_OP \
-	::CVC4::TupleProjectOp \
-	::CVC4::TupleProjectOpHashFunction \
+	::cvc5::TupleProjectOp \
+	::cvc5::TupleProjectOpHashFunction \
 	"theory/datatypes/tuple_project_op.h" \
-	"operator for TUPLE_PROJECT; payload is an instance of the CVC4::TupleProjectOp class"
+	"operator for TUPLE_PROJECT; payload is an instance of the cvc5::TupleProjectOp class"
 
 parameterized TUPLE_PROJECT TUPLE_PROJECT_OP 1 \
     "projects a tuple from an existing tuple using indices passed in TupleProjectOp"
 
 typerule TUPLE_PROJECT_OP  "SimpleTypeRule<RBuiltinOperator>"
-typerule TUPLE_PROJECT     ::CVC4::theory::datatypes::TupleProjectTypeRule
+typerule TUPLE_PROJECT     ::cvc5::theory::datatypes::TupleProjectTypeRule
 
 endtheory

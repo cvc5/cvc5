@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inst_match_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of inst match generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of inst match generator class.
+ */
 
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
@@ -26,12 +27,12 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -74,7 +75,7 @@ int InstMatchGenerator::getActiveScore()
   if( d_match_pattern.isNull() ){
     return -1;
   }
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  quantifiers::TermDb* tdb = d_treg.getTermDatabase();
   if (TriggerTermInfo::isAtomicTrigger(d_match_pattern))
   {
     Node f = tdb->getMatchOperator(d_match_pattern);
@@ -157,7 +158,7 @@ void InstMatchGenerator::initialize(Node q,
   d_match_pattern_type = d_match_pattern.getType();
   Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is "
                           << d_match_pattern << std::endl;
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  quantifiers::TermDb* tdb = d_treg.getTermDatabase();
   d_match_pattern_op = tdb->getMatchOperator(d_match_pattern);
 
   // now, collect children of d_match_pattern
@@ -673,4 +674,4 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

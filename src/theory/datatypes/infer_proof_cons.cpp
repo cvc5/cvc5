@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file infer_proof_cons.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of inference to proof conversion  for datatypes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of inference to proof conversion  for datatypes.
+ */
 
 #include "theory/datatypes/infer_proof_cons.h"
 
@@ -20,9 +21,9 @@
 #include "theory/model_manager.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -221,6 +222,12 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       success = true;
     }
     break;
+    case InferenceId::DATATYPES_PURIFY:
+    {
+      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {});
+      success = true;
+    }
+    break;
     // inferences currently not supported
     case InferenceId::DATATYPES_LABEL_EXH:
     case InferenceId::DATATYPES_BISIMILAR:
@@ -275,4 +282,4 @@ std::string InferProofCons::identify() const
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

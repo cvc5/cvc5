@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file iand_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Makai Mann, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities to maintain finite tables that represent
- ** the value of iand.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Makai Mann, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities to maintain finite tables that represent the value of iand.
+ */
 
-#ifndef CVC4__THEORY__ARITH__IAND_TABLE_H
-#define CVC4__THEORY__ARITH__IAND_TABLE_H
+#ifndef CVC5__THEORY__ARITH__IAND_TABLE_H
+#define CVC5__THEORY__ARITH__IAND_TABLE_H
 
 #include <map>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -169,6 +169,6 @@ class IAndUtils
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__IAND_TABLE_H */
+#endif /* CVC5__THEORY__ARITH__IAND_TABLE_H */

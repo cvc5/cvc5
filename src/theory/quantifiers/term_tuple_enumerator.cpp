@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file  term_tuple_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mikolas Janota
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of an enumeration of tuples of terms for the purpose
- *of quantifier instantiation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   MikolasJanota, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of an enumeration of tuples of terms for the purpose of
+ * quantifier instantiation.
+ */
 #include "theory/quantifiers/term_tuple_enumerator.h"
 
 #include <algorithm>
@@ -27,12 +28,12 @@
 #include "theory/quantifiers/index_trie.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 template <typename T>
 static CVC4ostream& operator<<(CVC4ostream& out, const std::vector<T>& v)
@@ -83,11 +84,10 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
 {
  public:
   /** Initialize the class with the quantifier to be instantiated. */
-  TermTupleEnumeratorBase(Node quantifier,
-                          const TermTupleEnumeratorContext* context)
+  TermTupleEnumeratorBase(Node quantifier, const TermTupleEnumeratorEnv* env)
       : d_quantifier(quantifier),
         d_variableCount(d_quantifier[0].getNumChildren()),
-        d_context(context),
+        d_env(env),
         d_stepCounter(0),
         d_disabledCombinations(
             true)  // do not record combinations with no blanks
@@ -110,8 +110,8 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
   const Node d_quantifier;
   /** number of variables in the quantifier */
   const size_t d_variableCount;
-  /** context of structures with a longer lifespan */
-  const TermTupleEnumeratorContext* const d_context;
+  /** env of structures with a longer lifespan */
+  const TermTupleEnumeratorEnv* const d_env;
   /** type for each variable */
   std::vector<TypeNode> d_typeCache;
   /** number of candidate terms for each variable */
@@ -155,7 +155,7 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
   virtual size_t prepareTerms(size_t variableIx) = 0;
   /** Get a given term for a given variable.  */
   virtual Node getTerm(size_t variableIx,
-                       size_t term_index) CVC4_WARN_UNUSED_RESULT = 0;
+                       size_t term_index) CVC5_WARN_UNUSED_RESULT = 0;
 };
 
 /**
@@ -165,8 +165,10 @@ class TermTupleEnumeratorBasic : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorBasic(Node quantifier,
-                           const TermTupleEnumeratorContext* context)
-      : TermTupleEnumeratorBase(quantifier, context)
+                           const TermTupleEnumeratorEnv* env,
+                           QuantifiersState& qs,
+                           TermDb* td)
+      : TermTupleEnumeratorBase(quantifier, env), d_qs(qs), d_tdb(td)
   {
   }
 
@@ -177,6 +179,10 @@ class TermTupleEnumeratorBasic : public TermTupleEnumeratorBase
   std::map<TypeNode, std::vector<Node> > d_termDbList;
   virtual size_t prepareTerms(size_t variableIx) override;
   virtual Node getTerm(size_t variableIx, size_t term_index) override;
+  /** Reference to quantifiers state */
+  QuantifiersState& d_qs;
+  /** Pointer to term database */
+  TermDb* d_tdb;
 };
 
 /**
@@ -186,8 +192,9 @@ class TermTupleEnumeratorRD : public TermTupleEnumeratorBase
 {
  public:
   TermTupleEnumeratorRD(Node quantifier,
-                        const TermTupleEnumeratorContext* context)
-      : TermTupleEnumeratorBase(quantifier, context)
+                        const TermTupleEnumeratorEnv* env,
+                        RelevantDomain* rd)
+      : TermTupleEnumeratorBase(quantifier, env), d_rd(rd)
   {
   }
   virtual ~TermTupleEnumeratorRD() = default;
@@ -195,24 +202,15 @@ class TermTupleEnumeratorRD : public TermTupleEnumeratorBase
  protected:
   virtual size_t prepareTerms(size_t variableIx) override
   {
-    return d_context->d_rd->getRDomain(d_quantifier, variableIx)
-        ->d_terms.size();
+    return d_rd->getRDomain(d_quantifier, variableIx)->d_terms.size();
   }
   virtual Node getTerm(size_t variableIx, size_t term_index) override
   {
-    return d_context->d_rd->getRDomain(d_quantifier, variableIx)
-        ->d_terms[term_index];
+    return d_rd->getRDomain(d_quantifier, variableIx)->d_terms[term_index];
   }
+  /** The relevant domain */
+  RelevantDomain* d_rd;
 };
-
-TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node quantifier, const TermTupleEnumeratorContext* context)
-{
-  return context->d_isRd ? static_cast<TermTupleEnumeratorInterface*>(
-             new TermTupleEnumeratorRD(quantifier, context))
-                         : static_cast<TermTupleEnumeratorInterface*>(
-                             new TermTupleEnumeratorBasic(quantifier, context));
-}
 
 void TermTupleEnumeratorBase::init()
 {
@@ -236,7 +234,7 @@ void TermTupleEnumeratorBase::init()
     const size_t termsSize = prepareTerms(variableIx);
     Trace("inst-alg-rd") << "Variable " << variableIx << " has " << termsSize
                          << " in relevant domain." << std::endl;
-    if (termsSize == 0 && !d_context->d_fullEffort)
+    if (termsSize == 0 && !d_env->d_fullEffort)
     {
       d_hasNext = false;
       return;  // give up on an empty dommain
@@ -320,7 +318,7 @@ bool TermTupleEnumeratorBase::increaseStageSum()
 bool TermTupleEnumeratorBase::increaseStage()
 {
   d_changePrefix = d_variableCount;  // simply reset upon increase stage
-  return d_context->d_increaseSum ? increaseStageSum() : increaseStageMax();
+  return d_env->d_increaseSum ? increaseStageSum() : increaseStageMax();
 }
 
 bool TermTupleEnumeratorBase::increaseStageMax()
@@ -367,7 +365,7 @@ bool TermTupleEnumeratorBase::nextCombination()
 /** Move onto the next combination, depending on the strategy. */
 bool TermTupleEnumeratorBase::nextCombinationInternal()
 {
-  return d_context->d_increaseSum ? nextCombinationSum() : nextCombinationMax();
+  return d_env->d_increaseSum ? nextCombinationSum() : nextCombinationMax();
 }
 
 /** Find the next lexicographically smallest combination of terms that change
@@ -462,20 +460,17 @@ bool TermTupleEnumeratorBase::nextCombinationSum()
 
 size_t TermTupleEnumeratorBasic::prepareTerms(size_t variableIx)
 {
-  TermDb* const tdb = d_context->d_quantEngine->getTermDatabase();
-  QuantifiersState& qs = d_context->d_quantEngine->getState();
   const TypeNode type_node = d_typeCache[variableIx];
-
   if (!ContainsKey(d_termDbList, type_node))
   {
-    const size_t ground_terms_count = tdb->getNumTypeGroundTerms(type_node);
+    const size_t ground_terms_count = d_tdb->getNumTypeGroundTerms(type_node);
     std::map<Node, Node> repsFound;
     for (size_t j = 0; j < ground_terms_count; j++)
     {
-      Node gt = tdb->getTypeGroundTerm(type_node, j);
+      Node gt = d_tdb->getTypeGroundTerm(type_node, j);
       if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
       {
-        Node rep = qs.getRepresentative(gt);
+        Node rep = d_qs.getRepresentative(gt);
         if (repsFound.find(rep) == repsFound.end())
         {
           repsFound[rep] = gt;
@@ -497,6 +492,68 @@ Node TermTupleEnumeratorBasic::getTerm(size_t variableIx, size_t term_index)
   return d_termDbList[type_node][term_index];
 }
 
+/**
+ * Enumerate ground terms as they come from a user-provided term pool
+ */
+class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
+{
+ public:
+  TermTupleEnumeratorPool(Node quantifier,
+                          const TermTupleEnumeratorEnv* env,
+                          TermPools* tp,
+                          Node pool)
+      : TermTupleEnumeratorBase(quantifier, env), d_tp(tp), d_pool(pool)
+  {
+    Assert(d_pool.getKind() == kind::INST_POOL);
+  }
+
+  virtual ~TermTupleEnumeratorPool() = default;
+
+ protected:
+  /** Pointer to the term pool utility */
+  TermPools* d_tp;
+  /** The pool annotation */
+  Node d_pool;
+  /**  a list of terms for each id */
+  std::map<size_t, std::vector<Node> > d_poolList;
+  /** gets the terms from the pool */
+  size_t prepareTerms(size_t variableIx) override
+  {
+    Assert(d_pool.getNumChildren() > variableIx);
+    // prepare terms from pool
+    d_poolList[variableIx].clear();
+    d_tp->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
+    Trace("pool-inst") << "Instantiation Terms for child " << variableIx << ": "
+                       << d_poolList[variableIx] << std::endl;
+    return d_poolList[variableIx].size();
+  }
+  Node getTerm(size_t variableIx, size_t term_index) override
+  {
+    Assert(term_index < d_poolList[variableIx].size());
+    return d_poolList[variableIx][term_index];
+  }
+};
+
+TermTupleEnumeratorInterface* mkTermTupleEnumerator(
+    Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs, TermDb* td)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorBasic(q, env, qs, td));
+}
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
+    Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorRD(q, env, rd));
+}
+
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node pool)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorPool(q, env, tp, pool));
+}
+
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

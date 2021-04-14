@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file attribute_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of Node attributes.
- **
- ** White box testing of Node attributes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of Node attributes.
+ */
 
 #include <string>
 
@@ -30,7 +29,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace smt;
@@ -445,4 +444,4 @@ TEST_F(TestNodeWhiteAttribute, attributes)
   ASSERT_FALSE(unnamed.hasAttribute(VarNameAttr()));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

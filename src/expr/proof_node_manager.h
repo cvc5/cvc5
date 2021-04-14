@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file proof_node_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof node manager utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof node manager utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_MANAGER_H
-#define CVC4__EXPR__PROOF_NODE_MANAGER_H
+#ifndef CVC5__EXPR__PROOF_NODE_MANAGER_H
+#define CVC5__EXPR__PROOF_NODE_MANAGER_H
 
 #include <vector>
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
@@ -158,6 +159,14 @@ class ProofNodeManager
   bool updateNode(ProofNode* pn, ProofNode* pnr);
   /** Get the underlying proof checker */
   ProofChecker* getChecker() const;
+  /**
+   * Clone a proof node, which creates a deep copy of pn and returns it. The
+   * dag structure of pn is the same as that in the returned proof node.
+   *
+   * @param pn The proof node to clone
+   * @return the cloned proof node.
+   */
+  std::shared_ptr<ProofNode> clone(std::shared_ptr<ProofNode> pn);
 
  private:
   /** The (optional) proof checker */
@@ -192,6 +201,6 @@ class ProofNodeManager
       bool needsCheck);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_NODE_H */
+#endif /* CVC5__EXPR__PROOF_NODE_H */

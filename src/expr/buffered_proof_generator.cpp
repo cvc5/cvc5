@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file buffered_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a proof generator for buffered proof steps
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a proof generator for buffered proof steps.
+ */
 
 #include "expr/buffered_proof_generator.h"
 
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 BufferedProofGenerator::BufferedProofGenerator(context::Context* c,
                                                ProofNodeManager* pnm)
@@ -80,4 +81,23 @@ std::shared_ptr<ProofNode> BufferedProofGenerator::getProofFor(Node fact)
   return cdp.getProofFor(fact);
 }
 
-}  // namespace CVC4
+bool BufferedProofGenerator::hasProofFor(Node f)
+{
+  NodeProofStepMap::iterator it = d_facts.find(f);
+  if (it == d_facts.end())
+  {
+    Node symFact = CDProof::getSymmFact(f);
+    if (symFact.isNull())
+    {
+      return false;
+    }
+    it = d_facts.find(symFact);
+    if (it == d_facts.end())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+}  // namespace cvc5

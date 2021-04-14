@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file theory_sets_type_enumerator_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of CVC4::theory::sets::SetsTypeEnumerator
- **
- ** White box testing of CVC4::theory::sets::SetsTypeEnumerator.  (These tests
- ** depends  on the ordering that the SetsTypeEnumerator use, so it's a
- *white-box
- ** test.)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::theory::sets::SetsTypeEnumerator
+ *
+ * These tests depend on the ordering that the SetsTypeEnumerator use, so
+ * it's a white-box test.
+ */
 
 #include "expr/dtype.h"
 #include "test_smt.h"
 #include "theory/sets/theory_sets_type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -152,4 +151,4 @@ TEST_F(TestTheoryWhiteSetsTypeEnumerator, bv)
   ASSERT_TRUE(setEnumerator.isFinished());
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

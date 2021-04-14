@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file ite_removal.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Remove ITEs from the assertions
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Remove ITEs from the assertions.
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "preprocessing/passes/ite_removal.h"
 
@@ -25,11 +26,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory_preprocessor.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 // TODO (project #42): note this preprocessing pass is deprecated
 IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
@@ -39,7 +40,7 @@ IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
 
 PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   // Remove all of the ITE occurrences and normalize
@@ -61,7 +62,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
       imap[assertions->size()] = newSkolems[j];
       assertions->pushBackTrusted(newAsserts[j]);
       // new assertions have a dependence on the node (old pf architecture)
-      if (options::unsatCores() && !options::produceProofs())
+      if (options::unsatCores())
       {
         ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
                                                  assertion);
@@ -79,4 +80,4 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

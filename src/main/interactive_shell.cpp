@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file interactive_shell.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew V. Jones
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interactive shell for CVC4
- **
- ** This file is the implementation for the CVC4 interactive shell.
- ** The shell supports the editline library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Christopher L. Conway, Andrew V. Jones
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interactive shell for cvc5.
+ *
+ * This file is the implementation for the cvc5 interactive shell.
+ * The shell supports the editline library.
+ */
 #include "main/interactive_shell.h"
 
 #include <algorithm>
@@ -35,7 +36,7 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif   /* HAVE_LIBEDITLINE */
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
@@ -49,7 +50,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace parser;
 using namespace language;
@@ -261,7 +262,7 @@ restart:
     if (!d_usingEditline)
     {
       /* Extract the newline delimiter from the stream too */
-      int c CVC4_UNUSED = d_in.get();
+      int c CVC5_UNUSED = d_in.get();
       Assert(c == '\n');
       Debug("interactive") << "Next char is '" << (char)c << "'" << endl
                            << flush;
@@ -432,4 +433,4 @@ char* commandGenerator(const char* text, int state) {
 
 #endif /* HAVE_LIBEDITLINE */
 
-}/* CVC4 namespace */
+}  // namespace cvc5

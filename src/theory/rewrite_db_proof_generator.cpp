@@ -18,7 +18,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db, ProofNodeManager* pnm)
@@ -360,4 +360,4 @@ Node RewriteDbProofCons::doEvaluate(Node n)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file tptp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Francois Bobot, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of TPTP constants.
- **
- ** Definitions of TPTP constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Francois Bobot, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of TPTP parser.
+ */
 
 // Do not #include "parser/antlr_input.h" directly. Rely on the header.
 #include "parser/tptp/tptp.h"
@@ -20,7 +19,7 @@
 #include <algorithm>
 #include <set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "options/options.h"
 #include "parser/parser.h"
@@ -30,7 +29,7 @@
 #undef true
 #undef false
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 Tptp::Tptp(api::Solver* solver,
@@ -116,11 +115,11 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   // in C target runtime.
   //
   pANTLR3_INPUT_STREAM    in;
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) fileName.c_str());
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if(in == NULL) {
     Debug("parser") << "Can't open " << fileName << std::endl;
     return false;
@@ -204,7 +203,7 @@ void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist,
   {
     parseError("malformed let: LHS must be formula");
   }
-  for (const CVC4::api::Term& var : vars)
+  for (const cvc5::api::Term& var : vars)
   {
     if (var.hasOp())
     {
@@ -342,6 +341,18 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       return d_solver->mkTerm(api::UMINUS, args[0]);
     }
+    if (kind == api::TO_REAL)
+    {
+      // If the type is real, this is a no-op. We require this special
+      // case in the TPTP parser since TO_REAL is designed to match the
+      // SMT-LIB operator, meaning it can only be applied to integers, whereas
+      // the TPTP to_real / to_rat do not have the same semantics.
+      api::Sort s = args[0].getSort();
+      if (s.isReal())
+      {
+        return args[0];
+      }
+    }
     return d_solver->mkTerm(kind, args);
   }
 
@@ -367,6 +378,65 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   return d_solver->mkTerm(kind, args);
+}
+
+api::Term Tptp::mkDecimal(
+    std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
+{
+  // the numerator and the denominator
+  std::stringstream ssn;
+  std::stringstream ssd;
+  if (exp != 0)
+  {
+    if (posE)
+    {
+      // see if we need to pad zeros on the end, e.g. 1.2E5 ---> 120000
+      if (exp >= sden.size())
+      {
+        ssn << snum << sden;
+        for (size_t i = 0, nzero = (exp - sden.size()); i < nzero; i++)
+        {
+          ssn << "0";
+        }
+        ssd << "0";
+      }
+      else
+      {
+        ssn << snum << sden.substr(0, exp);
+        ssd << sden.substr(exp);
+      }
+    }
+    else
+    {
+      // see if we need to pad zeros on the beginning, e.g. 1.2E-5 ---> 0.000012
+      if (exp >= snum.size())
+      {
+        ssn << "0";
+        for (size_t i = 0, nzero = (exp - snum.size()); i < nzero; i++)
+        {
+          ssd << "0";
+        }
+        ssd << snum << sden;
+      }
+      else
+      {
+        ssn << snum.substr(0, exp);
+        ssd << snum.substr(exp) << sden;
+      }
+    }
+  }
+  else
+  {
+    ssn << snum;
+    ssd << sden;
+  }
+  std::stringstream ss;
+  if (!pos)
+  {
+    ss << "-";
+  }
+  ss << ssn.str() << "." << ssd.str();
+  return d_solver->mkReal(ss.str());
 }
 
 void Tptp::forceLogic(const std::string& logic)
@@ -511,5 +581,5 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
   }
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

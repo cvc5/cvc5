@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_lazy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy bit-vector solver.
+ */
 
 #include "theory/bv/bv_solver_lazy.h"
 
@@ -32,9 +32,9 @@
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5::theory::bv::utils;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -118,7 +118,7 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(Resource r)
 {
   d_im.spendResource(r);
 }
@@ -741,7 +741,7 @@ EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {
@@ -828,4 +828,4 @@ void BVSolverLazy::setConflict(Node conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

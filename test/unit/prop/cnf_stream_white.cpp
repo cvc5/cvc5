@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file cnf_stream_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Christopher L. Conway, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of CVC4::prop::CnfStream.
- **
- ** White box testing of CVC4::prop::CnfStream.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Christopher L. Conway, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::prop::CnfStream.
+ */
 
 #include "base/check.h"
 #include "context/context.h"
@@ -28,7 +27,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace context;
 using namespace prop;
@@ -113,7 +112,7 @@ class TestPropWhiteCnfStream : public TestSmt
     d_cnfContext.reset(new context::Context());
     d_cnfRegistrar.reset(new prop::NullRegistrar);
     d_cnfStream.reset(
-        new CVC4::prop::CnfStream(d_satSolver.get(),
+        new cvc5::prop::CnfStream(d_satSolver.get(),
                                   d_cnfRegistrar.get(),
                                   d_cnfContext.get(),
                                   &d_smtEngine->getOutputManager(),
@@ -271,4 +270,4 @@ TEST_F(TestPropWhiteCnfStream, ensure_literal)
   ASSERT_TRUE(d_cnfStream->hasLiteral(a_and_b));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

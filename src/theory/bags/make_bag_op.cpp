@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file make_bag_op.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief a class for MK_BAG operator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for MK_BAG operator.
+ */
 
 #include "make_bag_op.h"
 
@@ -18,7 +19,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const MakeBagOp& op)
 {
@@ -46,4 +47,4 @@ bool MakeBagOp::operator==(const MakeBagOp& op) const
   return getType() == op.getType();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

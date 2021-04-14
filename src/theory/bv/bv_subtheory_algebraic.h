@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_subtheory_algebraic.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Algebraic solver.
+ */
 
 #include "cvc4_private.h"
 
@@ -25,7 +24,7 @@
 #include "theory/bv/slicer.h"
 #include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -245,4 +244,4 @@ class AlgebraicSolver : public SubtheorySolver
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

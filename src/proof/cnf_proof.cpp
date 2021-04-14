@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file cnf_proof.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Andres Noetzli, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "proof/cnf_proof.h"
 
@@ -23,7 +24,7 @@
 #include "prop/minisat/minisat.h"
 #include "prop/sat_solver_types.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 CnfProof::CnfProof(prop::CnfStream* stream,
                    context::Context* ctx,
@@ -113,4 +114,4 @@ bool CnfProof::getCurrentAssertionKind()
   return d_currentAssertionStack.back().second;
 }
 
-} /* CVC4 namespace */
+}  // namespace cvc5

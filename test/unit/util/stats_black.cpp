@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file stats_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Aina Niemetz, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::Stat and associated classes
- **
- ** Black box testing of CVC4::Stat and associated classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Stat and associated classes.
+ */
 
 #include <fcntl.h>
 
@@ -27,7 +26,7 @@
 #include "util/stats_histogram.h"
 #include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace test {
 
 class TestUtilBlackStats : public TestInternal
@@ -36,7 +35,7 @@ class TestUtilBlackStats : public TestInternal
 
 TEST_F(TestUtilBlackStats, stats)
 {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   std::string empty, bar = "bar", baz = "baz";
   ReferenceStat<std::string> refStr("stat #1", empty);
   ReferenceStat<std::string> refStr2("refStr2", bar);
@@ -49,7 +48,7 @@ TEST_F(TestUtilBlackStats, stats)
   BackedStat<void*> backedAddr("backedDouble", (void*)0xDEADBEEF);
   IntegralHistogramStat<std::int64_t> histIntStat("hist-int");
   histIntStat << 15 << 16 << 15 << 14 << 16;
-  IntegralHistogramStat<CVC4::PfRule> histPfRuleStat("hist-pfrule");
+  IntegralHistogramStat<cvc5::PfRule> histPfRuleStat("hist-pfrule");
   histPfRuleStat << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
   // A statistic with no safe_print support
@@ -161,4 +160,4 @@ TEST_F(TestUtilBlackStats, stats)
 #endif
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

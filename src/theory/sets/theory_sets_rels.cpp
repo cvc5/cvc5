@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file theory_sets_rels.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Extension to Sets theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extension to Sets theory.
+ */
 
 #include "theory/sets/theory_sets_rels.h"
-#include "theory/sets/theory_sets_private.h"
+
+#include "expr/skolem_manager.h"
 #include "theory/sets/theory_sets.h"
+#include "theory/sets/theory_sets_private.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -361,11 +362,11 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   /* JOIN-IMAGE DOWN  : (x) IS_IN (R JOIN_IMAGE n)
-  *                     -------------------------------------------------------
-  *                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ... , xn)
-  *
-  */
-
+   *                     -------------------------------------------------------
+   *                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ...
+   * , xn)
+   *
+   */
   void TheorySetsRels::applyJoinImageRule( Node mem_rep, Node join_image_term, Node exp ) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** applyJoinImageRule on " << join_image_term
                         << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
@@ -387,28 +388,36 @@ void TheorySetsRels::check(Theory::Effort level)
         }
       }
     }
-
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Node reason = exp;
     Node conclusion = d_trueNode;
     std::vector< Node > distinct_skolems;
     Node fst_mem_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
 
     if( exp[1] != join_image_term ) {
-      reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], join_image_term ) );
+      reason =
+          nm->mkNode(AND, reason, nm->mkNode(EQUAL, exp[1], join_image_term));
     }
     for( unsigned int i = 0; i < min_card; i++ ) {
-      Node skolem = NodeManager::currentNM()->mkSkolem( "jig", join_image_rel.getType()[0].getTupleTypes()[0] );
+      Node skolem = sm->mkDummySkolem(
+          "jig", join_image_rel.getType()[0].getTupleTypes()[0]);
       distinct_skolems.push_back( skolem );
-      conclusion = NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::MEMBER, RelsUtils::constructPair( join_image_rel, fst_mem_element, skolem ), join_image_rel ) );
+      conclusion = nm->mkNode(
+          AND,
+          conclusion,
+          nm->mkNode(
+              MEMBER,
+              RelsUtils::constructPair(join_image_rel, fst_mem_element, skolem),
+              join_image_rel));
     }
     if( distinct_skolems.size() >= 2 ) {
-      conclusion =  NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::DISTINCT, distinct_skolems ) );
+      conclusion =
+          nm->mkNode(AND, conclusion, nm->mkNode(DISTINCT, distinct_skolems));
     }
     sendInfer(conclusion, InferenceId::SETS_RELS_JOIN_IMAGE_DOWN, reason);
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
-
   }
-
 
   /* IDENTITY-DOWN  : (x, y) IS_IN IDEN(R)
   *               -------------------------------------------------------
@@ -1333,4 +1342,4 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 }
 }
-}
+}  // namespace cvc5

@@ -16,7 +16,7 @@
 
 #include "expr/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 const char* toString(LfscRule id)
@@ -86,4 +86,4 @@ bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file language.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definition of input and output languages
- **
- ** Definition of input and output languages.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of input and output languages.
+ */
 
 #include "options/language.h"
 
@@ -21,7 +20,7 @@
 #include "base/exception.h"
 #include "options/option_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace language {
 
 /** define the end points of smt2 languages */
@@ -83,7 +82,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
     std::stringstream ss;
     ss << "Cannot map output language `" << language
        << "' to an input language.";
-    throw CVC4::Exception(ss.str());
+    throw cvc5::Exception(ss.str());
   }
   }/* switch(language) */
 }/* toInputLanguage() */
@@ -170,5 +169,5 @@ InputLanguage toInputLanguage(std::string language) {
   throw OptionException(std::string("unknown input language `" + language + "'"));
 }/* toInputLanguage() */
 
-}/* CVC4::language namespace */
-}/* CVC4 namespace */
+}  // namespace language
+}  // namespace cvc5

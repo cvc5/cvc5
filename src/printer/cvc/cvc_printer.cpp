@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file cvc_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the CVC output language
- **
- ** The pretty-printer interface for the CVC output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the CVC output language.
+ */
 
 #include "printer/cvc/cvc_printer.h"
 
@@ -42,7 +41,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace cvc {
 
@@ -273,17 +272,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " ELSE ";
       toStreamNode(out, n[2], depth, true, lbind);
       out << " ENDIF";
-      return;
-      break;
-    case kind::SEXPR_TYPE:
-      out << '[';
-      for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
-        if (i > 0) {
-          out << ", ";
-        }
-        toStreamNode(out, n[i], depth, false, lbind);
-      }
-      out << ']';
       return;
       break;
     case kind::SEXPR:
@@ -1623,6 +1611,6 @@ void CvcPrinter::toStreamNodeWithLetify(std::ostream& out,
   lbind->popScope();
 }
 
-}/* CVC4::printer::cvc namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace cvc
+}  // namespace printer
+}  // namespace cvc5

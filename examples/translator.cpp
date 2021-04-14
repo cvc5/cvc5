@@ -1,36 +1,36 @@
-/*********************                                                        */
-/*! \file translator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief CVC4 translator
- **
- ** The CVC4 translator executable.  This program translates from one of
- ** CVC4's input languages to one of its output languages.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * CVC4 translator
+ *
+ * The CVC4 translator executable.  This program translates from one of
+ * CVC4's input languages to one of its output languages.
+ */
+
+#include <cvc5/cvc5.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
+#include <getopt.h>
 
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/expr/expr_iomanip.h>
-#include <cvc4/options/set_language.h>
-
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::language;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::language;
+using namespace cvc5::parser;
 
 enum {
   INPUT_LANG = 'L',

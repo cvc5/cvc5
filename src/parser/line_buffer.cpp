@@ -1,18 +1,22 @@
-/*********************                                                        */
-/*! \file line_buffer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The LineBuffer class stores lines from an input stream
- **
- ** For each line, the class allocates a separate buffer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The LineBuffer class stores lines from an input stream
+ *
+ * Each line is guaranteed to be consecutive in memory. The content in
+ * the line buffer can be addressed using line number and the position
+ *
+ * For each line, the class allocates a separate buffer.
+ */
 
 #include "parser/line_buffer.h"
 
@@ -22,7 +26,7 @@
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 LineBuffer::LineBuffer(std::istream* stream) : d_stream(stream) {}
@@ -90,4 +94,4 @@ bool LineBuffer::readToLine(size_t line_size)
 }
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5

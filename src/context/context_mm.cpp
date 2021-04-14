@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file context_mm.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of Context Memory Manager.
- **
- ** Implementation of Context Memory Manager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of Context Memory Manager
+ */
 
 #include <cstdlib>
 #include <deque>
@@ -21,18 +20,18 @@
 #include <ostream>
 #include <vector>
 
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
 #include <valgrind/memcheck.h>
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
 
 #include "base/check.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
-#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 
 void ContextMemoryManager::newChunk() {
 
@@ -48,9 +47,9 @@ void ContextMemoryManager::newChunk() {
       throw std::bad_alloc();
     }
 
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
     VALGRIND_MAKE_MEM_NOACCESS(d_chunkList.back(), chunkSizeBytes);
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
   }
   // If there is a free chunk, use that
   else {
@@ -72,18 +71,18 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
   }
   d_endChunk = d_nextFree + chunkSizeBytes;
 
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   VALGRIND_CREATE_MEMPOOL(this, 0, false);
   VALGRIND_MAKE_MEM_NOACCESS(d_nextFree, chunkSizeBytes);
   d_allocations.push_back(std::vector<char*>());
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
 }
 
 
 ContextMemoryManager::~ContextMemoryManager() {
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   VALGRIND_DESTROY_MEMPOOL(this);
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
 
   // Delete all chunks
   while(!d_chunkList.empty()) {
@@ -113,19 +112,19 @@ void* ContextMemoryManager::newData(size_t size) {
                    << ") returning " << res << " at level "
                    << d_chunkList.size() << std::endl;
 
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   VALGRIND_MEMPOOL_ALLOC(this, static_cast<char*>(res), size);
   d_allocations.back().push_back(static_cast<char*>(res));
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
 
   return res;
 }
 
 
 void ContextMemoryManager::push() {
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   d_allocations.push_back(std::vector<char*>());
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
 
   // Store current state on the stack
   d_nextFreeStack.push_back(d_nextFree);
@@ -135,13 +134,13 @@ void ContextMemoryManager::push() {
 
 
 void ContextMemoryManager::pop() {
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
   for (auto allocation : d_allocations.back())
   {
     VALGRIND_MEMPOOL_FREE(this, allocation);
   }
   d_allocations.pop_back();
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
 
   Assert(d_nextFreeStack.size() > 0 && d_endChunkStack.size() > 0);
 
@@ -154,9 +153,9 @@ void ContextMemoryManager::pop() {
   // Free all the new chunks since the last push
   while(d_indexChunkList > d_indexChunkListStack.back()) {
     d_freeChunks.push_back(d_chunkList.back());
-#ifdef CVC4_VALGRIND
+#ifdef CVC5_VALGRIND
     VALGRIND_MAKE_MEM_NOACCESS(d_chunkList.back(), chunkSizeBytes);
-#endif /* CVC4_VALGRIND */
+#endif /* CVC5_VALGRIND */
     d_chunkList.pop_back();
     --d_indexChunkList;
   }
@@ -175,7 +174,7 @@ unsigned ContextMemoryManager::getMaxAllocationSize()
   return std::numeric_limits<unsigned>::max();
 }
 
-#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+#endif /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 
-} /* CVC4::context namespace */
-} /* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 enum class LeanRule : uint32_t
 {
@@ -35,6 +35,6 @@ enum class LeanRule : uint32_t
   UNKNOWN
 };
 }
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__PROOF_LEAN_RULES_H */

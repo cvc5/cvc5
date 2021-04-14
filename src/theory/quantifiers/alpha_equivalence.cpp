@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file alpha_equivalence.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Alpha equivalence checking
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Alpha equivalence checking.
+ */
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
 #include "expr/proof.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -84,7 +83,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm)
+AlphaEquivalence::AlphaEquivalence(ProofNodeManager* pnm)
     : d_termCanon(),
       d_aedb(&d_termCanon, !pnm),
       d_pnm(pnm),
@@ -131,4 +130,4 @@ bool AlphaEquivalence::isProofEnabled() const { return d_pfAlpha != nullptr; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

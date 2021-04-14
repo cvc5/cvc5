@@ -1,21 +1,23 @@
-/*********************                                                        */
-/*! \file sygus_repair_const.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_repair_const
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_repair_const.
+ */
 
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -27,19 +29,17 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(QuantifiersEngine* qe)
-    : d_qe(qe), d_allow_constant_grammar(false)
+SygusRepairConst::SygusRepairConst(TermDbSygus* tds)
+    : d_tds(tds), d_allow_constant_grammar(false)
 {
-  d_tds = d_qe->getTermDatabaseSygus();
 }
 
 void SygusRepairConst::initialize(Node base_inst,
@@ -218,7 +218,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (fo_body.getKind() == FORALL)
   {
     // must be a CBQI quantifier
-    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body, d_qe);
+    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body);
     if (hstatus < CEG_HANDLED)
     {
       // abort if less than fully handled
@@ -435,6 +435,7 @@ Node SygusRepairConst::getFoQuery(Node body,
                                   const std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),
@@ -453,7 +454,7 @@ Node SygusRepairConst::getFoQuery(Node body,
     if (itf == d_sk_to_fo.end())
     {
       TypeNode builtinType = d_tds->sygusToBuiltinType(v.getType());
-      Node sk_fov = nm->mkSkolem("k", builtinType);
+      Node sk_fov = sm->mkDummySkolem("k", builtinType);
       d_sk_to_fo[v] = sk_fov;
       d_fo_to_sk[sk_fov] = v;
       Trace("sygus-repair-const-debug")
@@ -621,6 +622,6 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
   return true;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

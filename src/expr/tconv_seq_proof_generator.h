@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file tconv_seq_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term conversion sequence proof generator utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term conversion sequence proof generator utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
-#define CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
+#ifndef CVC5__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
+#define CVC5__EXPR__TCONV_SEQ_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -115,6 +116,6 @@ class TConvSeqProofGenerator : public ProofGenerator
   std::string d_name;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__TCONV_SEQ_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__TCONV_SEQ_PROOF_GENERATOR_H */

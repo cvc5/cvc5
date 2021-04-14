@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file result_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the Result class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the Result class
+ */
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -26,7 +27,7 @@ class TestApiBlackResult : public TestApi
 
 TEST_F(TestApiBlackResult, isNull)
 {
-  CVC4::api::Result res_null;
+  cvc5::api::Result res_null;
   ASSERT_TRUE(res_null.isNull());
   ASSERT_FALSE(res_null.isSat());
   ASSERT_FALSE(res_null.isUnsat());
@@ -37,7 +38,7 @@ TEST_F(TestApiBlackResult, isNull)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
-  CVC4::api::Result res = d_solver.checkSat();
+  cvc5::api::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isNull());
 }
 
@@ -46,9 +47,9 @@ TEST_F(TestApiBlackResult, eq)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
-  CVC4::api::Result res;
-  CVC4::api::Result res2 = d_solver.checkSat();
-  CVC4::api::Result res3 = d_solver.checkSat();
+  cvc5::api::Result res;
+  cvc5::api::Result res2 = d_solver.checkSat();
+  cvc5::api::Result res3 = d_solver.checkSat();
   res = res2;
   ASSERT_EQ(res, res2);
   ASSERT_EQ(res3, res2);
@@ -59,7 +60,7 @@ TEST_F(TestApiBlackResult, isSat)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
-  CVC4::api::Result res = d_solver.checkSat();
+  cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isSat());
   ASSERT_FALSE(res.isSatUnknown());
 }
@@ -69,7 +70,7 @@ TEST_F(TestApiBlackResult, isUnsat)
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
-  CVC4::api::Result res = d_solver.checkSat();
+  cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
   ASSERT_FALSE(res.isSatUnknown());
 }
@@ -82,7 +83,7 @@ TEST_F(TestApiBlackResult, isSatUnknown)
   Sort int_sort = d_solver.getIntegerSort();
   Term x = d_solver.mkVar(int_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
-  CVC4::api::Result res = d_solver.checkSat();
+  cvc5::api::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
   ASSERT_TRUE(res.isSatUnknown());
 }
@@ -96,10 +97,10 @@ TEST_F(TestApiBlackResult, isEntailed)
   Term a = x.eqTerm(y).notTerm();
   Term b = x.eqTerm(y);
   d_solver.assertFormula(a);
-  CVC4::api::Result entailed = d_solver.checkEntailed(a);
+  cvc5::api::Result entailed = d_solver.checkEntailed(a);
   ASSERT_TRUE(entailed.isEntailed());
   ASSERT_FALSE(entailed.isEntailmentUnknown());
-  CVC4::api::Result not_entailed = d_solver.checkEntailed(b);
+  cvc5::api::Result not_entailed = d_solver.checkEntailed(b);
   ASSERT_TRUE(not_entailed.isNotEntailed());
   ASSERT_FALSE(not_entailed.isEntailmentUnknown());
 }
@@ -112,10 +113,10 @@ TEST_F(TestApiBlackResult, isEntailmentUnknown)
   Sort int_sort = d_solver.getIntegerSort();
   Term x = d_solver.mkVar(int_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
-  CVC4::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
+  cvc5::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
   ASSERT_FALSE(res.isEntailed());
   ASSERT_TRUE(res.isEntailmentUnknown());
   ASSERT_EQ(res.getUnknownExplanation(), api::Result::UNKNOWN_REASON);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

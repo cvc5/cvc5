@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file strings_rewriter_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for the strings rewriter
- **
- ** Unit tests for the strings rewriter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for the strings rewriter.
+ */
 
 #include <iostream>
 #include <memory>
@@ -24,7 +23,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/strings_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -41,8 +40,8 @@ TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
-  Node a = d_nodeManager->mkConst(::CVC4::String("A"));
-  Node bc = d_nodeManager->mkConst(::CVC4::String("BC"));
+  Node a = d_nodeManager->mkConst(::cvc5::String("A"));
+  Node bc = d_nodeManager->mkConst(::cvc5::String("BC"));
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
 
@@ -61,4 +60,4 @@ TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

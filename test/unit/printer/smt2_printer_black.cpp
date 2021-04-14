@@ -1,29 +1,28 @@
-/*********************                                                        */
-/*! \file smt2_printer_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the SMT2 printer
- **
- ** Black box testing of the SMT2 printer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the SMT2 printer.
+ */
 
 #include <iostream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "options/language.h"
 #include "smt/smt_engine.h"
 #include "test_smt.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -59,4 +58,4 @@ TEST_F(TestPrinterBlackSmt2, regexp_loop)
   checkToString(n, "((_ re.loop 1 3) (str.to_re \"x\"))");
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

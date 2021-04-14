@@ -1,33 +1,32 @@
-/*********************                                                        */
-/*! \file inst_match_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inst match generator base class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inst match generator base class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__IM_GENERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__IM_GENERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__IM_GENERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__IM_GENERATOR_H
 
 #include <map>
 #include "expr/node.h"
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
 class QuantifiersState;
 class TermRegistry;
 
@@ -114,13 +113,11 @@ protected:
  QuantifiersState& d_qstate;
  /** Reference to the term registry */
  TermRegistry& d_treg;
- // !!!!!!!!! temporarily available (project #15)
- QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
 
 }  // namespace inst
 }
 }
-}
+}  // namespace cvc5
 
 #endif

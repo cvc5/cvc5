@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file lazy_proof_chain.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of lazy proof utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of lazy proof utility.
+ */
 
 #include "expr/lazy_proof_chain.h"
 
@@ -21,7 +22,7 @@
 #include "expr/proof_node_manager.h"
 #include "options/proof_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    bool cyclic,
@@ -67,7 +68,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
                      std::vector<std::shared_ptr<ProofNode>>,
                      NodeHashFunction>
       assumptionsToExpand;
-  // invariant of the loop below, the first iteration notwhistanding:
+  // invariant of the loop below, the first iteration notwithstanding:
   //   visit = domain(assumptionsToExpand) \ domain(toConnect)
   std::vector<Node> visit{fact};
   std::unordered_map<Node, bool, NodeHashFunction> visited;
@@ -121,13 +122,22 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       expr::getFreeAssumptionsMap(curPfn, famap);
       if (Trace.isOn("lazy-cdproofchain"))
       {
+        unsigned alreadyToVisit = 0;
         Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: free assumptions:\n";
+            << "LazyCDProofChain::getProofFor: " << famap.size()
+            << " free assumptions:\n";
         for (auto fap : famap)
         {
           Trace("lazy-cdproofchain")
               << "LazyCDProofChain::getProofFor:  - " << fap.first << "\n";
+          alreadyToVisit +=
+              std::find(visit.begin(), visit.end(), fap.first) != visit.end()
+                  ? 1
+                  : 0;
         }
+        Trace("lazy-cdproofchain")
+            << "LazyCDProofChain::getProofFor: " << alreadyToVisit
+            << " already to visit\n";
       }
       // mark for post-traversal if we are controlling cycles
       if (d_cyclic)
@@ -317,4 +327,4 @@ ProofGenerator* LazyCDProofChain::getGeneratorForInternal(Node fact, bool& rec)
 
 std::string LazyCDProofChain::identify() const { return "LazyCDProofChain"; }
 
-}  // namespace CVC4
+}  // namespace cvc5

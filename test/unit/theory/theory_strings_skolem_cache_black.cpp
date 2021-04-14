@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_strings_skolem_cache_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the skolem cache of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the skolem cache of the theory of strings.
+ */
 
 #include <memory>
 
@@ -20,7 +21,7 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory::strings;
 
@@ -33,11 +34,11 @@ class TestTheoryBlackStringsSkolemCache : public TestSmt
 TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
 {
   Node zero = d_nodeManager->mkConst(Rational(0));
-  Node n = d_nodeManager->mkSkolem("n", d_nodeManager->integerType());
-  Node a = d_nodeManager->mkSkolem("a", d_nodeManager->stringType());
-  Node b = d_nodeManager->mkSkolem("b", d_nodeManager->stringType());
-  Node c = d_nodeManager->mkSkolem("c", d_nodeManager->stringType());
-  Node d = d_nodeManager->mkSkolem("d", d_nodeManager->stringType());
+  Node n = d_skolemManager->mkDummySkolem("n", d_nodeManager->integerType());
+  Node a = d_skolemManager->mkDummySkolem("a", d_nodeManager->stringType());
+  Node b = d_skolemManager->mkDummySkolem("b", d_nodeManager->stringType());
+  Node c = d_skolemManager->mkDummySkolem("c", d_nodeManager->stringType());
+  Node d = d_skolemManager->mkDummySkolem("d", d_nodeManager->stringType());
   Node sa = d_nodeManager->mkNode(
       kind::STRING_SUBSTR,
       a,
@@ -59,4 +60,4 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
   }
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

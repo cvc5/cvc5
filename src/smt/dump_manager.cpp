@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file dump_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the dump manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the dump manager.
+ */
 
 #include "smt/dump_manager.h"
 
@@ -18,7 +19,7 @@
 #include "smt/dump.h"
 #include "smt/node_command.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 DumpManager::DumpManager(context::UserContext* u)
@@ -72,4 +73,4 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

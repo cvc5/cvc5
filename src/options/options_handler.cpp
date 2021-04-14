@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file options_handler.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface for custom handlers and predicates options.
- **
- ** Interface for custom handlers and predicates options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface for custom handlers and predicates options.
+ */
 
 #include "options/options_handler.h"
 
@@ -35,10 +34,11 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/options_holder.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace options {
 
 // helper functions
@@ -81,6 +81,12 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
+
+void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
+{
+  d_options->d_holder->resourceWeightHolder.emplace_back(optarg);
+}
+
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
@@ -95,24 +101,24 @@ void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_USE_ABC
+#ifndef CVC5_USE_ABC
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 {
-#ifndef CVC4_USE_ABC
+#ifndef CVC5_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
     ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_ABC */
+#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
@@ -255,13 +261,13 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_STATISTICS_ON
+#ifndef CVC5_STATISTICS_ON
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
 }
 
 void OptionsHandler::threadN(std::string option) {
@@ -505,26 +511,26 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
 void OptionsHandler::setVerbosity(std::string option, int value)
 {
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC4::null_os);
-    TraceChannel.setStream(&CVC4::null_os);
-    NoticeChannel.setStream(&CVC4::null_os);
-    ChatChannel.setStream(&CVC4::null_os);
-    MessageChannel.setStream(&CVC4::null_os);
-    WarningChannel.setStream(&CVC4::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   } else {
     if(value < 2) {
-      ChatChannel.setStream(&CVC4::null_os);
+      ChatChannel.setStream(&cvc5::null_os);
     } else {
       ChatChannel.setStream(&std::cout);
     }
     if(value < 1) {
-      NoticeChannel.setStream(&CVC4::null_os);
+      NoticeChannel.setStream(&cvc5::null_os);
     } else {
       NoticeChannel.setStream(&std::cout);
     }
     if(value < 0) {
-      MessageChannel.setStream(&CVC4::null_os);
-      WarningChannel.setStream(&CVC4::null_os);
+      MessageChannel.setStream(&cvc5::null_os);
+      WarningChannel.setStream(&cvc5::null_os);
     } else {
       MessageChannel.setStream(&std::cout);
       WarningChannel.setStream(&std::cerr);
@@ -542,6 +548,5 @@ void OptionsHandler::decreaseVerbosity(std::string option) {
   setVerbosity(option, options::verbosity());
 }
 
-
-}/* CVC4::options namespace */
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace cvc5

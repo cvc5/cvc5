@@ -1,13 +1,18 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 cmake_minimum_required(VERSION 3.9)
 
 #-----------------------------------------------------------------------------#
@@ -17,22 +22,22 @@ project(cvc4)
 
 include(GNUInstallDirs)
 
-set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   9) # Minor component of the version of CVC4.
-set(CVC4_RELEASE 0) # Release component of the version of CVC4.
+set(CVC5_MAJOR   1) # Major component of the version of CVC4.
+set(CVC5_MINOR   9) # Minor component of the version of CVC4.
+set(CVC5_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
-set(CVC4_EXTRAVERSION "-prerelease")
+set(CVC5_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 7)
+set(CVC5_SOVERSION 7)
 
 # Full release string for CVC4.
-if(CVC4_RELEASE)
-  set(CVC4_RELEASE_STRING
-      "${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}${CVC4_EXTRAVERSION}")
+if(CVC5_RELEASE)
+  set(CVC5_RELEASE_STRING
+      "${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}${CVC5_EXTRAVERSION}")
 else()
-  set(CVC4_RELEASE_STRING "${CVC4_MAJOR}.${CVC4_MINOR}${CVC4_EXTRAVERSION}")
+  set(CVC5_RELEASE_STRING "${CVC5_MAJOR}.${CVC5_MINOR}${CVC5_EXTRAVERSION}")
 endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -61,29 +66,8 @@ endif()
 if(ABC_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
 endif()
-if(ANTLR_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${ANTLR_DIR}")
-endif()
-if(CADICAL_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${CADICAL_DIR}")
-endif()
-if(CRYPTOMINISAT_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${CRYPTOMINISAT_DIR}")
-endif()
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
-endif()
-if(GMP_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${GMP_DIR}")
-endif()
-if(KISSAT_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${KISSAT_DIR}")
-endif()
-if(POLY_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${POLY_DIR}")
-endif()
-if(SYMFPU_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
 endif()
 
 # By default the contrib/get-* scripts install dependencies to deps/install.
@@ -151,24 +135,20 @@ option(USE_PYTHON2            "Force Python 2 (deprecated)")
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
 set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
-set(ANTLR_DIR         "" CACHE STRING "Set ANTLR3 install directory")
-set(CADICAL_DIR       "" CACHE STRING "Set CaDiCaL install directory")
-set(CRYPTOMINISAT_DIR "" CACHE STRING "Set CryptoMiniSat install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
-set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
-set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
-set(POLY_DIR          "" CACHE STRING "Set LibPoly install directory")
-set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supprted language bindings based on new C++ API
+# Supported language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Build limitations
 option(BUILD_LIB_ONLY         "Only build the library")
+
+# Api documentation
+cvc4_option(BUILD_DOCS "Build Api documentation")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -345,7 +325,7 @@ else()
   find_package(PythonInterp 3 REQUIRED)
 endif()
 
-find_package(GMP REQUIRED)
+find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
@@ -359,7 +339,7 @@ endif()
 
 if(ENABLE_UBSAN)
   add_required_c_cxx_flag("-fsanitize=undefined")
-  add_definitions(-DCVC4_USE_UBSAN)
+  add_definitions(-DCVC5_USE_UBSAN)
 endif()
 
 if(ENABLE_TSAN)
@@ -371,7 +351,7 @@ if(ENABLE_TSAN)
 endif()
 
 if(ENABLE_ASSERTIONS)
-  add_definitions(-DCVC4_ASSERTIONS)
+  add_definitions(-DCVC5_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
 endif()
@@ -379,7 +359,7 @@ endif()
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
   APPEND_COVERAGE_COMPILER_FLAGS()
-  add_definitions(-DCVC4_COVERAGE)
+  add_definitions(-DCVC5_COVERAGE)
   # Note: The ctest command returns a non-zero exit code if tests fail or run
   # into a timeout. As a consequence, the coverage report is not generated. To
   # prevent this we always return with exit code 0 after the ctest command has
@@ -394,7 +374,7 @@ if(ENABLE_COVERAGE)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
-  add_definitions(-DCVC4_DEBUG_CONTEXT_MEMORY_MANAGER)
+  add_definitions(-DCVC5_DEBUG_CONTEXT_MEMORY_MANAGER)
 endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
@@ -402,53 +382,53 @@ if(ENABLE_DEBUG_SYMBOLS)
 endif()
 
 if(ENABLE_COMP_INC_TRACK)
-  add_definitions(-DCVC4_SMTCOMP_APPLICATION_TRACK)
+  add_definitions(-DCVC5_SMTCOMP_APPLICATION_TRACK)
 endif()
 
 if(ENABLE_MUZZLE)
-  add_definitions(-DCVC4_MUZZLE)
+  add_definitions(-DCVC5_MUZZLE)
 endif()
 
 if(ENABLE_DUMPING)
-  add_definitions(-DCVC4_DUMPING)
+  add_definitions(-DCVC5_DUMPING)
 endif()
 
 if(ENABLE_PROFILING)
-  add_definitions(-DCVC4_PROFILING)
+  add_definitions(-DCVC5_PROFILING)
   add_check_c_cxx_flag("-pg")
 endif()
 
 if(ENABLE_TRACING)
-  add_definitions(-DCVC4_TRACING)
+  add_definitions(-DCVC5_TRACING)
 endif()
 
 if(ENABLE_STATISTICS)
-  add_definitions(-DCVC4_STATISTICS_ON)
+  add_definitions(-DCVC5_STATISTICS_ON)
 endif()
 
 if(ENABLE_VALGRIND)
   find_package(Valgrind REQUIRED)
-  add_definitions(-DCVC4_VALGRIND)
+  add_definitions(-DCVC5_VALGRIND)
 endif()
 
 if(USE_ABC)
   find_package(ABC REQUIRED)
-  add_definitions(-DCVC4_USE_ABC ${ABC_ARCH_FLAGS})
+  add_definitions(-DCVC5_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 if(USE_CADICAL)
   find_package(CaDiCaL REQUIRED)
-  add_definitions(-DCVC4_USE_CADICAL)
+  add_definitions(-DCVC5_USE_CADICAL)
 endif()
 
 if(USE_CLN)
   set(GPL_LIBS "${GPL_LIBS} cln")
   find_package(CLN 1.2.2 REQUIRED)
-  set(CVC4_USE_CLN_IMP 1)
-  set(CVC4_USE_GMP_IMP 0)
+  set(CVC5_USE_CLN_IMP 1)
+  set(CVC5_USE_GMP_IMP 0)
 else()
-  set(CVC4_USE_CLN_IMP 0)
-  set(CVC4_USE_GMP_IMP 1)
+  set(CVC5_USE_CLN_IMP 0)
+  set(CVC5_USE_GMP_IMP 1)
 endif()
 
 if(USE_CRYPTOMINISAT)
@@ -459,26 +439,26 @@ if(USE_CRYPTOMINISAT)
     add_c_cxx_flag(-pthread)
   endif()
   find_package(CryptoMiniSat REQUIRED)
-  add_definitions(-DCVC4_USE_CRYPTOMINISAT)
+  add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
 
 if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
   find_package(GLPK REQUIRED)
-  add_definitions(-DCVC4_USE_GLPK)
+  add_definitions(-DCVC5_USE_GLPK)
 endif()
 
 if(USE_KISSAT)
   find_package(Kissat REQUIRED)
-  add_definitions(-DCVC4_USE_KISSAT)
+  add_definitions(-DCVC5_USE_KISSAT)
 endif()
 
 if(USE_POLY)
   find_package(Poly REQUIRED)
-  add_definitions(-DCVC4_USE_POLY)
-  set(CVC4_USE_POLY_IMP 1)
+  add_definitions(-DCVC5_USE_POLY)
+  set(CVC5_USE_POLY_IMP 1)
 else()
-  set(CVC4_USE_POLY_IMP 0)
+  set(CVC5_USE_POLY_IMP 0)
 endif()
 
 if(USE_EDITLINE)
@@ -491,10 +471,10 @@ endif()
 
 if(USE_SYMFPU)
   find_package(SymFPU REQUIRED)
-  add_definitions(-DCVC4_USE_SYMFPU)
-  set(CVC4_USE_SYMFPU 1)
+  add_definitions(-DCVC5_USE_SYMFPU)
+  set(CVC5_USE_SYMFPU 1)
 else()
-  set(CVC4_USE_SYMFPU 0)
+  set(CVC5_USE_SYMFPU 0)
 endif()
 
 if(GPL_LIBS)
@@ -503,7 +483,7 @@ if(GPL_LIBS)
       "Bad configuration detected: BSD-licensed code only, but also requested "
       "GPLed libraries: ${GPL_LIBS}")
   endif()
-  set(CVC4_GPL_DEPS 1)
+  set(CVC5_GPL_DEPS 1)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -516,10 +496,10 @@ include(IWYU)
 
 include(ConfigureCVC4)
 if(NOT ENABLE_SHARED)
-  set(CVC4_STATIC_BUILD ON)
+  set(CVC5_STATIC_BUILD ON)
 endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
-unset(CVC4_STATIC_BUILD)
+unset(CVC5_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -537,6 +517,10 @@ endif()
 if(BUILD_BINDINGS_JAVA)
   add_subdirectory(src/api/java)
   message(WARNING "Java API is currently under development.")
+endif()
+
+if(BUILD_DOCS)
+  add_subdirectory(docs)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -606,7 +590,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
-  VERSION ${CVC4_RELEASE_STRING}
+  VERSION ${CVC5_RELEASE_STRING}
   COMPATIBILITY ExactVersion
 )
 
@@ -620,104 +604,94 @@ install(FILES
 #-----------------------------------------------------------------------------#
 # Print build configuration
 
+# Set colors.
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(Green "${Esc}[32m")
+  set(Blue "${Esc}[1;34m")
+  set(ResetColor "${Esc}[m")
+endif()
+
 # Convert build type to lower case.
-string(TOLOWER ${CMAKE_BUILD_TYPE} CVC4_BUILD_PROFILE_STRING)
+string(TOLOWER ${CMAKE_BUILD_TYPE} CVC5_BUILD_PROFILE_STRING)
 
 # Get all definitions added via add_definitions.
-get_directory_property(CVC4_DEFINITIONS COMPILE_DEFINITIONS)
-string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
+get_directory_property(CVC5_DEFINITIONS COMPILE_DEFINITIONS)
+string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 
-message("CVC4 ${CVC4_RELEASE_STRING}")
+message("")
+print_info("CVC4 ${CVC5_RELEASE_STRING}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
-  message("Build profile             : ${CVC4_BUILD_PROFILE_STRING} (incremental)")
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
 else()
-  message("Build profile             : ${CVC4_BUILD_PROFILE_STRING}")
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
 message("")
-print_config("GPL                       :" ENABLE_GPL)
-print_config("Best configuration        :" ENABLE_BEST)
+print_config("GPL                       " ${ENABLE_GPL})
+print_config("Best configuration        " ${ENABLE_BEST})
 message("")
-print_config("Assertions                :" ENABLE_ASSERTIONS)
-print_config("Debug symbols             :" ENABLE_DEBUG_SYMBOLS)
-print_config("Debug context mem mgr     :" ENABLE_DEBUG_CONTEXT_MM)
+print_config("Assertions                " ${ENABLE_ASSERTIONS})
+print_config("Debug symbols             " ${ENABLE_DEBUG_SYMBOLS})
+print_config("Debug context mem mgr     " ${ENABLE_DEBUG_CONTEXT_MM})
 message("")
-print_config("Dumping                   :" ENABLE_DUMPING)
-print_config("Muzzle                    :" ENABLE_MUZZLE)
-print_config("Proofs                    :" ENABLE_PROOFS)
-print_config("Statistics                :" ENABLE_STATISTICS)
-print_config("Tracing                   :" ENABLE_TRACING)
+print_config("Dumping                   " ${ENABLE_DUMPING})
+print_config("Muzzle                    " ${ENABLE_MUZZLE})
+print_config("Statistics                " ${ENABLE_STATISTICS})
+print_config("Tracing                   " ${ENABLE_TRACING})
 message("")
-print_config("ASan                      :" ENABLE_ASAN)
-print_config("UBSan                     :" ENABLE_UBSAN)
-print_config("TSan                      :" ENABLE_TSAN)
-print_config("Coverage (gcov)           :" ENABLE_COVERAGE)
-print_config("Profiling (gprof)         :" ENABLE_PROFILING)
-print_config("Unit tests                :" ENABLE_UNIT_TESTING)
-print_config("Valgrind                  :" ENABLE_VALGRIND)
+print_config("ASan                      " ${ENABLE_ASAN})
+print_config("UBSan                     " ${ENABLE_UBSAN})
+print_config("TSan                      " ${ENABLE_TSAN})
+print_config("Coverage (gcov)           " ${ENABLE_COVERAGE})
+print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
+print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
+print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Shared libs               :" ENABLE_SHARED)
-print_config("Static binary             :" ENABLE_STATIC_BINARY)
-print_config("Python bindings           :" BUILD_BINDINGS_PYTHON)
-print_config("Java bindings             :" BUILD_BINDINGS_JAVA)
-print_config("Python2                   :" USE_PYTHON2)
+print_config("Shared libs               " ${ENABLE_SHARED})
+print_config("Static binary             " ${ENABLE_STATIC_BINARY})
+print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
+print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
+print_config("Python2                   " ${USE_PYTHON2})
 message("")
-print_config("ABC                       :" USE_ABC)
-print_config("CaDiCaL                   :" USE_CADICAL)
-print_config("CryptoMiniSat             :" USE_CRYPTOMINISAT)
-print_config("GLPK                      :" USE_GLPK)
-print_config("Kissat                    :" USE_KISSAT)
-print_config("LibPoly                   :" USE_POLY)
+print_config("ABC                       " ${USE_ABC})
+print_config("CaDiCaL                   " ${USE_CADICAL})
+print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT})
+print_config("GLPK                      " ${USE_GLPK})
+print_config("Kissat                    " ${USE_KISSAT})
+print_config("LibPoly                   " ${USE_POLY})
 message("")
-print_config("Build libcvc4 only        :" BUILD_LIB_ONLY)
+print_config("Build libcvc4 only        " ${BUILD_LIB_ONLY})
 
-if(CVC4_USE_CLN_IMP)
-  message("MP library                : cln")
+if(CVC5_USE_CLN_IMP)
+  print_config("MP library                " "cln")
 else()
-  message("MP library                : gmp")
+  print_config("MP library                " "gmp")
 endif()
-print_config("Editline                  :" ${USE_EDITLINE})
-print_config("SymFPU                    :" ${USE_SYMFPU})
+print_config("Editline                  " ${USE_EDITLINE})
+print_config("SymFPU                    " ${USE_SYMFPU})
+message("")
+print_config("Api docs                  " ${BUILD_DOCS})
 message("")
 if(ABC_DIR)
-  message("ABC dir                   : ${ABC_DIR}")
-endif()
-if(ANTLR_DIR)
-  message("ANTLR dir                 : ${ANTLR_DIR}")
-endif()
-if(CADICAL_DIR)
-  message("CADICAL dir               : ${CADICAL_DIR}")
-endif()
-if(CRYPTOMINISAT_DIR)
-  message("CRYPTOMINISAT dir         : ${CRYPTOMINISAT_DIR}")
+  print_config("ABC dir                   " ${ABC_DIR})
 endif()
 if(GLPK_DIR)
-  message("GLPK dir                  : ${GLPK_DIR}")
-endif()
-if(GMP_DIR)
-  message("GMP dir                   : ${GMP_DIR}")
-endif()
-if(KISSAT_DIR)
-  message("KISSAT dir                : ${KISSAT_DIR}")
-endif()
-if(POLY_DIR)
-  message("LibPoly dir               : ${POLY_DIR}")
-endif()
-if(SYMFPU_DIR)
-  message("SYMFPU dir                : ${SYMFPU_DIR}")
+  print_config("GLPK dir                  " ${GLPK_DIR})
 endif()
 message("")
-message("CPPLAGS (-D...)           : ${CVC4_DEFINITIONS}")
-message("CXXFLAGS                  : ${CMAKE_CXX_FLAGS}")
-message("CFLAGS                    : ${CMAKE_C_FLAGS}")
-message("Linker flags              : ${CMAKE_EXE_LINKER_FLAGS}")
+print_config("CPPLAGS (-D...)" "${CVC5_DEFINITIONS}")
+print_config("CXXFLAGS       " "${CMAKE_CXX_FLAGS}")
+print_config("CFLAGS         " "${CMAKE_C_FLAGS}")
+print_config("Linker flags   " "${CMAKE_EXE_LINKER_FLAGS}")
 message("")
-message("Install prefix            : ${CMAKE_INSTALL_PREFIX}")
+print_config("Install prefix " "${CMAKE_INSTALL_PREFIX}")
 message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license             : ${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
+  "${Blue}CVC4 license: "
+  "${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"
@@ -734,7 +708,7 @@ if(GPL_LIBS)
   )
 else()
   message(
-  "CVC4 license              : modified BSD"
+  "${Blue}CVC4 license:${ResetColor} modified BSD"
   "\n"
   "\n"
   "Note that this configuration is NOT built against any GPL'ed libraries, so"

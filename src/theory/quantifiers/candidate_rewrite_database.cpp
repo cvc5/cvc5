@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file candidate_rewrite_database.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of candidate_rewrite_database
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of candidate_rewrite_database.
+ */
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
@@ -21,14 +22,13 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -36,8 +36,7 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
                                                    bool rewAccel,
                                                    bool silent,
                                                    bool filterPairs)
-    : d_qe(nullptr),
-      d_tds(nullptr),
+    : d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
@@ -52,7 +51,6 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
   Assert(ss != nullptr);
   d_candidate = Node::null();
   d_using_sygus = false;
-  d_qe = nullptr;
   d_tds = nullptr;
   d_ext_rewrite = nullptr;
   if (d_filterPairs)
@@ -63,15 +61,14 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
 }
 
 void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
-                                               QuantifiersEngine* qe,
+                                               TermDbSygus* tds,
                                                Node f,
                                                SygusSampler* ss)
 {
   Assert(ss != nullptr);
   d_candidate = f;
   d_using_sygus = true;
-  d_qe = qe;
-  d_tds = d_qe->getTermDatabaseSygus();
+  d_tds = tds;
   d_ext_rewrite = nullptr;
   if (d_filterPairs)
   {
@@ -298,6 +295,6 @@ void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
   d_ext_rewrite = er;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

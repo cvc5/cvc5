@@ -24,7 +24,7 @@
 #include "expr/proof_node_updater.h"
 #include "proof/lean/lean_rules.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace proof {
 
@@ -43,6 +43,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   /** Update the proof node iff has the LEAN_RULE id. */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
@@ -98,6 +99,6 @@ class LeanProofPostprocess
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

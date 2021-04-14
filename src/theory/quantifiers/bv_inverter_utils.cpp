@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file bv_inverter_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 namespace utils {
@@ -1180,7 +1181,7 @@ namespace {
 Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 {
   unsigned w;
-  NodeBuilder<> nb(OR);
+  NodeBuilder nb(OR);
   NodeManager* nm;
 
   nm = NodeManager::currentNM();
@@ -2000,7 +2001,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   unsigned nchildren = sv_t.getNumChildren();
   unsigned w1 = 0, w2 = 0;
   unsigned w = bv::utils::getSize(t), wx = bv::utils::getSize(x);
-  NodeBuilder<> nbs1(BITVECTOR_CONCAT), nbs2(BITVECTOR_CONCAT);
+  NodeBuilder nbs1(BITVECTOR_CONCAT), nbs2(BITVECTOR_CONCAT);
   Node s1, s2;
   Node t1, t2, tx;
   Node scl, scr;
@@ -2589,4 +2590,4 @@ Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

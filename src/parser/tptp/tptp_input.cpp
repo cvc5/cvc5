@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file tptp_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add file-specific comments here ]].
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Francois Bobot, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add file-specific comments here ]]
+ */
 
 #include "parser/tptp/tptp_input.h"
 
@@ -26,7 +27,7 @@
 #include "parser/tptp/TptpParser.h"
 #include "parser/tptp/tptp.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /* Use lookahead=2 */
@@ -68,5 +69,5 @@ api::Term TptpInput::parseExpr()
   return d_pTptpParser->parseExpr(d_pTptpParser);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

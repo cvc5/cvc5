@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file candidate_rewrite_filter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements techniques for candidate rewrite rule filtering, which
- ** filters the output of --sygus-rr-synth. The classes in this file implement
- ** filtering based on congruence, variable ordering, and matching.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements techniques for candidate rewrite rule filtering, which
+ * filters the output of --sygus-rr-synth. The classes in this file implement
+ * filtering based on congruence, variable ordering, and matching.
+ */
 
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 
@@ -20,9 +21,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -237,7 +238,7 @@ bool CandidateRewriteFilter::notify(Node s,
       Trace("crf-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned i = 0, size = vars.size(); i < size; i++)
   {
     // By using internal representation of terms, we ensure polymorphism is
@@ -277,4 +278,4 @@ bool CandidateRewriteFilter::notify(Node s,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

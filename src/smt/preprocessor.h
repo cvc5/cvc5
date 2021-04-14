@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file preprocessor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Justin Xu
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessor of the SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Justin Xu
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessor of the SmtEngine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PREPROCESSOR_H
-#define CVC4__SMT__PREPROCESSOR_H
+#ifndef CVC5__SMT__PREPROCESSOR_H
+#define CVC5__SMT__PREPROCESSOR_H
 
 #include <memory>
 
@@ -23,7 +24,7 @@
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -128,6 +129,6 @@ class Preprocessor
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

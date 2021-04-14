@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_bags_normal_form_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of bags normal form
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of bags normal form
+ */
 
 #include "expr/dtype.h"
 #include "test_smt.h"
@@ -18,7 +19,7 @@
 #include "theory/bags/normal_form.h"
 #include "theory/strings/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -40,7 +41,7 @@ class TestTheoryWhiteBagsNormalForm : public TestSmt
   std::vector<Node> getNStrings(size_t n)
   {
     std::vector<Node> elements(n);
-    CVC4::theory::strings::StringEnumerator enumerator(
+    cvc5::theory::strings::StringEnumerator enumerator(
         d_nodeManager->stringType());
 
     for (size_t i = 0; i < n; i++)
@@ -586,4 +587,4 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
   ASSERT_EQ(output3, NormalForm::evaluate(input3));
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

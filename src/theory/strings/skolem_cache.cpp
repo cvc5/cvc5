@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file skolem_cache.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a cache of skolems for theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a cache of skolems for theory of strings.
+ */
 
 #include "theory/strings/skolem_cache.h"
 
@@ -23,9 +24,9 @@
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -140,21 +141,25 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
 {
+  // Note this method is static and does not rely on any local caching.
+  // It is used by expand definitions and by (dynamic) reductions, thus
+  // it is centrally located here.
   Assert(seqType.isSequence());
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> argTypes;
   argTypes.push_back(seqType);
   argTypes.push_back(nm->integerType());
   TypeNode elemType = seqType.getSequenceElementType();
   TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-  return mkTypedSkolemCached(
-      ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, c);
+  return sm->mkSkolemFunction(SkolemFunId::SEQ_NTH_OOB, ufType);
 }
 
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  Node n = NodeManager::currentNM()->mkSkolem(c, d_strType, "string skolem");
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
 }
@@ -291,4 +296,4 @@ Node SkolemCache::mkIndexVar(Node t)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

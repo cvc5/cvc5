@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file model_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model builder class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model builder class.
+ */
 
 #include "theory/quantifiers/fmf/model_builder.h"
 
@@ -20,15 +21,13 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5;
+using namespace cvc5::kind;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(QuantifiersState& qs,
                              QuantifiersRegistry& qr,

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file lazy_tree_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the lazy tree proof generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the lazy tree proof generator class.
+ */
 
 #include "theory/lazy_tree_proof_generator.h"
 
@@ -21,7 +22,7 @@
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm,
@@ -142,4 +143,4 @@ std::ostream& operator<<(std::ostream& os, const LazyTreeProofGenerator& ltpg)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

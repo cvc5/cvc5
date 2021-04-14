@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file term_canonize.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term canonize.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term canonize.
+ */
 
 #include "expr/term_canonize.h"
 
@@ -19,9 +20,9 @@
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 TermCanonize::TermCanonize() : d_op_id_count(0), d_typ_id_count(0) {}
@@ -209,4 +210,4 @@ Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder, bool doHoVar)
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

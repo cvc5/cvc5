@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file theory_bool_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add brief comments here ]]
- **
- ** [[ Add file-specific comments here ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add brief comments here ]]
+ *
+ * [[ Add file-specific comments here ]]
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_BOOL_TYPE_RULES_H
-#define CVC4__THEORY_BOOL_TYPE_RULES_H
+#ifndef CVC5__THEORY_BOOL_TYPE_RULES_H
+#define CVC5__THEORY_BOOL_TYPE_RULES_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace boolean {
 
@@ -70,8 +71,8 @@ public:
   }
 };/* class IteTypeRule */
 
-}/* CVC4::theory::boolean namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace boolean
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY_BOOL_TYPE_RULES_H */
+#endif /* CVC5__THEORY_BOOL_TYPE_RULES_H */

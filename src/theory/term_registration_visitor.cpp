@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file term_registration_visitor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/term_registration_visitor.h"
 
@@ -20,9 +21,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 
 std::string PreRegisterVisitor::toString() const {
   std::stringstream ss;
@@ -40,7 +41,10 @@ std::string PreRegisterVisitor::toString() const {
  * current. This method is used by PreRegisterVisitor and SharedTermsVisitor
  * below.
  */
-bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
+bool isAlreadyVisited(TheoryEngine* te,
+                      TheoryIdSet visitedTheories,
+                      TNode current,
+                      TNode parent)
 {
   TheoryId currentTheoryId = Theory::theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
@@ -66,7 +70,7 @@ bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
 
   // do we need to consider the type?
   TypeNode type = current.getType();
-  if (currentTheoryId == parentTheoryId && !type.isInterpretedFinite())
+  if (currentTheoryId == parentTheoryId && !te->isFiniteType(type))
   {
     // current and parent are the same theory, and we are infinite, return true
     return true;
@@ -99,7 +103,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(visitedTheories, current, parent);
+  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
 }
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
@@ -148,7 +152,7 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     // Note that if enclosed by different theories it's shared, for example,
     // in read(a, f(a)), f(a) should be shared with integers.
     TypeNode type = current.getType();
-    if (currentTheoryId != parentTheoryId || type.isInterpretedFinite())
+    if (currentTheoryId != parentTheoryId || te->isFiniteType(type))
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
@@ -243,7 +247,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(visitedTheories, current, parent);
+  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
 }
 
 void SharedTermsVisitor::visit(TNode current, TNode parent) {
@@ -292,4 +296,4 @@ void SharedTermsVisitor::clear() {
   d_visited.clear();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

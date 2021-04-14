@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file circuit_propagator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A non-clausal circuit propagator for Boolean simplification
- **
- ** A non-clausal circuit propagator for Boolean simplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A non-clausal circuit propagator for Boolean simplification.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
 #include <memory>
 #include <unordered_map>
@@ -31,7 +30,7 @@
 #include "expr/node.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
 class ProofNode;
@@ -103,7 +102,7 @@ class CircuitPropagator
    * @return a trust node encapsulating the proof for a conflict as a lemma that
    * proves false, or the null trust node otherwise
    */
-  TrustNode propagate() CVC4_WARN_UNUSED_RESULT;
+  TrustNode propagate() CVC5_WARN_UNUSED_RESULT;
 
   /**
    * Get the back edges of this circuit.
@@ -274,6 +273,6 @@ class CircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */
+#endif /* CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

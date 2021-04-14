@@ -1,29 +1,30 @@
-/*********************                                                        */
-/*! \file ho_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the higher-order extension of TheoryUF.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the higher-order extension of TheoryUF.
+ */
 
 #include "theory/uf/ho_extension.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/uf_options.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -66,10 +67,11 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   std::vector<TypeNode> argTypes = tn.getArgTypes();
   std::vector<Node> skolems;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
-    Node k =
-        nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
+    Node k = sm->mkDummySkolem(
+        "k", argTypes[i], "skolem created for extensionality.");
     skolems.push_back(k);
   }
   Node t[2];
@@ -120,6 +122,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find(f);
@@ -147,7 +150,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
         newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
         TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
-        new_f = nm->mkSkolem("app_uf", nft);
+        new_f = sm->mkDummySkolem("app_uf", nft);
         for (const Node& v : vs)
         {
           new_f = nm->mkNode(HO_APPLY, new_f, v);
@@ -161,7 +164,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       else
       {
         // introduce skolem to make a standard APPLY_UF
-        new_f = nm->mkSkolem("app_uf", f.getType());
+        new_f = sm->mkDummySkolem("app_uf", f.getType());
         lem = new_f.eqNode(f);
       }
       Trace("uf-ho-lemma")
@@ -199,15 +202,17 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                  << isCollectModel << "..." << std::endl;
   std::map<TypeNode, std::vector<Node> > func_eqcs;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  bool hasFunctions = false;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if (tn.isFunction())
     {
+      hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (tn.isInterpretedFinite() != isCollectModel)
+      if (d_state.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -215,6 +220,16 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       }
     }
     ++eqcs_i;
+  }
+  if (!options::ufHoExt())
+  {
+    // we are not applying extensionality, thus we are incomplete if functions
+    // are present
+    if (hasFunctions)
+    {
+      d_im.setIncomplete(IncompleteId::UF_HO_EXT_DISABLED);
+    }
+    return 0;
   }
 
   for (std::map<TypeNode, std::vector<Node> >::iterator itf = func_eqcs.begin();
@@ -400,17 +415,14 @@ unsigned HoExtension::check()
     }
   } while (num_facts > 0);
 
-  if (options::ufHoExt())
-  {
-    unsigned num_lemmas = 0;
+  unsigned num_lemmas = 0;
 
-    num_lemmas = checkExtensionality();
-    if (num_lemmas > 0)
-    {
-      Trace("uf-ho") << "...extensionality returned " << num_lemmas
-                     << " lemmas." << std::endl;
-      return num_lemmas;
-    }
+  num_lemmas = checkExtensionality();
+  if (num_lemmas > 0)
+  {
+    Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas."
+                   << std::endl;
+    return num_lemmas;
   }
 
   Trace("uf-ho") << "...finished check higher order." << std::endl;
@@ -455,4 +467,4 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

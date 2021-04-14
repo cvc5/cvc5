@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file minisat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Haniel Barbosa, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the minisat interface for cvc4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Haniel Barbosa, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the minisat interface for cvc5.
+ */
 
 #pragma once
 
@@ -20,7 +21,7 @@
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class MinisatSatSolver : public CDCLTSatSolverInterface
@@ -40,7 +41,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
-                  CVC4::context::UserContext* userContext,
+                  cvc5::context::UserContext* userContext,
                   ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -128,5 +129,5 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
 }; /* class MinisatSatSolver */
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

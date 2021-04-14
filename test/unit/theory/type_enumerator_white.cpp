@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file type_enumerator_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of CVC4::theory::TypeEnumerator
- **
- ** White box testing of CVC4::theory::TypeEnumerator.  (These tests depends
- ** on the ordering that the TypeEnumerators use, so it's a white-box test.)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::theory::TypeEnumerator.
+ *
+ * These tests depend on the ordering that the TypeEnumerators use, so it's a
+ * white-box test.
+ */
 
 #include <unordered_set>
 
@@ -25,7 +26,7 @@
 #include "test_smt.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace kind;
@@ -332,4 +333,4 @@ TEST_F(TestTheoryWhiteTypeEnumerator, bv)
   ASSERT_THROW(*++te, NoMoreValuesException);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

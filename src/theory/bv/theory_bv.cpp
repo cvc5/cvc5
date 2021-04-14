@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file theory_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of bit-vectors.
+ */
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/proof_checker.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "theory/bv/bv_solver_bitblast.h"
@@ -23,7 +24,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -62,6 +63,15 @@ TheoryBV::TheoryBV(context::Context* c,
 TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryBV::getProofChecker()
+{
+  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  {
+    return static_cast<BVSolverSimple*>(d_internal.get())->getProofChecker();
+  }
+  return nullptr;
+}
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -223,7 +233,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   d_internal->ppStaticLearn(in, learned);
 }
@@ -236,4 +246,4 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

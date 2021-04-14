@@ -1,27 +1,27 @@
-/*********************                                                        */
-/*! \file theory_bv_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for theory BV.
- **
- ** Util functions for theory BV.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for theory BV.
+ */
 
 #include "theory/bv/theory_bv_utils.h"
 
 #include <vector>
 
+#include "expr/skolem_manager.h"
 #include "options/theory_options.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 namespace utils {
@@ -278,10 +278,10 @@ Node mkConst(const BitVector& value)
 Node mkVar(unsigned size)
 {
   NodeManager* nm = NodeManager::currentNM();
-
-  return nm->mkSkolem("BVSKOLEM$$",
-                      nm->mkBitVectorType(size),
-                      "is a variable created by the theory of bitvectors");
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkDummySkolem("BVSKOLEM$$",
+                           nm->mkBitVectorType(size),
+                           "is a variable created by the theory of bitvectors");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -384,7 +384,7 @@ Node mkConcat(TNode node, unsigned repeat)
   {
     return node;
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   for (unsigned i = 0; i < repeat; ++i)
   {
     result << node;
@@ -503,12 +503,12 @@ Node eliminateInt2Bv(TNode node)
   {
     return v[0];
   }
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   result.append(v.rbegin(), v.rend());
   return Node(result);
 }
 
-}/* CVC4::theory::bv::utils namespace */
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace utils
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5

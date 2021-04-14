@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file regexp_entail.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of entailment tests involving regular expressions
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of entailment tests involving regular expressions.
+ */
 
 #include "theory/strings/regexp_entail.h"
 
@@ -19,9 +20,9 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -105,7 +106,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
         else if (xc.isConst())
         {
           // check for constants
-          CVC4::String s = xc.getConst<String>();
+          cvc5::String s = xc.getConst<String>();
           if (Word::isEmpty(xc))
           {
             Trace("regexp-ext-rewrite-debug") << "- ignore empty" << std::endl;
@@ -117,7 +118,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
           {
             std::vector<unsigned> ssVec;
             ssVec.push_back(t == 0 ? s.back() : s.front());
-            CVC4::String ss(ssVec);
+            cvc5::String ss(ssVec);
             if (testConstStringInRegExp(ss, 0, rc))
             {
               // strip off one character
@@ -345,7 +346,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
   return true;
 }
 
-bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
+bool RegExpEntail::testConstStringInRegExp(cvc5::String& s,
                                            unsigned index_start,
                                            TNode r)
 {
@@ -358,7 +359,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
   {
     case STRING_TO_REGEXP:
     {
-      CVC4::String s2 = s.substr(index_start, s.size() - index_start);
+      cvc5::String s2 = s.substr(index_start, s.size() - index_start);
       if (r[0].isConst())
       {
         return (s2 == r[0].getConst<String>());
@@ -392,7 +393,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
           {
             for (vec_k[i] = vec_k[i] + 1; vec_k[i] <= left; ++vec_k[i])
             {
-              CVC4::String t = s.substr(index_start + start, vec_k[i]);
+              cvc5::String t = s.substr(index_start + start, vec_k[i]);
               if (testConstStringInRegExp(t, 0, r[i]))
               {
                 start += vec_k[i];
@@ -457,7 +458,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
       {
         for (unsigned i = s.size() - index_start; i > 0; --i)
         {
-          CVC4::String t = s.substr(index_start, i);
+          cvc5::String t = s.substr(index_start, i);
           if (testConstStringInRegExp(t, 0, r[0]))
           {
             if (index_start + i == s.size()
@@ -525,7 +526,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
           uint32_t u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
           for (unsigned len = s.size() - index_start; len >= 1; len--)
           {
-            CVC4::String t = s.substr(index_start, len);
+            cvc5::String t = s.substr(index_start, len);
             if (testConstStringInRegExp(t, 0, r[0]))
             {
               if (len + index_start == s.size())
@@ -534,7 +535,7 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
               }
               else
               {
-                Node num2 = nm->mkConst(CVC4::Rational(u - 1));
+                Node num2 = nm->mkConst(cvc5::Rational(u - 1));
                 Node r2 = nm->mkNode(REGEXP_LOOP, r[0], r[1], num2);
                 if (testConstStringInRegExp(s, index_start + len, r2))
                 {
@@ -563,10 +564,10 @@ bool RegExpEntail::testConstStringInRegExp(CVC4::String& s,
           }
           for (unsigned len = 1; len <= s.size() - index_start; len++)
           {
-            CVC4::String t = s.substr(index_start, len);
+            cvc5::String t = s.substr(index_start, len);
             if (testConstStringInRegExp(t, 0, r[0]))
             {
-              Node num2 = nm->mkConst(CVC4::Rational(l - 1));
+              Node num2 = nm->mkConst(cvc5::Rational(l - 1));
               Node r2 = nm->mkNode(REGEXP_LOOP, r[0], num2, num2);
               if (testConstStringInRegExp(s, index_start + len, r2))
               {
@@ -639,7 +640,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
   }
   else if (n.getKind() == REGEXP_CONCAT)
   {
-    NodeBuilder<> nb(PLUS);
+    NodeBuilder nb(PLUS);
     for (const Node& nc : n)
     {
       Node flc = getFixedLengthForRegexp(nc);
@@ -761,4 +762,4 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

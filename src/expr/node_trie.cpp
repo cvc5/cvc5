@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file node_trie.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a trie class for Nodes and TNodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a trie class for Nodes and TNodes.
+ */
 
 #include "expr/node_trie.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 template <bool ref_count>
@@ -92,4 +93,4 @@ template void NodeTemplateTrie<true>::debugPrint(const char* c,
                                                  unsigned depth) const;
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

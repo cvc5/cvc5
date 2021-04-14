@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file env.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Smt Environment, main access to global utilities available to
- ** internal code.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Smt Environment, main access to global utilities available to
+ * internal code.
+ */
 
 #include "smt/env.h"
 
@@ -25,9 +26,9 @@
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
 
-using namespace CVC4::smt;
+using namespace cvc5::smt;
 
-namespace CVC4 {
+namespace cvc5 {
 
 Env::Env(NodeManager* nm)
     : d_context(new context::Context()),
@@ -82,9 +83,9 @@ DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
-StatisticsRegistry* Env::getStatisticsRegistry()
+StatisticsRegistry& Env::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return *d_statisticsRegistry;
 }
 
 const Options& Env::getOptions() const { return d_options; }
@@ -101,4 +102,4 @@ const Printer& Env::getPrinter()
 
 std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
 
-}  // namespace CVC4
+}  // namespace cvc5

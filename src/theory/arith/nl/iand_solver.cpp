@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file iand_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Makai Mann, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of integer and (IAND) solver
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Makai Mann, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of integer and (IAND) solver.
+ */
 
 #include "theory/arith/nl/iand_solver.h"
 
@@ -25,9 +26,9 @@
 #include "theory/rewriter.h"
 #include "util/iand.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -298,4 +299,4 @@ Node IAndSolver::bitwiseLemma(Node i)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

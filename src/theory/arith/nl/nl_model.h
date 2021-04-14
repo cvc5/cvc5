@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file nl_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model object for the non-linear extension class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model object for the non-linear extension class.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#ifndef CVC5__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC5__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>
@@ -22,7 +23,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace context {
 class Context;
@@ -329,6 +330,6 @@ class NlModel
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

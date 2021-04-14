@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file theory_inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An inference manager for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An inference manager for Theory.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
-#define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
+#define CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
 
 #include <memory>
 
@@ -28,7 +29,7 @@
 #include "util/statistics_registry.h"
 #include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofNodeManager;
 
@@ -36,6 +37,7 @@ namespace theory {
 
 class Theory;
 class TheoryState;
+class DecisionManager;
 namespace eq {
 class EqualityEngine;
 class ProofEqEngine;
@@ -90,16 +92,22 @@ class TheoryInferenceManager
                          const std::string& name,
                          bool cacheLemmas = true);
   virtual ~TheoryInferenceManager();
+  //--------------------------------------- initialization
   /**
    * Set equality engine, ee is a pointer to the official equality engine
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
+  /** Set the decision manager */
+  void setDecisionManager(DecisionManager* dm);
+  //--------------------------------------- end initialization
   /**
    * Are proofs enabled in this inference manager? Returns true if the proof
    * node manager pnm provided to the constructor of this class was non-null.
    */
   bool isProofEnabled() const;
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   /**
    * Reset, which resets counters regarding the number of added lemmas and
    * internal facts. This method should be manually called by the theory at
@@ -116,8 +124,6 @@ class TheoryInferenceManager
    * since the last call to reset.
    */
   bool hasSent() const;
-  /** Get the underlying proof equality engine */
-  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
@@ -344,6 +350,8 @@ class TheoryInferenceManager
   /** Have we added a internal fact since the last call to reset? */
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
+  /** Get the decision manager, which manages decision strategies. */
+  DecisionManager* getDecisionManager();
   /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
@@ -353,17 +361,17 @@ class TheoryInferenceManager
   /**
    * Forward to OutputChannel::spendResource() to spend resources.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Forward to OutputChannel::safePoint() to spend resources.
    */
-  void safePoint(ResourceManager::Resource r);
+  void safePoint(Resource r);
   /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.
    */
-  void setIncomplete();
+  void setIncomplete(IncompleteId id);
 
  protected:
   /**
@@ -372,6 +380,7 @@ class TheoryInferenceManager
    */
   bool processInternalFact(TNode atom,
                            bool pol,
+                           InferenceId iid,
                            PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args,
@@ -418,6 +427,8 @@ class TheoryInferenceManager
   OutputChannel& d_out;
   /** Pointer to equality engine of the theory. */
   eq::EqualityEngine* d_ee;
+  /** Pointer to the decision manager */
+  DecisionManager* d_decManager;
   /** A proof equality engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** The proof node manager of the theory */
@@ -451,6 +462,6 @@ class TheoryInferenceManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__THEORY_INFERENCE_MANAGER_H */

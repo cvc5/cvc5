@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model class.
+ */
 #include "theory/theory_model.h"
 
 #include "expr/node_algorithm.h"
@@ -22,10 +23,10 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryModel::TheoryModel(context::Context* c,
@@ -353,7 +354,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
     d_substitutions.addSubstitution( x, t, invalidateCache );
   } else {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
@@ -363,7 +364,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
           << "old mapping: " << d_substitutions.apply(oldX) << "\n"
           << "new mapping: " << d_substitutions.apply(t);
     }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
   }
 }
 
@@ -764,5 +765,5 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

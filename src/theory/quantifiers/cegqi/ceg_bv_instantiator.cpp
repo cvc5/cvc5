@@ -1,32 +1,33 @@
-/*********************                                                        */
-/*! \file ceg_bv_instantiator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of ceg_bv_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of ceg_bv_instantiator
+ */
 
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -643,6 +644,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (options::cegqiBvRmExtract())
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
@@ -692,9 +694,9 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
         Node var =
-            nm->mkSkolem("ek",
-                         ex.getType(),
-                         "variable to represent disjoint extract region");
+            sm->mkDummySkolem("ek",
+                              ex.getType(),
+                              "variable to represent disjoint extract region");
         children.push_back(var);
         vars.push_back(var);
       }
@@ -760,4 +762,4 @@ void BvInstantiatorPreprocess::collectExtracts(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

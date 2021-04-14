@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file theory_fp_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Aina Niemetz
- ** Copyright (c) 2013  University of Oxford
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewrite rules for floating point theories.
- **
- ** \todo - Single argument constant propagate / simplify
- **       - Push negations through arithmetic operators (include max and min?
- **         maybe not due to +0/-0)
- **       - classifications to normal tests (maybe)
- **       - (= x (fp.neg x)) --> (isNaN x)
- **       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
- **             should be sufficient)
- **       - (fp.eq x const) --> various = depending on const
- **       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
- **       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
- **       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
- **       - (fp.isNegative (fp.abs x)) --> false
- **       - A -> castA --> A
- **       - A -> castB -> castC  -->  A -> castC if A <= B <= C
- **       - A -> castB -> castA  -->  A if A <= B
- **       - promotion converts can ignore rounding mode
- **       - Samuel Figuer results
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Andres Noetzli, Aina Niemetz
+ * Copyright (c) 2013  University of Oxford
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite rules for floating point theories.
+ *
+ * \todo - Single argument constant propagate / simplify
+ *       - Push negations through arithmetic operators (include max and min?
+ *         maybe not due to +0/-0)
+ *       - classifications to normal tests (maybe)
+ *       - (= x (fp.neg x)) --> (isNaN x)
+ *       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
+ *             should be sufficient)
+ *       - (fp.eq x const) --> various = depending on const
+ *       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
+ *       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
+ *       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
+ *       - (fp.isNegative (fp.abs x)) --> false
+ *       - A -> castA --> A
+ *       - A -> castB -> castC  -->  A -> castC if A <= B <= C
+ *       - A -> castB -> castA  -->  A if A <= B
+ *       - promotion converts can ignore rounding mode
+ *       - Samuel Figuer results
+ */
 
 #include <algorithm>
 
@@ -37,7 +38,7 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -110,8 +111,7 @@ namespace rewrite {
 
     size_t children = node.getNumChildren();
     if (children > 2) {
-
-      NodeBuilder<> conjunction(kind::AND);
+      NodeBuilder conjunction(kind::AND);
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {
@@ -195,7 +195,7 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
     Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
            || (k == kind::FLOATINGPOINT_MIN_TOTAL)
@@ -324,8 +324,7 @@ namespace rewrite {
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-}; /* CVC4::theory::fp::rewrite */
-
+  };  // namespace rewrite
 
 namespace constantFold {
 
@@ -370,7 +369,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.plus(rm, arg2)));
   }
@@ -383,7 +382,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.mult(rm, arg2)));
   }
@@ -397,8 +396,8 @@ namespace constantFold {
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
     FloatingPoint arg3(node[3].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
-    Assert(arg1.d_fp_size == arg3.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
+    Assert(arg1.getSize() == arg3.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.fma(rm, arg2, arg3)));
   }
@@ -411,7 +410,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.div(rm, arg2)));
   }
@@ -443,7 +442,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.rem(arg2)));
   }
@@ -455,7 +454,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     FloatingPoint::PartialFloatingPoint res(arg1.min(arg2));
 
@@ -475,7 +474,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     FloatingPoint::PartialFloatingPoint res(arg1.max(arg2));
 
@@ -495,7 +494,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
@@ -525,7 +524,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
@@ -559,7 +558,7 @@ namespace constantFold {
       FloatingPoint arg1(node[0].getConst<FloatingPoint>());
       FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-      Assert(arg1.d_fp_size == arg2.d_fp_size);
+      Assert(arg1.getSize() == arg2.getSize());
 
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
@@ -581,7 +580,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 <= arg2));
   }
@@ -594,7 +593,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.d_fp_size == arg2.d_fp_size);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 < arg2));
   }
@@ -657,8 +656,8 @@ namespace constantFold {
     const BitVector &bv = node[0].getConst<BitVector>();
 
     Node lit = NodeManager::currentNM()->mkConst(
-        FloatingPoint(param.d_fp_size.exponentWidth(),
-                      param.d_fp_size.significandWidth(),
+        FloatingPoint(param.getSize().exponentWidth(),
+                      param.getSize().significandWidth(),
                       bv));
 
     return RewriteResponse(REWRITE_DONE, lit);
@@ -674,7 +673,7 @@ namespace constantFold {
 
     return RewriteResponse(
         REWRITE_DONE,
-        NodeManager::currentNM()->mkConst(arg1.convert(info.d_fp_size, rm)));
+        NodeManager::currentNM()->mkConst(arg1.convert(info.getSize(), rm)));
   }
 
   RewriteResponse convertFromRealLiteral (TNode node, bool) {
@@ -686,7 +685,7 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     Rational arg(node[1].getConst<Rational>());
 
-    FloatingPoint res(param.d_fp_size, rm, arg);
+    FloatingPoint res(param.getSize(), rm, arg);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
     
@@ -702,7 +701,7 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.d_fp_size, rm, arg, true);
+    FloatingPoint res(param.getSize(), rm, arg, true);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
     
@@ -718,7 +717,7 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.d_fp_size, rm, arg, false);
+    FloatingPoint res(param.getSize(), rm, arg, false);
 
     Node lit = NodeManager::currentNM()->mkConst(res);
     
@@ -887,7 +886,7 @@ namespace constantFold {
     bool result;
     switch (k)
     {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
       case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
       case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
       case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
@@ -911,7 +910,7 @@ namespace constantFold {
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
 #else
         node
@@ -927,7 +926,7 @@ namespace constantFold {
 
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
         NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
 #else
         node
@@ -941,7 +940,7 @@ namespace constantFold {
 
     BitVector value;
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());
@@ -978,8 +977,7 @@ namespace constantFold {
                            NodeManager::currentNM()->mkConst(value));
   }
 
-};  /* CVC4::theory::fp::constantFold */
-
+  };  // namespace constantFold
 
   /**
    * Initialize the rewriter.
@@ -1421,8 +1419,6 @@ TheoryFpRewriter::TheoryFpRewriter()
     return res;
   }
 
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+  }  // namespace fp
+  }  // namespace theory
+  }  // namespace cvc5

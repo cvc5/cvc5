@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file int_to_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Yoni Zohar, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The IntToBV preprocessing pass
- **
- ** Converts integer operations into bitvector operations. The width of the
- ** bitvectors is controlled through the `--solve-int-as-bv` command line
- ** option.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Yoni Zohar, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The IntToBV preprocessing pass.
+ *
+ * Converts integer operations into bitvector operations. The width of the
+ * bitvectors is controlled through the `--solve-int-as-bv` command line
+ * option.
+ */
 
 #include "preprocessing/passes/int_to_bv.h"
 
@@ -24,17 +25,18 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
 
@@ -79,7 +81,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
     }
     else
     {
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -102,13 +104,14 @@ Node intToBV(TNode n, NodeMap& cache)
   AlwaysAssert(size > 0);
   AlwaysAssert(!options::incrementalSolving());
 
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(n, binaryCache);
 
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
-    NodeManager* nm = NodeManager::currentNM();
     if (current.getNumChildren() > 0)
     {
       // Not a leaf
@@ -186,7 +189,7 @@ Node intToBV(TNode n, NodeMap& cache)
           }
         }
       }
-      NodeBuilder<> builder(newKind);
+      NodeBuilder builder(newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -208,9 +211,9 @@ Node intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result = nm->mkSkolem("__intToBV_var",
-                                nm->mkBitVectorType(size),
-                                "Variable introduced in intToBV pass");
+          result = sm->mkDummySkolem("__intToBV_var",
+                                     nm->mkBitVectorType(size),
+                                     "Variable introduced in intToBV pass");
         }
       }
       else if (current.isConst())
@@ -267,4 +270,4 @@ PreprocessingPassResult IntToBV::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

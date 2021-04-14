@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file relevant_domain.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of relevant domain class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of relevant domain class.
+ */
 
 #include "theory/quantifiers/relevant_domain.h"
 
@@ -19,12 +20,12 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -72,8 +73,10 @@ void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
   }
 }
 
-RelevantDomain::RelevantDomain(QuantifiersEngine* qe, QuantifiersRegistry& qr)
-    : d_qe(qe), d_qreg(qr)
+RelevantDomain::RelevantDomain(QuantifiersState& qs,
+                               QuantifiersRegistry& qr,
+                               TermRegistry& tr)
+    : d_qs(qs), d_qreg(qr), d_treg(tr)
 {
   d_is_computed = false;
 }
@@ -111,7 +114,7 @@ void RelevantDomain::compute(){
         it2->second->reset();
       }
     }
-    FirstOrderModel* fm = d_qe->getModel();
+    FirstOrderModel* fm = d_treg.getModel();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
       Node icf = d_qreg.getInstConstantBody(q);
@@ -120,7 +123,7 @@ void RelevantDomain::compute(){
     }
 
     Trace("rel-dom-debug") << "account for ground terms" << std::endl;
-    TermDb * db = d_qe->getTermDatabase();
+    TermDb* db = d_treg.getTermDatabase();
     for (unsigned k = 0; k < db->getNumOperators(); k++)
     {
       Node op = db->getOperator(k);
@@ -145,7 +148,7 @@ void RelevantDomain::compute(){
         RDomain * r = it2->second;
         RDomain * rp = r->getParent();
         if( r==rp ){
-          r->removeRedundantTerms(d_qe->getState());
+          r->removeRedundantTerms(d_qs);
           for( unsigned i=0; i<r->d_terms.size(); i++ ){
             Trace("rel-dom") << r->d_terms[i] << " ";
           }
@@ -160,7 +163,7 @@ void RelevantDomain::compute(){
 
 void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool pol ) {
   Trace("rel-dom-debug") << "Compute relevant domain " << n << "..." << std::endl;
-  Node op = d_qe->getTermDatabase()->getMatchOperator( n );
+  Node op = d_treg.getTermDatabase()->getMatchOperator(n);
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( !op.isNull() ){
       RDomain * rf = getRDomain( op, i );
@@ -336,4 +339,4 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file sygus_abduct.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus abduction utility, which
- ** transforms an arbitrary input into an abduction problem.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus abduction utility, which transforms an arbitrary
+ * input into an abduction problem.
+ */
 
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 
@@ -19,6 +20,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -29,9 +31,9 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -43,6 +45,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node, NodeHashFunction> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
@@ -121,7 +124,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     abvl = agtsd.getSygusVarList();
     Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
   }
-  else
+  else if (!varlist.empty())
   {
     // the bound variable list of the abduct-to-synthesize is determined by
     // the variable list above
@@ -164,9 +167,12 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
   Node sc = nm->mkNode(AND, aconj, abdApp);
-  Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  sc = nm->mkNode(EXISTS, vbvl, sc);
-  Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+  if (!vars.empty())
+  {
+    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    sc = nm->mkNode(EXISTS, vbvl, sc);
+  }
+  Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
   // build in the side condition
@@ -187,4 +193,4 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

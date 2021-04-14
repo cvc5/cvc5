@@ -1,26 +1,28 @@
-/*********************                                                        */
-/*! \file ite_utilities.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simplifications for ITE expressions
- **
- ** This module implements preprocessing phases designed to simplify ITE
- ** expressions.  Based on:
- ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
- ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simplifications for ITE expressions.
+ *
+ * This module implements preprocessing phases designed to simplify ITE
+ * expressions.  Based on:
+ * Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
+ * Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
  *'96
- **/
+ */
 #include "preprocessing/util/ite_utilities.h"
 
 #include <utility>
 
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/rewrite.h"
 #include "smt/smt_statistics_registry.h"
@@ -28,7 +30,7 @@
 #include "theory/theory.h"
 
 using namespace std;
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace util {
 
@@ -166,9 +168,7 @@ void ITEUtilities::clear()
   d_containsVisitor->garbageCollect();
 }
 
-/*********************                                                        */
-/* ContainsTermITEVisitor
- */
+/** ContainsTermITEVisitor. */
 ContainsTermITEVisitor::ContainsTermITEVisitor() : d_cache() {}
 ContainsTermITEVisitor::~ContainsTermITEVisitor() {}
 bool ContainsTermITEVisitor::containsTermITE(TNode e)
@@ -239,9 +239,7 @@ bool ContainsTermITEVisitor::containsTermITE(TNode e)
 }
 void ContainsTermITEVisitor::garbageCollect() { d_cache.clear(); }
 
-/*********************                                                        */
-/* IncomingArcCounter
- */
+/** IncomingArcCounter. */
 IncomingArcCounter::IncomingArcCounter(bool skipVars, bool skipConstants)
     : d_reachCount(), d_skipVariables(skipVars), d_skipConstants(skipConstants)
 {
@@ -288,9 +286,7 @@ void IncomingArcCounter::computeReachability(
 
 void IncomingArcCounter::clear() { d_reachCount.clear(); }
 
-/*********************                                                        */
-/* ITECompressor
- */
+/** ITECompressor. */
 ITECompressor::ITECompressor(ContainsTermITEVisitor* contains)
     : d_contains(contains), d_assertions(NULL), d_incoming(true, true)
 {
@@ -353,7 +349,8 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   else
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node skolem = nm->mkSkolem("compress", nm->booleanType());
+    SkolemManager* sm = nm->getSkolemManager();
+    Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;
@@ -401,7 +398,7 @@ Node ITECompressor::compressBooleanITEs(Node toCompress)
     }
   }
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   Node curr = toCompress;
   while (curr.getKind() == kind::ITE
          && (curr[1] == d_false || curr[2] == d_false)
@@ -465,7 +462,7 @@ Node ITECompressor::compressTerm(Node toCompress)
     }
   }
 
-  NodeBuilder<> nb(toCompress.getKind());
+  NodeBuilder nb(toCompress.getKind());
 
   if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -504,7 +501,7 @@ Node ITECompressor::compressBoolean(Node toCompress)
   else
   {
     bool ta = ite::isTheoryAtom(toCompress);
-    NodeBuilder<> nb(toCompress.getKind());
+    NodeBuilder nb(toCompress.getKind());
     if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       nb << (toCompress.getOperator());
@@ -906,7 +903,7 @@ Node ITESimplifier::replaceOver(Node n, Node replaceWith, Node simpVar)
     return d_replaceOverCache[p];
   }
 
-  NodeBuilder<> builder(n.getKind());
+  NodeBuilder builder(n.getKind());
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << n.getOperator();
@@ -1207,7 +1204,7 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
   }
   else
   {
-    NodeBuilder<> nb(kind::OR);
+    NodeBuilder nb(kind::OR);
     NodeVec::const_iterator it = intersection.begin(), end = intersection.end();
     for (; it != end; ++it)
     {
@@ -1332,7 +1329,7 @@ Node ITESimplifier::simpConstants(TNode simpContext,
 
   if (iteNode.getKind() == kind::ITE)
   {
-    NodeBuilder<> builder(kind::ITE);
+    NodeBuilder builder(kind::ITE);
     builder << iteNode[0];
     unsigned i = 1;
     for (; i < iteNode.getNumChildren(); ++i)
@@ -1386,13 +1383,11 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  else
-  {
-    Node var = NodeManager::currentNM()->mkSkolem(
-        "iteSimp", t, "is a variable resulting from ITE simplification");
-    d_simpVars[t] = var;
-    return var;
-  }
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node var = sm->mkDummySkolem(
+      "iteSimp", t, "is a variable resulting from ITE simplification");
+  d_simpVars[t] = var;
+  return var;
 }
 
 Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
@@ -1428,7 +1423,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
     return simpVar;
   }
 
-  NodeBuilder<> builder(c.getKind());
+  NodeBuilder builder(c.getKind());
   if (c.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << c.getOperator();
@@ -1476,7 +1471,7 @@ uint32_t countReachable(TNode x, Kind k)
 
 Node ITESimplifier::simpITEAtom(TNode atom)
 {
-  static int CVC4_UNUSED instance = 0;
+  static int CVC5_UNUSED instance = 0;
   Debug("ite::atom") << "still simplifying " << (++instance) << endl;
   Node attempt = transformAtom(atom);
   Debug("ite::atom") << "  finished " << instance << endl;
@@ -1584,7 +1579,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -1731,7 +1726,7 @@ Node ITECareSimplifier::substitute(TNode e,
     return e;
   }
 
-  NodeBuilder<> builder(e.getKind());
+  NodeBuilder builder(e.getKind());
   if (e.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << e.getOperator();
@@ -1909,4 +1904,4 @@ ITECareSimplifier::CareSetPtr ITECareSimplifier::CareSetPtr::mkNew(
 
 }  // namespace util
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

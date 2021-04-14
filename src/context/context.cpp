@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file context.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of base context operations.
- **
- ** Implementation of base context operations.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of base context operations.
+ */
 
 #include <iostream>
 #include <string>
@@ -21,8 +20,7 @@
 #include "base/check.h"
 #include "context/context.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 
@@ -388,5 +386,5 @@ void Scope::enqueueToGarbageCollect(ContextObj* obj) {
   d_garbage->push_back(obj);
 }
 
-} /* CVC4::context namespace */
-} /* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

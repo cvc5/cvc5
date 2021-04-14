@@ -1,30 +1,33 @@
-/*********************                                                        */
-/*! \file relevant_domain.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief relevant domain class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Relevant domain class.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
-#define CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
+#ifndef CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
+#define CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
 
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersState;
 class QuantifiersRegistry;
+class TermRegistry;
 
 /** Relevant Domain
  *
@@ -42,7 +45,9 @@ class QuantifiersRegistry;
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersEngine* qe, QuantifiersRegistry& qr);
+  RelevantDomain(QuantifiersState& qs,
+                 QuantifiersRegistry& qr,
+                 TermRegistry& tr);
   virtual ~RelevantDomain();
   /** Reset. */
   bool reset(Theory::Effort e) override;
@@ -117,10 +122,12 @@ class RelevantDomain : public QuantifiersUtil
    * each relevant domain object.
    */
   std::map< RDomain *, int > d_ri_map;
-  /** Quantifiers engine associated with this utility. */
-  QuantifiersEngine* d_qe;
-  /** The quantifiers registry */
+  /** Reference to the quantifiers state object */
+  QuantifiersState& d_qs;
+  /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** have we computed the relevant domain on this full effort check? */
   bool d_is_computed;
   /** relevant domain literal
@@ -162,9 +169,8 @@ class RelevantDomain : public QuantifiersUtil
   void computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n );
 };/* class RelevantDomain */
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H */

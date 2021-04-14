@@ -25,7 +25,7 @@
 #include "expr/term_canonize.h"
 #include "theory/rewrite_proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -68,6 +68,6 @@ class RewriteDb
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif /* CVC4__THEORY__REWRITE_DB__H */

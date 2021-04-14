@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file fun_def_evaluator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of techniques for evaluating terms with recursively
- ** defined functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of techniques for evaluating terms with recursively
+ * defined functions.
+ */
 
 #include "theory/quantifiers/fun_def_evaluator.h"
 
@@ -19,9 +20,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -139,7 +140,7 @@ Node FunDefEvaluator::evaluate(Node n) const
                                   << cur[childIdxToEval] << "\n";
           continue;
         }
-        unsigned child CVC4_UNUSED = 0;
+        unsigned child CVC5_UNUSED = 0;
         for (const Node& cn : cur)
         {
           it = visited.find(cn);
@@ -252,4 +253,4 @@ bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

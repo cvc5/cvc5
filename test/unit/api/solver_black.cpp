@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file solver_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mudathir Mohamed, Ying Sheng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the Solver class of the  C++ API.
- **
- ** Black box testing of the Solver class of the  C++ API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the Solver class of the  C++ API.
+ */
 
 #include "test_api.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace api;
 
@@ -1422,7 +1421,7 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   {
     d_solver.assertFormula(t);
   }
-  CVC4::api::Result res = d_solver.checkSat();
+  cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
 }
 
@@ -1533,7 +1532,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   solver->declareSeparationHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
-  Term heap = solver->mkTerm(CVC4::api::Kind::SEP_PTO, p, x);
+  Term heap = solver->mkTerm(cvc5::api::Kind::SEP_PTO, p, x);
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
   solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
@@ -2334,4 +2333,4 @@ TEST_F(TestApiBlackSolver, tupleProject)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

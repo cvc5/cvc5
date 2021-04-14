@@ -13,7 +13,7 @@ function testwith {
   DEBUG=$1
   shift
   CARGS="--tlimit=120000 $@"
-  echo "Run [$TESTNAME]: make regress -j8 RUN_REGRESSION_ARGS=\"--no-check-proofs\" CVC4_REGRESSION_ARGS=\"$CARGS\""
+  echo "Run [$TESTNAME]: make regress -j8 RUN_REGRESSION_ARGS=\"--no-check-proofs\" CVC5_REGRESSION_ARGS=\"$CARGS\""
   # do not run extra tests for checking proofs, instead run check-proofs on all regressions (from CARGS)
   make regress -j8 RUN_REGRESSION_ARGS="--no-check-proofs" CVC4_REGRESSION_ARGS="$CARGS" >& results_$TESTNAME.txt
   cat results_$TESTNAME.txt | grep "(Failed)" > temp.txt

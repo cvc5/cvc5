@@ -1,30 +1,29 @@
-/*********************                                                        */
-/*! \file kind_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Template for the Node kind header
- **
- ** Template for the Node kind header.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Template for the Node kind header.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__KIND_H
-#define CVC4__KIND_H
+#ifndef CVC5__KIND_H
+#define CVC5__KIND_H
 
 #include <iosfwd>
 
 #include "base/exception.h"
 #include "theory/theory_id.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace kind {
 
 enum Kind_t
@@ -35,11 +34,11 @@ enum Kind_t
 
 }; /* enum Kind_t */
 
-}/* CVC4::kind namespace */
+}  // namespace kind
 
 // import Kind into the "CVC4" namespace but keep the individual kind
 // constants under kind::
-typedef ::CVC4::kind::Kind_t Kind;
+typedef ::cvc5::kind::Kind_t Kind;
 
 namespace kind {
 
@@ -52,7 +51,7 @@ namespace kind {
  * @param k The kind
  * @return The name of the kind
  */
-const char* toString(CVC4::Kind k);
+const char* toString(cvc5::Kind k);
 
 /**
  * Writes a kind name to a stream.
@@ -61,22 +60,20 @@ const char* toString(CVC4::Kind k);
  * @param k The kind to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream&, CVC4::Kind);
+std::ostream& operator<<(std::ostream&, cvc5::Kind);
 
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */
 /* TODO: This could be generated. */
-bool isAssociative(::CVC4::Kind k);
-std::string kindToString(::CVC4::Kind k);
+bool isAssociative(::cvc5::Kind k);
+std::string kindToString(::cvc5::Kind k);
 
 struct KindHashFunction {
-  inline size_t operator()(::CVC4::Kind k) const {
-    return k;
-  }
+  inline size_t operator()(::cvc5::Kind k) const { return k; }
 };/* struct KindHashFunction */
 
-}/* CVC4::kind namespace */
+}  // namespace kind
 
 /**
  * The enumeration for the built-in atomic types.
@@ -99,11 +96,11 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-::CVC4::theory::TheoryId kindToTheoryId(::CVC4::Kind k);
-::CVC4::theory::TheoryId typeConstantToTheoryId(
-    ::CVC4::TypeConstant typeConstant);
+::cvc5::theory::TheoryId kindToTheoryId(::cvc5::Kind k);
+::cvc5::theory::TheoryId typeConstantToTheoryId(
+    ::cvc5::TypeConstant typeConstant);
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__KIND_H */
+#endif /* CVC5__KIND_H */

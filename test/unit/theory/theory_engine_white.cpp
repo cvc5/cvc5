@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file theory_engine_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of CVC4::theory::Theory.
- **
- ** White box testing of CVC4::theory::Theory.  This test creates
- ** "fake" theory interfaces and injects them into TheoryEngine, so we
- ** can test TheoryEngine's behavior without relying on independent
- ** theory behavior.  This is done in TheoryEngineWhite::setUp() by
- ** means of the TheoryEngineWhite::registerTheory() interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::theory::Theory.
+ *
+ * This test creates "fake" theory interfaces and injects them into
+ * TheoryEngine, so we can test TheoryEngine's behavior without relying on
+ * independent theory behavior.  This is done in TheoryEngineWhite::setUp() by
+ * means of the TheoryEngineWhite::registerTheory() interface.
+ */
 
 #include <memory>
 #include <string>
@@ -33,7 +33,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace expr;
@@ -183,4 +183,4 @@ TEST_F(TestTheoryWhiteEngine, rewrite_rules)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

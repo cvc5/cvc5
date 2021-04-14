@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file pass_bv_gauss_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for Gaussian Elimination preprocessing pass.
- **
- ** Unit tests for Gaussian Elimination preprocessing pass.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for Gaussian Elimination preprocessing pass.
+ */
 
 #include <iostream>
 #include <vector>
@@ -29,7 +28,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace preprocessing;
 using namespace preprocessing::passes;
@@ -2046,16 +2045,16 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
           bv::utils::mkExtract(
               d_nodeManager->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
 
-  NodeBuilder<> nbx(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nbx(d_nodeManager.get(), kind::BITVECTOR_MULT);
   nbx << d_x << d_one << x;
   Node x_mul_one_mul_xx = nbx.constructNode();
-  NodeBuilder<> nby(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nby(d_nodeManager.get(), kind::BITVECTOR_MULT);
   nby << d_y << y << d_one;
   Node y_mul_yy_mul_one = nby.constructNode();
-  NodeBuilder<> nbz(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nbz(d_nodeManager.get(), kind::BITVECTOR_MULT);
   nbz << d_three << d_z << z;
   Node three_mul_z_mul_zz = nbz.constructNode();
-  NodeBuilder<> nbz2(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nbz2(d_nodeManager.get(), kind::BITVECTOR_MULT);
   nbz2 << d_z << d_nine << z;
   Node z_mul_nine_mul_zz = nbz2.constructNode();
 
@@ -2671,20 +2670,20 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node mult2x = d_nodeManager->mkNode(kind::BITVECTOR_MULT, zext40x, zext40x);
   ASSERT_EQ(BVGauss::getMinBwExpr(mult2x), 32);
 
-  NodeBuilder<> nbmult3p(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult3p(kind::BITVECTOR_MULT);
   nbmult3p << zext48p << zext48p << zext48p;
   Node mult3p = nbmult3p;
   ASSERT_EQ(BVGauss::getMinBwExpr(mult3p), 11);
-  NodeBuilder<> nbmult3x(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult3x(kind::BITVECTOR_MULT);
   nbmult3x << zext48x << zext48x << zext48x;
   Node mult3x = nbmult3x;
   ASSERT_EQ(BVGauss::getMinBwExpr(mult3x), 48);
 
-  NodeBuilder<> nbmult4p(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult4p(kind::BITVECTOR_MULT);
   nbmult4p << zext48p << zext48p8 << zext48p;
   Node mult4p = nbmult4p;
   ASSERT_EQ(BVGauss::getMinBwExpr(mult4p), 11);
-  NodeBuilder<> nbmult4x(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult4x(kind::BITVECTOR_MULT);
   nbmult4x << zext48x << zext48x8 << zext48x;
   Node mult4x = nbmult4x;
   ASSERT_EQ(BVGauss::getMinBwExpr(mult4x), 40);
@@ -2739,29 +2738,29 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node add3x = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, zext48x8, zext48x);
   ASSERT_EQ(BVGauss::getMinBwExpr(add3x), 17);
 
-  NodeBuilder<> nbadd4p(kind::BITVECTOR_PLUS);
+  NodeBuilder nbadd4p(kind::BITVECTOR_PLUS);
   nbadd4p << zext48p << zext48p << zext48p;
   Node add4p = nbadd4p;
   ASSERT_EQ(BVGauss::getMinBwExpr(add4p), 6);
-  NodeBuilder<> nbadd4x(kind::BITVECTOR_PLUS);
+  NodeBuilder nbadd4x(kind::BITVECTOR_PLUS);
   nbadd4x << zext48x << zext48x << zext48x;
   Node add4x = nbadd4x;
   ASSERT_EQ(BVGauss::getMinBwExpr(add4x), 18);
 
-  NodeBuilder<> nbadd5p(kind::BITVECTOR_PLUS);
+  NodeBuilder nbadd5p(kind::BITVECTOR_PLUS);
   nbadd5p << zext48p << zext48p8 << zext48p;
   Node add5p = nbadd5p;
   ASSERT_EQ(BVGauss::getMinBwExpr(add5p), 6);
-  NodeBuilder<> nbadd5x(kind::BITVECTOR_PLUS);
+  NodeBuilder nbadd5x(kind::BITVECTOR_PLUS);
   nbadd5x << zext48x << zext48x8 << zext48x;
   Node add5x = nbadd5x;
   ASSERT_EQ(BVGauss::getMinBwExpr(add5x), 18);
 
-  NodeBuilder<> nbadd6p(kind::BITVECTOR_PLUS);
+  NodeBuilder nbadd6p(kind::BITVECTOR_PLUS);
   nbadd6p << zext48p << zext48p << zext48p << zext48p;
   Node add6p = nbadd6p;
   ASSERT_EQ(BVGauss::getMinBwExpr(add6p), 6);
-  NodeBuilder<> nbadd6x(kind::BITVECTOR_PLUS);
+  NodeBuilder nbadd6x(kind::BITVECTOR_PLUS);
   nbadd6x << zext48x << zext48x << zext48x << zext48x;
   Node add6x = nbadd6x;
   ASSERT_EQ(BVGauss::getMinBwExpr(add6x), 18);
@@ -3099,4 +3098,4 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
   ASSERT_EQ(BVGauss::getMinBwExpr(Rewriter::rewrite(plus7)), 17);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

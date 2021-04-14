@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file abstract_values.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for constructing and maintaining abstract values.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for constructing and maintaining abstract values.
+ */
 
 #include "smt/abstract_values.h"
 
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 AbstractValues::AbstractValues(NodeManager* nm)
@@ -52,4 +53,4 @@ Node AbstractValues::mkAbstractValue(TNode n)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

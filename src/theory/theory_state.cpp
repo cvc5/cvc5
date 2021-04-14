@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file theory_state.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A theory state for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A theory state for Theory.
+ */
 
 #include "theory/theory_state.h"
 
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 TheoryState::TheoryState(context::Context* c,
@@ -171,7 +172,12 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
   return d_valuation.factsEnd(tid);
 }
 
+bool TheoryState::isFiniteType(TypeNode tn) const
+{
+  return d_valuation.isFiniteType(tn);
+}
+
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

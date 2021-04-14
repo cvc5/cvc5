@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file env.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Smt Environment, main access to global utilities available to
- ** internal code
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Smt Environment, main access to global utilities available to
+ * internal code
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__SMT__ENV_H
-#define CVC4__SMT__ENV_H
+#ifndef CVC5__SMT__ENV_H
+#define CVC5__SMT__ENV_H
 
 #include <memory>
 
@@ -25,7 +26,7 @@
 #include "util/statistics.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class NodeManager;
 class StatisticsRegistry;
@@ -97,7 +98,7 @@ class Env
   const LogicInfo& getLogicInfo() const;
 
   /** Get a pointer to the StatisticsRegistry. */
-  StatisticsRegistry* getStatisticsRegistry();
+  StatisticsRegistry& getStatisticsRegistry();
 
   /* Option helpers---------------------------------------------------------- */
 
@@ -182,6 +183,6 @@ class Env
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__ENV_H */
+#endif /* CVC5__SMT__ENV_H */

@@ -24,7 +24,7 @@
 #include "expr/type_node.h"
 #include "proof/term_processor.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 class LfscTermProcessor : public TermProcessor
@@ -47,6 +47,10 @@ class LfscTermProcessor : public TermProcessor
    * a term. An example is for the base REFL step of nested CONG.
    */
   Node getOperatorOfTerm(Node n, bool macroApply = false);
+  /** get closure operator */
+  Node getOperatorOfClosure(Node q);
+  /** get closure operator, cop is return  */
+  Node getOperatorOfBoundVar(Node cop, Node v);
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
   /**
@@ -81,9 +85,11 @@ class LfscTermProcessor : public TermProcessor
   std::map<Node, size_t> d_varIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
+  /** Used for interpreted builtin parametric sorts */
+  std::map<Kind, Node> d_typeKindToNodeCons;
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

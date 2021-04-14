@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file node_traversal_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Alex Ozdemir, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of node traversal iterators.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Alex Ozdemir, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of node traversal iterators.
+ */
 
 #include <algorithm>
 #include <cstddef>
@@ -26,7 +27,7 @@
 #include "expr/node_value.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 
@@ -293,4 +294,4 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, skip_if)
   ASSERT_EQ(actual, expected);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

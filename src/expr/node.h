@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 
 #include "cvc4_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__NODE_H
-#define CVC4__NODE_H
+#ifndef CVC5__NODE_H
+#define CVC5__NODE_H
 
 #include <iostream>
 #include <map>
@@ -41,7 +40,7 @@
 #include "util/hash.h"
 #include "util/utility.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 class NodeManager;
@@ -138,16 +137,16 @@ class NodeValue;
   namespace attr {
     class AttributeManager;
     struct SmtAttributes;
-  }/* CVC4::expr::attr namespace */
+    }  // namespace attr
 
   class ExprSetDepth;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 namespace kind {
   namespace metakind {
     struct NodeValueConstPrinter;
-  }/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
+    }  // namespace metakind
+    }  // namespace kind
 
 // for hash_maps, hash_sets..
 struct NodeHashFunction {
@@ -196,13 +195,12 @@ class NodeTemplate {
   friend class TypeNode;
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
-  friend class ::CVC4::expr::attr::AttributeManager;
-  friend struct ::CVC4::expr::attr::SmtAttributes;
+  friend class ::cvc5::expr::attr::AttributeManager;
+  friend struct ::cvc5::expr::attr::SmtAttributes;
 
-  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
+  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -951,12 +949,12 @@ std::ostream& operator<<(
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 inline size_t NodeHashFunction::operator()(Node node) const {
   return node.getId();
@@ -986,7 +984,7 @@ template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -999,7 +997,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1012,7 +1010,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1025,7 +1023,7 @@ template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1225,7 +1223,7 @@ template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1255,7 +1253,7 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1291,7 +1289,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1359,7 +1357,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1421,7 +1419,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
@@ -1436,7 +1434,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1489,8 +1487,8 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

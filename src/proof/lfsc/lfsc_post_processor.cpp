@@ -22,9 +22,9 @@
 #include "expr/proof_node_updater.h"
 #include "options/proof_options.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
@@ -36,6 +36,7 @@ LfscProofPostprocessCallback::LfscProofPostprocessCallback(
 void LfscProofPostprocessCallback::initializeUpdate() { d_firstTime = true; }
 
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa,
                                                 bool& continueUpdate)
 {
   return pn->getRule() != PfRule::LFSC_RULE;
@@ -50,6 +51,7 @@ bool LfscProofPostprocessCallback::update(Node res,
 {
   Trace("lfsc-pp") << "LfscProofPostprocessCallback::update: " << id
                    << std::endl;
+  Trace("lfsc-pp-debug") << "...proves " << res << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
   bool isFirstTime = d_firstTime;
@@ -135,10 +137,17 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       // turn into binary
       Node cur = children[0];
+      std::unordered_set<Node, NodeHashFunction> processed;
+      processed.insert(children.begin(), children.end());
       for (size_t i = 1, size = children.size(); i < size; i++)
       {
         std::vector<Node> newChildren{cur, children[i]};
         cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
+        if (processed.find(cur) != processed.end())
+        {
+          continue;
+        }
+        processed.insert(cur);
         cdp->addStep(cur, PfRule::TRANS, newChildren, {});
       }
     }
@@ -149,6 +158,45 @@ bool LfscProofPostprocessCallback::update(Node res,
       // require a REFL step.
       Assert(res.getKind() == EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
+      // different for closures
+      if (res[0].isClosure())
+      {
+        // FIXME
+        return false;
+        if (res[0][0] != res[1][0])
+        {
+          // TODO: cannot convert congruence with different variables currently
+          return false;
+        }
+        Node cop = d_tproc.getOperatorOfClosure(res[0]);
+        // start with base case body = body'
+        Node curL = children[1][0];
+        Node curR = children[1][1];
+        Node currEq = children[1];
+        for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
+        {
+          // CONG rules for each variable
+          Node v = res[0][0][nvars - 1 - i];
+          Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
+          Node vopEq = vop.eqNode(vop);
+          cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
+          Node nextEq;
+          if (i + 1 == nvars)
+          {
+            // if we are at the end, we prove the final equality
+            nextEq = res;
+          }
+          else
+          {
+            curL = nm->mkNode(HO_APPLY, vop, children[i][0]);
+            curR = nm->mkNode(HO_APPLY, vop, children[i][1]);
+            nextEq = curL.eqNode(curR);
+          }
+          addLfscRule(cdp, nextEq, {currEq, vopEq}, LfscRule::CONG, {});
+          currEq = nextEq;
+        }
+        return true;
+      }
       Kind k = res[0].getKind();
       // We are proving f(t1, ..., tn) = f(s1, ..., sn), nested.
       // First, get the operator, which will be used for printing the base
@@ -239,7 +287,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     {
       // TODO: use rule with side condition, delete this block
       uint32_t i;
-      bool b CVC4_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
+      bool b CVC5_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
       Assert(b);
       // we start with the n-ary AND
       Node cur = children[0];
@@ -375,9 +423,9 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   d_cb->initializeUpdate();
   // do not automatically add symmetry steps, since this leads to
   // non-termination for example on policy_variable.smt2
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
+  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false, false);
   updater.process(pf);
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

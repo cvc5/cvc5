@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file proof_rule.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof rule enumeration
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof rule enumeration.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_RULE_H
-#define CVC4__EXPR__PROOF_RULE_H
+#ifndef CVC5__EXPR__PROOF_RULE_H
+#define CVC5__EXPR__PROOF_RULE_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * An enumeration for proof rules. This enumeration is analogous to Kind for
@@ -348,6 +349,8 @@ enum class PfRule : uint32_t
   //   The result of the chain resolution is C, which is equal, in its set
   //   representation, to C_n'
   MACRO_RESOLUTION,
+  // As above but not checked
+  MACRO_RESOLUTION_TRUST,
 
   // ======== Split
   // Children: none
@@ -1086,7 +1089,6 @@ enum class PfRule : uint32_t
   //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
   //    * const_n)
   MACRO_ARITH_SCALE_SUM_UB,
-
   // ======== Sum Upper Bounds
   // Children: (P1, ... , Pn)
   //           where each Pi has form (><i, Li, Ri)
@@ -1400,9 +1402,10 @@ enum class PfRule : uint32_t
   // rules
   // ======== veriT rule
   // Children: (P1 ... Pn)
-  // Arguments: (id, Q, A1, ..., Am)
+  // Arguments: (id, Q, Q', A1, ..., Am)
   // ---------------------
   // Conclusion: (Q)
+  // where Q' is the representation of Q to be printed by the veriT printer.
   VERIT_RULE,
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
@@ -1437,6 +1440,6 @@ struct PfRuleHashFunction
   size_t operator()(PfRule id) const;
 }; /* struct PfRuleHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_RULE_H */
+#endif /* CVC5__EXPR__PROOF_RULE_H */

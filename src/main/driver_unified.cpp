@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file driver_unified.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Driver for CVC4 executable (cvc4)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Driver for CVC4 executable (cvc4).
+ */
 
 #include <stdio.h>
 #include <unistd.h>
@@ -23,11 +24,10 @@
 #include <memory>
 #include <new>
 
-#include "cvc4autoconfig.h"
-
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "base/output.h"
+#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
@@ -38,30 +38,43 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 #include "util/result.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::main;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::main;
 
-namespace CVC4 {
-  namespace main {
-    /** Global options variable */
-    thread_local Options* pOptions;
+namespace cvc5 {
+namespace main {
+/** Global options variable */
+thread_local Options* pOptions;
 
-    /** Full argv[0] */
-    const char *progPath;
+/** Full argv[0] */
+const char* progPath;
 
-    /** Just the basename component of argv[0] */
-    const std::string *progName;
+/** Just the basename component of argv[0] */
+const std::string* progName;
 
-    /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = nullptr;
+/** A pointer to the CommandExecutor (the signal handlers need it) */
+std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
-  }/* CVC4::main namespace */
-}/* CVC4 namespace */
+/** The time point the binary started, accessible to signal handlers */
+std::unique_ptr<TotalTimer> totalTime;
 
+TotalTimer::~TotalTimer()
+{
+  if (pExecutor != nullptr)
+  {
+    auto duration = std::chrono::steady_clock::now() - d_start;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(
+        std::chrono::duration<double>(duration).count());
+  }
+    }
+
+    }  // namespace main
+    }  // namespace cvc5
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
@@ -78,8 +91,7 @@ void printUsage(Options& opts, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& opts) {
-
-  std::chrono::time_point totalTimeStart = std::chrono::steady_clock::now();
+  main::totalTime = std::make_unique<TotalTimer>();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -110,9 +122,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   segvSpin = opts.getSegvSpin();
 
   // If in competition mode, set output stream option to flush immediately
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
   *(opts.getOut()) << unitbuf;
-#endif /* CVC4_COMPETITION_MODE */
+#endif /* CVC5_COMPETITION_MODE */
 
   // We only accept one input file
   if(filenames.size() > 1) {
@@ -164,19 +176,19 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&CVC4::null_os);
-    TraceChannel.setStream(&CVC4::null_os);
-    NoticeChannel.setStream(&CVC4::null_os);
-    ChatChannel.setStream(&CVC4::null_os);
-    MessageChannel.setStream(&CVC4::null_os);
-    WarningChannel.setStream(&CVC4::null_os);
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
   }
 
   // important even for muzzled builds (to get result output right)
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the command executor to execute the parsed commands
-  pExecutor = new CommandExecutor(opts);
+  pExecutor = std::make_unique<CommandExecutor>(opts);
 
   int returnValue = 0;
   {
@@ -249,11 +261,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                   opts);
 
       if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
         parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#else  /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
         parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
       }
 
       vector< vector<Command*> > allCommands;
@@ -405,11 +417,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                   opts);
 
       if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
         parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#else  /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
         parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
       }
 
       std::unique_ptr<Parser> parser(parserBuilder.build());
@@ -450,33 +462,29 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       returnValue = 1;
     }
 
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
     opts.flushOut();
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
     // or other on_exit/atexit stuff.
     _exit(returnValue);
-#endif /* CVC4_COMPETITION_MODE */
-    pExecutor->getSmtEngine()->setResultStatistic(result.toString());
-    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
-    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
+#endif /* CVC5_COMPETITION_MODE */
 
+    totalTime.reset();
     pExecutor->flushOutputStreams();
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
     if(opts.getEarlyExit() && opts.wasSetByUserEarlyExit()) {
       _exit(returnValue);
     }
-#else /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
     if(opts.getEarlyExit()) {
       _exit(returnValue);
     }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
   }
 
-  delete pExecutor;
-
-  pExecutor = nullptr;
+  pExecutor.reset();
 
   signal_handlers::cleanup();
 

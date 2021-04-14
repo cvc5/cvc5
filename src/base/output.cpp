@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file output.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Output utility classes and functions
- **
- ** Output utility classes and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Output utility classes and functions.
+ */
 
 #include "base/output.h"
 
@@ -20,7 +19,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* Definitions of the declared globals from output.h... */
 
@@ -41,4 +40,4 @@ TraceC TraceChannel(&cout);
 std::ostream DumpOutC::dump_cout(cout.rdbuf());// copy cout stream buffer
 DumpOutC DumpOutChannel(&DumpOutC::dump_cout);
 
-}/* CVC4 namespace */
+}  // namespace cvc5

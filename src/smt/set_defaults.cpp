@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file set_defaults.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of setting default options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of setting default options.
+ */
 
 #include "smt/set_defaults.h"
 
@@ -41,9 +42,9 @@
 #include "smt/logic_exception.h"
 #include "theory/theory.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
@@ -76,13 +77,36 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
-  if (options::checkUnsatCores() || options::checkUnsatCoresNew()
-      || options::dumpUnsatCores() || options::unsatAssumptions())
+  if ((options::unsatCores() && options::unsatCoresNew())
+      || (options::checkUnsatCores() && options::checkUnsatCoresNew()))
   {
-    Notice() << "SmtEngine: setting unsatCores" << std::endl;
+    AlwaysAssert(false) << "Can't have both unsat cores modes, pick one.\n";
+  }
+  if (options::checkUnsatCores())
+  {
     options::unsatCores.set(true);
   }
-  if (options::checkProofs() || options::checkUnsatCoresNew()
+  if (options::checkUnsatCoresNew())
+  {
+    options::unsatCoresNew.set(true);
+  }
+  if (options::dumpUnsatCores() || options::unsatAssumptions())
+  {
+    if (!options::unsatCoresNew())
+    {
+      Notice() << "SmtEngine: setting unsatCores" << std::endl;
+      options::unsatCores.set(true);
+    }
+  }
+  if (options::unsatCoresNew()
+      && ((options::produceProofs() && options::produceProofs.wasSetByUser())
+          || (options::checkProofs() && options::checkProofs.wasSetByUser())
+          || (options::dumpProofs() && options::dumpProofs.wasSetByUser())))
+  {
+    AlwaysAssert(false) << "Can't properly produce proofs and have the new "
+                           "unsat cores simultaneously.\n";
+  }
+  if (options::checkProofs() || options::unsatCoresNew()
       || options::dumpProofs())
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
@@ -284,9 +308,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   // !!! must disable proofs if using the old unsat core infrastructure
   // TODO (#project 37) remove this
-  if (options::unsatCores() && !options::checkUnsatCoresNew())
+  if (options::unsatCores())
   {
     disableProofs = true;
+  }
+
+  // new unsat core specific restrictions for proofs
+  if (options::unsatCoresNew())
+  {
+    // no fine-graininess
+    if (!options::proofGranularityMode.wasSetByUser())
+    {
+      options::proofGranularityMode.set(options::ProofGranularityMode::OFF);
+    }
   }
 
   if (options::arraysExp())
@@ -341,6 +375,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
+    if (options::unsatCoresNew())
+    {
+      Notice() << "SmtEngine: turning off new unsat cores." << std::endl;
+    }
+    options::unsatCoresNew.set(false);
+    options::checkUnsatCoresNew.set(false);
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
@@ -381,7 +421,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
-  if (options::incrementalSolving() || options::unsatCores())
+  if (options::incrementalSolving() || options::unsatCores()
+      || options::unsatCoresNew())
   {
     if (options::unconstrainedSimp())
     {
@@ -443,7 +484,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (options::unsatCores())
+  if (options::unsatCores() || options::unsatCoresNew())
   {
     // TODO only disable if not in proof new, since new proofs support it
     if (options::simplificationMode() != options::SimplificationMode::NONE)
@@ -649,6 +690,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
     needsUf = true;
   }
+  else if (options::preSkolemQuantNested()
+           && options::preSkolemQuantNested.wasSetByUser())
+  {
+    // if pre-skolem nested is explictly set, then we require UF. If it is
+    // not explicitly set, it is disabled below if UF is not present.
+    Notice() << "Enabling UF because preSkolemQuantNested requires it."
+             << std::endl;
+    needsUf = true;
+  }
   if (needsUf
       // Arrays, datatypes and sets permit Boolean terms and thus require UF
       || logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -715,7 +765,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !options::incrementalSolving()
-                       && !options::unsatCores();
+                       && !options::unsatCores() && !options::unsatCoresNew();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
@@ -764,7 +814,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
-                      && !options::unsatCores();
+                      && !options::unsatCores() && !options::unsatCoresNew();
     // TODO && !options::unsatCores() && !options::produceProofs();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
@@ -1463,7 +1513,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (logic == LogicInfo("QF_UFNRA"))
   {
-#ifdef CVC4_USE_POLY
+#ifdef CVC5_USE_POLY
     if (!options::nlCad() && !options::nlCad.wasSetByUser())
     {
       options::nlCad.set(true);
@@ -1478,7 +1528,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
 #endif
   }
-#ifndef CVC4_USE_POLY
+#ifndef CVC5_USE_POLY
   if (options::nlCad())
   {
     if (options::nlCad.wasSetByUser())
@@ -1499,4 +1549,4 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

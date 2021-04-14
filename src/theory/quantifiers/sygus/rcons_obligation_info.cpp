@@ -1,33 +1,47 @@
-/*********************                                                        */
-/*! \file rcons_obligation_info.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reconstruct Obligation Info class implementation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reconstruct Obligation Info class implementation.
+ */
 
 #include "rcons_obligation_info.h"
+
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtin(builtin) {}
+RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtins({builtin})
+{
+}
 
-Node RConsObligationInfo::getBuiltin() const { return d_builtin; }
+const std::unordered_set<Node, NodeHashFunction>&
+RConsObligationInfo::getBuiltins() const
+{
+  return d_builtins;
+}
 
 void RConsObligationInfo::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
+}
+
+void RConsObligationInfo::addBuiltin(Node builtin)
+{
+  d_builtins.emplace(builtin);
 }
 
 const std::unordered_set<Node, NodeHashFunction>&
@@ -50,8 +64,19 @@ RConsObligationInfo::getWatchSet() const
 std::string RConsObligationInfo::obToString(Node k,
                                             const RConsObligationInfo& obInfo)
 {
-  return "ob<" + obInfo.getBuiltin().toString() + ", " + k.getType().toString()
-         + ">";
+  std::stringstream ss;
+  ss << "([";
+  std::unordered_set<Node, NodeHashFunction>::const_iterator it =
+      obInfo.getBuiltins().cbegin();
+  ss << *it;
+  ++it;
+  while (it != obInfo.getBuiltins().cend())
+  {
+    ss << ", " << *it;
+    ++it;
+  }
+  ss << "]), " << k.getType() << ')' << std::endl;
+  return ss.str();
 }
 
 void RConsObligationInfo::printCandSols(
@@ -97,4 +122,4 @@ void RConsObligationInfo::printCandSols(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

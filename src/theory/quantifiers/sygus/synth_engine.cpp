@@ -1,45 +1,39 @@
-/*********************                                                        */
-/*! \file synth_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the quantifiers module for managing all approaches
- ** to synthesis, in particular, those described in Reynolds et al CAV 2015.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the quantifiers module for managing all approaches
+ * to synthesis, in particular, those described in Reynolds et al CAV 2015.
+ */
 #include "theory/quantifiers/sygus/synth_engine.h"
 
-#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_registry.h"
 
-using namespace CVC4::kind;
-using namespace std;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+SynthEngine::SynthEngine(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-                         QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe),
-      d_tds(qe->getTermDatabaseSygus()),
-      d_conj(nullptr),
-      d_sqp(qe)
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr)
+    : QuantifiersModule(qs, qim, qr, tr), d_conj(nullptr), d_sqp()
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, qs, qim, qr, d_statistics)));
+      new SynthConjecture(qs, qim, qr, tr, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -159,8 +153,8 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(std::unique_ptr<SynthConjecture>(new SynthConjecture(
-        d_quantEngine, d_qstate, d_qim, d_qreg, d_statistics)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+        new SynthConjecture(d_qstate, d_qim, d_qreg, d_treg, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
@@ -190,7 +184,7 @@ void SynthEngine::registerQuantifier(Node q)
     // If it is a recursive function definition, add it to the function
     // definition evaluator class.
     Trace("cegqi") << "Registering function definition : " << q << "\n";
-    FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+    FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
     fde->assertDefinition(q);
     return;
   }
@@ -296,4 +290,4 @@ void SynthEngine::preregisterAssertion(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

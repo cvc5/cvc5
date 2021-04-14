@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file shared_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The shared solver base class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The shared solver base class.
+ */
 
 #include "theory/shared_solver.h"
 
@@ -19,7 +20,7 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // Always creates shared terms database. In all cases, shared terms
@@ -130,4 +131,4 @@ bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
 bool SharedSolver::isShared(TNode t) const { return d_sharedTerms.isShared(t); }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

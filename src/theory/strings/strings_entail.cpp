@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file strings_entail.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of entailment tests involving strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of entailment tests involving strings.
+ */
 
 #include "theory/strings/strings_entail.h"
 
@@ -21,9 +22,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -117,7 +118,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(CVC4::Rational(0));
+  Node zero = nm->mkConst(cvc5::Rational(0));
   bool ret = false;
   bool success = true;
   unsigned sindex = 0;
@@ -139,7 +140,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           Assert(ArithEntail::check(curr, true));
           Node s = n1[sindex_use];
           size_t slen = Word::getLength(s);
-          Node ncl = nm->mkConst(CVC4::Rational(slen));
+          Node ncl = nm->mkConst(cvc5::Rational(slen));
           Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
           next_s = Rewriter::rewrite(next_s);
           Assert(next_s.isConst());
@@ -517,7 +518,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       n1cmp = utils::decomposeSubstrChain(n1cmp, sss, sls);
       Trace("strings-rewrite-debug2")
           << "stripConstantEndpoints : Compare " << n1cmp << " " << n2[index1]
-          << ", dir = " << dir << std::endl;
+          << ", dir = " << r << ", sss/sls=" << sss << "/" << sls << std::endl;
       if (n1cmp.isConst())
       {
         Node s = n1cmp;
@@ -536,6 +537,8 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // can remove everything
               //   e.g. str.contains( "abc", str.++( "ba", x ) ) -->
               //   str.contains( "", str.++( "ba", x ) )
+              //   or std.contains( str.substr( "abc", x, y ), "d" ) --->
+              //   str.contains( "", "d" )
               removeComponent = true;
             }
             else if (sss.empty())  // only if not substr
@@ -546,15 +549,11 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // str.contains( str.++( "c", x ), str.++( "cd", y ) )
               overlap = r == 0 ? Word::overlap(s, t) : Word::overlap(t, s);
             }
-            else
-            {
-              // if we are looking at a substring, we can remove the component
-              // if there is no overlap
-              //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
-              //        --> str.contains( x, "a" )
-              removeComponent =
-                  ((r == 0 ? Word::overlap(s, t) : Word::overlap(t, s)) == 0);
-            }
+            // note that we cannot process substring here, since t may
+            // match only part of s. Consider:
+            // (str.++ "C" (str.substr "AB" x y)), "CB"
+            // where "AB" and "CB" have no overlap, but "C" is not part of what
+            // is matched with "AB".
           }
           else if (sss.empty())  // only if not substr
           {
@@ -572,6 +571,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         {
           // inconclusive
         }
+        Trace("strings-rewrite-debug2") << "rem = " << removeComponent << ", overlap = " << overlap << std::endl;
         // process the overlap
         if (overlap < slen)
         {
@@ -602,7 +602,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         if (n2[index1].isConst())
         {
           Assert(n2[index1].getType().isString());  // string-only
-          CVC4::String t = n2[index1].getConst<String>();
+          cvc5::String t = n2[index1].getConst<String>();
           if (n1.size() == 1)
           {
             // if n1.size()==1, then if n2[index1] is not a number, we can drop
@@ -635,6 +635,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       }
       if (removeComponent)
       {
+        Trace("strings-rewrite-debug2") << "...remove component" << std::endl;
         // can drop entire first (resp. last) component
         if (r == 0)
         {
@@ -842,7 +843,7 @@ Node StringsEntail::getMultisetApproximation(Node a)
   }
   else if (a.getKind() == STRING_CONCAT)
   {
-    NodeBuilder<> nb(STRING_CONCAT);
+    NodeBuilder nb(STRING_CONCAT);
     for (const Node& ac : a)
     {
       nb << getMultisetApproximation(ac);
@@ -974,7 +975,7 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
     cs.push_back(yiLen[0]);
   }
 
-  NodeBuilder<> nb(AND);
+  NodeBuilder nb(AND);
   // (= x (str.++ y1' ... ym'))
   if (!cs.empty())
   {
@@ -993,4 +994,4 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

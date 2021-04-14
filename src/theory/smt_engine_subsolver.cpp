@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file smt_engine_subsolver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utilities for initializing subsolvers (copies of
- ** SmtEngine) during solving.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utilities for initializing subsolvers (copies of
+ * SmtEngine) during solving.
+ */
 
 #include "theory/smt_engine_subsolver.h"
 
@@ -19,7 +20,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // optimization: try to rewrite to constant
@@ -119,4 +120,4 @@ Result checkWithSubsolver(Node query,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

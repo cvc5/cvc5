@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file ackermann.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Yoni Zohar, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Ackermannization preprocessing pass.
- **
- ** This implements the Ackermannization preprocessing pass, which enables
- ** very limited theory combination support for eager bit-blasting via
- ** Ackermannization. It reduces constraints over the combination of the
- ** theories of fixed-size bit-vectors and uninterpreted functions as
- ** described in
- **   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
- **   Bit-vectors in Satisfiability Modulo Theories.
- **   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Yoni Zohar, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Ackermannization preprocessing pass.
+ *
+ * This implements the Ackermannization preprocessing pass, which enables
+ * very limited theory combination support for eager bit-blasting via
+ * Ackermannization. It reduces constraints over the combination of the
+ * theories of fixed-size bit-vectors and uninterpreted functions as
+ * described in
+ *   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
+ *   Bit-vectors in Satisfiability Modulo Theories.
+ *   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
+ */
 
 #include "preprocessing/passes/ackermann.h"
 
@@ -27,15 +28,16 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
+using namespace cvc5;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -105,10 +107,12 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    Node skolem = nm->mkSkolem("SKOLEM$$",
-                               tn,
-                               "is a variable created by the ackermannization "
-                               "preprocessing pass");
+    SkolemManager* sm = nm->getSkolemManager();
+    Node skolem =
+        sm->mkDummySkolem("SKOLEM$$",
+                          tn,
+                          "is a variable created by the ackermannization "
+                          "preprocessing pass");
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -206,12 +210,13 @@ void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
                        SubstitutionMap& usVarsToBVVars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   for (TNode var : vars)
   {
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
-    Node skolem = nm->mkSkolem(
+    Node skolem = sm->mkDummySkolem(
         "BVSKOLEM$$",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "
@@ -336,4 +341,4 @@ PreprocessingPassResult Ackermann::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

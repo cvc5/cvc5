@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 /**
@@ -91,6 +91,6 @@ class ProofLetify
 };
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

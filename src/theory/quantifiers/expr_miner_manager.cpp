@@ -1,23 +1,23 @@
-/*********************                                                        */
-/*! \file expr_miner_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of expression miner manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of expression miner manager.
+ */
 
 #include "theory/quantifiers/expr_miner_manager.h"
-#include "theory/quantifiers_engine.h"
 
 #include "options/quantifiers_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -26,7 +26,6 @@ ExpressionMinerManager::ExpressionMinerManager()
       d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
-      d_qe(nullptr),
       d_tds(nullptr),
       d_crd(options::sygusRewSynthCheck(), options::sygusRewSynthAccel(), false)
 {
@@ -42,13 +41,12 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
   d_doFilterLogicalStrength = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
-  d_qe = nullptr;
   d_tds = nullptr;
   // initialize the sampler
   d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
 }
 
-void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
+void ExpressionMinerManager::initializeSygus(TermDbSygus* tds,
                                              Node f,
                                              unsigned nsamples,
                                              bool useSygusType)
@@ -58,8 +56,7 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
   d_doFilterLogicalStrength = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
-  d_qe = qe;
-  d_tds = qe->getTermDatabaseSygus();
+  d_tds = tds;
   // initialize the sampler
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
 }
@@ -77,8 +74,8 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
   // initialize the candidate rewrite database
   if (!d_sygus_fun.isNull())
   {
-    Assert(d_qe != nullptr);
-    d_crd.initializeSygus(vars, d_qe, d_sygus_fun, &d_sampler);
+    Assert(d_tds != nullptr);
+    d_crd.initializeSygus(vars, d_tds, d_sygus_fun, &d_sampler);
   }
   else
   {
@@ -169,4 +166,4 @@ bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

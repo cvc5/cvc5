@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_quantifiers_bv_inverter_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for BV inverter.
- **
- ** Unit tests for BV inverter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for BV inverter.
+ */
 
 #include "expr/node.h"
 #include "test_smt.h"
@@ -20,7 +19,7 @@
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace theory;
@@ -39,12 +38,12 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     d_smtEngine->setOption("produce-models", "true");
     // don't insist on proofs here !!!! will not be necessary on master, since
     // proof is not default true
-    d_smtEngine->setOption("proof", "false");
+    d_smtEngine->setOption("produce-proofs", "false");
     d_smtEngine->finishInit();
 
     d_s = d_nodeManager->mkVar("s", d_nodeManager->mkBitVectorType(4));
     d_t = d_nodeManager->mkVar("t", d_nodeManager->mkBitVectorType(4));
-    d_sk = d_nodeManager->mkSkolem("sk", d_t.getType());
+    d_sk = d_skolemManager->mkDummySkolem("sk", d_t.getType());
     d_x = d_nodeManager->mkBoundVar(d_t.getType());
     d_bvarlist = d_nodeManager->mkNode(BOUND_VAR_LIST, {d_x});
   }
@@ -142,7 +141,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     {
       s2 = d_nodeManager->mkVar("s2", d_nodeManager->mkBitVectorType(4));
       x = d_nodeManager->mkBoundVar(s2.getType());
-      sk = d_nodeManager->mkSkolem("sk", s2.getType());
+      sk = d_skolemManager->mkDummySkolem("sk", s2.getType());
       t = d_nodeManager->mkVar("t", d_nodeManager->mkBitVectorType(8));
       sv_t = d_nodeManager->mkNode(BITVECTOR_CONCAT, x, s2);
       sc = getICBvConcat(pol, litk, 0, sk, sv_t, t);
@@ -151,7 +150,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     {
       s1 = d_nodeManager->mkVar("s1", d_nodeManager->mkBitVectorType(4));
       x = d_nodeManager->mkBoundVar(s1.getType());
-      sk = d_nodeManager->mkSkolem("sk", s1.getType());
+      sk = d_skolemManager->mkDummySkolem("sk", s1.getType());
       t = d_nodeManager->mkVar("t", d_nodeManager->mkBitVectorType(8));
       sv_t = d_nodeManager->mkNode(BITVECTOR_CONCAT, s1, x);
       sc = getICBvConcat(pol, litk, 1, sk, sv_t, t);
@@ -162,7 +161,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
       s1 = d_nodeManager->mkVar("s1", d_nodeManager->mkBitVectorType(4));
       s2 = d_nodeManager->mkVar("s2", d_nodeManager->mkBitVectorType(4));
       x = d_nodeManager->mkBoundVar(s2.getType());
-      sk = d_nodeManager->mkSkolem("sk", s1.getType());
+      sk = d_skolemManager->mkDummySkolem("sk", s1.getType());
       t = d_nodeManager->mkVar("t", d_nodeManager->mkBitVectorType(12));
       sv_t = d_nodeManager->mkNode(BITVECTOR_CONCAT, s1, x, s2);
       sc = getICBvConcat(pol, litk, 1, sk, sv_t, t);
@@ -198,7 +197,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     unsigned w = 8;
 
     Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(wx));
-    Node sk = d_nodeManager->mkSkolem("sk", x.getType());
+    Node sk = d_skolemManager->mkDummySkolem("sk", x.getType());
     x = d_nodeManager->mkBoundVar(x.getType());
 
     Node t = d_nodeManager->mkVar("t", d_nodeManager->mkBitVectorType(w));
@@ -1614,4 +1613,4 @@ TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_sext_sgt_false)
   runTestSext(false, BITVECTOR_SGT);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

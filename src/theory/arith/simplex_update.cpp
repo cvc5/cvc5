@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file simplex_update.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This implements UpdateInfo.
- **
- ** This implements the UpdateInfo.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This implements the UpdateInfo.
+ */
 
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/constraint.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -186,6 +185,6 @@ std::ostream& operator<<(std::ostream& out,  WitnessImprovement w){
   return out;
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

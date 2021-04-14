@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file congruence_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/congruence_manager.h"
 
@@ -30,7 +31,7 @@
 #include "theory/uf/proof_equality_engine.h"
 #include "options/arith_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -223,7 +224,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   TNode eq = d_watchedEqualities[s];
   ConstraintCP eqC = d_constraintDatabase.getConstraint(
       s, ConstraintType::Equality, lb->getValue());
-  NodeBuilder<> reasonBuilder(Kind::AND);
+  NodeBuilder reasonBuilder(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
   Node reason = safeConstructNary(reasonBuilder);
@@ -256,7 +257,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   //Explain for conflict is correct as these proofs are generated
   //and stored eagerly
   //These will be safe for propagation later as well
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
   if (Debug.isOn("arith::cong"))
   {
@@ -284,7 +285,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
 
   //Explain for conflict is correct as these proofs are generated and stored eagerly
   //These will be safe for propagation later as well
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
   auto pf = c->externalExplainByAssertions(nb);
   if (Debug.isOn("arith::cong::notzero"))
@@ -456,7 +457,9 @@ void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumpti
   }
 }
 
-void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<>& nb){
+void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
+                                           NodeBuilder& nb)
+{
   std::set<TNode>::const_iterator it = s.begin();
   std::set<TNode>::const_iterator it_end = s.end();
   for(; it != it_end; ++it) {
@@ -504,7 +507,8 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   return trn;
 }
 
-void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
+void ArithCongruenceManager::explain(TNode external, NodeBuilder& out)
+{
   Node internal = externalToInternal(external);
 
   std::vector<TNode> assumptions;
@@ -627,7 +631,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Node eq = xAsNode.eqNode(asRational);
   d_keepAlive.push_back(eq);
 
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
   Node reason = safeConstructNary(nb);
   d_keepAlive.push_back(reason);
@@ -646,7 +650,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
                           << ub << std::endl;
 
   ArithVar x = lb->getVariable();
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(nb);
   auto pfUb = ub->externalExplainByAssertions(nb);
   Node reason = safeConstructNary(nb);
@@ -689,6 +693,6 @@ std::vector<Node> andComponents(TNode an)
   return a;
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

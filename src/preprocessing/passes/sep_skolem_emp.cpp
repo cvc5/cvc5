@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file sep_skolem_emp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The sep-pre-skolem-emp preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The sep-pre-skolem-emp preprocessing pass.
+ */
 
 #include "preprocessing/passes/sep_skolem_emp.h"
 
@@ -20,17 +20,18 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
 namespace {
 
@@ -41,6 +42,8 @@ Node preSkolemEmp(Node n,
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
     Node ret = n;
@@ -50,14 +53,13 @@ Node preSkolemEmp(Node n,
       {
         TypeNode tnx = n[0].getType();
         TypeNode tny = n[1].getType();
-        Node x = NodeManager::currentNM()->mkSkolem(
-            "ex", tnx, "skolem location for negated emp");
-        Node y = NodeManager::currentNM()->mkSkolem(
-            "ey", tny, "skolem data for negated emp");
-        return NodeManager::currentNM()
+        Node x =
+            sm->mkDummySkolem("ex", tnx, "skolem location for negated emp");
+        Node y = sm->mkDummySkolem("ey", tny, "skolem data for negated emp");
+        return nm
             ->mkNode(kind::SEP_STAR,
-                     NodeManager::currentNM()->mkNode(kind::SEP_PTO, x, y),
-                     NodeManager::currentNM()->mkConst(true))
+                     nm->mkNode(kind::SEP_PTO, x, y),
+                     nm->mkConst(true))
             .negate();
       }
     }
@@ -83,7 +85,7 @@ Node preSkolemEmp(Node n,
       }
       if (childChanged)
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
+        return nm->mkNode(n.getKind(), children);
       }
     }
     visited[pol][n] = ret;
@@ -124,4 +126,4 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

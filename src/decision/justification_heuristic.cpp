@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file justification_heuristic.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andres Noetzli, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification heuristic for decision making
- **
- ** A ATGP-inspired justification-based decision heuristic. This code is based
- ** on the CVC3 implementation of the same heuristic -- note below.
- **
- ** It needs access to the simplified but non-clausal formula.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification heuristic for decision making
+ *
+ * A ATGP-inspired justification-based decision heuristic. This code is based
+ * on the CVC3 implementation of the same heuristic -- note below.
+ *
+ * It needs access to the simplified but non-clausal formula.
+ */
 #include "justification_heuristic.h"
 
 #include "decision/decision_attributes.h"
@@ -28,10 +29,10 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace decision {
 
-JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
+JustificationHeuristic::JustificationHeuristic(cvc5::DecisionEngine* de,
                                                context::UserContext* uc,
                                                context::Context* c)
     : ITEDecisionStrategy(de, c),
@@ -66,7 +67,7 @@ JustificationHeuristic::~JustificationHeuristic()
   smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
 
-CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
+cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 {
   if(options::decisionThreshold() > 0) {
     bool stopSearchTmp = false;
@@ -82,7 +83,9 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
   return getNextThresh(stopSearch, 0);
 }
 
-CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, DecisionWeight threshold) {
+cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
+    bool& stopSearch, DecisionWeight threshold)
+{
   Trace("decision") << "JustificationHeuristic::getNextThresh(stopSearch, "<<threshold<<")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_timestat);
 
@@ -124,7 +127,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 
   Trace("decision") << "jh: Nothing to split on " << std::endl;
 
-#if defined CVC4_DEBUG
+#if defined CVC5_DEBUG
   bool alljustified = true;
   for(unsigned i = 0 ; i < d_assertions.size() && alljustified ; ++i) {
     TNode curass = d_assertions[i];
@@ -440,7 +443,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     return DONT_KNOW;
   }
 
-#if defined CVC4_ASSERTIONS || defined CVC4_DEBUG
+#if defined CVC5_ASSERTIONS || defined CVC5_DEBUG
   // We don't always have a sat literal, so remember that. Will need
   // it for some assertions we make.
   bool litPresent = d_decisionEngine->hasSatLiteral(node);
@@ -731,4 +734,4 @@ JustificationHeuristic::handleEmbeddedSkolems(TNode node)
 }
 
 } /* namespace decision */
-} /* namespace CVC4 */
+}  // namespace cvc5

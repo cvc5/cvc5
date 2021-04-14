@@ -14,7 +14,7 @@
 
 #include "proof/print_expr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace proof {
 
 PExprStream::PExprStream(std::vector<PExpr>& stream, Node tt, Node ff)
@@ -54,4 +54,4 @@ PExprStream& PExprStream::operator<<(PExpr p)
 }
 
 }  // namespace proof
-}  // namespace CVC4
+}  // namespace cvc5

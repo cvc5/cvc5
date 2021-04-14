@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file attribute_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4::Attribute.
- **
- ** Black box testing of CVC4::Attribute.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Attribute.
+ */
 
 #include <sstream>
 #include <vector>
@@ -23,7 +22,7 @@
 #include "expr/node_value.h"
 #include "test_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace kind;
 using namespace smt;
@@ -55,7 +54,7 @@ class TestNodeBlackAttribute : public TestNode
 TEST_F(TestNodeBlackAttribute, ints)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
   const uint64_t val = 63489;
   uint64_t data0 = 0;
   uint64_t data1 = 0;
@@ -72,9 +71,9 @@ TEST_F(TestNodeBlackAttribute, ints)
 TEST_F(TestNodeBlackAttribute, tnodes)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
 
-  Node val(d_nodeManager->mkSkolem("b", booleanType));
+  Node val(d_skolemManager->mkDummySkolem("b", booleanType));
   TNode data0;
   TNode data1;
 
@@ -90,7 +89,7 @@ TEST_F(TestNodeBlackAttribute, tnodes)
 TEST_F(TestNodeBlackAttribute, strings)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
 
   std::string val("63489");
   std::string data0;
@@ -108,7 +107,7 @@ TEST_F(TestNodeBlackAttribute, strings)
 TEST_F(TestNodeBlackAttribute, bools)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
-  Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
+  Node* node = new Node(d_skolemManager->mkDummySkolem("b", booleanType));
 
   bool val = true;
   bool data0 = false;
@@ -125,4 +124,4 @@ TEST_F(TestNodeBlackAttribute, bools)
 }
 
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

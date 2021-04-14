@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_strings_word_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for the strings word utilities
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for the strings word utilities
+ */
 
 #include <iostream>
 #include <memory>
@@ -20,7 +21,7 @@
 #include "test_node.h"
 #include "theory/strings/word.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 using namespace theory;
 using namespace theory::strings;
@@ -121,4 +122,4 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_TRUE(Word::roverlap(aaaaa, aa) == 2);
 }
 }  // namespace test
-}  // namespace CVC4
+}  // namespace cvc5

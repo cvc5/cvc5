@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file exponential_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of solver for handling transcendental functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of solver for handling transcendental functions.
+ */
 
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 
@@ -28,7 +29,7 @@
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -276,4 +277,4 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
