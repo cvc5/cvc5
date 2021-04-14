@@ -71,6 +71,10 @@ class SmtSolver
   ~SmtSolver();
   /**
    * Create theory engine, prop engine based on the logic info.
+   *
+   * @param logicInfo the logic information
+   * @param proofForUnsatCoreMode whether this SmtSolver will operate in unsat
+   * core mode. If true, proofs will not be produced in the theory engine.
    */
   void finishInit(const LogicInfo& logicInfo,
                   bool proofForUnsatCoreMode = false);
