@@ -16,7 +16,7 @@
  * quickly, without going through the rewriter.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__EVALUATOR_H
 #define CVC5__THEORY__EVALUATOR_H

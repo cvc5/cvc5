@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 #include <vector>
@@ -26,8 +26,7 @@
 #include "util/dense_map.h"
 #include "util/maybe.h"
 #include "util/rational.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -53,7 +52,6 @@ std::ostream& operator<<(std::ostream& out, MipResult res);
 class ApproximateStatistics {
  public:
   ApproximateStatistics();
-  ~ApproximateStatistics();
 
   IntStat d_branchMaxDepth;
   IntStat d_branchesMaxOnAVar;

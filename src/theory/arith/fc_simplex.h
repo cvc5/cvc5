@@ -51,7 +51,7 @@
  *   These are theory valid and are currently turned into lemmas
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -60,7 +60,7 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/simplex_update.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -250,8 +250,7 @@ private:
 
     ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
-    Statistics(uint32_t& pivots);
-    ~Statistics();
+    Statistics(const std::string& name, uint32_t& pivots);
   } d_statistics;
 };/* class FCSimplexDecisionProcedure */
 

@@ -13,7 +13,7 @@
  * A class representing a datatype definition.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__DTYPE_CONS_H
 #define CVC5__EXPR__DTYPE_CONS_H

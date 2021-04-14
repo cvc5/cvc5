@@ -13,7 +13,7 @@
  * List of instantiations.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
 #define CVC5__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H

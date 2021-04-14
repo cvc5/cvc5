@@ -15,7 +15,7 @@
  * Calls the rewriter on every assertion.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__REWRITE_H
 #define CVC5__PREPROCESSING__PASSES__REWRITE_H

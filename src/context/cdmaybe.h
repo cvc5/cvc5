@@ -17,7 +17,7 @@
  * assignment.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 

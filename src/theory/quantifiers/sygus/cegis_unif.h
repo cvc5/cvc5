@@ -12,7 +12,7 @@
  *
  * cegis with unification techinques.
  */
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H

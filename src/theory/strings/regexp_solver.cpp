@@ -22,6 +22,7 @@
 #include "theory/ext_theory.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
+#include "util/statistics_value.h"
 
 using namespace std;
 using namespace cvc5::context;

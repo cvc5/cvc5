@@ -13,7 +13,7 @@
  * Dump utility classes and functions.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__DUMP_H
 #define CVC5__DUMP_H

@@ -16,7 +16,7 @@
  * related to ostreams.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__MANAGED_OSTREAMS_H
 #define CVC5__MANAGED_OSTREAMS_H

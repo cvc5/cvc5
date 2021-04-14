@@ -13,7 +13,7 @@
  * Base class for shared solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SHARED_SOLVER__H
 #define CVC5__THEORY__SHARED_SOLVER__H

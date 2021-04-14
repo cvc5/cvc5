@@ -17,6 +17,6 @@
 #ifndef __CVC4PARSER_PUBLIC_H
 #define __CVC4PARSER_PUBLIC_H
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #endif /* __CVC4PARSER_PUBLIC_H */

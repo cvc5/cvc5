@@ -16,6 +16,7 @@
 #include "theory/bags/bags_rewriter.h"
 
 #include "theory/bags/normal_form.h"
+#include "util/statistics_registry.h"
 
 using namespace cvc5::kind;
 
@@ -38,7 +39,7 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(IntegralHistogramStat<Rewrite>* statistics)
+BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();

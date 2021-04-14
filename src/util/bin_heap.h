@@ -18,7 +18,7 @@
  * (http://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/priority_queue.html)
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__BIN_HEAP_H
 #define CVC5__BIN_HEAP_H

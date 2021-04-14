@@ -13,7 +13,7 @@
  * Bounded integers module
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__BOUNDED_INTEGERS_H
 #define CVC5__BOUNDED_INTEGERS_H
