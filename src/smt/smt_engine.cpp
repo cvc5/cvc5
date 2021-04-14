@@ -519,7 +519,7 @@ cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
     for (const auto& s : d_env->getStatisticsRegistry())
     {
       std::stringstream ss;
-      s.second->print(ss);
+      ss << *s.second;
       vector<SExpr> v;
       v.push_back(s.first);
       v.push_back(ss.str());
@@ -1859,7 +1859,7 @@ SExpr SmtEngine::getStatistic(std::string name) const
 {
   const auto* val = d_env->getStatisticsRegistry().get(name);
   std::stringstream ss;
-  val->print(ss);
+  ss << *val;
   return SExpr({SExpr(name), SExpr(ss.str())});
 }
 

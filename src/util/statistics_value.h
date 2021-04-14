@@ -67,12 +67,6 @@ struct StatisticBaseValue
    */
   virtual StatExportData getViewer() const = 0;
   /**
-   * Writes the data to a regular `std::ostream`.
-   * Assumes that `hasValue` returns true. Otherwise, the user should write
-   * `<undef>` to the stream.
-   */
-  virtual void print(std::ostream&) const = 0;
-  /**
    * Safely writes the data to a file descriptor. Is suitable to be used
    * within a signal handler.
    * Assumes that `hasValue` returns true. Otherwise, the user should write
@@ -90,7 +84,6 @@ struct StatisticAverageValue : StatisticBaseValue
 {
   StatExportData getViewer() const override;
   bool hasValue() const override;
-  void print(std::ostream& out) const override;
   void printSafe(int fd) const override;
   double get() const;
 
@@ -112,7 +105,6 @@ struct StatisticBackedValue : StatisticBaseValue
 {
   StatExportData getViewer() const override { return d_value; }
   bool hasValue() const override { return d_value != T(); }
-  void print(std::ostream& out) const override { out << d_value; }
   void printSafe(int fd) const override { safe_print<T>(fd, d_value); }
 
   T d_value;
@@ -153,28 +145,6 @@ struct StatisticHistogramValue : StatisticBaseValue
     return res;
   }
   bool hasValue() const override { return d_hist.size() > 0; }
-  void print(std::ostream& out) const override
-  {
-    out << "[";
-    bool first = true;
-    for (size_t i = 0, n = d_hist.size(); i < n; ++i)
-    {
-      if (d_hist[i] > 0)
-      {
-        if (first)
-        {
-          first = false;
-        }
-        else
-        {
-          out << ", ";
-        }
-        out << "(" << static_cast<Integral>(i + d_offset) << " : " << d_hist[i]
-            << ")";
-      }
-    }
-    out << "]";
-  }
   void printSafe(int fd) const override
   {
     safe_print(fd, "[");
@@ -267,22 +237,20 @@ struct StatisticReferenceValue : StatisticBaseValue
         return *d_value;
       }
     }
-    return {};
+    if constexpr (std::is_integral_v<T>)
+    {
+      return static_cast<int64_t>(0);
+    }
+    else
+    {
+      // this else branch is required to ensure compilation.
+      // if T is unsigned int, this return statement triggers a compiler error
+      return T();
+    }
   }
   bool hasValue() const override
   {
     return d_committed || (d_value != nullptr && *d_value != T());
-  }
-  void print(std::ostream& out) const override
-  {
-    if (d_committed)
-    {
-      out << *d_committed;
-    }
-    else if (d_value != nullptr)
-    {
-      out << *d_value;
-    }
   }
   void printSafe(int fd) const override
   {
@@ -333,17 +301,6 @@ struct StatisticSizeValue : StatisticBaseValue
   {
     return d_committed || (d_value != nullptr && d_value->size() != 0);
   }
-  void print(std::ostream& out) const override
-  {
-    if (d_committed)
-    {
-      out << *d_committed;
-    }
-    else if (d_value != nullptr)
-    {
-      out << d_value->size();
-    }
-  }
   void printSafe(int fd) const override
   {
     if (d_committed)
@@ -383,8 +340,6 @@ struct StatisticTimerValue : StatisticBaseValue
   /** Returns the number of milliseconds */
   StatExportData getViewer() const override;
   bool hasValue() const override;
-  /** Prints seconds in fixed-point format */
-  void print(std::ostream& out) const override;
   /** Prints seconds in fixed-point format */
   void printSafe(int fd) const override;
   /** Make sure that we include the time of a currently running timer */

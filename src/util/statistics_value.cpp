@@ -77,8 +77,6 @@ StatExportData StatisticAverageValue::getViewer() const { return get(); }
 
 bool StatisticAverageValue::hasValue() const { return d_count > 0; }
 
-void StatisticAverageValue::print(std::ostream& out) const { out << get(); }
-
 void StatisticAverageValue::printSafe(int fd) const
 {
   safe_print<double>(fd, get());
@@ -94,15 +92,6 @@ StatExportData StatisticTimerValue::getViewer() const
 bool StatisticTimerValue::hasValue() const
 {
   return d_running || d_duration.count() > 0;
-}
-
-void StatisticTimerValue::print(std::ostream& out) const
-{
-  StreamFormatScope format_scope(out);
-  duration dur = get();
-
-  out << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
-      << std::setw(9) << std::right << (dur % std::chrono::seconds(1)).count();
 }
 
 void StatisticTimerValue::printSafe(int fd) const
