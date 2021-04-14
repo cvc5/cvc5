@@ -1747,6 +1747,7 @@ set(regress_1_tests
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/infer-arith-trigger-eq.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
+  regress1/quantifiers/inst-pools.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
   regress1/quantifiers/is-even.smt2
