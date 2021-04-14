@@ -91,7 +91,6 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add_Step(
     Poly-EP cleanup
     DEPENDEES install
-    COMMAND ${CMAKE_COMMAND} -E remove_directory <SOURCE_DIR>/test/
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
   add_dependencies(Poly-EP GMP)
