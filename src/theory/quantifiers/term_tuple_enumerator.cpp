@@ -28,6 +28,7 @@
 #include "theory/quantifiers/index_trie.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_stats.h"
@@ -491,6 +492,48 @@ Node TermTupleEnumeratorBasic::getTerm(size_t variableIx, size_t term_index)
   return d_termDbList[type_node][term_index];
 }
 
+/**
+ * Enumerate ground terms as they come from a user-provided term pool
+ */
+class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
+{
+ public:
+  TermTupleEnumeratorPool(Node quantifier,
+                          const TermTupleEnumeratorEnv* env,
+                          TermPools* tp,
+                          Node pool)
+      : TermTupleEnumeratorBase(quantifier, env), d_tp(tp), d_pool(pool)
+  {
+    Assert(d_pool.getKind() == kind::INST_POOL);
+  }
+
+  virtual ~TermTupleEnumeratorPool() = default;
+
+ protected:
+  /** Pointer to the term pool utility */
+  TermPools* d_tp;
+  /** The pool annotation */
+  Node d_pool;
+  /**  a list of terms for each id */
+  std::map<size_t, std::vector<Node> > d_poolList;
+  /** gets the terms from the pool */
+  size_t prepareTerms(size_t variableIx) override
+  {
+    Assert(d_pool.getNumChildren() > variableIx);
+    // prepare terms from pool
+    d_poolList[variableIx].clear();
+    d_tp->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
+    Trace("pool-inst") << "Instantiation Terms for child " << variableIx << ": "
+                       << d_poolList[variableIx] << std::endl;
+    return d_poolList[variableIx].size();
+  }
+  Node getTerm(size_t variableIx, size_t term_index) override
+  {
+    Assert(term_index < d_poolList[variableIx].size());
+    return d_poolList[variableIx][term_index];
+  }
+};
+
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
     Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs, TermDb* td)
 {
@@ -502,6 +545,13 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
 {
   return static_cast<TermTupleEnumeratorInterface*>(
       new TermTupleEnumeratorRD(q, env, rd));
+}
+
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node pool)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+      new TermTupleEnumeratorPool(q, env, tp, pool));
 }
 
 }  // namespace quantifiers

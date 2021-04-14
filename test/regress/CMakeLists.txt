@@ -710,6 +710,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
+  regress0/options/ast-and-sexpr.smt2
   regress0/options/invalid_dump.smt2
   regress0/options/set-and-get-options.smt2
   regress0/parallel-let.smt2
@@ -850,6 +851,7 @@ set(regress_0_tests
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/lra-triv-gn.smt2
+  regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
   regress0/quantifiers/matching-lia-1arg.smt2

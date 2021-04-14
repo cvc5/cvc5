@@ -745,6 +745,8 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/inst_strategy_pool.cpp
+  theory/quantifiers/inst_strategy_pool.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/instantiation_list.cpp
@@ -995,6 +997,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
   theory/strings/theory_strings_preprocess.h
+  theory/strings/theory_strings_type_rules.cpp
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
