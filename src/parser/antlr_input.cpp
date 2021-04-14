@@ -1,27 +1,25 @@
-/*********************                                                        */
-/*! \file antlr_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A super-class for ANTLR-generated input language parsers.
- **
- ** A super-class for ANTLR-generated input language parsers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Kshitij Bansal, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A super-class for ANTLR-generated input language parsers.
+ */
 
 #include "parser/antlr_input.h"
 
 #include <antlr3.h>
 #include <limits.h>
-#include <stdint.h>
 
+#include "base/check.h"
 #include "base/output.h"
-#include "expr/type.h"
 #include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
@@ -35,15 +33,15 @@
 #include "parser/tptp/tptp_input.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 // These functions exactly wrap the antlr3 source inconsistencies.
-// These are the only location CVC4_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
+// These are the only location CVC5_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
 // No other sanity checking happens;
 pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
                                              const std::string& name,
@@ -59,13 +57,13 @@ pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   inputStream =
       antlr3LineBufferedStreamNew(input, 0, name_duplicate, line_buffer);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   inputStream = antlr3LineBufferedStreamNew(input, ANTLR3_ENC_8BIT,
                                             name_duplicate, line_buffer);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
   return inputStream;
@@ -76,11 +74,11 @@ pANTLR3_INPUT_STREAM newAntlr3FileStream(const std::string& name){
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
   // libantlr3c v3.2 isn't source-compatible with v3.4
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   input = antlr3AsciiFileStreamNew(name_duplicate);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   input = antlr3FileStreamNew(name_duplicate, ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
   return input;
@@ -93,14 +91,14 @@ pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
   pANTLR3_INPUT_STREAM inputStream = NULL;
   /* Create an ANTLR input backed by the buffer. */
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   inputStream =
     antlr3NewAsciiStringInPlaceStream(basep, size, name_duplicate);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   inputStream =
     antlr3StringStreamNew(basep, ANTLR3_ENC_8BIT, size,
                           name_duplicate);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   free(name_duplicate);
   return inputStream;
 }
@@ -113,7 +111,7 @@ AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
       d_input(input),
       d_inputString(inputString),
       d_line_buffer(line_buffer) {
-  assert( input != NULL );
+  Assert(input != NULL);
   input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
 
@@ -199,8 +197,8 @@ AntlrInputStream::newStreamInputStream(std::istream& input,
       throw InputStreamException("Stream input failed: " + name);
     }
     ptrdiff_t offset = cp - basep;
-    assert(offset >= 0);
-    assert(offset <= std::numeric_limits<uint32_t>::max());
+    Assert(offset >= 0);
+    Assert(offset <= std::numeric_limits<uint32_t>::max());
     inputStringCopy = (pANTLR3_UINT8)basep;
     inputStream = newAntrl3InPlaceStream(inputStringCopy, (uint32_t) offset, name);
   }
@@ -219,7 +217,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
                                        const std::string& name)
 {
   size_t input_size = input.size();
-  assert(input_size <= std::numeric_limits<uint32_t>::max());
+  Assert(input_size <= std::numeric_limits<uint32_t>::max());
 
   // Ownership of input_duplicate  is transferred to the AntlrInputStream.
   pANTLR3_UINT8 input_duplicate = (pANTLR3_UINT8) strdup(input.c_str());
@@ -316,11 +314,11 @@ pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
 
 void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_LEXER lexer = (pANTLR3_LEXER)(recognizer->super);
-  assert(lexer!=NULL);
+  Assert(lexer != NULL);
   Parser *parser = (Parser*)(lexer->super);
-  assert(parser!=NULL);
+  Assert(parser != NULL);
   AntlrInput *input = (AntlrInput*) parser->getInput();
-  assert(input!=NULL);
+  Assert(input != NULL);
 
   /* Call the error display routine *if* there's not already a 
    * parse error pending.  If a parser error is pending, this
@@ -582,5 +580,5 @@ void AntlrInput::setAntlr3Parser(pANTLR3_PARSER pParser) {
       d_parser->rec->mismatch;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

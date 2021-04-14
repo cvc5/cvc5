@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file options.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Global (command-line, set-option, ...) parameters for SMT.
- **
- ** Global (command-line, set-option, ...) parameters for SMT.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Paul Meng
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Global (command-line, set-option, ...) parameters for SMT.
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_H
-#define CVC4__OPTIONS__OPTIONS_H
+#ifndef CVC5__OPTIONS__OPTIONS_H
+#define CVC5__OPTIONS__OPTIONS_H
 
 #include <fstream>
 #include <ostream>
@@ -26,11 +25,12 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
+#include "cvc4_export.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -38,11 +38,12 @@ class Solver;
 namespace options {
   struct OptionsHolder;
   class OptionsHandler;
-}/* CVC4::options namespace */
+  }  // namespace options
 
 class OptionsListener;
 
-class CVC4_PUBLIC Options {
+class CVC4_EXPORT Options
+{
   friend api::Solver;
   /** The struct that holds all option values. */
   options::OptionsHolder* d_holder;
@@ -80,7 +81,8 @@ class CVC4_PUBLIC Options {
   static const unsigned s_preemptAdditional = 6;
 
 public:
-  class CVC4_PUBLIC OptionsScope {
+ class OptionsScope
+ {
   private:
     Options* d_oldOptions;
   public:
@@ -92,7 +94,7 @@ public:
     ~OptionsScope(){
       Options::s_current = d_oldOptions;
     }
-  };
+ };
 
   /** Return true if current Options are null */
   static inline bool isCurrentNull() {
@@ -153,7 +155,6 @@ public:
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
-  bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
   bool getFilesystemAccess() const;
@@ -182,7 +183,6 @@ public:
   std::ostream* getOut();
   std::ostream* getOutConst() const; // TODO: Remove this.
   std::string getBinaryName() const;
-  unsigned getParseStep() const;
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
@@ -190,7 +190,6 @@ public:
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
 
-  bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;
   bool wasSetByUserIncrementalSolving() const;
@@ -303,8 +302,8 @@ public:
                                     int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions);
-};/* class Options */
+}; /* class Options */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__OPTIONS_H */
+#endif /* CVC5__OPTIONS__OPTIONS_H */

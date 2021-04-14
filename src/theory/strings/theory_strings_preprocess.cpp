@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file theory_strings_preprocess.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Strings Preprocess
- **
- ** Strings Preprocess.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Strings Preprocess.
+ */
 
 #include "theory/strings/theory_strings_preprocess.h"
 
-#include <stdint.h>
-
 #include "expr/kind.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
@@ -28,10 +26,10 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -43,9 +41,8 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     context::UserContext* u,
-                                     SequencesStatistics& stats)
-    : d_sc(sc), d_statistics(stats)
+                                     IntegralHistogramStat<Kind>* statReductions)
+    : d_sc(sc), d_statReductions(statReductions)
 {
 }
 
@@ -61,6 +58,7 @@ Node StringsPreprocess::reduce(Node t,
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0));
   Node one = nm->mkConst(Rational(1));
   Node negOne = nm->mkConst(Rational(-1));
@@ -72,7 +70,6 @@ Node StringsPreprocess::reduce(Node t,
     Node m = t[2];
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node t12 = nm->mkNode(PLUS, n, m);
-    t12 = Rewriter::rewrite(t12);
     Node lt0 = nm->mkNode(STRING_LENGTH, s);
     //start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
@@ -104,7 +101,7 @@ Node StringsPreprocess::reduce(Node t,
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
     // assert:
-    // IF    n >=0 AND n < len( s ) AND m > 0
+    // IF    n >=0 AND len( s ) > n AND m > 0
     // THEN: s = sk1 ++ skt ++ sk2 AND
     //       len( sk1 ) = n AND
     //       ( len( sk2 ) = len( s )-(n+m) OR len( sk2 ) = 0 ) AND
@@ -270,7 +267,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node u =
+        sm->mkDummySkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
 
     Node lem = nm->mkNode(GEQ, leni, one);
     conc.push_back(lem);
@@ -349,7 +347,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(s.getType());
     Node sEmpty = s.eqNode(emp);
-    Node k = nm->mkSkolem("k", nm->integerType());
+    Node k = sm->mkDummySkolem("k", nm->integerType());
     Node kc1 = nm->mkNode(GEQ, k, zero);
     Node kc2 = nm->mkNode(LT, k, lens);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
@@ -365,7 +363,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc2;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node u =
+        sm->mkDummySkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
 
     lem = stoit.eqNode(nm->mkNode(APPLY_UF, u, lens));
     conc2.push_back(lem);
@@ -417,6 +416,49 @@ Node StringsPreprocess::reduce(Node t,
     // is just an optimization.
 
     retNode = stoit;
+  }
+  else if (t.getKind() == kind::SEQ_NTH)
+  {
+    // processing term:  str.nth( s, n)
+    // similar to substr.
+    Node s = t[0];
+    Node n = t[1];
+    Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node t12 = nm->mkNode(PLUS, n, one);
+    Node lt0 = nm->mkNode(STRING_LENGTH, s);
+    // start point is greater than or equal zero
+    Node c1 = nm->mkNode(GEQ, n, zero);
+    // start point is less than end of string
+    Node c2 = nm->mkNode(GT, lt0, n);
+    // check whether this application of seq.nth is defined.
+    Node cond = nm->mkNode(AND, c1, c2);
+
+    // nodes for the case where `seq.nth` is defined.
+    Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node unit = nm->mkNode(SEQ_UNIT, skt);
+    Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
+    // length of first skolem is second argument
+    Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
+    Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, t12));
+    Node b1 = nm->mkNode(AND, b11, b12, b13);
+
+    // nodes for the case where `seq.nth` is undefined.
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
+    Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
+
+    // the full ite, split on definedness of `seq.nth`
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+
+    // assert:
+    // IF    n >=0 AND n < len( s )
+    // THEN: s = sk1 ++ unit(skt) ++ sk2 AND
+    //       len( sk1 ) = n AND
+    //       ( len( sk2 ) = len( s )- (n+1)
+    // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
+    asserts.push_back(lemma);
+    retNode = skt;
   }
   else if (t.getKind() == kind::STRING_STRREPL)
   {
@@ -492,7 +534,7 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node us =
-        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
+        sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkTypedSkolemCached(
         ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
@@ -631,7 +673,8 @@ Node StringsPreprocess::reduce(Node t,
         nm->integerType(), x, y, SkolemCache::SK_NUM_OCCUR, "numOcc");
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
-    Node us = nm->mkSkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
+    Node us =
+        sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkTypedSkolemCached(
         ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
@@ -826,7 +869,7 @@ Node StringsPreprocess::reduce(Node t,
   {
     Node ltp = sc->mkTypedSkolemCached(
         nm->booleanType(), t, SkolemCache::SK_PURIFY, "ltp");
-    Node k = nm->mkSkolem("k", nm->integerType());
+    Node k = SkolemCache::mkIndexVar(t);
 
     std::vector<Node> conj;
     conj.push_back(nm->mkNode(GEQ, k, zero));
@@ -850,6 +893,8 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(ITE, ite_ch));
 
+    Node conjn = nm->mkNode(
+        EXISTS, nm->mkNode(BOUND_VAR_LIST, k), nm->mkNode(AND, conj));
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
@@ -863,13 +908,13 @@ Node StringsPreprocess::reduce(Node t,
     // assert:
     //  IF x=y
     //  THEN: ltp
-    //  ELSE: k >= 0 AND k <= len( x ) AND k <= len( y ) AND
+    //  ELSE: exists k.
+    //        k >= 0 AND k <= len( x ) AND k <= len( y ) AND
     //        substr( x, 0, k ) = substr( y, 0, k ) AND
     //        IF    ltp
     //        THEN: str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
     //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert =
-        nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, nm->mkNode(AND, conj));
+    Node assert = nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, conjn);
     asserts.push_back(assert);
 
     // Thus, str.<=( x, y ) = ltp
@@ -895,7 +940,10 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
         Trace("strings-preprocess") << "   " << asserts[i] << std::endl;
       }
     }
-    d_statistics.d_reductions << t.getKind();
+    if (d_statReductions != nullptr)
+    {
+      (*d_statReductions) << t.getKind();
+    }
   }
   else
   {
@@ -905,25 +953,26 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
   return retNode;
 }
 
-Node StringsPreprocess::simplifyRec(Node t,
-                                    std::vector<Node>& asserts,
-                                    std::map<Node, Node>& visited)
+Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 {
-  std::map< Node, Node >::iterator it = visited.find(t);
-  if( it!=visited.end() ){
+  std::map<Node, Node>::iterator it = d_visited.find(t);
+  if (it != d_visited.end())
+  {
     return it->second;
   }else{
     Node retNode = t;
     if( t.getNumChildren()==0 ){
       retNode = simplify(t, asserts);
-    }else if( t.getKind()!=kind::FORALL ){
+    }
+    else if (!t.isClosure())
+    {
       bool changed = false;
       std::vector< Node > cc;
       if( t.getMetaKind() == kind::metakind::PARAMETERIZED ){
         cc.push_back( t.getOperator() );
       }
       for(unsigned i=0; i<t.getNumChildren(); i++) {
-        Node s = simplifyRec(t[i], asserts, visited);
+        Node s = simplifyRec(t[i], asserts);
         cc.push_back( s );
         if( s!=t[i] ) {
           changed = true;
@@ -935,59 +984,26 @@ Node StringsPreprocess::simplifyRec(Node t,
       }
       retNode = simplify(tmp, asserts);
     }
-    visited[t] = retNode;
+    d_visited[t] = retNode;
     return retNode;
   }
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
 {
-  std::map< Node, Node > visited;
   std::vector<Node> asserts_curr;
-  Node ret = simplifyRec(n, asserts_curr, visited);
+  Node ret = simplifyRec(n, asserts_curr);
   while (!asserts_curr.empty())
   {
     Node curr = asserts_curr.back();
     asserts_curr.pop_back();
     std::vector<Node> asserts_tmp;
-    curr = simplifyRec(curr, asserts_tmp, visited);
+    curr = simplifyRec(curr, asserts_tmp);
     asserts_curr.insert(
         asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end());
     asserts.push_back(curr);
   }
   return ret;
-}
-
-void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
-  std::map< Node, Node > visited;
-  for( unsigned i=0; i<vec_node.size(); i++ ){
-    Trace("strings-preprocess-debug") << "Preprocessing assertion " << vec_node[i] << std::endl;
-    //preprocess until fixed point
-    std::vector<Node> asserts;
-    std::vector<Node> asserts_curr;
-    asserts_curr.push_back(vec_node[i]);
-    while (!asserts_curr.empty())
-    {
-      Node curr = asserts_curr.back();
-      asserts_curr.pop_back();
-      std::vector<Node> asserts_tmp;
-      curr = simplifyRec(curr, asserts_tmp, visited);
-      asserts_curr.insert(
-          asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end());
-      asserts.push_back(curr);
-    }
-    Node res = asserts.size() == 1
-                   ? asserts[0]
-                   : NodeManager::currentNM()->mkNode(kind::AND, asserts);
-    if( res!=vec_node[i] ){
-      res = Rewriter::rewrite( res );
-      if (options::unsatCores())
-      {
-        ProofManager::currentPM()->addDependence(res, vec_node[i]);
-      }
-      vec_node[i] = res;
-    }
-  }
 }
 
 Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
@@ -1001,7 +1017,8 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   }
   else
   {
-    qvar = nm->mkSkolem("qinternal", nm->booleanType());
+    SkolemManager* sm = nm->getSkolemManager();
+    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
     // this dummy variable marks that the quantified formula is internal
     qvar.setAttribute(InternalQuantAttribute(), true);
     // remember the dummy variable
@@ -1014,6 +1031,6 @@ Node StringsPreprocess::mkForallInternal(Node bvl, Node body)
   return nm->mkNode(FORALL, bvl, body, ipl);
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

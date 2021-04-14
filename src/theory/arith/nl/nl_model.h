@@ -1,36 +1,42 @@
-/*********************                                                        */
-/*! \file nl_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model object for the non-linear extension class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model object for the non-linear extension class.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#ifndef CVC5__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC5__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>
 #include <vector>
 
-#include "context/cdo.h"
-#include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+namespace context {
+class Context;
+}
+
 namespace theory {
+
+class TheoryModel;
+
 namespace arith {
 namespace nl {
 
+class NlLemma;
 class NonlinearExtension;
 
 /** Non-linear model finder
@@ -154,8 +160,7 @@ class NlModel
    */
   bool checkModel(const std::vector<Node>& assertions,
                   unsigned d,
-                  std::vector<NlLemma>& lemmas,
-                  std::vector<Node>& gs);
+                  std::vector<NlLemma>& lemmas);
   /**
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that
@@ -195,7 +200,7 @@ class NlModel
   /** The current model */
   TheoryModel* d_model;
   /** Get the model value of n from the model object above */
-  Node getValueInternal(Node n) const;
+  Node getValueInternal(Node n);
   /** Does the equality engine of the model have term n? */
   bool hasTerm(Node n) const;
   /** Get the representative of n in the model */
@@ -263,8 +268,10 @@ class NlModel
   Node d_null;
   /**
    * The values that the arithmetic theory solver assigned in the model. This
-   * corresponds to exactly the set of equalities that TheoryArith is currently
-   * sending to TheoryModel during collectModelInfo.
+   * corresponds to the set of equalities that linear solver (via TheoryArith)
+   * is currently sending to TheoryModel during collectModelValues, plus
+   * additional entries x -> 0 for variables that were unassigned by the linear
+   * solver.
    */
   std::map<Node, Node> d_arithVal;
   /**
@@ -323,6 +330,6 @@ class NlModel
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

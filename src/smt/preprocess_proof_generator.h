@@ -1,36 +1,50 @@
-/*********************                                                        */
-/*! \file preprocess_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for proofs for preprocessing in an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for proofs for preprocessing in an SMT engine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-#define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
+#ifndef CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
+#define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 
-#include <map>
-
+#include "context/cdhashmap.h"
+#include "expr/lazy_proof.h"
+#include "expr/proof.h"
+#include "expr/proof_set.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class LazyCDProof;
+class ProofNodeManager;
+
 namespace smt {
 
 /**
- * A proof generator storing proofs of preprocessing. This has two main
- * interfaces during solving:
+ * This is a proof generator that manages proofs for a set of formulas that
+ * may be replaced over time. This set of formulas is implicit; formulas that
+ * are not notified as assertions to this class are treated as assumptions.
+ *
+ * The main use case of this proof generator is for proofs of preprocessing,
+ * although it can be used in other scenarios where proofs for an evolving set
+ * of formulas is maintained. In the remainder of the description here, we
+ * describe its role as a proof generator for proofs of preprocessing.
+ *
+ * This class has two main interfaces during solving:
  * (1) notifyNewAssert, for assertions that are not part of the input and are
- * added by preprocessing passes,
+ * added to the assertion pipeline by preprocessing passes,
  * (2) notifyPreprocessed, which is called when a preprocessing pass rewrites
  * an assertion into another.
  * Notice that input assertions do not need to be provided to this class.
@@ -41,18 +55,42 @@ namespace smt {
  */
 class PreprocessProofGenerator : public ProofGenerator
 {
+  typedef context::CDHashMap<Node, theory::TrustNode, NodeHashFunction>
+      NodeTrustNodeMap;
+
  public:
-  PreprocessProofGenerator(ProofNodeManager* pnm);
+  /**
+   * @param pnm The proof node manager
+   * @param c The context this class depends on
+   * @param name The name of this generator (for debugging)
+   * @param ra The proof rule to use when no generator is provided for new
+   * assertions
+   * @param rpp The proof rule to use when no generator is provided for
+   * preprocessing steps.
+   */
+  PreprocessProofGenerator(ProofNodeManager* pnm,
+                           context::Context* c = nullptr,
+                           std::string name = "PreprocessProofGenerator",
+                           PfRule ra = PfRule::PREPROCESS_LEMMA,
+                           PfRule rpp = PfRule::PREPROCESS);
   ~PreprocessProofGenerator() {}
+  /**
+   * Notify that n is an input (its proof is ASSUME).
+   */
+  void notifyInput(Node n);
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
    */
   void notifyNewAssert(Node n, ProofGenerator* pg);
+  /**  Notify a new assertion, trust node version. */
+  void notifyNewTrustedAssert(theory::TrustNode tn);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
+  /** Notify preprocessed, trust node version */
+  void notifyTrustedPreprocessed(theory::TrustNode tnp);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
@@ -61,10 +99,28 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
+  /** Get the proof manager */
+  ProofNodeManager* getManager();
+  /**
+   * Allocate a helper proof. This returns a fresh lazy proof object that
+   * remains alive in the context. This feature is used to construct
+   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
+   * that connect AssertionPipeline::conjoin steps.
+   */
+  LazyCDProof* allocateHelperProof();
 
  private:
+  /**
+   * Possibly check pedantic failure for null proof generator provided
+   * to this class.
+   */
+  void checkEagerPedantic(PfRule r);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
+  /** The context used here */
+  context::Context* d_ctx;
   /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
@@ -72,10 +128,23 @@ class PreprocessProofGenerator : public ProofGenerator
    * (1) A trust node REWRITE proving (n_src = n) for some n_src, or
    * (2) A trust node LEMMA proving n.
    */
-  std::map<Node, theory::TrustNode> d_src;
+  NodeTrustNodeMap d_src;
+  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
+  CDProofSet<LazyCDProof> d_helperProofs;
+  /**
+   * A cd proof for input assertions, this is an empty proof that intentionally
+   * returns (ASSUME f) for all f.
+   */
+  CDProof d_inputPf;
+  /** Name for debugging */
+  std::string d_name;
+  /** The trust rule for new assertions with no provided proof generator */
+  PfRule d_ra;
+  /** The trust rule for rewrites with no provided proof generator */
+  PfRule d_rpp;
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

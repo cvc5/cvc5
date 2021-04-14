@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp --no-produce-proofs
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)

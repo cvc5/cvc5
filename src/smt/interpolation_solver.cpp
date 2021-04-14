@@ -1,18 +1,21 @@
-/*********************                                                        */
-/*! \file interpolation_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for interpolation queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for interpolation queries.
+ */
 
 #include "smt/interpolation_solver.h"
+
+#include <sstream>
 
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
@@ -21,9 +24,9 @@
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 
-using namespace CVC4::theory;
+using namespace cvc5::theory;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 InterpolationSolver::InterpolationSolver(SmtEngine* parent) : d_parent(parent)
@@ -44,23 +47,18 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: conjecture " << conj
                           << std::endl;
-  std::vector<Expr> easserts = d_parent->getExpandedAssertions();
-  std::vector<Node> axioms;
-  for (unsigned i = 0, size = easserts.size(); i < size; i++)
-  {
-    axioms.push_back(Node::fromExpr(easserts[i]));
-  }
+  std::vector<Node> axioms = d_parent->getExpandedAssertions();
   // must expand definitions
   Node conjn = d_parent->expandDefinitions(conj);
   std::string name("A");
 
   quantifiers::SygusInterpol interpolSolver;
-  if (interpolSolver.SolveInterpolation(
+  if (interpolSolver.solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
     if (options::checkInterpols())
     {
-      checkInterpol(interpol.toExpr(), easserts, conj);
+      checkInterpol(interpol, axioms, conj);
     }
     return true;
   }
@@ -73,8 +71,8 @@ bool InterpolationSolver::getInterpol(const Node& conj, Node& interpol)
   return getInterpol(conj, grammarType, interpol);
 }
 
-void InterpolationSolver::checkInterpol(Expr interpol,
-                                        const std::vector<Expr>& easserts,
+void InterpolationSolver::checkInterpol(Node interpol,
+                                        const std::vector<Node>& easserts,
                                         const Node& conj)
 {
   Assert(interpol.getType().isBoolean());
@@ -86,8 +84,8 @@ void InterpolationSolver::checkInterpol(Expr interpol,
   {
     if (j == 1)
     {
-      Trace("check-interpol") << "SmtEngine::checkInterpol: conjecture is "
-                              << conj.toExpr() << std::endl;
+      Trace("check-interpol")
+          << "SmtEngine::checkInterpol: conjecture is " << conj << std::endl;
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": make new SMT engine" << std::endl;
@@ -98,18 +96,18 @@ void InterpolationSolver::checkInterpol(Expr interpol,
                             << ": asserting formulas" << std::endl;
     if (j == 0)
     {
-      for (const Expr& e : easserts)
+      for (const Node& e : easserts)
       {
         itpChecker->assertFormula(e);
       }
-      Expr negitp = interpol.notExpr();
+      Node negitp = interpol.notNode();
       itpChecker->assertFormula(negitp);
     }
     else
     {
       itpChecker->assertFormula(interpol);
       Assert(!conj.isNull());
-      itpChecker->assertFormula(conj.toExpr().notExpr());
+      itpChecker->assertFormula(conj.notNode());
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": check the assertions" << std::endl;
@@ -139,4 +137,4 @@ void InterpolationSolver::checkInterpol(Expr interpol,
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

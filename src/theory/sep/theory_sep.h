@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file theory_sep.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of sep
- **
- ** Theory of sep.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of separation logic.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SEP__THEORY_SEP_H
-#define CVC4__THEORY__SEP__THEORY_SEP_H
+#ifndef CVC5__THEORY__SEP__THEORY_SEP_H
+#define CVC5__THEORY__SEP__THEORY_SEP_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/decision_strategy.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
@@ -54,7 +55,7 @@ class TheorySep : public Theory {
 
   /** True node for predicates = false */
   Node d_false;
-  
+
   //whether bounds have been initialized
   bool d_bounds_init;
 
@@ -66,9 +67,14 @@ class TheorySep : public Theory {
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
-  int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
-                        std::map< int, std::map< Node, std::vector< Node > > >& references, std::map< int, std::map< Node, bool > >& references_strict,
-                        bool pol, bool hasPol, bool underSpatial );
+  int processAssertion(
+      Node n,
+      std::map<int, std::map<Node, int> >& visited,
+      std::map<int, std::map<Node, std::vector<Node> > >& references,
+      std::map<int, std::map<Node, bool> >& references_strict,
+      bool pol,
+      bool hasPol,
+      bool underSpatial);
 
  public:
   TheorySep(context::Context* c,
@@ -79,9 +85,20 @@ class TheorySep : public Theory {
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
+  /**
+   * Declare heap. For smt2 inputs, this is called when the command
+   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
+   * location type and dataT is the data type for the heap. This command can be
+   * executed once only, and must be invoked before solving separation logic
+   * inputs.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT) override;
+
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -91,6 +108,8 @@ class TheorySep : public Theory {
   /** finish initialization */
   void finishInit() override;
   //--------------------------------- end initialization
+  /** preregister term */
+  void preRegisterTerm(TNode n) override;
 
   std::string identify() const override { return std::string("TheorySep"); }
 
@@ -99,8 +118,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
@@ -244,11 +261,10 @@ class TheorySep : public Theory {
   enum {
     bound_strict,
     bound_default,
-    bound_herbrand,
     bound_invalid,
   };
   std::map< TypeNode, unsigned > d_bound_kind;
-  
+
   std::map< TypeNode, std::vector< Node > > d_type_references_card;
   std::map< Node, unsigned > d_type_ref_card_id;
   std::map< TypeNode, std::vector< Node > > d_type_references_all;
@@ -276,7 +292,19 @@ class TheorySep : public Theory {
   //get global reference/data type
   TypeNode getReferenceType( Node n );
   TypeNode getDataType( Node n );
-  void registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom );
+  /**
+   * Register reference data types for atom. Calls the method below for
+   * the appropriate types.
+   */
+  void registerRefDataTypesAtom(Node atom);
+  /**
+   * This is called either when:
+   * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
+   * (B) an atom specifying the heap type tn1/tn2 is registered to this theory.
+   * We set the heap type if we are are case (A), and check whether the
+   * heap type is consistent in the case of (B).
+   */
+  void registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom);
   //get location/data type
   //get the base label for the spatial assertion
   Node getBaseLabel( TypeNode tn );
@@ -306,8 +334,15 @@ class TheorySep : public Theory {
   void addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity );
   void mergePto( Node p1, Node p2 );
   void computeLabelModel( Node lbl );
-  Node instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std::map< Node, Node >& visited, std::map< Node, Node >& pto_model, 
-                         TypeNode rtn, std::map< Node, bool >& active_lbl, unsigned ind = 0 );
+  Node instantiateLabel(Node n,
+                        Node o_lbl,
+                        Node lbl,
+                        Node lbl_v,
+                        std::map<Node, Node>& visited,
+                        std::map<Node, Node>& pto_model,
+                        TypeNode rtn,
+                        std::map<Node, bool>& active_lbl,
+                        unsigned ind = 0);
   void setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active );
 
   Node mkUnion( TypeNode tn, std::vector< Node >& locs );
@@ -319,7 +354,7 @@ class TheorySep : public Theory {
   bool areDisequal( Node a, Node b );
   void eqNotifyMerge(TNode t1, TNode t2);
 
-  void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
+  void sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer = false );
   void doPending();
 
  public:
@@ -327,8 +362,8 @@ class TheorySep : public Theory {
   void initializeBounds();
 };/* class TheorySep */
 
-}/* CVC4::theory::sep namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sep
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SEP__THEORY_SEP_H */
+#endif /* CVC5__THEORY__SEP__THEORY_SEP_H */

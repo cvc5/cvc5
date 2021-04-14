@@ -1,13 +1,13 @@
 ; COMMAND-LINE: --sets-ext
-; EXPECT: unsat
+; EXPECT: sat
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 (declare-fun a () (Set Real))
 
 (declare-fun x () Real)
 
-(assert (= (as univset (Set Real)) (as univset (Set Int))))
+(assert (= (as univset (Set Real)) (as univset (Set Real))))
 
 (assert (member x a))
 

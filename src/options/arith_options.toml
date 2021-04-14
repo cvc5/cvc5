@@ -433,7 +433,6 @@ header = "options/arith_options.h"
   long       = "nl-ext"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "incremental linearization approach to non-linear"
 
 [[option]]
@@ -460,7 +459,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
@@ -567,6 +565,14 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
+
+[[option]]
+  name       = "nlCadUseInitial"
+  category   = "regular"
+  long       = "nl-cad-initial"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
 
 [[option]]
   name       = "nlICP"

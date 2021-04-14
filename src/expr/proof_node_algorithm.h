@@ -1,28 +1,31 @@
-/*********************                                                        */
-/*! \file proof_node_algorithm.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof node algorithm utilities.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof node algorithm utilities.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_ALGORITHM_H
-#define CVC4__EXPR__PROOF_NODE_ALGORITHM_H
+#ifndef CVC5__EXPR__PROOF_NODE_ALGORITHM_H
+#define CVC5__EXPR__PROOF_NODE_ALGORITHM_H
 
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNode;
+
 namespace expr {
 
 /**
@@ -53,7 +56,21 @@ void getFreeAssumptionsMap(
     std::shared_ptr<ProofNode> pn,
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
-}  // namespace expr
-}  // namespace CVC4
+/**
+ * @return true if pn contains pnc.
+ */
+bool containsSubproof(ProofNode* pn, ProofNode* pnc);
 
-#endif /* CVC4__EXPR__PROOF_NODE_ALGORITHM_H */
+/**
+ * Same as above, with a visited cache.
+ *
+ * @return true if pn contains pnc.
+ */
+bool containsSubproof(ProofNode* pn,
+                      ProofNode* pnc,
+                      std::unordered_set<const ProofNode*>& visited);
+
+}  // namespace expr
+}  // namespace cvc5
+
+#endif /* CVC5__EXPR__PROOF_NODE_ALGORITHM_H */

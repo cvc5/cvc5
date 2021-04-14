@@ -1,19 +1,17 @@
-/*********************                                                        */
-/*! \file theory_fp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of floating-point arithmetic.
+ */
 
 #include "theory/fp/theory_fp.h"
 
@@ -22,14 +20,19 @@
 #include <unordered_set>
 #include <vector>
 
+#include "base/configuration.h"
+#include "expr/skolem_manager.h"
 #include "options/fp_options.h"
+#include "smt/logic_exception.h"
+#include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
+#include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -87,7 +90,7 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
   } else {
     // \todo see bv::utils::flattenAnd
 
-    NodeBuilder<> conjunction(kind::AND);
+    NodeBuilder conjunction(kind::AND);
     for (std::vector<TNode>::const_iterator it = assumptions.begin();
          it != assumptions.end(); ++it) {
       conjunction << *it;
@@ -108,24 +111,27 @@ TheoryFp::TheoryFp(context::Context* c,
     : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
       d_notification(*this),
       d_registeredTerms(u),
-      d_conv(u),
+      d_conv(new FpConverter(u)),
       d_expansionRequested(false),
-      d_conflictNode(c, Node::null()),
       d_minMap(u),
       d_maxMap(u),
       d_toUBVMap(u),
       d_toSBVMap(u),
       d_toRealMap(u),
-      realToFloatMap(u),
-      floatToRealMap(u),
-      abstractionMap(u),
-      d_state(c, u, valuation)
+      d_realToFloatMap(u),
+      d_floatToRealMap(u),
+      d_abstractionMap(u),
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm, "theory::fp", false)
 {
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 } /* TheoryFp::TheoryFp() */
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
 
 bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -198,6 +204,7 @@ Node TheoryFp::minUF(Node node) {
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_minMap.find(t));
 
   Node fun;
@@ -205,16 +212,16 @@ Node TheoryFp::minUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = t;
     args[1] = t;
-    fun = nm->mkSkolem("floatingpoint_min_zero_case",
-                       nm->mkFunctionType(args,
+    fun = sm->mkDummySkolem("floatingpoint_min_zero_case",
+                            nm->mkFunctionType(args,
 #ifdef SYMFPUPROPISBOOL
-                                          nm->booleanType()
+                                               nm->booleanType()
 #else
-                                          nm->mkBitVectorType(1U)
+                                               nm->mkBitVectorType(1U)
 #endif
-                                              ),
-                       "floatingpoint_min_zero_case",
-                       NodeManager::SKOLEM_EXACT_NAME);
+                                                   ),
+                            "floatingpoint_min_zero_case",
+                            NodeManager::SKOLEM_EXACT_NAME);
     d_minMap.insert(t, fun);
   } else {
     fun = (*i).second;
@@ -229,6 +236,7 @@ Node TheoryFp::maxUF(Node node) {
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_maxMap.find(t));
 
   Node fun;
@@ -236,16 +244,16 @@ Node TheoryFp::maxUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = t;
     args[1] = t;
-    fun = nm->mkSkolem("floatingpoint_max_zero_case",
-                       nm->mkFunctionType(args,
+    fun = sm->mkDummySkolem("floatingpoint_max_zero_case",
+                            nm->mkFunctionType(args,
 #ifdef SYMFPUPROPISBOOL
-                                          nm->booleanType()
+                                               nm->booleanType()
 #else
-                                          nm->mkBitVectorType(1U)
+                                               nm->mkBitVectorType(1U)
 #endif
-                                              ),
-                       "floatingpoint_max_zero_case",
-                       NodeManager::SKOLEM_EXACT_NAME);
+                                                   ),
+                            "floatingpoint_max_zero_case",
+                            NodeManager::SKOLEM_EXACT_NAME);
     d_maxMap.insert(t, fun);
   } else {
     fun = (*i).second;
@@ -264,6 +272,7 @@ Node TheoryFp::toUBVUF(Node node) {
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   ConversionUFMap::const_iterator i(d_toUBVMap.find(p));
 
   Node fun;
@@ -271,10 +280,10 @@ Node TheoryFp::toUBVUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = nm->roundingModeType();
     args[1] = source;
-    fun = nm->mkSkolem("floatingpoint_to_ubv_out_of_range_case",
-                       nm->mkFunctionType(args, target),
-                       "floatingpoint_to_ubv_out_of_range_case",
-                       NodeManager::SKOLEM_EXACT_NAME);
+    fun = sm->mkDummySkolem("floatingpoint_to_ubv_out_of_range_case",
+                            nm->mkFunctionType(args, target),
+                            "floatingpoint_to_ubv_out_of_range_case",
+                            NodeManager::SKOLEM_EXACT_NAME);
     d_toUBVMap.insert(p, fun);
   } else {
     fun = (*i).second;
@@ -293,6 +302,7 @@ Node TheoryFp::toSBVUF(Node node) {
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   ConversionUFMap::const_iterator i(d_toSBVMap.find(p));
 
   Node fun;
@@ -300,10 +310,10 @@ Node TheoryFp::toSBVUF(Node node) {
     std::vector<TypeNode> args(2);
     args[0] = nm->roundingModeType();
     args[1] = source;
-    fun = nm->mkSkolem("floatingpoint_to_sbv_out_of_range_case",
-                       nm->mkFunctionType(args, target),
-                       "floatingpoint_to_sbv_out_of_range_case",
-                       NodeManager::SKOLEM_EXACT_NAME);
+    fun = sm->mkDummySkolem("floatingpoint_to_sbv_out_of_range_case",
+                            nm->mkFunctionType(args, target),
+                            "floatingpoint_to_sbv_out_of_range_case",
+                            NodeManager::SKOLEM_EXACT_NAME);
     d_toSBVMap.insert(p, fun);
   } else {
     fun = (*i).second;
@@ -317,16 +327,17 @@ Node TheoryFp::toRealUF(Node node) {
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   ComparisonUFMap::const_iterator i(d_toRealMap.find(t));
 
   Node fun;
   if (i == d_toRealMap.end()) {
     std::vector<TypeNode> args(1);
     args[0] = t;
-    fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
-                       nm->mkFunctionType(args, nm->realType()),
-                       "floatingpoint_to_real_infinity_and_NaN_case",
-                       NodeManager::SKOLEM_EXACT_NAME);
+    fun = sm->mkDummySkolem("floatingpoint_to_real_infinity_and_NaN_case",
+                            nm->mkFunctionType(args, nm->realType()),
+                            "floatingpoint_to_real_infinity_and_NaN_case",
+                            NodeManager::SKOLEM_EXACT_NAME);
     d_toRealMap.insert(t, fun);
   } else {
     fun = (*i).second;
@@ -341,19 +352,20 @@ Node TheoryFp::abstractRealToFloat(Node node)
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
-  ComparisonUFMap::const_iterator i(realToFloatMap.find(t));
+  SkolemManager* sm = nm->getSkolemManager();
+  ComparisonUFMap::const_iterator i(d_realToFloatMap.find(t));
 
   Node fun;
-  if (i == realToFloatMap.end())
+  if (i == d_realToFloatMap.end())
   {
     std::vector<TypeNode> args(2);
     args[0] = node[0].getType();
     args[1] = node[1].getType();
-    fun = nm->mkSkolem("floatingpoint_abstract_real_to_float",
-                       nm->mkFunctionType(args, node.getType()),
-                       "floatingpoint_abstract_real_to_float",
-                       NodeManager::SKOLEM_EXACT_NAME);
-    realToFloatMap.insert(t, fun);
+    fun = sm->mkDummySkolem("floatingpoint_abstract_real_to_float",
+                            nm->mkFunctionType(args, node.getType()),
+                            "floatingpoint_abstract_real_to_float",
+                            NodeManager::SKOLEM_EXACT_NAME);
+    d_realToFloatMap.insert(t, fun);
   }
   else
   {
@@ -361,7 +373,7 @@ Node TheoryFp::abstractRealToFloat(Node node)
   }
   Node uf = nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
 
-  abstractionMap.insert(uf, node);
+  d_abstractionMap.insert(uf, node);
 
   return uf;
 }
@@ -373,19 +385,20 @@ Node TheoryFp::abstractFloatToReal(Node node)
   Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
-  ComparisonUFMap::const_iterator i(floatToRealMap.find(t));
+  SkolemManager* sm = nm->getSkolemManager();
+  ComparisonUFMap::const_iterator i(d_floatToRealMap.find(t));
 
   Node fun;
-  if (i == floatToRealMap.end())
+  if (i == d_floatToRealMap.end())
   {
     std::vector<TypeNode> args(2);
     args[0] = t;
     args[1] = nm->realType();
-    fun = nm->mkSkolem("floatingpoint_abstract_float_to_real",
-                       nm->mkFunctionType(args, nm->realType()),
-                       "floatingpoint_abstract_float_to_real",
-                       NodeManager::SKOLEM_EXACT_NAME);
-    floatToRealMap.insert(t, fun);
+    fun = sm->mkDummySkolem("floatingpoint_abstract_float_to_real",
+                            nm->mkFunctionType(args, nm->realType()),
+                            "floatingpoint_abstract_float_to_real",
+                            NodeManager::SKOLEM_EXACT_NAME);
+    d_floatToRealMap.insert(t, fun);
   }
   else
   {
@@ -393,7 +406,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   }
   Node uf = nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
 
-  abstractionMap.insert(uf, node);
+  d_abstractionMap.insert(uf, node);
 
   return uf;
 }
@@ -450,9 +463,15 @@ TrustNode TheoryFp::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(node);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
 
   Node res = node;
 
@@ -589,7 +608,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(roundTowardPositive),
+                     nm->mkConst(ROUND_TOWARD_POSITIVE),
                      abstractValue));
 
       Node bg = nm->mkNode(
@@ -606,7 +625,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
-                     nm->mkConst(roundTowardNegative),
+                     nm->mkConst(ROUND_TOWARD_NEGATIVE),
                      abstractValue));
 
       Node bl = nm->mkNode(
@@ -737,9 +756,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
 void TheoryFp::convertAndEquateTerm(TNode node) {
   Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
-  size_t oldAdditionalAssertions = d_conv.d_additionalAssertions.size();
+  size_t oldAdditionalAssertions = d_conv->d_additionalAssertions.size();
 
-  Node converted(d_conv.convert(node));
+  Node converted(d_conv->convert(node));
 
   if (converted != node) {
     Debug("fp-convertTerm")
@@ -748,11 +767,11 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
         << "TheoryFp::convertTerm(): after  " << converted << std::endl;
   }
 
-  size_t newAdditionalAssertions = d_conv.d_additionalAssertions.size();
+  size_t newAdditionalAssertions = d_conv->d_additionalAssertions.size();
   Assert(oldAdditionalAssertions <= newAdditionalAssertions);
 
   while (oldAdditionalAssertions < newAdditionalAssertions) {
-    Node addA = d_conv.d_additionalAssertions[oldAdditionalAssertions];
+    Node addA = d_conv->d_additionalAssertions[oldAdditionalAssertions];
 
     Debug("fp-convertTerm") << "TheoryFp::convertTerm(): additional assertion  "
                             << addA << std::endl;
@@ -763,7 +782,7 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
     NodeManager *nm = NodeManager::currentNM();
 
     handleLemma(
-        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::CVC4::BitVector(1U, 1U))));
+        nm->mkNode(kind::EQUAL, addA, nm->mkConst(::cvc5::BitVector(1U, 1U))));
 #endif
 
     ++oldAdditionalAssertions;
@@ -780,10 +799,11 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
 #ifdef SYMFPUPROPISBOOL
       handleLemma(nm->mkNode(kind::EQUAL, node, converted));
 #else
-      handleLemma(
-          nm->mkNode(kind::EQUAL, node,
-                     nm->mkNode(kind::EQUAL, converted,
-                                nm->mkConst(::CVC4::BitVector(1U, 1U)))));
+      handleLemma(nm->mkNode(
+          kind::EQUAL,
+          node,
+          nm->mkNode(
+              kind::EQUAL, converted, nm->mkConst(::cvc5::BitVector(1U, 1U)))));
 #endif
 
     } else {
@@ -907,41 +927,32 @@ void TheoryFp::preRegisterTerm(TNode node)
   return;
 }
 
-void TheoryFp::handleLemma(Node node) {
+void TheoryFp::handleLemma(Node node, InferenceId id)
+{
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-  // Preprocess has to be true because it contains embedded ITEs
-  d_out->lemma(node, LemmaProperty::PREPROCESS);
-  // Ignore the LemmaStatus structure for now...
-
-  return;
+  // will be preprocessed when sent, which is important because it contains
+  // embedded ITEs
+  d_im.lemma(node, id);
 }
 
 bool TheoryFp::propagateLit(TNode node)
 {
   Trace("fp") << "TheoryFp::propagateLit(): propagate " << node << std::endl;
-
-  bool stat = d_out->propagate(node);
-
-  if (!stat)
-  {
-    d_state.notifyInConflict();
-  }
-  return stat;
+  return d_im.propagateLit(node);
 }
 
 void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
 {
-  std::vector<TNode> assumptions;
-  d_equalityEngine->explainEquality(t1, t2, true, assumptions);
+  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected"
+              << std::endl;
+  d_im.conflictEqConstantMerge(t1, t2);
+}
 
-  Node conflict = helper::buildConjunct(assumptions);
-  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected "
-              << conflict << std::endl;
-
-  d_conflictNode = conflict;
-  d_state.notifyInConflict();
-  d_out->conflict(conflict);
-  return;
+bool TheoryFp::needsCheckLastEffort()
+{
+  // only need to check if we have added to the abstraction map, otherwise
+  // postCheck below is a no-op.
+  return !d_abstractionMap.empty();
 }
 
 void TheoryFp::postCheck(Effort level)
@@ -953,8 +964,8 @@ void TheoryFp::postCheck(Effort level)
     TheoryModel* m = getValuation().getModel();
     bool lemmaAdded = false;
 
-    for (abstractionMapType::const_iterator i = abstractionMap.begin();
-         i != abstractionMap.end();
+    for (AbstractionMap::const_iterator i = d_abstractionMap.begin();
+         i != d_abstractionMap.end();
          ++i)
     {
       if (m->hasTerm((*i).first))
@@ -1016,15 +1027,12 @@ TrustNode TheoryFp::explain(TNode n)
 }
 
 Node TheoryFp::getModelValue(TNode var) {
-  return d_conv.getValue(d_valuation, var);
+  return d_conv->getValue(d_valuation, var);
 }
 
-bool TheoryFp::collectModelInfo(TheoryModel* m)
+bool TheoryFp::collectModelInfo(TheoryModel* m,
+                                const std::set<Node>& relevantTerms)
 {
-  std::set<Node> relevantTerms;
-  // Work out which variables are needed
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  computeAssertedTerms(relevantTerms, irrKinds);
   // this override behavior to not assert equality engine
   return collectModelValues(m, relevantTerms);
 }
@@ -1072,14 +1080,16 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
   }
 
   for (std::set<TNode>::const_iterator i(relevantVariables.begin());
-       i != relevantVariables.end(); ++i) {
+       i != relevantVariables.end();
+       ++i)
+  {
     TNode node = *i;
 
     Trace("fp-collectModelInfo")
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
 
-    if (!m->assertEquality(node, d_conv.getValue(d_valuation, node), true))
+    if (!m->assertEquality(node, d_conv->getValue(d_valuation, node), true))
     {
       return false;
     }
@@ -1154,4 +1164,4 @@ void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

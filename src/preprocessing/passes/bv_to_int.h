@@ -1,82 +1,80 @@
-/*********************                                                        */
-/*! \file bv_to_int.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BVToInt preprocessing pass
- **
- ** Converts bit-vector formulas to integer formulas.
- ** The conversion is implemented using a translation function Tr,
- ** roughly described as follows:
- **
- ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
- **         integer variable.
- ** Tr(c) = the integer value of c, for any bit-vector constant c.
- ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
- **         s and t.
- ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
- **         bvnot, bvconcat, bvextract
- ** Tr((_ zero_extend m) x) = Tr(x)
- ** Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
- ** explanation: if the msb is 0, this is the same as zero_extend,
- ** which does not change the integer value.
- ** If the msb is 1, then the result should correspond to
- ** concat(1...1, x), with m 1's.
- ** m 1's is 2^m-1, and multiplying it by x's width (k) moves it
- ** to the front.
- **
- ** Tr((bvand s t)) depends on the granularity, which is provided by the user
- ** when enabling this preprocessing pass.
- ** We divide s and t to blocks.
- ** The size of each block is the granularity, and so the number of
- ** blocks is:
- ** bit width/granularity (rounded down).
- ** We create an ITE that represents an arbitrary block,
- ** and then create a sum by mutiplying each block by the
- ** appropriate power of two.
- ** More formally:
- ** Let g denote the granularity.
- ** Let k denote the bit width of s and t.
- ** Let b denote floor(k/g) if k >= g, or just k otherwise.
- ** Tr((bvand s t)) =
- ** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
- **
- ** More details and examples for this case are described next to
- ** the function createBitwiseNode.
- ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
- **
- ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
- **         a and b, and ITE represents exponentiation up to k, that is:
- ** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
- ** Similar transformations are done for bvlshr.
- **
- ** Tr(a=b) = Tr(a)=Tr(b)
- ** Tr((bvult a b)) = Tr(a) < Tr(b)
- ** Similar transformations are done for bvule, bvugt, and bvuge.
- **
- ** Bit-vector operators that are not listed above are either eliminated using
- ** the function eliminationPass, or are not supported.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Gereon Kremer, Makai Mann
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BVToInt preprocessing pass
+ *
+ * Converts bit-vector formulas to integer formulas.
+ * The conversion is implemented using a translation function Tr,
+ * roughly described as follows:
+ *
+ * Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
+ *         integer variable.
+ * Tr(c) = the integer value of c, for any bit-vector constant c.
+ * Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
+ *         s and t.
+ * Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
+ *         bvnot, bvconcat, bvextract
+ * Tr((_ zero_extend m) x) = Tr(x)
+ * Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
+ * explanation: if the msb is 0, this is the same as zero_extend,
+ * which does not change the integer value.
+ * If the msb is 1, then the result should correspond to
+ * concat(1...1, x), with m 1's.
+ * m 1's is 2^m-1, and multiplying it by x's width (k) moves it
+ * to the front.
+ *
+ * Tr((bvand s t)) depends on the granularity, which is provided by the user
+ * when enabling this preprocessing pass.
+ * We divide s and t to blocks.
+ * The size of each block is the granularity, and so the number of
+ * blocks is:
+ * bit width/granularity (rounded down).
+ * We create an ITE that represents an arbitrary block,
+ * and then create a sum by mutiplying each block by the
+ * appropriate power of two.
+ * More formally:
+ * Let g denote the granularity.
+ * Let k denote the bit width of s and t.
+ * Let b denote floor(k/g) if k >= g, or just k otherwise.
+ * Tr((bvand s t)) =
+ * Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
+ *
+ * Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
+ *
+ * Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
+ *         a and b, and ITE represents exponentiation up to k, that is:
+ * ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
+ * Similar transformations are done for bvlshr.
+ *
+ * Tr(a=b) = Tr(a)=Tr(b)
+ * Tr((bvult a b)) = Tr(a) < Tr(b)
+ * Similar transformations are done for bvule, bvugt, and bvuge.
+ *
+ * Bit-vector operators that are not listed above are either eliminated using
+ * the function eliminationPass, or are not supported.
+ *
+ */
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
-#define __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
+#ifndef __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
+#define __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
 
 #include "context/cdhashmap.h"
-#include "context/cdo.h"
-#include "context/context.h"
+#include "context/cdhashset.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/arith/nl/iand_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -90,79 +88,6 @@ class BVToInt : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
-  /**
-   * A generic function that creates a node that represents a bitwise
-   * operation.
-   *
-   * For example: Suppose bvsize is 4, granularity is 1, and f(x,y) = x && y.
-   * Denote by ITE(a,b) the term: ite(a==0, 0, ite(b==1, 1, 0)).
-   * The result of this function would be:
-   * ITE(x[0], y[0])*2^0 + ... + ITE(x[3], y[3])*2^3
-   *
-   * For another example: Suppose bvsize is 4, granularity is 2,
-   * and f(x,y) = x && y.
-   * Denote by ITE(a,b) the term that corresponds to the following table:
-   * a | b |  ITE(a,b)
-   * ----------------
-   * 0 | 0 | 0
-   * 0 | 1 | 0
-   * 0 | 2 | 0
-   * 0 | 3 | 0
-   * 1 | 0 | 0
-   * 1 | 1 | 1
-   * 1 | 2 | 0
-   * 1 | 3 | 1
-   * 2 | 0 | 0
-   * 2 | 1 | 0
-   * 2 | 2 | 2
-   * 2 | 3 | 2
-   * 3 | 0 | 0
-   * 3 | 1 | 1
-   * 3 | 2 | 2
-   * 3 | 3 | 3
-   *
-   * For example, 2 in binary is 10 and 1 in binary is 01, and so doing
-   * "bitwise f" on them gives 00.
-   * The result of this function would be:
-   * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
-   *
-   *
-   * @param x is an integer operand that correspond to the first original
-   *        bit-vector operand.
-   * @param y is an integer operand that correspond to the second original
-   *        bit-vector operand.
-   * @param bvsize is the bit width of the original bit-vector variables.
-   * @param granularity is specified in the options for this preprocessing
-   *        pass.
-   * @param f is a pointer to a boolean function that corresponds
-   *        to the original bitwise operation.
-   * @return A node that represents the operation, as described above.
-   */
-  Node createBitwiseNode(Node x,
-                         Node y,
-                         uint64_t bvsize,
-                         uint64_t granularity,
-                         bool (*f)(bool, bool));
-
-  /**
-   * A helper function for createBitwiseNode
-   * @param x integer node corresponding to the original first bit-vector
-   *        argument
-   * @param y integer node corresponding to the original second bit-vector
-   *        argument nodes.
-   * @param granularity the bitwidth of the original bit-vector nodes.
-   * @param table a function from pairs of integers to integers.
-   *        The domain of this function consists of pairs of
-   *        integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
-   * @return An ite term that represents this table.
-   */
-  Node createITEFromTable(
-      Node x,
-      Node y,
-      uint64_t granularity,
-      std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
-
   /**
    * A generic function that creates a logical shift node (either left or
    * right). a << b gets translated to a * 2^b mod 2^k, where k is the bit
@@ -178,7 +103,7 @@ class BVToInt : public PreprocessingPass
    * @return a node representing the shift.
    *
    */
-  Node createShiftNode(vector<Node> children,
+  Node createShiftNode(std::vector<Node> children,
                        uint64_t bvsize,
                        bool isLeftShift);
 
@@ -283,7 +208,7 @@ class BVToInt : public PreprocessingPass
    */
   Node reconstructNode(Node originalNode,
                        TypeNode resultType,
-                       const vector<Node>& translated_children);
+                       const std::vector<Node>& translated_children);
 
   /**
    * A useful utility function.
@@ -321,7 +246,7 @@ class BVToInt : public PreprocessingPass
    * that have children.
    */
   Node translateWithChildren(Node original,
-                             const vector<Node>& translated_children);
+                             const std::vector<Node>& translated_children);
 
   /**
    * Performs the actual translation to integers for nodes
@@ -354,10 +279,13 @@ class BVToInt : public PreprocessingPass
    */
   Node d_zero;
   Node d_one;
+  
+  /** helper class for handeling bvand translation */
+  theory::arith::nl::IAndUtils d_iandUtils;
 };
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H */
+#endif /* __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H */

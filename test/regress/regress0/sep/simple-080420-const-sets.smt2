@@ -3,6 +3,7 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-option :produce-models true)
 (set-info :status sat)
+(declare-heap (Int Int))
 (declare-fun x () Int)
 
 ; works

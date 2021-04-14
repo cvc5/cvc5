@@ -1,24 +1,23 @@
-/*********************                                                        */
-/*! \file datatypes.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An example of using inductive datatypes in CVC4
- **
- ** An example of using inductive datatypes in CVC4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An example of using inductive datatypes in CVC4.
+ */
+
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 void test(Solver& slv, Sort& consListSort)
 {
@@ -39,7 +38,7 @@ void test(Solver& slv, Sort& consListSort)
   Term t = slv.mkTerm(
       APPLY_CONSTRUCTOR,
       consList.getConstructorTerm("cons"),
-      slv.mkReal(0),
+      slv.mkInteger(0),
       slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
 
   std::cout << "t is " << t << std::endl
@@ -124,7 +123,7 @@ void test(Solver& slv, Sort& consListSort)
             << "sort of cons is "
             << paramConsList.getConstructorTerm("cons").getSort() << std::endl
             << std::endl;
-  Term assertion = slv.mkTerm(GT, head_a, slv.mkReal(50));
+  Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;

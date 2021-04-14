@@ -1,28 +1,30 @@
-/*********************                                                        */
-/*! \file sequences_stats.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistics for the theory of strings/sequences
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Statistics for the theory of strings/sequences.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
-#define CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
+#ifndef CVC5__THEORY__STRINGS__SEQUENCES_STATS_H
+#define CVC5__THEORY__STRINGS__SEQUENCES_STATS_H
 
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -46,9 +48,6 @@ namespace strings {
  *
  * "Conflicts" (2) arise from various kinds of reasoning, listed below,
  * where inferences are one of the possible methods for deriving conflicts.
- *
- * "Lemmas" (3) also arise from various kinds of reasoning, listed below,
- * where inferences are one of the possible methods for deriving lemmas.
  */
 class SequencesStatistics
 {
@@ -60,54 +59,47 @@ class SequencesStatistics
   /** Number of calls to run the strategy */
   IntStat d_strategyRuns;
   //--------------- inferences
-  /** Counts the number of applications of each type of inference */
-  HistogramStat<Inference> d_inferences;
+  /**
+   * Counts the number of applications of each type of inference that were not
+   * processed as a proof step. This is a subset of the statistics in
+   * TheoryInferenceManager, i.e.
+   * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
+   */
+  IntegralHistogramStat<InferenceId> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
    * EXTF_N inferences.
    */
-  HistogramStat<Kind> d_cdSimplifications;
+  IntegralHistogramStat<Kind> d_cdSimplifications;
   /**
    * Counts the number of applications of each type of reduction. The sum of
    * this map is equal to the number of REDUCTION inferences (when
    * options::stringLazyPreproc is true).
    */
-  HistogramStat<Kind> d_reductions;
+  IntegralHistogramStat<Kind> d_reductions;
   /**
    * Counts the number of applications of each type of regular expression
    * positive (resp. negative) unfoldings. The sum of this map is equal to the
    * number of RE_UNFOLD_POS (resp. RE_UNFOLD_NEG) inferences.
    */
-  HistogramStat<Kind> d_regexpUnfoldingsPos;
-  HistogramStat<Kind> d_regexpUnfoldingsNeg;
+  IntegralHistogramStat<Kind> d_regexpUnfoldingsPos;
+  IntegralHistogramStat<Kind> d_regexpUnfoldingsNeg;
   //--------------- end of inferences
   /** Counts the number of applications of each type of rewrite rule */
-  HistogramStat<Rewrite> d_rewrites;
+  IntegralHistogramStat<Rewrite> d_rewrites;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
-  /** Number of eager prefix conflicts */
-  IntStat d_conflictsEagerPrefix;
+  /** Number of eager conflicts */
+  IntStat d_conflictsEager;
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
   //--------------- end of conflicts
-  //--------------- lemmas, partition of calls to OutputChannel::lemma
-  /** Number of lemmas added due to eager preprocessing */
-  IntStat d_lemmasEagerPreproc;
-  /** Number of collect model info splits */
-  IntStat d_lemmasCmiSplit;
-  /** Number of lemmas added due to registering terms */
-  IntStat d_lemmasRegisterTerm;
-  /** Number of lemmas added due to registering atomic terms */
-  IntStat d_lemmasRegisterTermAtomic;
-  /** Number of lemmas added due to inferences */
-  IntStat d_lemmasInfer;
-  //--------------- end of lemmas
 };
 
 }
 }
-}
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SEQUENCES_STATS_H */
+#endif /* CVC5__THEORY__STRINGS__SEQUENCES_STATS_H */

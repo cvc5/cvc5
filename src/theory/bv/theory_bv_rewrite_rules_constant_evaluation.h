@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules_constant_evaluation.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Clark Barrett, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
@@ -22,7 +23,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -198,9 +199,7 @@ Node RewriteRule<EvalNeg>::apply(TNode node) {
 }
 template<> inline
 bool RewriteRule<EvalUdiv>::applies(TNode node) {
-  return (utils::isBvConstTerm(node) &&
-          (node.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
-           (node.getKind() == kind::BITVECTOR_UDIV && node[1].isConst())));
+  return utils::isBvConstTerm(node) && node.getKind() == kind::BITVECTOR_UDIV;
 }
 
 template<> inline
@@ -214,9 +213,7 @@ Node RewriteRule<EvalUdiv>::apply(TNode node) {
 }
 template<> inline
 bool RewriteRule<EvalUrem>::applies(TNode node) {
-  return (utils::isBvConstTerm(node) &&
-          (node.getKind() == kind::BITVECTOR_UREM_TOTAL ||
-           (node.getKind() == kind::BITVECTOR_UREM && node[1].isConst())));
+  return utils::isBvConstTerm(node) && node.getKind() == kind::BITVECTOR_UREM;
 }
 
 template<> inline
@@ -496,4 +493,4 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
 
 }
 }
-}
+}  // namespace cvc5

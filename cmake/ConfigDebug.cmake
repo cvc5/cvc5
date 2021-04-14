@@ -1,18 +1,19 @@
-#####################
-## ConfigDebug.cmake
-## Top contributors (to current version):
-##   Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
-add_definitions(-DCVC4_DEBUG)
-set(CVC4_DEBUG 1)
+
+add_definitions(-DCVC5_DEBUG)
 add_check_c_cxx_flag("-fno-inline")
-set(OPTIMIZATION_LEVEL 0)
-add_c_cxx_flag("-Og")
+set(OPTIMIZATION_LEVEL "g")
 # enable_debug_symbols=yes
 cvc4_set_option(ENABLE_DEBUG_SYMBOLS ON)
 # enable_statistics=yes
@@ -29,3 +30,7 @@ cvc4_set_option(ENABLE_DUMPING ON)
 cvc4_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=optional
 cvc4_set_option(ENABLE_UNIT_TESTING ON)
+
+# Reset visibility for debug builds (https://github.com/CVC4/CVC4/issues/324)
+set(CMAKE_CXX_VISIBILITY_PRESET default)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file options_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Module for managing options of an SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Module for managing options of an SmtEngine.
+ */
 
 #include "smt/options_manager.h"
 
@@ -24,7 +25,7 @@
 #include "smt/set_defaults.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
@@ -38,10 +39,6 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
   if (opts->wasSetByUser(options::defaultDagThresh))
   {
     notifySetOption(options::defaultDagThresh.getName());
-  }
-  if (opts->wasSetByUser(options::printExprTypes))
-  {
-    notifySetOption(options::printExprTypes.getName());
   }
   if (opts->wasSetByUser(options::dumpModeString))
   {
@@ -80,7 +77,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprSetDepth(depth);
     Notice.getStream() << expr::ExprSetDepth(depth);
     Chat.getStream() << expr::ExprSetDepth(depth);
-    Message.getStream() << expr::ExprSetDepth(depth);
+    CVC4Message.getStream() << expr::ExprSetDepth(depth);
     Warning.getStream() << expr::ExprSetDepth(depth);
     // intentionally exclude Dump stream from this list
   }
@@ -91,20 +88,9 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprDag(dag);
     Notice.getStream() << expr::ExprDag(dag);
     Chat.getStream() << expr::ExprDag(dag);
-    Message.getStream() << expr::ExprDag(dag);
+    CVC4Message.getStream() << expr::ExprDag(dag);
     Warning.getStream() << expr::ExprDag(dag);
     Dump.getStream() << expr::ExprDag(dag);
-  }
-  else if (key == options::printExprTypes.getName())
-  {
-    bool value = (*d_options)[options::printExprTypes];
-    Debug.getStream() << expr::ExprPrintTypes(value);
-    Trace.getStream() << expr::ExprPrintTypes(value);
-    Notice.getStream() << expr::ExprPrintTypes(value);
-    Chat.getStream() << expr::ExprPrintTypes(value);
-    Message.getStream() << expr::ExprPrintTypes(value);
-    Warning.getStream() << expr::ExprPrintTypes(value);
-    // intentionally exclude Dump stream from this list
   }
   else if (key == options::dumpModeString.getName())
   {
@@ -118,7 +104,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << Command::printsuccess(value);
     Notice.getStream() << Command::printsuccess(value);
     Chat.getStream() << Command::printsuccess(value);
-    Message.getStream() << Command::printsuccess(value);
+    CVC4Message.getStream() << Command::printsuccess(value);
     Warning.getStream() << Command::printsuccess(value);
     *options::out() << Command::printsuccess(value);
   }
@@ -158,4 +144,4 @@ void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

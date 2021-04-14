@@ -1,22 +1,24 @@
-/*********************                                                        */
-/*! \file sygus_datatype_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of rewriter for the theory of (co)inductive datatypes.
- **
- ** Implementation of rewriter for the theory of (co)inductive datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of rewriter for the theory of (co)inductive datatypes.
+ */
 
 #include "theory/datatypes/sygus_datatype_utils.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "smt/smt_engine.h"
@@ -24,10 +26,10 @@
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 namespace utils {
@@ -37,12 +39,19 @@ Node applySygusArgs(const DType& dt,
                     Node n,
                     const std::vector<Node>& args)
 {
+  // optimization: if n is just a sygus bound variable, return immediately
+  // by replacing with the proper argument, or returning unchanged if it is
+  // a bound variable not corresponding to a formal argument.
   if (n.getKind() == BOUND_VARIABLE)
   {
-    Assert(n.hasAttribute(SygusVarNumAttribute()));
-    int vn = n.getAttribute(SygusVarNumAttribute());
-    Assert(dt.getSygusVarList()[vn] == n);
-    return args[vn];
+    if (n.hasAttribute(SygusVarNumAttribute()))
+    {
+      int vn = n.getAttribute(SygusVarNumAttribute());
+      Assert(dt.getSygusVarList()[vn] == n);
+      return args[vn];
+    }
+    // it is a different bound variable, it is unchanged
+    return n;
   }
   // n is an application of operator op.
   // We must compute the free variables in op to determine if there are
@@ -114,15 +123,7 @@ Kind getEliminateKind(Kind ok)
   Kind nk = ok;
   // We also must ensure that builtin operators which are eliminated
   // during expand definitions are replaced by the proper operator.
-  if (ok == BITVECTOR_UDIV)
-  {
-    nk = BITVECTOR_UDIV_TOTAL;
-  }
-  else if (ok == BITVECTOR_UREM)
-  {
-    nk = BITVECTOR_UREM_TOTAL;
-  }
-  else if (ok == DIVISION)
+  if (ok == DIVISION)
   {
     nk = DIVISION_TOTAL;
   }
@@ -551,8 +552,10 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
           children.push_back(it->second);
         }
         index = indexOf(cur.getOperator());
-        // apply to arguments
+        // apply to children, which constructs the builtin term
         ret = mkSygusTerm(dt, index, children);
+        // now apply it to arguments in args
+        ret = applySygusArgs(dt, dt[index].getSygusOp(), ret, args);
       }
       visited[cur] = ret;
     }
@@ -661,7 +664,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   std::stringstream ssutn0;
   ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
-      nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+      nm->mkSort(ssutn0.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
   unres.insert(abdTNew);
   dtProcessed[sdt] = abdTNew;
 
@@ -703,7 +706,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
             std::stringstream ssutn;
             ssutn << argt.getDType().getName() << "_s";
             argtNew =
-                nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+                nm->mkSort(ssutn.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
             unres.insert(argtNew);
@@ -773,4 +776,4 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,24 +1,29 @@
-/*********************                                                        */
-/*! \file dtype.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class representing a datatype definition
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class representing a datatype definition.
+ */
 #include "expr/dtype.h"
 
+#include <sstream>
+
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_matcher.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
 DType::DType(std::string name, bool isCo)
     : d_name(name),
@@ -171,7 +176,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
 
   d_involvesExt = false;
   d_involvesUt = false;
-  for (const std::shared_ptr<DTypeConstructor> ctor : d_constructors)
+  for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
   {
     if (ctor->involvesExternalType())
     {
@@ -483,64 +488,44 @@ bool DType::computeCardinalityRecSingleton(
   return true;
 }
 
-bool DType::isFinite(TypeNode t) const
+CardinalityClass DType::getCardinalityClass(TypeNode t) const
 {
   Trace("datatypes-init") << "DType::isFinite " << std::endl;
   Assert(isResolved());
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
   // is this already in the cache ?
-  if (d_self.getAttribute(DTypeFiniteComputedAttr()))
+  std::map<TypeNode, CardinalityClass>::const_iterator it = d_cardClass.find(t);
+  if (it != d_cardClass.end())
   {
-    return d_self.getAttribute(DTypeFiniteAttr());
+    return it->second;
   }
+  // it is the max cardinality class of a constructor, with base case ONE
+  // if we have one constructor and FINITE otherwise.
+  CardinalityClass c = d_constructors.size() == 1 ? CardinalityClass::ONE
+                                                  : CardinalityClass::FINITE;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
-    if (!ctor->isFinite(t))
-    {
-      d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-      d_self.setAttribute(DTypeFiniteAttr(), false);
-      return false;
-    }
+    CardinalityClass cc = ctor->getCardinalityClass(t);
+    c = maxCardinalityClass(c, cc);
   }
-  d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeFiniteAttr(), true);
-  return true;
+  d_cardClass[t] = c;
+  return c;
 }
-bool DType::isFinite() const
+CardinalityClass DType::getCardinalityClass() const
 {
   Assert(isResolved() && !isParametric());
-  return isFinite(d_self);
+  return getCardinalityClass(d_self);
 }
 
-bool DType::isInterpretedFinite(TypeNode t) const
+bool DType::isFinite(TypeNode t, bool fmfEnabled) const
 {
-  Trace("datatypes-init") << "DType::isInterpretedFinite " << std::endl;
-  Assert(isResolved());
-  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
-  // is this already in the cache ?
-  if (d_self.getAttribute(DTypeUFiniteComputedAttr()))
-  {
-    return d_self.getAttribute(DTypeUFiniteAttr());
-  }
-  // start by assuming it is not
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
-  {
-    if (!ctor->isInterpretedFinite(t))
-    {
-      return false;
-    }
-  }
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), true);
-  return true;
+  return isCardinalityClassFinite(getCardinalityClass(t), fmfEnabled);
 }
-bool DType::isInterpretedFinite() const
+
+bool DType::isFinite(bool fmfEnabled) const
 {
-  Assert(isResolved() && !isParametric());
-  return isInterpretedFinite(d_self);
+  return isFinite(d_self, fmfEnabled);
 }
 
 bool DType::isWellFounded() const
@@ -598,6 +583,7 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
 
 Node DType::mkGroundTerm(TypeNode t) const
 {
+  Trace("datatypes-init") << "DType::mkGroundTerm of type " << t << std::endl;
   Assert(isResolved());
   return mkGroundTermInternal(t, false);
 }
@@ -605,7 +591,9 @@ Node DType::mkGroundTerm(TypeNode t) const
 Node DType::mkGroundValue(TypeNode t) const
 {
   Assert(isResolved());
-  return mkGroundTermInternal(t, true);
+  Trace("datatypes-init") << "DType::mkGroundValue of type " << t << std::endl;
+  Node v = mkGroundTermInternal(t, true);
+  return v;
 }
 
 Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
@@ -631,7 +619,8 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
         << "constructed: " << getName() << " => " << groundTerm << std::endl;
   }
   // if ground term is null, we are not well-founded
-  Trace("datatypes-init") << "DType::mkGroundTerm for " << t << " returns "
+  Trace("datatypes-init") << "DType::mkGroundTerm for " << t
+                          << ", isValue=" << isValue << " returns "
                           << groundTerm << std::endl;
   return groundTerm;
 }
@@ -790,11 +779,12 @@ Node DType::computeGroundTerm(TypeNode t,
 {
   if (std::find(processing.begin(), processing.end(), t) != processing.end())
   {
-    Debug("datatypes-gt") << "...already processing " << t << " " << d_self
-                          << std::endl;
+    Trace("datatypes-init")
+        << "...already processing " << t << " " << d_self << std::endl;
     return Node();
   }
   processing.push_back(t);
+  std::map<TypeNode, Node>& gtCache = isValue ? d_groundValue : d_groundTerm;
   for (unsigned r = 0; r < 2; r++)
   {
     for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
@@ -804,10 +794,10 @@ Node DType::computeGroundTerm(TypeNode t,
       {
         continue;
       }
-      Trace("datatypes-init")
-          << "Try constructing for " << ctor->getName()
-          << ", processing = " << processing.size() << std::endl;
-      Node e = ctor->computeGroundTerm(t, processing, d_groundTerm, isValue);
+      Trace("datatypes-init") << "Try constructing for " << ctor->getName()
+                              << ", processing = " << processing.size()
+                              << ", isValue=" << isValue << std::endl;
+      Node e = ctor->computeGroundTerm(t, processing, gtCache, isValue);
       if (!e.isNull())
       {
         // must check subterms for the same type to avoid infinite loops in
@@ -874,10 +864,11 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   NodeManager* nm = NodeManager::currentNM();
   std::stringstream ss;
   ss << "sel_" << index;
-  s = nm->mkSkolem(ss.str(),
-                   nm->mkSelectorType(dtt, t),
-                   "is a shared selector",
-                   NodeManager::SKOLEM_NO_NOTIFY);
+  SkolemManager* sm = nm->getSkolemManager();
+  s = sm->mkDummySkolem(ss.str(),
+                        nm->mkSelectorType(dtt, t),
+                        "is a shared selector",
+                        NodeManager::SKOLEM_NO_NOTIFY);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
@@ -946,4 +937,4 @@ std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
   return out << "index_" << dic.getIndex();
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

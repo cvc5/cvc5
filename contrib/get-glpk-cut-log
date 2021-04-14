@@ -12,7 +12,6 @@ patch_file=${contrib_dir}/glpk-cut-log.patch
 GLPK_DIR="$DEPS_DIR/glpk-cut-log"
 version="4.52"
 
-check_dep_dir "$GLPK_DIR"
 setup_dep \
   "https://ftp.gnu.org/gnu/glpk/glpk-${version}.tar.gz" \
   "$GLPK_DIR"
@@ -20,7 +19,11 @@ cd "$GLPK_DIR"
 
 patch -p1 < ${patch_file}
 
-libtoolize
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    glibtoolize
+else
+    libtoolize
+fi
 aclocal
 autoheader
 autoconf
@@ -29,7 +32,9 @@ automake --add-missing
 ./configure --without-pic --prefix="$INSTALL_DIR" --disable-shared --enable-static --disable-dependency-tracking
 make install -j$(nproc)
 make distclean
-mv "$INSTALL_LIB_DIR/libglpk.a" "$INSTALL_LIB_DIR/libglpk-static.a"
+
+# Find and move the static build
+rename_installed_lib "libglpk.a" "libglpk-static.a"
 
 ./configure --with-pic --prefix="$INSTALL_DIR" --disable-shared --enable-static --disable-dependency-tracking
 make install -j$(nproc)

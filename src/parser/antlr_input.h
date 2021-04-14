@@ -1,33 +1,32 @@
-/*********************                                                        */
-/*! \file antlr_input.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base for ANTLR parser classes.
- **
- ** Base for ANTLR parser classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base for ANTLR parser classes.
+ */
 
-#ifndef CVC4__PARSER__ANTLR_INPUT_H
-#define CVC4__PARSER__ANTLR_INPUT_H
-
-#include "cvc4parser_private.h"
+#ifndef CVC5__PARSER__ANTLR_INPUT_H
+#define CVC5__PARSER__ANTLR_INPUT_H
 
 #include <antlr3.h>
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <cassert>
 
+#include "base/check.h"
 #include "base/output.h"
+#include "cvc4parser_private.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
 #include "parser/line_buffer.h"
@@ -36,12 +35,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace CVC4 {
-
-class Command;
-class Type;
-class FunctionType;
-
+namespace cvc5 {
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
@@ -254,7 +248,7 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
   ANTLR3_MARKER start = token->getStartIndex(token);
   // Its the last character of the token (not the one just after)
   ANTLR3_MARKER end = token->getStopIndex(token);
-  assert( start < end );
+  Assert(start < end);
   if( index > (size_t) end - start ) {
     std::stringstream ss;
     ss << "Out-of-bounds substring index: " << index;
@@ -296,7 +290,7 @@ inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTL
   return BitVector(sz, val);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC5__PARSER__ANTLR_INPUT_H */

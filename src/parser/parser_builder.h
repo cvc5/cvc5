@@ -1,36 +1,37 @@
-/*********************                                                        */
-/*! \file parser_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A builder for parsers.
- **
- ** A builder for parsers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A builder for parsers.
+ */
 
 #include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_BUILDER_H
-#define CVC4__PARSER__PARSER_BUILDER_H
+#ifndef CVC5__PARSER__PARSER_BUILDER_H
+#define CVC5__PARSER__PARSER_BUILDER_H
 
 #include <string>
 
+#include "cvc4_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 
-namespace CVC4 {
-
-class Options;
+namespace cvc5 {
 
 namespace api {
 class Solver;
 }
+
+class Options;
+class SymbolManager;
 
 namespace parser {
 
@@ -41,7 +42,8 @@ class Parser;
  * called any number of times on an instance and will generate a fresh
  * parser each time.
  */
-class CVC4_PUBLIC ParserBuilder {
+class CVC4_EXPORT ParserBuilder
+{
   enum InputType {
     FILE_INPUT,
     LINE_BUFFERED_STREAM_INPUT,
@@ -67,6 +69,9 @@ class CVC4_PUBLIC ParserBuilder {
   /** The API Solver object. */
   api::Solver* d_solver;
 
+  /** The symbol manager */
+  SymbolManager* d_symman;
+
   /** Should semantic checks be enabled during parsing? */
   bool d_checksEnabled;
 
@@ -89,13 +94,18 @@ class CVC4_PUBLIC ParserBuilder {
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(api::Solver* solver, const std::string& filename);
+  void init(api::Solver* solver,
+            SymbolManager* sm,
+            const std::string& filename);
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver, const std::string& filename);
+  ParserBuilder(api::Solver* solver,
+                SymbolManager* sm,
+                const std::string& filename);
 
   ParserBuilder(api::Solver* solver,
+                SymbolManager* sm,
                 const std::string& filename,
                 const Options& options);
 
@@ -175,9 +185,9 @@ class CVC4_PUBLIC ParserBuilder {
 
   /** Set the parser to use the given logic string. */
   ParserBuilder& withForcedLogic(const std::string& logic);
-};/* class ParserBuilder */
+}; /* class ParserBuilder */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_BUILDER_H */
+#endif /* CVC5__PARSER__PARSER_BUILDER_H */

@@ -1,18 +1,21 @@
-/*********************                                                        */
-/*! \file extended_rewrite.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of extended rewriting techniques
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of extended rewriting techniques.
+ */
 
 #include "theory/quantifiers/extended_rewrite.h"
+
+#include <sstream>
 
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -20,11 +23,12 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/theory.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -183,9 +187,10 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // we may have subsumed children down to one
         ret = children[0];
       }
-      else if (isAssoc && children.size() > kind::metakind::getUpperBoundForKind(k))
+      else if (isAssoc
+               && children.size() > kind::metakind::getMaxArityForKind(k))
       {
-        Assert(kind::metakind::getUpperBoundForKind(k) >= 2);
+        Assert(kind::metakind::getMaxArityForKind(k) >= 2);
         // kind may require binary construction
         ret = children[0];
         for (unsigned i = 1, nchild = children.size(); i < nchild; i++)
@@ -243,11 +248,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
                                  << std::endl;
-    if (tid == THEORY_ARITH)
-    {
-      new_ret = extendedRewriteArith(ret);
-    }
-    else if (tid == THEORY_STRINGS)
+    if (tid == THEORY_STRINGS)
     {
       new_ret = extendedRewriteStrings(ret);
     }
@@ -1695,41 +1696,6 @@ bool ExtendedRewriter::inferSubstitution(Node n,
   return false;
 }
 
-Node ExtendedRewriter::extendedRewriteArith(Node ret)
-{
-  Kind k = ret.getKind();
-  NodeManager* nm = NodeManager::currentNM();
-  Node new_ret;
-  if (k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS)
-  {
-    // rewrite as though total
-    std::vector<Node> children;
-    bool all_const = true;
-    for (unsigned i = 0, size = ret.getNumChildren(); i < size; i++)
-    {
-      if (ret[i].isConst())
-      {
-        children.push_back(ret[i]);
-      }
-      else
-      {
-        all_const = false;
-        break;
-      }
-    }
-    if (all_const)
-    {
-      Kind new_k = (ret.getKind() == DIVISION ? DIVISION_TOTAL
-                                              : (ret.getKind() == INTS_DIVISION
-                                                     ? INTS_DIVISION_TOTAL
-                                                     : INTS_MODULUS_TOTAL));
-      new_ret = nm->mkNode(new_k, children);
-      debugExtendedRewrite(ret, new_ret, "total-interpretation");
-    }
-  }
-  return new_ret;
-}
-
 Node ExtendedRewriter::extendedRewriteStrings(Node ret)
 {
   Node new_ret;
@@ -1759,6 +1725,6 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

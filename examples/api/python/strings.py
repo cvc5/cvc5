@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-#####################
-## strings.py
-## Top contributors (to current version):
-##   Makai Mann, Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## strings solver through the Python API. This is a direct translation
-## of strings-new.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 strings solver
+# through the Python API. This is a direct translation of strings-new.cpp.
 ##
 
 import pycvc4
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     # Length of y: |y|
     leny = slv.mkTerm(kinds.StringLength, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(kinds.Geq, leny, slv.mkReal(0))
+    formula2 = slv.mkTerm(kinds.Geq, leny, slv.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
     r = slv.mkTerm(kinds.RegexpUnion,

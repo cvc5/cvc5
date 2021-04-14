@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file evaluator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The Evaluator class
- **
- ** The Evaluator class can be used to evaluate terms with constant leaves
- ** quickly, without going through the rewriter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The Evaluator class.
+ *
+ * The Evaluator class can be used to evaluate terms with constant leaves
+ * quickly, without going through the rewriter.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__EVALUATOR_H
-#define CVC4__THEORY__EVALUATOR_H
+#ifndef CVC5__THEORY__EVALUATOR_H
+#define CVC5__THEORY__EVALUATOR_H
 
 #include <utility>
 #include <vector>
@@ -30,7 +31,7 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -159,6 +160,6 @@ class Evaluator
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__EVALUATOR_H */
+#endif /* CVC5__THEORY__EVALUATOR_H */

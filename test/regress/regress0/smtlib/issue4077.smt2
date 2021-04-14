@@ -3,6 +3,7 @@
 
 ; Use a quantified logic to make sure that TheoryEngine creates a master
 ; equality engine
+(set-option :global-declarations true)
 (set-logic BV)
 (declare-const x (_ BitVec 4))
 (push)

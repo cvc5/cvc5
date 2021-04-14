@@ -1,39 +1,44 @@
-/*********************                                                        */
-/*! \file process_assertions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing assertions for an SMT engine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PROCESS_ASSERTIONS_H
-#define CVC4__SMT__PROCESS_ASSERTIONS_H
+#ifndef CVC5__SMT__PROCESS_ASSERTIONS_H
+#define CVC5__SMT__PROCESS_ASSERTIONS_H
 
-#include <map>
+#include <unordered_map>
 
-#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/type_node.h"
-#include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "smt/assertions.h"
-#include "smt/smt_engine_stats.h"
 #include "util/resource_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
+namespace preprocessing {
+class AssertionPipeline;
+class PreprocessingPass;
+class PreprocessingPassContext;
+}
+
 namespace smt {
+
+class Assertions;
+class ExpandDefs;
+struct SmtEngineStatistics;
 
 /**
  * Module in charge of processing assertions for an SMT engine.
@@ -53,11 +58,13 @@ class ProcessAssertions
 {
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
-  typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
-  typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
+  typedef std::unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
  public:
-  ProcessAssertions(SmtEngine& smt, ResourceManager& rm);
+  ProcessAssertions(SmtEngine& smt,
+                    ExpandDefs& exDefs,
+                    ResourceManager& rm,
+                    SmtEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
    *
@@ -74,24 +81,16 @@ class ProcessAssertions
    * processing the assertions.
    */
   bool apply(Assertions& as);
-  /**
-   * Expand definitions in term n. Return the expanded form of n.
-   *
-   * @param n The node to expand
-   * @param cache Cache of previous results
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
-   * @return The expanded term.
-   */
-  Node expandDefinitions(TNode n,
-                         NodeToNodeHashMap& cache,
-                         bool expandOnly = false);
 
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
+  /** Reference to expand definitions module */
+  ExpandDefs& d_exDefs;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
+  /** Reference to the SMT stats */
+  SmtEngineStatistics& d_smtStats;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
   /** True node */
@@ -107,14 +106,8 @@ class ProcessAssertions
    * Number of calls of simplify assertions active.
    */
   unsigned d_simplifyAssertionsDepth;
-  /** recursive function definition abstractions for fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  /** map to concrete definitions for fmf-fun */
-  std::map<Node, std::vector<Node>> d_fmfRecFunctionsConcrete;
-  /** List of defined recursive functions processed by fmf-fun */
-  NodeList* d_fmfRecFunctionsDefined;
   /** Spend resource r by the resource manager of this class. */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
   /**
    * Perform non-clausal simplification of a Node.  This involves
    * Theory implementations, but does NOT involve the SAT solver in
@@ -129,25 +122,9 @@ class ProcessAssertions
    */
   void dumpAssertions(const char* key,
                       const preprocessing::AssertionPipeline& assertionList);
-  /**
-   * Helper function to fix up assertion list to restore invariants needed after
-   * ite removal.
-   */
-  void collectSkolems(IteSkolemMap& iskMap,
-                      TNode n,
-                      set<TNode>& skolemSet,
-                      NodeToBoolHashMap& cache);
-  /**
-   * Helper function to fix up assertion list to restore invariants needed after
-   * ite removal.
-   */
-  bool checkForBadSkolems(IteSkolemMap& iskMap,
-                          TNode n,
-                          TNode skolem,
-                          NodeToBoolHashMap& cache);
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_arrays.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of arrays
- **
- ** Theory of arrays.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of arrays.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include <tuple>
 #include <unordered_map>
@@ -26,13 +25,16 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
+#include "theory/arrays/inference_manager.h"
 #include "theory/arrays/proof_checker.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -142,6 +144,8 @@ class TheoryArrays : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -187,10 +191,13 @@ class TheoryArrays : public Theory {
   TheoryArraysRewriter d_rewriter;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** The arrays inference manager */
+  InferenceManager d_im;
 
  public:
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  TrustNode ppRewrite(TNode atom) override;
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
@@ -343,7 +350,7 @@ class TheoryArrays : public Theory {
   NotifyClass d_notify;
 
   /** The proof checker */
-  ArraysProofRuleChecker d_pchecker;
+  ArraysProofRuleChecker d_checker;
 
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
@@ -428,7 +435,7 @@ class TheoryArrays : public Theory {
   context::CDList<Node> d_arrayMerges;
   std::vector<CTNodeList*> d_readBucketAllocations;
 
-  Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
+  Node getSkolem(TNode ref);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);
   Node removeRepLoops(TNode a, TNode rep);
@@ -437,7 +444,7 @@ class TheoryArrays : public Theory {
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
   void checkRowLemmas(TNode a, TNode b);
-  void propagate(RowLemmaType lem);
+  void propagateRowLemma(RowLemmaType lem);
   void queueRowLemma(RowLemmaType lem);
   bool dischargeLemmas();
 
@@ -482,8 +489,8 @@ class TheoryArrays : public Theory {
   void computeRelevantTerms(std::set<Node>& termSet) override;
 };/* class TheoryArrays */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H */

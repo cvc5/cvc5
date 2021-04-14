@@ -1,32 +1,34 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifiers proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of quantifiers proof checker.
+ */
 
 #include "theory/quantifiers/proof_checker.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::WITNESS_INTRO, this);
+  pc->registerChecker(PfRule::SKOLEM_INTRO, this);
   pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
@@ -36,23 +38,39 @@ Node QuantifiersProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   // compute what was proven
-  if (id == PfRule::WITNESS_INTRO || id == PfRule::EXISTS_INTRO)
+  if (id == PfRule::EXISTS_INTRO)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    SkolemManager* sm = nm->getSkolemManager();
     Node p = children[0];
-    Node t = args[0];
-    Node exists = sm->mkExistential(t, p);
-    if (id == PfRule::EXISTS_INTRO)
+    Node exists = args[0];
+    if (exists.getKind() != kind::EXISTS || exists[0].getNumChildren() != 1)
     {
-      return exists;
+      return Node::null();
     }
-    std::vector<Node> skolems;
-    sm->mkSkolemize(exists, skolems, "k");
-    Assert(skolems.size() == 1);
-    return skolems[0];
+    std::unordered_map<Node, Node, NodeHashFunction> subs;
+    if (!expr::match(exists[1], p, subs))
+    {
+      return Node::null();
+    }
+    // substitution must contain only the variable of the existential
+    for (const std::pair<const Node, Node>& s : subs)
+    {
+      if (s.first != exists[0][0])
+      {
+        return Node::null();
+      }
+    }
+    return exists;
+  }
+  else if (id == PfRule::SKOLEM_INTRO)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node t = SkolemManager::getOriginalForm(args[0]);
+    return args[0].eqNode(t);
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -64,7 +82,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       return Node::null();
     }
-    SkolemManager* sm = nm->getSkolemManager();
     Node exists;
     if (children[0].getKind() == EXISTS)
     {
@@ -73,6 +90,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     else
     {
       std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
+      echildren[1] = echildren[1].notNode();
       exists = nm->mkNode(EXISTS, echildren);
     }
     std::vector<Node> skolems;
@@ -106,4 +124,4 @@ Node QuantifiersProofRuleChecker::checkInternal(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

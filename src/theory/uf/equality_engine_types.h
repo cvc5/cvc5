@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file equality_engine_types.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H
 
 #include <string>
 #include <iostream>
@@ -26,7 +27,7 @@
 
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -75,14 +76,6 @@ enum MergeReasonType
   MERGED_THROUGH_CONSTANTS,
   /** Terms were merged due to transitivity */
   MERGED_THROUGH_TRANS,
-  // TEMPORARY RULES WHILE WE DON'T MIGRATE TO PROOF_NEW
-
-  /** Terms were merged due to arrays read-over-write */
-  MERGED_THROUGH_ROW,
-  /** Terms were merged due to arrays read-over-write (1) */
-  MERGED_THROUGH_ROW1,
-  /** Terms were merged due to extensionality */
-  MERGED_THROUGH_EXT,
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -100,9 +93,6 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-  case MERGED_THROUGH_ROW: out << "read-over-write"; break;
-  case MERGED_THROUGH_ROW1: out << "read-over-write (1)"; break;
-  case MERGED_THROUGH_EXT: out << "extensionality"; break;
   default:
     out << "[theory]";
     break;
@@ -370,6 +360,6 @@ struct TriggerInfo {
 
 } // namespace eq
 } // namespace theory
-} // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */
+#endif /* CVC5__THEORY__UF__EQUALITY_ENGINE_TYPES_H */

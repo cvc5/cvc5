@@ -1,13 +1,16 @@
-#####################
-## ConfigureCVC4.cmake
-## Top contributors (to current version):
-##   Mathias Preiner, Makai Mann, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Gereon Kremer, Makai Mann
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 include(CheckCXXSourceCompiles)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
@@ -29,10 +32,10 @@ check_cxx_source_compiles(
   void foo(int64_t) {}
   int main() { return 0; }
   "
-  CVC4_NEED_INT64_T_OVERLOADS
+  CVC5_NEED_INT64_T_OVERLOADS
 )
-if(NOT CVC4_NEED_INT64_T_OVERLOADS)
-  set(CVC4_NEED_INT64_T_OVERLOADS 0)
+if(NOT CVC5_NEED_INT64_T_OVERLOADS)
+  set(CVC5_NEED_INT64_T_OVERLOADS 0)
 endif()
 
 # Check to see if this version/architecture of GNU C++ explicitly
@@ -45,10 +48,10 @@ check_cxx_source_compiles(
   namespace std { template<> struct hash<uint64_t> {}; }
   int main() { return 0; }
   "
-  CVC4_NEED_HASH_UINT64_T_OVERLOAD
+  CVC5_NEED_HASH_UINT64_T_OVERLOAD
 )
-if(CVC4_NEED_HASH_UINT64_T_OVERLOAD)
-  add_definitions(-DCVC4_NEED_HASH_UINT64_T)
+if(CVC5_NEED_HASH_UINT64_T_OVERLOAD)
+  add_definitions(-DCVC5_NEED_HASH_UINT64_T)
 endif()
 
 check_include_file(unistd.h HAVE_UNISTD_H)
@@ -56,7 +59,7 @@ check_include_file_cxx(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
 
 # For Windows builds check if clock_gettime is available via -lpthread
 # (pthread_time.h).
-if(CVC4_WINDOWS_BUILD)
+if(CVC5_WINDOWS_BUILD)
   set(CMAKE_REQUIRED_FLAGS -pthread)
   check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
   unset(CMAKE_REQUIRED_FLAGS)
@@ -76,6 +79,13 @@ check_symbol_exists(optreset "getopt.h" HAVE_DECL_OPTRESET)
 check_symbol_exists(sigaltstack "signal.h" HAVE_SIGALTSTACK)
 check_symbol_exists(strerror_r "string.h" HAVE_STRERROR_R)
 check_symbol_exists(strtok_r "string.h" HAVE_STRTOK_R)
+check_symbol_exists(setitimer "sys/time.h" HAVE_SETITIMER)
+
+# on non-POSIX systems, time limit is implemented with threads
+if(NOT HAVE_SETITIMER)
+  find_package(Threads REQUIRED)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+endif()
 
 # Determine if we have the POSIX (int) or GNU (char *) variant of strerror_r.
 check_c_source_compiles(
@@ -92,8 +102,10 @@ check_c_source_compiles(
 )
 
 # Defined if using the CLN multi-precision arithmetic library.
-set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
+set(CVC5_CLN_IMP ${CVC5_USE_CLN_IMP})
 # Defined if using the GMP multi-precision arithmetic library.
-set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
+set(CVC5_GMP_IMP ${CVC5_USE_GMP_IMP})
+# Defined if using the libpoly polynomial library.
+set(CVC5_POLY_IMP ${CVC5_USE_POLY_IMP})
 # Define the full name of this package.
-set(CVC4_PACKAGE_NAME "${PROJECT_NAME}")
+set(CVC5_PACKAGE_NAME "${PROJECT_NAME}")

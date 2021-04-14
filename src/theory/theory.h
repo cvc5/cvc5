@@ -1,71 +1,64 @@
-/*********************                                                        */
-/*! \file theory.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base of the theory interface.
- **
- ** Base of the theory interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base of the theory interface.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__THEORY_H
-#define CVC4__THEORY__THEORY_H
+#ifndef CVC5__THEORY__THEORY_H
+#define CVC5__THEORY__THEORY_H
 
 #include <iosfwd>
-#include <map>
 #include <set>
 #include <string>
 #include <unordered_set>
 
-#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "options/options.h"
 #include "options/theory_options.h"
-#include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
-#include "theory/decision_manager.h"
-#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
-#include "theory/output_channel.h"
+#include "theory/skolem_lemma.h"
 #include "theory/theory_id.h"
-#include "theory/theory_inference_manager.h"
-#include "theory/theory_rewriter.h"
-#include "theory/theory_state.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class TheoryEngine;
 class ProofNodeManager;
+class TheoryEngine;
+class ProofRuleChecker;
 
 namespace theory {
 
+class DecisionManager;
+struct EeSetupInfo;
+class OutputChannel;
 class QuantifiersEngine;
+class TheoryInferenceManager;
 class TheoryModel;
-class SubstitutionMap;
 class TheoryRewriter;
-
-namespace rrinst {
-  class CandidateGenerator;
-}/* CVC4::theory::rrinst namespace */
+class TheoryState;
+class TrustSubstitutionMap;
 
 namespace eq {
   class EqualityEngine;
-}/* CVC4::theory::eq namespace */
+  }  // namespace eq
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -102,7 +95,7 @@ namespace eq {
  * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
-  friend class ::CVC4::TheoryEngine;
+  friend class ::cvc5::TheoryEngine;
 
  private:
   // Disallow default construction, copy, assignment.
@@ -122,9 +115,6 @@ class Theory {
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
-
   /**
    * The assertFact() queue.
    *
@@ -141,12 +131,6 @@ class Theory {
 
   /** The care graph the theory will use during combination. */
   CareGraph* d_careGraph;
-
-  /**
-   * Pointer to the quantifiers engine (or NULL, if quantifiers are not
-   * supported or not enabled). Not owned by the theory.
-   */
-  QuantifiersEngine* d_quantEngine;
 
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
@@ -178,15 +162,6 @@ class Theory {
    * A list of shared terms that the theory has.
    */
   context::CDList<TNode> d_sharedTerms;
-
-  //---------------------------------- private collect model info
-  /**
-   * Helper function for computeRelevantTerms
-   */
-  void collectTerms(TNode n,
-                    const std::set<Kind>& irrKinds,
-                    std::set<Node>& termSet) const;
-  //---------------------------------- end private collect model info
 
   /**
    * Construct a Theory.
@@ -246,6 +221,22 @@ class Theory {
   TheoryInferenceManager* d_inferManager;
 
   /**
+   * Pointer to the quantifiers engine (or NULL, if quantifiers are not
+   * supported or not enabled). Not owned by the theory.
+   */
+  QuantifiersEngine* d_quantEngine;
+
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
+
+  /**
+   * Are proofs enabled?
+   *
+   * They are considered enabled if the ProofNodeManager is non-null.
+   */
+  bool proofsEnabled() const;
+
+  /**
    * Returns the next assertion in the assertFact() queue.
    *
    * @return the next assertion in the assertFact() queue
@@ -255,6 +246,15 @@ class Theory {
   const LogicInfo& getLogicInfo() const {
     return d_logicInfo;
   }
+
+  /**
+   * Set separation logic heap. This is called when the location and data
+   * types for separation logic are determined. This should be called at
+   * most once, before solving.
+   *
+   * This currently should be overridden by the separation logic theory only.
+   */
+  virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
 
   /**
    * The theory that owns the uninterpreted sort.
@@ -316,6 +316,10 @@ class Theory {
    * @return The theory rewriter associated with this theory.
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * @return The proof checker associated with this theory.
+   */
+  virtual ProofRuleChecker* getProofChecker() = 0;
   /**
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
@@ -429,12 +433,15 @@ class Theory {
     EFFORT_LAST_CALL = 200
   }; /* enum Effort */
 
-  static inline bool standardEffortOrMore(Effort e) CVC4_CONST_FUNCTION
-    { return e >= EFFORT_STANDARD; }
-  static inline bool standardEffortOnly(Effort e) CVC4_CONST_FUNCTION
-    { return e >= EFFORT_STANDARD && e <  EFFORT_FULL; }
-  static inline bool fullEffort(Effort e) CVC4_CONST_FUNCTION
-    { return e == EFFORT_FULL; }
+  static inline bool standardEffortOrMore(Effort e) CVC5_CONST_FUNCTION
+  {
+    return e >= EFFORT_STANDARD; }
+  static inline bool standardEffortOnly(Effort e) CVC5_CONST_FUNCTION
+  {
+    return e >= EFFORT_STANDARD && e < EFFORT_FULL; }
+  static inline bool fullEffort(Effort e) CVC5_CONST_FUNCTION
+  {
+    return e == EFFORT_FULL; }
 
   /**
    * Get the id for this Theory.
@@ -455,13 +462,6 @@ class Theory {
    */
   context::UserContext* getUserContext() const {
     return d_userContext;
-  }
-
-  /**
-   * Set the output channel associated to this theory.
-   */
-  void setOutputChannel(OutputChannel& out) {
-    d_out = &out;
   }
 
   /**
@@ -488,8 +488,15 @@ class Theory {
     return d_quantEngine;
   }
 
-  /** Get the decision manager associated to this theory. */
-  DecisionManager* getDecisionManager() { return d_decManager; }
+  /**
+   * @return The theory state associated with this theory.
+   */
+  TheoryState* getTheoryState() { return d_theoryState; }
+
+  /**
+   * @return The theory inference manager associated with this theory.
+   */
+  TheoryInferenceManager* getInferenceManager() { return d_inferManager; }
 
   /**
    * Expand definitions in the term node. This returns a term that is
@@ -600,11 +607,8 @@ class Theory {
    *
    * Theories that use this check method must use an official theory
    * state object (d_theoryState).
-   *
-   * TODO (project #39): this method should be non-virtual, once all theories
-   * conform to the new standard
    */
-  virtual void check(Effort level = EFFORT_FULL);
+  void check(Effort level = EFFORT_FULL);
   /**
    * Pre-check, called before the fact queue of the theory is processed.
    * If this method returns false, then the theory will process its fact
@@ -662,28 +666,9 @@ class Theory {
    * then calls computeModelValues.
    *
    * TODO (project #39): this method should be non-virtual, once all theories
-   * conform to the new standard
+   * conform to the new standard, delete, move to model manager distributed.
    */
-  virtual bool collectModelInfo(TheoryModel* m);
-  /**
-   * Scans the current set of assertions and shared terms top-down
-   * until a theory-leaf is reached, and adds all terms found to
-   * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model.
-   *
-   * @param irrKinds The kinds of terms that appear in assertions that should *not*
-   * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * treated as irrelevant kinds.
-   *
-   * @param includeShared Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irrKinds.
-   *
-   * TODO (project #39): this method will be deleted. The version in
-   * model manager will be used.
-   */
-  void computeAssertedTerms(std::set<Node>& termSet,
-                            const std::set<Kind>& irrKinds,
-                            bool includeShared = true) const;
+  virtual bool collectModelInfo(TheoryModel* m, const std::set<Node>& termSet);
   /**
    * Compute terms that are not necessarily part of the assertions or
    * shared terms that should be considered relevant, add them to termSet.
@@ -708,7 +693,7 @@ class Theory {
    * *never* clear it.  It is a conjunction to add to the formula at
    * the top-level and may contain other theories' contributions.
    */
-  virtual void ppStaticLearn(TNode in, NodeBuilder<>& learned) { }
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
 
   enum PPAssertStatus {
     /** Atom has been solved  */
@@ -720,21 +705,46 @@ class Theory {
   };
 
   /**
-   * Given a literal, add the solved substitutions to the map, if any.
-   * The method should return true if the literal can be safely removed.
+   * Given a literal and its proof generator (encapsulated by trust node tin),
+   * add the solved substitutions to the map, if any. The method should return
+   * true if the literal can be safely removed from the input problem.
+   *
+   * Note that tin has trude node kind LEMMA. Its proof generator should be
+   * take into account when adding a substitution to outSubstitutions when
+   * proofs are enabled.
    */
-  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  virtual PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
 
   /**
-   * Given an atom of the theory coming from the input formula, this
-   * method can be overridden in a theory implementation to rewrite
-   * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine. This method returns a TrustNode of
-   * kind TrustNodeKind::REWRITE, which carries information about the proof
-   * generator for the rewrite. Similarly to expandDefinition, this method may
-   * return the null TrustNode if atom is unchanged.
+   * Given a term of the theory coming from the input formula or
+   * from a lemma generated during solving, this method can be overridden in a
+   * theory implementation to rewrite the term into an equivalent form.
+   *
+   * This method returns a TrustNode of kind TrustNodeKind::REWRITE, which
+   * carries information about the proof generator for the rewrite, which can
+   * be the null TrustNode if n is unchanged.
+   *
+   * Notice this method is used both in the "theory rewrite equalities"
+   * preprocessing pass, where n is an equality from the input formula,
+   * and in theory preprocessing, where n is a (non-equality) term occurring
+   * in the input or generated in a lemma.
+   *
+   * @param n the node to preprocess-rewrite.
+   * @param lems a set of lemmas that should be added as a consequence of
+   * preprocessing n. These are in the form of "skolem lemmas". For example,
+   * calling this method on (div x n), we return a trust node proving:
+   *   (= (div x n) k_div)
+   * for fresh skolem k, and add the skolem lemma for k that indicates that
+   * it is the division of x and n.
+   *
+   * Note that ppRewrite should not return WITNESS terms, since the internal
+   * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
+  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+  {
+    return TrustNode::null();
+  }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after
@@ -913,7 +923,8 @@ inline theory::Assertion Theory::get() {
 }
 
 inline std::ostream& operator<<(std::ostream& out,
-                                const CVC4::theory::Theory& theory) {
+                                const cvc5::theory::Theory& theory)
+{
   return out << theory.identify();
 }
 
@@ -931,7 +942,7 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   return out;
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_H */
+#endif /* CVC5__THEORY__THEORY_H */

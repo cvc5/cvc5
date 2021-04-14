@@ -1,25 +1,23 @@
-/*********************                                                        */
-/*! \file proof_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A manager for Proofs
- **
- ** A manager for Proofs.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Haniel Barbosa, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A manager for Proofs.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF_MANAGER_H
-#define CVC4__PROOF_MANAGER_H
+#ifndef CVC5__PROOF_MANAGER_H
+#define CVC5__PROOF_MANAGER_H
 
-#include <iosfwd>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,9 +26,8 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
-#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // forward declarations
 namespace Minisat {
@@ -39,25 +36,25 @@ namespace Minisat {
 
 namespace prop {
   class CnfStream;
-}/* CVC4::prop namespace */
+  }  // namespace prop
 
 class SmtEngine;
 
 template <class Solver> class TSatProof;
-typedef TSatProof< CVC4::Minisat::Solver> CoreSatProof;
+typedef TSatProof<cvc5::Minisat::Solver> CoreSatProof;
 
 class CnfProof;
 
-typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
+typedef TSatProof<cvc5::Minisat::Solver> CoreSatProof;
 
 namespace prop {
   typedef uint64_t SatVariable;
   class SatLiteral;
   typedef std::vector<SatLiteral> SatClause;
-}/* CVC4::prop namespace */
+  }  // namespace prop
 
 typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
-typedef context::CDHashSet<Expr, ExprHashFunction> CDExprSet;
+typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
 typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction> CDNodeToNodes;
 typedef std::unordered_set<ClauseId> IdHashSet;
 
@@ -68,8 +65,8 @@ class ProofManager {
   std::unique_ptr<CnfProof> d_cnfProof;
 
   // information that will need to be shared across proofs
-  CDExprSet    d_inputCoreFormulas;
-  CDExprSet    d_outputCoreFormulas;
+  CDNodeSet d_inputCoreFormulas;
+  CDNodeSet d_outputCoreFormulas;
 
   int d_nextId;
 
@@ -83,23 +80,23 @@ public:
 
  // initialization
  void initSatProof(Minisat::Solver* solver);
- void initCnfProof(CVC4::prop::CnfStream* cnfStream, context::Context* ctx);
+ void initCnfProof(cvc5::prop::CnfStream* cnfStream, context::Context* ctx);
 
  // getting various proofs
  static CoreSatProof* getSatProof();
  static CnfProof* getCnfProof();
 
  /** Public unsat core methods **/
- void addCoreAssertion(Expr formula);
+ void addCoreAssertion(Node formula);
 
  void addDependence(TNode n, TNode dep);
- void addUnsatCore(Expr formula);
+ void addUnsatCore(Node formula);
 
  // trace dependences back to unsat core
- void traceDeps(TNode n, CDExprSet* coreAssertions);
+ void traceDeps(TNode n, CDNodeSet* coreAssertions);
  void traceUnsatCore();
 
- typedef CDExprSet::const_iterator output_core_iterator;
+ typedef CDNodeSet::const_iterator output_core_iterator;
 
  output_core_iterator begin_unsat_core() const
  {
@@ -110,7 +107,7 @@ public:
    return d_outputCoreFormulas.end();
  }
  size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
- std::vector<Expr> extractUnsatCore();
+ std::vector<Node> extractUnsatCore();
 
  bool unsatCoreAvailable() const;
  void getLemmasInUnsatCore(std::vector<Node>& lemmas);
@@ -122,8 +119,6 @@ private:
 
 };/* class ProofManager */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-
-
-#endif /* CVC4__PROOF_MANAGER_H */
+#endif /* CVC5__PROOF_MANAGER_H */

@@ -1,29 +1,30 @@
-/*********************                                                        */
-/*! \file sygus_interpol.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus interpolation utility, which transforms an input of axioms and
- ** conjecture into an interpolation problem, and solve it.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus interpolation utility, which transforms an input of axioms and
+ * conjecture into an interpolation problem, and solve it.
+ */
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
 
 #include <string>
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/type.h"
+#include "expr/type_node.h"
 #include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 /**
@@ -40,6 +41,20 @@ namespace quantifiers {
  * shared between Fa and Fc. In other words, A( x ) must be implied by our
  * axioms Fa( x ) and implies Fc( x ). Then, to solve the interpolation problem,
  * we just need to synthesis A( x ).
+ *
+ * This class uses a fresh copy of the SMT engine which is used for solving the
+ * interpolation problem. In particular, consider the input: (assert A)
+ *   (get-interpol s B)
+ * In the copy of the SMT engine where these commands are issued, we maintain
+ * A in the assertion stack. In solving the interpolation problem, we will
+ * need to call a SMT engine solver with a different assertion stack, which is
+ * a sygus conjecture build from A and B. Then to solve the interpolation
+ * problem, instead of modifying the assertion stack to remove A and add the
+ * sygus conjecture (exists I. ...), we invoke a fresh copy of the SMT engine
+ * and leave the original assertion stack unchanged. This copy of the SMT
+ * engine will have the assertion stack with the sygus conjecture. This copy
+ * of the SMT engine can be further queried for information regarding further
+ * solutions.
  */
 class SygusInterpol
 {
@@ -59,7 +74,7 @@ class SygusInterpol
    * grammar that should be used for solutions of the interpolation conjecture.
    * @interpol the solution to the sygus conjecture.
    */
-  bool SolveInterpolation(const std::string& name,
+  bool solveInterpolation(const std::string& name,
                           const std::vector<Node>& axioms,
                           const Node& conj,
                           const TypeNode& itpGType,
@@ -156,25 +171,7 @@ class SygusInterpol
    * @param interpol the solution to the sygus conjecture.
    * @param itp the interpolation predicate.
    */
-  bool findInterpol(Node& interpol, Node itp);
-
-  /** The SMT engine subSolver
-   *
-   * This is a fresh copy of the SMT engine which is used for solving the
-   * interpolation problem. In particular, consider the input: (assert A)
-   *   (get-interpol s B)
-   * In the copy of the SMT engine where these commands are issued, we maintain
-   * A in the assertion stack. In solving the interpolation problem, we will
-   * need to call a SMT engine solver with a different assertion stack, which is
-   * a sygus conjecture build from A and B. Then to solve the interpolation
-   * problem, instead of modifying the assertion stack to remove A and add the
-   * sygus conjecture (exists I. ...), we invoke a fresh copy of the SMT engine
-   * and leave the original assertion stack unchanged. This copy of the SMT
-   * engine will have the assertion stack with the sygus conjecture. This copy
-   * of the SMT engine can be further queried for information regarding further
-   * solutions.
-   */
-  std::unique_ptr<SmtEngine> d_subSolver;
+  bool findInterpol(SmtEngine* subsolver, Node& interpol, Node itp);
 
   /**
    * symbols from axioms and conjecture.
@@ -217,6 +214,6 @@ class SygusInterpol
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */

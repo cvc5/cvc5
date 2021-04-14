@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_sets_rels.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Extension to Sets theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extension to Sets theory.
+ */
 
 #ifndef SRC_THEORY_SETS_THEORY_SETS_RELS_H_
 #define SRC_THEORY_SETS_THEORY_SETS_RELS_H_
@@ -28,7 +27,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -127,12 +126,9 @@ private:
    * Called when we have inferred fact from explanation reason, where the
    * latter should be a conjunction of facts that hold in the current context.
    *
-   * The argument c is used for debugging, to give the name of the inference
-   * rule being used.
-   *
    * This method adds the node (=> reason exp) to the pending vector d_pending.
    */
-  void sendInfer(Node fact, Node reason, const char* c);
+  void sendInfer(Node fact, InferenceId id, Node reason);
   /**
    * This method flushes the inferences in the pending vector d_pending to
    * theory of sets, which may process them as lemmas or as facts to assert to
@@ -143,10 +139,8 @@ private:
    *
    * A wrapper around d_im.assertInference that ensures that we do not send
    * inferences with explanations that are not entailed.
-   *
-   * Argument c is used for debugging, typically the name of the inference.
    */
-  void processInference(Node conc, Node exp, const char* c);
+  void processInference(Node conc, InferenceId id, Node exp);
 
   /** Methods used in full effort */
   void check();
@@ -176,7 +170,7 @@ private:
 
   /** Helper functions */
   bool hasTerm( Node a );
-  void makeSharedTerm( Node );
+  void makeSharedTerm(Node, TypeNode t);
   void reduceTupleVar( Node );
   bool hasMember( Node, Node );
   void computeTupleReps( Node );
@@ -188,11 +182,8 @@ private:
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
 };
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
 #endif /* SRC_THEORY_SETS_THEORY_SETS_RELS_H_ */

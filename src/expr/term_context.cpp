@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file term_context.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term context utilities.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term context utilities.
+ */
 
 #include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
 {
@@ -69,6 +70,22 @@ bool RtfTermContext::hasNestedTermChildren(TNode t)
          && k != kind::BITVECTOR_EAGER_ATOM;
 }
 
+uint32_t InQuantTermContext::initialValue() const { return 0; }
+
+uint32_t InQuantTermContext::computeValue(TNode t,
+                                          uint32_t tval,
+                                          size_t index) const
+{
+  return t.isClosure() ? 1 : tval;
+}
+
+uint32_t InQuantTermContext::getValue(bool inQuant) { return inQuant ? 1 : 0; }
+
+bool InQuantTermContext::inQuant(uint32_t val, bool& inQuant)
+{
+  return val == 1;
+}
+
 uint32_t PolarityTermContext::initialValue() const
 {
   // by default, we have true polarity
@@ -116,4 +133,4 @@ void PolarityTermContext::getFlags(uint32_t val, bool& hasPol, bool& pol)
   pol = val == 2;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,26 +1,28 @@
-/*********************                                                        */
-/*! \file shared_solver_distributed.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Shared solver in the distributed architecture
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Shared solver in the distributed architecture.
+ */
 
 #include "theory/shared_solver_distributed.h"
 
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
-SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te)
-    : SharedSolver(te)
+SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te,
+                                                 ProofNodeManager* pnm)
+    : SharedSolver(te, pnm)
 {
 }
 
@@ -68,8 +70,7 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   if (id == THEORY_BUILTIN)
   {
     // explanation using the shared terms database
-    Node exp = d_sharedTerms.explain(literal);
-    texp = TrustNode::mkTrustPropExp(literal, exp, nullptr);
+    texp = d_sharedTerms.explain(literal);
     Trace("shared-solver")
         << "\tTerm was propagated by THEORY_BUILTIN. Explanation: "
         << texp.getNode() << std::endl;
@@ -77,6 +78,7 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   else
   {
     // By default, we ask the individual theory for the explanation.
+    // It is possible that a centralized approach could preempt this.
     texp = d_te.theoryOf(id)->explain(literal);
     Trace("shared-solver") << "\tTerm was propagated by owner theory: " << id
                            << ". Explanation: " << texp.getNode() << std::endl;
@@ -92,4 +94,4 @@ void SharedSolverDistributed::assertSharedEquality(TNode equality,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

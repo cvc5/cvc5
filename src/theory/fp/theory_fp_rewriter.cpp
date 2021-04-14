@@ -1,34 +1,36 @@
-/*********************                                                        */
-/*! \file theory_fp_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Andrew Reynolds
- ** Copyright (c) 2013  University of Oxford
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Rewrite rules for floating point theories. ]]
- **
- ** \todo [[ Single argument constant propagate / simplify
-             Push negations through arithmetic operators (include max and min? maybe not due to +0/-0)
- **          classifications to normal tests (maybe)
- **          (= x (fp.neg x)) --> (isNaN x)
- **          (fp.eq x (fp.neg x)) --> (isZero x)   (previous and reorganise should be sufficient)
- **          (fp.eq x const) --> various = depending on const
- **          (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
- **          (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
- **          (fp.isPositive (fp.abs x)) --> (not (isNaN x))
- **          (fp.isNegative (fp.abs x)) --> false
- **          A -> castA --> A
- **          A -> castB -> castC  -->  A -> castC if A <= B <= C
- **          A -> castB -> castA  -->  A if A <= B
- **          promotion converts can ignore rounding mode
- **          Samuel Figuer results
- **       ]]
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Andres Noetzli, Aina Niemetz
+ * Copyright (c) 2013  University of Oxford
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite rules for floating point theories.
+ *
+ * \todo - Single argument constant propagate / simplify
+ *       - Push negations through arithmetic operators (include max and min?
+ *         maybe not due to +0/-0)
+ *       - classifications to normal tests (maybe)
+ *       - (= x (fp.neg x)) --> (isNaN x)
+ *       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
+ *             should be sufficient)
+ *       - (fp.eq x const) --> various = depending on const
+ *       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
+ *       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
+ *       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
+ *       - (fp.isNegative (fp.abs x)) --> false
+ *       - A -> castA --> A
+ *       - A -> castB -> castC  -->  A -> castC if A <= B <= C
+ *       - A -> castB -> castA  -->  A if A <= B
+ *       - promotion converts can ignore rounding mode
+ *       - Samuel Figuer results
+ */
 
 #include <algorithm>
 
@@ -36,7 +38,7 @@
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 
@@ -109,8 +111,7 @@ namespace rewrite {
 
     size_t children = node.getNumChildren();
     if (children > 2) {
-
-      NodeBuilder<> conjunction(kind::AND);
+      NodeBuilder conjunction(kind::AND);
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {
@@ -194,7 +195,7 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
     Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
            || (k == kind::FLOATINGPOINT_MIN_TOTAL)
@@ -323,8 +324,7 @@ namespace rewrite {
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-}; /* CVC4::theory::fp::rewrite */
-
+  };  // namespace rewrite
 
 namespace constantFold {
 
@@ -369,7 +369,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.plus(rm, arg2)));
   }
@@ -382,7 +382,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.mult(rm, arg2)));
   }
@@ -396,8 +396,8 @@ namespace constantFold {
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
     FloatingPoint arg3(node[3].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
-    Assert(arg1.t == arg3.t);
+    Assert(arg1.getSize() == arg2.getSize());
+    Assert(arg1.getSize() == arg3.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.fma(rm, arg2, arg3)));
   }
@@ -410,7 +410,7 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPoint arg2(node[2].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.div(rm, arg2)));
   }
@@ -442,7 +442,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.rem(arg2)));
   }
@@ -454,7 +454,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     FloatingPoint::PartialFloatingPoint res(arg1.min(arg2));
 
@@ -474,7 +474,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     FloatingPoint::PartialFloatingPoint res(arg1.max(arg2));
 
@@ -494,7 +494,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
@@ -524,7 +524,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
@@ -558,7 +558,7 @@ namespace constantFold {
       FloatingPoint arg1(node[0].getConst<FloatingPoint>());
       FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-      Assert(arg1.t == arg2.t);
+      Assert(arg1.getSize() == arg2.getSize());
 
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
@@ -580,7 +580,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 <= arg2));
   }
@@ -593,7 +593,7 @@ namespace constantFold {
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
     FloatingPoint arg2(node[1].getConst<FloatingPoint>());
 
-    Assert(arg1.t == arg2.t);
+    Assert(arg1.getSize() == arg2.getSize());
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 < arg2));
   }
@@ -654,12 +654,12 @@ namespace constantFold {
     TNode op = node.getOperator();
     const FloatingPointToFPIEEEBitVector &param = op.getConst<FloatingPointToFPIEEEBitVector>();
     const BitVector &bv = node[0].getConst<BitVector>();
-    
-    Node lit =
-      NodeManager::currentNM()->mkConst(FloatingPoint(param.t.exponent(),
-						      param.t.significand(),
-						      bv));
-    
+
+    Node lit = NodeManager::currentNM()->mkConst(
+        FloatingPoint(param.getSize().exponentWidth(),
+                      param.getSize().significandWidth(),
+                      bv));
+
     return RewriteResponse(REWRITE_DONE, lit);
   }
 
@@ -671,7 +671,9 @@ namespace constantFold {
     FloatingPoint arg1(node[1].getConst<FloatingPoint>());
     FloatingPointToFPFloatingPoint info = node.getOperator().getConst<FloatingPointToFPFloatingPoint>();
 
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.convert(info.t,rm)));
+    return RewriteResponse(
+        REWRITE_DONE,
+        NodeManager::currentNM()->mkConst(arg1.convert(info.getSize(), rm)));
   }
 
   RewriteResponse convertFromRealLiteral (TNode node, bool) {
@@ -683,8 +685,8 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     Rational arg(node[1].getConst<Rational>());
 
-    FloatingPoint res(param.t, rm, arg);
-    
+    FloatingPoint res(param.getSize(), rm, arg);
+
     Node lit = NodeManager::currentNM()->mkConst(res);
     
     return RewriteResponse(REWRITE_DONE, lit);
@@ -699,8 +701,8 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.t, rm, arg, true);
-    
+    FloatingPoint res(param.getSize(), rm, arg, true);
+
     Node lit = NodeManager::currentNM()->mkConst(res);
     
     return RewriteResponse(REWRITE_DONE, lit);
@@ -715,8 +717,8 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector arg(node[1].getConst<BitVector>());
 
-    FloatingPoint res(param.t, rm, arg, false);
-    
+    FloatingPoint res(param.getSize(), rm, arg, false);
+
     Node lit = NodeManager::currentNM()->mkConst(res);
     
     return RewriteResponse(REWRITE_DONE, lit);
@@ -731,7 +733,8 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
-    FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, false));
+    FloatingPoint::PartialBitVector res(
+        arg.convertToBV(param.d_bv_size, rm, false));
 
     if (res.second) {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -751,7 +754,8 @@ namespace constantFold {
     RoundingMode rm(node[0].getConst<RoundingMode>());
     FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
-    FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, true));
+    FloatingPoint::PartialBitVector res(
+        arg.convertToBV(param.d_bv_size, rm, true));
 
     if (res.second) {
       Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -791,12 +795,14 @@ namespace constantFold {
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
 
-      BitVector folded(arg.convertToBVTotal(param.bvs, rm, false, partialValue));
+      BitVector folded(
+          arg.convertToBVTotal(param.d_bv_size, rm, false, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
-      FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, false));
+      FloatingPoint::PartialBitVector res(
+          arg.convertToBV(param.d_bv_size, rm, false));
 
       if (res.second) {
 	Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -821,13 +827,14 @@ namespace constantFold {
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
 
-      BitVector folded(arg.convertToBVTotal(param.bvs, rm, true, partialValue));
+      BitVector folded(
+          arg.convertToBVTotal(param.d_bv_size, rm, true, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
-
-      FloatingPoint::PartialBitVector res(arg.convertToBV(param.bvs, rm, true));
+      FloatingPoint::PartialBitVector res(
+          arg.convertToBV(param.d_bv_size, rm, true));
 
       if (res.second) {
 	Node lit = NodeManager::currentNM()->mkConst(res.first);
@@ -879,19 +886,11 @@ namespace constantFold {
     bool result;
     switch (k)
     {
-#ifdef CVC4_USE_SYMFPU
-      case kind::FLOATINGPOINT_COMPONENT_NAN:
-        result = arg0.getLiteral().nan;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_INF:
-        result = arg0.getLiteral().inf;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_ZERO:
-        result = arg0.getLiteral().zero;
-        break;
-      case kind::FLOATINGPOINT_COMPONENT_SIGN:
-        result = arg0.getLiteral().sign;
-        break;
+#ifdef CVC5_USE_SYMFPU
+      case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
+      case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
+      case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
+      case kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
 #endif
       default: Unreachable() << "Unknown kind used in componentFlag"; break;
     }
@@ -911,12 +910,12 @@ namespace constantFold {
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
-        NodeManager::currentNM()->mkConst((BitVector)arg0.getLiteral().exponent)
+#ifdef CVC5_USE_SYMFPU
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
 #else
         node
 #endif
-            );
+    );
   }
 
   RewriteResponse componentSignificand(TNode node, bool)
@@ -925,14 +924,14 @@ namespace constantFold {
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
-    return RewriteResponse(REWRITE_DONE,
-#ifdef CVC4_USE_SYMFPU
-                           NodeManager::currentNM()->mkConst(
-                               (BitVector)arg0.getLiteral().significand)
+    return RewriteResponse(
+        REWRITE_DONE,
+#ifdef CVC5_USE_SYMFPU
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
 #else
-                           node
+        node
 #endif
-                               );
+    );
   }
 
   RewriteResponse roundingModeBitBlast(TNode node, bool)
@@ -941,29 +940,29 @@ namespace constantFold {
 
     BitVector value;
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
     RoundingMode arg0(node[0].getConst<RoundingMode>());
     switch (arg0)
     {
-      case roundNearestTiesToEven:
+      case ROUND_NEAREST_TIES_TO_EVEN:
         value = symfpuSymbolic::traits::RNE().getConst<BitVector>();
         break;
 
-      case roundNearestTiesToAway:
+      case ROUND_NEAREST_TIES_TO_AWAY:
         value = symfpuSymbolic::traits::RNA().getConst<BitVector>();
         break;
 
-      case roundTowardPositive:
+      case ROUND_TOWARD_POSITIVE:
         value = symfpuSymbolic::traits::RTP().getConst<BitVector>();
         break;
 
-      case roundTowardNegative:
+      case ROUND_TOWARD_NEGATIVE:
         value = symfpuSymbolic::traits::RTN().getConst<BitVector>();
         break;
 
-      case roundTowardZero:
+      case ROUND_TOWARD_ZERO:
         value = symfpuSymbolic::traits::RTZ().getConst<BitVector>();
         break;
 
@@ -978,8 +977,7 @@ namespace constantFold {
                            NodeManager::currentNM()->mkConst(value));
   }
 
-};  /* CVC4::theory::fp::constantFold */
-
+  };  // namespace constantFold
 
   /**
    * Initialize the rewriter.
@@ -1344,58 +1342,65 @@ TheoryFpRewriter::TheoryFpRewriter()
         }
       }
 
-      if (allChildrenConst) {
-	RewriteStatus rs = REWRITE_DONE;    // This is a bit messy because
-        Node rn = res.d_node;  // RewriteResponse is too functional..
+      if (allChildrenConst)
+      {
+        RewriteStatus rs = REWRITE_DONE;  // This is a bit messy because
+        Node rn = res.d_node;             // RewriteResponse is too functional..
 
-        if (apartFromRoundingMode) {
+        if (apartFromRoundingMode)
+        {
           if (!(res.d_node.getKind() == kind::EQUAL)
               &&  // Avoid infinite recursion...
               !(res.d_node.getKind() == kind::ROUNDINGMODE_BITBLAST))
-          {  // Don't eliminate the bit-blast
+          {
+            // Don't eliminate the bit-blast
             // We are close to being able to constant fold this
             // and in many cases the rounding mode really doesn't matter.
             // So we can try brute forcing our way through them.
 
-            NodeManager *nm = NodeManager::currentNM();
+            NodeManager* nm = NodeManager::currentNM();
 
-	    Node RNE(nm->mkConst(roundNearestTiesToEven));
-	    Node RNA(nm->mkConst(roundNearestTiesToAway));
-	    Node RTZ(nm->mkConst(roundTowardPositive));
-	    Node RTN(nm->mkConst(roundTowardNegative));
-	    Node RTP(nm->mkConst(roundTowardZero));
+            Node rne(nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN));
+            Node rna(nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY));
+            Node rtz(nm->mkConst(ROUND_TOWARD_POSITIVE));
+            Node rtn(nm->mkConst(ROUND_TOWARD_NEGATIVE));
+            Node rtp(nm->mkConst(ROUND_TOWARD_ZERO));
 
-            TNode RM(res.d_node[0]);
+            TNode rm(res.d_node[0]);
 
-            Node wRNE(res.d_node.substitute(RM, TNode(RNE)));
-            Node wRNA(res.d_node.substitute(RM, TNode(RNA)));
-            Node wRTZ(res.d_node.substitute(RM, TNode(RTZ)));
-            Node wRTN(res.d_node.substitute(RM, TNode(RTN)));
-            Node wRTP(res.d_node.substitute(RM, TNode(RTP)));
+            Node w_rne(res.d_node.substitute(rm, TNode(rne)));
+            Node w_rna(res.d_node.substitute(rm, TNode(rna)));
+            Node w_rtz(res.d_node.substitute(rm, TNode(rtz)));
+            Node w_rtn(res.d_node.substitute(rm, TNode(rtn)));
+            Node w_rtp(res.d_node.substitute(rm, TNode(rtp)));
 
             rs = REWRITE_AGAIN_FULL;
-	    rn = nm->mkNode(kind::ITE,
-			    nm->mkNode(kind::EQUAL, RM, RNE),
-			    wRNE,
-			    nm->mkNode(kind::ITE,
-				       nm->mkNode(kind::EQUAL, RM, RNA),
-				       wRNA,
-				       nm->mkNode(kind::ITE,
-						  nm->mkNode(kind::EQUAL, RM, RTZ),
-						  wRTZ,
-						  nm->mkNode(kind::ITE,
-							     nm->mkNode(kind::EQUAL, RM, RTN),
-							     wRTN,
-							     wRTP))));
-	  }
-	} else {
+            rn = nm->mkNode(
+                kind::ITE,
+                nm->mkNode(kind::EQUAL, rm, rne),
+                w_rne,
+                nm->mkNode(
+                    kind::ITE,
+                    nm->mkNode(kind::EQUAL, rm, rna),
+                    w_rna,
+                    nm->mkNode(kind::ITE,
+                               nm->mkNode(kind::EQUAL, rm, rtz),
+                               w_rtz,
+                               nm->mkNode(kind::ITE,
+                                          nm->mkNode(kind::EQUAL, rm, rtn),
+                                          w_rtn,
+                                          w_rtp))));
+          }
+        }
+        else
+        {
           RewriteResponse tmp =
               d_constantFoldTable[res.d_node.getKind()](res.d_node, false);
           rs = tmp.d_status;
           rn = tmp.d_node;
         }
 
-	RewriteResponse constRes(rs,rn);
+        RewriteResponse constRes(rs, rn);
 
         if (constRes.d_node != res.d_node)
         {
@@ -1414,8 +1419,6 @@ TheoryFpRewriter::TheoryFpRewriter()
     return res;
   }
 
-
-}/* CVC4::theory::fp namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+  }  // namespace fp
+  }  // namespace theory
+  }  // namespace cvc5

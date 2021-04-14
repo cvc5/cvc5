@@ -1,26 +1,29 @@
-/*********************                                                        */
-/*! \file preprocessing_pass.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Justin Xu, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessing pass super class
- **
- ** Preprocessing pass super class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Justin Xu, Abdalrhman Mohamed, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessing pass super class.
+ */
 
 #include "preprocessing/preprocessing_pass.h"
 
-#include "smt/dump.h"
-#include "smt/smt_statistics_registry.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/output_manager.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
@@ -66,4 +69,4 @@ PreprocessingPass::~PreprocessingPass() {
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

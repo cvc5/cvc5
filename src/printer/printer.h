@@ -1,39 +1,37 @@
-/*********************                                                        */
-/*! \file printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base of the pretty-printer interface
- **
- ** Base of the pretty-printer interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base of the pretty-printer interface.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PRINTER__PRINTER_H
-#define CVC4__PRINTER__PRINTER_H
+#ifndef CVC5__PRINTER__PRINTER_H
+#define CVC5__PRINTER__PRINTER_H
 
-#include <map>
 #include <string>
 
 #include "expr/node.h"
 #include "options/language.h"
 #include "smt/model.h"
 #include "util/result.h"
-#include "util/sexpr.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class CommandStatus;
-class NodeCommand;
 class UnsatCore;
+struct InstantiationList;
+struct SkolemList;
 
 class Printer
 {
@@ -51,17 +49,22 @@ class Printer
   virtual void toStream(std::ostream& out,
                         TNode n,
                         int toDepth,
-                        bool types,
                         size_t dag) const = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
 
   /** Write a Model out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const Model& m) const;
+  virtual void toStream(std::ostream& out, const smt::Model& m) const;
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
+
+  /** Write an instantiation list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const InstantiationList& is) const;
+
+  /** Write a skolem list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const SkolemList& sks) const;
 
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
@@ -87,8 +90,6 @@ class Printer
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
-                                      const std::string& id,
-                                      size_t arity,
                                       TypeNode type) const;
 
   /** Print define-sort command */
@@ -103,13 +104,6 @@ class Printer
                                          const std::vector<Node>& formals,
                                          TypeNode range,
                                          Node formula) const;
-
-  /** Print define-named-fun command */
-  virtual void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                              const std::string& id,
-                                              const std::vector<Node>& formals,
-                                              TypeNode range,
-                                              Node formula) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -141,11 +135,10 @@ class Printer
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   const std::string& sym,
+                                   Node f,
                                    const std::vector<Node>& vars,
-                                   TypeNode range,
                                    bool isInv,
-                                   TypeNode sygusType) const;
+                                   TypeNode sygusType = TypeNode::null()) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
@@ -159,9 +152,6 @@ class Printer
 
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
-
-  /** Print expand-definitions command */
-  void toStreamCmdExpandDefinitions(std::ostream& out, Node n) const;
 
   /** Print get-value command */
   virtual void toStreamCmdGetValue(std::ostream& out,
@@ -224,7 +214,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  const std::string& value) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
@@ -233,7 +223,7 @@ class Printer
   /** Print set-option command */
   virtual void toStreamCmdSetOption(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const;
+                                    const std::string& value) const;
 
   /** Print get-option command */
   virtual void toStreamCmdGetOption(std::ostream& out,
@@ -260,6 +250,10 @@ class Printer
   /** Print comment command */
   virtual void toStreamCmdComment(std::ostream& out,
                                   const std::string& comment) const;
+  /** Declare heap command */
+  virtual void toStreamCmdDeclareHeap(std::ostream& out,
+                                      TypeNode locType,
+                                      TypeNode dataType) const;
 
   /** Print command sequence command */
   virtual void toStreamCmdCommandSequence(
@@ -273,19 +267,26 @@ class Printer
   /** Derived classes can construct, but no one else. */
   Printer() {}
 
-  /** write model response to command */
-  virtual void toStream(std::ostream& out,
-                        const Model& m,
-                        const NodeCommand* c) const = 0;
+  /**
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  virtual void toStreamModelSort(std::ostream& out,
+                                 const smt::Model& m,
+                                 TypeNode tn) const = 0;
+
+  /**
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
+   */
+  virtual void toStreamModelTerm(std::ostream& out,
+                                 const smt::Model& m,
+                                 Node n) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(OutputLanguage lang,
                      std::ostream& out,
-                     const Model& m,
-                     const NodeCommand* c) const
-  {
-    getPrinter(lang)->toStream(out, m, c);
-  }
+                     const smt::Model& m) const;
 
   /**
    * Write an error to `out` stating that command `name` is not supported by
@@ -306,6 +307,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__PRINTER_H */
+#endif /* CVC5__PRINTER__PRINTER_H */

@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file minisat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the minisat interface for cvc4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Haniel Barbosa, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the minisat interface for cvc5.
+ */
 
 #pragma once
 
@@ -20,12 +21,12 @@
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
-class MinisatSatSolver : public DPLLSatSolverInterface {
-public:
-
+class MinisatSatSolver : public CDCLTSatSolverInterface
+{
+ public:
   MinisatSatSolver(StatisticsRegistry* registry);
   ~MinisatSatSolver() override;
 
@@ -38,7 +39,10 @@ public:
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
-  void initialize(context::Context* context, TheoryProxy* theoryProxy) override;
+  void initialize(context::Context* context,
+                  TheoryProxy* theoryProxy,
+                  cvc5::context::UserContext* userContext,
+                  ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
@@ -79,6 +83,15 @@ public:
 
   bool isDecision(SatVariable decn) const override;
 
+  /** Retrieve a pointer to the unerlying solver. */
+  Minisat::SimpSolver* getSolver() { return d_minisat; }
+
+  /** Retrieve the proof manager of this SAT solver. */
+  SatProofManager* getProofManager();
+
+  /** Retrieve the refutation proof of this SAT solver. */
+  std::shared_ptr<ProofNode> getProof() override;
+
  private:
 
   /** The SatSolver used */
@@ -104,7 +117,7 @@ public:
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 
-};/* class MinisatSatSolver */
+}; /* class MinisatSatSolver */
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

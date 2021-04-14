@@ -2,6 +2,7 @@
 ; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)
+(declare-heap (Int Int))
 
 (declare-const x Int)
 (declare-const y Int)

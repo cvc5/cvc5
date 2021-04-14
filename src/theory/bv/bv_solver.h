@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file bv_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bit-vector solver interface.
- **
- ** Describes the interface for the internal bit-vector solver of TheoryBV.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bit-vector solver interface.
+ *
+ * Describes the interface for the internal bit-vector solver of TheoryBV.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_H
-#define CVC4__THEORY__BV__BV_SOLVER_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_H
+#define CVC5__THEORY__BV__BV_SOLVER_H
 
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -29,7 +30,7 @@ class BVSolver
 {
  public:
   BVSolver(TheoryState& state, TheoryInferenceManager& inferMgr)
-      : d_state(state), d_inferManager(inferMgr){};
+      : d_state(state), d_im(inferMgr){};
 
   virtual ~BVSolver(){};
 
@@ -86,11 +87,11 @@ class BVSolver
   virtual std::string identify() const = 0;
 
   virtual Theory::PPAssertStatus ppAssert(
-      TNode in, SubstitutionMap& outSubstitutions) = 0;
+      TrustNode in, TrustSubstitutionMap& outSubstitutions) = 0;
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
 
-  virtual void ppStaticLearn(TNode in, NodeBuilder<>& learned){};
+  virtual void ppStaticLearn(TNode in, NodeBuilder& learned){};
 
   virtual void presolve(){};
 
@@ -112,11 +113,11 @@ class BVSolver
 
  protected:
   TheoryState& d_state;
-  TheoryInferenceManager& d_inferManager;
+  TheoryInferenceManager& d_im;
 };
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BV_SOLVER_H */
+#endif /* CVC5__THEORY__BV__BV_SOLVER_H */

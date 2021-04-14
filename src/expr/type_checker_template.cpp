@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file type_checker_template.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief TypeChecker implementation
- **
- ** TypeChecker implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * TypeChecker implementation.
+ */
+
+#include <sstream>
 
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
@@ -21,7 +22,7 @@
 
 ${typechecker_includes}
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -42,7 +43,7 @@ ${typerules}
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
-    Unhandled() << n.getKind();
+    Unhandled() << " " << n.getKind();
   }
 
   nodeManager->setAttribute(n, TypeAttr(), typeNode);
@@ -69,5 +70,5 @@ ${construles}
 
 }/* TypeChecker::computeIsConst */
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5

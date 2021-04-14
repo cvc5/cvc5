@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file cadical.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andres Noetzli, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper for CaDiCaL SAT Solver.
- **
- ** Implementation of the CaDiCaL SAT solver for CVC4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andres Noetzli, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper for CaDiCaL SAT Solver.
+ *
+ * Implementation of the CaDiCaL SAT solver for CVC4 (bit-vectors).
+ */
 
 #include "prop/cadical.h"
 
-#ifdef CVC4_USE_CADICAL
+#ifdef CVC5_USE_CADICAL
 
 #include "base/check.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 using CadicalLit = int;
@@ -61,6 +62,7 @@ CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
+      d_inSatMode(false),
       d_statistics(registry, name)
 {
 }
@@ -112,8 +114,9 @@ SatVariable CadicalSolver::falseVar() { return d_false; }
 SatValue CadicalSolver::solve()
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  d_assumptions.clear();
   SatValue res = toSatValue(d_solver->solve());
-  d_okay = (res == SAT_VALUE_TRUE);
+  d_inSatMode = (res == SAT_VALUE_TRUE);
   ++d_statistics.d_numSatCalls;
   return res;
 }
@@ -126,27 +129,46 @@ SatValue CadicalSolver::solve(long unsigned int&)
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  d_assumptions.clear();
   for (const SatLiteral& lit : assumptions)
   {
     d_solver->assume(toCadicalLit(lit));
+    d_assumptions.push_back(lit);
   }
   SatValue res = toSatValue(d_solver->solve());
-  d_okay = (res == SAT_VALUE_TRUE);
+  d_inSatMode = (res == SAT_VALUE_TRUE);
   ++d_statistics.d_numSatCalls;
   return res;
+}
+
+bool CadicalSolver::setPropagateOnly()
+{
+  d_solver->limit("decisions", 0); /* Gets reset after next solve() call. */
+  return true;
+}
+
+void CadicalSolver::getUnsatAssumptions(std::vector<SatLiteral>& assumptions)
+{
+  for (const SatLiteral& lit : d_assumptions)
+  {
+    if (d_solver->failed(toCadicalLit(lit)))
+    {
+      assumptions.push_back(lit);
+    }
+  }
 }
 
 void CadicalSolver::interrupt() { d_solver->terminate(); }
 
 SatValue CadicalSolver::value(SatLiteral l)
 {
-  Assert(d_okay);
+  Assert(d_inSatMode);
   return toSatValueLit(d_solver->val(toCadicalLit(l)));
 }
 
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
-  Assert(d_okay);
+  Assert(d_inSatMode);
   return value(l);
 }
 
@@ -155,7 +177,7 @@ unsigned CadicalSolver::getAssertionLevel() const
   Unreachable() << "CaDiCaL does not support assertion levels.";
 }
 
-bool CadicalSolver::ok() const { return d_okay; }
+bool CadicalSolver::ok() const { return d_inSatMode; }
 
 CadicalSolver::Statistics::Statistics(StatisticsRegistry* registry,
                                       const std::string& prefix)
@@ -179,6 +201,6 @@ CadicalSolver::Statistics::~Statistics() {
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_CADICAL
+#endif  // CVC5_USE_CADICAL

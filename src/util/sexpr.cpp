@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file sexpr.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple representation of S-expressions
- **
- ** Simple representation of S-expressions.
- **
- ** SExprs have their own language specific printing procedures. The reason for
- ** this being implemented on SExpr and not on the Printer class is that the
- ** Printer class lives in libcvc4. It has to currently as it prints fairly
- ** complicated objects, like Model, which in turn uses SmtEngine pointers.
- ** However, SExprs need to be printed by Statistics. To get the output
- ** consistent with the previous version, the printing of SExprs in different
- ** languages is handled in the SExpr class and the libexpr library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple representation of S-expressions.
+ *
+ * SExprs have their own language specific printing procedures. The reason for
+ * this being implemented on SExpr and not on the Printer class is that the
+ * Printer class lives in libcvc4. It has to currently as it prints fairly
+ * complicated objects, like Model, which in turn uses SmtEngine pointers.
+ * However, SExprs need to be printed by Statistics. To get the output
+ * consistent with the previous version, the printing of SExprs in different
+ * languages is handled in the SExpr class and the libexpr library.
+ */
 
 #include "util/sexpr.h"
 
@@ -33,7 +32,7 @@
 #include "util/ostream_util.h"
 #include "util/smt2_quote_string.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 const int PrettySExprs::s_iosIndex = std::ios_base::xalloc();
 
@@ -90,12 +89,14 @@ SExpr::SExpr(const SExpr& other)
   Assert((d_children == NULL) == isAtom());
 }
 
-SExpr::SExpr(const CVC4::Integer& value)
+SExpr::SExpr(const cvc5::Integer& value)
     : d_sexprType(SEXPR_INTEGER),
       d_integerValue(value),
       d_rationalValue(0),
       d_stringValue(""),
-      d_children(NULL) {}
+      d_children(NULL)
+{
+}
 
 SExpr::SExpr(int value)
     : d_sexprType(SEXPR_INTEGER),
@@ -125,12 +126,14 @@ SExpr::SExpr(unsigned long int value)
       d_stringValue(""),
       d_children(NULL) {}
 
-SExpr::SExpr(const CVC4::Rational& value)
+SExpr::SExpr(const cvc5::Rational& value)
     : d_sexprType(SEXPR_RATIONAL),
       d_integerValue(0),
       d_rationalValue(value),
       d_stringValue(""),
-      d_children(NULL) {}
+      d_children(NULL)
+{
+}
 
 SExpr::SExpr(const std::string& value)
     : d_sexprType(SEXPR_STRING),
@@ -304,12 +307,14 @@ std::string SExpr::getValue() const {
   return std::string();
 }
 
-const CVC4::Integer& SExpr::getIntegerValue() const {
+const cvc5::Integer& SExpr::getIntegerValue() const
+{
   PrettyCheckArgument(isInteger(), this);
   return d_integerValue;
 }
 
-const CVC4::Rational& SExpr::getRationalValue() const {
+const cvc5::Rational& SExpr::getRationalValue() const
+{
   PrettyCheckArgument(isRational(), this);
   return d_rationalValue;
 }
@@ -377,4 +382,4 @@ SExpr SExpr::parseListOfListOfAtoms(
   return SExpr(parsedListsOfAtoms);
 }
 
-} /* CVC4 namespace */
+}  // namespace cvc5

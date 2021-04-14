@@ -1,38 +1,39 @@
-/*********************                                                        */
-/*! \file proof_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager of SmtEngine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager of SmtEngine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PROOF_MANAGER_H
-#define CVC4__SMT__PROOF_MANAGER_H
+#ifndef CVC5__SMT__PROOF_MANAGER_H
+#define CVC5__SMT__PROOF_MANAGER_H
 
-#include "context/cdlist.h"
-#include "expr/expr.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
-#include "smt/preprocess_proof_generator.h"
-#include "smt/proof_post_processor.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
+class ProofChecker;
+class ProofNode;
+class ProofNodeManager;
 class SmtEngine;
 
 namespace smt {
 
 class Assertions;
+class DefinedFunction;
+class PreprocessProofGenerator;
+class ProofPostproccess;
 
 /**
  * This class is responsible for managing the proof output of SmtEngine, as
@@ -40,31 +41,42 @@ class Assertions;
  */
 class PfManager
 {
+  /** The type of our internal map of defined functions */
+  using DefinedFunctionMap =
+      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
+
  public:
-  PfManager(SmtEngine* smte);
+  PfManager(context::UserContext* u, SmtEngine* smte);
   ~PfManager();
   /**
-   * Print the proof on the output channel of the current options in scope.
+   * Print the proof on the given output stream.
    *
-   * The argument pg is the module that can provide a proof for false in the
-   * current context.
+   * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in as.
+   * respect to assertions in as and df. For the latter, entries in the defined
+   * function map correspond to equalities of the form (= f (lambda (...) t)),
+   * which are considered assertions in the final proof.
    */
-  void printProof(ProofGenerator* pg, Assertions& as);
+  void printProof(std::ostream& out,
+                  std::shared_ptr<ProofNode> pfn,
+                  Assertions& as,
+                  DefinedFunctionMap& df);
   /**
    * Check proof, same as above, without printing.
    */
-  void checkProof(ProofGenerator* pg, Assertions& as);
+  void checkProof(std::shared_ptr<ProofNode> pfn,
+                  Assertions& as,
+                  DefinedFunctionMap& df);
 
   /**
    * Get final proof.
    *
-   * The argument pg is the module that can provide a proof for false in the
-   * current context.
+   * The argument pfn is the proof for false in the current context.
    */
-  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg, Assertions& as);
+  std::shared_ptr<ProofNode> getFinalProof(std::shared_ptr<ProofNode> pfn,
+                                           Assertions& as,
+                                           DefinedFunctionMap& df);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -75,10 +87,18 @@ class PfManager
   //--------------------------- end access to utilities
  private:
   /**
-   * Set final proof, which initializes d_finalProof to the proof of false
-   * from pg, postprocesses it, and stores it in d_finalProof.
+   * Set final proof, which initializes d_finalProof to the given proof node of
+   * false, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(ProofGenerator* pg, context::CDList<Node>* al);
+  void setFinalProof(std::shared_ptr<ProofNode> pfn,
+                     Assertions& as,
+                     DefinedFunctionMap& df);
+  /**
+   * Get assertions from the assertions
+   */
+  void getAssertions(Assertions& as,
+                     DefinedFunctionMap& df,
+                     std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
   /** For the new proofs module */
@@ -98,6 +118,6 @@ class PfManager
 }; /* class SmtEngine */
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__PROOF_MANAGER_H */
+#endif /* CVC5__SMT__PROOF_MANAGER_H */

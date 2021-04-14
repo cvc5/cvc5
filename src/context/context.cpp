@@ -1,28 +1,26 @@
-/*********************                                                        */
-/*! \file context.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of base context operations.
- **
- ** Implementation of base context operations.
- **/
-
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of base context operations.
+ */
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "base/check.h"
 #include "context/context.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 
@@ -209,6 +207,7 @@ ContextObj* ContextObj::restoreAndContinue()
 
     Debug("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
+    d_pScope = nullptr;
 
     // Nothing else to do
   } else {
@@ -237,21 +236,30 @@ ContextObj* ContextObj::restoreAndContinue()
 
 void ContextObj::destroy()
 {
+  /* The object to destroy must be valid, i.e., its current state must belong
+   * to a scope. We remove the object and its previous versions from their
+   * respective scopes below. If this assertion is failing, you may have
+   * created an object at a non-zero level and let it outlive the destruction
+   * of that level. */
+  Assert(d_pScope != nullptr);
   /* Context can be big and complicated, so we only want to process this output
    * if we're really going to use it. (Same goes below.) */
   Debug("context") << "before destroy " << this << " (level " << getLevel()
                    << "):" << std::endl << *getContext() << std::endl;
 
-  for(;;) {
+  for (;;)
+  {
     // If valgrind reports invalid writes on the next few lines,
     // here's a hint: make sure all classes derived from ContextObj in
     // the system properly call destroy() in their destructors.
     // That's needed to maintain this linked list properly.
-    if(next() != NULL) {
+    if (next() != nullptr)
+    {
       next()->prev() = prev();
     }
     *prev() = next();
-    if(d_pContextObjRestore == NULL) {
+    if (d_pContextObjRestore == nullptr)
+    {
       break;
     }
     Debug("context") << "in destroy " << this << ", restore object is "
@@ -378,5 +386,5 @@ void Scope::enqueueToGarbageCollect(ContextObj* obj) {
   d_garbage->push_back(obj);
 }
 
-} /* CVC4::context namespace */
-} /* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5

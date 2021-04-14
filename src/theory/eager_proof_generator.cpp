@@ -1,23 +1,25 @@
-/*********************                                                        */
-/*! \file eager_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the abstract proof generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the abstract proof generator class.
+ */
 
 #include "theory/eager_proof_generator.h"
 
 #include "expr/proof.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
@@ -30,7 +32,10 @@ EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
 void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
 {
   // pf should prove f
-  Assert(pf->getResult() == f);
+  Assert(pf->getResult() == f)
+      << "EagerProofGenerator::setProofFor: unexpected result" << std::endl
+      << "Expected: " << f << std::endl
+      << "Actual: " << pf->getResult() << std::endl;
   d_proofs[f] = pf;
 }
 void EagerProofGenerator::setProofForConflict(Node conf,
@@ -117,6 +122,18 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
+TrustNode EagerProofGenerator::mkTrustedRewrite(
+    Node a, Node b, std::shared_ptr<ProofNode> pf)
+{
+  if (pf == nullptr)
+  {
+    return TrustNode::null();
+  }
+  Node eq = a.eqNode(b);
+  setProofFor(eq, pf);
+  return TrustNode::mkTrustRewrite(a, b, this);
+}
+
 TrustNode EagerProofGenerator::mkTrustedPropagation(
     Node n, Node exp, std::shared_ptr<ProofNode> pf)
 {
@@ -138,4 +155,4 @@ TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 std::string EagerProofGenerator::identify() const { return d_name; }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

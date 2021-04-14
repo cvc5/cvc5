@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-#####################
-## sygus-inv.py
-## Top contributors (to current version):
-##   Yoni Zohar
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## sygus solver through the Python API. This is a direct
-## translation of sygus-inv.cpp .
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar, Mudathir Mohamed
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5
+# sygus solver through the Python API. This is a direct
+# translation of sygus-inv.cpp .
 ##
 
 import pycvc4
@@ -30,9 +32,9 @@ if __name__ == "__main__":
   integer = slv.getIntegerSort()
   boolean = slv.getBooleanSort()
 
-  zero = slv.mkReal(0)
-  one = slv.mkReal(1)
-  ten = slv.mkReal(10)
+  zero = slv.mkInteger(0)
+  one = slv.mkInteger(1)
+  ten = slv.mkInteger(10)
 
   # declare input variables for functions
   x = slv.mkVar(integer, "x")

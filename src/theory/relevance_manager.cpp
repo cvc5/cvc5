@@ -1,22 +1,25 @@
-/*********************                                                        */
-/*! \file relevance_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of relevance manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of relevance manager.
+ */
 
 #include "theory/relevance_manager.h"
 
-using namespace CVC4::kind;
+#include <sstream>
 
-namespace CVC4 {
+using namespace cvc5::kind;
+
+namespace cvc5 {
 namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
@@ -325,4 +328,4 @@ RelevanceManager::getRelevantAssertions(bool& success)
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,24 +1,29 @@
-/*********************                                                        */
-/*! \file fp_converter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Conversion of floating-point operations to bit-vectors using symfpu.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Conversion of floating-point operations to bit-vectors using symfpu.
+ */
 
 #include "theory/fp/fp_converter.h"
-#include "theory/theory.h"
-// theory.h Only needed for the leaf test
 
 #include <vector>
 
-#ifdef CVC4_USE_SYMFPU
+#include "base/check.h"
+#include "expr/node_builder.h"
+#include "theory/theory.h"  // theory.h Only needed for the leaf test
+#include "util/floatingpoint.h"
+#include "util/floatingpoint_literal_symfpu.h"
+
+#ifdef CVC5_USE_SYMFPU
 #include "symfpu/core/add.h"
 #include "symfpu/core/classify.h"
 #include "symfpu/core/compare.h"
@@ -35,87 +40,87 @@
 #include "symfpu/utils/properties.h"
 #endif
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 namespace symfpu {
-using namespace ::CVC4::theory::fp::symfpuSymbolic;
+using namespace ::cvc5::theory::fp::symfpuSymbolic;
 
-#define CVC4_SYM_ITE_DFN(T)                                                \
+#define CVC5_SYM_ITE_DFN(T)                                                \
   template <>                                                              \
   struct ite<symbolicProposition, T>                                       \
   {                                                                        \
-    static const T iteOp(const symbolicProposition &_cond,                 \
-                         const T &_l,                                      \
-                         const T &_r)                                      \
+    static const T iteOp(const symbolicProposition& _cond,                 \
+                         const T& _l,                                      \
+                         const T& _r)                                      \
     {                                                                      \
-      ::CVC4::NodeManager *nm = ::CVC4::NodeManager::currentNM();          \
+      ::cvc5::NodeManager* nm = ::cvc5::NodeManager::currentNM();          \
                                                                            \
-      ::CVC4::Node cond = _cond;                                           \
-      ::CVC4::Node l = _l;                                                 \
-      ::CVC4::Node r = _r;                                                 \
+      ::cvc5::Node cond = _cond;                                           \
+      ::cvc5::Node l = _l;                                                 \
+      ::cvc5::Node r = _r;                                                 \
                                                                            \
       /* Handle some common symfpu idioms */                               \
       if (cond.isConst())                                                  \
       {                                                                    \
-        return (cond == nm->mkConst(::CVC4::BitVector(1U, 1U))) ? l : r;   \
+        return (cond == nm->mkConst(::cvc5::BitVector(1U, 1U))) ? l : r;   \
       }                                                                    \
       else                                                                 \
       {                                                                    \
-        if (l.getKind() == ::CVC4::kind::BITVECTOR_ITE)                    \
+        if (l.getKind() == ::cvc5::kind::BITVECTOR_ITE)                    \
         {                                                                  \
           if (l[1] == r)                                                   \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
                            cond,                                           \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, l[0])), \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, l[0])), \
                 l[2],                                                      \
                 r);                                                        \
           }                                                                \
           else if (l[2] == r)                                              \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND, cond, l[0]),       \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND, cond, l[0]),       \
                 l[1],                                                      \
                 r);                                                        \
           }                                                                \
         }                                                                  \
-        else if (r.getKind() == ::CVC4::kind::BITVECTOR_ITE)               \
+        else if (r.getKind() == ::cvc5::kind::BITVECTOR_ITE)               \
         {                                                                  \
           if (r[1] == l)                                                   \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, cond),  \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, r[0])), \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, cond),  \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, r[0])), \
                 r[2],                                                      \
                 l);                                                        \
           }                                                                \
           else if (r[2] == l)                                              \
           {                                                                \
             return nm->mkNode(                                             \
-                ::CVC4::kind::BITVECTOR_ITE,                               \
-                nm->mkNode(::CVC4::kind::BITVECTOR_AND,                    \
-                           nm->mkNode(::CVC4::kind::BITVECTOR_NOT, cond),  \
+                ::cvc5::kind::BITVECTOR_ITE,                               \
+                nm->mkNode(::cvc5::kind::BITVECTOR_AND,                    \
+                           nm->mkNode(::cvc5::kind::BITVECTOR_NOT, cond),  \
                            r[0]),                                          \
                 r[1],                                                      \
                 l);                                                        \
           }                                                                \
         }                                                                  \
       }                                                                    \
-      return T(nm->mkNode(::CVC4::kind::BITVECTOR_ITE, cond, l, r));       \
+      return T(nm->mkNode(::cvc5::kind::BITVECTOR_ITE, cond, l, r));       \
     }                                                                      \
   }
 
 // Can (unsurprisingly) only ITE things which contain Nodes
-CVC4_SYM_ITE_DFN(traits::rm);
-CVC4_SYM_ITE_DFN(traits::prop);
-CVC4_SYM_ITE_DFN(traits::sbv);
-CVC4_SYM_ITE_DFN(traits::ubv);
+CVC5_SYM_ITE_DFN(traits::rm);
+CVC5_SYM_ITE_DFN(traits::prop);
+CVC5_SYM_ITE_DFN(traits::sbv);
+CVC5_SYM_ITE_DFN(traits::ubv);
 
-#undef CVC4_SYM_ITE_DFN
+#undef CVC5_SYM_ITE_DFN
 
 template <>
 traits::ubv orderEncode<traits, traits::ubv>(const traits::ubv &b)
@@ -140,11 +145,11 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
 };
 #endif
 
-#ifndef CVC4_USE_SYMFPU
+#ifndef CVC5_USE_SYMFPU
 #define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
 #endif
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace fp {
 namespace symfpuSymbolic {
@@ -237,7 +242,7 @@ symbolicProposition symbolicProposition::operator^(
 
 bool symbolicRoundingMode::checkNodeType(const TNode n)
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   return n.getType(false).isBitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES);
 #else
   return false;
@@ -249,7 +254,7 @@ symbolicRoundingMode::symbolicRoundingMode(const Node n) : nodeWrapper(n)
   Assert(checkNodeType(*this));
 }
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
 symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
@@ -408,8 +413,8 @@ symbolicBitVector<true> symbolicBitVector<true>::maxValue(const bwt &w)
   symbolicBitVector<true> leadingZero(symbolicBitVector<true>::zero(1));
   symbolicBitVector<true> base(symbolicBitVector<true>::allOnes(w - 1));
 
-  return symbolicBitVector<true>(::CVC4::NodeManager::currentNM()->mkNode(
-      ::CVC4::kind::BITVECTOR_CONCAT, leadingZero, base));
+  return symbolicBitVector<true>(::cvc5::NodeManager::currentNM()->mkNode(
+      ::cvc5::kind::BITVECTOR_CONCAT, leadingZero, base));
 }
 
 template <>
@@ -424,8 +429,8 @@ symbolicBitVector<true> symbolicBitVector<true>::minValue(const bwt &w)
   symbolicBitVector<true> leadingOne(symbolicBitVector<true>::one(1));
   symbolicBitVector<true> base(symbolicBitVector<true>::zero(w - 1));
 
-  return symbolicBitVector<true>(::CVC4::NodeManager::currentNM()->mkNode(
-      ::CVC4::kind::BITVECTOR_CONCAT, leadingOne, base));
+  return symbolicBitVector<true>(::cvc5::NodeManager::currentNM()->mkNode(
+      ::cvc5::kind::BITVECTOR_CONCAT, leadingOne, base));
 }
 
 template <>
@@ -496,9 +501,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator/(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV, *this, op));
 }
 
 template <bool isSigned>
@@ -506,9 +509,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator%(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM, *this, op));
 }
 
 template <bool isSigned>
@@ -648,7 +649,7 @@ symbolicBitVector<false> symbolicBitVector<isSigned>::toUnsigned(void) const
 template <>
 symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 {
-  NodeBuilder<> construct(kind::BITVECTOR_SIGN_EXTEND);
+  NodeBuilder construct(kind::BITVECTOR_SIGN_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorSignExtend>(
                    BitVectorSignExtend(extension))
             << *this;
@@ -659,7 +660,7 @@ symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 template <>
 symbolicBitVector<false> symbolicBitVector<false>::extend(bwt extension) const
 {
-  NodeBuilder<> construct(kind::BITVECTOR_ZERO_EXTEND);
+  NodeBuilder construct(kind::BITVECTOR_ZERO_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorZeroExtend>(
                    BitVectorZeroExtend(extension))
             << *this;
@@ -673,7 +674,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
 {
   Assert(this->getWidth() > reduction);
 
-  NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
                    BitVectorExtract((this->getWidth() - 1) - reduction, 0))
             << *this;
@@ -724,7 +725,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 {
   Assert(upper >= lower);
 
-  NodeBuilder<> construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
                    BitVectorExtract(upper, lower))
             << *this;
@@ -753,19 +754,21 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 }
 
 FpConverter::FpConverter(context::UserContext* user)
-    :
-#ifdef CVC4_USE_SYMFPU
+    : d_additionalAssertions(user)
+#ifdef CVC5_USE_SYMFPU
+      ,
       d_fpMap(user),
       d_rmMap(user),
       d_boolMap(user),
       d_ubvMap(user),
-      d_sbvMap(user),
+      d_sbvMap(user)
 #endif
-      d_additionalAssertions(user)
 {
 }
 
-#ifdef CVC4_USE_SYMFPU
+FpConverter::~FpConverter() {}
+
+#ifdef CVC5_USE_SYMFPU
 Node FpConverter::ufToNode(const fpt &format, const uf &u) const
 {
   NodeManager *nm = NodeManager::currentNM();
@@ -797,17 +800,17 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(roundNearestTiesToEven),
+      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
       nm->mkNode(kind::ITE,
                  nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(roundNearestTiesToAway),
+                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
                  nm->mkNode(kind::ITE,
                             nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(roundTowardPositive),
+                            nm->mkConst(ROUND_TOWARD_POSITIVE),
                             nm->mkNode(kind::ITE,
                                        nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(roundTowardNegative),
-                                       nm->mkConst(roundTowardZero)))));
+                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -815,7 +818,7 @@ Node FpConverter::propToNode(const prop &p) const
 {
   NodeManager *nm = NodeManager::currentNM();
   Node value =
-      nm->mkNode(kind::EQUAL, p, nm->mkConst(::CVC4::BitVector(1U, 1U)));
+      nm->mkNode(kind::EQUAL, p, nm->mkConst(::cvc5::BitVector(1U, 1U)));
   return value;
 }
 Node FpConverter::ubvToNode(const ubv &u) const { return u; }
@@ -842,11 +845,11 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 
 // Non-convertible things should only be added to the stack at the very start,
 // thus...
-#define CVC4_FPCONV_PASSTHROUGH Assert(workStack.empty())
+#define CVC5_FPCONV_PASSTHROUGH Assert(workStack.empty())
 
 Node FpConverter::convert(TNode node)
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   std::vector<TNode> workStack;
   TNode result = node;
 
@@ -875,19 +878,19 @@ Node FpConverter::convert(TNode node)
             /******** Constants ********/
             switch (current.getConst<RoundingMode>())
             {
-              case roundNearestTiesToEven:
+              case ROUND_NEAREST_TIES_TO_EVEN:
                 d_rmMap.insert(current, traits::RNE());
                 break;
-              case roundNearestTiesToAway:
+              case ROUND_NEAREST_TIES_TO_AWAY:
                 d_rmMap.insert(current, traits::RNA());
                 break;
-              case roundTowardPositive:
+              case ROUND_TOWARD_POSITIVE:
                 d_rmMap.insert(current, traits::RTP());
                 break;
-              case roundTowardNegative:
+              case ROUND_TOWARD_NEGATIVE:
                 d_rmMap.insert(current, traits::RTN());
                 break;
-              case roundTowardZero:
+              case ROUND_TOWARD_ZERO:
                 d_rmMap.insert(current, traits::RTZ());
                 break;
               default: Unreachable() << "Unknown rounding mode"; break;
@@ -919,9 +922,11 @@ Node FpConverter::convert(TNode node)
           if (current.getKind() == kind::CONST_FLOATINGPOINT)
           {
             /******** Constants ********/
-            d_fpMap.insert(current,
-                           symfpu::unpackedFloat<traits>(
-                               current.getConst<FloatingPoint>().getLiteral()));
+            d_fpMap.insert(
+                current,
+                symfpu::unpackedFloat<traits>(current.getConst<FloatingPoint>()
+                                                  .getLiteral()
+                                                  ->getSymUF()));
           }
           else
           {
@@ -1393,7 +1398,7 @@ Node FpConverter::convert(TNode node)
             }
             else
             {
-              CVC4_FPCONV_PASSTHROUGH;
+              CVC5_FPCONV_PASSTHROUGH;
               return result;
             }
           }
@@ -1530,7 +1535,7 @@ Node FpConverter::convert(TNode node)
           /* Fall through... */
 
           default:
-            CVC4_FPCONV_PASSTHROUGH;
+            CVC5_FPCONV_PASSTHROUGH;
             return result;
             break;
         }
@@ -1578,7 +1583,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToUBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               ubv(current[2])));
             i = d_ubvMap.find(current);
           }
@@ -1620,7 +1625,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToSBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               sbv(current[2])));
 
             i = d_sbvMap.find(current);
@@ -1648,7 +1653,7 @@ Node FpConverter::convert(TNode node)
         case kind::ROUNDINGMODE_BITBLAST:
         /* Fall through ... */
 
-        default: CVC4_FPCONV_PASSTHROUGH; break;
+        default: CVC5_FPCONV_PASSTHROUGH; break;
       }
     }
     else if (t.isReal())
@@ -1687,12 +1692,12 @@ Node FpConverter::convert(TNode node)
                  "expandDefinition";
           break;
 
-        default: CVC4_FPCONV_PASSTHROUGH; break;
+        default: CVC5_FPCONV_PASSTHROUGH; break;
       }
     }
     else
     {
-      CVC4_FPCONV_PASSTHROUGH;
+      CVC5_FPCONV_PASSTHROUGH;
     }
   }
 
@@ -1702,52 +1707,32 @@ Node FpConverter::convert(TNode node)
 #endif
 }
 
-#undef CVC4_FPCONV_PASSTHROUGH
+#undef CVC5_FPCONV_PASSTHROUGH
 
 Node FpConverter::getValue(Valuation &val, TNode var)
 {
   Assert(Theory::isLeafOf(var, THEORY_FP));
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   TypeNode t(var.getType());
+
+  Assert(t.isRoundingMode() || t.isFloatingPoint())
+      << "Asking for the value of a type that is not managed by the "
+         "floating-point theory";
 
   if (t.isRoundingMode())
   {
     rmMap::const_iterator i(d_rmMap.find(var));
 
-    if (i == d_rmMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = rmToNode((*i).second);
-      return value;
-    }
+    Assert(i != d_rmMap.end())
+        << "Asking for the value of an unregistered expression";
+    return rmToNode((*i).second);
   }
-  else if (t.isFloatingPoint())
-  {
-    fpMap::const_iterator i(d_fpMap.find(var));
+  fpMap::const_iterator i(d_fpMap.find(var));
 
-    if (i == d_fpMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = ufToNode(fpt(t), (*i).second);
-      return value;
-    }
-  }
-  else
-  {
-    Unreachable()
-        << "Asking for the value of a type that is not managed by the "
-           "floating-point theory";
-  }
-
-  Unreachable() << "Unable to find value";
-
+  Assert(i != d_fpMap.end())
+      << "Asking for the value of an unregistered expression";
+  return ufToNode(fpt(t), (*i).second);
 #else
   Unimplemented() << "Conversion is dependent on SymFPU";
 #endif
@@ -1755,4 +1740,4 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

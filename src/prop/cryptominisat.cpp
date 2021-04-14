@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file cryptominisat.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the cryptominisat for cvc4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the cryptominisat for cvc4 (bit-vectors).
+ */
 
-#ifdef CVC4_USE_CRYPTOMINISAT
+#ifdef CVC5_USE_CRYPTOMINISAT
 
 #include "prop/cryptominisat.h"
 
@@ -22,7 +23,7 @@
 
 #include <cryptominisat5/cryptominisat.h>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 using CMSatVar = unsigned;
@@ -37,6 +38,15 @@ CMSat::Lit toInternalLit(SatLiteral lit)
     return CMSat::lit_Undef;
   }
   return CMSat::Lit(lit.getSatVariable(), lit.isNegated());
+}
+
+SatLiteral toSatLiteral(CMSat::Lit lit)
+{
+  if (lit == CMSat::lit_Undef)
+  {
+    return undefSatLiteral;
+  }
+  return SatLiteral(lit.var(), lit.sign());
 }
 
 SatValue toSatLiteralValue(CMSat::lbool res)
@@ -181,6 +191,15 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
+void CryptoMinisatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& assumptions)
+{
+  for (const CMSat::Lit& lit : d_solver->get_conflict())
+  {
+    assumptions.push_back(toSatLiteral(~lit));
+  }
+}
+
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
   CMSatVar var = l.getSatVariable();
@@ -226,5 +245,5 @@ CryptoMinisatSolver::Statistics::~Statistics() {
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 #endif

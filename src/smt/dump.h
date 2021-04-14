@@ -1,34 +1,33 @@
-/*********************                                                        */
-/*! \file dump.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Dump utility classes and functions
- **
- ** Dump utility classes and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Dump utility classes and functions.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DUMP_H
-#define CVC4__DUMP_H
+#ifndef CVC5__DUMP_H
+#define CVC5__DUMP_H
 
 #include "base/output.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
 class NodeCommand;
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
-class CVC4_PUBLIC CVC4dumpstream
+class CVC4dumpstream
 {
  public:
   CVC4dumpstream() : d_os(nullptr) {}
@@ -53,7 +52,7 @@ class CVC4_PUBLIC CVC4dumpstream
  * Dummy implementation of the dump stream when dumping is disabled or the
  * build is muzzled.
  */
-class CVC4_PUBLIC CVC4dumpstream
+class CVC4dumpstream
 {
  public:
   CVC4dumpstream() {}
@@ -62,10 +61,10 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream& operator<<(const NodeCommand& nc);
 }; /* class CVC4dumpstream */
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 /** The dump class */
-class CVC4_PUBLIC DumpC
+class DumpC
 {
  public:
   CVC4dumpstream operator()(const char* tag) {
@@ -108,10 +107,10 @@ class CVC4_PUBLIC DumpC
 };/* class DumpC */
 
 /** The dump singleton */
-extern DumpC DumpChannel CVC4_PUBLIC;
+extern DumpC DumpChannel;
 
-#define Dump ::CVC4::DumpChannel
+#define Dump ::cvc5::DumpChannel
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__DUMP_H */
+#endif /* CVC5__DUMP_H */

@@ -1,31 +1,31 @@
-/*********************                                                        */
-/*! \file logic_info.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class giving information about a logic (group a theory modules
- ** and configuration information)
- **
- ** A class giving information about a logic (group of theory modules and
- ** configuration information).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class giving information about a logic (group of theory modules and
+ * configuration information).
+ */
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__LOGIC_INFO_H
-#define CVC4__LOGIC_INFO_H
+#ifndef CVC5__LOGIC_INFO_H
+#define CVC5__LOGIC_INFO_H
 
 #include <string>
 #include <vector>
-#include "expr/kind.h"
 
-namespace CVC4 {
+#include "cvc4_export.h"
+#include "theory/theory_id.h"
+
+namespace cvc5 {
 
 /**
  * A LogicInfo instance describes a collection of theory modules and some
@@ -42,7 +42,8 @@ namespace CVC4 {
  * (e.g., for communicating to the SmtEngine which theories should be used,
  * rather than having to provide an SMT-LIB string).
  */
-class CVC4_PUBLIC LogicInfo {
+class CVC4_EXPORT LogicInfo
+{
   mutable std::string d_logicString; /**< an SMT-LIB-like logic string */
   std::vector<bool> d_theories; /**< set of active theories */
   size_t d_sharingTheories; /**< count of theories that need sharing */
@@ -284,10 +285,10 @@ public:
     return *this <= other || *this >= other;
   }
 
-};/* class LogicInfo */
+}; /* class LogicInfo */
 
-std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const LogicInfo& logic);
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__LOGIC_INFO_H */
+#endif /* CVC5__LOGIC_INFO_H */

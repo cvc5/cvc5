@@ -2,6 +2,7 @@
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
+(declare-heap (Int Int))
 
 (declare-const u Int)
 

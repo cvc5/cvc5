@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file simple_vc_cxx.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the C++ interface
- **
- ** A simple demonstration of the C++ interface.  Compare to the Java
- ** interface in SimpleVC.java; they are virtually line-by-line
- ** identical.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Morgan Deters, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the C++ interface
+ *
+ * Compare to the Java interface in SimpleVC.java; they are virtually
+ * line-by-line identical.
+ */
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main() {
   Solver slv;
@@ -32,16 +32,16 @@ int main() {
 
   Term x = slv.mkConst(integer, "x");
   Term y = slv.mkConst(integer, "y");
-  Term zero = slv.mkReal(0);
+  Term zero = slv.mkInteger(0);
 
   Term x_positive = slv.mkTerm(Kind::GT, x, zero);
   Term y_positive = slv.mkTerm(Kind::GT, y, zero);
 
-  Term two = slv.mkReal(2);
+  Term two = slv.mkInteger(2);
   Term twox = slv.mkTerm(Kind::MULT, two, x);
   Term twox_plus_y = slv.mkTerm(Kind::PLUS, twox, y);
 
-  Term three = slv.mkReal(3);
+  Term three = slv.mkInteger(3);
   Term twox_plus_y_geq_3 = slv.mkTerm(Kind::GEQ, twox_plus_y, three);
 
   Term formula =

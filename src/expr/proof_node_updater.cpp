@@ -1,23 +1,26 @@
-/*********************                                                        */
-/*! \file proof_node_updater.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a utility for updating proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a utility for updating proof nodes.
+ */
 
 #include "expr/proof_node_updater.h"
 
 #include "expr/lazy_proof.h"
+#include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
@@ -33,8 +36,14 @@ bool ProofNodeUpdaterCallback::update(Node res,
 }
 
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
-                                   ProofNodeUpdaterCallback& cb)
-    : d_pnm(pnm), d_cb(cb), d_debugFreeAssumps(false)
+                                   ProofNodeUpdaterCallback& cb,
+                                   bool mergeSubproofs,
+                                   bool autoSym)
+    : d_pnm(pnm),
+      d_cb(cb),
+      d_debugFreeAssumps(false),
+      d_mergeSubproofs(mergeSubproofs),
+      d_autoSym(autoSym)
 {
 }
 
@@ -60,11 +69,14 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       }
     }
   }
-  processInternal(pf, d_freeAssumps);
+  std::vector<std::shared_ptr<ProofNode>> traversing;
+  processInternal(pf, d_freeAssumps, traversing);
 }
 
-void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
-                                       const std::vector<Node>& fa)
+void ProofNodeUpdater::processInternal(
+    std::shared_ptr<ProofNode> pf,
+    const std::vector<Node>& fa,
+    std::vector<std::shared_ptr<ProofNode>>& traversing)
 {
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
@@ -86,72 +98,72 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
     res = cur->getResult();
     if (it == visited.end())
     {
-      itc = resCache.find(res);
-      if (itc != resCache.end())
+      if (d_mergeSubproofs)
       {
-        // already have a proof
-        visited[cur] = true;
-        d_pnm->updateNode(cur.get(), itc->second.get());
+        itc = resCache.find(res);
+        if (itc != resCache.end())
+        {
+          // already have a proof, merge it into this one
+          visited[cur] = true;
+          d_pnm->updateNode(cur.get(), itc->second.get());
+          continue;
+        }
       }
-      else
+      // run update to a fixed point
+      bool continueUpdate = true;
+      while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
       {
-        visited[cur] = false;
-        // run update to a fixed point
-        bool continueUpdate = true;
-        while (runUpdate(cur, fa, continueUpdate) && continueUpdate)
+        Trace("pf-process-debug") << "...updated proof." << std::endl;
+      }
+      visited[cur] = !continueUpdate;
+      if (!continueUpdate)
+      {
+        // no further changes should be made to cur according to the callback
+        Trace("pf-process-debug")
+            << "...marked to not continue update." << std::endl;
+        runFinalize(cur, fa, resCache);
+        continue;
+      }
+      traversing.push_back(cur);
+      visit.push_back(cur);
+      // If we are not the top-level proof, we were a scope, or became a scope
+      // after updating, we do a separate recursive call to this method. This
+      // allows us to properly track the assumptions in scope, which is
+      // important for example to merge or to determine updates based on free
+      // assumptions.
+      if (cur->getRule() == PfRule::SCOPE && cur != pf)
+      {
+        std::vector<Node> nfa;
+        nfa.insert(nfa.end(), fa.begin(), fa.end());
+        const std::vector<Node>& args = cur->getArguments();
+        nfa.insert(nfa.end(), args.begin(), args.end());
+        Trace("pfnu-debug2") << "Process new scope with " << args << std::endl;
+        // Process in new call separately
+        processInternal(cur, nfa, traversing);
+        continue;
+      }
+      const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
+      // now, process children
+      for (const std::shared_ptr<ProofNode>& cp : ccp)
+      {
+        if (std::find(traversing.begin(), traversing.end(), cp)
+            != traversing.end())
         {
-          Trace("pf-process-debug") << "...updated proof." << std::endl;
+          Unhandled()
+              << "ProofNodeUpdater::processInternal: cyclic proof! (use "
+                 "--proof-eager-checking)"
+              << std::endl;
         }
-        if (!continueUpdate)
-        {
-          // no further changes should be made to cur according to the callback
-          Trace("pf-process-debug")
-              << "...marked to not continue update." << std::endl;
-          continue;
-        }
-        visit.push_back(cur);
-        // If we are not the top-level proof, we were a scope, or became a
-        // scope after updating, we need to make a separate recursive call to
-        // this method.
-        if (cur->getRule() == PfRule::SCOPE && cur != pf)
-        {
-          std::vector<Node> nfa;
-          // if we are debugging free assumptions, update the set
-          if (d_debugFreeAssumps)
-          {
-            nfa.insert(nfa.end(), fa.begin(), fa.end());
-            const std::vector<Node>& args = cur->getArguments();
-            nfa.insert(nfa.end(), args.begin(), args.end());
-            Trace("pfnu-debug2")
-                << "Process new scope with " << args << std::endl;
-          }
-          // Process in new call separately, since we should not cache
-          // the results of proofs that have a different scope.
-          processInternal(cur, nfa);
-          continue;
-        }
-        const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
-        // now, process children
-        for (const std::shared_ptr<ProofNode>& cp : ccp)
-        {
-          visit.push_back(cp);
-        }
+        visit.push_back(cp);
       }
     }
     else if (!it->second)
     {
+      Assert(!traversing.empty());
+      traversing.pop_back();
       visited[cur] = true;
-      // cache result
-      resCache[res] = cur;
-      if (d_debugFreeAssumps)
-      {
-        // We have that npn is a node we occurring the final updated version of
-        // the proof. We can now debug based on the expected set of free
-        // assumptions.
-        Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
-        pfnEnsureClosedWrt(
-            cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
-      }
+      // finalize the node
+      runFinalize(cur, fa, resCache);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -162,13 +174,13 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
                                  bool& continueUpdate)
 {
   // should it be updated?
-  if (!d_cb.shouldUpdate(cur.get()))
+  if (!d_cb.shouldUpdate(cur, fa, continueUpdate))
   {
     return false;
   }
   PfRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
-  CDProof cpf(d_pnm);
+  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
   std::vector<Node> ccn;
   for (const std::shared_ptr<ProofNode>& cp : cc)
@@ -178,9 +190,9 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
     // store in the proof
     cpf.addProof(cp);
   }
-  Trace("pf-process-debug")
-      << "Updating (" << cur->getRule() << ")..." << std::endl;
   Node res = cur->getResult();
+  Trace("pf-process-debug")
+      << "Updating (" << cur->getRule() << "): " << res << std::endl;
   // only if the callback updated the node
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate))
   {
@@ -212,6 +224,28 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   return false;
 }
 
+void ProofNodeUpdater::runFinalize(
+    std::shared_ptr<ProofNode> cur,
+    const std::vector<Node>& fa,
+    std::map<Node, std::shared_ptr<ProofNode>>& resCache)
+{
+  if (d_mergeSubproofs)
+  {
+    Node res = cur->getResult();
+    // cache result if we are merging subproofs
+    resCache[res] = cur;
+  }
+  if (d_debugFreeAssumps)
+  {
+    // We have that npn is a node we occurring the final updated version of
+    // the proof. We can now debug based on the expected set of free
+    // assumptions.
+    Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
+    pfnEnsureClosedWrt(
+        cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
+  }
+}
+
 void ProofNodeUpdater::setDebugFreeAssumptions(
     const std::vector<Node>& freeAssumps)
 {
@@ -221,4 +255,4 @@ void ProofNodeUpdater::setDebugFreeAssumptions(
   d_debugFreeAssumps = true;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

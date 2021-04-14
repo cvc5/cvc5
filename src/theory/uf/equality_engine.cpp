@@ -1,27 +1,31 @@
-/*********************                                                        */
-/*! \file equality_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * [[ Add one-line brief description here ]]
+ *
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -276,16 +280,26 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   return newId;
 }
 
-void EqualityEngine::addFunctionKind(Kind fun, bool interpreted, bool extOperator) {
-  d_congruenceKinds |= fun;
-  if (fun != kind::EQUAL) {
-    if (interpreted) {
-      Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
-      d_congruenceKindsInterpreted |= fun;
+void EqualityEngine::addFunctionKind(Kind fun,
+                                     bool interpreted,
+                                     bool extOperator)
+{
+  d_congruenceKinds.set(fun);
+  if (fun != kind::EQUAL)
+  {
+    if (interpreted)
+    {
+      Debug("equality::evaluation")
+          << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted "
+          << std::endl;
+      d_congruenceKindsInterpreted.set(fun);
     }
-    if (extOperator) {
-      Debug("equality::extoperator") << d_name << "::eq::addFunctionKind(): " << fun << " is an external operator kind " << std::endl;
-      d_congruenceKindsExtOperators |= fun;
+    if (extOperator)
+    {
+      Debug("equality::extoperator")
+          << d_name << "::eq::addFunctionKind(): " << fun
+          << " is an external operator kind " << std::endl;
+      d_congruenceKindsExtOperators.set(fun);
     }
   }
 }
@@ -1011,13 +1025,19 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   Kind k2 = d_nodes[id2].getKind();
   // only try to build if ids do not correspond to internal nodes. If they do,
   // only try to build build if full applications corresponding to the given ids
-  // have the same congruence n-ary non-APPLY_UF kind, since the internal nodes
+  // have the same congruence n-ary non-APPLY_* kind, since the internal nodes
   // may be full nodes.
   if ((d_isInternal[id1] || d_isInternal[id2])
-      && (k1 != k2 || k1 == kind::APPLY_UF || !ExprManager::isNAryKind(k1)))
+      && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
+          || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
+          || !NodeManager::isNAryKind(k1)))
   {
     return;
   }
+  Debug("equality") << "buildEqConclusion: {" << id1 << "} " << d_nodes[id1]
+                    << "\n";
+  Debug("equality") << "buildEqConclusion: {" << id2 << "} " << d_nodes[id2]
+                    << "\n";
   Node eq[2];
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0; i < 2; ++i)
@@ -1057,7 +1077,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
         << id2 << "} " << d_nodes[id2] << "\n";
     // if has at least as many children as the minimal
     // number of children of the n-ary kind, build the node
-    if (numChildren >= ExprManager::minArity(k1))
+    if (numChildren >= kind::metakind::getMinArityForKind(k1))
     {
       std::vector<Node> children;
       for (unsigned j = 0; j < numChildren; ++j)
@@ -1280,7 +1300,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
     explainPredicate(atom, polarity, tassumptions);
   }
   // ensure that duplicates are removed
-  for (const TNode a : tassumptions)
+  for (TNode a : tassumptions)
   {
     if (std::find(assumptions.begin(), assumptions.end(), a)
         == assumptions.end())
@@ -1368,7 +1388,7 @@ void EqualityEngine::getExplanation(
   cache[cacheKey] = eqp;
 
   // We can only explain the nodes that got merged
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool canExplain = getEqualityNode(t1Id).getFind() == getEqualityNode(t2Id).getFind()
                   || (d_done && isConstant(t1Id) && isConstant(t2Id));
 
@@ -1738,8 +1758,9 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
     // equality is handled separately
     return addTriggerEquality(predicate);
   }
-  Assert(d_congruenceKinds.tst(predicate.getKind()))
-      << "No point in adding non-congruence predicates";
+  Assert(d_congruenceKinds.test(predicate.getKind()))
+      << "No point in adding non-congruence predicates, kind is "
+      << predicate.getKind();
 
   if (d_done) {
     return;
@@ -1821,7 +1842,7 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
 
 Node EqualityEngine::evaluateTerm(TNode node) {
   Debug("equality::evaluation") << d_name << "::eq::evaluateTerm(" << node << ")" << std::endl;
-  NodeBuilder<> builder;
+  NodeBuilder builder;
   builder << node.getKind();
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
     builder << node.getOperator();
@@ -2053,6 +2074,29 @@ void EqualityEngine::debugPrintGraph() const {
     Debug("equality::graph") << std::endl;
   }
   Debug("equality::graph") << std::endl;
+}
+
+std::string EqualityEngine::debugPrintEqc() const
+{
+  std::stringstream ss;
+  eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(this);
+  while (!eqcs2_i.isFinished())
+  {
+    Node eqc = (*eqcs2_i);
+    eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, this);
+    ss << "Eqc( " << eqc << " ) : { ";
+    while (!eqc2_i.isFinished())
+    {
+      if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != kind::EQUAL)
+      {
+        ss << (*eqc2_i) << " ";
+      }
+      ++eqc2_i;
+    }
+    ss << " } " << std::endl;
+    ++eqcs2_i;
+  }
+  return ss.str();
 }
 
 bool EqualityEngine::areEqual(TNode t1, TNode t2) const {
@@ -2342,7 +2386,7 @@ EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(
 bool EqualityEngine::hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNodeId rhsId) const {
   EqualityPair eq(lhsId, rhsId);
   bool propagated = d_propagatedDisequalities.find(eq) != d_propagatedDisequalities.end();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool stored = d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end();
   Assert(propagated == stored) << "These two should be in sync";
 #endif
@@ -2396,7 +2440,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
     Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end())
         << "There can't be a proof if you're adding a new one";
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     // Check that the reasons are valid
     for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
     {
@@ -2592,4 +2636,4 @@ EqualityNodeId EqualityEngine::TriggerTermSet::getTrigger(TheoryId tag) const
 
 } // Namespace uf
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5

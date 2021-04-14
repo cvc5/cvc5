@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file theory_sets_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory type rules.
- **
- ** Sets theory type rules.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory type rules.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
-#define CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
+#ifndef CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
+#define CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
+
+#include <climits>
 
 #include "theory/sets/normal_form.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -31,9 +32,8 @@ struct SetsBinaryOperatorTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::UNION ||
-           n.getKind() == kind::INTERSECTION ||
-           n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
     if (check)
     {
@@ -45,19 +45,11 @@ struct SetsBinaryOperatorTypeRule
       TypeNode secondSetType = n[1].getType(check);
       if (secondSetType != setType)
       {
-        if (n.getKind() == kind::INTERSECTION)
-        {
-          setType = TypeNode::mostCommonTypeNode(secondSetType, setType);
-        }
-        else
-        {
-          setType = TypeNode::leastCommonTypeNode(secondSetType, setType);
-        }
-        if (setType.isNull())
-        {
-          throw TypeCheckingExceptionPrivate(
-              n, "operator expects two sets of comparable types");
-        }
+        std::stringstream ss;
+        ss << "Operator " << n.getKind()
+           << " expects two sets of the same type. Found types '" << setType
+           << "' and '" << secondSetType << "'.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return setType;
@@ -93,33 +85,26 @@ struct SubsetTypeRule {
   }
 };/* struct SetSubsetTypeRule */
 
-struct MemberTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct MemberTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     Assert(n.getKind() == kind::MEMBER);
     TypeNode setType = n[1].getType(check);
-    if( check ) {
-      if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "checking for membership in a non-set");
+    if (check)
+    {
+      if (!setType.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "checking for membership in a non-set");
       }
       TypeNode elementType = n[0].getType(check);
-      // TODO : still need to be flexible here due to situations like:
-      //
-      // T : (Set Int)
-      // S : (Set Real)
-      // (= (as T (Set Real)) S)
-      // (member 0.5 S)
-      // ...where (member 0.5 T) is inferred
-      //
-      // or
-      //
-      // S : (Set Real)
-      // (not (member 0.5 s))
-      // (member 0.0 s)
-      // ...find model M where M( s ) = { 0 }, check model will generate (not (member 0.5 (singleton 0)))
-      //      
-      if(!elementType.isComparableTo(setType.getSetElementType())) {
-      //if(!elementType.isSubtypeOf(setType.getSetElementType())) {     //FIXME:typing
+      // e.g. (member 1 (singleton 1.0)) is true whereas
+      // (member 1.0 (singleton 1)) throws a typing error
+      if (!elementType.isSubtypeOf(setType.getSetElementType()))
+      {
         std::stringstream ss;
         ss << "member operating on sets of different types:\n"
            << "child type:  " << elementType << "\n"
@@ -130,20 +115,42 @@ struct MemberTypeRule {
     }
     return nodeManager->booleanType();
   }
-};/* struct MemberTypeRule */
+}; /* struct MemberTypeRule */
 
-struct SingletonTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct SingletonTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    Assert(n.getKind() == kind::SINGLETON);
-    return nodeManager->mkSetType(n[0].getType(check));
+    Assert(n.getKind() == kind::SINGLETON && n.hasOperator()
+           && n.getOperator().getKind() == kind::SINGLETON_OP);
+
+    SingletonOp op = n.getOperator().getConst<SingletonOp>();
+    TypeNode type1 = op.getType();
+    if (check)
+    {
+      TypeNode type2 = n[0].getType(check);
+      TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
+      // the type of the element should be a subtype of the type of the operator
+      // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
+      if (leastCommonType.isNull() || leastCommonType != type1)
+      {
+        std::stringstream ss;
+        ss << "The type '" << type2 << "' of the element is not a subtype of '"
+           << type1 << "' in term : " << n;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    return nodeManager->mkSetType(type1);
   }
 
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+  {
     Assert(n.getKind() == kind::SINGLETON);
     return n[0].isConst();
   }
-};/* struct SingletonTypeRule */
+}; /* struct SingletonTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -382,7 +389,7 @@ struct JoinImageTypeRule {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be a constant");
     }
-    CVC4::Rational r(INT_MAX);
+    cvc5::Rational r(INT_MAX);
     if (n[1].getConst<Rational>() > r) {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage Exceeded INT_MAX in cardinality constraint");
@@ -434,8 +441,8 @@ struct SetsProperties {
   }
 };/* struct SetsProperties */
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */
+#endif /* CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */

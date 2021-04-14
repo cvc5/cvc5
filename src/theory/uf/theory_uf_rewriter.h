@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file theory_uf_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__UF__THEORY_UF_REWRITER_H
-#define CVC4__THEORY__UF__THEORY_UF_REWRITER_H
+#ifndef CVC5__THEORY__UF__THEORY_UF_REWRITER_H
+#define CVC5__THEORY__UF__THEORY_UF_REWRITER_H
 
 #include "expr/node_algorithm.h"
 #include "options/uf_options.h"
@@ -26,7 +27,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -208,8 +209,8 @@ public: //conversion between HO_APPLY AND APPLY_UF
   }
 }; /* class TheoryUfRewriter */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__UF__THEORY_UF_REWRITER_H */
+#endif /* CVC5__THEORY__UF__THEORY_UF_REWRITER_H */

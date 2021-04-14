@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file lazy_proof_chain.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Lazy proof chain utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy proof chain utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__LAZY_PROOF_CHAIN_H
-#define CVC4__EXPR__LAZY_PROOF_CHAIN_H
+#ifndef CVC5__EXPR__LAZY_PROOF_CHAIN_H
+#define CVC5__EXPR__LAZY_PROOF_CHAIN_H
 
-#include <unordered_map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNodeManager;
 
 /**
  * A (context-dependent) lazy generator for proof chains. This class is an
@@ -41,13 +42,18 @@ class LazyCDProofChain : public ProofGenerator
   /** Constructor
    *
    * @param pnm The proof node manager for constructing ProofNode objects.
-   * @param cyclic Whether this instance is robust to cycles in the cahin.
+   * @param cyclic Whether this instance is robust to cycles in the chain.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
+   * @param defGen The default generator to be used if no generator exists
+   * for a step.
+   * @param defRec Whether this instance expands proofs from defGen recursively.
    */
   LazyCDProofChain(ProofNodeManager* pnm,
                    bool cyclic = true,
-                   context::Context* c = nullptr);
+                   context::Context* c = nullptr,
+                   ProofGenerator* defGen = nullptr,
+                   bool defRec = true);
   ~LazyCDProofChain();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist, by connecting the
@@ -119,17 +125,30 @@ class LazyCDProofChain : public ProofGenerator
   /** identify */
   std::string identify() const override;
 
+  /** Retrieve, for each fact in d_gens, it mapped to the proof node generated
+   * by its generator in d_gens.  */
+  const std::map<Node, std::shared_ptr<ProofNode>> getLinks() const;
+
  private:
+  /**
+   * Get generator for fact, or nullptr if it doesnt exist. Updates rec to
+   * true if we should recurse on its proof.
+   */
+  ProofGenerator* getGeneratorForInternal(Node fact, bool& rec);
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
   /** Whether this instance is robust to cycles in the chain. */
   bool d_cyclic;
+  /** Whether we expand recursively (for the default generator) */
+  bool d_defRec;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** Maps facts that can be proven to generators */
   context::CDHashMap<Node, ProofGenerator*, NodeHashFunction> d_gens;
+  /** The default proof generator (if one exists) */
+  ProofGenerator* d_defGen;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__LAZY_PROOF_CHAIN_H */
+#endif /* CVC5__EXPR__LAZY_PROOF_CHAIN_H */

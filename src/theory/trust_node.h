@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file trust_node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The trust node utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The trust node utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__TRUST_NODE_H
-#define CVC4__THEORY__TRUST_NODE_H
+#ifndef CVC5__THEORY__TRUST_NODE_H
+#define CVC5__THEORY__TRUST_NODE_H
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofGenerator;
+class ProofNode;
 
 namespace theory {
 
@@ -132,7 +133,7 @@ class TrustNode
    * Gets the proof node for this trust node, which is obtained by
    * calling the generator's getProofFor method on the proven node.
    */
-  std::shared_ptr<ProofNode> toProofNode();
+  std::shared_ptr<ProofNode> toProofNode() const;
 
   /** Get the proven formula corresponding to a conflict call */
   static Node getConflictProven(Node conf);
@@ -172,6 +173,6 @@ class TrustNode
 std::ostream& operator<<(std::ostream& out, TrustNode n);
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__TRUST_NODE_H */
+#endif /* CVC5__THEORY__TRUST_NODE_H */

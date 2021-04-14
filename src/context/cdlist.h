@@ -1,36 +1,35 @@
-/*********************                                                        */
-/*! \file cdlist.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent list class (only supports append)
- **
- ** Context-dependent list class.  This list only supports appending
- ** to the list; on backtrack, the list is simply shortened.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Context-dependent list class (only supports append).
+ *
+ * This list only supports appending to the list; on backtrack, the list is
+ * simply shortened.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__CONTEXT__CDLIST_H
-#define CVC4__CONTEXT__CDLIST_H
+#ifndef CVC5__CONTEXT__CDLIST_H
+#define CVC5__CONTEXT__CDLIST_H
 
+#include <cstring>
 #include <iterator>
-#include <memory>
 #include <string>
-#include <sstream>
 
 #include "base/check.h"
 #include "context/cdlist_forward.h"
 #include "context/context.h"
 #include "context/context_mm.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace context {
 
 /**
@@ -357,6 +356,8 @@ public:
       return *d_it;
     }
 
+    inline const T* operator->() const { return d_it; }
+
     /** Prefix increment */
     const_iterator& operator++() {
       ++d_it;
@@ -433,7 +434,7 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
                 "Cannot create a CDList with a ContextMemoryAllocator.");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
 
-#endif /* CVC4__CONTEXT__CDLIST_H */
+#endif /* CVC5__CONTEXT__CDLIST_H */

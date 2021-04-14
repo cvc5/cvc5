@@ -1,29 +1,34 @@
-/*********************                                                        */
-/*! \file ho_elim.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The HoElim preprocessing pass
- **
- ** Eliminates higher-order constraints.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The HoElim preprocessing pass.
+ *
+ * Eliminates higher-order constraints.
+ */
 
 #include "preprocessing/passes/ho_elim.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -33,8 +38,9 @@ HoElim::HoElim(PreprocessingPassContext* preprocContext)
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
+  SkolemManager* sm = nm->getSkolemManager();
+  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
+  std::vector<Node> visit;
   TNode cur;
   visit.push_back(n);
   do
@@ -87,7 +93,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         }
         TypeNode rangeType = cur.getType().getRangeType();
         TypeNode nft = nm->mkFunctionType(ftypes, rangeType);
-        Node nf = nm->mkSkolem("ll", nft);
+        Node nf = sm->mkDummySkolem("ll", nft);
         Trace("ho-elim-ll")
             << "...introduce: " << nf << " of type " << nft << std::endl;
         newLambda[nf] = nlambda;
@@ -148,7 +154,8 @@ Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  SkolemManager* sm = nm->getSkolemManager();
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;
   std::vector<TNode> visit;
@@ -184,7 +191,7 @@ Node HoElim::eliminateHo(Node n)
             }
             else
             {
-              ret = nm->mkSkolem("k", ut);
+              ret = sm->mkDummySkolem("k", ut);
             }
             // must get the ho apply to ensure extensionality is applied
             Node hoa = getHoApplyUf(tn);
@@ -257,7 +264,7 @@ Node HoElim::eliminateHo(Node n)
             {
               Assert(!childrent.empty());
               TypeNode newFType = nm->mkFunctionType(childrent, cur.getType());
-              retOp = nm->mkSkolem("rf", newFType);
+              retOp = sm->mkDummySkolem("rf", newFType);
               d_visited_op[op] = retOp;
             }
             else
@@ -319,7 +326,7 @@ PreprocessingPassResult HoElim::applyInternal(
   {
     std::map<Node, Node> lproc = newLambda;
     newLambda.clear();
-    for (const std::pair<Node, Node>& l : lproc)
+    for (const std::pair<const Node, Node>& l : lproc)
     {
       Node lambda = l.second;
       std::vector<Node> vars;
@@ -353,12 +360,10 @@ PreprocessingPassResult HoElim::applyInternal(
   // add lambda lifting axioms as a conjunction to the first assertion
   if (!axioms.empty())
   {
-    Node orig = (*assertionsToPreprocess)[0];
-    axioms.push_back(orig);
-    Node conj = nm->mkNode(AND, axioms);
+    Node conj = nm->mkAnd(axioms);
     conj = theory::Rewriter::rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->replace(0, conj);
+    assertionsToPreprocess->conjoin(0, conj);
   }
   axioms.clear();
 
@@ -450,12 +455,10 @@ PreprocessingPassResult HoElim::applyInternal(
   // add new axioms as a conjunction to the first assertion
   if (!axioms.empty())
   {
-    Node orig = (*assertionsToPreprocess)[0];
-    axioms.push_back(orig);
-    Node conj = nm->mkNode(AND, axioms);
+    Node conj = nm->mkAnd(axioms);
     conj = theory::Rewriter::rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->replace(0, conj);
+    assertionsToPreprocess->conjoin(0, conj);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
@@ -486,12 +489,13 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
   if (it == d_hoApplyUf.end())
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
 
     std::vector<TypeNode> hoTypeArgs;
     hoTypeArgs.push_back(tnf);
     hoTypeArgs.push_back(tna);
     TypeNode tnh = nm->mkFunctionType(hoTypeArgs, tnr);
-    Node k = NodeManager::currentNM()->mkSkolem("ho", tnh);
+    Node k = sm->mkDummySkolem("ho", tnh);
     d_hoApplyUf[tnf] = k;
     return k;
   }
@@ -540,4 +544,4 @@ TypeNode HoElim::getUSort(TypeNode tn)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

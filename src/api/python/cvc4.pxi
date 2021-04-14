@@ -664,6 +664,12 @@ cdef class Solver:
         term.cterm = self.csolver.mkPi()
         return term
 
+    def mkInteger(self, val):
+        cdef Term term = Term(self)
+        integer = int(val)
+        term.cterm = self.csolver.mkInteger("{}".format(integer).encode())
+        return term
+
     def mkReal(self, val, den=None):
         cdef Term term = Term(self)
         if den is None:
@@ -690,6 +696,7 @@ cdef class Solver:
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkEmptySet(s.csort)
         return term
+
 
     def mkSepNil(self, Sort sort):
         cdef Term term = Term(self)
@@ -729,10 +736,11 @@ cdef class Solver:
         cdef Term term = Term(self)
         if isinstance(size_or_str, int):
             if val is None:
-                term.cterm = self.csolver.mkBitVector(<int> size_or_str)
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str)
             else:
-                term.cterm = self.csolver.mkBitVector(<int> size_or_str,
-                                                      <int> val)
+                term.cterm = self.csolver.mkBitVector(<uint32_t> size_or_str,
+                                                      <const string &> str(val).encode(),
+                                                      10)
         elif isinstance(size_or_str, str):
             # handle default value
             if val is None:
@@ -740,7 +748,7 @@ cdef class Solver:
                     <const string &> size_or_str.encode())
             else:
                 term.cterm = self.csolver.mkBitVector(
-                    <const string &> size_or_str.encode(), <int> val)
+                    <const string &> size_or_str.encode(), <uint32_t> val)
         else:
             raise ValueError("Unexpected inputs {} to"
                              " mkBitVector".format((size_or_str, val)))
@@ -1083,19 +1091,6 @@ cdef class Solver:
             assertions.append(term)
         return assertions
 
-    def getAssignment(self):
-        '''
-        Gives the assignment of *named* formulas as a dictionary.
-        '''
-        assignments = {}
-        for a in self.csolver.getAssignment():
-            varterm = Term(self)
-            valterm = Term(self)
-            varterm.cterm = a.first
-            valterm.cterm = a.second
-            assignments[varterm] = valterm
-        return assignments
-
     def getInfo(self, str flag):
         return self.csolver.getInfo(flag.encode())
 
@@ -1128,6 +1123,9 @@ cdef class Solver:
         term.cterm = self.csolver.getSeparationHeap()
         return term
 
+    def declareSeparationHeap(self, Sort locType, Sort dataType):
+        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
+
     def getSeparationNilTerm(self):
         cdef Term term = Term(self)
         term.cterm = self.csolver.getSeparationNilTerm()
@@ -1135,9 +1133,6 @@ cdef class Solver:
 
     def pop(self, nscopes=1):
         self.csolver.pop(nscopes)
-
-    def printModel(self):
-        self.csolver.printModel(cout)
 
     def push(self, nscopes=1):
         self.csolver.push(nscopes)
@@ -1456,9 +1451,6 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
-    def isConst(self):
-        return self.cterm.isConst()
-
     def getConstArrayBase(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getConstArrayBase()
@@ -1510,7 +1502,6 @@ cdef class Term:
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.
-        Requires isConst to hold.
 
         Currently supports:
           Boolean -- returns a Python bool
@@ -1521,9 +1512,6 @@ cdef class Term:
                   -- the constant base is returned as the default value
           String  -- returns a Python Unicode string
         '''
-
-        if not self.isConst():
-            raise RuntimeError("Cannot call toPythonObj on a non-const Term")
 
         string_repr = self.cterm.toString().decode()
         assert string_repr

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find -q
 ; EXPECT: sat
 ; this problem produced a model where incorrectly card(a)=1 due to --mbqi=fmc
 (set-logic ALL_SUPPORTED)

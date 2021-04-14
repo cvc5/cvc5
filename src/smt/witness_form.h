@@ -1,30 +1,30 @@
-/*********************                                                        */
-/*! \file witness_form.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for managing witness form conversion in proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for managing witness form conversion in proofs.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__WITNESS_FORM_H
-#define CVC4__SMT__WITNESS_FORM_H
+#ifndef CVC5__SMT__WITNESS_FORM_H
+#define CVC5__SMT__WITNESS_FORM_H
 
 #include <unordered_set>
 
-#include "expr/node_manager.h"
 #include "expr/proof.h"
 #include "expr/proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 /**
@@ -81,6 +81,10 @@ class WitnessFormGenerator : public ProofGenerator
    * of this class (d_tcpg).
    */
   Node convertToWitnessForm(Node t);
+  /**
+   * Return a proof generator that can prove the given axiom exists.
+   */
+  ProofGenerator* convertExistsInternal(Node exists);
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */
@@ -89,9 +93,11 @@ class WitnessFormGenerator : public ProofGenerator
   std::unordered_set<Node, NodeHashFunction> d_eqs;
   /** Lazy proof storing witness intro steps */
   LazyCDProof d_wintroPf;
+  /** CDProof for justifying purification existentials */
+  CDProof d_pskPf;
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

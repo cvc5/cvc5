@@ -178,14 +178,6 @@ header = "options/quantifiers_options.h"
   help       = "eliminate tautological disjuncts of quantified formulas"
 
 [[option]]
-  name       = "elimExtArithQuant"
-  category   = "regular"
-  long       = "elim-ext-arith-quant"
-  type       = "bool"
-  default    = "true"
-  help       = "eliminate extended arithmetic symbols in quantified formulas"
-
-[[option]]
   name       = "extRewriteQuant"
   category   = "regular"
   long       = "ext-rewrite-quant"
@@ -226,6 +218,14 @@ header = "options/quantifiers_options.h"
 [[option.mode.RELEVANT]]
   name = "relevant"
   help = "Quantifiers module considers only ground terms connected to current assertions."
+
+[[option]]
+  name       = "termDbCd"
+  category   = "regular"
+  long       = "term-db-cd"
+  type       = "bool"
+  default    = "true"
+  help       = "register terms in term database based on the SAT context"
 
 [[option]]
   name       = "registerQuantBodyTerms"
@@ -270,22 +270,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
-
-[[option]]
-  name       = "purifyDtTriggers"
-  category   = "regular"
-  long       = "purify-dt-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "purify dt triggers, match all constructors of correct form instead of selectors"
-
-[[option]]
-  name       = "pureThTriggers"
-  category   = "regular"
-  long       = "pure-th-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "use pure theory terms as single triggers"
 
 [[option]]
   name       = "partialTriggers"
@@ -572,6 +556,15 @@ header = "options/quantifiers_options.h"
   help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
 
 [[option]]
+  name       = "fullSaturateSum"
+  category   = "regular"
+  long       = "fs-sum"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "enumerating tuples of quantifiers by increasing the sum of indices, rather than the maximum"
+
+[[option]]
   name       = "literalMatchMode"
   category   = "regular"
   long       = "literal-matching=MODE"
@@ -592,6 +585,14 @@ header = "options/quantifiers_options.h"
 [[option.mode.AGG]]
   name = "agg"
   help = "Consider the phase requirements aggressively for all triggers."
+
+[[option]]
+  name       = "poolInst"
+  category   = "regular"
+  long       = "pool-inst"
+  type       = "bool"
+  default    = "true"
+  help       = "pool-based instantiation: instantiate with ground terms occurring in user-specified pools"
 
 ### Finite model finding options
 
@@ -1311,14 +1312,6 @@ header = "options/quantifiers_options.h"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
-  name       = "sygusVerifySubcall"
-  category   = "regular"
-  long       = "sygus-verify-subcall"
-  type       = "bool"
-  default    = "true"
-  help       = "use separate copy of the SMT solver for verification lemmas in sygus"
-
-[[option]]
   name       = "sygusExtRew"
   category   = "regular"
   long       = "sygus-ext-rew"
@@ -1692,14 +1685,6 @@ header = "options/quantifiers_options.h"
   help       = "use real infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cegqiPreRegInst"
-  category   = "regular"
-  long       = "cegqi-prereg-inst"
-  type       = "bool"
-  default    = "false"
-  help       = "preregister ground instantiations in counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cegqiMinBounds"
   category   = "regular"
   long       = "cegqi-min-bounds"
@@ -1733,25 +1718,6 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "non-optimal bounds for counterexample-based quantifier instantiation"
-
-# CEGQI for EPR
-
-[[option]]
-  name       = "quantEpr"
-  category   = "regular"
-  long       = "quant-epr"
-  type       = "bool"
-  default    = "false"
-  help       = "infer whether in effectively propositional fragment, use for cegqi"
-
-[[option]]
-  name       = "quantEprMatching"
-  category   = "regular"
-  long       = "quant-epr-match"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use matching heuristics for EPR instantiation"
 
 # CEGQI for BV
 
@@ -1821,17 +1787,6 @@ header = "options/quantifiers_options.h"
   default    = "true"
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
-### Local theory extensions options
-
-[[option]]
-  name       = "lteRestrictInstClosure"
-  category   = "regular"
-  long       = "lte-restrict-inst-closure"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "treat arguments of inst closure as restricted terms for instantiation"
-
 ### Reduction options
 
 [[option]]
@@ -1888,14 +1843,6 @@ header = "options/quantifiers_options.h"
   name = "agg"
   help = "Aggressively split quantified formulas."
 
-[[option]]
-  name       = "quantAntiSkolem"
-  category   = "regular"
-  long       = "quant-anti-skolem"
-  type       = "bool"
-  default    = "false"
-  help       = "perform anti-skolemization for quantified formulas"
-
 ### Higher-order options
 
 [[option]]
@@ -1943,40 +1890,7 @@ header = "options/quantifiers_options.h"
   read_only  = false
   help       = "use store axiom during ho-elim"
 
-### Proof options
-
-[[option]]
-  name       = "trackInstLemmas"
-  category   = "regular"
-  long       = "track-inst-lemmas"
-  type       = "bool"
-  default    = "false"
-  help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
-
 ### Output options
-
-[[option]]
-  name       = "printInstMode"
-  category   = "regular"
-  long       = "print-inst=MODE"
-  type       = "PrintInstMode"
-  default    = "LIST"
-  help       = "print format for printing instantiations"
-  help_mode  = "Print format for printing instantiations."
-[[option.mode.LIST]]
-  name = "list"
-  help = "Print the list of instantiations per quantified formula, when non-empty."
-[[option.mode.NUM]]
-  name = "num"
-  help = "Print the total number of instantiations per quantified formula, when non-zero."
-
-[[option]]
-  name       = "printInstFull"
-  category   = "regular"
-  long       = "print-inst-full"
-  type       = "bool"
-  default    = "false"
-  help       = "print instantiations for formulas that do not have given identifiers"
 
 [[option]]
   name       = "debugInst"
@@ -1995,3 +1909,57 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "Enable SyGuS instantiation quantifiers module"
+
+[[option]]
+  name       = "sygusInstScope"
+  category   = "regular"
+  long       = "sygus-inst-scope=MODE"
+  type       = "SygusInstScope"
+  default    = "IN"
+  help       = "select scope of ground terms"
+  help_mode  = "scope for collecting ground terms for the grammar."
+[[option.mode.IN]]
+  name = "in"
+  help = "use ground terms inside given quantified formula only."
+[[option.mode.OUT]]
+  name = "out"
+  help = "use ground terms outside of quantified formulas only."
+[[option.mode.BOTH]]
+  name = "both"
+  help = "combines inside and outside."
+
+[[option]]
+  name       = "sygusInstTermSel"
+  category   = "regular"
+  long       = "sygus-inst-term-sel=MODE"
+  type       = "SygusInstTermSelMode"
+  default    = "MIN"
+  help       = "granularity for ground terms"
+  help_mode  = "Ground term selection modes."
+[[option.mode.MIN]]
+  name = "min"
+  help = "collect minimal ground terms only."
+[[option.mode.MAX]]
+  name = "max"
+  help = "collect maximal ground terms only."
+[[option.mode.BOTH]]
+  name = "both"
+  help = "combines minimal and maximal ."
+
+[[option]]
+  name       = "sygusInstMode"
+  category   = "regular"
+  long       = "sygus-inst-mode=MODE"
+  type       = "SygusInstMode"
+  default    = "PRIORITY_INST"
+  help       = "select instantiation lemma mode"
+  help_mode  = "SyGuS instantiation lemma modes."
+[[option.mode.PRIORITY_INST]]
+  name = "priority-inst"
+  help = "add instantiation lemmas first, add evaluation unfolding if instantiation fails."
+[[option.mode.PRIORITY_EVAL]]
+  name = "priority-eval"
+  help = "add evaluation unfolding lemma first, add instantiation lemma if unfolding lemmas already added."
+[[option.mode.INTERLEAVE]]
+  name = "interleave"
+  help = "add instantiation and evaluation unfolding lemmas in the same step."

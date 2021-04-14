@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file proof_rule.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof rule enumeration
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof rule enumeration.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_RULE_H
-#define CVC4__EXPR__PROOF_RULE_H
+#ifndef CVC5__EXPR__PROOF_RULE_H
+#define CVC5__EXPR__PROOF_RULE_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 
 /**
  * An enumeration for proof rules. This enumeration is analogous to Kind for
@@ -129,14 +130,21 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
   // where ids and idr are method identifiers.
   //
-  // Notice that we apply rewriting on the witness form of F, meaning that this
-  // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. Furthermore, notice that the rewriting and
-  // substitution is applied only within the side condition, meaning the
-  // rewritten form of the witness form of F does not escape this rule.
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toOriginal(F')) == true
+  // where F' is the result of the left hand side of the equality above. Here,
+  // notice that we apply rewriting on the original form of F', meaning that
+  // this rule may conclude an F whose Skolem form is justified by the
+  // definition of its (fresh) Skolem variables. For example, this rule may
+  // justify the conclusion (= k t) where k is the purification Skolem for t,
+  // e.g. where the original form of k is t.
+  //
+  // Furthermore, notice that the rewriting and substitution is applied only
+  // within the side condition, meaning the rewritten form of the original form
+  // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   //
@@ -165,11 +173,13 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(toWitness(G)*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
-  // Notice that we apply rewriting on the witness form of F and G, similar to
-  // MACRO_SR_PRED_INTRO.
+  // More generally, this rule also holds when:
+  //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
+  // where F' and G' are the result of each side of the equation above. Here,
+  // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
 
   //================================================= Processing rules
@@ -192,16 +202,17 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
   // ======== Theory Rewrite
   // Children: none
-  // Arguments: (F, tid, preRewrite?)
+  // Arguments: (F, tid, rid)
   // ----------------------------------------
   // Conclusion: F
   // where F is an equality of the form (= t t') where t' is obtained by
-  // applying the theory rewriter with identifier tid in either its prewrite
-  // (when preRewrite is true) or postrewrite method. Notice that the checker
-  // for this rule does not replay the rewrite to ensure correctness, since
-  // theory rewriter methods are not static. For example, the quantifiers
-  // rewriter involves constructing new bound variables that are not guaranteed
-  // to be consistent on each call.
+  // applying the kind of rewriting given by the method identifier rid, which
+  // is one of:
+  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
+  // Notice that the checker for this rule does not replay the rewrite to ensure
+  // correctness, since theory rewriter methods are not static. For example,
+  // the quantifiers rewriter involves constructing new bound variables that are
+  // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
   // The rules in this section have the signature of a "trusted rule":
   //
@@ -221,31 +232,61 @@ enum class PfRule : uint32_t
   THEORY_PREPROCESS,
   // where F was added as a new assertion by theory preprocessing.
   THEORY_PREPROCESS_LEMMA,
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on theory expand definitions.
+  THEORY_EXPAND_DEF,
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
+  // where F is an equality (= t t') that holds by a form of rewriting that
+  // could not be replayed during proof postprocessing.
+  TRUST_REWRITE,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be replayed during proof postprocessing.
+  TRUST_SUBS,
+  // where F is an equality (= t t') that holds by a form of substitution that
+  // could not be determined by the TrustSubstitutionMap.
+  TRUST_SUBS_MAP,
 
   //================================================= Boolean rules
   // ======== Resolution
   // Children:
-  //  (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
-  //   P2:(or G_1 ... G_j-1 G_j G_j+1 ... G_m))
+  //  (P1:C1, P2:C2)
+  // Arguments: (pol, L)
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
+  //     each children viewed as a literal or a node viewed as a literal. Note
+  //     that an OR node could also be a literal.
+  //   - pol is either true or false, representing the polarity of the pivot on
+  //     the first clause
+  //   - L is the pivot of the resolution, which occurs as is (resp. under a
+  //     NOT) in C1 and negatively (as is) in C2 if pol = true (pol = false).
+  //   C is a clause resulting from collecting all the literals in C1, minus the
+  //   first occurrence of the pivot or its negation, and C2, minus the first
+  //   occurrence of the pivot or its negation, according to the policy above.
+  //   If the resulting clause has a single literal, that literal itself is the
+  //   result; if it has no literals, then the result is false; otherwise it's
+  //   an OR node of the resulting literals.
   //
-  // Arguments: (F_i)
-  // ---------------------
-  // Conclusion: (or F_1 ... F_i-1 F_i+1 ... F_n G_1 ... G_j-1 G_j+1 ... G_m)
-  // where
-  //   G_j = (not F_i)
+  //   Note that it may be the case that the pivot does not occur in the
+  //   clauses. In this case the rule is not unsound, but it does not correspond
+  //   to resolution but rather to a weakening of the clause that did not have a
+  //   literal eliminated.
   RESOLUTION,
-  // ======== Chain Resolution
-  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
-  // Arguments: (L_1, ..., L_{m-1})
+  // ======== N-ary Resolution
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (pol_1, L_1, ..., pol_{n-1}, L_{n-1})
   // ---------------------
-  // Conclusion: C_m'
+  // Conclusion: C
   // where
-  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
-  //   let C_1' = C_1 (from P_1),
-  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
+  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and polarity pol, as defined above
+  //   - let C_1' = C_1 (from P1),
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
+  //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
   // Children: (P:C1)
@@ -262,9 +303,27 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: C2
   // where
-  //  Set representations of C1 and C2 is the same but the number of literals in
-  //  C2 is the same of that of C1
+  //  Set representations of C1 and C2 are the same and the number of literals
+  //  in C2 is the same of that of C1
   REORDERING,
+  // ======== N-ary Resolution + Factoring + Reordering
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (C, pol_1, L_1, ..., pol_{n-1}, L_{n-1})
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
+  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and polarity pol, as defined in RESOLUTION
+  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
+  //   - for each i > 1, let C_i' be equal, it its set representation, to
+  //     C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
+  //   The result of the chain resolution is C, which is equal, in its set
+  //   representation, to C_n'
+  MACRO_RESOLUTION,
+  // As above but not checked
+  MACRO_RESOLUTION_TRUST,
+
   // ======== Split
   // Children: none
   // Arguments: (F)
@@ -278,6 +337,25 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Modus ponens
+  // Children: (P1:F1, P2:(=> F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  MODUS_PONENS,
+  // ======== Double negation elimination
+  // Children: (P:(not (not F)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F)
+  NOT_NOT_ELIM,
+  // ======== Contradiction
+  // Children: (P1:F P2:(not F))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: false
+  CONTRA,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)
@@ -386,12 +464,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P1:P P2:(not P))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (false)
-  CONTRA,
 
   //================================================= De Morgan rules
   // ======== Not And
@@ -563,7 +635,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
-  // Children: (P:(= F true)
+  // Children: (P:(= F true))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: F
@@ -575,7 +647,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)
@@ -628,20 +700,82 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ARRAYS_TRUST,
 
-  //================================================= Quantifiers rules
-  // ======== Witness intro
-  // Children: (P:F[t])
+  //================================================= Bit-Vector rules
+  // ======== Bitblast
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST,
+  // ======== Eager Atom
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (= F F[0])
+  // where F is of kind BITVECTOR_EAGER_ATOM
+  BV_EAGER_ATOM,
+
+  //================================================= Datatype rules
+  // ======== Unification
+  // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
+  // Arguments: (i)
+  // ----------------------------------------
+  // Conclusion: (= ti si)
+  // where C is a constructor.
+  DT_UNIF,
+  // ======== Instantiate
+  // Children: none
+  // Arguments: (t, n)
+  // ----------------------------------------
+  // Conclusion: (= ((_ is C) t) (= t (C (sel_1 t) ... (sel_n t))))
+  // where C is the n^th constructor of the type of T, and (_ is C) is the
+  // discriminator (tester) for C.
+  DT_INST,
+  // ======== Collapse
+  // Children: none
+  // Arguments: ((sel_i (C_j t_1 ... t_n)))
+  // ----------------------------------------
+  // Conclusion: (= (sel_i (C_j t_1 ... t_n)) r)
+  // where C_j is a constructor, r is t_i if sel_i is a correctly applied
+  // selector, or TypeNode::mkGroundTerm() of the proper type otherwise. Notice
+  // that the use of mkGroundTerm differs from the rewriter which uses
+  // mkGroundValue in this case.
+  DT_COLLAPSE,
+  // ======== Split
+  // Children: none
   // Arguments: (t)
   // ----------------------------------------
-  // Conclusion: (= t (witness ((x T)) F[x]))
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
-  WITNESS_INTRO,
+  // Conclusion: (or ((_ is C1) t) ... ((_ is Cn) t))
+  DT_SPLIT,
+  // ======== Clash
+  // Children: (P1:((_ is Ci) t), P2: ((_ is Cj) t))
+  // Arguments: none
+  // ----------------------------------------
+  // Conclusion: false
+  // for i != j.
+  DT_CLASH,
+  // ======== Datatype Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: F
+  DT_TRUST,
+
+  //================================================= Quantifiers rules
+  // ======== Skolem intro
+  // Children: none
+  // Arguments: (k)
+  // ----------------------------------------
+  // Conclusion: (= k t)
+  // where t is the original form of skolem k.
+  SKOLEM_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
-  // Arguments: (t)
+  // Arguments: ((exists ((x T)) F[x]))
   // ----------------------------------------
   // Conclusion: (exists ((x T)) F[x])
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // This rule verifies that F[x] indeed matches F[t] with a substitution
+  // over x.
   EXISTS_INTRO,
   // ======== Skolemize
   // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
@@ -650,7 +784,9 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method.
+  // method. Alternatively, can use negated forall as a premise. The witness
+  // terms for the returned skolems can be obtained by
+  // SkolemManager::getWitnessForm.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
@@ -865,11 +1001,13 @@ enum class PfRule : uint32_t
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
   // ======== Regular expression elimination
-  // Children: (P:F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F, b)
   // ---------------------
-  // Conclusion: R
-  // where R = strings::RegExpElimination::eliminate(F).
+  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
+  // where b is a Boolean indicating whether we are using aggressive
+  // eliminations. Notice this rule concludes (= F F) if no eliminations
+  // are performed for F.
   RE_ELIM,
   //======================== Code points
   // Children: none
@@ -908,15 +1046,25 @@ enum class PfRule : uint32_t
   //
   // Arguments: (k1, ..., kn), non-zero reals
   // ---------------------
-  // Conclusion: (>< (* k t1) (* k t2))
+  // Conclusion: (>< t1 t2)
   //    where >< is the fusion of the combination of the ><i, (flipping each it
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the polynomials.
-  //    t2 is the sum of the constants.
+  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
+  //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
+  //    * const_n)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
+  // ======== Sum Upper Bounds
+  // Children: (P1, ... , Pn)
+  //           where each Pi has form (><i, Li, Ri)
+  //           for ><i in {<, <=, ==}
+  // Conclusion: (>< L R)
+  //           where >< is < if any ><i is <, and <= otherwise.
+  //                 L is (+ L1 ... Ln)
+  //                 R is (+ R1 ... Rn)
+  ARITH_SUM_UB,
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
   //         where i has integer type.
@@ -959,6 +1107,253 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   INT_TRUST,
 
+  //======== Multiplication sign inference
+  // Children: none
+  // Arguments: (f1, ..., fk, m)
+  // ---------------------
+  // Conclusion: (=> (and f1 ... fk) (~ m 0))
+  // Where f1, ..., fk are variables compared to zero (less, greater or not
+  // equal), m is a monomial from these variables, and ~ is the comparison (less
+  // or greater) that results from the signs of the variables. All variables
+  // with even exponent in m should be given as not equal to zero while all
+  // variables with odd exponent in m should be given as less or greater than
+  // zero.
+  ARITH_MULT_SIGN,
+  //======== Multiplication with positive factor
+  // Children: none
+  // Arguments: (m, (rel lhs rhs))
+  // ---------------------
+  // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
+  // Where rel is a relation symbol.
+  ARITH_MULT_POS,
+  //======== Multiplication with negative factor
+  // Children: none
+  // Arguments: (m, (rel lhs rhs))
+  // ---------------------
+  // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
+  // Where rel is a relation symbol and rel_inv the inverted relation symbol.
+  ARITH_MULT_NEG,
+  //======== Multiplication tangent plane
+  // Children: none
+  // Arguments: (t, x, y, a, b, sgn)
+  // ---------------------
+  // Conclusion:
+  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
+  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
+  //   (>= y b)))
+  // Where x,y are real terms (variables or extended terms), t = (* x y)
+  // (possibly under rewriting), a,b are real constants, and sgn is either -1
+  // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
+  ARITH_MULT_TANGENT,
+
+  // ================ Lemmas for transcendentals
+  //======== Assert bounds on PI
+  // Children: none
+  // Arguments: (l, u)
+  // ---------------------
+  // Conclusion: (and (>= real.pi l) (<= real.pi u))
+  // Where l (u) is a valid lower (upper) bound on pi.
+  ARITH_TRANS_PI,
+
+  //======== Exp at negative values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (< t 0) (< (exp t) 1))
+  ARITH_TRANS_EXP_NEG,
+  //======== Exp is always positive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (> (exp t) 0)
+  ARITH_TRANS_EXP_POSITIVITY,
+  //======== Exp grows super-linearly for positive values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (or (<= t 0) (> exp(t) (+ t 1)))
+  ARITH_TRANS_EXP_SUPER_LIN,
+  //======== Exp at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (= t 0) (= (exp t) 1))
+  ARITH_TRANS_EXP_ZERO,
+  //======== Exp is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant exp l u t))
+  // Where d is an even positive number, t an arithmetic term and l (u) a lower
+  // (upper) bound on t. Let p be the d'th taylor polynomial at zero (also
+  // called the Maclaurin series) of the exponential function. (secant exp l u
+  // t) denotes the secant of p from (l, exp(l)) to (u, exp(u)) evaluated at t,
+  // calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (exp t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+  //======== Exp is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant-pos exp l u t))
+  // Where d is an even positive number, t an arithmetic term and l (u) a lower
+  // (upper) bound on t. Let p* be a modification of the d'th taylor polynomial
+  // at zero (also called the Maclaurin series) of the exponential function as
+  // follows where p(d-1) is the regular Maclaurin series of degree d-1:
+  //    p* = p(d-1) * (1 + t^n / n!)
+  // (secant-pos exp l u t) denotes the secant of p from (l, exp(l)) to (u,
+  // exp(u)) evaluated at t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (exp t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+  //======== Exp is approximated from below
+  // Children: none
+  // Arguments: (d, t)
+  // ---------------------
+  // Conclusion: (>= (exp t) (maclaurin exp d t))
+  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
+  // taylor polynomial at zero (also called the Maclaurin series) of the
+  // exponential function evaluated at t. The Maclaurin series for the
+  // exponential function is the following:
+  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  ARITH_TRANS_EXP_APPROX_BELOW,
+
+  //======== Sine is always between -1 and 1
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and (<= (sin t) 1) (>= (sin t) (- 1)))
+  ARITH_TRANS_SINE_BOUNDS,
+  //======== Sine arg shifted to -pi..pi
+  // Children: none
+  // Arguments: (x, y, s)
+  // ---------------------
+  // Conclusion: (and
+  //   (<= -pi y pi)
+  //   (= (sin y) (sin x))
+  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
+  // )
+  // Where x is the argument to sine, y is a new real skolem that is x shifted
+  // into -pi..pi and s is a new integer skolem that is the number of phases y
+  // is shifted.
+  ARITH_TRANS_SINE_SHIFT,
+  //======== Sine is symmetric with respect to negation of the argument
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (- (sin t) (sin (- t))) 0)
+  ARITH_TRANS_SINE_SYMMETRY,
+  //======== Sine is bounded by the tangent at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and
+  //   (=> (> t 0) (< (sin t) t))
+  //   (=> (< t 0) (> (sin t) t))
+  // )
+  ARITH_TRANS_SINE_TANGENT_ZERO,
+  //======== Sine is bounded by the tangents at -pi and pi
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and
+  //   (=> (> t -pi) (> (sin t) (- -pi t)))
+  //   (=> (< t pi) (< (sin t) (- pi t)))
+  // )
+  ARITH_TRANS_SINE_TANGENT_PI,
+  //======== Sine is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+  //======== Sine is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (upper sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (upper sin c) denotes the upper
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the maximum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+  //======== Sine is approximated from below for negative values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (lower sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (lower sin c) denotes the lower
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the minimum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_BELOW_NEG,
+  //======== Sine is approximated from below for positive values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is above the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_BELOW_POS,
+
+  // ================ CAD Lemmas
+  // We use IRP for IndexedRootPredicate.
+  //
+  // A formula "Interval" describes that a variable (xn is none is given) is
+  // within a particular interval whose bounds are given as IRPs. It is either
+  // an open interval or a point interval:
+  //   (IRP k poly) < xn < (IRP k poly)
+  //   xn == (IRP k poly)
+  //
+  // A formula "Cell" describes a portion
+  // of the real space in the following form:
+  //   Interval(x1) and Interval(x2) and ...
+  // We implicitly assume a Cell to go up to n-1 (and can be empty).
+  //
+  // A formula "Covering" is a set of Intervals, implying that xn can be in
+  // neither of these intervals. To be a covering (of the real line), the union
+  // of these intervals should be the real numbers.
+  // ======== CAD direct conflict
+  // Children (Cell, A)
+  // ---------------------
+  // Conclusion: (false)
+  // A direct interval is generated from an assumption A (in variables x1...xn)
+  // over a Cell (in variables x1...xn). It derives that A evaluates to false
+  // over the Cell. In the actual algorithm, it means that xn can not be in the
+  // topmost interval of the Cell.
+  ARITH_NL_CAD_DIRECT,
+  // ======== CAD recursive interval
+  // Children (Cell, Covering)
+  // ---------------------
+  // Conclusion: (false)
+  // A recursive interval is generated from a Covering (for xn) over a Cell
+  // (in variables x1...xn-1). It generates the conclusion that no xn exists
+  // that extends the Cell and satisfies all assumptions.
+  ARITH_NL_CAD_RECURSIVE,
+
   //================================================= Unknown rule
   UNKNOWN,
 };
@@ -989,6 +1384,6 @@ struct PfRuleHashFunction
   size_t operator()(PfRule id) const;
 }; /* struct PfRuleHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_RULE_H */
+#endif /* CVC5__EXPR__PROOF_RULE_H */

@@ -1,20 +1,24 @@
-/*********************                                                        */
-/*! \file sygus_sampler.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_sampler
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_sampler.
+ */
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -22,11 +26,12 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 #include "util/sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -126,7 +131,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   {
     TypeNode svt = sv.getType();
     // is it equivalent to a previous variable?
-    for (const std::pair<Node, unsigned>& v : var_to_type_id)
+    for (const auto& v : var_to_type_id)
     {
       Node svc = v.first;
       if (svc.getType() == svt)
@@ -839,6 +844,6 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

@@ -1,30 +1,32 @@
-/*********************                                                        */
-/*! \file theory_bv.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitvector theory.
- **
- ** Bitvector theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of bit-vectors.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_H
-#define CVC4__THEORY__BV__THEORY_BV_H
-
-#include <unordered_map>
+#ifndef CVC5__THEORY__BV__THEORY_BV_H
+#define CVC5__THEORY__BV__THEORY_BV_H
 
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofRuleChecker;
+
 namespace theory {
 namespace bv {
 
@@ -49,6 +51,8 @@ class TheoryBV : public Theory
 
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -87,13 +91,16 @@ class TheoryBV : public Theory
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  PPAssertStatus ppAssert(TrustNode in,
+                          TrustSubstitutionMap& outSubstitutions) override;
 
-  TrustNode ppRewrite(TNode t) override;
+  TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   void presolve() override;
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   /** Called by abstraction preprocessing pass. */
   bool applyAbstraction(const std::vector<Node>& assertions,
@@ -102,23 +109,8 @@ class TheoryBV : public Theory
  private:
   void notifySharedTerm(TNode t) override;
 
-  /**
-   * Return the UF symbol corresponding to division-by-zero for this particular
-   * bit-width.
-   * @param k should be UREM or UDIV
-   * @param width bit-width
-   */
-  Node getUFDivByZero(Kind k, unsigned width);
-
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
-
-  /**
-   * Maps from bit-vector width to division-by-zero uninterpreted
-   * function symbols.
-   */
-  std::unordered_map<unsigned, Node> d_ufDivByZero;
-  std::unordered_map<unsigned, Node> d_ufRemByZero;
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;
@@ -127,12 +119,15 @@ class TheoryBV : public Theory
   TheoryState d_state;
 
   /** A (default) theory inference manager. */
-  TheoryInferenceManager d_inferMgr;
+  TheoryInferenceManager d_im;
+
+  /** The notify class for equality engine. */
+  TheoryEqNotifyClass d_notify;
 
 }; /* class TheoryBV */
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_H */
+#endif /* CVC5__THEORY__BV__THEORY_BV_H */

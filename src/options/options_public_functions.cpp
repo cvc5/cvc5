@@ -1,20 +1,20 @@
-/*********************                                                        */
-/*! \file options_public_functions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of public facing interface functions for Options.
- **
- ** Definitions of public facing interface functions for Options. These are
- ** all 1 line wrappers for Options::get<T>, Options::set<T>, and
- ** Options::wasSetByUser<T> for different option types T.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of public facing interface functions for Options.
+ *
+ * These are all 1 line wrappers for Options::get<T>, Options::set<T>, and
+ * Options::wasSetByUser<T> for different option types T.
+ */
 
 #include "options.h"
 
@@ -36,7 +36,7 @@
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Get accessor functions.
 InputLanguage Options::getInputLanguage() const {
@@ -64,10 +64,6 @@ bool Options::getDumpModels() const{
 
 bool Options::getDumpProofs() const{
   return (*this)[options::dumpProofs];
-}
-
-bool Options::getDumpSynth() const{
-  return (*this)[options::dumpSynth];
 }
 
 bool Options::getDumpUnsatCores() const{
@@ -130,11 +126,11 @@ bool Options::getSemanticChecks() const{
 
 bool Options::getStatistics() const{
   // statsEveryQuery enables stats
-  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
+  return (*this)[options::statistics] || (*this)[options::statisticsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
-  return (*this)[options::statsEveryQuery];
+  return (*this)[options::statisticsEveryQuery];
 }
 
 bool Options::getStatsHideZeros() const{
@@ -186,10 +182,6 @@ std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
 }
 
-unsigned Options::getParseStep() const{
-  return (*this)[options::parseStep];
-}
-
 std::ostream* Options::currentGetOut() {
   return current()->getOut();
 }
@@ -211,10 +203,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-bool Options::wasSetByUserDumpSynth() const {
-  return wasSetByUser(options::dumpSynth);
 }
 
 bool Options::wasSetByUserEarlyExit() const {
@@ -246,4 +234,4 @@ void Options::flushOut() {
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

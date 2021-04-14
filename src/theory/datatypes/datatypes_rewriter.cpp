@@ -1,32 +1,32 @@
-/*********************                                                        */
-/*! \file datatypes_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of rewriter for the theory of (co)inductive datatypes.
- **
- ** Implementation of rewriter for the theory of (co)inductive datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of rewriter for the theory of (co)inductive datatypes.
+ */
 
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
@@ -223,6 +223,41 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         << "Rewrite match: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
+  else if (kind == TUPLE_PROJECT)
+  {
+    // returns a tuple that represents
+    // (mkTuple ((_ tupSel i_1) t) ... ((_ tupSel i_n) t))
+    // where each i_j is less than the length of t
+
+    Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
+    TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
+    std::vector<uint32_t> indices = op.getIndices();
+    Node tuple = in[0];
+    std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
+    std::vector<TypeNode> types;
+    std::vector<Node> elements;
+    for (uint32_t index : indices)
+    {
+      TypeNode type = tupleTypes[index];
+      types.push_back(type);
+    }
+    TypeNode projectType = nm->mkTupleType(types);
+    const DType& dt = projectType.getDType();
+    elements.push_back(dt[0].getConstructor());
+    const DType& tupleDType = tuple.getType().getDType();
+    const DTypeConstructor& constructor = tupleDType[0];
+    for (uint32_t index : indices)
+    {
+      Node selector = constructor[index].getSelector();
+      Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
+      elements.push_back(element);
+    }
+    Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+
+    Trace("dt-rewrite-project")
+        << "Rewrite project: " << in << " ... " << ret << std::endl;
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
 
   if (kind == kind::EQUAL)
   {
@@ -280,7 +315,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
         Node tc = NodeManager::currentNM()->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(tn).toType()));
+            AscriptionType(dtc.getSpecializedConstructorType(tn)));
         Node op_new = NodeManager::currentNM()->mkNode(
             kind::APPLY_TYPE_ASCRIPTION, tc, op);
         // make new node
@@ -390,41 +425,21 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     }
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
-      Node gt;
-      bool useTe = true;
-      // if( !tn.isSort() ){
-      //  useTe = false;
-      //}
-      if (tn.isDatatype())
+      // evaluates to the first ground value of type tn.
+      Node gt = tn.mkGroundValue();
+      Assert(!gt.isNull());
+      if (tn.isDatatype() && !tn.isInstantiatedDatatype())
       {
-        const DType& dta = tn.getDType();
-        useTe = !dta.isCodatatype();
+        gt = NodeManager::currentNM()->mkNode(
+            kind::APPLY_TYPE_ASCRIPTION,
+            NodeManager::currentNM()->mkConst(AscriptionType(tn)),
+            gt);
       }
-      if (useTe)
-      {
-        TypeEnumerator te(tn);
-        gt = *te;
-      }
-      else
-      {
-        gt = tn.mkGroundTerm();
-      }
-      if (!gt.isNull())
-      {
-        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-        if (tn.isDatatype() && !tn.isInstantiatedDatatype())
-        {
-          gt = NodeManager::currentNM()->mkNode(
-              kind::APPLY_TYPE_ASCRIPTION,
-              NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())),
-              gt);
-        }
-        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << " to distinguished ground term " << gt
-                                   << std::endl;
-        return RewriteResponse(REWRITE_DONE, gt);
-      }
+      Trace("datatypes-rewrite")
+          << "DatatypesRewriter::postRewrite: "
+          << "Rewrite trivial selector " << in
+          << " to distinguished ground term " << gt << std::endl;
+      return RewriteResponse(REWRITE_DONE, gt);
     }
   }
   return RewriteResponse(REWRITE_DONE, in);
@@ -778,6 +793,6 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-} /* CVC4::theory::datatypes namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5

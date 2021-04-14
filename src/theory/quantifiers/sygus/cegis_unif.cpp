@@ -1,36 +1,39 @@
-/*********************                                                        */
-/*! \file cegis_unif.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief implementation of class for cegis with unification techniques
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of class for cegis with unification techniques.
+ */
 
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
-#include "options/base_options.h"
+#include "expr/skolem_manager.h"
+#include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, SynthConjecture* p)
-    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
+CegisUnif::CegisUnif(QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim,
+                     TermDbSygus* tds,
+                     SynthConjecture* p)
+    : Cegis(qim, tds, p), d_sygus_unif(p), d_u_enum_manager(qs, qim, tds, p)
 {
 }
 
@@ -56,7 +59,7 @@ bool CegisUnif::processInitialize(Node conj,
   {
     // Init UNIF util for this candidate
     d_sygus_unif.initializeCandidate(
-        d_qe, f, d_cand_to_strat_pt[f], strategy_lemmas);
+        d_tds, f, d_cand_to_strat_pt[f], strategy_lemmas);
     if (!d_sygus_unif.usingUnif(f))
     {
       Trace("cegis-unif") << "* non-unification candidate : " << f << std::endl;
@@ -215,7 +218,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
                     << "CegisUnif::lemma, inter-unif-enumerator "
                        "symmetry breaking lemma : "
                     << slem << "\n";
-                d_qe->getOutputChannel().lemma(slem);
+                d_qim.lemma(slem, InferenceId::UNKNOWN);
                 addedUnifEnumSymBreakLemma = true;
                 break;
               }
@@ -363,7 +366,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   {
     Trace("cegis-unif-lemma")
         << "CegisUnif::lemma, separation lemma : " << lem << "\n";
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::UNKNOWN);
   }
   Trace("cegis-unif") << "..failed to separate heads\n---CegisUnif Engine---\n";
   return false;
@@ -398,13 +401,16 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
-    QuantifiersEngine* qe, SynthConjecture* parent)
-    : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
-      d_qe(qe),
+    QuantifiersState& qs,
+    QuantifiersInferenceManager& qim,
+    TermDbSygus* tds,
+    SynthConjecture* parent)
+    : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
+      d_qim(qim),
+      d_tds(tds),
       d_parent(parent)
 {
   d_initialized = false;
-  d_tds = d_qe->getTermDatabaseSygus();
   options::SygusUnifPiMode mode = options::sygusUnifPi();
   d_useCondPool = mode == options::SygusUnifPiMode::CENUM
                   || mode == options::SygusUnifPiMode::CENUM_IGAIN;
@@ -413,7 +419,8 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node new_lit = nm->mkSkolem("G_cost", nm->booleanType());
+  SkolemManager* sm = nm->getSkolemManager();
+  Node newLit = sm->mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
 
   // allocate an enumerator for each candidate
@@ -421,13 +428,13 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
   {
     Node c = ci.first;
     TypeNode ct = c.getType();
-    Node eu = nm->mkSkolem("eu", ct);
+    Node eu = sm->mkDummySkolem("eu", ct);
     Node ceu;
     if (!d_useCondPool && !ci.second.d_enums[0].empty())
     {
       // make a new conditional enumerator as well, starting the
       // second type around
-      ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
+      ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
     }
     // register the new enumerators
     for (unsigned index = 0; index < 2; index++)
@@ -448,7 +455,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     {
       Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
                                << " to new size " << new_size << "\n";
-      registerEvalPtAtSize(c, ei, new_lit, new_size);
+      registerEvalPtAtSize(c, ei, newLit, new_size);
     }
   }
   // enforce fairness between number of enumerators and enumerator size
@@ -464,7 +471,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node bvl;
       std::string veName("_virtual_enum_grammar");
       SygusDatatype sdt(veName);
-      TypeNode u = nm->mkSort(veName, ExprManager::SORT_FLAG_PLACEHOLDER);
+      TypeNode u = nm->mkSort(veName, NodeManager::SORT_FLAG_PLACEHOLDER);
       std::set<TypeNode> unresolvedTypes;
       unresolvedTypes.insert(u);
       std::vector<TypeNode> cargsEmpty;
@@ -479,7 +486,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       datatypes.push_back(sdt.getDatatype());
       std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
           datatypes, unresolvedTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
-      d_virtual_enum = nm->mkSkolem("_ve", dtypes[0]);
+      d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
@@ -493,7 +500,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
       Node fair_lemma =
           nm->mkNode(GEQ, size_ve, nm->mkConst(Rational(pow_two - 1)));
-      fair_lemma = nm->mkNode(OR, new_lit, fair_lemma);
+      fair_lemma = nm->mkNode(OR, newLit, fair_lemma);
       Trace("cegis-unif-enum-lemma")
           << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
       // this lemma relates the number of conditions we enumerate and the
@@ -502,11 +509,11 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       //   G_uq_i => size(ve) >= log_2( i-1 )
       // In other words, if we use i conditions, then we allow terms in our
       // solution whose size is at most log_2(i-1).
-      d_qe->getOutputChannel().lemma(fair_lemma);
+      d_qim.lemma(fair_lemma, InferenceId::UNKNOWN);
     }
   }
 
-  return new_lit;
+  return newLit;
 }
 
 void CegisUnifEnumDecisionStrategy::initialize(
@@ -522,6 +529,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
   // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (const Node& e : es)
   {
     Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";
@@ -557,7 +565,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
 
   // register this strategy
-  d_qe->getDecisionManager()->registerStrategy(
+  d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
 
   // create single condition enumerator for each decision tree strategy
@@ -566,7 +574,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
     // allocate a condition enumerator for each candidate
     for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
     {
-      Node ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
+      Node ceu = sm->mkDummySkolem("cu", ci.second.d_ce_type);
       setUpEnumerator(ceu, ci.second, 1);
     }
   }
@@ -610,7 +618,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
     Trace("cegis-unif-enum-lemma")
         << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
         << sym_break_red_ops << "\n";
-    d_qe->getOutputChannel().lemma(sym_break_red_ops);
+    d_qim.lemma(sym_break_red_ops, InferenceId::UNKNOWN);
   }
   // symmetry breaking between enumerators
   if (!si.d_enums[index].empty() && index == 0)
@@ -621,7 +629,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
     Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
     Trace("cegis-unif-enum-lemma")
         << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
-    d_qe->getOutputChannel().lemma(sym_break);
+    d_qim.lemma(sym_break, InferenceId::UNKNOWN);
   }
   // register the enumerator
   si.d_enums[index].push_back(e);
@@ -677,9 +685,9 @@ void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
   Trace("cegis-unif-enum-lemma")
       << "CegisUnifEnum::lemma, domain:" << lem << "\n";
-  d_qe->getOutputChannel().lemma(lem);
+  d_qim.lemma(lem, InferenceId::UNKNOWN);
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

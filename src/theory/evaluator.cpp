@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file evaluator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The Evaluator class
- **
- ** The Evaluator class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The Evaluator class.
+ */
 
 #include "theory/evaluator.h"
 
@@ -22,7 +21,7 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 EvalResult::EvalResult(const EvalResult& other)
@@ -210,8 +209,16 @@ EvalResult Evaluator::evalInternal(
     }
 
     bool doProcess = true;
+    bool isVar = false;
     bool doEval = true;
-    if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (currNode.isVar())
+    {
+      // we do not evaluate if we are a variable, instead we look for the
+      // variable in args below
+      isVar = true;
+      doEval = false;
+    }
+    else if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       TNode op = currNode.getOperator();
       // Certain nodes are parameterized with constant operators, including
@@ -262,18 +269,36 @@ EvalResult Evaluator::evalInternal(
       // store the result of substitution + rewriting currNode { args -> vals }
       // into evalAsNode[currNode].
 
-      // If we did not successfully evaluate all children
+      // If we did not successfully evaluate all children, or are a variable
       if (!doEval)
       {
-        // Reconstruct the node with a combination of the children that
-        // successfully evaluated, and the children that did not.
-        Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
-        currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
-        if (useRewriter)
+        if (isVar)
         {
-          // Rewrite the result now, if we use the rewriter. We will see below
-          // if we are able to turn it into a valid EvalResult.
-          currNodeVal = Rewriter::rewrite(currNodeVal);
+          const auto& it = std::find(args.begin(), args.end(), currNode);
+          if (it == args.end())
+          {
+            // variable with no substitution is itself
+            evalAsNode[currNode] = currNode;
+            results[currNode] = EvalResult();
+            continue;
+          }
+          ptrdiff_t pos = std::distance(args.begin(), it);
+          currNodeVal = vals[pos];
+          // Don't need to rewrite since range of substitution should already
+          // be normalized.
+        }
+        else
+        {
+          // Reconstruct the node with a combination of the children that
+          // successfully evaluated, and the children that did not.
+          Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
+          currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
+          if (useRewriter)
+          {
+            // Rewrite the result now, if we use the rewriter. We will see below
+            // if we are able to turn it into a valid EvalResult.
+            currNodeVal = Rewriter::rewrite(currNodeVal);
+          }
         }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
@@ -292,78 +317,69 @@ EvalResult Evaluator::evalInternal(
         // block of code below.
       }
 
-      if (currNode.isVar())
-      {
-        const auto& it = std::find(args.begin(), args.end(), currNode);
-        if (it == args.end())
-        {
-          // variable with no substitution is itself
-          evalAsNode[currNode] = currNode;
-          results[currNode] = EvalResult();
-          continue;
-        }
-        ptrdiff_t pos = std::distance(args.begin(), it);
-        currNodeVal = vals[pos];
-        // Don't need to reconstruct since range of substitution should already
-        // be normalized.
-        needsReconstruct = false;
-      }
-      else if (currNode.getKind() == kind::APPLY_UF)
-      {
-        Trace("evaluator") << "Evaluate " << currNode << std::endl;
-        TNode op = currNode.getOperator();
-        Assert(evalAsNode.find(op) != evalAsNode.end());
-        // no function can be a valid EvalResult
-        op = evalAsNode[op];
-        Trace("evaluator") << "Operator evaluated to " << op << std::endl;
-        if (op.getKind() != kind::LAMBDA)
-        {
-          // this node is not evaluatable due to operator, must add to
-          // evalAsNode
-          results[currNode] = EvalResult();
-          evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
-          continue;
-        }
-        // Create a copy of the current substitutions
-        std::vector<Node> lambdaArgs(args);
-        std::vector<Node> lambdaVals(vals);
-
-        // Add the values for the arguments of the lambda as substitutions at
-        // the beginning of the vector to shadow variables from outer scopes
-        // with the same name
-        for (const auto& lambdaArg : op[0])
-        {
-          lambdaArgs.insert(lambdaArgs.begin(), lambdaArg);
-        }
-
-        for (const auto& lambdaVal : currNode)
-        {
-          lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
-        }
-
-        // Lambdas are evaluated in a recursive fashion because each evaluation
-        // requires different substitutions. We use a fresh cache since the
-        // evaluation of op[1] is under a new substitution and thus should not
-        // be cached. We could alternatively copy evalAsNode to evalAsNodeC but
-        // favor avoiding this copy for performance reasons.
-        std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
-        std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
-        results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
-        Trace("evaluator") << "Evaluated via arguments to "
-                           << results[currNode].d_tag << std::endl;
-        if (results[currNode].d_tag == EvalResult::INVALID)
-        {
-          // evaluation was invalid, we take the node of op[1] as the result
-          evalAsNode[currNode] = evalAsNodeC[op[1]];
-          Trace("evaluator")
-              << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
-        }
-        continue;
-      }
+      Trace("evaluator") << "Current node val : " << currNodeVal << std::endl;
 
       switch (currNodeVal.getKind())
       {
+        // APPLY_UF is a special case where we look up the operator and apply
+        // beta reduction if possible
+        case kind::APPLY_UF:
+        {
+          Trace("evaluator") << "Evaluate " << currNode << std::endl;
+          TNode op = currNode.getOperator();
+          Assert(evalAsNode.find(op) != evalAsNode.end());
+          // no function can be a valid EvalResult
+          op = evalAsNode[op];
+          Trace("evaluator") << "Operator evaluated to " << op << std::endl;
+          if (op.getKind() != kind::LAMBDA)
+          {
+            // this node is not evaluatable due to operator, must add to
+            // evalAsNode
+            results[currNode] = EvalResult();
+            evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+            continue;
+          }
+          // Create a copy of the current substitutions
+          std::vector<Node> lambdaArgs(args);
+          std::vector<Node> lambdaVals(vals);
+
+          // Add the values for the arguments of the lambda as substitutions at
+          // the beginning of the vector to shadow variables from outer scopes
+          // with the same name
+          for (const auto& lambdaArg : op[0])
+          {
+            lambdaArgs.insert(lambdaArgs.begin(), lambdaArg);
+          }
+
+          for (const auto& lambdaVal : currNode)
+          {
+            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
+          }
+
+          // Lambdas are evaluated in a recursive fashion because each
+          // evaluation requires different substitutions. We use a fresh cache
+          // since the evaluation of op[1] is under a new substitution and thus
+          // should not be cached. We could alternatively copy evalAsNode to
+          // evalAsNodeC but favor avoiding this copy for performance reasons.
+          std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
+          std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
+          results[currNode] = evalInternal(op[1],
+                                           lambdaArgs,
+                                           lambdaVals,
+                                           evalAsNodeC,
+                                           resultsC,
+                                           useRewriter);
+          Trace("evaluator") << "Evaluated via arguments to "
+                             << results[currNode].d_tag << std::endl;
+          if (results[currNode].d_tag == EvalResult::INVALID)
+          {
+            // evaluation was invalid, we take the node of op[1] as the result
+            evalAsNode[currNode] = evalAsNodeC[op[1]];
+            Trace("evaluator")
+                << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
+          }
+        }
+        break;
         case kind::CONST_BOOLEAN:
           results[currNode] = EvalResult(currNodeVal.getConst<bool>());
           break;
@@ -775,41 +791,17 @@ EvalResult Evaluator::evalInternal(
           break;
         }
         case kind::BITVECTOR_UDIV:
-        case kind::BITVECTOR_UDIV_TOTAL:
         {
-          if (currNodeVal.getKind() == kind::BITVECTOR_UDIV_TOTAL
-              || results[currNode[1]].d_bv.getValue() != 0)
-          {
-            BitVector res = results[currNode[0]].d_bv;
-            res = res.unsignedDivTotal(results[currNode[1]].d_bv);
-            results[currNode] = EvalResult(res);
-          }
-          else
-          {
-            results[currNode] = EvalResult();
-            evalAsNode[currNode] =
-                needsReconstruct ? reconstruct(currNode, results, evalAsNode)
-                                 : currNodeVal;
-          }
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.unsignedDivTotal(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
           break;
         }
         case kind::BITVECTOR_UREM:
-        case kind::BITVECTOR_UREM_TOTAL:
         {
-          if (currNodeVal.getKind() == kind::BITVECTOR_UREM_TOTAL
-              || results[currNode[1]].d_bv.getValue() != 0)
-          {
-            BitVector res = results[currNode[0]].d_bv;
-            res = res.unsignedRemTotal(results[currNode[1]].d_bv);
-            results[currNode] = EvalResult(res);
-          }
-          else
-          {
-            results[currNode] = EvalResult();
-            evalAsNode[currNode] =
-                needsReconstruct ? reconstruct(currNode, results, evalAsNode)
-                                 : currNodeVal;
-          }
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.unsignedRemTotal(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
           break;
         }
 
@@ -959,4 +951,4 @@ Node Evaluator::reconstruct(
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

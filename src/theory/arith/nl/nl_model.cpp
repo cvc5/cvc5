@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file nl_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model object for the non-linear extension class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model object for the non-linear extension class.
+ */
 
 #include "theory/arith/nl/nl_model.h"
 
@@ -20,11 +21,13 @@
 #include "options/theory_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/theory_model.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -159,7 +162,7 @@ Node NlModel::getRepresentative(Node n) const
   return d_model->getRepresentative(n);
 }
 
-Node NlModel::getValueInternal(Node n) const
+Node NlModel::getValueInternal(Node n)
 {
   if (n.isConst())
   {
@@ -171,7 +174,11 @@ Node NlModel::getValueInternal(Node n) const
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  // It is unconstrained in the model, return 0.
+  // It is unconstrained in the model, return 0. We additionally add it
+  // to mapping from the linear solver. This ensures that if the nonlinear
+  // solver assumes that n = 0, then this assumption is recorded in the overall
+  // model.
+  d_arithVal[n] = d_zero;
   return d_zero;
 }
 
@@ -215,8 +222,7 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
-                         std::vector<NlLemma>& lemmas,
-                         std::vector<Node>& gs)
+                         std::vector<NlLemma>& lemmas)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : assertions)
@@ -260,10 +266,13 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             {
               // set its exact model value in the substitution
               Node curv = computeConcreteModelValue(cur);
-              Trace("nl-ext-cm")
-                  << "check-model-bound : exact : " << cur << " = ";
-              printRationalApprox("nl-ext-cm", curv);
-              Trace("nl-ext-cm") << std::endl;
+              if (Trace.isOn("nl-ext-cm"))
+              {
+                Trace("nl-ext-cm")
+                    << "check-model-bound : exact : " << cur << " = ";
+                printRationalApprox("nl-ext-cm", curv);
+                Trace("nl-ext-cm") << std::endl;
+              }
               bool ret = addCheckModelSubstitution(cur, curv);
               AlwaysAssert(ret);
             }
@@ -309,26 +318,6 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     return false;
   }
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
-
-  // must assert and re-check if produce models is true
-  if (options::produceModels())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    // model guard whose semantics is "the model we constructed holds"
-    Node mg = nm->mkSkolem("model", nm->booleanType());
-    gs.push_back(mg);
-    // assert the constructed model as assertions
-    for (const std::pair<const Node, std::pair<Node, Node>> cb :
-         d_check_model_bounds)
-    {
-      Node l = cb.second.first;
-      Node u = cb.second.second;
-      Node v = cb.first;
-      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      pred = nm->mkNode(OR, mg.negate(), pred);
-      lemmas.emplace_back(pred);
-    }
-  }
   return true;
 }
 
@@ -591,9 +580,12 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasCheckModelAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
-        Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
-        printRationalApprox("nl-ext-cm", uvfv);
-        Trace("nl-ext-cm") << std::endl;
+        if (Trace.isOn("nl-ext-cm"))
+        {
+          Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
+          printRationalApprox("nl-ext-cm", uvfv);
+          Trace("nl-ext-cm") << std::endl;
+        }
         bool ret = addCheckModelSubstitution(uvf, uvfv);
         // recurse
         return ret ? solveEqualitySimple(eq, d, lemmas) : false;
@@ -620,9 +612,12 @@ bool NlModel::solveEqualitySimple(Node eq,
       return false;
     }
     Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
-    Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
-    printRationalApprox("nl-ext-cm", val);
-    Trace("nl-ext-cm") << std::endl;
+    if (Trace.isOn("nl-ext-cm"))
+    {
+      Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
+      printRationalApprox("nl-ext-cm", val);
+      Trace("nl-ext-cm") << std::endl;
+    }
     bool ret = addCheckModelSubstitution(var, val);
     if (ret)
     {
@@ -648,7 +643,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     Node conf = seq.negate();
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
                           << std::endl;
-    lemmas.push_back(conf);
+    lemmas.emplace_back(InferenceId::ARITH_NL_CM_QUADRATIC_EQ, conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }
@@ -701,31 +696,40 @@ bool NlModel::solveEqualitySimple(Node eq,
                    nm->mkNode(MULT,
                               nm->mkConst(Rational(1) / Rational(2)),
                               nm->mkNode(PLUS, bounds[r][0], bounds[r][1])));
-    Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
-    printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
-    Trace("nl-ext-cm-debug") << "...";
-    printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
-    Trace("nl-ext-cm-debug") << std::endl;
+    if (Trace.isOn("nl-ext-cm-debug"))
+    {
+      Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
+      printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
+      Trace("nl-ext-cm-debug") << "...";
+      printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
+      Trace("nl-ext-cm-debug") << std::endl;
+    }
     diff = Rewriter::rewrite(diff);
     Assert(diff.isConst());
     diff = nm->mkConst(diff.getConst<Rational>().abs());
     diff_bound[r] = diff;
-    Trace("nl-ext-cm-debug") << "...diff from model value (";
-    printRationalApprox("nl-ext-cm-debug", m_var);
-    Trace("nl-ext-cm-debug") << ") is ";
-    printRationalApprox("nl-ext-cm-debug", diff_bound[r]);
-    Trace("nl-ext-cm-debug") << std::endl;
+    if (Trace.isOn("nl-ext-cm-debug"))
+    {
+      Trace("nl-ext-cm-debug") << "...diff from model value (";
+      printRationalApprox("nl-ext-cm-debug", m_var);
+      Trace("nl-ext-cm-debug") << ") is ";
+      printRationalApprox("nl-ext-cm-debug", diff_bound[r]);
+      Trace("nl-ext-cm-debug") << std::endl;
+    }
   }
   // take the one that var is closer to in the model
   Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
   cmp = Rewriter::rewrite(cmp);
   Assert(cmp.isConst());
   unsigned r_use_index = cmp == d_true ? 1 : 0;
-  Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
-  printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
-  Trace("nl-ext-cm") << " <= " << var << " <= ";
-  printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
-  Trace("nl-ext-cm") << std::endl;
+  if (Trace.isOn("nl-ext-cm"))
+  {
+    Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
+    printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
+    Trace("nl-ext-cm") << " <= " << var << " <= ";
+    printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
+    Trace("nl-ext-cm") << std::endl;
+  }
   bool ret =
       addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
   if (ret)
@@ -1262,7 +1266,12 @@ void NlModel::getModelValueRepair(
     std::map<Node, Node>& witnesses)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
-
+  // If we extended the model with entries x -> 0 for unconstrained values,
+  // we first update the map to the extended one.
+  if (d_arithVal.size() > arithModel.size())
+  {
+    arithModel = d_arithVal;
+  }
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
@@ -1334,4 +1343,4 @@ void NlModel::getModelValueRepair(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

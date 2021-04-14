@@ -1,6 +1,5 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 by
-its authors and contributors (see the file AUTHORS) and their institutional
-affiliations.  All rights reserved.
+CVC4 is copyright (C) 2009-2021 by its authors and contributors (see the file
+AUTHORS) and their institutional affiliations.  All rights reserved.
 
 The source code of CVC4 is open and available to students, researchers,
 software companies, and everyone else to study, to modify, and to redistribute
@@ -78,7 +77,6 @@ CVC4 optionally links against the following libraries:
   ABC                (https://bitbucket.org/alanmi/abc)
   CaDiCaL            (https://github.com/arminbiere/cadical)
   CryptoMiniSat      (https://github.com/msoos/cryptominisat)
-  LFSC checker       (https://github.com/CVC4/LFSC)
   LibPoly            (https://github.com/SRI-CSL/libpoly)
   libedit            (https://thrysoee.dk/editline)
 
@@ -108,4 +106,3 @@ CVC4 can be optionally configured to link against glpk-cut-log, a modified
 version of GLPK, the GNU Linear Programming Kit, available here:
 
   https://github.com/timothy-king/glpk-cut-log
-

@@ -1,31 +1,34 @@
-/*********************                                                        */
-/*! \file proof_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof checker utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof checker utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__PROOF_CHECKER_H
-#define CVC4__EXPR__PROOF_CHECKER_H
+#ifndef CVC5__EXPR__PROOF_CHECKER_H
+#define CVC5__EXPR__PROOF_CHECKER_H
 
 #include <map>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "expr/proof_rule.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class ProofChecker;
+class ProofNode;
 
 /** A virtual base class for checking a proof rule */
 class ProofRuleChecker
@@ -54,17 +57,7 @@ class ProofRuleChecker
   Node check(PfRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args);
-  /** Single arg version */
-  Node checkChildrenArg(PfRule id, const std::vector<Node>& children, Node arg);
-  /** No arg version */
-  Node checkChildren(PfRule id, const std::vector<Node>& children);
-  /** Single child only version */
-  Node checkChild(PfRule id, Node child);
-  /** Single argument only version */
-  Node checkArg(PfRule id, Node arg);
 
-  /** Make AND-kinded node with children a */
-  static Node mkAnd(const std::vector<Node>& a);
   /** get an index from a node, return false if we fail */
   static bool getUInt32(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */
@@ -101,7 +94,7 @@ class ProofCheckerStatistics
   ProofCheckerStatistics();
   ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleChecks;
+  IntegralHistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
   IntStat d_totalRuleChecks;
 };
@@ -156,8 +149,8 @@ class ProofChecker
   Node checkDebug(PfRule id,
                   const std::vector<Node>& cchildren,
                   const std::vector<Node>& args,
-                  Node expected,
-                  const char* traceTag);
+                  Node expected = Node::null(),
+                  const char* traceTag = "");
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
   /**
@@ -180,9 +173,11 @@ class ProofChecker
 
   /**
    * Is pedantic failure? If so, we return true and write a debug message on the
-   * output stream out.
+   * output stream out if enableOutput is true.
    */
-  bool isPedanticFailure(PfRule id, std::ostream& out) const;
+  bool isPedanticFailure(PfRule id,
+                         std::ostream& out,
+                         bool enableOutput = true) const;
 
  private:
   /** statistics class */
@@ -195,17 +190,19 @@ class ProofChecker
   uint32_t d_pclevel;
   /**
    * Check internal. This is used by check and checkDebug above. It writes
-   * checking errors on out. We treat trusted checkers (nullptr in the range
-   * of the map d_checker) as failures if useTrustedChecker = false.
+   * checking errors on out when enableOutput is true. We treat trusted checkers
+   * (nullptr in the range of the map d_checker) as failures if
+   * useTrustedChecker = false.
    */
   Node checkInternal(PfRule id,
                      const std::vector<Node>& cchildren,
                      const std::vector<Node>& args,
                      Node expected,
                      std::stringstream& out,
-                     bool useTrustedChecker);
+                     bool useTrustedChecker,
+                     bool enableOutput);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_CHECKER_H */
+#endif /* CVC5__EXPR__PROOF_CHECKER_H */

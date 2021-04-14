@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file synth_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The quantifiers module for managing all approaches to synthesis,
- ** in particular, those described in Reynolds et al CAV 2015.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The quantifiers module for managing all approaches to synthesis,
+ * in particular, those described in Reynolds et al CAV 2015.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
-#define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#define CVC5__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -32,7 +34,10 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  public:
-  SynthEngine(QuantifiersEngine* qe, context::Context* c);
+  SynthEngine(QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr,
+              TermRegistry& tr);
   ~SynthEngine();
   /** presolve
    *
@@ -46,6 +51,8 @@ class SynthEngine : public QuantifiersModule
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
+  /** check ownership */
+  void checkOwnership(Node q) override;
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
@@ -74,8 +81,6 @@ class SynthEngine : public QuantifiersModule
   void preregisterAssertion(Node n);
 
  private:
-  /** term database sygus of d_qe */
-  TermDbSygus* d_tds;
   /** the conjecture formula(s) we are waiting to assign */
   std::vector<Node> d_waiting_conj;
   /** The synthesis conjectures that this class is managing. */
@@ -86,6 +91,10 @@ class SynthEngine : public QuantifiersModule
    * preregisterAssertion.
    */
   SynthConjecture* d_conj;
+  /**
+   * The quantifier elimination preprocess module.
+   */
+  SygusQePreproc d_sqp;
   /** The statistics */
   SygusStatistics d_statistics;
   /** assign quantified formula q as a conjecture
@@ -107,6 +116,6 @@ class SynthEngine : public QuantifiersModule
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

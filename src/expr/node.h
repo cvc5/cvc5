@@ -1,32 +1,28 @@
-/*********************                                                        */
-/*! \file node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 
 #include "cvc4_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__NODE_H
-#define CVC4__NODE_H
+#ifndef CVC5__NODE_H
+#define CVC5__NODE_H
 
-#include <stdint.h>
-
-#include <algorithm>
-#include <functional>
 #include <iostream>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -34,20 +30,17 @@
 #include <vector>
 
 #include "base/check.h"
-#include "base/configuration.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "expr/type.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
 #include "util/utility.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 class NodeManager;
@@ -144,16 +137,16 @@ class NodeValue;
   namespace attr {
     class AttributeManager;
     struct SmtAttributes;
-  }/* CVC4::expr::attr namespace */
+    }  // namespace attr
 
   class ExprSetDepth;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 namespace kind {
   namespace metakind {
     struct NodeValueConstPrinter;
-  }/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
+    }  // namespace metakind
+    }  // namespace kind
 
 // for hash_maps, hash_sets..
 struct NodeHashFunction {
@@ -175,8 +168,6 @@ class NodeTemplate {
    * iterators can can create new nodes.
    */
   friend class expr::NodeValue;
-
-  friend class expr::ExportPrivate;
 
   /** A convenient null-valued encapsulated pointer */
   static NodeTemplate s_null;
@@ -204,13 +195,12 @@ class NodeTemplate {
   friend class TypeNode;
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
-  friend class ::CVC4::expr::attr::AttributeManager;
-  friend struct ::CVC4::expr::attr::SmtAttributes;
+  friend class ::cvc5::expr::attr::AttributeManager;
+  friend struct ::cvc5::expr::attr::SmtAttributes;
 
-  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
+  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -273,14 +263,6 @@ public:
    * @param node the node to make copy of
    */
   NodeTemplate(const NodeTemplate& node);
-
-  /**
-   * Allow Exprs to become Nodes.  This permits flexible translation of
-   * Exprs -> Nodes inside the CVC4 library without exposing a toNode()
-   * function in the public interface, or requiring lots of "friend"
-   * relationships.
-   */
-  NodeTemplate(const Expr& e);
 
   /**
    * Assignment operator for nodes, copies the relevant information from node
@@ -421,23 +403,6 @@ public:
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
 
-
-  /**
-   * Convert this Node into an Expr using the currently-in-scope
-   * manager.  Essentially this is like an "operator Expr()" but we
-   * don't want it to compete with implicit conversions between e.g.
-   * Node and TNode, and we want internal-to-external interface
-   * (Node -> Expr) points to be explicit.  We could write an
-   * explicit Expr(Node) constructor---but that dirties the public
-   * interface.
-   */
-  inline Expr toExpr() const;
-
-  /**
-   * Convert an Expr into a Node.
-   */
-  static inline Node fromExpr(const Expr& e);
-
   /**
    * Returns true if this node represents a constant
    * @return true if const
@@ -545,6 +510,12 @@ public:
   template <class Iterator>
   Node substitute(Iterator substitutionsBegin,
                   Iterator substitutionsEnd) const;
+
+  /**
+   * Simultaneous substitution of Nodes in cache.
+   */
+  Node substitute(
+      std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
   /**
    * Returns the kind of this node.
@@ -821,19 +792,16 @@ public:
    * @param out the stream to serialize this node to
    * @param toDepth the depth to which to print this expression, or -1 to
    * print it fully
-   * @param types set to true to ascribe types to the output expressions
-   * (might break language compliance, but good for debugging expressions)
    * @param language the language in which to output
    */
   inline void toStream(
       std::ostream& out,
       int toDepth = -1,
-      bool types = false,
       size_t dagThreshold = 1,
       OutputLanguage language = language::output::LANG_AUTO) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, types, dagThreshold, language);
+    d_nv->toStream(out, toDepth, dagThreshold, language);
   }
 
   /**
@@ -851,17 +819,6 @@ public:
    * gives "(OR a b (...))"
    */
   typedef expr::ExprSetDepth setdepth;
-
-  /**
-   * IOStream manipulator to print type ascriptions or not.
-   *
-   *   // let a, b, c, and d be variables of sort U
-   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
-   *   out << n;
-   *
-   * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
-   */
-  typedef expr::ExprPrintTypes printtypes;
 
   /**
    * IOStream manipulator to print expressions as DAGs (or not).
@@ -909,7 +866,6 @@ public:
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,
              Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out),
              Node::dag::getDag(out),
              Node::setlanguage::getLanguage(out));
   return out;
@@ -993,13 +949,12 @@ std::ostream& operator<<(
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
-#include "expr/type_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 inline size_t NodeHashFunction::operator()(Node node) const {
   return node.getId();
@@ -1029,7 +984,7 @@ template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1042,7 +997,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1055,7 +1010,7 @@ template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1068,7 +1023,7 @@ template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1122,18 +1077,6 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
     d_nv->inc();
   } else {
     Assert(d_nv->d_rc > 0) << "TNode constructed from TNode with rc == 0";
-  }
-}
-
-template <bool ref_count>
-NodeTemplate<ref_count>::NodeTemplate(const Expr& e) {
-  Assert(e.d_node != NULL) << "Expecting a non-NULL expression value!";
-  Assert(e.d_node->d_nv != NULL) << "Expecting a non-NULL expression value!";
-  d_nv = e.d_node->d_nv;
-  // shouldn't ever fail
-  Assert(d_nv->d_rc > 0) << "Node constructed from Expr with rc == 0";
-  if(ref_count) {
-    d_nv->inc();
   }
 }
 
@@ -1277,37 +1220,23 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
+NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
+{
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
 
-  switch(kind::MetaKind mk = getMetaKind()) {
-  case kind::metakind::INVALID:
-    IllegalArgument(*this, "getOperator() called on Node with INVALID-kinded kind");
-
-  case kind::metakind::VARIABLE:
-    IllegalArgument(*this, "getOperator() called on Node with VARIABLE-kinded kind");
-
-  case kind::metakind::OPERATOR: {
+  kind::MetaKind mk = getMetaKind();
+  if (mk == kind::metakind::OPERATOR)
+  {
     /* Returns a BUILTIN node. */
     return NodeManager::currentNM()->operatorOf(getKind());
   }
-
-  case kind::metakind::PARAMETERIZED:
-    /* The operator is the first child. */
-    return Node(d_nv->d_children[0]);
-
-  case kind::metakind::CONSTANT:
-    IllegalArgument(*this, "getOperator() called on Node with CONSTANT-kinded kind");
-
-  case kind::metakind::NULLARY_OPERATOR:
-    IllegalArgument(*this, "getOperator() called on Node with NULLARY_OPERATOR-kinded kind");
-
-  default: Unhandled() << mk;
-  }
+  Assert(mk == kind::metakind::PARAMETERIZED);
+  /* The operator is the first child. */
+  return Node(d_nv->d_children[0]);
 }
 
 /**
@@ -1324,7 +1253,7 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
+      << "There is no current cvc5::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
@@ -1360,7 +1289,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   }
 
   // otherwise compute
-  NodeBuilder<> nb(getKind());
+  NodeBuilder nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1417,7 +1346,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
   Assert(std::distance(nodesBegin, nodesEnd)
          == std::distance(replacementsBegin, replacementsEnd))
       << "Substitution iterator ranges must be equal size";
-  Iterator1 j = find(nodesBegin, nodesEnd, TNode(*this));
+  Iterator1 j = std::find(nodesBegin, nodesEnd, TNode(*this));
   if(j != nodesEnd) {
     Iterator2 b = replacementsBegin;
     std::advance(b, std::distance(nodesBegin, j));
@@ -1428,7 +1357,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1456,6 +1385,16 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
 }
 
 template <bool ref_count>
+inline Node NodeTemplate<ref_count>::substitute(
+    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const
+{
+  // Since no substitution is given (other than what may already be in the
+  // cache), we pass dummy iterators to conform to the main substitute method,
+  // giving the same value to substitutionsBegin and substitutionsEnd.
+  return substitute(cache.cend(), cache.cend(), cache);
+}
+
+template <bool ref_count>
 template <class Iterator>
 Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
@@ -1468,8 +1407,10 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 
   // otherwise compute
-  Iterator j = find_if(substitutionsBegin, substitutionsEnd,
-                       bind2nd(first_equal_to<typename Iterator::value_type::first_type, typename Iterator::value_type::second_type>(), *this));
+  Iterator j = find_if(
+      substitutionsBegin,
+      substitutionsEnd,
+      [this](const auto& subst){ return subst.first == *this; });
   if(j != substitutionsEnd) {
     Node n = (*j).second;
     cache[*this] = n;
@@ -1478,7 +1419,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
@@ -1493,19 +1434,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 }
 
-template <bool ref_count>
-inline Expr NodeTemplate<ref_count>::toExpr() const {
-  assertTNodeNotExpired();
-  return NodeManager::currentNM()->toExpr(*this);
-}
-
-// intentionally not defined for TNode
-template <>
-inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
-  return NodeManager::fromExpr(e);
-}
-
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1523,7 +1452,6 @@ inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1531,7 +1459,6 @@ static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
 }
 static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1544,7 +1471,6 @@ static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n)
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1552,7 +1478,6 @@ static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) 
 }
 static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
   Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
             << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
@@ -1562,8 +1487,8 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

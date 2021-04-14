@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file theory_sets_type_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief set enumerator implementation
- **
- ** set enumerator implementation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Set enumerator implementation.
+ */
 
 #include "theory/sets/theory_sets_type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace sets {
 
@@ -89,7 +88,8 @@ SetEnumerator& SetEnumerator::operator++()
     // get a new element and return it as a singleton set
     Node element = *d_elementEnumerator;
     d_elementsSoFar.push_back(element);
-    d_currentSet = d_nodeManager->mkNode(kind::SINGLETON, element);
+    TypeNode elementType = d_elementEnumerator.getType();
+    d_currentSet = d_nodeManager->mkSingleton(elementType, element);
     d_elementEnumerator++;
   }
   else
@@ -129,4 +129,4 @@ bool SetEnumerator::isFinished()
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

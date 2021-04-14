@@ -1,23 +1,23 @@
-/*********************                                                        */
-/*! \file eager_bitblaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief
- **
- ** Bitblaster for the eager bv solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for the eager bv solver.
+ */
 
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
 #include "cvc4_private.h"
 #include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_engine.h"
@@ -26,7 +26,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -69,13 +69,13 @@ EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
   }
   d_satSolver.reset(solver);
   ResourceManager* rm = smt::currentResourceManager();
-  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
-                                               d_bitblastingRegistrar.get(),
-                                               d_nullContext.get(),
-                                               nullptr,
-                                               rm,
-                                               false,
-                                               "EagerBitblaster"));
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_bitblastingRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm,
+                                        prop::FormulaLitPolicy::INTERNAL,
+                                        "EagerBitblaster"));
 }
 
 EagerBitblaster::~EagerBitblaster() {}
@@ -148,7 +148,7 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
+  d_bv->spendResource(Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting node " << node << "\n";
 
   d_termBBStrategies[node.getKind()](node, bits, this);
@@ -287,4 +287,4 @@ bool EagerBitblaster::isSharedTerm(TNode node) {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

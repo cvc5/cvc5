@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-#####################
-## sequences.py
-## Top contributors (to current version):
-##   Andres Noetzli, Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## strings solver through the Python API. This is a direct translation
-## of sequences.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli, Makai Mann, Mudathir Mohamed
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 strings solver
+# through the Python API. This is a direct translation of sequences.cpp.
 ##
 
 import pycvc4
@@ -42,9 +43,9 @@ if __name__ == "__main__":
     # Sequence length: |x.y.empty|
     concat_len = slv.mkTerm(kinds.SeqLength, concat)
     # |x.y.empty| > 1
-    formula1 = slv.mkTerm(kinds.Gt, concat_len, slv.mkReal(1))
+    formula1 = slv.mkTerm(kinds.Gt, concat_len, slv.mkInteger(1))
     # Sequence unit: seq(1)
-    unit = slv.mkTerm(kinds.SeqUnit, slv.mkReal(1))
+    unit = slv.mkTerm(kinds.SeqUnit, slv.mkInteger(1))
     # x = seq(1)
     formula2 = slv.mkTerm(kinds.Equal, x, unit)
 

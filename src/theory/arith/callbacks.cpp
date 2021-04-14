@@ -1,26 +1,29 @@
-/*********************                                                        */
-/*! \file callbacks.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/callbacks.h"
 
+#include "expr/proof_node.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -45,7 +48,9 @@ TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta)
 : d_ta(ta)
 {}
 ArithVar TempVarMalloc::request(){
-  Node skolem = mkRealSkolem("tmpVar");
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node skolem = sm->mkDummySkolem("tmpVar", nm->realType());
   return d_ta.requestArithVar(skolem, false, true);
 }
 void TempVarMalloc::release(ArithVar v){
@@ -63,9 +68,9 @@ RaiseConflict::RaiseConflict(TheoryArithPrivate& ta)
   : d_ta(ta)
 {}
 
-void RaiseConflict::raiseConflict(ConstraintCP c) const{
+void RaiseConflict::raiseConflict(ConstraintCP c, InferenceId id) const{
   Assert(c->inConflict());
-  d_ta.raiseConflict(c);
+  d_ta.raiseConflict(c, id);
 }
 
 FarkasConflictBuilder::FarkasConflictBuilder()
@@ -172,10 +177,11 @@ RaiseEqualityEngineConflict::RaiseEqualityEngineConflict(TheoryArithPrivate& ta)
 {}
 
 /* If you are not an equality engine, don't use this! */
-void RaiseEqualityEngineConflict::raiseEEConflict(Node n) const{
-  d_ta.raiseBlackBoxConflict(n);
+void RaiseEqualityEngineConflict::raiseEEConflict(
+    Node n, std::shared_ptr<ProofNode> pf) const
+{
+  d_ta.raiseBlackBoxConflict(n, pf);
 }
-
 
 BoundCountingLookup::BoundCountingLookup(TheoryArithPrivate& ta)
 : d_ta(ta)
@@ -192,6 +198,6 @@ BoundCounts BoundCountingLookup::hasBounds(ArithVar basic) const {
   return boundsInfo(basic).hasBounds();
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

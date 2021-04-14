@@ -1,33 +1,30 @@
-/*********************                                                        */
-/*! \file cardinality_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of UF with cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of UF with cardinality.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY_UF_STRONG_SOLVER_H
-#define CVC4__THEORY_UF_STRONG_SOLVER_H
+#ifndef CVC5__THEORY_UF_STRONG_SOLVER_H
+#define CVC5__THEORY_UF_STRONG_SOLVER_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
-#include "theory/decision_manager.h"
-
-namespace CVC4 {
-
-class SortInference;
-
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -133,14 +130,14 @@ class CardinalityExtension
       /** conflict find pointer */
       SortModel* d_cf;
 
-      context::CDO< unsigned > d_testCliqueSize;
+      context::CDO<size_t> d_testCliqueSize;
       context::CDO< unsigned > d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO< unsigned > d_reps_size;
+      context::CDO<size_t> d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
@@ -188,9 +185,9 @@ class CardinalityExtension
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
       //get num reps
-      int getNumReps() { return d_reps_size; }
+      size_t getNumReps() const { return d_reps_size; }
       //get test clique size
-      int getTestCliqueSize() { return d_testCliqueSize; }
+      size_t getTestCliqueSize() const { return d_testCliqueSize; }
       // has representative
       bool hasRep( Node n ) {
         return d_nodes.find(n) != d_nodes.end() && d_nodes[n]->valid();
@@ -222,7 +219,7 @@ class CardinalityExtension
     /** Pointer to the cardinality extension that owns this. */
     CardinalityExtension* d_thss;
     /** regions used to d_region_index */
-    context::CDO< unsigned > d_regions_index;
+    context::CDO<size_t> d_regions_index;
     /** vector of regions */
     std::vector< Region* > d_regions;
     /** map from Nodes to index of d_regions they exist in, -1 means invalid */
@@ -265,31 +262,22 @@ class CardinalityExtension
     int addSplit(Region* r);
     /** add clique lemma */
     void addCliqueLemma(std::vector<Node>& clique);
-    /** add totality axiom */
-    void addTotalityAxiom(Node n, int cardinality);
     /** cardinality */
-    context::CDO< int > d_cardinality;
+    context::CDO<uint32_t> d_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
-    /** cardinality totality terms */
-    std::map< int, std::vector< Node > > d_totality_terms;
     /** cardinality literals */
-    std::map< int, Node > d_cardinality_literal;
+    std::map<uint32_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
     /** maximum negatively asserted cardinality */
-    context::CDO< int > d_maxNegCard;
+    context::CDO<uint32_t> d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
     context::CDO< bool > d_initialized;
-
-    /** apply totality */
-    bool applyTotality( int cardinality );
-    /** get totality lemma terms */
-    Node getTotalityLemmaTerm( int cardinality, int i );
     /** simple check cardinality */
     void simpleCheckCardinality();
 
@@ -314,17 +302,20 @@ class CardinalityExtension
     /** presolve */
     void presolve();
     /** assert cardinality */
-    void assertCardinality(int c, bool val);
+    void assertCardinality(uint32_t c, bool val);
     /** get cardinality */
-    int getCardinality() { return d_cardinality; }
+    uint32_t getCardinality() const { return d_cardinality; }
     /** has cardinality */
-    bool hasCardinalityAsserted() { return d_hasCard; }
+    bool hasCardinalityAsserted() const { return d_hasCard; }
     /** get cardinality term */
-    Node getCardinalityTerm() { return d_cardinality_term; }
+    Node getCardinalityTerm() const { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral(unsigned c);
+    Node getCardinalityLiteral(uint32_t c);
     /** get maximum negative cardinality */
-    int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
+    uint32_t getMaximumNegativeCardinality() const
+    {
+      return d_maxNegCard.get();
+    }
     //print debug
     void debugPrint( const char* c );
     /**
@@ -372,8 +363,6 @@ class CardinalityExtension
   ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** get sort inference module */
-  SortInference* getSortInference();
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -406,8 +395,6 @@ class CardinalityExtension
     IntStat d_clique_conflicts;
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
-    IntStat d_disamb_term_lemmas;
-    IntStat d_totality_lemmas;
     IntStat d_max_model_size;
     Statistics();
     ~Statistics();
@@ -437,7 +424,9 @@ class CardinalityExtension
   std::map<TypeNode, SortModel*> d_rep_model;
 
   /** minimum positive combined cardinality */
-  context::CDO<int> d_min_pos_com_card;
+  context::CDO<uint32_t> d_min_pos_com_card;
+  /** Whether the field above has been set */
+  context::CDO<bool> d_min_pos_com_card_set;
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
@@ -465,13 +454,16 @@ class CardinalityExtension
   /** the master monotone type (if ufssFairnessMonotone enabled) */
   TypeNode d_tn_mono_master;
   std::map<TypeNode, bool> d_tn_mono_slave;
-  context::CDO<int> d_min_pos_tn_master_card;
+  /** The minimum positive asserted master cardinality */
+  context::CDO<uint32_t> d_min_pos_tn_master_card;
+  /** Whether the field above has been set */
+  context::CDO<bool> d_min_pos_tn_master_card_set;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */
+#endif /* CVC5__THEORY_UF_STRONG_SOLVER_H */

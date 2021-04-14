@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file theory_arrays_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -27,7 +28,7 @@
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -501,8 +502,8 @@ class TheoryArraysRewriter : public TheoryRewriter
 
 }; /* class TheoryArraysRewriter */
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H */

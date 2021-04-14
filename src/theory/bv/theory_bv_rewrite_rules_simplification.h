@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules_simplification.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
@@ -24,7 +25,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -558,10 +559,10 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
   Kind kind = node.getKind();
   TNode concat;
   Node x, y, z, c;
-  NodeBuilder<> xb(kind);
-  NodeBuilder<> yb(kind::BITVECTOR_CONCAT);
-  NodeBuilder<> zb(kind::BITVECTOR_CONCAT);
-  NodeBuilder<> res(kind::BITVECTOR_CONCAT);
+  NodeBuilder xb(kind);
+  NodeBuilder yb(kind::BITVECTOR_CONCAT);
+  NodeBuilder zb(kind::BITVECTOR_CONCAT);
+  NodeBuilder res(kind::BITVECTOR_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
 
   for (const TNode& child : node)
@@ -607,7 +608,7 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
     z = nc > 1 ? zb.constructNode() : zb[0];
   }
   m = utils::getSize(x);
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   uint32_t n = utils::getSize(c);
 #endif
   my = y.isNull() ? 0 : utils::getSize(y);
@@ -1393,7 +1394,7 @@ template <>
 inline bool RewriteRule<UdivPow2>::applies(TNode node)
 {
   bool isNeg = false;
-  if (node.getKind() == kind::BITVECTOR_UDIV_TOTAL
+  if (node.getKind() == kind::BITVECTOR_UDIV
       && utils::isPow2Const(node[1], isNeg))
   {
     return !isNeg;
@@ -1439,8 +1440,8 @@ inline Node RewriteRule<UdivPow2>::apply(TNode node)
 
 template <>
 inline bool RewriteRule<UdivZero>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
-          node[1] == utils::mkConst(utils::getSize(node), 0));
+  return (node.getKind() == kind::BITVECTOR_UDIV
+          && node[1] == utils::mkConst(utils::getSize(node), 0));
 }
 
 template <>
@@ -1459,8 +1460,8 @@ inline Node RewriteRule<UdivZero>::apply(TNode node) {
 
 template <>
 inline bool RewriteRule<UdivOne>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
-          node[1] == utils::mkConst(utils::getSize(node), 1));
+  return (node.getKind() == kind::BITVECTOR_UDIV
+          && node[1] == utils::mkConst(utils::getSize(node), 1));
 }
 
 template <>
@@ -1481,7 +1482,7 @@ template <>
 inline bool RewriteRule<UremPow2>::applies(TNode node)
 {
   bool isNeg;
-  if (node.getKind() == kind::BITVECTOR_UREM_TOTAL
+  if (node.getKind() == kind::BITVECTOR_UREM
       && utils::isPow2Const(node[1], isNeg))
   {
     return !isNeg;
@@ -1521,8 +1522,8 @@ inline Node RewriteRule<UremPow2>::apply(TNode node)
 
 template<> inline
 bool RewriteRule<UremOne>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UREM_TOTAL &&
-          node[1] == utils::mkConst(utils::getSize(node), 1));
+  return (node.getKind() == kind::BITVECTOR_UREM
+          && node[1] == utils::mkConst(utils::getSize(node), 1));
 }
 
 template<> inline
@@ -1541,8 +1542,7 @@ Node RewriteRule<UremOne>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<UremSelf>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UREM_TOTAL &&
-          node[0] == node[1]);
+  return (node.getKind() == kind::BITVECTOR_UREM && node[0] == node[1]);
 }
 
 template<> inline
@@ -1589,9 +1589,8 @@ Node RewriteRule<ShiftZero>::apply(TNode node) {
 template <>
 inline bool RewriteRule<UgtUrem>::applies(TNode node)
 {
-  return (options::bitvectorDivByZeroConst()
-          && node.getKind() == kind::BITVECTOR_UGT
-          && node[0].getKind() == kind::BITVECTOR_UREM_TOTAL
+  return (node.getKind() == kind::BITVECTOR_UGT
+          && node[0].getKind() == kind::BITVECTOR_UREM
           && node[0][1] == node[1]);
 }
 
@@ -1682,13 +1681,13 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
                            .d_zeroExtendAmount;
     if (amount2 == 0)
     {
-      NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
+      NodeBuilder nb(kind::BITVECTOR_SIGN_EXTEND);
       Node op = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(amount1));
       nb << op << node[0][0];
       Node res = nb;
       return res;
     }
-    NodeBuilder<> nb(kind::BITVECTOR_ZERO_EXTEND);
+    NodeBuilder nb(kind::BITVECTOR_ZERO_EXTEND);
     Node op = nm->mkConst<BitVectorZeroExtend>(
         BitVectorZeroExtend(amount1 + amount2));
     nb << op << node[0][0];
@@ -1893,7 +1892,8 @@ inline bool RewriteRule<SignExtendUltConst>::applies(TNode node)
     unsigned size_c = utils::getSize(c);
     unsigned msb_x_pos = utils::getSize(x) - 1;
     // (1 << (n - 1)))
-    BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos);
+    BitVector bv_msb_x(size_c);
+    bv_msb_x.setBit(msb_x_pos, true);
     // (~0 << (n - 1))
     BitVector bv_upper_bits =
         (~BitVector(size_c)).leftShift(BitVector(size_c, msb_x_pos));
@@ -1929,7 +1929,8 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
   unsigned msb_x_pos = utils::getSize(x) - 1;
   Node c_lo = utils::mkConst(bv_c.extract(msb_x_pos, 0));
   // (1 << (n - 1)))
-  BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos);
+  BitVector bv_msb_x(size_c);
+  bv_msb_x.setBit(msb_x_pos, true);
   // (~0 << (n - 1))
   BitVector bv_upper_bits =
       (~BitVector(size_c)).leftShift(BitVector(size_c, msb_x_pos));
@@ -2246,7 +2247,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   Node zero_t = utils::mkZero(utils::getSize(t));
   Node zero_a = utils::mkZero(utils::getSize(a));
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder nb(kind::AND);
   Kind k = is_sext ? kind::BITVECTOR_SLT : kind::BITVECTOR_ULT;
   nb << t.eqNode(zero_t).notNode();
   nb << a.eqNode(zero_a).notNode();
@@ -2257,4 +2258,4 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

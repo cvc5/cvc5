@@ -1,34 +1,38 @@
-/*********************                                                        */
-/*! \file combination_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract interface for theory combination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract interface for theory combination.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__COMBINATION_ENGINE__H
-#define CVC4__THEORY__COMBINATION_ENGINE__H
+#ifndef CVC5__THEORY__COMBINATION_ENGINE__H
+#define CVC5__THEORY__COMBINATION_ENGINE__H
 
 #include <vector>
 #include <memory>
 
-#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
-#include "theory/model_manager.h"
+#include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
 namespace theory {
+
+class EagerProofGenerator;
+class ModelManager;
+class SharedSolver;
 
 /**
  * Manager for doing theory combination. This class is responsible for:
@@ -48,15 +52,8 @@ class CombinationEngine
   /** Finish initialization */
   void finishInit();
 
-  //-------------------------- equality engine
   /** Get equality engine theory information for theory with identifier tid. */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /**
-   * Get the "core" equality engine. This is the equality engine that
-   * quantifiers should use.
-   */
-  eq::EqualityEngine* getCoreEqualityEngine();
-  //-------------------------- end equality engine
   //-------------------------- model
   /**
    * Reset the model maintained by this class. This resets all local information
@@ -83,6 +80,11 @@ class CombinationEngine
   TheoryModel* getModel();
   //-------------------------- end model
   /**
+   * Get the shared solver, which is the active component of theory combination
+   * that TheoryEngine interacts with prior to calling combineTheories.
+   */
+  SharedSolver* getSharedSolver();
+  /**
    * Called at the beginning of full effort
    */
   virtual void resetRound();
@@ -105,6 +107,10 @@ class CombinationEngine
   void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** Valuation for the engine */
+  Valuation d_valuation;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
   /** List of parametric theories of theory engine */
@@ -120,6 +126,11 @@ class CombinationEngine
    */
   std::unique_ptr<ModelManager> d_mmanager;
   /**
+   * The shared solver. This class is responsible for performing combination
+   * tasks (e.g. preregistration) during solving.
+   */
+  std::unique_ptr<SharedSolver> d_sharedSolver;
+  /**
    * An eager proof generator, if proofs are enabled. This proof generator is
    * responsible for proofs of splitting lemmas generated in combineTheories.
    */
@@ -127,6 +138,6 @@ class CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__COMBINATION_DISTRIBUTED__H */

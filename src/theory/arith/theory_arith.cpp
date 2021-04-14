@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file theory_arith.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic theory.
+ */
 
 #include "theory/arith/theory_arith.h"
 
+#include "expr/proof_checker.h"
+#include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
@@ -24,11 +24,13 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -42,14 +44,17 @@ TheoryArith::TheoryArith(context::Context* c,
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
-      d_inferenceManager(*this, d_astate, pnm),
-      d_nonlinearExtension(nullptr)
+      d_im(*this, d_astate, pnm),
+      d_nonlinearExtension(nullptr),
+      d_arithPreproc(d_astate, d_im, pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
-  // indicate we are using the theory state object
+  // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
+  d_inferManager = &d_im;
 }
 
 TheoryArith::~TheoryArith(){
@@ -57,9 +62,11 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
-TheoryRewriter* TheoryArith::getTheoryRewriter()
+TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
+
+ProofRuleChecker* TheoryArith::getProofChecker()
 {
-  return d_internal->getTheoryRewriter();
+  return d_internal->getProofChecker();
 }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
@@ -83,59 +90,154 @@ void TheoryArith::finishInit()
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine));
+        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine, d_pnm));
   }
   // finish initialize internally
   d_internal->finishInit();
 }
 
-void TheoryArith::preRegisterTerm(TNode n) { d_internal->preRegisterTerm(n); }
+void TheoryArith::preRegisterTerm(TNode n)
+{
+  if (d_nonlinearExtension != nullptr)
+  {
+    d_nonlinearExtension->preRegisterTerm(n);
+  }
+  d_internal->preRegisterTerm(n);
+}
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
-  return d_internal->expandDefinition(node);
+  // call eliminate operators, to eliminate partial operators only
+  std::vector<SkolemLemma> lems;
+  TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
+  Assert(lems.empty());
+  return ret;
 }
 
-void TheoryArith::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
+void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
-TrustNode TheoryArith::ppRewrite(TNode atom)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  return d_internal->ppRewrite(atom);
+  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+
+  if (atom.getKind() == kind::EQUAL)
+  {
+    return ppRewriteEq(atom);
+  }
+  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  // Eliminate operators. Notice we must do this here since other
+  // theories may generate lemmas that involve non-standard operators. For
+  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
+  // introduce non-standard arithmetic terms appearing in grammars.
+  // call eliminate operators. In contrast to expandDefinitions, we eliminate
+  // *all* extended arithmetic operators here, including total ones.
+  return d_arithPreproc.eliminate(atom, lems, false);
 }
 
-Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-  return d_internal->ppAssert(in, outSubstitutions);
+TrustNode TheoryArith::ppRewriteEq(TNode atom)
+{
+  Assert(atom.getKind() == kind::EQUAL);
+  if (!options::arithRewriteEq())
+  {
+    return TrustNode::null();
+  }
+  Assert(atom[0].getType().isReal());
+  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
+  Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+  Debug("arith::preprocess")
+      << "arith::preprocess() : returning " << rewritten << endl;
+  // don't need to rewrite terms since rewritten is not a non-standard op
+  if (proofsEnabled())
+  {
+    return d_ppPfGen.mkTrustedRewrite(
+        atom,
+        rewritten,
+        d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
+  }
+  return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
-void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
+Theory::PPAssertStatus TheoryArith::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  return d_internal->ppAssert(tin, outSubstitutions);
+}
+
+void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
+{
   d_internal->ppStaticLearn(n, learned);
 }
 
-void TheoryArith::check(Effort effortLevel){
-  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
-  d_internal->check(effortLevel);
+bool TheoryArith::preCheck(Effort level)
+{
+  Trace("arith-check") << "TheoryArith::preCheck " << level << std::endl;
+  return d_internal->preCheck(level);
+}
+
+void TheoryArith::postCheck(Effort level)
+{
+  Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
+  // check with the non-linear solver at last call
+  if (level == Theory::EFFORT_LAST_CALL)
+  {
+    if (d_nonlinearExtension != nullptr)
+    {
+      d_nonlinearExtension->check(level);
+    }
+    return;
+  }
+  // otherwise, check with the linear solver
+  if (d_internal->postCheck(level))
+  {
+    // linear solver emitted a conflict or lemma, return
+    return;
+  }
+
+  if (Theory::fullEffort(level))
+  {
+    if (d_nonlinearExtension != nullptr)
+    {
+      d_nonlinearExtension->check(level);
+    }
+    else if (d_internal->foundNonlinear())
+    {
+      // set incomplete
+      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
+    }
+  }
+}
+
+bool TheoryArith::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  Trace("arith-check") << "TheoryArith::preNotifyFact: " << fact
+                       << ", isPrereg=" << isPrereg
+                       << ", isInternal=" << isInternal << std::endl;
+  d_internal->preNotifyFact(atom, pol, fact);
+  // We do not assert to the equality engine of arithmetic in the standard way,
+  // hence we return "true" to indicate we are finished with this fact.
+  return true;
 }
 
 bool TheoryArith::needsCheckLastEffort() {
-  return d_internal->needsCheckLastEffort();
+  if (d_nonlinearExtension != nullptr)
+  {
+    return d_nonlinearExtension->needsCheckLastEffort();
+  }
+  return false;
 }
 
-TrustNode TheoryArith::explain(TNode n)
-{
-  Node exp = d_internal->explain(n);
-  return TrustNode::mkTrustPropExp(n, exp, nullptr);
-}
+TrustNode TheoryArith::explain(TNode n) { return d_internal->explain(n); }
 
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
-bool TheoryArith::collectModelInfo(TheoryModel* m)
+
+bool TheoryArith::collectModelInfo(TheoryModel* m,
+                                   const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  // Work out which variables are needed
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  computeAssertedTerms(termSet, irrKinds);
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);
 }
@@ -151,14 +253,13 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel);
+    d_nonlinearExtension->interceptModel(arithModel, termSet);
   }
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : arithModel)
   {
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
-    Assert(p.second.isConst());
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -174,7 +275,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_out->lemma(lem);
+      bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
+      AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
     }
     return false;
   }
@@ -187,6 +289,10 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
+  if (d_nonlinearExtension != nullptr)
+  {
+    d_nonlinearExtension->presolve();
+  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
@@ -205,7 +311,11 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
   std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
 }
+eq::ProofEqEngine* TheoryArith::getProofEqEngine()
+{
+  return d_im.getProofEqEngine();
+}
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

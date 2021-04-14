@@ -1,31 +1,32 @@
-/*********************                                                        */
-/*! \file atom_requests.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "cvc4_private.h"
 
 #pragma once
 
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class AtomRequests {
 
@@ -114,8 +115,4 @@ private:
 
 };
 
-}
-
-
-
-
+}  // namespace cvc5

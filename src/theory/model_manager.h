@@ -1,34 +1,36 @@
-/*********************                                                        */
-/*! \file model_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract management of models for TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract management of models for TheoryEngine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__MODEL_MANAGER__H
-#define CVC4__THEORY__MODEL_MANAGER__H
+#ifndef CVC5__THEORY__MODEL_MANAGER__H
+#define CVC5__THEORY__MODEL_MANAGER__H
 
 #include <memory>
 
 #include "theory/ee_manager.h"
 #include "theory/logic_info.h"
-#include "theory/theory_model.h"
-#include "theory/theory_model_builder.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
 namespace theory {
+
+class TheoryEngineModelBuilder;
+class TheoryModel;
 
 /**
  * A base class for managing models. Its main feature is to implement a
@@ -151,6 +153,6 @@ class ModelManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__MODEL_MANAGER__H */
+#endif /* CVC5__THEORY__MODEL_MANAGER__H */

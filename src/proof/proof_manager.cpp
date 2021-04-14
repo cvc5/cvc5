@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
-
- ** \todo document this file
-
-**/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ */
 
 #include "proof/proof_manager.h"
 
@@ -36,7 +36,7 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofManager::ProofManager(context::Context* context)
     : d_context(context),
@@ -95,17 +95,18 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->popCurrentAssertion();
 }
 
-
-void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
+void ProofManager::traceDeps(TNode n, CDNodeSet* coreAssertions)
+{
   Debug("cores") << "trace deps " << n << std::endl;
   if ((n.isConst() && n == NodeManager::currentNM()->mkConst<bool>(true)) ||
       (n.getKind() == kind::NOT && n[0] == NodeManager::currentNM()->mkConst<bool>(false))) {
     return;
   }
-  if(d_inputCoreFormulas.find(n.toExpr()) != d_inputCoreFormulas.end()) {
+  if (d_inputCoreFormulas.find(n) != d_inputCoreFormulas.end())
+  {
     // originating formula was in core set
     Debug("cores") << " -- IN INPUT CORE LIST!" << std::endl;
-    coreAssertions->insert(n.toExpr());
+    coreAssertions->insert(n);
   } else {
     Debug("cores") << " -- NOT IN INPUT CORE LIST!" << std::endl;
     if(d_deps.find(n) == d_deps.end()) {
@@ -151,8 +152,9 @@ bool ProofManager::unsatCoreAvailable() const {
   return d_satProof->derivedEmptyClause();
 }
 
-std::vector<Expr> ProofManager::extractUnsatCore() {
-  std::vector<Expr> result;
+std::vector<Node> ProofManager::extractUnsatCore()
+{
+  std::vector<Node> result;
   output_core_iterator it = begin_unsat_core();
   output_core_iterator end = end_unsat_core();
   while ( it != end ) {
@@ -190,9 +192,10 @@ void ProofManager::getLemmasInUnsatCore(std::vector<Node>& lemmas)
   }
 }
 
-void ProofManager::addCoreAssertion(Expr formula) {
+void ProofManager::addCoreAssertion(Node formula)
+{
   Debug("cores") << "assert: " << formula << std::endl;
-  d_deps[Node::fromExpr(formula)]; // empty vector of deps
+  d_deps[formula];  // empty vector of deps
   d_inputCoreFormulas.insert(formula);
 }
 
@@ -208,9 +211,10 @@ void ProofManager::addDependence(TNode n, TNode dep) {
   }
 }
 
-void ProofManager::addUnsatCore(Expr formula) {
+void ProofManager::addUnsatCore(Node formula)
+{
   Assert(d_inputCoreFormulas.find(formula) != d_inputCoreFormulas.end());
   d_outputCoreFormulas.insert(formula);
 }
 
-} /* CVC4  namespace */
+}  // namespace cvc5

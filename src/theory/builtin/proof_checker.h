@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file proof_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Equality proof checker utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Equality proof checker utility.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__PROOF_CHECKER_H
-#define CVC4__THEORY__BUILTIN__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__BUILTIN__PROOF_CHECKER_H
+#define CVC5__THEORY__BUILTIN__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -50,6 +51,12 @@ enum class MethodId : uint32_t
   RW_EVALUATE,
   // identity
   RW_IDENTITY,
+  // theory preRewrite, note this is only intended to be used as an argument
+  // to THEORY_REWRITE in the final proof. It is not implemented in
+  // applyRewrite below, see documentation in proof_rule.h for THEORY_REWRITE.
+  RW_REWRITE_THEORY_PRE,
+  // same as above, for theory postRewrite
+  RW_REWRITE_THEORY_POST,
   //---------------------------- Substitutions
   // (= x y) is interpreted as x -> y, using Node::substitute
   SB_DEFAULT,
@@ -84,13 +91,27 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
-   * Get substitution. Updates vars/subs to the substitution specified by
-   * exp for the substitution method ids.
+   * Get substitution for literal exp. Updates vars/subs to the substitution
+   * specified by exp for the substitution method ids.
    */
-  static bool getSubstitution(Node exp,
-                              TNode& var,
-                              TNode& subs,
-                              MethodId ids = MethodId::SB_DEFAULT);
+  static bool getSubstitutionForLit(Node exp,
+                                    TNode& var,
+                                    TNode& subs,
+                                    MethodId ids = MethodId::SB_DEFAULT);
+  /**
+   * Get substitution for formula exp. Adds to vars/subs to the substitution
+   * specified by exp for the substitution method ids, which may be multiple
+   * substitutions if exp is of kind AND and ids is SB_DEFAULT (note the other
+   * substitution types always interpret applications of AND as a formula).
+   * The vector "from" are the literals from exp that each substitution in
+   * vars/subs are based on. For example, if exp is (and (= x t) (= y s)), then
+   * vars = { x, y }, subs = { t, s }, from = { (= x y), (= y s) }.
+   */
+  static bool getSubstitutionFor(Node exp,
+                                 std::vector<TNode>& vars,
+                                 std::vector<TNode>& subs,
+                                 std::vector<TNode>& from,
+                                 MethodId ids = MethodId::SB_DEFAULT);
 
   /**
    * Apply substitution on n in skolem form. This encapsulates the exact
@@ -159,6 +180,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__BUILTIN__PROOF_CHECKER_H */

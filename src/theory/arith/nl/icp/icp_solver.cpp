@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file icp_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements a ICP-based solver for nonlinear arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements a ICP-based solver for nonlinear arithmetic.
+ */
 
 #include "theory/arith/nl/icp/icp_solver.h"
 
@@ -20,18 +21,19 @@
 #include "base/output.h"
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace icp {
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 namespace {
 /** A simple wrapper to nicely print an interval assignment. */
@@ -77,7 +79,12 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
-  auto comp = Comparison::parseNormalForm(n).decompose(false);
+  Node tmp = Rewriter::rewrite(n);
+  if (tmp.isConst())
+  {
+    return {};
+  }
+  auto comp = Comparison::parseNormalForm(tmp).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {
@@ -102,7 +109,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     if (isolated == 1)
     {
       poly::Variable lhs = d_mapper(v);
-      poly::SignCondition rel;
+      poly::SignCondition rel = poly::SignCondition::EQ;
       switch (k)
       {
         case Kind::LT: rel = poly::SignCondition::LT; break;
@@ -128,7 +135,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     else if (isolated == -1)
     {
       poly::Variable lhs = d_mapper(v);
-      poly::SignCondition rel;
+      poly::SignCondition rel = poly::SignCondition::EQ;
       switch (k)
       {
         case Kind::LT: rel = poly::SignCondition::GT; break;
@@ -180,9 +187,9 @@ void ICPSolver::addCandidate(const Node& n)
 
 void ICPSolver::initOrigins()
 {
-  for (const auto& vars : d_mapper.mVarCVCpoly)
+  for (const auto& vars : d_state.d_bounds.get())
   {
-    auto& i = d_state.d_bounds.get(vars.first);
+    const Bounds& i = vars.second;
     Trace("nl-icp") << "Adding initial " << vars.first << " -> " << i
                     << std::endl;
     if (!i.lower_origin.isNull())
@@ -205,7 +212,7 @@ PropagationResult ICPSolver::doPropagationRound()
     Trace("nl-icp") << "ICP budget exceeded" << std::endl;
     return PropagationResult::NOT_CHANGED;
   }
-  d_state.d_conflict = Node();
+  d_state.d_conflict.clear();
   Trace("nl-icp") << "Starting propagation with "
                   << IAWrapper{d_state.d_assignment, d_mapper} << std::endl;
   Trace("nl-icp") << "Current budget: " << d_budget << std::endl;
@@ -262,7 +269,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       Node c = nm->mkNode(rel, v, value_to_node(get_lower(i), v));
       if (!d_state.d_origins.isInOrigins(v, c))
       {
-        Node premise = d_state.d_origins.getOrigins(v);
+        Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
         Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
@@ -282,7 +289,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       Node c = nm->mkNode(rel, v, value_to_node(get_upper(i), v));
       if (!d_state.d_origins.isInOrigins(v, c))
       {
-        Node premise = d_state.d_origins.getOrigins(v);
+        Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
         Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
@@ -305,13 +312,12 @@ void ICPSolver::reset(const std::vector<Node>& assertions)
   d_state.reset();
   for (const auto& n : assertions)
   {
-    Node tmp = Rewriter::rewrite(n);
-    Trace("nl-icp") << "Adding " << tmp << std::endl;
-    if (tmp.getKind() != Kind::CONST_BOOLEAN)
+    Trace("nl-icp") << "Adding " << n << std::endl;
+    if (n.getKind() != Kind::CONST_BOOLEAN)
     {
-      if (!d_state.d_bounds.add(tmp))
+      if (!d_state.d_bounds.add(n))
       {
-        addCandidate(tmp);
+        addCandidate(n);
       }
     }
   }
@@ -320,7 +326,7 @@ void ICPSolver::reset(const std::vector<Node>& assertions)
 void ICPSolver::check()
 {
   initOrigins();
-  d_state.d_assignment = d_state.d_bounds.get();
+  d_state.d_assignment = getBounds(d_mapper, d_state.d_bounds);
   bool did_progress = false;
   bool progress = false;
   do
@@ -339,7 +345,13 @@ void ICPSolver::check()
         Trace("nl-icp") << "Found a conflict: " << d_state.d_conflict
                         << std::endl;
 
-        d_im.addConflict(d_state.d_conflict, InferenceId::NL_ICP_CONFLICT);
+        std::vector<Node> mis;
+        for (const auto& n : d_state.d_conflict)
+        {
+          mis.emplace_back(n.negate());
+        }
+        d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
+                             InferenceId::ARITH_NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;
@@ -350,12 +362,12 @@ void ICPSolver::check()
     std::vector<Node> lemmas = generateLemmas();
     for (const auto& l : lemmas)
     {
-      d_im.addPendingArithLemma(l, InferenceId::NL_ICP_PROPAGATION);
+      d_im.addPendingLemma(l, InferenceId::ARITH_NL_ICP_PROPAGATION);
     }
   }
 }
 
-#else /* CVC4_POLY_IMP */
+#else /* CVC5_POLY_IMP */
 
 void ICPSolver::reset(const std::vector<Node>& assertions)
 {
@@ -367,10 +379,10 @@ void ICPSolver::check()
   Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
 }
 
-#endif /* CVC4_POLY_IMP */
+#endif /* CVC5_POLY_IMP */
 
 }  // namespace icp
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

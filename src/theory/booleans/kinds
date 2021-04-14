@@ -4,12 +4,12 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_BOOL ::CVC4::theory::booleans::TheoryBool "theory/booleans/theory_bool.h"
+theory THEORY_BOOL ::cvc5::theory::booleans::TheoryBool "theory/booleans/theory_bool.h"
 typechecker "theory/booleans/theory_bool_type_rules.h"
 
 properties finite
 
-rewriter ::CVC4::theory::booleans::TheoryBoolRewriter "theory/booleans/theory_bool_rewriter.h"
+rewriter ::cvc5::theory::booleans::TheoryBoolRewriter "theory/booleans/theory_bool_rewriter.h"
 
 sort BOOLEAN_TYPE \
     2 \
@@ -20,12 +20,12 @@ sort BOOLEAN_TYPE \
 
 constant CONST_BOOLEAN \
     bool \
-    ::CVC4::BoolHashFunction \
+    ::cvc5::BoolHashFunction \
     "util/bool.h" \
     "truth and falsity; payload is a (C++) bool"
 
 enumerator BOOLEAN_TYPE \
-    "::CVC4::theory::booleans::BooleanEnumerator" \
+    "::cvc5::theory::booleans::BooleanEnumerator" \
     "theory/booleans/type_enumerator.h"
 
 operator NOT 1 "logical not"
@@ -35,13 +35,13 @@ operator OR 2: "logical or (N-ary)"
 operator XOR 2 "exclusive or (exactly two parameters)"
 operator ITE 3 "if-then-else, used for both Boolean and term ITE constructs; first parameter is (Boolean-sorted) condition, second is 'then', third is 'else' and these two parameters must have same base sort"
 
-typerule CONST_BOOLEAN ::CVC4::theory::boolean::BooleanTypeRule
+typerule CONST_BOOLEAN ::cvc5::theory::boolean::BooleanTypeRule
 
-typerule NOT ::CVC4::theory::boolean::BooleanTypeRule
-typerule AND ::CVC4::theory::boolean::BooleanTypeRule
-typerule IMPLIES ::CVC4::theory::boolean::BooleanTypeRule
-typerule OR ::CVC4::theory::boolean::BooleanTypeRule
-typerule XOR ::CVC4::theory::boolean::BooleanTypeRule
-typerule ITE ::CVC4::theory::boolean::IteTypeRule
+typerule NOT ::cvc5::theory::boolean::BooleanTypeRule
+typerule AND ::cvc5::theory::boolean::BooleanTypeRule
+typerule IMPLIES ::cvc5::theory::boolean::BooleanTypeRule
+typerule OR ::cvc5::theory::boolean::BooleanTypeRule
+typerule XOR ::cvc5::theory::boolean::BooleanTypeRule
+typerule ITE ::cvc5::theory::boolean::IteTypeRule
 
 endtheory

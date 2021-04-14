@@ -1,20 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_interpol.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus interpolation utility, which
- ** transforms an input of axioms and conjecture into an interpolation problem,
- *and solve it.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus interpolation utility, which transforms an input of
+ * axioms and conjecture into an interpolation problem, and solve it.
+ */
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
+
+#include <sstream>
 
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
@@ -25,7 +27,7 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -233,14 +235,6 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
-  // sygus attribute
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  SygusAttribute ca;
-  sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(kind::INST_ATTRIBUTE, sygusVar);
-  std::vector<Node> iplc;
-  iplc.push_back(instAttr);
-  Node instAttrList = nm->mkNode(kind::INST_PATTERN_LIST, iplc);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
@@ -268,11 +262,11 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
 }
 
-bool SygusInterpol::findInterpol(Node& interpol, Node itp)
+bool SygusInterpol::findInterpol(SmtEngine* subSolver, Node& interpol, Node itp)
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  d_subSolver->getSynthSolutions(sols);
+  subSolver->getSynthSolutions(sols);
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
@@ -313,47 +307,55 @@ bool SygusInterpol::findInterpol(Node& interpol, Node itp)
   return true;
 }
 
-bool SygusInterpol::SolveInterpolation(const std::string& name,
+bool SygusInterpol::solveInterpolation(const std::string& name,
                                        const std::vector<Node>& axioms,
                                        const Node& conj,
                                        const TypeNode& itpGType,
                                        Node& interpol)
 {
-  initializeSubsolver(d_subSolver);
-  // get the logic
-  LogicInfo l = d_subSolver->getLogicInfo().getUnlockedCopy();
-  // enable everything needed for sygus
-  l.enableSygus();
-  d_subSolver->setLogic(l);
-
+  // Some instructions in setSynthGrammar and mkSygusConjecture need a fully
+  // initialized solver to work properly. Notice, however, that the sub-solver
+  // created below is not fully initialized by the time those two methods are
+  // needed. Therefore, we call them while the current parent solver is in scope
+  // (i.e., before creating the sub-solver).
   collectSymbols(axioms, conj);
   createVariables(itpGType.isNull());
-  for (Node var : d_vars)
+  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
+
+  Node itp = mkPredicate(name);
+  mkSygusConjecture(itp, axioms, conj);
+
+  std::unique_ptr<SmtEngine> subSolver;
+  initializeSubsolver(subSolver);
+  // get the logic
+  LogicInfo l = subSolver->getLogicInfo().getUnlockedCopy();
+  // enable everything needed for sygus
+  l.enableSygus();
+  subSolver->setLogic(l);
+
+  for (const Node& var : d_vars)
   {
-    d_subSolver->declareSygusVar(name, var, var.getType());
+    subSolver->declareSygusVar(var);
   }
   std::vector<Node> vars_empty;
-  TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
-  Node itp = mkPredicate(name);
-  d_subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
-  mkSygusConjecture(itp, axioms, conj);
+  subSolver->declareSynthFun(itp, grammarType, false, vars_empty);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;
-  d_subSolver->assertSygusConstraint(d_sygusConj);
+  subSolver->assertSygusConstraint(d_sygusConj);
 
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  Result r = d_subSolver->checkSynth();
+  Result r = subSolver->checkSynth();
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    return findInterpol(interpol, itp);
+    return findInterpol(subSolver.get(), interpol, itp);
   }
   return false;
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

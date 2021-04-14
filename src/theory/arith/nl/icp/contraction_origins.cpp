@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file contraction_origins.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements a way to track the origins of ICP-style contractions.
+ */
 
 #include "theory/arith/nl/icp/contraction_origins.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -67,7 +68,8 @@ void ContractionOriginManager::add(const Node& targetVariable,
   d_currentOrigins[targetVariable] = d_allocations.back().get();
 }
 
-Node ContractionOriginManager::getOrigins(const Node& variable) const
+std::vector<Node> ContractionOriginManager::getOrigins(
+    const Node& variable) const
 {
   Trace("nl-icp") << "Obtaining origins for " << variable << std::endl;
   std::set<Node> origins;
@@ -75,12 +77,7 @@ Node ContractionOriginManager::getOrigins(const Node& variable) const
       << "Using variable as origin that is unknown yet.";
   getOrigins(d_currentOrigins.at(variable), origins);
   Assert(!origins.empty()) << "There should be at least one origin";
-  if (origins.size() == 1)
-  {
-    return *origins.begin();
-  }
-  return NodeManager::currentNM()->mkNode(
-      Kind::AND, std::vector<Node>(origins.begin(), origins.end()));
+  return std::vector<Node>(origins.begin(), origins.end());
 }
 
 bool ContractionOriginManager::isInOrigins(const Node& variable,
@@ -121,4 +118,4 @@ inline std::ostream& operator<<(std::ostream& os,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

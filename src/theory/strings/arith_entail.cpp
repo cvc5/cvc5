@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file arith_entail.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of arithmetic entailment computation for string terms.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of arithmetic entailment computation for string terms.
+ */
 
 #include "theory/strings/arith_entail.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -173,7 +175,7 @@ bool ArithEntail::checkApprox(Node ar)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
-            CVC4_UNUSED bool ret =
+            CVC5_UNUSED bool ret =
                 ArithMSum::getMonomialSum(aa, approxMsums[aa]);
             Assert(ret);
           }
@@ -555,6 +557,8 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
 {
   Assert(assumption.getKind() == kind::EQUAL);
   Assert(Rewriter::rewrite(assumption) == assumption);
+  Trace("strings-entail") << "checkWithEqAssumption: " << assumption << " " << a
+                          << ", strict=" << strict << std::endl;
 
   // Find candidates variables to compute substitutions for
   std::unordered_set<Node, NodeHashFunction> candVars;
@@ -615,8 +619,11 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
     // Could not solve for v
     return false;
   }
+  Trace("strings-entail") << "checkWithEqAssumption: subs " << v << " -> "
+                          << solution << std::endl;
 
-  a = a.substitute(TNode(v), TNode(solution));
+  // use capture avoiding substitution
+  a = expr::substituteCaptureAvoiding(a, v, solution);
   return check(a, strict);
 }
 
@@ -860,4 +867,4 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

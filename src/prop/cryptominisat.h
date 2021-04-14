@@ -1,27 +1,29 @@
-/*********************                                                        */
-/*! \file cryptominisat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the cryptominisat sat solver for cvc4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the cryptominisat sat solver for cvc4 (bit-vectors).
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROP__CRYPTOMINISAT_H
-#define CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC5__PROP__CRYPTOMINISAT_H
+#define CVC5__PROP__CRYPTOMINISAT_H
 
-#ifdef CVC4_USE_CRYPTOMINISAT
+#ifdef CVC5_USE_CRYPTOMINISAT
 
 #include "prop/sat_solver.h"
+#include "util/stats_timer.h"
 
 // Cryptominisat has name clashes with the other Minisat implementations since
 // the Minisat implementations export var_Undef, l_True, ... as macro whereas
@@ -32,7 +34,7 @@ namespace CMSat {
   class SATSolver;
 }
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 class CryptoMinisatSolver : public SatSolver
@@ -61,6 +63,7 @@ class CryptoMinisatSolver : public SatSolver
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  void getUnsatAssumptions(std::vector<SatLiteral>& assumptions) override;
 
   bool ok() const override;
   SatValue value(SatLiteral l) override;
@@ -104,7 +107,7 @@ class CryptoMinisatSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif  // CVC4_USE_CRYPTOMINISAT
-#endif  // CVC4__PROP__CRYPTOMINISAT_H
+#endif  // CVC5_USE_CRYPTOMINISAT
+#endif  // CVC5__PROP__CRYPTOMINISAT_H

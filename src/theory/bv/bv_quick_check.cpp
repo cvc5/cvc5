@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file bv_quick_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper around the SAT solver used for bitblasting.
- **
- ** Wrapper around the SAT solver used for bitblasting.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper around the SAT solver used for bitblasting.
+ */
 
 #include "theory/bv/bv_quick_check.h"
 
@@ -21,9 +20,9 @@
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4::prop;
+using namespace cvc5::prop;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -347,7 +346,7 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   // if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
   //   d_period = d_period * 2;
   // }
-  d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
+  d_statistics.d_avgMinimizationRatio << minimization_ratio;
   return utils::mkAnd(minimized); 
 }
 
@@ -381,4 +380,4 @@ QuickXPlain::Statistics::~Statistics() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

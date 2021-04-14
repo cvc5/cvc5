@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file interpolation_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for interpolation queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for interpolation queries.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__INTERPOLATION_SOLVER_H
-#define CVC4__SMT__INTERPOLATION_SOLVER_H
+#ifndef CVC5__SMT__INTERPOLATION_SOLVER_H
+#define CVC5__SMT__INTERPOLATION_SOLVER_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class SmtEngine;
 
@@ -71,8 +72,8 @@ class InterpolationSolver
    * the interpolation problem (interpol), and the solution implies the goal
    * (conj). If these criteria are not met, an internal error is thrown.
    */
-  void checkInterpol(Expr interpol,
-                     const std::vector<Expr>& easserts,
+  void checkInterpol(Node interpol,
+                     const std::vector<Node>& easserts,
                      const Node& conj);
 
  private:
@@ -81,6 +82,6 @@ class InterpolationSolver
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__SMT__INTERPOLATION_SOLVER_H */
+#endif /* CVC5__SMT__INTERPOLATION_SOLVER_H */

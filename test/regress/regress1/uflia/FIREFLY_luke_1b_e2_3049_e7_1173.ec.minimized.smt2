@@ -1,5 +1,5 @@
 (set-logic QF_UFLIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status sat)
 (declare-fun _base () Int)
 (declare-fun _n () Int)

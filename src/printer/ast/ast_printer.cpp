@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file ast_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Abdalrhman Mohamed, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the AST output language
- **
- ** The pretty-printer interface for the AST output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the AST output language.
+ */
 #include "printer/ast/ast_printer.h"
 
 #include <iostream>
@@ -20,60 +19,36 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"                     // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/language.h"  // for LANG_AST
-#include "printer/dagification_visitor.h"
+#include "printer/let_binding.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "theory/substitutions.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+void AstPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          size_t dag) const
 {
   if(dag != 0) {
-    DagificationVisitor dv(dag);
-    NodeVisitor<DagificationVisitor> visitor;
-    visitor.run(dv, n);
-    const theory::SubstitutionMap& lets = dv.getLets();
-    if(!lets.empty()) {
-      out << "(LET ";
-      bool first = true;
-      for(theory::SubstitutionMap::const_iterator i = lets.begin();
-          i != lets.end();
-          ++i) {
-        if(! first) {
-          out << ", ";
-        } else {
-          first = false;
-        }
-        toStream(out, (*i).second, toDepth, types, false);
-        out << " := ";
-        toStream(out, (*i).first, toDepth, types, false);
-      }
-      out << " IN ";
-    }
-    Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth, types);
-    if(!lets.empty()) {
-      out << ')';
-    }
+    LetBinding lbind(dag + 1);
+    toStreamWithLetify(out, n, toDepth, &lbind);
   } else {
-    toStream(out, n, toDepth, types);
+    toStream(out, n, toDepth);
   }
 }
 
 void AstPrinter::toStream(std::ostream& out,
                           TNode n,
                           int toDepth,
-                          bool types) const
+                          LetBinding* lbind) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -89,12 +64,6 @@ void AstPrinter::toStream(std::ostream& out,
     } else {
       out << "var_" << n.getId();
     }
-    if(types) {
-      // print the whole type, but not *its* type
-      out << ":";
-      n.getType().toStream(out, language::output::LANG_AST);
-    }
-
     return;
   }
 
@@ -103,12 +72,28 @@ void AstPrinter::toStream(std::ostream& out,
     // constant
     out << ' ';
     kind::metakind::NodeValueConstPrinter::toStream(out, n);
-  } else {
+  }
+  else if (n.isClosure())
+  {
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      // body is re-letified
+      if (i == 1)
+      {
+        toStreamWithLetify(out, n[i], toDepth, lbind);
+        continue;
+      }
+      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - 1, lbind);
+    }
+  }
+  else
+  {
     // operator
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       out << ' ';
       if(toDepth != 0) {
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
+        toStream(
+            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
       } else {
         out << "(...)";
       }
@@ -121,7 +106,7 @@ void AstPrinter::toStream(std::ostream& out,
         out << ' ';
       }
       if(toDepth != 0) {
-        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types);
+        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, lbind);
       } else {
         out << "(...)";
       }
@@ -150,14 +135,22 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
-void AstPrinter::toStream(std::ostream& out, const Model& m) const
+void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   out << "Model()";
 }
 
-void AstPrinter::toStream(std::ostream& out,
-                          const Model& m,
-                          const NodeCommand* c) const
+void AstPrinter::toStreamModelSort(std::ostream& out,
+                                   const smt::Model& m,
+                                   TypeNode tn) const
+{
+  // shouldn't be called; only the non-Command* version above should be
+  Unreachable();
+}
+
+void AstPrinter::toStreamModelTerm(std::ostream& out,
+                                   const smt::Model& m,
+                                   Node n) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
@@ -279,12 +272,9 @@ void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
 }
 
 void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
-                                        const std::string& id,
-                                        size_t arity,
                                         TypeNode type) const
 {
-  out << "DeclareType(" << id << "," << arity << "," << type << ')'
-      << std::endl;
+  out << "DeclareType(" << type << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineType(std::ostream& out,
@@ -301,18 +291,6 @@ void AstPrinter::toStreamCmdDefineType(std::ostream& out,
     out << params.back();
   }
   out << "]," << t << ')' << std::endl;
-}
-
-void AstPrinter::toStreamCmdDefineNamedFunction(
-    std::ostream& out,
-    const std::string& id,
-    const std::vector<Node>& formals,
-    TypeNode range,
-    Node formula) const
-{
-  out << "DefineNamedFunction( ";
-  toStreamCmdDefineFunction(out, id, formals, range, formula);
-  out << " )" << std::endl;
 }
 
 void AstPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
@@ -367,9 +345,9 @@ void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const
+                                    const std::string& value) const
 {
-  out << "SetInfo(" << flag << ", " << sexpr << ')' << std::endl;
+  out << "SetInfo(" << flag << ", " << value << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
@@ -380,9 +358,9 @@ void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetOption(std::ostream& out,
                                       const std::string& flag,
-                                      SExpr sexpr) const
+                                      const std::string& value) const
 {
-  out << "SetOption(" << flag << ", " << sexpr << ')' << std::endl;
+  out << "SetOption(" << flag << ", " << value << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetOption(std::ostream& out,
@@ -406,6 +384,50 @@ void AstPrinter::toStreamCmdComment(std::ostream& out,
                                     const std::string& comment) const
 {
   out << "CommentCommand([" << comment << "])" << std::endl;
+}
+
+void AstPrinter::toStreamWithLetify(std::ostream& out,
+                                    Node n,
+                                    int toDepth,
+                                    LetBinding* lbind) const
+{
+  if (lbind == nullptr)
+  {
+    toStream(out, n, toDepth);
+    return;
+  }
+  std::stringstream cparen;
+  std::vector<Node> letList;
+  lbind->letify(n, letList);
+  if (!letList.empty())
+  {
+    std::map<Node, uint32_t>::const_iterator it;
+    out << "(LET ";
+    cparen << ")";
+    bool first = true;
+    for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+    {
+      if (!first)
+      {
+        out << ", ";
+      }
+      else
+      {
+        first = false;
+      }
+      Node nl = letList[i];
+      uint32_t id = lbind->getId(nl);
+      out << "_let_" << id << " := ";
+      Node nlc = lbind->convert(nl, "_let_", false);
+      toStream(out, nlc, toDepth, lbind);
+    }
+    out << " IN ";
+  }
+  Node nc = lbind->convert(n, "_let_");
+  // print the body, passing the lbind object
+  toStream(out, nc, toDepth, lbind);
+  out << cparen.str();
+  lbind->popScope();
 }
 
 template <class T>
@@ -450,6 +472,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s)
   return false;
 }
 
-}/* CVC4::printer::ast namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace ast
+}  // namespace printer
+}  // namespace cvc5

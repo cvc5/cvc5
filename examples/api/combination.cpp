@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file combination.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the capabilities of CVC4
- **
- ** A simple demonstration of how to use uninterpreted functions, combining this
- ** with arithmetic, and extracting a model at the end of a satisfiable query.
- ** The model is displayed using getValue().
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the capabilities of CVC4
+ *
+ * A simple demonstration of how to use uninterpreted functions, combining this
+ * with arithmetic, and extracting a model at the end of a satisfiable query.
+ * The model is displayed using getValue().
+ */
+
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-
 using namespace std;
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 {
@@ -58,8 +59,8 @@ int main()
   Term p = slv.mkConst(intPred, "p");
 
   // Constants
-  Term zero = slv.mkReal(0);
-  Term one = slv.mkReal(1);
+  Term zero = slv.mkInteger(0);
+  Term one = slv.mkInteger(1);
 
   // Terms
   Term f_x = slv.mkTerm(APPLY_UF, f, x);
@@ -105,10 +106,6 @@ int main()
        << "on all terms."
        << endl;
   prefixPrintGetValue(slv, assertions);
-
-  cout << endl << endl << "Alternatively, print the model." << endl << endl;
-
-  slv.printModel(cout);
 
   cout << endl;
   cout << "You can also use nested loops to iterate over terms." << endl;

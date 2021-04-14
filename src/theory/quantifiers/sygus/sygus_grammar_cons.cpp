@@ -1,41 +1,45 @@
-/*********************                                                        */
-/*! \file sygus_grammar_cons.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief implementation of class for constructing inductive datatypes that correspond to
- ** grammars that encode syntactic restrictions for SyGuS.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of class for constructing inductive datatypes that
+ * correspond to grammars that encode syntactic restrictions for SyGuS.
+ */
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
+#include <sstream>
 #include <stack>
 
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
+CegGrammarConstructor::CegGrammarConstructor(TermDbSygus* tds,
                                              SynthConjecture* p)
-    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false)
+    : d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
 {
 }
 
@@ -44,14 +48,10 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
   Assert(q.getKind() == FORALL);
   for (const Node& f : q[0])
   {
-    Node gv = f.getAttribute(SygusSynthGrammarAttribute());
-    if (!gv.isNull())
+    TypeNode tn = SygusUtils::getSygusTypeForSynthFun(f);
+    if (tn.isDatatype() && tn.getDType().isSygus())
     {
-      TypeNode tn = gv.getType();
-      if (tn.isDatatype() && tn.getDType().isSygus())
-      {
-        return true;
-      }
+      return true;
     }
   }
   return false;
@@ -141,10 +141,10 @@ Node CegGrammarConstructor::process(Node q,
       sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
       // normalize type, if user-provided
-      SygusGrammarNorm sygus_norm(d_qe);
+      SygusGrammarNorm sygus_norm(d_tds);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }else{
-      sfvl = getSygusVarList(sf);
+      sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
@@ -208,12 +208,11 @@ Node CegGrammarConstructor::process(Node q,
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
-  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
   {
     Node sf = q[0][i];
     d_synth_fun_vars[sf] = ebvl[i];
-    Node sfvl = getSygusVarList(sf);
+    Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
     TypeNode tn = ebvl[i].getType();
     // check if there is a template
     std::map<Node, Node>::const_iterator itt = templates.find(sf);
@@ -256,7 +255,7 @@ Node CegGrammarConstructor::process(Node q,
         Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
       }
     }
-    tds->registerSygusType(tn);
+    d_tds->registerSygusType(tn);
     Assert(tn.isDatatype());
     const DType& dt = tn.getDType();
     Assert(dt.isSygus());
@@ -285,7 +284,6 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
-  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   do {
     cur = visit.top();
     visit.pop();
@@ -350,7 +348,7 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
           //   lambda x1...xn. (DT_SYGUS_EVAL ef x1 ... xn)
           // where ef is the first order variable for the
           // function-to-synthesize.
-          SygusTypeInfo& ti = tds->getTypeInfo(ef.getType());
+          SygusTypeInfo& ti = d_tds->getTypeInfo(ef.getType());
           const std::vector<Node>& vars = ti.getVarList();
           Assert(!vars.empty());
           std::vector<Node> vs;
@@ -380,7 +378,8 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
 TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
                                                  std::set<TypeNode>& unres)
 {
-  TypeNode unresolved = NodeManager::currentNM()->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
+  TypeNode unresolved = NodeManager::currentNM()->mkSort(
+      name, NodeManager::SORT_FLAG_PLACEHOLDER);
   unres.insert(unresolved);
   return unresolved;
 }
@@ -421,7 +420,32 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     Node c = type.mkGroundTerm();
     ops.push_back(c);
   }
-  // TODO #1178 : add other missing types
+  else if (type.isRoundingMode())
+  {
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO));
+  }
+  else if (type.isFloatingPoint())
+  {
+    FloatingPointSize fp_size(type.getFloatingPointExponentSize(),
+                              type.getFloatingPointSignificandSize());
+    ops.push_back(nm->mkConst(FloatingPoint::makeNaN(fp_size)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, false)));
+  }
 }
 
 void CegGrammarConstructor::collectSygusGrammarTypesFor(
@@ -435,11 +459,13 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         const DType& dt = range.getDType();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
         {
-          for (unsigned j = 0, size_args = dt[i].getNumArgs(); j < size_args;
-               ++j)
+          // get the specialized constructor type, which accounts for
+          // parametric datatypes
+          TypeNode ctn = dt[i].getSpecializedConstructorType(range);
+          std::vector<TypeNode> argTypes = ctn.getArgTypes();
+          for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
           {
-            TypeNode tn = dt[i][j].getRangeType();
-            collectSygusGrammarTypesFor(tn, types);
+            collectSygusGrammarTypesFor(argTypes[j], types);
           }
         }
       }
@@ -472,6 +498,12 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         }
         collectSygusGrammarTypesFor(range.getRangeType(), types);
       }
+      else if (range.isFloatingPoint())
+      {
+        // FP also includes RoundingMode type
+        TypeNode rmType = NodeManager::currentNM()->roundingModeType();
+        collectSygusGrammarTypesFor(rmType, types);
+      }
     }
   }
 }
@@ -495,10 +527,8 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> opLArgs;
-  std::vector<Expr> opLArgsExpr;
   // get the builtin type
   opLArgs.push_back(nm->mkBoundVar(bArgType));
-  opLArgsExpr.push_back(opLArgs.back().toExpr());
   // build zarg
   Node zarg;
   Assert(bArgType.isReal() || bArgType.isBitVector());
@@ -773,7 +803,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     else if (types[i].isBitVector())
     {
-      // unary apps
+      // unary ops
       std::vector<Kind> un_kinds = {BITVECTOR_NOT, BITVECTOR_NEG};
       std::vector<TypeNode> cargsUnary;
       cargsUnary.push_back(unres_t);
@@ -782,15 +812,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
         sdts[i].addConstructor(kind, cargsUnary);
       }
-      // binary apps
+      // binary ops
       std::vector<Kind> bin_kinds = {BITVECTOR_AND,
                                      BITVECTOR_OR,
                                      BITVECTOR_XOR,
                                      BITVECTOR_PLUS,
                                      BITVECTOR_SUB,
                                      BITVECTOR_MULT,
-                                     BITVECTOR_UDIV_TOTAL,
-                                     BITVECTOR_UREM_TOTAL,
+                                     BITVECTOR_UDIV,
+                                     BITVECTOR_UREM,
                                      BITVECTOR_SDIV,
                                      BITVECTOR_SREM,
                                      BITVECTOR_SHL,
@@ -803,6 +833,61 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
         sdts[i].addConstructor(kind, cargsBinary);
+      }
+    }
+    else if (types[i].isFloatingPoint())
+    {
+      // unary ops
+      std::vector<Kind> unary_kinds = {
+          FLOATINGPOINT_ABS,
+          FLOATINGPOINT_NEG,
+      };
+      std::vector<TypeNode> cargs = {unres_t};
+      for (const Kind kind : unary_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs);
+      }
+      // binary ops
+      {
+        const Kind kind = FLOATINGPOINT_REM;
+        cargs.push_back(unres_t);
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs);
+      }
+      // binary ops with RM
+      std::vector<Kind> binary_rm_kinds = {
+          FLOATINGPOINT_SQRT,
+          FLOATINGPOINT_RTI,
+      };
+      TypeNode rmType = nm->roundingModeType();
+      Assert(std::find(types.begin(), types.end(), rmType) != types.end());
+      TypeNode unres_rm_t = type_to_unres[rmType];
+      std::vector<TypeNode> cargs_rm = {unres_rm_t, unres_t};
+      for (const Kind kind : binary_rm_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
+      }
+      // ternary ops with RM
+      std::vector<Kind> ternary_rm_kinds = {
+          FLOATINGPOINT_PLUS,
+          FLOATINGPOINT_SUB,
+          FLOATINGPOINT_MULT,
+          FLOATINGPOINT_DIV,
+      };
+      cargs_rm.push_back(unres_t);
+      for (const Kind kind : ternary_rm_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
+      }
+      // quaternary ops
+      {
+        cargs_rm.push_back(unres_t);
+        const Kind kind = FLOATINGPOINT_FMA;
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        sdts[i].addConstructor(kind, cargs_rm);
       }
     }
     else if (types[i].isStringLike())
@@ -879,7 +964,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for singleton" << std::endl;
       std::vector<TypeNode> cargsSingleton;
       cargsSingleton.push_back(unresElemType);
-      sdts[i].addConstructor(SINGLETON, cargsSingleton);
+
+      // lambda x . (singleton (singleton_op T) x) where T = x.getType()
+      Node x = nm->mkBoundVar(etype);
+      Node vars = nm->mkNode(BOUND_VAR_LIST, x);
+      Node singleton = nm->mkSingleton(etype, x);
+      Node lambda = nm->mkNode(LAMBDA,vars, singleton);
+      sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
       std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};
@@ -900,6 +991,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
+        TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
+        // must specialize if a parametric datatype
+        if (dt.isParametric())
+        {
+          cop = nm->mkNode(
+              APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cop);
+        }
         if (dt[l].getNumArgs() == 0)
         {
           // Nullary constructors are interpreted as terms, not operators.
@@ -908,11 +1006,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         }
         std::vector<TypeNode> cargsCons;
         Trace("sygus-grammar-def") << "...add for selectors" << std::endl;
-        for (unsigned j = 0, size_j = dt[l].getNumArgs(); j < size_j; ++j)
+        // iterate over the arguments of the specialized constructor type,
+        // which accounts for parametric datatypes
+        std::vector<TypeNode> tsargs = tspec.getArgTypes();
+        TypeNode selDomain = type_to_unres[types[i]];
+        for (unsigned j = 0, size_j = tsargs.size(); j < size_j; ++j)
         {
           Trace("sygus-grammar-def")
               << "...for " << dt[l][j].getName() << std::endl;
-          TypeNode crange = dt[l][j].getRangeType();
+          TypeNode crange = tsargs[j];
           Assert(type_to_unres.find(crange) != type_to_unres.end());
           cargsCons.push_back(type_to_unres[crange]);
           // add to the selector type the selector operator
@@ -920,18 +1022,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           Assert(std::find(types.begin(), types.end(), crange) != types.end());
           unsigned i_selType = std::distance(
               types.begin(), std::find(types.begin(), types.end(), crange));
-          TypeNode arg_type = dt[l][j].getType();
-          arg_type = arg_type.getSelectorDomainType();
-          Assert(type_to_unres.find(arg_type) != type_to_unres.end());
           std::vector<TypeNode> cargsSel;
-          cargsSel.push_back(type_to_unres[arg_type]);
+          cargsSel.push_back(selDomain);
           Node sel = dt[l][j].getSelector();
           sdts[i_selType].addConstructor(sel, dt[l][j].getName(), cargsSel);
         }
         sdts[i].addConstructor(cop, dt[l].getName(), cargsCons);
       }
     }
-    else if (types[i].isSort() || types[i].isFunction())
+    else if (types[i].isSort() || types[i].isFunction()
+             || types[i].isRoundingMode())
     {
       // do nothing
     }
@@ -944,13 +1044,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (sdts[i].d_sdt.getNumConstructors() == 0)
     {
-      // if there are no constructors yet by this point, we cannot make
-      // datatype, which can happen e.g. for unimplemented types
-      // that have no variables in the argument list of the
-      // function-to-synthesize.
-      std::stringstream ss;
-      ss << "Cannot make default grammar for " << types[i];
-      throw LogicException(ss.str());
+      // if there are not constructors yet by this point, which can happen,
+      // e.g. for unimplemented types that have no variables in the argument
+      // list of the function-to-synthesize, create a fresh ground term 
+      sdts[i].addConstructor(types[i].mkGroundTerm(), "", {});
     }
 
     // always add ITE
@@ -1294,6 +1391,28 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdtBool.addConstructor(kind, cargs);
       }
     }
+    else if (types[i].isFloatingPoint())
+    {
+      Trace("sygus-grammar-def") << "...add FP predicates" << std::endl;
+      std::vector<Kind> fp_unary_predicates = {FLOATINGPOINT_ISN,
+                                               FLOATINGPOINT_ISSN,
+                                               FLOATINGPOINT_ISZ,
+                                               FLOATINGPOINT_ISINF,
+                                               FLOATINGPOINT_ISNAN,
+                                               FLOATINGPOINT_ISNEG,
+                                               FLOATINGPOINT_ISPOS};
+      for (const Kind kind : fp_unary_predicates)
+      {
+        sdtBool.addConstructor(kind, cargs);
+      }
+      std::vector<Kind> fp_binary_predicates = {FLOATINGPOINT_LEQ,
+                                                FLOATINGPOINT_LT};
+      cargs.push_back(unres_types[iuse]);
+      for (const Kind kind : fp_binary_predicates)
+      {
+        sdtBool.addConstructor(kind, cargs);
+      }
+    }
     else if (types[i].isDatatype())
     {
       //add for testers
@@ -1468,27 +1587,6 @@ TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg,
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
 }
 
-Node CegGrammarConstructor::getSygusVarList(Node f)
-{
-  Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
-  if (sfvl.isNull() && f.getType().isFunction())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    std::vector<TypeNode> argTypes = f.getType().getArgTypes();
-    // make default variable list if none was specified by input
-    std::vector<Node> bvs;
-    for (unsigned j = 0, size = argTypes.size(); j < size; j++)
-    {
-      std::stringstream ss;
-      ss << "arg" << j;
-      bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[j]));
-    }
-    sfvl = nm->mkNode(BOUND_VAR_LIST, bvs);
-    f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);
-  }
-  return sfvl;
-}
-
 CegGrammarConstructor::SygusDatatypeGenerator::SygusDatatypeGenerator(
     const std::string& name)
     : d_sdt(name)
@@ -1533,6 +1631,6 @@ bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
   return true;
 }
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

@@ -1,40 +1,40 @@
-/*********************                                                        */
-/*! \file sygus_grammar_red.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_grammar_red
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_grammar_red.
+ */
 
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
+void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
 {
-  Assert(qe != nullptr);
+  Assert(tds != nullptr);
   Trace("sygus-red") << "Compute redundant cons for " << tn << std::endl;
   d_type = tn;
   Assert(tn.isDatatype());
-  TermDbSygus* tds = qe->getTermDatabaseSygus();
   tds->registerSygusType(tn);
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
@@ -175,6 +175,6 @@ void SygusRedundantCons::getGenericList(TermDbSygus* tds,
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

@@ -1,40 +1,33 @@
-/*********************                                                        */
-/*! \file theory_arith_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #pragma once
 
 #include <map>
-#include <queue>
-#include <stdint.h>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "options/arith_options.h"
-#include "smt/logic_exception.h"
-#include "smt_util/boolean_simplification.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -44,19 +37,17 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
+#include "theory/arith/error_set.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/simplex.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private_forward.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -64,8 +55,12 @@
 #include "util/result.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+
+class EagerProofGenerator;
+class TheoryModel;
+
 namespace arith {
 
 class BranchCutInfo;
@@ -79,10 +74,6 @@ namespace inferbounds {
 }
 class InferBoundsResult;
 
-namespace nl {
-class NonlinearExtension;
-}
-
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -95,11 +86,20 @@ private:
 
   TheoryArith& d_containing;
 
-  bool d_nlIncomplete;
-  // TODO A better would be:
-  //context::CDO<bool> d_nlIncomplete;
+  /**
+   * Whether we encountered non-linear arithmetic at any time during solving.
+   */
+  bool d_foundNl;
 
   BoundInfoMap d_rowTracking;
+
+  // For proofs
+  /** Manages the proof nodes of this theory. */
+  ProofNodeManager* d_pnm;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
+  /** Stores proposition(node)/proof pairs. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
 
   /**
    * The constraint database associated with the theory.
@@ -137,12 +137,6 @@ private:
   // t does not contain constants
   void entailmentCheckBoundLookup(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
   void entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
-
-  std::pair<Node, DeltaRational> entailmentCheckSimplex(int sgn, TNode tp, const inferbounds::InferBoundAlgorithm& p, InferBoundsResult& out);
-
-  //InferBoundsResult inferBound(TNode term, const InferBoundsParameters& p);
-  //InferBoundsResult inferUpperBoundLookup(TNode t, const InferBoundsParameters& p);
-  //InferBoundsResult inferUpperBoundSimplex(TNode t, const SimplexInferBoundsParameters& p);
 
   /**
    * Infers either a new upper/lower bound on term in the real relaxation.
@@ -213,8 +207,10 @@ private:
     return d_partialModel.isAuxiliary(x);
   }
 
-  inline bool isIntegerInput(ArithVar x) const {
-    return d_partialModel.isIntegerInput(x);
+  inline bool isIntegerInput(ArithVar x) const
+  {
+    return d_partialModel.isIntegerInput(x)
+           && d_preregisteredNodes.contains(d_partialModel.asNode(x));
   }
 
   /**
@@ -232,7 +228,15 @@ private:
   context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
-  Node dioCutting();
+  /**
+   * Produces lemmas of the form (or (>= f 0) (<= f 0)),
+   * where f is a plane that the diophantine solver is interested in.
+   *
+   * More precisely, produces lemmas of the form (or (>= lc -c) (<= lc -c))
+   * where lc is a linear combination of variables, c is a constant, and lc + c
+   * is the plane.
+   */
+  TrustNode dioCutting();
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
@@ -259,6 +263,11 @@ private:
   std::deque<ConstraintP> d_currentPropagationList;
 
   context::CDQueue<ConstraintP> d_learnedBounds;
+
+  /**
+   * Contains all nodes that have been preregistered
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
 
 
   /**
@@ -302,36 +311,36 @@ private:
 
 
   /** This is only used by simplex at the moment. */
-  context::CDList<ConstraintCP> d_conflicts;
+  context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
-public:
+  /** For holding the proof of the above conflict node. */
+  context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
+  bool isProofEnabled() const;
+
+ public:
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
    */
-  void raiseConflict(ConstraintCP a);
+  void raiseConflict(ConstraintCP a, InferenceId id);
 
   // inline void raiseConflict(const ConstraintCPVec& cv){
   //   d_conflicts.push_back(cv);
   // }
-  
+
   // void raiseConflict(ConstraintCP a, ConstraintCP b);
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
   /** This is a conflict that is magically known to hold. */
-  void raiseBlackBoxConflict(Node bb);
-
+  void raiseBlackBoxConflict(Node bb, std::shared_ptr<ProofNode> pf = nullptr);
   /**
    * Returns true iff a conflict has been raised. This method is public since
    * it is needed by the ArithState class to know whether we are in conflict.
    */
-  bool anyConflict() const
-  {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
-  }
+  bool anyConflict() const;
 
  private:
   inline bool conflictQueueEmpty() const {
@@ -372,9 +381,6 @@ public:
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
 
-  /** non-linear algebraic approach */
-  nl::NonlinearExtension* d_nonlinearExtension;
-
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
   /* Returns true if this is heuristically a good time to try
@@ -413,13 +419,6 @@ public:
    */
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
-
-  Node axiomIteForTotalDivision(Node div_tot);
-  Node axiomIteForTotalIntDivision(Node int_div_like);
-
-  // handle linear /, div, mod, and also is_int, to_int
-  TrustNode ppRewriteTerms(TNode atom);
-
  public:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
@@ -431,8 +430,6 @@ public:
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
-  /** get the official theory rewriter of this theory */
-  TheoryRewriter* getTheoryRewriter();
   /**
    * Returns true if we need an equality engine, see
    * Theory::needsEqualityEngine.
@@ -446,12 +443,9 @@ public:
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  TrustNode expandDefinition(Node node);
 
-  void check(Theory::Effort e);
-  bool needsCheckLastEffort();
   void propagate(Theory::Effort e);
-  Node explain(TNode n);
+  TrustNode explain(TNode n);
 
   Rational deltaValueForTotalOrder() const;
 
@@ -473,24 +467,46 @@ public:
 
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  TrustNode ppRewrite(TNode atom);
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  Theory::PPAssertStatus ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
-  void addSharedTerm(TNode n);
+  /** Called when n is notified as being a shared term with TheoryArith. */
+  void notifySharedTerm(TNode n);
 
   Node getModelValue(TNode var);
 
 
   std::pair<bool, Node> entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out);
 
+  //--------------------------------- standard check
+  /** Pre-check, called before the fact queue of the theory is processed. */
+  bool preCheck(Theory::Effort level);
+  /** Pre-notify fact. */
+  void preNotifyFact(TNode atom, bool pol, TNode fact);
+  /**
+   * Post-check, called after the fact queue of the theory is processed. Returns
+   * true if a conflict or lemma was emitted.
+   */
+  bool postCheck(Theory::Effort level);
+  //--------------------------------- end standard check
+  /**
+   * Found non-linear? This returns true if this solver ever encountered
+   * any non-linear terms that were unhandled. Note that this class is not
+   * responsible for handling non-linear arithmetic. If the owner of this
+   * class does not handle non-linear arithmetic in another way, then
+   * setIncomplete should be called on the output channel of TheoryArith.
+   */
+  bool foundNonlinear() const;
 
-private:
+  /** get the proof checker of this theory */
+  ArithProofRuleChecker* getProofChecker();
 
+ private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;
 
@@ -533,16 +549,18 @@ private:
    *
    * If there is no such variable, returns ARITHVAR_SENTINEL;
    */
-  ArithVar nextIntegerViolatation(bool assumeBounds) const;
+  ArithVar nextIntegerViolation(bool assumeBounds) const;
 
   /**
    * Issues branches for non-auxiliary integer variables with non-integer assignments.
    * Returns a cut for a lemma.
    * If there is an integer model, this returns Node::null().
    */
-  Node roundRobinBranch();
+  TrustNode roundRobinBranch();
 
-public:
+  bool proofsEnabled() const { return d_pnm; }
+
+ public:
   /**
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
@@ -635,8 +653,11 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
+   *
+   * @param assertion The assertion that was just popped from the fact queue
+   * of TheoryArith and given to this class via preNotifyFact.
    */
-  ConstraintP constraintFromFactQueue();
+  ConstraintP constraintFromFactQueue(TNode assertion);
   bool assertionCases(ConstraintP c);
 
   /**
@@ -655,8 +676,7 @@ private:
   bool isImpliedUpperBound(ArithVar var, Node exp);
   bool isImpliedLowerBound(ArithVar var, Node exp);
 
-  void internalExplain(TNode n, NodeBuilder<>& explainBuilder);
-
+  void internalExplain(TNode n, NodeBuilder& explainBuilder);
 
   void asVectors(const Polynomial& p,
                  std::vector<Rational>& coeffs,
@@ -674,12 +694,10 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  inline void setIncomplete() {
-    (d_containing.d_out)->setIncomplete();
-    d_nlIncomplete = true;
-  }
-  void outputLemma(TNode lem);
-  void outputConflict(TNode lit);
+  void outputTrustedLemma(TrustNode lem, InferenceId id);
+  void outputLemma(TNode lem, InferenceId id);
+  void outputTrustedConflict(TrustNode conf, InferenceId id);
+  void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);
   void outputRestart();
 
@@ -690,13 +708,15 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
-  context::CDQueue<Node> d_approxCuts;
-  std::vector<Node> d_acTmp;
+  /** Used for replaying approximate simplex */
+  context::CDQueue<TrustNode> d_approxCuts;
+  /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
+  std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  Node branchIntegerVariable(ArithVar x) const;
+  TrustNode branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
@@ -736,7 +756,7 @@ private:
 
   static ConstraintCP vectorToIntHoleConflict(const ConstraintCPVec& conflict);
   static void intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict);
-  
+
   // Returns true if the node contains a literal
   // that is an arithmetic literal and is not a sat literal
   // No caching is done so this should likely only
@@ -749,6 +769,13 @@ private:
   uint32_t d_solveIntMaybeHelp, d_solveIntAttempts;
 
   RationalVector d_farkasBuffer;
+
+  //---------------- during check
+  /** Whether there were new facts during preCheck */
+  bool d_newFacts;
+  /** The previous status, computed during preCheck */
+  Result::Sat d_previousStatus;
+  //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
@@ -829,9 +856,9 @@ private:
     IntStat d_cutsRejectedDuringReplay;
     IntStat d_cutsRejectedDuringLemmas;
 
-    HistogramStat<uint32_t> d_satPivots;
-    HistogramStat<uint32_t> d_unsatPivots;
-    HistogramStat<uint32_t> d_unknownPivots;
+    IntegralHistogramStat<uint32_t> d_satPivots;
+    IntegralHistogramStat<uint32_t> d_unsatPivots;
+    IntegralHistogramStat<uint32_t> d_unknownPivots;
 
 
     IntStat d_solveIntModelsAttempts;
@@ -852,13 +879,8 @@ private:
 
 
   Statistics d_statistics;
-
-  /** The theory rewriter for this theory. */
-  ArithRewriter d_rewriter;
-  /** The operator elimination utility */
-  OperatorElim d_opElim;
 };/* class TheoryArithPrivate */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

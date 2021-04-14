@@ -1,10 +1,10 @@
 (set-logic QF_LIRAFS)
-(set-info :status unsat)
+(set-info :status sat)
 
 (declare-fun s () (Set (Set Real)))
-(declare-fun t () (Set (Set Int)))
+(declare-fun t () (Set (Set Real)))
 
-(declare-fun x () (Set Int))
+(declare-fun x () (Set Real))
 (declare-fun y () (Set Real))
 
 (assert (member 0.5 y))

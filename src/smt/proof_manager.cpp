@@ -1,32 +1,61 @@
-/*********************                                                        */
-/*! \file proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager of the SMT engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Diego Della Rocca de Camargos
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager of the SMT engine.
+ */
 
 #include "smt/proof_manager.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/dot/dot_printer.h"
 #include "smt/assertions.h"
+#include "smt/defined_function.h"
+#include "smt/preprocess_proof_generator.h"
+#include "smt/proof_post_processor.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
-PfManager::PfManager(SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofNewPedantic())),
+PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
+    : d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
-      d_pppg(new PreprocessProofGenerator(d_pnm.get())),
-      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
+      d_pppg(new PreprocessProofGenerator(
+          d_pnm.get(), u, "smt::PreprocessProofGenerator")),
+      d_pfpp(new ProofPostproccess(
+          d_pnm.get(),
+          smte,
+          d_pppg.get(),
+          // by default the post-processor will update all assumptions, which
+          // can lead to SCOPE subproofs of the form
+          //   A
+          //  ...
+          //   B1    B2
+          //  ...   ...
+          // ------------
+          //      C
+          // ------------- SCOPE [B1, B2]
+          // B1 ^ B2 => C
+          //
+          // where A is an available assumption from outside the scope (note
+          // that B1 was an assumption of this SCOPE subproof but since it could
+          // be inferred from A, it was updated). This shape is problematic for
+          // the veriT reconstruction, so we disable the update of scoped
+          // assumptions (which would disable the update of B1 in this case).
+          options::proofFormatMode() != options::ProofFormatMode::VERIT)),
       d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -36,6 +65,8 @@ PfManager::PfManager(SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
+    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
     if (options::proofGranularityMode()
         != options::ProofGranularityMode::REWRITE)
     {
@@ -54,78 +85,94 @@ PfManager::PfManager(SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
+                              Assertions& as,
+                              DefinedFunctionMap& df)
 {
-  Assert(al != nullptr);
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
-
-  // d_finalProof should just be a ProofNode
-  std::shared_ptr<ProofNode> body = pg->getProofFor(d_false)->clone();
 
   if (Trace.isOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
         << "SmtEngine::setFinalProof(): Proof node for false:\n";
-    Trace("smt-proof-debug") << *body.get() << std::endl;
+    Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
 
+  std::vector<Node> assertions;
+  getAssertions(as, df, assertions);
+
   if (Trace.isOn("smt-proof"))
   {
+    Trace("smt-proof") << "SmtEngine::setFinalProof(): get free assumptions..."
+                       << std::endl;
     std::vector<Node> fassumps;
-    expr::getFreeAssumptions(body.get(), fassumps);
+    expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof")
         << "SmtEngine::setFinalProof(): initial free assumptions are:\n";
     for (const Node& a : fassumps)
     {
       Trace("smt-proof") << "- " << a << std::endl;
     }
-  }
 
-  std::vector<Node> assertions;
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
-       ++i)
-  {
-    Node n = *i;
-    Trace("smt-proof") << "- " << n << std::endl;
-    assertions.push_back(n);
+    Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
+    for (const Node& n : assertions)
+    {
+      Trace("smt-proof") << "- " << n << std::endl;
+    }
+    Trace("smt-proof") << "=====" << std::endl;
   }
-  Trace("smt-proof") << "=====" << std::endl;
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
-  d_pfpp->process(body);
+  d_pfpp->process(pfn);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves
   // of the proof are the assertions.
-  d_finalProof = d_pnm->mkScope(body, assertions);
+  d_finalProof = d_pnm->mkScope(pfn, assertions);
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(ProofGenerator* pg, Assertions& as)
+void PfManager::printProof(std::ostream& out,
+                           std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
+  // if we are in incremental mode, we don't want to invalidate the proof
+  // nodes in fp, since these may be reused in further check-sat calls
+  if (options::incrementalSolving()
+      && options::proofFormatMode() != options::ProofFormatMode::NONE)
+  {
+    fp = d_pnm->clone(fp);
+  }
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  // leanPrinter(out, fp.get());
-  std::ostream& out = *options::out();
-  out << "(proof\n";
-  out << *fp;
-  out << "\n)\n";
-}
 
-void PfManager::checkProof(ProofGenerator* pg, Assertions& as)
+  if (options::proofFormatMode() == options::ProofFormatMode::DOT)
+  {
+    proof::DotPrinter::print(out, fp.get());
+  }
+  else
+  {
+    out << "(proof\n";
+    out << *fp;
+    out << "\n)\n";
+  }
+}
+void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
-  Trace("smt-proof") << "PfManager::checkProof: returned " << *fp.get()
-                     << std::endl;
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
+  Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
+                           << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
@@ -137,14 +184,40 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
   return d_pppg.get();
 }
 
-std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator* pg,
-                                                    Assertions& as)
+std::shared_ptr<ProofNode> PfManager::getFinalProof(
+    std::shared_ptr<ProofNode> pfn, Assertions& as, DefinedFunctionMap& df)
 {
-  context::CDList<Node>* al = as.getAssertionList();
-  setFinalProof(pg, al);
+  setFinalProof(pfn, as, df);
   Assert(d_finalProof);
   return d_finalProof;
 }
 
+void PfManager::getAssertions(Assertions& as,
+                              DefinedFunctionMap& df,
+                              std::vector<Node>& assertions)
+{
+  context::CDList<Node>* al = as.getAssertionList();
+  Assert(al != nullptr);
+  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
+       ++i)
+  {
+    assertions.push_back(*i);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  for (const std::pair<const Node, const smt::DefinedFunction>& dfn : df)
+  {
+    Node def = dfn.second.getFormula();
+    const std::vector<Node>& formals = dfn.second.getFormals();
+    if (!formals.empty())
+    {
+      Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, formals);
+      def = nm->mkNode(kind::LAMBDA, bvl, def);
+    }
+    // assume the (possibly higher order) equality
+    Node eq = dfn.first.eqNode(def);
+    assertions.push_back(eq);
+  }
+}
+
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

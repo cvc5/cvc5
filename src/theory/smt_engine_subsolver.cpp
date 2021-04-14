@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file smt_engine_subsolver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utilities for initializing subsolvers (copies of
- ** SmtEngine) during solving.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utilities for initializing subsolvers (copies of
+ * SmtEngine) during solving.
+ */
 
 #include "theory/smt_engine_subsolver.h"
 
-#include "api/cvc4cpp.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 // optimization: try to rewrite to constant
@@ -48,14 +48,14 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
   NodeManager* nm = NodeManager::currentNM();
   SmtEngine* smtCurr = smt::currentSmtEngine();
   // must copy the options
-  smte.reset(new SmtEngine(nm->toExprManager(), &smtCurr->getOptions()));
+  smte.reset(new SmtEngine(nm, &smtCurr->getOptions()));
   smte->setIsInternalSubsolver();
   smte->setLogic(smtCurr->getLogicInfo());
+  // set the options
   if (needsTimeout)
   {
     smte->setTimeLimit(timeout);
   }
-  smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
 }
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
@@ -120,4 +120,4 @@ Result checkWithSubsolver(Node query,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

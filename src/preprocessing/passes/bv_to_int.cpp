@@ -1,39 +1,47 @@
-/*********************                                                        */
-/*! \file bv_to_int.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Ahmed Irfan, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BVToInt preprocessing pass
- **
- ** Converts bit-vector operations into integer operations.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BVToInt preprocessing pass.
+ *
+ * Converts bit-vector operations into integer operations.
+ *
+ */
 
 #include "preprocessing/passes/bv_to_int.h"
 
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
+#include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace std;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
 namespace {
 
@@ -41,11 +49,6 @@ Rational intpow2(uint64_t b)
 {
   return Rational(Integer(2).pow(b), Integer(1));
 }
-
-/**
- * Helper functions for createBitwiseNode
- */
-bool oneBitAnd(bool a, bool b) { return (a && b); }
 
 } //end empty namespace
 
@@ -81,72 +84,55 @@ Node BVToInt::modpow2(Node n, uint64_t exponent)
  */
 Node BVToInt::makeBinary(Node n)
 {
-  vector<Node> toVisit;
-  toVisit.push_back(n);
-  while (!toVisit.empty())
+  for (TNode current : NodeDfsIterable(n,
+                                       VisitOrder::POSTORDER,
+                                       // skip visited nodes
+                                       [this](TNode tn) {
+                                         return d_binarizeCache.find(tn)
+                                                != d_binarizeCache.end();
+                                       }))
   {
-    Node current = toVisit.back();
     uint64_t numChildren = current.getNumChildren();
-    if (d_binarizeCache.find(current) == d_binarizeCache.end())
+    /*
+     * We already visited the sub-dag rooted at the current node,
+     * and binarized all its children.
+     * Now we binarize the current node itself.
+     */
+    kind::Kind_t k = current.getKind();
+    if ((numChildren > 2)
+        && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+            || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+            || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
-      /**
-       * We still haven't visited the sub-dag rooted at the current node.
-       * In this case, we:
-       * mark that we have visited this node by assigning a null node to it in
-       * the cache, and add its children to toVisit.
-       */
-      d_binarizeCache[current] = Node();
-      toVisit.insert(toVisit.end(), current.begin(), current.end());
+      // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
+      Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
+      Node result = d_binarizeCache[current[0]];
+      for (uint64_t i = 1; i < numChildren; i++)
+      {
+        Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
+        Node child = d_binarizeCache[current[i]];
+        result = d_nm->mkNode(current.getKind(), result, child);
+      }
+      d_binarizeCache[current] = result;
     }
-    else if (d_binarizeCache[current].get().isNull())
+    else if (numChildren > 0)
     {
-      /*
-       * We already visited the sub-dag rooted at the current node,
-       * and binarized all its children.
-       * Now we binarize the current node itself.
-       */
-      toVisit.pop_back();
-      kind::Kind_t k = current.getKind();
-      if ((numChildren > 2)
-          && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
-              || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-              || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+      // current has children, but we do not binarize it
+      NodeBuilder builder(k);
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
-        Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
-        Node result = d_binarizeCache[current[0]];
-        for (uint64_t i = 1; i < numChildren; i++)
-        {
-          Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
-          Node child = d_binarizeCache[current[i]];
-          result = d_nm->mkNode(current.getKind(), result, child);
-        }
-        d_binarizeCache[current] = result;
+        builder << current.getOperator();
       }
-      else if (numChildren > 0)
+      for (Node child : current)
       {
-        // current has children, but we do not binarize it
-        NodeBuilder<> builder(k);
-        if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          builder << current.getOperator();
-        }
-        for (Node child : current)
-        {
-          builder << d_binarizeCache[child].get();
-        }
-        d_binarizeCache[current] = builder.constructNode();
+        builder << d_binarizeCache[child].get();
       }
-      else
-      {
-        // current has no children
-        d_binarizeCache[current] = current;
-      }
+      d_binarizeCache[current] = builder.constructNode();
     }
     else
     {
-      // We already binarized current and it is in the cache.
-      toVisit.pop_back();
+      // current has no children
+      d_binarizeCache[current] = current;
     }
   }
   return d_binarizeCache[n];
@@ -170,7 +156,7 @@ Node BVToInt::eliminationPass(Node n)
     current = toVisit.back();
     // assert that the node is binarized
     // The following variable is only used in assertions
-    CVC4_UNUSED kind::Kind_t k = current.getKind();
+    CVC5_UNUSED kind::Kind_t k = current.getKind();
     uint64_t numChildren = current.getNumChildren();
     Assert((numChildren == 2)
            || !(k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
@@ -185,7 +171,7 @@ Node BVToInt::eliminationPass(Node n)
     {
       // current is not the elimination of any previously-visited node
       // current hasn't been eliminated yet.
-      // eliminate operators from it
+      // eliminate operators from it using rewrite rules
       Node currentEliminated =
           FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                   RewriteRule<SdivEliminateFewerBitwiseOps>,
@@ -206,6 +192,7 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SltEliminate>,
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
+
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
       // also assign the eliminated now to itself to avoid revisiting.
@@ -235,7 +222,7 @@ Node BVToInt::eliminationPass(Node n)
         {
           // The main operator is replaced, and the children
           // are replaced with their eliminated counterparts.
-          NodeBuilder<> builder(current.getKind());
+          NodeBuilder builder(current.getKind());
           if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
           {
             builder << current.getOperator();
@@ -265,6 +252,8 @@ Node BVToInt::eliminationPass(Node n)
  */
 Node BVToInt::bvToInt(Node n)
 {
+  // make sure the node is re-written before processing it.
+  n = Rewriter::rewrite(n);
   n = makeBinary(n);
   n = eliminationPass(n);
   // binarize again, in case the elimination pass introduced
@@ -305,10 +294,10 @@ Node BVToInt::bvToInt(Node n)
       {
         // We are now visiting current on the way back up.
         // This is when we do the actual translation.
+        Node translation;
         if (currentNumChildren == 0)
         {
-          Node translation = translateNoChildren(current);
-          d_bvToIntCache[current] = translation;
+          translation = translateNoChildren(current);
         }
         else
         {
@@ -331,10 +320,12 @@ Node BVToInt::bvToInt(Node n)
           {
             translated_children.push_back(d_bvToIntCache[current[i]]);
           }
-          Node translation =
-              translateWithChildren(current, translated_children);
-          d_bvToIntCache[current] = translation;
+          translation = translateWithChildren(current, translated_children);
         }
+        // Map the current node to its translation in the cache.
+        d_bvToIntCache[current] = translation;
+        // Also map the translation to itself.
+        d_bvToIntCache[translation] = translation;
         toVisit.pop_back();
       }
     }
@@ -352,7 +343,7 @@ Node BVToInt::translateWithChildren(Node original,
   Assert(oldKind != kind::BITVECTOR_ULTBV);
   Assert(oldKind != kind::BITVECTOR_SLTBV);
   // The following variable will only be used in assertions.
-  CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
+  CVC5_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
   switch (oldKind)
   {
@@ -374,7 +365,7 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
       break;
     }
-    case kind::BITVECTOR_UDIV_TOTAL:
+    case kind::BITVECTOR_UDIV:
     {
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       // we use an ITE for the case where the second operand is 0.
@@ -388,7 +379,7 @@ Node BVToInt::translateWithChildren(Node original,
           divNode);
       break;
     }
-    case kind::BITVECTOR_UREM_TOTAL:
+    case kind::BITVECTOR_UREM:
     {
       // we use an ITE for the case where the second operand is 0.
       Node modNode =
@@ -446,12 +437,11 @@ Node BVToInt::translateWithChildren(Node original,
         Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
-        Node newNode = createBitwiseNode(translated_children[0],
-                                       translated_children[1],
-                                       bvsize,
-                                       options::BVAndIntegerGranularity(),
-                                       &oneBitAnd);
-        returnNode = newNode;
+        returnNode =
+            d_iandUtils.createSumNode(translated_children[0],
+                                      translated_children[1],
+                                      bvsize,
+                                      options::BVAndIntegerGranularity());
       }
       break;
     }
@@ -658,8 +648,8 @@ Node BVToInt::translateWithChildren(Node original,
        */
       if (childrenTypesChanged(original) && options::ufHo())
       {
-        throw TypeCheckingException(
-            original.toExpr(),
+        throw TypeCheckingExceptionPrivate(
+            original,
             string("Cannot translate to Int: ") + original.toString());
       }
       // Insert the translated application term to the cache
@@ -685,13 +675,9 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translateQuantifiedFormula(original);
       break;
     }
-    case kind::EXISTS:
-    {
-      // Exists is eliminated by the rewriter.
-      Assert(false);
-    }
     default:
     {
+      Assert(oldKind != kind::EXISTS);  // Exists is eliminated by the rewriter.
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
       // changed from bv to int should be adjusted back to bv and then
@@ -718,6 +704,7 @@ Node BVToInt::translateWithChildren(Node original,
 
 Node BVToInt::translateNoChildren(Node original)
 {
+  SkolemManager* sm = d_nm->getSkolemManager();
   Node translation;
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
@@ -738,11 +725,11 @@ Node BVToInt::translateNoChildren(Node original)
         // New integer variables  that are not bound (symbolic constants)
         // are added together with range constraints induced by the 
         // bit-width of the original bit-vector variables.
-        Node newVar = d_nm->mkSkolem("__bvToInt_var",
-                                     d_nm->integerType(),
-                                     "Variable introduced in bvToInt "
-                                     "pass instead of original variable "
-                                         + original.toString());
+        Node newVar = sm->mkDummySkolem("__bvToInt_var",
+                                        d_nm->integerType(),
+                                        "Variable introduced in bvToInt "
+                                        "pass instead of original variable "
+                                            + original.toString());
         uint64_t bvsize = original.getType().getBitVectorSize();
         translation = newVar;
         d_rangeAssertions.insert(mkRangeConstraint(newVar, bvsize));
@@ -799,9 +786,10 @@ Node BVToInt::translateFunctionSymbol(Node bvUF)
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
+  SkolemManager* sm = d_nm->getSkolemManager();
   ostringstream os;
   os << "__bvToInt_fun_" << bvUF << "_int";
-  intUF = d_nm->mkSkolem(
+  intUF = sm->mkDummySkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
   // introduce a `define-fun` in the smt-engine to keep
   // the correspondence between the original
@@ -817,7 +805,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // The type of the resulting term
   TypeNode resultType;
   // symbolic arguments of original function
-  vector<Expr> args;
+  vector<Node> args;
   if (!bvUF.getType().isFunction()) {
     // bvUF is a variable.
     // in this case, the result is just the original term
@@ -839,7 +827,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
       // Each bit-vector argument is casted to a natural number
       // Other arguments are left intact.
       Node fresh_bound_var = d_nm->mkBoundVar(d);
-      args.push_back(fresh_bound_var.toExpr());
+      args.push_back(fresh_bound_var);
       Node castedArg = args[i];
       if (d.isBitVector())
       {
@@ -853,8 +841,7 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   // If the result is BV, it needs to be casted back.
   result = castToType(result, resultType);
   // add the function definition to the smt engine.
-  smt::currentSmtEngine()->defineFunction(
-      bvUF.toExpr(), args, result.toExpr(), true);
+  d_preprocContext->getSmt()->defineFunction(bvUF, args, result, true);
 }
 
 bool BVToInt::childrenTypesChanged(Node n)
@@ -903,7 +890,7 @@ Node BVToInt::reconstructNode(Node originalNode,
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
   kind::Kind_t oldKind = originalNode.getKind();
-  NodeBuilder<> builder(oldKind);
+  NodeBuilder builder(oldKind);
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << originalNode.getOperator();
@@ -954,26 +941,17 @@ PreprocessingPassResult BVToInt::applyInternal(
 void BVToInt::addFinalizeRangeAssertions(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // collect the range assertions from d_rangeAssertions
+  // (which is a context-dependent set)
+  // into a vector.
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
-  if (vec_range.size() == 0)
-  {
-    return;
-  }
-  if (vec_range.size() == 1)
-  {
-    assertionsToPreprocess->push_back(vec_range[0]);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << vec_range[0].toString() << std::endl;
-  }
-  else if (vec_range.size() >= 2)
-  {
-    Node rangeAssertions =
-        Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
-    assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug")
-        << "range constraints: " << rangeAssertions.toString() << std::endl;
-  }
+  // conjoin all range assertions and add the conjunction
+  // as a new assertion
+  Node rangeAssertions = Rewriter::rewrite(d_nm->mkAnd(vec_range));
+  assertionsToPreprocess->push_back(rangeAssertions);
+  Trace("bv-to-int-debug") << "range constraints: "
+                           << rangeAssertions.toString() << std::endl;
 }
 
 Node BVToInt::createShiftNode(vector<Node> children,
@@ -1053,142 +1031,16 @@ Node BVToInt::translateQuantifiedFormula(Node quantifiedNode)
                              newBoundVars.begin(),
                              newBoundVars.end());
   // A node to represent all the range constraints.
-  Node ranges;
-  if (rangeConstraints.size() > 0)
-  {
-    if (rangeConstraints.size() == 1)
-    {
-      ranges = rangeConstraints[0];
-    }
-    else
-    {
-      ranges = d_nm->mkNode(kind::AND, rangeConstraints);
-    }
-    // Add the range constraints to the body of the quantifier.
-    // For "exists", this is added conjunctively
-    // For "forall", this is added to the left side of an implication.
-    matrix = d_nm->mkNode(
-        k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
-  }
-
+  Node ranges = d_nm->mkAnd(rangeConstraints);
+  // Add the range constraints to the body of the quantifier.
+  // For "exists", this is added conjunctively
+  // For "forall", this is added to the left side of an implication.
+  matrix = d_nm->mkNode(
+      k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
   // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
   return result;
-}
-
-Node BVToInt::createITEFromTable(
-    Node x,
-    Node y,
-    uint64_t granularity,
-    std::map<std::pair<uint64_t, uint64_t>, uint64_t> table)
-{
-  Assert(granularity <= 8);
-  uint64_t max_value = ((uint64_t)pow(2, granularity));
-  // The table represents a function from pairs of integers to integers, where
-  // all integers are between 0 (inclusive) and max_value (exclusive).
-  Assert(table.size() == max_value * max_value);
-  Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
-  for (uint64_t i = 0; i < max_value; i++)
-  {
-    for (uint64_t j = 0; j < max_value; j++)
-    {
-      if ((i == 0) && (j == 0))
-      {
-        continue;
-      }
-      ite = d_nm->mkNode(
-          kind::ITE,
-          d_nm->mkNode(
-              kind::AND,
-              d_nm->mkNode(kind::EQUAL, x, d_nm->mkConst<Rational>(i)),
-              d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(j))),
-          d_nm->mkConst<Rational>(table[std::make_pair(i, j)]),
-          ite);
-    }
-  }
-  return ite;
-}
-
-Node BVToInt::createBitwiseNode(Node x,
-                                Node y,
-                                uint64_t bvsize,
-                                uint64_t granularity,
-                                bool (*f)(bool, bool))
-{
-  /**
-   * Standardize granularity.
-   * If it is greater than bvsize, it is set to bvsize.
-   * Otherwise, it is set to the closest (going down)  divider of bvsize.
-   */
-  Assert(0 < granularity && granularity <= 8);
-  if (granularity > bvsize)
-  {
-    granularity = bvsize;
-  }
-  else
-  {
-    while (bvsize % granularity != 0)
-    {
-      granularity = granularity - 1;
-    }
-  }
-  // transform f into a table
-  // f is defined over 1 bit, while the table is defined over `granularity` bits
-  std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  uint64_t max_value = ((uint64_t)pow(2, granularity));
-  for (uint64_t i = 0; i < max_value; i++)
-  {
-    for (uint64_t j = 0; j < max_value; j++)
-    {
-      uint64_t sum = 0;
-      for (uint64_t n = 0; n < granularity; n++)
-      {
-        // b is the result of f on the current bit
-        bool b = f((((i >> n) & 1) == 1), (((j >> n) & 1) == 1));
-        // add the corresponding power of 2 only if the result is 1
-        if (b)
-        {
-          sum += 1 << n;
-        }
-      }
-      table[std::make_pair(i, j)] = sum;
-    }
-  }
-   Assert(table.size() == max_value * max_value);
-
-  /*
-   * Create the sum.
-   * For granularity 1, the sum has bvsize elements.
-   * In contrast, if bvsize = granularity, sum has one element.
-   * Each element in the sum is an ite that corresponds to the generated table,
-   * multiplied by the appropriate power of two.
-   * More details are in bv_to_int.h .
-   */
-  uint64_t sumSize = bvsize / granularity;
-  Node sumNode = d_zero;
-  /**
-   * extract definition in integers is:
-   * (define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
-   * (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
-   */
-  for (uint64_t i = 0; i < sumSize; i++)
-  {
-    Node xExtract = d_nm->mkNode(
-        kind::INTS_MODULUS_TOTAL,
-        d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i * granularity)),
-        pow2(granularity));
-    Node yExtract = d_nm->mkNode(
-        kind::INTS_MODULUS_TOTAL,
-        d_nm->mkNode(kind::INTS_DIVISION_TOTAL, y, pow2(i * granularity)),
-        pow2(granularity));
-    Node ite = createITEFromTable(xExtract, yExtract, granularity, table);
-    sumNode =
-        d_nm->mkNode(kind::PLUS,
-                     sumNode,
-                     d_nm->mkNode(kind::MULT, pow2(i * granularity), ite));
-  }
-  return sumNode;
 }
 
 Node BVToInt::createBVNotNode(Node n, uint64_t bvsize)
@@ -1198,4 +1050,4 @@ Node BVToInt::createBVNotNode(Node n, uint64_t bvsize)
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

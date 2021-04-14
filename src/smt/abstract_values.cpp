@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file abstract_values.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for constructing and maintaining abstract values.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for constructing and maintaining abstract values.
+ */
 
 #include "smt/abstract_values.h"
 
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 AbstractValues::AbstractValues(NodeManager* nm)
@@ -46,10 +47,10 @@ Node AbstractValues::mkAbstractValue(TNode n)
     d_abstractValueMap.addSubstitution(val, n);
   }
   // We are supposed to ascribe types to all abstract values that go out.
-  Node ascription = d_nm->mkConst(AscriptionType(n.getType().toType()));
+  Node ascription = d_nm->mkConst(AscriptionType(n.getType()));
   Node retval = d_nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
   return retval;
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

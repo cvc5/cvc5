@@ -1,24 +1,23 @@
-/*********************                                                        */
-/*! \file simple_vc_quant_cxx.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the C++ interface for quantifiers
- **
- ** A simple demonstration of the C++ interface for quantifiers. 
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the C++ interface for quantifiers.
+ */
 
-#include <cvc4/api/cvc4cpp.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 
 int main() {
   Solver slv;
@@ -40,7 +39,7 @@ int main() {
   std::cout << "Made expression : " << quantpospx << std::endl;
 
   //make ~P( 5 )
-  Term five = slv.mkReal(5);
+  Term five = slv.mkInteger(5);
   Term pfive = slv.mkTerm(Kind::APPLY_UF, p, five);
   Term negpfive = slv.mkTerm(Kind::NOT, pfive);
   std::cout << "Made expression : " << negpfive << std::endl;

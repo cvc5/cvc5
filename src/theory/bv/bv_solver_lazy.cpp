@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_lazy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy bit-vector solver.
+ */
 
 #include "theory/bv/bv_solver_lazy.h"
 
@@ -30,10 +30,11 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5::theory::bv::utils;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -42,7 +43,7 @@ BVSolverLazy::BVSolverLazy(TheoryBV& bv,
                            context::UserContext* u,
                            ProofNodeManager* pnm,
                            std::string name)
-    : BVSolver(bv.d_state, bv.d_inferMgr),
+    : BVSolver(bv.d_state, bv.d_im),
       d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
@@ -117,9 +118,9 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(Resource r)
 {
-  d_inferManager.spendResource(r);
+  d_im.spendResource(r);
 }
 
 BVSolverLazy::Statistics::Statistics()
@@ -196,8 +197,8 @@ void BVSolverLazy::sendConflict()
   {
     Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
-    d_inferManager.conflict(d_conflictNode);
-    d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
+    d_im.conflict(d_conflictNode, InferenceId::BV_LAZY_CONFLICT);
+    d_statistics.d_avgConflictSize << d_conflictNode.getNumChildren();
     d_conflictNode = Node::null();
   }
 }
@@ -207,7 +208,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
   if (fact.getKind() == kind::EQUAL)
   {
     NodeManager* nm = NodeManager::currentNM();
-    if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[0].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[0];
       TNode result = fact[1];
@@ -219,7 +220,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
           kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
-    if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[1].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[1];
       TNode result = fact[0];
@@ -287,11 +288,11 @@ void BVSolverLazy::check(Theory::Effort e)
     {
       if (assertions.size() == 1)
       {
-        d_inferManager.conflict(assertions[0]);
+        d_im.conflict(assertions[0], InferenceId::BV_LAZY_CONFLICT);
         return;
       }
       Node conflict = utils::mkAnd(assertions);
-      d_inferManager.conflict(conflict);
+      d_im.conflict(conflict, InferenceId::BV_LAZY_CONFLICT);
       return;
     }
     return;
@@ -426,7 +427,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
     {
       Debug("bitvector::propagate")
           << "BVSolverLazy:: propagating " << literal << "\n";
-      ok = d_inferManager.propagateLit(literal);
+      ok = d_im.propagateLit(literal);
     }
   }
 
@@ -439,9 +440,10 @@ void BVSolverLazy::propagate(Theory::Effort e)
   }
 }
 
-Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
-                                              SubstitutionMap& outSubstitutions)
+Theory::PPAssertStatus BVSolverLazy::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
+  TNode in = tin.getNode();
   switch (in.getKind())
   {
     case kind::EQUAL:
@@ -449,13 +451,13 @@ Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
       if (in[0].isVar() && d_bv.isLegalElimination(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitution(in[0], in[1]);
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       if (in[1].isVar() && d_bv.isLegalElimination(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitution(in[1], in[0]);
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
       Node node = Rewriter::rewrite(in);
@@ -502,7 +504,7 @@ Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
           Assert(utils::getSize(concat) == utils::getSize(extract[0]));
           if (d_bv.isLegalElimination(extract[0], concat))
           {
-            outSubstitutions.addSubstitution(extract[0], concat);
+            outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
             return Theory::PP_ASSERT_STATUS_SOLVED;
           }
         }
@@ -669,7 +671,7 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   constexpr bool ok = true;
   if (subtheory == SUB_CORE)
   {
-    d_inferManager.propagateLit(literal);
+    d_im.propagateLit(literal);
     if (!ok)
     {
       setConflict();
@@ -739,7 +741,7 @@ EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {
@@ -826,4 +828,4 @@ void BVSolverLazy::setConflict(Node conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

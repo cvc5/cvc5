@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file rewriter_tables_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewriter tables for various theories
- **
- ** This file contains template code for the rewriter tables that are generated
- ** from the Theory kinds files.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewriter tables for various theories.
+ *
+ * This file contains template code for the rewriter tables that are generated
+ * from the Theory kinds files.
+ */
 
 #include "cvc4_private.h"
 
@@ -26,7 +27,7 @@
 
 ${rewriter_includes}
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
@@ -61,7 +62,7 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter()
+Rewriter::Rewriter() : d_tpg(nullptr)
 {
 for (size_t i = 0; i < kind::LAST_KIND; ++i)
 {
@@ -77,7 +78,7 @@ for (size_t i = 0; i < theory::THEORY_LAST; ++i)
 }
 
 void Rewriter::clearCachesInternal() {
-  typedef CVC4::expr::attr::AttributeUniqueId AttributeUniqueId;
+  typedef cvc5::expr::attr::AttributeUniqueId AttributeUniqueId;
   std::vector<AttributeUniqueId> preids;
   ${pre_rewrite_attribute_ids}
 
@@ -94,5 +95,5 @@ void Rewriter::clearCachesInternal() {
   NodeManager::currentNM()->deleteAttributes(allids);
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

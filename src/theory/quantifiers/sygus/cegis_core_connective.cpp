@@ -1,19 +1,21 @@
-/*********************                                                        */
-/*! \file cegis_core_connective.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of cegis core connective module.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of cegis core connective module.
+ */
 
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 
+#include "expr/dtype_cons.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
@@ -21,14 +23,15 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
+#include "theory/quantifiers/sygus/transition_inference.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -67,9 +70,10 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
   return false;
 }
 
-CegisCoreConnective::CegisCoreConnective(QuantifiersEngine* qe,
+CegisCoreConnective::CegisCoreConnective(QuantifiersInferenceManager& qim,
+                                         TermDbSygus* tds,
                                          SynthConjecture* p)
-    : Cegis(qe, p)
+    : Cegis(qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -611,7 +615,7 @@ bool CegisCoreConnective::getUnsatCore(
   bool hasQuery = false;
   for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
   {
-    Node uassert = Node::fromExpr(*i);
+    Node uassert = *i;
     Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
     if (queryAsserts.find(uassert) != queryAsserts.end())
     {
@@ -858,4 +862,4 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

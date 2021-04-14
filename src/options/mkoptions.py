@@ -1,14 +1,17 @@
 #!/usr/bin/env python
-#####################
-## mkoptions.py
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Everett Maus
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
@@ -20,7 +23,7 @@
       <tpl-src> location of all *_template.{cpp,h} files
       <tpl-doc> location of all *_template documentation files
       <dst>     destination directory for the generated source code files
-      <toml>+   one or more *_optios.toml files
+      <toml>+   one or more *_options.toml files
 
 
     Directory <tpl-src> must contain:
@@ -92,7 +95,7 @@ g_getopt_long_start = 256
 
 ### Source code templates
 
-TPL_HOLDER_MACRO_NAME = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
+TPL_HOLDER_MACRO_NAME = 'CVC5_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
 TPL_RUN_HANDLER = \
 """template <> options::{name}__option_t::type runHandlerAndPredicates(
@@ -168,23 +171,23 @@ TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
 
 
 TPL_OPTION_STRUCT_RW = \
-"""extern struct CVC4_PUBLIC {name}__option_t
+"""extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
   bool wasSetByUser() const;
   void set(const type& v);
   const char* getName() const;
-}} {name} CVC4_PUBLIC;"""
+}} thread_local {name};"""
 
 TPL_OPTION_STRUCT_RO = \
-"""extern struct CVC4_PUBLIC {name}__option_t
+"""extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
   bool wasSetByUser() const;
   const char* getName() const;
-}} {name} CVC4_PUBLIC;"""
+}} thread_local {name};"""
 
 
 TPL_DECL_SET = \
@@ -258,9 +261,9 @@ enum class {type}
 TPL_DECL_MODE_FUNC = \
 """
 std::ostream&
-operator<<(std::ostream& os, {type} mode) CVC4_PUBLIC;"""
+operator<<(std::ostream& os, {type} mode);"""
 
-TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(" CVC4_PUBLIC;")] + \
+TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 """
 {{
   os << "{type}::";
@@ -629,7 +632,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         accs.append(TPL_IMPL_WAS_SET_BY_USER.format(name=option.name))
 
         # Global definitions
-        defs.append('struct {name}__option_t {name};'.format(name=option.name))
+        defs.append('thread_local struct {name}__option_t {name};'.format(name=option.name))
 
         if option.mode:
             values = option.mode.keys()

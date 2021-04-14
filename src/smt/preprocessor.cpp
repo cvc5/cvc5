@@ -1,41 +1,49 @@
-/*********************                                                        */
-/*! \file preprocessor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessor of the SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessor of the SMT engine.
+ */
 
 #include "smt/preprocessor.h"
 
+#include "options/expr_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/dump.h"
+#include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
 
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace std;
+using namespace cvc5::theory;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 Preprocessor::Preprocessor(SmtEngine& smt,
                            context::UserContext* u,
-                           AbstractValues& abs)
-    : d_smt(smt),
+                           AbstractValues& abs,
+                           SmtEngineStatistics& stats)
+    : d_context(u),
+      d_smt(smt),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
-      d_processor(smt, *smt.getResourceManager()),
-      d_rtf(u)
+      d_exDefs(smt, *smt.getResourceManager(), stats),
+      d_processor(smt, d_exDefs, *smt.getResourceManager(), stats),
+      d_pnm(nullptr)
 {
 }
 
@@ -51,7 +59,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator));
+      &d_smt, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -62,7 +70,8 @@ bool Preprocessor::process(Assertions& as)
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   // should not be called if empty
-  Assert(ap.size() != 0) << "Can only preprocess a non-empty list of assertions";
+  Assert(ap.size() != 0)
+      << "Can only preprocess a non-empty list of assertions";
 
   if (d_assertionsProcessed && options::incrementalSolving())
   {
@@ -76,12 +85,10 @@ bool Preprocessor::process(Assertions& as)
   }
 
   // process the assertions, return true if no conflict is discovered
-  return d_processor.apply(as);
-}
+  bool noConflict = d_processor.apply(as);
 
-void Preprocessor::postprocess(Assertions& as)
-{
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  // now, post-process the assertions
+
   // if incremental, compute which variables are assigned
   if (options::incrementalSolving())
   {
@@ -90,6 +97,8 @@ void Preprocessor::postprocess(Assertions& as)
 
   // mark that we've processed assertions
   d_assertionsProcessed = true;
+
+  return noConflict;
 }
 
 void Preprocessor::clearLearnedLiterals()
@@ -99,12 +108,10 @@ void Preprocessor::clearLearnedLiterals()
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
-RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
-
 Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return expandDefinitions(n, cache, expandOnly);
+  return d_exDefs.expandDefinitions(n, cache, expandOnly);
 }
 
 Node Preprocessor::expandDefinitions(
@@ -121,10 +128,10 @@ Node Preprocessor::expandDefinitions(
     n.getType(true);
   }
   // expand only = true
-  return d_processor.expandDefinitions(n, cache, expandOnly);
+  return d_exDefs.expandDefinitions(n, cache, expandOnly);
 }
 
-Node Preprocessor::simplify(const Node& node, bool removeItes)
+Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
@@ -139,20 +146,19 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
     nas.getType(true);
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_processor.expandDefinitions(nas, cache);
-  Node ns = applySubstitutions(n);
-  if (removeItes)
-  {
-    // also remove ites if asked
-    ns = d_rtf.replace(ns);
-  }
+  Node n = d_exDefs.expandDefinitions(nas, cache);
+  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
+  Node ns = ts.isNull() ? n : ts.getNode();
   return ns;
 }
 
-Node Preprocessor::applySubstitutions(TNode node)
+void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
-  return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
+  Assert(pppg != nullptr);
+  d_pnm = pppg->getManager();
+  d_exDefs.setProofNodeManager(d_pnm);
+  d_propagator.setProof(d_pnm, d_context, pppg);
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,25 +1,37 @@
-/*********************                                                        */
-/*! \file proof.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of proof
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of proof.
+ */
 
 #include "expr/proof.h"
 
-using namespace CVC4::kind;
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
+#include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+using namespace cvc5::kind;
 
-CDProof::CDProof(ProofNodeManager* pnm, context::Context* c, std::string name)
-    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context), d_name(name)
+namespace cvc5 {
+
+CDProof::CDProof(ProofNodeManager* pnm,
+                 context::Context* c,
+                 std::string name,
+                 bool autoSymm)
+    : d_manager(pnm),
+      d_context(),
+      d_nodes(c ? c : &d_context),
+      d_name(name),
+      d_autoSymm(autoSymm)
 {
 }
 
@@ -58,6 +70,11 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
   if (pf != nullptr && !isAssumption(pf.get()))
   {
     Trace("cdproof") << "...existing non-assume " << pf->getRule() << std::endl;
+    return pf;
+  }
+  else if (!d_autoSymm)
+  {
+    Trace("cdproof") << "...not auto considering symmetry" << std::endl;
     return pf;
   }
   Node symFact = getSymmFact(fact);
@@ -212,6 +229,10 @@ bool CDProof::addStep(Node expected,
 
 void CDProof::notifyNewProof(Node expected)
 {
+  if (!d_autoSymm)
+  {
+    return;
+  }
   // ensure SYMM proof is also linked to an existing proof, if it is an
   // assumption.
   Node symExpected = getSymmFact(expected);
@@ -353,6 +374,10 @@ bool CDProof::hasStep(Node fact)
   {
     return true;
   }
+  else if (!d_autoSymm)
+  {
+    return false;
+  }
   Node symFact = getSymmFact(fact);
   if (symFact.isNull())
   {
@@ -408,7 +433,8 @@ bool CDProof::isSame(TNode f, TNode g)
     // symmetric equality
     return true;
   }
-  if (fk == NOT && gk == NOT && f[0][0] == g[0][1] && f[0][1] == g[0][0])
+  if (fk == NOT && gk == NOT && f[0].getKind() == EQUAL
+      && g[0].getKind() == EQUAL && f[0][0] == g[0][1] && f[0][1] == g[0][0])
   {
     // symmetric disequality
     return true;
@@ -430,4 +456,4 @@ Node CDProof::getSymmFact(TNode f)
 
 std::string CDProof::identify() const { return d_name; }
 
-}  // namespace CVC4
+}  // namespace cvc5

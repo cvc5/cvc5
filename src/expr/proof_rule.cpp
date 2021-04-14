@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file proof_rule.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of proof rule
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of proof rule.
+ */
 
 #include "expr/proof_rule.h"
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 
 const char* toString(PfRule id)
 {
@@ -40,14 +41,22 @@ const char* toString(PfRule id)
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
+    case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
+    case PfRule::TRUST_SUBS: return "TRUST_SUBS";
+    case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
+    case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
+    case PfRule::MODUS_PONENS: return "MODUS_PONENS";
+    case PfRule::NOT_NOT_ELIM: return "NOT_NOT_ELIM";
+    case PfRule::CONTRA: return "CONTRA";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
@@ -66,7 +75,6 @@ const char* toString(PfRule id)
     case PfRule::ITE_ELIM2: return "ITE_ELIM2";
     case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
     case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
-    case PfRule::CONTRA: return "CONTRA";
     //================================================= De Morgan rules
     case PfRule::NOT_AND: return "NOT_AND";
     //================================================= CNF rules
@@ -109,8 +117,18 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    //================================================= Bit-Vector rules
+    case PfRule::BV_BITBLAST: return "BV_BITBLAST";
+    case PfRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    //================================================= Datatype rules
+    case PfRule::DT_UNIF: return "DT_UNIF";
+    case PfRule::DT_INST: return "DT_INST";
+    case PfRule::DT_COLLAPSE: return "DT_COLLAPSE";
+    case PfRule::DT_SPLIT: return "DT_SPLIT";
+    case PfRule::DT_CLASH: return "DT_CLASH";
+    case PfRule::DT_TRUST: return "DT_TRUST";
     //================================================= Quantifiers rules
-    case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
+    case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
@@ -142,7 +160,40 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
+    case PfRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
+    case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
+    case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case PfRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
+    case PfRule::ARITH_TRANS_EXP_POSITIVITY:
+      return "ARITH_TRANS_EXP_POSITIVITY";
+    case PfRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
+    case PfRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
+    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_EXP_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_EXP_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_EXP_APPROX_BELOW:
+      return "ARITH_TRANS_EXP_APPROX_BELOW";
+    case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
+    case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
+    case PfRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+      return "ARITH_TRANS_SINE_TANGENT_ZERO";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_PI:
+      return "ARITH_TRANS_SINE_TANGENT_PI";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
+    case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
+    case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
@@ -160,4 +211,4 @@ size_t PfRuleHashFunction::operator()(PfRule id) const
   return static_cast<size_t>(id);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5
