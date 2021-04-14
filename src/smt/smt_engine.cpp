@@ -1137,7 +1137,7 @@ Result SmtEngine::checkSynth()
 
 void SmtEngine::declarePool(const Node& p, const std::vector<Node>& initValue)
 {
-  Assert (p.isVar() && p.getType().isSet());
+  Assert(p.isVar() && p.getType().isSet());
   finishInit();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
   qe->declarePool(p, initValue);

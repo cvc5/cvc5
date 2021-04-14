@@ -81,7 +81,7 @@ void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
   d.initialize();
   for (const Node& i : initValue)
   {
-    Assert (i.getType().isComparableTo(p.getType().getSetElementType()));
+    Assert(i.getType().isComparableTo(p.getType().getSetElementType()));
     d.add(i);
   }
 }
