@@ -40,8 +40,7 @@ endif()
 if(NOT Poly_FOUND_SYSTEM)
   include(ExternalProject)
 
-  # TODO(#4706): Use proper release, after the next release
-  set(Poly_VERSION "bae67639726f63ed508a30845108bfdac4a77546")
+  set(Poly_VERSION "0.1.9")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
@@ -69,8 +68,8 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=2e79d5220d3ecbb40811463fcf12c5ddbd4b9f30
+    URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
+    URL_HASH SHA1=7af3bbb7a2bca6ef2a41e79447baac08ff30d2fd
     DOWNLOAD_NAME libpoly.tar.gz
     ${patchcmd}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
@@ -91,7 +90,6 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add_Step(
     Poly-EP cleanup
     DEPENDEES install
-    COMMAND ${CMAKE_COMMAND} -E remove_directory <SOURCE_DIR>/test/
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
   add_dependencies(Poly-EP GMP)
