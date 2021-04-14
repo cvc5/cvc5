@@ -1131,6 +1131,14 @@ cdef class Solver:
         term.cterm = self.csolver.getSeparationNilTerm()
         return term
 
+    def declarePool(self, str symbol, Sort sort, initValue):
+        cdef Term term = Term(self)
+        cdef vector[c_Term] niv
+        for v in initValue:
+            niv.push_back((<Term?> v).cterm)
+        term.cterm = self.csolver.declarePool(symbol.encode(), sort.csort, niv)
+        return term
+
     def pop(self, nscopes=1):
         self.csolver.pop(nscopes)
 
