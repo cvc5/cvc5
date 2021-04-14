@@ -2,7 +2,7 @@
 ; EXPECT: unsat
 
 ; This regression tests the behavior of the reconstruction algorithm when the
-; term to reconstruct contains two equivalent terms, but one is easier to
+; term to reconstruct contains two equivalent sub-terms, but one is easier to
 ; reconstruct than the other.
 
 (set-logic UF)
