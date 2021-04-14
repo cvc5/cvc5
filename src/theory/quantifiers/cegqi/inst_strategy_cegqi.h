@@ -13,7 +13,7 @@
  * Counterexample-guided quantifier instantiation.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_module.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {

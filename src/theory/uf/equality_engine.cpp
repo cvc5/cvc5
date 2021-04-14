@@ -29,23 +29,14 @@ namespace cvc5 {
 namespace theory {
 namespace eq {
 
-EqualityEngine::Statistics::Statistics(std::string name)
-    : d_mergesCount(name + "::mergesCount", 0),
-      d_termsCount(name + "::termsCount", 0),
-      d_functionTermsCount(name + "::functionTermsCount", 0),
-      d_constantTermsCount(name + "::constantTermsCount", 0)
+EqualityEngine::Statistics::Statistics(const std::string& name)
+    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "mergesCount")),
+      d_termsCount(smtStatisticsRegistry().registerInt(name + "termsCount")),
+      d_functionTermsCount(
+          smtStatisticsRegistry().registerInt(name + "functionTermsCount")),
+      d_constantTermsCount(
+          smtStatisticsRegistry().registerInt(name + "constantTermsCount"))
 {
-  smtStatisticsRegistry()->registerStat(&d_mergesCount);
-  smtStatisticsRegistry()->registerStat(&d_termsCount);
-  smtStatisticsRegistry()->registerStat(&d_functionTermsCount);
-  smtStatisticsRegistry()->registerStat(&d_constantTermsCount);
-}
-
-EqualityEngine::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_mergesCount);
-  smtStatisticsRegistry()->unregisterStat(&d_termsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_functionTermsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_constantTermsCount);
 }
 
 /**
@@ -128,7 +119,7 @@ EqualityEngine::EqualityEngine(context::Context* context,
       d_assertedEqualitiesCount(context, 0),
       d_equalityTriggersCount(context, 0),
       d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -158,7 +149,7 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
       d_assertedEqualitiesCount(context, 0),
       d_equalityTriggersCount(context, 0),
       d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),

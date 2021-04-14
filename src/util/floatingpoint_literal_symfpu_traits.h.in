@@ -20,7 +20,7 @@
  * BitVector.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 #define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H

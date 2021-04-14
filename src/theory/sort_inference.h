@@ -13,7 +13,7 @@
  * Pre-process step for performing sort inference.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SORT_INFERENCE_H
 #define CVC5__SORT_INFERENCE_H

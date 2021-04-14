@@ -13,7 +13,7 @@
  * The theory engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY_ENGINE_H
 #define CVC5__THEORY_ENGINE_H
@@ -37,7 +37,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {

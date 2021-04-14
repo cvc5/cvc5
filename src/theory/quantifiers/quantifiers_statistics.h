@@ -13,13 +13,12 @@
  * Quantifiers statistics class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -33,7 +32,6 @@ class QuantifiersStatistics
 {
  public:
   QuantifiersStatistics();
-  ~QuantifiersStatistics();
   TimerStat d_time;
   TimerStat d_qcf_time;
   TimerStat d_ematching_time;

@@ -13,7 +13,7 @@
  * Generic sygus utilities.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_UTILS_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_UTILS_H

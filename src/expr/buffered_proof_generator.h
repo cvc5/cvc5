@@ -13,7 +13,7 @@
  * A proof generator for buffered proof steps.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
 #define CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H

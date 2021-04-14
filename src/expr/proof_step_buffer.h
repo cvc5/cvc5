@@ -13,7 +13,7 @@
  * Proof step and proof step buffer utilities.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__PROOF_STEP_BUFFER_H
 #define CVC5__EXPR__PROOF_STEP_BUFFER_H

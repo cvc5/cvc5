@@ -22,7 +22,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Minisat_SimpSolver_h
 
 #include "base/check.h"
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "proof/clause_id.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/mtl/Queue.h"

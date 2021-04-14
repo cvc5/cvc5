@@ -13,7 +13,7 @@
  * The solver for SMT queries in an SmtEngine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__SMT_SOLVER_H
 #define CVC5__SMT__SMT_SOLVER_H

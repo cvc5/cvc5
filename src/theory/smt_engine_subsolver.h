@@ -13,7 +13,7 @@
  * Utilities for initializing subsolvers (copies of SmtEngine) during solving.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SMT_ENGINE_SUBSOLVER_H
 #define CVC5__THEORY__SMT_ENGINE_SUBSOLVER_H

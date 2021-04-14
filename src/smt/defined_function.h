@@ -13,7 +13,7 @@
  * Defined function data structure.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__DEFINED_FUNCTION_H
 #define CVC5__SMT__DEFINED_FUNCTION_H

@@ -13,7 +13,7 @@
  * Bitvector theory.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__ABSTRACTION_H
 #define CVC5__THEORY__BV__ABSTRACTION_H
@@ -23,8 +23,7 @@
 
 #include "expr/node.h"
 #include "theory/substitutions.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -33,13 +32,23 @@ namespace bv {
 typedef std::vector<TNode> ArgsVec;
 
 class AbstractionModule {
+  using NodeVecMap =
+      std::unordered_map<Node, std::vector<Node>, NodeHashFunction>;
+  using NodeTNodeMap = std::unordered_map<Node, TNode, NodeHashFunction>;
+  using TNodeTNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;
+  using NodeNodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+  using TNodeNodeMap = std::unordered_map<Node, TNode, NodeHashFunction>;
+  using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
+  using IntNodeMap = std::unordered_map<unsigned, Node>;
+  using IndexMap = std::unordered_map<unsigned, unsigned>;
+  using SkolemMap = std::unordered_map<unsigned, std::vector<Node> >;
+  using SignatureMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
 
   struct Statistics {
-    IntStat d_numFunctionsAbstracted;
+    SizeStat<NodeNodeMap> d_numFunctionsAbstracted;
     IntStat d_numArgsSkolemized;
     TimerStat d_abstractionTime;
-    Statistics(const std::string& name);
-    ~Statistics();
+    Statistics(const std::string& name, const NodeNodeMap& functionsAbstracted);
   };
 
 
@@ -126,17 +135,6 @@ class AbstractionModule {
 
   };
 
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
-  typedef std::unordered_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
-  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef std::unordered_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_map<unsigned, Node> IntNodeMap;
-  typedef std::unordered_map<unsigned, unsigned> IndexMap;
-  typedef std::unordered_map<unsigned, std::vector<Node> > SkolemMap;
-  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
-
   ArgsTable d_argsTable;
 
   // mapping between signature and uninterpreted function symbol used to
@@ -197,21 +195,22 @@ class AbstractionModule {
   Statistics d_statistics;
 
 public:
-  AbstractionModule(const std::string& name)
-    : d_argsTable()
-    , d_signatureToFunc()
-    , d_funcToSignature()
-    , d_assertionToSignature()
-    , d_signatures()
-    , d_sigToGeneralization()
-    , d_skolems()
-    , d_signatureIndices()
-    , d_signatureSkolems()
-    , d_addedLemmas()
-    , d_lemmaAtoms()
-    , d_inputAtoms()
-    , d_statistics(name)
-  {}
+ AbstractionModule(const std::string& name)
+     : d_argsTable(),
+       d_signatureToFunc(),
+       d_funcToSignature(),
+       d_assertionToSignature(),
+       d_signatures(),
+       d_sigToGeneralization(),
+       d_skolems(),
+       d_signatureIndices(),
+       d_signatureSkolems(),
+       d_addedLemmas(),
+       d_lemmaAtoms(),
+       d_inputAtoms(),
+       d_statistics(name + "abstraction::", d_signatureToFunc)
+ {
+ }
   /**
    * returns true if there are new uninterepreted functions symbols in the output
    *

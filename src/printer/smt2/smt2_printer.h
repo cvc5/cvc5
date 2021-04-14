@@ -13,7 +13,7 @@
  * The pretty-printer interface for the SMT2 output language.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PRINTER__SMT2_PRINTER_H
 #define CVC5__PRINTER__SMT2_PRINTER_H
