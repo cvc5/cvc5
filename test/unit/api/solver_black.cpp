@@ -1312,7 +1312,7 @@ TEST_F(TestApiBlackSolver, declarePool)
   ASSERT_TRUE(p.getSort() == setSort);
   // cannot pass null sort
   Sort nullSort;
-  ASSERT_THROW(d_solver.declarePool("i", nullSort, {}));
+  ASSERT_THROW(d_solver.declarePool("i", nullSort, {}), CVC4ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getOp)
