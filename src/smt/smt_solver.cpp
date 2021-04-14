@@ -43,14 +43,14 @@ SmtSolver::SmtSolver(SmtEngine& smt,
       d_stats(stats),
       d_pnm(nullptr),
       d_theoryEngine(nullptr),
-      d_propEngine(nullptr),
-      d_proofForUnsatCoreMode(false)
+      d_propEngine(nullptr)
 {
 }
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit(const LogicInfo& logicInfo)
+void SmtSolver::finishInit(const LogicInfo& logicInfo,
+                           bool proofForUnsatCoreMode)
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -60,7 +60,7 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
                        d_rm,
                        logicInfo,
                        d_smt.getOutputManager(),
-                       d_proofForUnsatCoreMode ? nullptr : d_pnm));
+                       proofForUnsatCoreMode ? nullptr : d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
@@ -257,8 +257,6 @@ void SmtSolver::processAssertions(Assertions& as)
 }
 
 void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
-
-void SmtSolver::setProofForUnsatCoreMode() { d_proofForUnsatCoreMode = true; }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 

@@ -72,7 +72,8 @@ class SmtSolver
   /**
    * Create theory engine, prop engine based on the logic info.
    */
-  void finishInit(const LogicInfo& logicInfo);
+  void finishInit(const LogicInfo& logicInfo,
+                  bool proofForUnsatCoreMode = false);
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
   /**
@@ -119,8 +120,6 @@ class SmtSolver
    * called before finishInit.
    */
   void setProofNodeManager(ProofNodeManager* pnm);
-  /** Set this solver to use proofs solely for unsat cores. */
-  void setProofForUnsatCoreMode();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -152,8 +151,6 @@ class SmtSolver
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
   std::unique_ptr<prop::PropEngine> d_propEngine;
-  /** Whether proof-productionin used solely for unsat core production */
-  bool d_proofForUnsatCoreMode;
 };
 
 }  // namespace smt

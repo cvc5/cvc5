@@ -231,18 +231,15 @@ void SmtEngine::finishInit()
     d_asserts->setProofGenerator(pppg);
     // enable it in the SmtSolver
     d_smtSolver->setProofNodeManager(pnm);
-    // if proofs and unsat cores, proofs are used solely for unsat core
-    // production, so we don't generate proofs in the theory engine
-    if (options::unsatCoresNew())
-    {
-      d_smtSolver->setProofForUnsatCoreMode();
-    }
     // enabled proofs in the preprocessor
     d_pp->setProofGenerator(pppg);
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(logic);
+  // if proofs and unsat cores, proofs are used solely for unsat core
+  // production, so we don't generate proofs in the theory engine, which is
+  // communicated via the second argument
+  d_smtSolver->finishInit(logic, options::unsatCoresNew());
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
