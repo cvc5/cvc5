@@ -15,7 +15,7 @@
  * Stat classes that represent histograms.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATS_HISTOGRAM_H
 #define CVC5__UTIL__STATS_HISTOGRAM_H

@@ -64,7 +64,7 @@
  *
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
 #define __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H

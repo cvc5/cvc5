@@ -15,7 +15,7 @@
  * This class provides a single notification that must be overwritten.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__LISTENER_H
 #define CVC5__LISTENER_H

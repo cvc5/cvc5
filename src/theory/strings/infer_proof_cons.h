@@ -13,7 +13,7 @@
  * Inference to proof conversion.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H
 #define CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H

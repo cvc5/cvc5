@@ -14,7 +14,7 @@
  * for each term of type array.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARRAYS__ARRAY_INFO_H
 #define CVC5__THEORY__ARRAYS__ARRAY_INFO_H

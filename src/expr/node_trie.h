@@ -13,7 +13,7 @@
  * A trie class for Nodes and TNodes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__NODE_TRIE_H
 #define CVC5__EXPR__NODE_TRIE_H

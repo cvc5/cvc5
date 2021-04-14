@@ -13,9 +13,8 @@
  * Definition of TPTP parser.
  */
 
-#include "parser/antlr_input.h" // Needs to go first.
-
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
+#include "parser/antlr_input.h"  // Needs to go first.
 
 #ifndef CVC5__PARSER__TPTP_H
 #define CVC5__PARSER__TPTP_H

@@ -16,7 +16,7 @@
  * tokens will be bounded (e.g., if you're using a bounded token stream).
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H
 #define CVC5__PARSER__BOUNDED_TOKEN_FACTORY_H

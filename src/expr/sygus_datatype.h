@@ -12,7 +12,7 @@
  *
  * A class for constructing SyGuS datatypes.
  */
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__SYGUS_DATATYPE_H
 #define CVC5__EXPR__SYGUS_DATATYPE_H

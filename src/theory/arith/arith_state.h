@@ -13,7 +13,7 @@
  * Arithmetic theory state.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARITH__ARITH_STATE_H
 #define CVC5__THEORY__ARITH__ARITH_STATE_H

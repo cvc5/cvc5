@@ -13,7 +13,7 @@
  * Definition of input and output languages.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__OPTIONS__SET_LANGUAGE_H
 #define CVC5__OPTIONS__SET_LANGUAGE_H

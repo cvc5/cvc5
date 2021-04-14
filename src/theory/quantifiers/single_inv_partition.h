@@ -13,7 +13,7 @@
  * Utility for single invocation partitioning.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
 #define CVC5__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H

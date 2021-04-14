@@ -15,7 +15,7 @@
  * Implementation of the CaDiCaL SAT solver for CVC4 (bit-vectors).
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__CADICAL_H
 #define CVC5__PROP__CADICAL_H

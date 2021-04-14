@@ -13,7 +13,7 @@
  * Setup information for an equality engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__EE_SETUP_INFO__H
 #define CVC5__THEORY__EE_SETUP_INFO__H

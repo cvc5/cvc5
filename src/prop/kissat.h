@@ -15,7 +15,7 @@
  * Wrapper for the Kissat SAT solver (for theory of bit-vectors).
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__KISSAT_H
 #define CVC5__PROP__KISSAT_H

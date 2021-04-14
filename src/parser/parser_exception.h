@@ -13,7 +13,7 @@
  * Exception class for parse errors.
  */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__PARSER_EXCEPTION_H
 #define CVC5__PARSER__PARSER_EXCEPTION_H

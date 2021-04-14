@@ -131,7 +131,7 @@
  *      d_nv is deallocated.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 /* strong dependency; make sure node is included first */
 #include "expr/node.h"

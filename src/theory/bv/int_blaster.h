@@ -13,7 +13,7 @@
  * A translation utility from bit-vectors to integers.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef __CVC5__THEORY__BV__INT_BLASTER__H
 #define __CVC5__THEORY__BV__INT_BLASTER__H

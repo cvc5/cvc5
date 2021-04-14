@@ -13,7 +13,7 @@
  * The proof-producing CNF stream.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__PROOF_CNF_STREAM_H
 #define CVC5__PROP__PROOF_CNF_STREAM_H

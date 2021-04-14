@@ -13,7 +13,7 @@
  * The sygus extension of the theory of datatypes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__DATATYPES__SYGUS_EXTENSION_H
 #define CVC5__THEORY__DATATYPES__SYGUS_EXTENSION_H
