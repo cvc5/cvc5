@@ -62,8 +62,6 @@ struct StatisticBaseValue
   /**
    * Converts the internal data to an instance of `StatExportData` that is
    * suitable for printing and exporting to the API.
-   * Assumes that `hasValue` returns true. Otherwise, the return value should
-   * assumed to be `std::monostate`.
    */
   virtual StatExportData getViewer() const = 0;
   /**
@@ -147,7 +145,7 @@ struct StatisticHistogramValue : StatisticBaseValue
   bool hasValue() const override { return d_hist.size() > 0; }
   void printSafe(int fd) const override
   {
-    safe_print(fd, "[");
+    safe_print(fd, "{ ");
     bool first = true;
     for (size_t i = 0, n = d_hist.size(); i < n; ++i)
     {
@@ -163,12 +161,12 @@ struct StatisticHistogramValue : StatisticBaseValue
         }
         safe_print(fd, "(");
         safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
-        safe_print(fd, " : ");
+        safe_print(fd, ": ");
         safe_print<uint64_t>(fd, d_hist[i]);
         safe_print(fd, ")");
       }
     }
-    safe_print(fd, "]");
+    safe_print(fd, " }");
   }
 
   /**
@@ -262,6 +260,10 @@ struct StatisticReferenceValue : StatisticBaseValue
     {
       safe_print<T>(fd, *d_value);
     }
+    else
+    {
+      safe_print<T>(fd, T());
+    }
   }
   void commit()
   {
@@ -295,7 +297,7 @@ struct StatisticSizeValue : StatisticBaseValue
     {
       return static_cast<int64_t>(d_value->size());
     }
-    return {};
+    return static_cast<int64_t>(0);
   }
   bool hasValue() const override
   {
@@ -310,6 +312,10 @@ struct StatisticSizeValue : StatisticBaseValue
     else if (d_value != nullptr)
     {
       safe_print(fd, d_value->size());
+    }
+    else
+    {
+      safe_print(fd, 0);
     }
   }
   void commit()

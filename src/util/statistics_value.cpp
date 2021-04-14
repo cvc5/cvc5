@@ -70,7 +70,7 @@ StatisticBaseValue::~StatisticBaseValue() {}
 
 std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
 {
-  return detail::print(out, sbv.hasValue() ? sbv.getViewer() : StatExportData{});
+  return detail::print(out, sbv.getViewer());
 }
 
 StatExportData StatisticAverageValue::getViewer() const { return get(); }
