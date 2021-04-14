@@ -92,8 +92,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
   if (options::unsatCoresNew()
-      && (options::produceProofs() || options::checkProofs()
-          || options::dumpProofs()))
+      && ((options::produceProofs() && options::produceProofs.wasSetByUser())
+          || (options::checkProofs() && options::checkProofs.wasSetByUser())
+          || (options::dumpProofs() && options::dumpProofs.wasSetByUser())))
   {
     AlwaysAssert(false) << "Can't properly produce proofs and have the new "
                            "unsat cores simultaneously.\n";
