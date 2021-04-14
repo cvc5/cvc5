@@ -7,7 +7,7 @@ for example whether it is an equality (:cpp:enumerator:`EQUAL
 <cvc5::api::Kind::AND>`), or a bitvector addition
 (:cpp:enumerator:`BITVECTOR_PLUS <cvc5::api::Kind::BITVECTOR_PLUS>`).
 
-Note that the api type :cpp:enum:`cvc5::api::Kind` roughly corresponds to
+Note that the API type :cpp:enum:`cvc5::api::Kind` roughly corresponds to
 :cpp:enum:`cvc5::Kind`, but is a different type and has a few subtle
 differences.
 
