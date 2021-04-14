@@ -30,8 +30,7 @@ namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& os, const StatisticBaseValue* sbv)
 {
-  sbv->print(os);
-  return os;
+  return os << *sbv;
 }
 bool operator==(const StatisticBaseValue* sbv, const std::string& s)
 {
