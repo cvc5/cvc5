@@ -50,6 +50,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
     case SkolemFunId::SQRT: return "SQRT";
+    case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
+    case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
     default: return "?";
   }
 }
@@ -190,8 +192,8 @@ Node SkolemManager::mkPurifySkolem(Node t,
 
 Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
 {
-  std::pair<SkolemFunId, Node> key(id, cacheVal);
-  std::map<std::pair<SkolemFunId, Node>, Node>::iterator it =
+  std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
