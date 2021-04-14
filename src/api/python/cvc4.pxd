@@ -142,6 +142,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
+        Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
@@ -282,6 +283,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isRecord() except +
         bint isArray() except +
         bint isSet() except +
+        bint isBag() except +
         bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isSortConstructor() except +
@@ -300,6 +302,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getArrayIndexSort() except +
         Sort getArrayElementSort() except +
         Sort getSetElementSort() except +
+        Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
         string getUninterpretedSortName() except +
         bint isUninterpretedSortParameterized() except +

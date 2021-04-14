@@ -227,14 +227,13 @@ def test_is_set(solver):
   except RuntimeError:
       pytest.fail()
 
-#TODO missing api
-#def test_is_bag(solver):
-#  bag_sort = solver.mkBagSort(solver.getRealSort())
-#  assert(bag_sort.isBag())
-#  try:
-#      Sort(solver).isBag()
-#  except RuntimeError:
-#      pytest.fail()
+def test_is_bag(solver):
+  bag_sort = solver.mkBagSort(solver.getRealSort())
+  assert(bag_sort.isBag())
+  try:
+      Sort(solver).isBag()
+  except RuntimeError:
+      pytest.fail()
 
 
 def test_is_sequence(solver):
@@ -313,7 +312,7 @@ def test_is_comparable_to(solver):
   except RuntimeError:
       pytest.fail()
 
-def test_getdatatype(solver):
+def test_get_datatype(solver):
   dtypeSort = create_datatype_sort(solver)
   try:
       dtypeSort.getDatatype()
@@ -325,7 +324,7 @@ def test_getdatatype(solver):
       bvSort.getDatatype()
 
 
-def test_datatypesorts(solver):
+def test_datatype_sorts(solver):
   intSort = solver.getIntegerSort()
   dtypeSort = create_datatype_sort(solver)
   dt = dtypeSort.getDatatype()
@@ -395,7 +394,7 @@ def test_instantiate(solver):
       dtypeSort.instantiate([solver.getIntegerSort()])
 
 
-def test_getfunctionarity(solver):
+def test_get_function_arity(solver):
   funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
                                          solver.getIntegerSort())
   try:
@@ -407,7 +406,7 @@ def test_getfunctionarity(solver):
       bvSort.getFunctionArity()
 
 
-def test_getfunctiondomainsorts(solver):
+def test_get_function_domain_sorts(solver):
   funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
                                          solver.getIntegerSort())
   try:
@@ -419,7 +418,7 @@ def test_getfunctiondomainsorts(solver):
       bvSort.getFunctionDomainSorts()
 
 
-def test_getfunctioncodomainsort(solver):
+def test_get_function_codomain_sort(solver):
   funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
                                          solver.getIntegerSort())
   try:
@@ -431,7 +430,7 @@ def test_getfunctioncodomainsort(solver):
       bvSort.getFunctionCodomainSort()
 
 
-def test_getarrayindexsort(solver):
+def test_get_array_index_sort(solver):
   elementSort = solver.mkBitVectorSort(32)
   indexSort = solver.mkBitVectorSort(32)
   arraySort = solver.mkArraySort(indexSort, elementSort)
@@ -443,7 +442,7 @@ def test_getarrayindexsort(solver):
       indexSort.getArrayIndexSort()
 
 
-def test_getarrayelementsort(solver):
+def test_get_array_element_sort(solver):
   elementSort = solver.mkBitVectorSort(32)
   indexSort = solver.mkBitVectorSort(32)
   arraySort = solver.mkArraySort(indexSort, elementSort)
@@ -455,7 +454,7 @@ def test_getarrayelementsort(solver):
       indexSort.getArrayElementSort()
 
 
-def test_getsetelementsort(solver):
+def test_get_set_element_sort(solver):
   setSort = solver.mkSetSort(solver.getIntegerSort())
   try:
       setSort.getSetElementSort()
@@ -467,21 +466,20 @@ def test_getsetelementsort(solver):
   with pytest.raises(RuntimeError):
       bvSort.getSetElementSort()
 
-# TODO not implemented
-# def test_getbagelementsort(solver):
-#   bagSort = solver.mkBagSort(solver.getIntegerSort())
-#   try:
-#       bagSort.getBagElementSort()
-#   except RuntimeError:
-#           pytest.fail()
-#   elementSort = bagSort.getBagElementSort()
-#   assert(elementSort == solver.getIntegerSort())
-#   bvSort = solver.mkBitVectorSort(32)
-#   with pytest.raises(RuntimeError):
-#       bvSort.getBagElementSort()
+def test_get_bag_element_sort(solver):
+   bagSort = solver.mkBagSort(solver.getIntegerSort())
+   try:
+       bagSort.getBagElementSort()
+   except RuntimeError:
+           pytest.fail()
+   elementSort = bagSort.getBagElementSort()
+   assert(elementSort == solver.getIntegerSort())
+   bvSort = solver.mkBitVectorSort(32)
+   with pytest.raises(RuntimeError):
+       bvSort.getBagElementSort()
 
 
-def test_getsequenceelementsort(solver):
+def test_get_sequence_element_sort(solver):
   seqSort = solver.mkSequenceSort(solver.getIntegerSort())
   assert(seqSort.isSequence())
   try:
@@ -494,7 +492,7 @@ def test_getsequenceelementsort(solver):
       bvSort.getSequenceElementSort()
 
 
-def test_getuninterpretedsortname(solver):
+def test_get_uninterpreted_sort_name(solver):
   uSort = solver.mkUninterpretedSort("u")
   try:
       uSort.getUninterpretedSortName()
@@ -505,7 +503,7 @@ def test_getuninterpretedsortname(solver):
       bvSort.getUninterpretedSortName()
 
 
-def test_isuninterpretedsortparameterized(solver):
+def test_is_uninterpreted_sort_parameterized(solver):
   uSort = solver.mkUninterpretedSort("u")
   assert(not uSort.isUninterpretedSortParameterized())
   sSort = solver.mkSortConstructorSort("s", 1)
@@ -516,7 +514,7 @@ def test_isuninterpretedsortparameterized(solver):
       bvSort.isUninterpretedSortParameterized()
 
 
-def test_getuninterpretedsortparamsorts(solver):
+def test_get_uninterpreted_sort_paramsorts(solver):
   uSort = solver.mkUninterpretedSort("u")
   try:
       uSort.getUninterpretedSortParamSorts()
@@ -530,7 +528,7 @@ def test_getuninterpretedsortparamsorts(solver):
       bvSort.getUninterpretedSortParamSorts()
 
 
-def test_getuninterpretedsortconstructorname(solver):
+def test_get_uninterpreted_sort_constructor_name(solver):
   sSort = solver.mkSortConstructorSort("s", 2)
   try:
       sSort.getSortConstructorName()
@@ -541,7 +539,7 @@ def test_getuninterpretedsortconstructorname(solver):
       bvSort.getSortConstructorName()
 
 
-def test_getuninterpretedsortconstructorarity(solver):
+def test_get_uninterpreted_sort_constructor_arity(solver):
   sSort = solver.mkSortConstructorSort("s", 2)
   try:
       sSort.getSortConstructorArity()
@@ -552,7 +550,7 @@ def test_getuninterpretedsortconstructorarity(solver):
       bvSort.getSortConstructorArity()
 
 
-def test_getbvsize(solver):
+def test_get_bv_size(solver):
   bvSort = solver.mkBitVectorSort(32)
   try:
       bvSort.getBVSize()
@@ -563,7 +561,7 @@ def test_getbvsize(solver):
       setSort.getBVSize()
 
 
-def test_getfpexponentsize(solver):
+def test_get_fp_exponent_size(solver):
     if solver.supportsFloatingPoint():
         fpSort = solver.mkFloatingPointSort(4, 8)
         try:
@@ -575,7 +573,7 @@ def test_getfpexponentsize(solver):
             setSort.getFPExponentSize()
 
 
-def test_getfpsignificandsize(solver):
+def test_get_fp_significand_size(solver):
   if solver.supportsFloatingPoint():
     fpSort = solver.mkFloatingPointSort(4, 8)
     try:
@@ -587,7 +585,7 @@ def test_getfpsignificandsize(solver):
         setSort.getFPSignificandSize()
 
 
-def test_getdatatypeparamsorts(solver):
+def test_get_datatype_paramsorts(solver):
   # create parametric datatype, check should not fail
   sort = solver.mkParamSort("T")
   paramDtypeSpec = solver.mkDatatypeDecl("paramlist", sort)
@@ -613,7 +611,7 @@ def test_getdatatypeparamsorts(solver):
      dtypeSort.getDatatypeParamSorts()
 
 
-def test_getdatatypearity(solver):
+def test_get_datatype_arity(solver):
   # create datatype sort, check should not fail
   dtypeSpec = solver.mkDatatypeDecl("list")
   cons = solver.mkDatatypeConstructorDecl("cons")
@@ -632,7 +630,7 @@ def test_getdatatypearity(solver):
       bvSort.getDatatypeArity()
 
 
-def test_gettuplelength(solver):
+def test_get_tuple_length(solver):
   tupleSort = solver.mkTupleSort([solver.getIntegerSort(), solver.getIntegerSort()])
   try:
       tupleSort.getTupleLength()
@@ -643,7 +641,7 @@ def test_gettuplelength(solver):
       bvSort.getTupleLength()
 
 
-def test_gettuplesorts(solver):
+def test_get_tuple_sorts(solver):
   tupleSort = solver.mkTupleSort([solver.getIntegerSort(), solver.getIntegerSort()])
   try:
       tupleSort.getTupleSorts()
@@ -654,7 +652,7 @@ def test_gettuplesorts(solver):
       bvSort.getTupleSorts()
 
 
-def test_sortcompare(solver):
+def test_sort_compare(solver):
   boolSort = solver.getBooleanSort()
   intSort = solver.getIntegerSort()
   bvSort = solver.mkBitVectorSort(32)
@@ -665,7 +663,7 @@ def test_sortcompare(solver):
   assert((intSort > bvSort or intSort == bvSort) == (intSort >= bvSort))
 
 
-def test_sortsubtyping(solver):
+def test_sort_subtyping(solver):
   intSort = solver.getIntegerSort()
   realSort = solver.getRealSort()
   assert(intSort.isSubsortOf(realSort))
@@ -688,7 +686,7 @@ def test_sortsubtyping(solver):
   assert(not setSortR.isSubsortOf(setSortI))
 
 
-def test_sortscopedtostring(solver):
+def test_sort_scoped_tostring(solver):
   name = "uninterp-sort"
   bvsort8 = solver.mkBitVectorSort(8)
   uninterp_sort = solver.mkUninterpretedSort(name)
