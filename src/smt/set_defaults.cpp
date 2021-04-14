@@ -302,7 +302,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::unsatCoresNew())
   {
     // no fine-graininess
-    options::proofGranularityMode.set(options::ProofGranularityMode::OFF);
+    if (!options::proofGranularityMode.wasSetByUser())
+    {
+      options::proofGranularityMode.set(options::ProofGranularityMode::OFF);
+    }
   }
 
   if (options::arraysExp())
