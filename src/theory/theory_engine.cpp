@@ -1784,7 +1784,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     return trn;
   }
 
-  return theory::TrustNode::mkTrustLemma(expNode, nullptr);
+  return theory::TrustNode::mkTrustPropExp(conclusion, expNode, nullptr);
 }
 
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }

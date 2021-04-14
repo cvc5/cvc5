@@ -236,7 +236,10 @@ void SmtEngine::finishInit()
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(logic);
+  // if proofs and unsat cores, proofs are used solely for unsat core
+  // production, so we don't generate proofs in the theory engine, which is
+  // communicated via the second argument
+  d_smtSolver->finishInit(logic, options::unsatCoresNew());
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
@@ -1408,10 +1411,11 @@ StatisticsRegistry& SmtEngine::getStatisticsRegistry()
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
-  if (!options::unsatCores())
+  if (!options::unsatCores() && !options::unsatCoresNew())
   {
     throw ModalException(
-        "Cannot get an unsat core when produce-unsat-cores option is off.");
+        "Cannot get an unsat core when produce-unsat-cores[-new] option is "
+        "off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
@@ -1437,7 +1441,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
 }
 
 void SmtEngine::checkUnsatCore() {
-  Assert(options::unsatCores())
+  Assert(options::unsatCores() || options::unsatCoresNew())
       << "cannot check unsat core if unsat cores are turned off";
 
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
@@ -1449,7 +1453,10 @@ void SmtEngine::checkUnsatCore() {
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
   coreChecker->getOptions().set(options::produceProofs, false);
+  coreChecker->getOptions().set(options::checkProofs, false);
   coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
+  coreChecker->getOptions().set(options::proofEagerChecking, false);
+
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
   if (getSepHeapTypes(sepLocType, sepDataType))
@@ -1633,7 +1640,8 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::produceProofs() && getSmtMode() == SmtMode::UNSAT)
+  if (options::produceProofs() && !options::unsatCoresNew()
+      && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);
