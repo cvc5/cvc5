@@ -1305,7 +1305,7 @@ TEST_F(TestApiBlackSolver, declarePool)
   Sort setSort = d_solver.mkSetSort(intSort);
   Term zero = d_solver.mkInteger(0);
   Term x = d_solver.mkConst(intSort, "x");
-  Term x = d_solver.mkConst(intSort, "y");
+  Term y = d_solver.mkConst(intSort, "y");
   // declare a pool with initial value { 0, x, y }
   Term p = d_solver.declarePool("p", intSort, {zero, x, y});
   // pool should have the same sort
