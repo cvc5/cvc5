@@ -74,7 +74,7 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
 
 StatExportData StatisticAverageValue::getViewer() const { return get(); }
 
-bool StatisticAverageValue::hasValue() const { return d_count > 0; }
+bool StatisticAverageValue::isDefault() const { return d_count == 0; }
 
 void StatisticAverageValue::printSafe(int fd) const
 {
@@ -88,9 +88,9 @@ StatExportData StatisticTimerValue::getViewer() const
   return static_cast<int64_t>(get() / std::chrono::milliseconds(1));
 }
 
-bool StatisticTimerValue::hasValue() const
+bool StatisticTimerValue::isDefault() const
 {
-  return d_running || d_duration.count() > 0;
+  return !d_running && d_duration.count() == 0;
 }
 
 void StatisticTimerValue::printSafe(int fd) const

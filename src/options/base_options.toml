@@ -104,14 +104,14 @@ header = "options/base_options.h"
   help       = "print expert (non-public) statistics as well"
 
 [[option]]
-  name       = "statisticsUnset"
-  smt_name   = "stats-unset"
-  long       = "stats-unset"
+  name       = "statisticsAll"
+  smt_name   = "stats-all"
+  long       = "stats-all"
   category   = "expert"
   type       = "bool"
   predicates = ["statsEnabledBuild"]
   read_only  = true
-  help       = "print unset statistics as well"
+  help       = "print unchanged (defaulted) statistics as well"
 
 [[option]]
   name       = "statisticsEveryQuery"

@@ -2287,8 +2287,8 @@ class CVC4_EXPORT Stat
 
   /** Is this value intended for experts only? */
   bool isExpert() const;
-  /** Does this value hold a non-default value? */
-  bool hasValue() const;
+  /** Does this value hold the default value? */
+  bool isDefault() const;
 
   /** Is this value an integer? */
   bool isInt() const;
@@ -2308,11 +2308,11 @@ class CVC4_EXPORT Stat
   const HistogramData& getHistogram() const;
 
  private:
-  Stat(bool expert, bool unset, StatData&& sd);
+  Stat(bool expert, bool def, StatData&& sd);
   /** Whether this statistic is only meant for experts */
   bool d_expert;
-  /** Whether this statistic has not been set */
-  bool d_unset;
+  /** Whether this statistic has the default value */
+  bool d_default;
   std::unique_ptr<StatData> d_data;
 };
 
@@ -2324,10 +2324,11 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
  * object: it will not change when the solvers internal statistics do, it
  * will not be invalidated if the solver is destroyed.
  * Statistics are generally categorized as public and expert statistics.
- * Furthermore, statistics may be unset and thus hold no value of interest.
+ * Furthermore, statistics may hold the default values and thus be not of
+ * interest.
  * Iterating on this class (via `begin()` and `end()`) shows only public
  * statistics that have been set. By passing appropriate flags to `begin()`,
- * statistics that are expert, unset, or both, can be included as well.
+ * statistics that are expert, unchanged, or both, can be included as well.
  * A single statistic value is represented as `Stat`.
  */
 class CVC4_EXPORT Statistics
@@ -2354,12 +2355,12 @@ class CVC4_EXPORT Statistics
     iterator(BaseType::const_iterator it,
              const BaseType& base,
              bool expert,
-             bool unset);
+             bool def);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
     bool d_showExpert = false;
-    bool d_showUnset = false;
+    bool d_showDefault = false;
   };
 
   /** Retrieve the statistic with the given name. */
@@ -2369,10 +2370,9 @@ class CVC4_EXPORT Statistics
    * By default, only entries that are public (non-expert) and have been set
    * are visible while the others are skipped.
    * With `expert` set to true, expert statistics are shown as well.
-   * With `unset` set to true, unset statistics are shown as well. They should
-   * never hold a value (i.e. `hasValue() == false`).
+   * With `def` set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool expert = false, bool unset = false) const;
+  iterator begin(bool expert = false, bool def = false) const;
   /** end iteration */
   iterator end() const;
 

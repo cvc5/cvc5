@@ -4079,7 +4079,7 @@ Stat& Stat::operator=(const Stat& s)
 }
 
 bool Stat::isExpert() const { return d_expert; }
-bool Stat::hasValue() const { return !d_unset; }
+bool Stat::isDefault() const { return d_default; }
 
 bool Stat::isInt() const
 {
@@ -4126,9 +4126,9 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert, bool unset, StatData&& sd)
+Stat::Stat(bool expert, bool def, StatData&& sd)
     : d_expert(expert),
-      d_unset(unset),
+      d_default(def),
       d_data(std::make_unique<StatData>(std::move(sd)))
 {
 }
@@ -4191,8 +4191,8 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
                                bool expert,
-                               bool unset)
-    : d_it(it), d_base(&base), d_showExpert(expert), d_showUnset(unset)
+                               bool def)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(def)
 {
   while (!isVisible())
   {
@@ -4203,7 +4203,7 @@ bool Statistics::iterator::isVisible() const
 {
   if (d_it == d_base->end()) return true;
   if (!d_showExpert && d_it->second.isExpert()) return false;
-  if (!d_showUnset && !d_it->second.hasValue()) return false;
+  if (!d_showDefault && d_it->second.isDefault()) return false;
   return true;
 }
 
@@ -4217,9 +4217,9 @@ const Stat& Statistics::get(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
-Statistics::iterator Statistics::begin(bool expert, bool unset) const
+Statistics::iterator Statistics::begin(bool expert, bool def) const
 {
-  return iterator(d_stats.begin(), d_stats, expert, unset);
+  return iterator(d_stats.begin(), d_stats, expert, def);
 }
 Statistics::iterator Statistics::end() const
 {
@@ -4232,7 +4232,7 @@ Statistics::Statistics(const StatisticsRegistry& reg)
   {
     d_stats.emplace(svp.first,
                     Stat(svp.second->d_expert,
-                         !svp.second->hasValue(),
+                         svp.second->isDefault(),
                          svp.second->getViewer()));
   }
 }

@@ -53,10 +53,10 @@ void StatisticsRegistry::storeSnapshot()
     for (const auto& s : d_stats)
     {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      if (!options::statisticsAll() && s.second->isDefault()) continue;
       d_lastSnapshot->emplace(
           s.first,
-          s.second->hasValue() ? s.second->getViewer() : StatExportData{});
+          s.second->getViewer());
     }
   }
 }
@@ -79,7 +79,7 @@ void StatisticsRegistry::print(std::ostream& os) const
     for (const auto& s : d_stats)
     {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      if (!options::statisticsAll() && s.second->isDefault()) continue;
       os << s.first << " = " << *s.second << std::endl;
     }
   }
@@ -92,18 +92,11 @@ void StatisticsRegistry::printSafe(int fd) const
     for (const auto& s : d_stats)
     {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
+      if (!options::statisticsAll() && s.second->isDefault()) continue;
 
       safe_print(fd, s.first);
       safe_print(fd, " = ");
-      if (s.second->hasValue())
-      {
-        s.second->printSafe(fd);
-      }
-      else
-      {
-        safe_print(fd, "<unset>");
-      }
+      s.second->printSafe(fd);
       safe_print(fd, '\n');
     }
   }
@@ -121,19 +114,32 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
     for (const auto& s : d_stats)
     {
       if (!options::statisticsExpert() && s.second->d_expert) continue;
-      if (!options::statisticsUnset() && !s.second->hasValue()) continue;
-      auto oldit = d_lastSnapshot->find(s.first);
-      if (oldit == d_lastSnapshot->end())
+      if (!options::statisticsAll() && s.second->isDefault())
       {
-        // not present in the snapshot
-        os << s.first << " = " << *s.second << " (was <unset>)" << std::endl;
+        auto oldit = d_lastSnapshot->find(s.first);
+        if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())
+        {
+          // present in the snapshot, now defaulted
+          os << s.first << " = " << *s.second << " (was ";
+          detail::print(os, oldit->second);
+          os << ")" << std::endl;
+        }
       }
-      else if (oldit->second != s.second->getViewer())
+      else
       {
-        // present in the snapshow, print old value
-        os << s.first << " = " << *s.second << " (was ";
-        detail::print(os, oldit->second);
-        os << ")" << std::endl;
+        auto oldit = d_lastSnapshot->find(s.first);
+        if (oldit == d_lastSnapshot->end())
+        {
+          // not present in the snapshot
+          os << s.first << " = " << *s.second << " (was default)" << std::endl;
+        }
+        else if (oldit->second != s.second->getViewer())
+        {
+          // present in the snapshot, print old value
+          os << s.first << " = " << *s.second << " (was ";
+          detail::print(os, oldit->second);
+          os << ")" << std::endl;
+        }
       }
     }
   }

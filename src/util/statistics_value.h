@@ -54,8 +54,8 @@ namespace detail {
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue();
-  /** Checks whether the data holds a non-default value. */
-  virtual bool hasValue() const = 0;
+  /** Checks whether the data holds the default value. */
+  virtual bool isDefault() const = 0;
   /**
    * Converts the internal data to an instance of `StatExportData` that is
    * suitable for printing and exporting to the API.
@@ -64,8 +64,6 @@ struct StatisticBaseValue
   /**
    * Safely writes the data to a file descriptor. Is suitable to be used
    * within a signal handler.
-   * Assumes that `hasValue` returns true. Otherwise, the user should write
-   * `<undef>` to the file descriptor.
    */
   virtual void printSafe(int fd) const = 0;
 
@@ -78,7 +76,7 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv);
 struct StatisticAverageValue : StatisticBaseValue
 {
   StatExportData getViewer() const override;
-  bool hasValue() const override;
+  bool isDefault() const override;
   void printSafe(int fd) const override;
   double get() const;
 
@@ -99,7 +97,7 @@ template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
   StatExportData getViewer() const override { return d_value; }
-  bool hasValue() const override { return d_value != T(); }
+  bool isDefault() const override { return d_value == T(); }
   void printSafe(int fd) const override { safe_print<T>(fd, d_value); }
 
   T d_value;
@@ -139,7 +137,7 @@ struct StatisticHistogramValue : StatisticBaseValue
     }
     return res;
   }
-  bool hasValue() const override { return d_hist.size() > 0; }
+  bool isDefault() const override { return d_hist.size() == 0; }
   void printSafe(int fd) const override
   {
     safe_print(fd, "{ ");
@@ -243,9 +241,13 @@ struct StatisticReferenceValue : StatisticBaseValue
       return T();
     }
   }
-  bool hasValue() const override
+  bool isDefault() const override
   {
-    return d_committed || (d_value != nullptr && *d_value != T());
+    if (d_committed)
+    {
+      return *d_committed == T();
+    }
+    return d_value == nullptr || *d_value == T();
   }
   void printSafe(int fd) const override
   {
@@ -296,9 +298,13 @@ struct StatisticSizeValue : StatisticBaseValue
     }
     return static_cast<int64_t>(0);
   }
-  bool hasValue() const override
+  bool isDefault() const override
   {
-    return d_committed || (d_value != nullptr && d_value->size() != 0);
+    if (d_committed)
+    {
+      return *d_committed == 0;
+    }
+    return d_value == nullptr || d_value->size() == 0;
   }
   void printSafe(int fd) const override
   {
@@ -342,7 +348,7 @@ struct StatisticTimerValue : StatisticBaseValue
   };
   /** Returns the number of milliseconds */
   StatExportData getViewer() const override;
-  bool hasValue() const override;
+  bool isDefault() const override;
   /** Prints seconds in fixed-point format */
   void printSafe(int fd) const override;
   /** Make sure that we include the time of a currently running timer */
