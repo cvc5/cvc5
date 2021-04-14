@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file smt2.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of SMT2 constants.
- **
- ** Definitions of SMT2 constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 constants.
+ */
 #include "parser/smt2/smt2.h"
 
 #include <algorithm>
@@ -778,11 +777,11 @@ static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
   // in C target runtime.
   //
   pANTLR3_INPUT_STREAM    in;
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename.c_str());
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if( in == NULL ) {
     Debug("parser") << "Can't open " << filename << std::endl;
     return false;

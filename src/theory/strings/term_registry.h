@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term registry for the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term registry for the theory of strings.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__TERM_REGISTRY_H
-#define CVC4__THEORY__STRINGS__TERM_REGISTRY_H
+#ifndef CVC5__THEORY__STRINGS__TERM_REGISTRY_H
+#define CVC5__THEORY__STRINGS__TERM_REGISTRY_H
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
@@ -281,4 +282,4 @@ class TermRegistry
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__TERM_REGISTRY_H */
+#endif /* CVC5__THEORY__STRINGS__TERM_REGISTRY_H */

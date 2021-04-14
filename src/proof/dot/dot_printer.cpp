@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file dot_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Diego Camargos
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implemantation of the module for printing dot proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Diego Della Rocca de Camargos
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implemantation of the module for printing dot proofs.
+ */
 
 #include "proof/dot/dot_printer.h"
 

@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file quant_conflict_find.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements conflict-based instantiation (Reynolds et al FMCAD 2014)
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements conflict-based instantiation (Reynolds et al FMCAD 2014).
+ */
 
 #include "theory/quantifiers/quant_conflict_find.h"
 

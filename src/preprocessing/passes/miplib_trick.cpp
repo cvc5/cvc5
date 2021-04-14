@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file miplib_trick.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The MIPLIB trick preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The MIPLIB trick preprocessing pass.
+ *
+ */
 
 #include "preprocessing/passes/miplib_trick.h"
 
@@ -537,8 +538,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
-              CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
-              Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
+              CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
+              Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
                   << "unexpected solution from arith's ppAssert()";

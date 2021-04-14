@@ -16,6 +16,9 @@
 
 #include <sstream>
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -29,16 +32,40 @@ LfscTermProcessor::LfscTermProcessor()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_arrow = nm->mkSortConstructor("arrow", 2);
+
   d_sortType = nm->mkSort("sortType");
   // the embedding of arrow into Node, which is binary constructor over sorts
   TypeNode anfType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
   d_typeAsNode[d_arrow] = getSymbolInternal(FUNCTION_TYPE, anfType, "arrow");
+
+  TypeNode intType = nm->integerType();
+  TypeNode arrType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
+  d_typeKindToNodeCons[ARRAY_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, arrType, "Array");
+  TypeNode bvType = nm->mkFunctionType(intType, d_sortType);
+  d_typeKindToNodeCons[BITVECTOR_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, bvType, "BitVec");
+  TypeNode fpType = nm->mkFunctionType({intType, intType}, d_sortType);
+  d_typeKindToNodeCons[FLOATINGPOINT_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, fpType, "FloatingPoint");
+  TypeNode setType = nm->mkFunctionType(d_sortType, d_sortType);
+  d_typeKindToNodeCons[SET_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, setType, "Set");
+  d_typeKindToNodeCons[BAG_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
+  d_typeKindToNodeCons[SEQUENCE_TYPE] =
+      getSymbolInternal(FUNCTION_TYPE, setType, "Seq");
 }
 
 Node LfscTermProcessor::runConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
+  if (k == ASCRIPTION_TYPE)
+  {
+    // dummy node, return it
+    return n;
+  }
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
       << "runConvert " << n << " " << k << std::endl;
@@ -59,6 +86,12 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == SKOLEM)
   {
+    // constructors/selectors are represented by skolems, which are defined
+    // symbols
+    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    {
+      return n;
+    }
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
     Node on = SkolemManager::getOriginalForm(n);
@@ -78,7 +111,21 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == APPLY_UF)
   {
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
-    return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+    return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+  }
+  else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER)
+  {
+    // must convert other kinds of apply to functions, since we convert to
+    // HO_APPLY
+    Node opc = getOperatorOfTerm(n, true);
+    if (n.getNumChildren() == 0)
+    {
+      return opc;
+    }
+    std::vector<Node> children;
+    children.push_back(opc);
+    children.insert(children.end(), n.begin(), n.end());
+    return runConvert(nm->mkNode(APPLY_UF, children));
   }
   else if (k == HO_APPLY)
   {
@@ -156,24 +203,19 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (n.isClosure())
   {
-    TypeNode intType = nm->integerType();
     // (forall ((x1 T1) ... (xn Tk)) P) is
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
-    TypeNode bodyType = nm->mkFunctionType(ret.getType(), tn);
-    // We permit non-flat function types here
-    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
-    Node forallOp = getSymbolInternal(
-        k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+    Node cop = getOperatorOfClosure(n);
     for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
     {
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
-      Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
-      Node tc = typeAsNode(convertType(v.getType()));
-      ret = nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, forallOp, x, tc), ret);
+      Node vop = getOperatorOfBoundVar(cop, v);
+      ret = nm->mkNode(APPLY_UF, vop, ret);
     }
+    // notice that intentionally we drop annotations here
     return ret;
   }
   else if (k == REGEXP_LOOP)
@@ -188,6 +230,11 @@ Node LfscTermProcessor::runConvert(Node n)
     Node n1 = nm->mkConst(Rational(op.d_loopMinOcc));
     Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
+  }
+  else if (k == MATCH)
+  {
+    // FIXME
+    return n;
   }
   else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
@@ -241,10 +288,18 @@ Node LfscTermProcessor::runConvert(Node n)
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
     Node opc;
-    if (k == PLUS || k == MULT)
+    if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
     {
       std::stringstream opName;
-      opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
+      if (n.getType().isInteger())
+      {
+        opName << "int.";
+      }
+      else
+      {
+        opName << "real.";
+      }
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
       TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
       opc = getSymbolInternal(k, ftype, opName.str());
       ck = APPLY_UF;
@@ -268,18 +323,20 @@ Node LfscTermProcessor::runConvert(Node n)
 
 TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 {
+  NodeManager* nm = NodeManager::currentNM();
   TypeNode cur = tn;
   Node tnn;
   Kind k = tn.getKind();
+  Trace("lfsc-term-process-debug")
+      << "runConvertType " << tn << " " << tn.getNumChildren() << " " << k
+      << std::endl;
   if (k == FUNCTION_TYPE)
   {
-    NodeManager* nm = NodeManager::currentNM();
     // (-> T1 ... Tn T) is (arrow T1 .... (arrow Tn T))
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     // also make the node embedding of the type
     Node arrown = d_typeAsNode[d_arrow];
     Assert(!arrown.isNull());
-    std::vector<Node> nargs;
     cur = tn.getRangeType();
     tnn = typeAsNode(cur);
     for (std::vector<TypeNode>::reverse_iterator it = argTypes.rbegin();
@@ -293,17 +350,94 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
   }
+  else if (k == BITVECTOR_TYPE)
+  {
+    tnn = d_typeKindToNodeCons[k];
+    Node w = nm->mkConst(Rational(tn.getBitVectorSize()));
+    tnn = nm->mkNode(APPLY_UF, tnn, w);
+  }
+  else if (k == FLOATINGPOINT_TYPE)
+  {
+    tnn = d_typeKindToNodeCons[k];
+    Node e = nm->mkConst(Rational(tn.getFloatingPointExponentSize()));
+    Node s = nm->mkConst(Rational(tn.getFloatingPointSignificandSize()));
+    tnn = nm->mkNode(APPLY_UF, tnn, e, s);
+  }
   else if (tn.getNumChildren() == 0)
   {
-    std::stringstream ss;
-    ss << tn;
-    tnn = getSymbolInternal(k, d_sortType, ss.str());
+    // special case: tuples are builtin datatypes
+    // notice this would not be a special case if tuples were parametric
+    // datatypes
+    if (tn.isTuple())
+    {
+      const DType& dt = tn.getDType();
+      unsigned int nargs = dt[0].getNumArgs();
+      if (nargs > 0)
+      {
+        std::vector<Node> targs;
+        std::vector<TypeNode> types;
+        for (unsigned int i = 0; i < nargs; i++)
+        {
+          // it is not converted yet, convert here
+          TypeNode tnc = runConvertType(dt[0][i].getRangeType());
+          types.push_back(d_sortType);
+          targs.push_back(typeAsNode(tnc));
+        }
+        TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, "Tuple"));
+        tnn = nm->mkNode(APPLY_UF, targs);
+      }
+    }
+    if (tnn.isNull())
+    {
+      std::stringstream ss;
+      ss << tn;
+      tnn = getSymbolInternal(k, d_sortType, ss.str());
+    }
   }
   else
   {
-    Assert(false);
+    // to build the type-as-node, must convert the component types
+    std::vector<Node> targs;
+    std::vector<TypeNode> types;
+    for (const TypeNode& tnc : tn)
+    {
+      targs.push_back(typeAsNode(tnc));
+      types.push_back(d_sortType);
+    }
+    Node op;
+    if (k == PARAMETRIC_DATATYPE)
+    {
+      TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+      op = getSymbolInternal(k, ftype, tn.getDType().getName());
+    }
+    else if (k == SORT_TYPE)
+    {
+      TypeNode ftype = nm->mkFunctionType(types, d_sortType);
+      std::string name;
+      tn.getAttribute(expr::VarNameAttr(), name);
+      op = getSymbolInternal(k, ftype, name);
+    }
+    else
+    {
+      std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
+      if (it != d_typeKindToNodeCons.end())
+      {
+        op = it->second;
+      }
+    }
+    if (!op.isNull())
+    {
+      targs.insert(targs.begin(), op);
+      tnn = nm->mkNode(APPLY_UF, targs);
+    }
+    else
+    {
+      AlwaysAssert(false);
+    }
   }
   Assert(!tnn.isNull());
+  Trace("lfsc-term-process-debug") << "...type as node: " << tnn << std::endl;
   d_typeAsNode[cur] = tnn;
   return cur;
 }
@@ -393,7 +527,8 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND: nullTerm = nm->mkConst(true); break;
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-    case MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case MULT:
+    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
     case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
     case REGEXP_CONCAT:
       // the language containing only the empty string
@@ -409,17 +544,49 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
 Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
 {
   Assert(n.hasOperator());
+  Assert(!n.isClosure());
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n.getKind();
+  std::stringstream opName;
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
-    return n.getOperator();
+    Node op = n.getOperator();
+    if (op.getType().isFunction())
+    {
+      return op;
+    }
+    // note other kinds of functions (e.g. selectors and testers)
+    std::vector<TypeNode> argTypes;
+    for (const Node& nc : n)
+    {
+      argTypes.push_back(nc.getType());
+    }
+    TypeNode ftype = n.getType();
+    if (!argTypes.empty())
+    {
+      ftype = nm->mkFunctionType(argTypes, ftype, false);
+    }
+    if (k == APPLY_TESTER)
+    {
+      // use is-C instead of (_ is C) syntax for testers
+      unsigned cindex = DType::indexOf(op);
+      const DType& dt = DType::datatypeOf(op);
+      opName << "is-" << dt[cindex].getConstructor();
+    }
+    else
+    {
+      opName << op;
+    }
+    Node ret = getSymbolInternal(k, ftype, opName.str());
+    // TODO: if parametric, instantiate the parameters?
+
+    return ret;
   }
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
     argTypes.push_back(nc.getType());
   }
-  Kind k = n.getKind();
   // we only use binary operators
   if (NodeManager::isNAryKind(k))
   {
@@ -429,14 +596,15 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   TypeNode ftype = nm->mkFunctionType(argTypes, tn, false);
   // most functions are called f_X where X is the SMT-LIB name, if we are
   // getting the macroApply variant, then we don't prefix with `f_`.
-  std::stringstream opName;
   if (!macroApply)
   {
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k == GEQ || k == GT || k == LEQ || k == LT
-      || k == MINUS)
+  if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
+      || k == LEQ || k == LT || k == MINUS || k == DIVISION
+      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS)
   {
     if (n[0].getType().isInteger())
     {
@@ -447,7 +615,16 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
       opName << "real.";
     }
   }
+  if (k == UMINUS)
+  {
+    opName << "u";
+  }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
+  if (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS_TOTAL)
+  {
+    opName << "_total";
+  }
   if (k == ITE)
   {
     // ITE is indexed by its type
@@ -455,9 +632,31 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     TypeNode itype = nm->mkFunctionType(d_sortType, ftype, false);
     Node iteSym = getSymbolInternal(k, itype, opName.str());
     Node typeNode = typeAsNode(convertType(tn));
+    Assert(!typeNode.isNull());
     return nm->mkNode(APPLY_UF, iteSym, typeNode);
   }
   return getSymbolInternal(k, ftype, opName.str());
+}
+
+Node LfscTermProcessor::getOperatorOfClosure(Node q)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType(), false);
+  // We permit non-flat function types here
+  // intType is used here for variable indices
+  TypeNode intType = nm->integerType();
+  TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
+  Kind k = q.getKind();
+  return getSymbolInternal(
+      k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+}
+
+Node LfscTermProcessor::getOperatorOfBoundVar(Node cop, Node v)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
+  Node tc = typeAsNode(convertType(v.getType()));
+  return nm->mkNode(APPLY_UF, cop, x, tc);
 }
 
 size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)

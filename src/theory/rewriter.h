@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The Rewriter class
- **
- ** The Rewriter class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The Rewriter class.
+ */
 
 #include "cvc4_private.h"
 
@@ -225,10 +224,10 @@ class Rewriter {
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
       nullptr;
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 };/* class Rewriter */
 
 }  // namespace theory

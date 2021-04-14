@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The inference manager for the theory of sets.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The inference manager for the theory of sets.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__SETS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__SETS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__SETS__INFERENCE_MANAGER_H
 
 #include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
@@ -102,4 +103,4 @@ class InferenceManager : public InferenceManagerBuffered
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__SETS__INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__SETS__INFERENCE_MANAGER_H */

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file statistics.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "util/statistics.h"
 
@@ -95,7 +96,7 @@ StatisticsBase::const_iterator StatisticsBase::end() const {
 }
 
 void StatisticsBase::flushInformation(std::ostream &out) const {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   for(StatSet::iterator i = d_stats.begin();
       i != d_stats.end();
       ++i) {
@@ -104,11 +105,11 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
     s->flushInformation(out);
     out << std::endl;
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
 }
 
 void StatisticsBase::safeFlushInformation(int fd) const {
-#ifdef CVC4_STATISTICS_ON
+#ifdef CVC5_STATISTICS_ON
   for (StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
     Stat* s = *i;
     safe_print(fd, s->getName());
@@ -116,7 +117,7 @@ void StatisticsBase::safeFlushInformation(int fd) const {
     s->safeFlushInformation(fd);
     safe_print(fd, "\n");
   }
-#endif /* CVC4_STATISTICS_ON */
+#endif /* CVC5_STATISTICS_ON */
 }
 
 SExpr StatisticsBase::getStatistic(std::string name) const {

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file set_defaults.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of setting default options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of setting default options.
+ */
 
 #include "smt/set_defaults.h"
 
@@ -1464,7 +1465,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (logic == LogicInfo("QF_UFNRA"))
   {
-#ifdef CVC4_USE_POLY
+#ifdef CVC5_USE_POLY
     if (!options::nlCad() && !options::nlCad.wasSetByUser())
     {
       options::nlCad.set(true);
@@ -1479,7 +1480,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
 #endif
   }
-#ifndef CVC4_USE_POLY
+#ifndef CVC5_USE_POLY
   if (options::nlCad())
   {
     if (options::nlCad.wasSetByUser())

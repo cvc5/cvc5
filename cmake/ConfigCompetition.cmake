@@ -1,14 +1,17 @@
-#####################
-## ConfigCompetition.cmake
-## Top contributors (to current version):
-##   Aina Niemetz, Andres Noetzli, Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Andres Noetzli, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
-add_definitions(-DCVC4_COMPETITION_MODE)
+
+add_definitions(-DCVC5_COMPETITION_MODE)
 add_check_c_cxx_flag("-funroll-all-loops")
 add_check_c_cxx_flag("-fexpensive-optimizations")
 add_check_c_cxx_flag("-fno-enforce-eh-specs")

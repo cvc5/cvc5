@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_arith_private.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/theory_arith_private.h"
 
@@ -213,7 +214,7 @@ static void drop( ConstraintCPVec& v, ConstraintP con){
 
 
 static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& pos, const ConstraintCPVec& neg){
-  unsigned posPos CVC4_UNUSED = pos.size();
+  unsigned posPos CVC5_UNUSED = pos.size();
   for(unsigned i = 0, N = pos.size(); i < N; ++i){
     if(pos[i] == c){
       posPos = i;
@@ -223,7 +224,7 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   }
   Assert(posPos < pos.size());
   ConstraintP negc = c->getNegation();
-  unsigned negPos CVC4_UNUSED = neg.size();
+  unsigned negPos CVC5_UNUSED = neg.size();
   for(unsigned i = 0, N = neg.size(); i < N; ++i){
     if(neg[i] == negc){
       negPos = i;
@@ -2373,8 +2374,8 @@ struct SizeOrd {
 
 void TheoryArithPrivate::subsumption(
     std::vector<ConstraintCPVec> &confs) const {
-  int checks CVC4_UNUSED = 0;
-  int subsumed CVC4_UNUSED = 0;
+  int checks CVC5_UNUSED = 0;
+  int subsumed CVC5_UNUSED = 0;
 
   for (size_t i = 0, N = confs.size(); i < N; ++i) {
     ConstraintCPVec &conf = confs[i];
@@ -3336,7 +3337,7 @@ void TheoryArithPrivate::preNotifyFact(TNode atom, bool pol, TNode fact)
   ConstraintP curr = constraintFromFactQueue(fact);
   if (curr != NullConstraint)
   {
-    bool res CVC4_UNUSED = assertionCases(curr);
+    bool res CVC5_UNUSED = assertionCases(curr);
     Assert(!res || anyConflict());
   }
 }
@@ -3350,7 +3351,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       d_learnedBounds.pop();
       Debug("arith::learned") << curr << endl;
 
-      bool res CVC4_UNUSED = assertionCases(curr);
+      bool res CVC5_UNUSED = assertionCases(curr);
       Assert(!res || anyConflict());
 
       if(anyConflict()){ break; }
@@ -3496,7 +3497,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   for (std::size_t i = 0; i < nPivots; ++i)
   {
     d_containing.d_out->spendResource(
-        ResourceManager::Resource::ArithPivotStep);
+        Resource::ArithPivotStep);
   }
 
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
@@ -5034,7 +5035,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
       }
       // intentionally fall through to DISTINCT case!
       // entailments of negations are eager exit cases for EQUAL
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     case DISTINCT:
       if(!bestPrimDiff.first.isNull()){
         // primDir [dm * dp] <= primDir * dm * U < primDir * sep

@@ -6,18 +6,13 @@
 cvc5 API Documentation
 ======================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+
+* :ref:`genindex`
 
 
 ---------------
 
-* :ref:`genindex`
-* :ref:`search`
+.. toctree::
+   :maxdepth: 2
 
-
-C++ API Documentation
----------------------
-
-.. doxygenfile:: cvc5.h
+   cpp

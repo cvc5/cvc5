@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file stats_timer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Timer statistics
- **
- ** Stat classes that hold timers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Timer statistics.
+ *
+ * Stat classes that hold timers.
+ */
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATS_TIMER_H
-#define CVC4__UTIL__STATS_TIMER_H
+#ifndef CVC5__UTIL__STATS_TIMER_H
+#define CVC5__UTIL__STATS_TIMER_H
 
 #include <chrono>
 

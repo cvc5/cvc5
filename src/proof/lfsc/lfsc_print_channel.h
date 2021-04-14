@@ -64,12 +64,22 @@ class LfscPrintChannelOut : public LfscPrintChannel
   void printAssumeId(size_t id) override;
   void printEndLine() override;
   //------------------- helper methods
+  /**
+   * Print node to stream in the expected format of LFSC.
+   */
+  static void printNodeInternal(std::ostream& out, Node n);
+  /**
+   * Print type node to stream in the expected format of LFSC.
+   */
+  static void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   static void printRule(std::ostream& out, const ProofNode* pn);
   static void printId(std::ostream& out, size_t id);
   static void printProofId(std::ostream& out, size_t id);
   static void printAssumeId(std::ostream& out, size_t id);
   //------------------- end helper methods
  private:
+  /** Replaces "(_ " with "(" to eliminate indexed symbols */
+  static void cleanIndexedSymbols(std::string& s);
   /** The output stream */
   std::ostream& d_out;
 };

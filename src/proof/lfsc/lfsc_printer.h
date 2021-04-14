@@ -52,7 +52,7 @@ class LfscPrinter
   /**
    * Print type node to stream in the expected format of LFSC.
    */
-  void print(std::ostream& out, TypeNode n);
+  void printType(std::ostream& out, TypeNode n);
 
  private:
   /**
@@ -71,10 +71,6 @@ class LfscPrinter
    * parentheses on cparen.
    */
   void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind);
-  /**
-   * Print type node to stream in the expected format of LFSC.
-   */
-  void printInternal(std::ostream& out, TypeNode n);
 
   //------------------------------ printing proofs
   /**
@@ -107,7 +103,6 @@ class LfscPrinter
                                 std::vector<const ProofNode*>& pletList,
                                 std::map<const ProofNode*, size_t>& pletMap);
   //------------------------------ end printing proofs
-
   /** The term processor */
   LfscTermProcessor& d_tproc;
   /** The proof traversal callback */

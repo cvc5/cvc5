@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_explain.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Fabian Wolff
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus explanations
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus explanations
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
 
 #include <vector>
 
@@ -243,4 +244,4 @@ class SygusExplain
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */

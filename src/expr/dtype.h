@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file dtype.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class representing a datatype definition
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class representing a datatype definition.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__EXPR__DTYPE_H
-#define CVC4__EXPR__DTYPE_H
+#ifndef CVC5__EXPR__DTYPE_H
+#define CVC5__EXPR__DTYPE_H
 
 #include <map>
 #include <string>
@@ -46,32 +47,6 @@ struct DTypeConsIndexTag
 {
 };
 typedef expr::Attribute<DTypeConsIndexTag, size_t> DTypeConsIndexAttr;
-/** Attribute true for datatype types that are finite. */
-struct DTypeFiniteTag
-{
-};
-typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
-/** Attribute true when we have computed whether a datatype type is finite */
-struct DTypeFiniteComputedTag
-{
-};
-typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
-/**
- * Attribute true for datatype types that are interpreted as finite (see
- * TypeNode::isInterpretedFinite).
- */
-struct DTypeUFiniteTag
-{
-};
-typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
-/**
- * Attribute true when we have computed whether a datatype type is interpreted
- * as finite.
- */
-struct DTypeUFiniteComputedTag
-{
-};
-typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
 // ----------------------- end datatype attributes
 
 class DTypeConstructor;
@@ -281,6 +256,17 @@ class DType
   Cardinality getCardinality() const;
 
   /**
+   * Return the cardinality class of the datatype. The
+   * DType must be resolved or an assertion is violated.
+   *
+   * The version of this method that takes type t is required
+   * for parametric datatypes, where t is an instantiated
+   * parametric datatype type whose datatype is this class.
+   */
+  CardinalityClass getCardinalityClass(TypeNode t) const;
+  CardinalityClass getCardinalityClass() const;
+
+  /**
    * Return true iff this DType has finite cardinality. If the
    * datatype is not well-founded, this method returns false. The
    * DType must be resolved or an assertion is violated.
@@ -288,23 +274,13 @@ class DType
    * The version of this method that takes type t is required
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
-   */
-  bool isFinite(TypeNode t) const;
-  bool isFinite() const;
-
-  /**
-   * Return true iff this  DType is finite (all constructors are
-   * finite, i.e., there  are finitely  many ground terms) under the
-   * assumption that unintepreted sorts are finite. If the
-   * datatype is  not well-founded, this method returns false.  The
-   * DType must be resolved or an assertion is violated.
    *
-   * The versions of these methods that takes type t is required
-   * for parametric datatypes, where t is an instantiated
-   * parametric datatype type whose datatype is this class.
+   * @param t The (instantiated) datatype type we are computing finiteness for
+   * @param fmfEnabled Whether finite model finding is enabled
+   * @return true if finite model finding is enabled
    */
-  bool isInterpretedFinite(TypeNode t) const;
-  bool isInterpretedFinite() const;
+  bool isFinite(TypeNode t, bool fmfEnabled=false) const;
+  bool isFinite(bool fmfEnabled=false) const;
 
   /** is well-founded
    *
@@ -639,6 +615,8 @@ class DType
   /** cache of shared selectors for this datatype */
   mutable std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >
       d_sharedSel;
+  /**  A cache for getCardinalityClass. */
+  mutable std::map<TypeNode, CardinalityClass> d_cardClass;
 }; /* class DType */
 
 /**

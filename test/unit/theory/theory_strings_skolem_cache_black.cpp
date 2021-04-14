@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_strings_skolem_cache_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the skolem cache of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the skolem cache of the theory of strings.
+ */
 
 #include <memory>
 

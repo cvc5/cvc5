@@ -1,20 +1,17 @@
-/*********************                                                        */
-/*! \file node_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A manager for Nodes
- **
- ** A manager for Nodes.
- **
- ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A manager for Nodes.
+ */
 
 #include "cvc4_private.h"
 
@@ -23,8 +20,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef CVC4__NODE_MANAGER_H
-#define CVC4__NODE_MANAGER_H
+#ifndef CVC5__NODE_MANAGER_H
+#define CVC5__NODE_MANAGER_H
 
 #include <vector>
 #include <string>
@@ -1197,9 +1194,9 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
 
 }  // namespace cvc5
 
-#define CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#define CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 #include "expr/metakind.h"
-#undef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#undef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 #include "expr/node_builder.h"
 
@@ -1572,4 +1569,4 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
 }  // namespace cvc5
 
-#endif /* CVC4__NODE_MANAGER_H */
+#endif /* CVC5__NODE_MANAGER_H */

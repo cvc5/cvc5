@@ -1,72 +1,73 @@
-/*********************                                                        */
-/*! \file bv_to_int.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Gereon Kremer, Makai Mann
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BVToInt preprocessing pass
- **
- ** Converts bit-vector formulas to integer formulas.
- ** The conversion is implemented using a translation function Tr,
- ** roughly described as follows:
- **
- ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
- **         integer variable.
- ** Tr(c) = the integer value of c, for any bit-vector constant c.
- ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
- **         s and t.
- ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
- **         bvnot, bvconcat, bvextract
- ** Tr((_ zero_extend m) x) = Tr(x)
- ** Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
- ** explanation: if the msb is 0, this is the same as zero_extend,
- ** which does not change the integer value.
- ** If the msb is 1, then the result should correspond to
- ** concat(1...1, x), with m 1's.
- ** m 1's is 2^m-1, and multiplying it by x's width (k) moves it
- ** to the front.
- **
- ** Tr((bvand s t)) depends on the granularity, which is provided by the user
- ** when enabling this preprocessing pass.
- ** We divide s and t to blocks.
- ** The size of each block is the granularity, and so the number of
- ** blocks is:
- ** bit width/granularity (rounded down).
- ** We create an ITE that represents an arbitrary block,
- ** and then create a sum by mutiplying each block by the
- ** appropriate power of two.
- ** More formally:
- ** Let g denote the granularity.
- ** Let k denote the bit width of s and t.
- ** Let b denote floor(k/g) if k >= g, or just k otherwise.
- ** Tr((bvand s t)) =
- ** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
- **
- ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
- **
- ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
- **         a and b, and ITE represents exponentiation up to k, that is:
- ** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
- ** Similar transformations are done for bvlshr.
- **
- ** Tr(a=b) = Tr(a)=Tr(b)
- ** Tr((bvult a b)) = Tr(a) < Tr(b)
- ** Similar transformations are done for bvule, bvugt, and bvuge.
- **
- ** Bit-vector operators that are not listed above are either eliminated using
- ** the function eliminationPass, or are not supported.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Gereon Kremer, Makai Mann
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BVToInt preprocessing pass
+ *
+ * Converts bit-vector formulas to integer formulas.
+ * The conversion is implemented using a translation function Tr,
+ * roughly described as follows:
+ *
+ * Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
+ *         integer variable.
+ * Tr(c) = the integer value of c, for any bit-vector constant c.
+ * Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
+ *         s and t.
+ * Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
+ *         bvnot, bvconcat, bvextract
+ * Tr((_ zero_extend m) x) = Tr(x)
+ * Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
+ * explanation: if the msb is 0, this is the same as zero_extend,
+ * which does not change the integer value.
+ * If the msb is 1, then the result should correspond to
+ * concat(1...1, x), with m 1's.
+ * m 1's is 2^m-1, and multiplying it by x's width (k) moves it
+ * to the front.
+ *
+ * Tr((bvand s t)) depends on the granularity, which is provided by the user
+ * when enabling this preprocessing pass.
+ * We divide s and t to blocks.
+ * The size of each block is the granularity, and so the number of
+ * blocks is:
+ * bit width/granularity (rounded down).
+ * We create an ITE that represents an arbitrary block,
+ * and then create a sum by mutiplying each block by the
+ * appropriate power of two.
+ * More formally:
+ * Let g denote the granularity.
+ * Let k denote the bit width of s and t.
+ * Let b denote floor(k/g) if k >= g, or just k otherwise.
+ * Tr((bvand s t)) =
+ * Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
+ *
+ * Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
+ *
+ * Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
+ *         a and b, and ITE represents exponentiation up to k, that is:
+ * ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
+ * Similar transformations are done for bvlshr.
+ *
+ * Tr(a=b) = Tr(a)=Tr(b)
+ * Tr((bvult a b)) = Tr(a) < Tr(b)
+ * Similar transformations are done for bvule, bvugt, and bvuge.
+ *
+ * Bit-vector operators that are not listed above are either eliminated using
+ * the function eliminationPass, or are not supported.
+ *
+ */
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
-#define __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
+#ifndef __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
+#define __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -287,4 +288,4 @@ class BVToInt : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H */
+#endif /* __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H */

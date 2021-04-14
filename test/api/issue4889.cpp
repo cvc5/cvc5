@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file issue4889.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Test for issue #4889
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Test for issue #4889
+ */
 
 #include "api/cpp/cvc5.h"
 
@@ -18,7 +19,7 @@ using namespace cvc5::api;
 
 int main()
 {
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   Solver slv;
   Sort sort_int = slv.getIntegerSort();
   Sort sort_array = slv.mkArraySort(sort_int, sort_int);

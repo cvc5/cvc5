@@ -1,3 +1,17 @@
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
+##
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
 check_python_module(breathe)
@@ -31,9 +45,29 @@ set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 add_custom_target(docs ALL
                   DEPENDS docs-doxygen
                   COMMAND
-                  ${SPHINX_EXECUTABLE} -b html
-                  # Tell Breathe where to find the Doxygen output
-                  -Dbreathe_projects.cvc5=${DOXYGEN_OUTPUT_DIR}/xml
-                  ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
+                    ${SPHINX_EXECUTABLE} -b html
+                    # Tell Breathe where to find the Doxygen output
+                    -Dbreathe_projects.cvc5=${DOXYGEN_OUTPUT_DIR}/xml
+                    ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                   COMMENT "Generating Sphinx Api docs")
+
+set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
+add_custom_target(docs-gh ALL
+                  DEPENDS docs
+                  COMMAND ${CMAKE_COMMAND} -E remove_directory
+                    ${SPHINX_GH_OUTPUT_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${SPHINX_OUTPUT_DIR} ${SPHINX_GH_OUTPUT_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E remove_directory
+                    ${SPHINX_GH_OUTPUT_DIR}/_sources
+                  COMMAND ${CMAKE_COMMAND} -E remove
+                    ${SPHINX_GH_OUTPUT_DIR}/objects.inv
+                  COMMAND ${CMAKE_COMMAND} -E rename
+                    ${SPHINX_GH_OUTPUT_DIR}/_static
+                    ${SPHINX_GH_OUTPUT_DIR}/static
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f |
+                    xargs sed -i'orig' 's/_static/static/'
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
+                  COMMENT "Generating GitHub Api docs")
+

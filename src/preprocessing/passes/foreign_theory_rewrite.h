@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file foreign_theory_rewrite.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The foreign_theory_rewrite preprocessing pass
- **
- ** Simplifies nodes of one theory using rewrites from another.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The foreign_theory_rewrite preprocessing pass.
+ *
+ * Simplifies nodes of one theory using rewrites from another.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
-#define CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
+#ifndef CVC5__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
+#define CVC5__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
@@ -64,4 +65,4 @@ class ForeignTheoryRewrite : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H */
+#endif /* CVC5__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H */

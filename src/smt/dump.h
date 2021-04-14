@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file dump.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Dump utility classes and functions
- **
- ** Dump utility classes and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Dump utility classes and functions.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DUMP_H
-#define CVC4__DUMP_H
+#ifndef CVC5__DUMP_H
+#define CVC5__DUMP_H
 
 #include "base/output.h"
 
@@ -26,7 +25,7 @@ namespace cvc5 {
 class Command;
 class NodeCommand;
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
 class CVC4dumpstream
 {
@@ -62,7 +61,7 @@ class CVC4dumpstream
   CVC4dumpstream& operator<<(const NodeCommand& nc);
 }; /* class CVC4dumpstream */
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 /** The dump class */
 class DumpC
@@ -114,4 +113,4 @@ extern DumpC DumpChannel;
 
 }  // namespace cvc5
 
-#endif /* CVC4__DUMP_H */
+#endif /* CVC5__DUMP_H */

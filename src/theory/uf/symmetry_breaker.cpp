@@ -1,43 +1,41 @@
-/*********************                                                        */
-/*! \file symmetry_breaker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of algorithm suggested by Deharbe, Fontaine,
- ** Merz, and Paleo, "Exploiting symmetry in SMT problems," CADE 2011
- **
- ** Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
- ** and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
- **
- ** From the paper:
- **
- ** <pre>
- **   \f$ P := guess\_permutations(\phi) \f$
- **   foreach \f$ {c_0, ..., c_n} \in P \f$ do
- **     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
- **       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
- **       cts := \f$ \emptyset \f$
- **       while T != \f$ \empty \wedge |cts| <= n \f$ do
- **         \f$ t := select\_most\_promising\_term(T, \phi) \f$
- **         \f$ T := T \setminus {t} \f$
- **         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
- **         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
- **         cts := cts \f$ \cup {c} \f$
- **         if cts != \f$ {c_0, ..., c_n} \f$ then
- **           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
- **         end
- **       end
- **     end
- **   end
- **   return \f$ \phi \f$
- ** </pre>
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of algorithm suggested by Deharbe, Fontaine, Merz,
+ * and Paleo, "Exploiting symmetry in SMT problems," CADE 2011.
+ *
+ * From the paper:
+ *
+ * <pre>
+ *   \f$ P := guess\_permutations(\phi) \f$
+ *   foreach \f$ {c_0, ..., c_n} \in P \f$ do
+ *     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
+ *       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
+ *       cts := \f$ \emptyset \f$
+ *       while T != \f$ \empty \wedge |cts| <= n \f$ do
+ *         \f$ t := select\_most\_promising\_term(T, \phi) \f$
+ *         \f$ T := T \setminus {t} \f$
+ *         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
+ *         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
+ *         cts := cts \f$ \cup {c} \f$
+ *         if cts != \f$ {c_0, ..., c_n} \f$ then
+ *           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
+ *         end
+ *       end
+ *     end
+ *   end
+ *   return \f$ \phi \f$
+ * </pre>
+ */
 
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/rewriter.h"
@@ -370,7 +368,7 @@ Node SymmetryBreaker::normInternal(TNode n, size_t level) {
         Debug("ufsymm:eq") << "UFSYMM " << n[0] << " <==> " << n[1] << endl;
       }
     }
-    CVC4_FALLTHROUGH;
+    CVC5_FALLTHROUGH;
   case kind::XOR:
     // commutative binary operator handling
     return n[1] < n[0] ? NodeManager::currentNM()->mkNode(k, n[1], n[0]) : Node(n);
@@ -438,7 +436,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
       d_permutations.insert(p);
     }
     d_template.reset();
-    bool good CVC4_UNUSED = d_template.match(phi);
+    bool good CVC5_UNUSED = d_template.match(phi);
     Assert(good);
   }
 }

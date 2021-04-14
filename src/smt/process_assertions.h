@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file process_assertions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing assertions for an SMT engine.
+ */
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PROCESS_ASSERTIONS_H
-#define CVC4__SMT__PROCESS_ASSERTIONS_H
+#ifndef CVC5__SMT__PROCESS_ASSERTIONS_H
+#define CVC5__SMT__PROCESS_ASSERTIONS_H
 
 #include <unordered_map>
 
@@ -106,7 +107,7 @@ class ProcessAssertions
    */
   unsigned d_simplifyAssertionsDepth;
   /** Spend resource r by the resource manager of this class. */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
   /**
    * Perform non-clausal simplification of a Node.  This involves
    * Theory implementations, but does NOT involve the SAT solver in

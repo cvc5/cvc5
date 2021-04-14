@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file smt2_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the SMT2 output language
- **
- ** The pretty-printer interface for the SMT2 output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the SMT2 output language.
+ */
 
 #include "printer/smt2/smt2_printer.h"
 
@@ -2098,14 +2097,14 @@ static void toStream(std::ostream& out, const CommandInterrupted* s, Variant v)
 
 static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 {
-#ifdef CVC4_COMPETITION_MODE
+#ifdef CVC5_COMPETITION_MODE
   // if in competition mode, lie and say we're ok
   // (we have nothing to lose by saying success, and everything to lose
   // if we say "unsupported")
   out << "success" << endl;
-#else /* CVC4_COMPETITION_MODE */
+#else  /* CVC5_COMPETITION_MODE */
   out << "unsupported" << endl;
-#endif /* CVC4_COMPETITION_MODE */
+#endif /* CVC5_COMPETITION_MODE */
 }
 
 static void errorToStream(std::ostream& out, std::string message, Variant v) {
