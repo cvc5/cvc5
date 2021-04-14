@@ -16,7 +16,7 @@
 #include "theory/bv/bitblast/aig_bitblaster.h"
 
 #include "base/check.h"
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"

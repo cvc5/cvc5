@@ -13,7 +13,7 @@
  * A Diophantine equation solver for the theory of arithmetic.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARITH__DIO_SOLVER_H
 #define CVC5__THEORY__ARITH__DIO_SOLVER_H

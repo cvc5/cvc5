@@ -13,7 +13,7 @@
  * The lazy tree proof generator class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__LAZY_TREE_PROOF_GENERATOR_H
 #define CVC5__THEORY__LAZY_TREE_PROOF_GENERATOR_H

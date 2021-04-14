@@ -13,7 +13,7 @@
  * The user-provided E-matching instantiation strategy.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__INST_STRATEGY_E_MATCHING_USER_H
 #define CVC5__INST_STRATEGY_E_MATCHING_USER_H

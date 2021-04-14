@@ -13,7 +13,7 @@
  * Bitblaster for the eager BV solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 #define CVC5__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H

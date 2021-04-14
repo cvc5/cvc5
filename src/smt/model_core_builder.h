@@ -13,7 +13,7 @@
  * Utility for building model cores.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__MODEL_CORE_BUILDER_H
 #define CVC5__THEORY__MODEL_CORE_BUILDER_H

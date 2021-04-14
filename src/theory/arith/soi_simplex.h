@@ -51,7 +51,7 @@
  *   These are theory valid and are currently turned into lemmas
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 

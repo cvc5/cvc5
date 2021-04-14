@@ -13,7 +13,7 @@
  * Preprocessing pass that lifts bit-vectors of size 1 to booleans.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H
 #define CVC5__PREPROCESSING__PASSES__BV_TO_BOOL_H

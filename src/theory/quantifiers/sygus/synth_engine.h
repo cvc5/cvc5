@@ -14,7 +14,7 @@
  * in particular, those described in Reynolds et al CAV 2015.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__SYNTH_ENGINE_H

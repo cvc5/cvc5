@@ -13,7 +13,7 @@
  * Accessor for the SmtEngine's StatisticsRegistry.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 

@@ -13,7 +13,7 @@
  * Representation of constants of uninterpreted sorts.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UNINTERPRETED_CONSTANT_H
 #define CVC5__UNINTERPRETED_CONSTANT_H

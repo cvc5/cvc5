@@ -13,7 +13,7 @@
  * Bound variable manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__BOUND_VAR_MANAGER_H
 #define CVC5__EXPR__BOUND_VAR_MANAGER_H

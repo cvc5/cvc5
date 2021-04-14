@@ -13,7 +13,7 @@
  * A class for MK_BAG operator.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__MAKE_BAG_OP_H
 #define CVC5__MAKE_BAG_OP_H

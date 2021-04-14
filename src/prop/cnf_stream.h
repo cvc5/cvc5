@@ -21,7 +21,7 @@
  * internals such as the representation and translation of [??? -Chris]
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__CNF_STREAM_H
 #define CVC5__PROP__CNF_STREAM_H

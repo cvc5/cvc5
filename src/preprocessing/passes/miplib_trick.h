@@ -13,7 +13,7 @@
  * The MIPLIB trick preprocessing pass.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H
 #define CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H

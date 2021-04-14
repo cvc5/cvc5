@@ -13,7 +13,7 @@
  * Statistics for SMT engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__SMT_ENGINE_STATS_H
 #define CVC5__SMT__SMT_ENGINE_STATS_H

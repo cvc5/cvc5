@@ -13,7 +13,7 @@
  * Context class and context manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__CONTEXT__CONTEXT_H
 #define CVC5__CONTEXT__CONTEXT_H

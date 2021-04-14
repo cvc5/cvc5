@@ -13,7 +13,7 @@
  * The theory engine output channel.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
 #define CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H

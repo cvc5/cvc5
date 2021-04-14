@@ -13,7 +13,7 @@
  * ITE simplification preprocessing pass.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__ITE_SIMP_H
 #define CVC5__PREPROCESSING__PASSES__ITE_SIMP_H

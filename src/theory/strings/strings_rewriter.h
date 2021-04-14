@@ -13,7 +13,7 @@
  * Rewrite rules for string-specific operators in theory of strings.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__STRINGS_REWRITER_H
 #define CVC5__THEORY__STRINGS__STRINGS_REWRITER_H

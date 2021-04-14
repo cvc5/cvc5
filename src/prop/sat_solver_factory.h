@@ -13,7 +13,7 @@
  * SAT Solver creation facility
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__SAT_SOLVER_FACTORY_H
 #define CVC5__PROP__SAT_SOLVER_FACTORY_H

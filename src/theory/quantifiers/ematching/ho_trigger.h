@@ -13,7 +13,7 @@
  * Higher-order trigger class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H
 #define CVC5__THEORY__QUANTIFIERS__HO_TRIGGER_H

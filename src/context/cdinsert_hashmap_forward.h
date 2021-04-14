@@ -21,7 +21,7 @@
  * yourself, because it has a default template argument.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__CONTEXT__CDINSERT_HASHMAP_FORWARD_H
 #define CVC5__CONTEXT__CDINSERT_HASHMAP_FORWARD_H

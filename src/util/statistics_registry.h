@@ -63,7 +63,7 @@
  *   (like operator++() or operator+=())
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__STATISTICS_REGISTRY_H
 #define CVC5__STATISTICS_REGISTRY_H

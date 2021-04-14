@@ -15,7 +15,7 @@
  * [[ Add lengthier description here ]]
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__CVC_INPUT_H
 #define CVC5__PARSER__CVC_INPUT_H

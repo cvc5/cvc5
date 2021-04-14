@@ -13,7 +13,7 @@
  * Convenience class for scoping variable and type declarations.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H

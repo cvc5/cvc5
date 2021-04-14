@@ -13,7 +13,7 @@
  * The proof manager of SmtEngine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__PROOF_MANAGER_H
 #define CVC5__SMT__PROOF_MANAGER_H
@@ -38,6 +38,24 @@ class ProofPostproccess;
 /**
  * This class is responsible for managing the proof output of SmtEngine, as
  * well as setting up the global proof checker and proof node manager.
+ *
+ * The proof production of an SmtEngine is directly impacted by whether, and
+ * how, we are producing unsat cores:
+ *
+ * - If we are producing unsat cores using the old proof infrastructure, then
+ *   SmtEngine will not have proofs in the sense of this proof manager.
+ *
+ * - If we are producing unsat cores using this proof infrastructure, then the
+ *   SmtEngine will have proofs using this proof manager (if --produce-proofs
+ *   was not passed by the user it will be activated), but these proofs will
+ *   only cover preprocessing and the prop engine, i.e., the theory engine will
+ *   not have proofs.
+ *
+ * - If we are not producing unsat cores then the SmtEngine will have proofs as
+ *   long as --produce-proofs was given.
+ *
+ * - If SmtEngine has been configured in a way that is incompatible with proofs
+ *   then unsat core production will be disabled.
  */
 class PfManager
 {

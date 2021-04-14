@@ -13,7 +13,7 @@
  * Built-in theory.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
 #define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_H
