@@ -1,4 +1,4 @@
-; COMMAND-LINE: --inst-pools
+; COMMAND-LINE: --pool-inst
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-pool L Int ())
