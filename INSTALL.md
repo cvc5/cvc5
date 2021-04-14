@@ -217,6 +217,10 @@ The API documentation can then be found at `<build_dir>/docs/sphinx/index.html`.
 To only build the documentation, change to the build directory and call
 `make docs`.
 
+To build the documentation for GitHub pages, change to the build directory
+and call `make docs-gh`. The content of directory `<build_dir>/docs/sphinx-gh`
+can then be copied over to GitHub pages.
+
 
 ## Building the Examples
 

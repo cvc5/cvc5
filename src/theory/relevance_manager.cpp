@@ -85,12 +85,12 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
 void RelevanceManager::resetRound()
 {
   d_computed = false;
-  d_rset.clear();
 }
 
 void RelevanceManager::computeRelevance()
 {
   d_computed = true;
+  d_rset.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int, TNodeHashFunction> cache;
   for (const Node& node: d_input)
@@ -105,6 +105,7 @@ void RelevanceManager::computeRelevance()
       Trace("rel-manager") << serr.str() << std::endl;
       Assert(false) << serr.str();
       d_success = false;
+      d_rset.clear();
       return;
     }
   }
@@ -312,6 +313,18 @@ bool RelevanceManager::isRelevant(Node lit)
     lit = lit[0];
   }
   return d_rset.find(lit) != d_rset.end();
+}
+
+const std::unordered_set<TNode, TNodeHashFunction>&
+RelevanceManager::getRelevantAssertions(bool& success)
+{
+  if (!d_computed)
+  {
+    computeRelevance();
+  }
+  // update success flag
+  success = d_success;
+  return d_rset;
 }
 
 }  // namespace theory

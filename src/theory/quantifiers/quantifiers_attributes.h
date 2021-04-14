@@ -119,6 +119,7 @@ struct QAttributes
  public:
   QAttributes()
       : d_hasPattern(false),
+        d_hasPool(false),
         d_sygus(false),
         d_qinstLevel(-1),
         d_quant_elim(false),
@@ -129,6 +130,8 @@ struct QAttributes
   ~QAttributes(){}
   /** does the quantified formula have a pattern? */
   bool d_hasPattern;
+  /** does the quantified formula have a pool? */
+  bool d_hasPool;
   /** if non-null, this quantified formula is a function definition for function
    * d_fundef_f */
   Node d_fundef_f;

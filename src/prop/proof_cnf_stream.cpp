@@ -519,23 +519,33 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Node proven = trn.getProven();
   Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
                << proven << "\n";
-  Assert(trn.getGenerator());
-  Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
-  Trace("cnf-steps") << proven << " by explainPropagation "
-                     << trn.identifyGenerator() << std::endl;
-  d_proof.addLazyStep(proven,
-                      trn.getGenerator(),
-                      PfRule::ASSUME,
-                      true,
-                      "ProofCnfStream::convertPropagation");
+  // If we are not producing proofs in the theory engine there is no need to
+  // keep track in d_proof of the clausification. We still need however to let
+  // the SAT proof manager know that this clause is an assumption.
+  bool proofLogging = trn.getGenerator() != nullptr;
+  if (proofLogging)
+  {
+    Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
+    Trace("cnf-steps") << proven << " by explainPropagation "
+                       << trn.identifyGenerator() << std::endl;
+    d_proof.addLazyStep(proven,
+                        trn.getGenerator(),
+                        PfRule::ASSUME,
+                        true,
+                        "ProofCnfStream::convertPropagation");
+  }
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
   NodeManager* nm = NodeManager::currentNM();
-  Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
-  Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
-               << PfRule::IMPLIES_ELIM << " rule to conclude "
-               << clauseImpliesElim << "\n";
-  d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  Node clauseImpliesElim;
+  if (proofLogging)
+  {
+    clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+    Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
+                 << PfRule::IMPLIES_ELIM << " rule to conclude "
+                 << clauseImpliesElim << "\n";
+    d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  }
   Node clauseExp;
   // need to eliminate AND
   if (proven[0].getKind() == kind::AND)
@@ -548,27 +558,33 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
       disjunctsRes.push_back(proven[0][i].notNode());
     }
     disjunctsRes.push_back(proven[1]);
-    Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
-    // add proof steps to convert into clause
-    d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
     clauseExp = nm->mkNode(kind::OR, disjunctsRes);
-    d_proof.addStep(clauseExp,
-                    PfRule::RESOLUTION,
-                    {clauseAndNeg, clauseImpliesElim},
-                    {nm->mkConst(true), proven[0]});
+    if (proofLogging)
+    {
+      // add proof steps to convert into clause
+      Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
+      d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+      d_proof.addStep(clauseExp,
+                      PfRule::RESOLUTION,
+                      {clauseAndNeg, clauseImpliesElim},
+                      {nm->mkConst(true), proven[0]});
+    }
   }
   else
   {
-    clauseExp = clauseImpliesElim;
+    clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
   normalizeAndRegister(clauseExp);
   // consume steps
-  const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
-  for (const std::pair<Node, ProofStep>& step : steps)
+  if (proofLogging)
   {
-    d_proof.addStep(step.first, step.second);
+    const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
+    for (const std::pair<Node, ProofStep>& step : steps)
+    {
+      d_proof.addStep(step.first, step.second);
+    }
+    d_psb.clear();
   }
-  d_psb.clear();
 }
 
 void ProofCnfStream::ensureLiteral(TNode n)

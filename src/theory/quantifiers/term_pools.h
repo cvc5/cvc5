@@ -103,6 +103,6 @@ class TermPools : public QuantifiersUtil
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_POOLS_H */
