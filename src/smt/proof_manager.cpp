@@ -178,13 +178,15 @@ void PfManager::printProof(std::ostream& out,
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
-  else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
+  else if (options::proofFormatMode() == options::ProofFormatMode::VERIT
+           || options::proofFormatMode()
+                  == options::ProofFormatMode::VERIT_EXTENDED)
   {
     proof::VeritProofPostprocess vpfpp(d_pnm.get());
     vpfpp.process(fp);
-    proof::VeritProofPrinter vpp(options::ProofFormatMode::VERIT_EXTENDED);
+    proof::VeritProofPrinter vpp(options::proofFormatMode()
+                                 == options::ProofFormatMode::VERIT_EXTENDED);
     vpp.veritPrinter(out,fp);
-  }
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
