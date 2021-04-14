@@ -1641,7 +1641,6 @@ void SmtEngine::getInstantiationTermVectors(
     Trace("test") << "test1\n";
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);
-
   }
   else
   {

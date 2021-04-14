@@ -85,7 +85,6 @@ class ProofCnfStream : public ProofGenerator
    * node are saved in d_proof. */
   void convertPropagation(theory::TrustNode ttn);
 
-
   /** Normalizes a clause node and registers it in the SAT proof manager.
    *
    * Normalization (factoring, reordering, double negation elimination) is done

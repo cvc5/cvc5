@@ -258,10 +258,7 @@ void SmtSolver::processAssertions(Assertions& as)
 
 void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 
-void SmtSolver::setProofForUnsatCoreMode()
-{
-  d_proofForUnsatCoreMode = true;
-}
+void SmtSolver::setProofForUnsatCoreMode() { d_proofForUnsatCoreMode = true; }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
