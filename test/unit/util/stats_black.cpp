@@ -86,8 +86,8 @@ TEST_F(TestUtilBlackStats, stats)
   valD3.set(17);
 
   ASSERT_EQ(reg.get("avg"), std::string("1.5"));
-  ASSERT_EQ(reg.get("hist-int"), std::string("[(14 : 1), (15 : 2), (16 : 2)]"));
-  ASSERT_EQ(reg.get("hist-pfrule"), std::string("[(ASSUME : 2), (SCOPE : 1)]"));
+  ASSERT_EQ(reg.get("hist-int"), std::string("{ 14: 1, 15: 2, 16: 2 }"));
+  ASSERT_EQ(reg.get("hist-pfrule"), std::string("{ ASSUME: 2, SCOPE: 1 }"));
   ASSERT_EQ(reg.get("int"), std::string("6"));
   ASSERT_EQ(reg.get("strref1"), std::string(""));
   ASSERT_EQ(reg.get("strref2"), std::string("bar"));
