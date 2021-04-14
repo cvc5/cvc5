@@ -35,7 +35,7 @@ if(NOT JUnit_FOUND_SYSTEM)
 
   # Download junit generator jar
   ExternalProject_Add(
-    JUnit
+    JUnit-EP-jar
     PREFIX ${DEPS_PREFIX}
     URL https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/${JUNIT_VERSION}/junit-platform-console-standalone-${JUNIT_VERSION}.jar
     URL_HASH SHA1=99245bde65d028a8b8ff604be26e929ab6ff2e58
