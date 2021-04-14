@@ -239,6 +239,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void declareSeparationHeap(Sort locSort, Sort dataSort) except +
         Term getSeparationHeap() except +
         Term getSeparationNilTerm() except +
+        Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
         void reset() except +
