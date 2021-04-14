@@ -269,7 +269,10 @@ struct StatisticReferenceValue : StatisticBaseValue
     }
     return {};
   }
-  bool hasValue() const override { return d_committed || d_value != nullptr; }
+  bool hasValue() const override
+  {
+    return d_committed || (d_value != nullptr && *d_value != T());
+  }
   void print(std::ostream& out) const override
   {
     if (d_committed)
@@ -326,7 +329,10 @@ struct StatisticSizeValue : StatisticBaseValue
     }
     return {};
   }
-  bool hasValue() const override { return d_committed || d_value != nullptr; }
+  bool hasValue() const override
+  {
+    return d_committed || (d_value != nullptr && d_value->size() != 0);
+  }
   void print(std::ostream& out) const override
   {
     if (d_committed)
