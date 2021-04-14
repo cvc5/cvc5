@@ -540,8 +540,7 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Node clauseImpliesElim;
   if (proofLogging)
   {
-    clauseImpliesElim =
-        nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+    clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
     Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
                  << PfRule::IMPLIES_ELIM << " rule to conclude "
                  << clauseImpliesElim << "\n";
