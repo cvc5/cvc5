@@ -131,7 +131,8 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
         if (oldit == d_lastSnapshot->end())
         {
           // not present in the snapshot
-          os << s.first << " = " << *s.second << " (was default)" << std::endl;
+          os << s.first << " = " << *s.second << " (was <default>)"
+             << std::endl;
         }
         else if (oldit->second != s.second->getViewer())
         {
