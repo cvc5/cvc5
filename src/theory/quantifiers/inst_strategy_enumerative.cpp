@@ -66,7 +66,6 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
 }
 
 void InstStrategyEnum::reset_round(Theory::Effort e) {}
-
 void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
@@ -218,11 +217,6 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
   }
   return false;
   // TODO : term enumerator instantiation?
-}
-
-std::string InstStrategyEnum::identify() const
-{
-  return std::string("InstStrategyEnum");
 }
 
 }  // namespace quantifiers

@@ -1299,6 +1299,22 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   ASSERT_TRUE(output.getSort().isBoolean());
 }
 
+TEST_F(TestApiBlackSolver, declarePool)
+{
+  Sort intSort = d_solver.getIntegerSort();
+  Sort setSort = d_solver.mkSetSort(intSort);
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term x = d_solver.mkConst(intSort, "y");
+  // declare a pool with initial value { 0, x, y }
+  Term p = d_solver.declarePool("p", intSort, {zero, x, y});
+  // pool should have the same sort
+  ASSERT_TRUE(p.getSort()==setSort);
+  // cannot pass null sort
+  Sort nullSort;
+  ASSERT_THROW(d_solver.declarePool("i", nullSort, {}));
+}
+
 TEST_F(TestApiBlackSolver, getOp)
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);

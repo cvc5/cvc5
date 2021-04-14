@@ -3371,10 +3371,15 @@ class CVC4_EXPORT Solver
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
-   * @param pool The pool
+   * SMT-LIB:
+   * \verbatim
+   * ( declare-pool <symbol> ( <term>* ) )
+   * \endverbatim
+   * @param symbol The name of the pool
+   * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
    */
-  void declarePool(const Term& pool, const std::vector<Term>& initValue) const;
+  Term declarePool(const std::string& symbol, const Sort& sort, const std::vector<Term>& initValue) const;
   /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB:

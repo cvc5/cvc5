@@ -80,9 +80,14 @@ class InstStrategyEnum : public QuantifiersModule
    */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Identify. */
-  std::string identify() const override;
+  std::string identify() const override
+  {
+    return std::string("InstStrategyEnum");
+  }
 
  private:
+  /** Pointer to the relevant domain utility of quantifiers engine */
+  RelevantDomain* d_rd;
   /** process quantified formula
    *
    * q is the quantified formula we are constructing instances for.
@@ -102,8 +107,6 @@ class InstStrategyEnum : public QuantifiersModule
    * term instantiations.
    */
   bool process(Node q, bool fullEffort, bool isRd);
-  /** Pointer to the relevant domain utility of quantifiers engine */
-  RelevantDomain* d_rd;
   /**
    * A limit on the number of rounds to apply this strategy, where a value < 0
    * means no limit. This value is set to the value of fullSaturateLimit()

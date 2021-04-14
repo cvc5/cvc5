@@ -6393,18 +6393,20 @@ Term Solver::getSeparationNilTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::declarePool(const Term& pool,
-                         const std::vector<Term>& initValue) const
+Term Solver::declarePool(const std::string& symbol, const Sort& sort, const std::vector<Term>& initValue) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_TRY_CATCH_BEGIN;
-  CVC4_API_SOLVER_CHECK_TERM(pool);
-  CVC4_API_SOLVER_CHECK_TERMS(initValue);
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_SOLVER_CHECK_TERMS(initValue);
   //////// all checks before this line
+  TypeNode setType = getNodeManager()->mkSetType(*sort.d_type);
+  Node pool = getNodeManager()->mkBoundVar(symbol, setType);
   std::vector<Node> initv = Term::termVectorToNodes(initValue);
-  d_smtEngine->declarePool(pool.getNode(), initv);
+  d_smtEngine->declarePool(pool, initv);
+  return Term(this, pool);
   ////////
-  CVC4_API_TRY_CATCH_END;
+  CVC5_API_TRY_CATCH_END;
 }
 
 /**

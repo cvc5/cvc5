@@ -1070,10 +1070,9 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       { terms.push_back( e ); }
     )* RPAREN_TOK
     { Debug("parser") << "declare pool: '" << name << "'" << std::endl;
-      api::Sort setType = SOLVER->mkSetSort( t );
-      api::Term func =
-          PARSER_STATE->bindVar(name, setType, false, true);
-      cmd->reset(new DeclarePoolCommand(name, func, t, terms));
+      api::Term pool = SOLVER->declarePool(name, t, terms);
+      PARSER_STATE->defineVar(name, pool);
+      cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
     }
   | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new BlockModelCommand()); }

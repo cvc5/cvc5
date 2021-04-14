@@ -1191,7 +1191,9 @@ const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const
 
 void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declarePool(d_func, d_initValue);
+  // Notice that the pool is already declared by the parser so that it the
+  // symbol is bound eagerly. This is analogous to DeclareSygusVarCommand.
+  // Hence, we do nothing here.
   d_commandStatus = CommandSuccess::instance();
 }
 
