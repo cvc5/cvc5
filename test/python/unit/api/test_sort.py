@@ -8,6 +8,11 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
+## ########################################################
+##
+## Unit tests for sort API.
+## Obtained by translating test/unit/api/sort_black.cpp
+
 import pytest
 import pycvc4
 from pycvc4 import kinds
