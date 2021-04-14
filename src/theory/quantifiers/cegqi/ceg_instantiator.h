@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "theory/inference_id.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {

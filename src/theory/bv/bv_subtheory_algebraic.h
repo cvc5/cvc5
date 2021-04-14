@@ -163,9 +163,8 @@ class AlgebraicSolver : public SubtheorySolver
     IntStat d_numSat;
     IntStat d_numUnknown;
     TimerStat d_solveTime;
-    BackedStat<double> d_useHeuristic;
+    ValueStat<double> d_useHeuristic;
     Statistics();
-    ~Statistics();
   };
 
   std::unique_ptr<SubstitutionMap> d_modelMap;

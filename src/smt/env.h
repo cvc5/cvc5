@@ -23,7 +23,6 @@
 
 #include "options/options.h"
 #include "theory/logic_info.h"
-#include "util/statistics.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5 {

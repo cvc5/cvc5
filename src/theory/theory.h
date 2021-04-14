@@ -35,8 +35,7 @@
 #include "theory/theory_id.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 

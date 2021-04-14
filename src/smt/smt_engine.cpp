@@ -66,6 +66,7 @@
 #include "theory/theory_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "util/statistics_registry.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -412,7 +413,8 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 void SmtEngine::notifyStartParsing(const std::string& filename)
 {
   d_state->setFilename(filename);
-  d_stats->d_driverFilename.set(filename);
+  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename",
+                                                            filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -424,11 +426,12 @@ const std::string& SmtEngine::getFilename() const
 }
 
 void SmtEngine::setResultStatistic(const std::string& result) {
-    d_stats->d_driverResult.set(result);
+  d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat",
+                                                            result);
 }
-
 void SmtEngine::setTotalTimeStatistic(double seconds) {
-  d_stats->d_driverTotalTime.set(seconds);
+  d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime",
+                                                       seconds);
 }
 
 void SmtEngine::setLogicInternal()
@@ -516,11 +519,13 @@ cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    for (const auto& s: d_env->getStatisticsRegistry())
+    for (const auto& s : d_env->getStatisticsRegistry())
     {
+      std::stringstream ss;
+      ss << *s.second;
       vector<SExpr> v;
       v.push_back(s.first);
-      v.push_back(s.second);
+      v.push_back(ss.str());
       stats.push_back(v);
     }
     return SExpr(stats);
@@ -1866,24 +1871,28 @@ NodeManager* SmtEngine::getNodeManager() const
   return d_env->getNodeManager();
 }
 
-Statistics SmtEngine::getStatistics() const
-{
-  return Statistics(d_env->getStatisticsRegistry());
-}
-
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  return d_env->getStatisticsRegistry().getStatistic(name);
+  const auto* val = d_env->getStatisticsRegistry().get(name);
+  std::stringstream ss;
+  ss << *val;
+  return SExpr({SExpr(name), SExpr(ss.str())});
 }
 
 void SmtEngine::printStatistics(std::ostream& out) const
 {
-  d_env->getStatisticsRegistry().flushInformation(out);
+  d_env->getStatisticsRegistry().print(out);
 }
 
 void SmtEngine::printStatisticsSafe(int fd) const
 {
-  d_env->getStatisticsRegistry().safeFlushInformation(fd);
+  d_env->getStatisticsRegistry().printSafe(fd);
+}
+
+void SmtEngine::printStatisticsDiff(std::ostream& out) const
+{
+  d_env->getStatisticsRegistry().printDiff(out);
+  d_env->getStatisticsRegistry().storeSnapshot();
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,

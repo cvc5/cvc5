@@ -58,7 +58,6 @@ class CoreSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
     Statistics();
-    ~Statistics();
   };
 
   // NotifyClass: handles call-back from congruence closure module

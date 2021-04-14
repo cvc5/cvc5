@@ -25,8 +25,7 @@
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -121,7 +120,6 @@ class QuickXPlain
     IntStat d_finalPeriod;
     AverageStat d_avgMinimizationRatio;
     Statistics(const std::string& name);
-    ~Statistics();
   };
   BVQuickCheck* d_solver;
   unsigned long d_budget;

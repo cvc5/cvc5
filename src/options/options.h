@@ -171,7 +171,6 @@ public:
   bool getSemanticChecks() const;
   bool getStatistics() const;
   bool getStatsEveryQuery() const;
-  bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
   unsigned long getCumulativeTimeLimit() const;

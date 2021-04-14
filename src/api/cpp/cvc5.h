@@ -47,11 +47,13 @@ class TypeNode;
 class Options;
 class Random;
 class Result;
+class StatisticsRegistry;
 
 namespace api {
 
 class Solver;
-struct Statistics;
+class Statistics;
+struct APIStatistics;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -2259,6 +2261,130 @@ struct CVC4_EXPORT RoundingModeHashFunction
 };
 
 /* -------------------------------------------------------------------------- */
+/* Statistics                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Represents a snapshot of a single statistic value.
+ * A value can be of type int64_t, double, std::string or a histogram
+ * (`std::map<std::string, uint64_t>`).
+ * The value type can be queried (using `isInt`, `isString`, etc.) and
+ * the stored value can be accessed (using `getInt`, `getString`, etc.).
+ */
+class CVC4_EXPORT Stat
+{
+  struct StatData;
+
+ public:
+  friend class Statistics;
+  friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
+  using HistogramData = std::map<std::string, uint64_t>;
+  /** Create from the given value. */
+  Stat() = delete;
+  Stat(const Stat& s);
+  ~Stat();
+  Stat& operator=(const Stat& s);
+
+  /** Is this value intended for experts only? */
+  bool isExpert() const;
+  /** Does this value hold the default value? */
+  bool isDefault() const;
+
+  /** Is this value an integer? */
+  bool isInt() const;
+  /** Return the integer value */
+  int64_t getInt() const;
+  /** Is this value a double? */
+  bool isDouble() const;
+  /** Return the double value */
+  double getDouble() const;
+  /** Is this value an string? */
+  bool isString() const;
+  /** Return the string value */
+  const std::string& getString() const;
+  /** Is this value an histogram? */
+  bool isHistogram() const;
+  /** Return the histogram value */
+  const HistogramData& getHistogram() const;
+
+ private:
+  Stat(bool expert, bool def, StatData&& sd);
+  /** Whether this statistic is only meant for experts */
+  bool d_expert;
+  /** Whether this statistic has the default value */
+  bool d_default;
+  std::unique_ptr<StatData> d_data;
+};
+
+std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
+
+/**
+ * Represents a snapshot of the solver statistics.
+ * Once obtained, an instance of this class is independent of the `Solver`
+ * object: it will not change when the solvers internal statistics do, it
+ * will not be invalidated if the solver is destroyed.
+ * Statistics are generally categorized as public and expert statistics.
+ * Furthermore, statistics may hold the default values and thus be not of
+ * interest.
+ * Iterating on this class (via `begin()` and `end()`) shows only public
+ * statistics that have been set. By passing appropriate flags to `begin()`,
+ * statistics that are expert, unchanged, or both, can be included as well.
+ * A single statistic value is represented as `Stat`.
+ */
+class CVC4_EXPORT Statistics
+{
+ public:
+  friend Solver;
+  using BaseType = std::map<std::string, Stat>;
+
+  /** Custom iterator to hide expert statistics from regular iteration */
+  class iterator
+  {
+   public:
+    friend Statistics;
+    BaseType::const_reference operator*() const;
+    BaseType::const_pointer operator->() const;
+    iterator& operator++();
+    iterator operator++(int);
+    iterator& operator--();
+    iterator operator--(int);
+    bool operator==(const iterator& rhs) const;
+    bool operator!=(const iterator& rhs) const;
+
+   private:
+    iterator(BaseType::const_iterator it,
+             const BaseType& base,
+             bool expert,
+             bool def);
+    bool isVisible() const;
+    BaseType::const_iterator d_it;
+    const BaseType* d_base;
+    bool d_showExpert = false;
+    bool d_showDefault = false;
+  };
+
+  /** Retrieve the statistic with the given name. */
+  const Stat& get(const std::string& name);
+  /**
+   * Begin iteration over the statistics values.
+   * By default, only entries that are public (non-expert) and have been set
+   * are visible while the others are skipped.
+   * With `expert` set to true, expert statistics are shown as well.
+   * With `def` set to true, defaulted statistics are shown as well.
+   */
+  iterator begin(bool expert = false, bool def = false) const;
+  /** end iteration */
+  iterator end() const;
+
+ private:
+  Statistics() = default;
+  Statistics(const StatisticsRegistry& reg);
+  /** Internal data */
+  BaseType d_stats;
+};
+std::ostream& operator<<(std::ostream& out, const Statistics& stats) CVC4_EXPORT;
+
+/* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -3680,9 +3806,18 @@ class CVC4_EXPORT Solver
   // the driver level. !!!
   Options& getOptions(void);
 
+  /**
+   * Returns a snapshot of the current state of the statistic values of this
+   * solver. The returned object is completely decoupled from the solver and
+   * will not change when the solver is used again.
+   */
+  Statistics getStatistics() const;
+
  private:
   /** @return the node manager of this solver */
   NodeManager* getNodeManager(void) const;
+  /** Reset the API statistics */
+  void resetStatistics();
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
@@ -3779,7 +3914,7 @@ class CVC4_EXPORT Solver
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;
   /** The statistics collected on the Api level. */
-  std::unique_ptr<Statistics> d_stats;
+  std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
   std::unique_ptr<SmtEngine> d_smtEngine;
   /** The random number generator of this solver. */

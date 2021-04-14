@@ -742,23 +742,15 @@ InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
 }
 
 Instantiate::Statistics::Statistics()
-    : d_instantiations("Instantiate::Instantiations_Total", 0),
-      d_inst_duplicate("Instantiate::Duplicate_Inst", 0),
-      d_inst_duplicate_eq("Instantiate::Duplicate_Inst_Eq", 0),
-      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0)
+    : d_instantiations(smtStatisticsRegistry().registerInt(
+        "Instantiate::Instantiations_Total")),
+      d_inst_duplicate(
+          smtStatisticsRegistry().registerInt("Instantiate::Duplicate_Inst")),
+      d_inst_duplicate_eq(smtStatisticsRegistry().registerInt(
+          "Instantiate::Duplicate_Inst_Eq")),
+      d_inst_duplicate_ent(smtStatisticsRegistry().registerInt(
+          "Instantiate::Duplicate_Inst_Entailed"))
 {
-  smtStatisticsRegistry()->registerStat(&d_instantiations);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
-}
-
-Instantiate::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
 }
 
 }  // namespace quantifiers

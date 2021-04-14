@@ -77,17 +77,11 @@ Node ProofRuleChecker::mkKindNode(Kind k)
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
-    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
+    : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
+        "ProofCheckerStatistics::ruleChecks")),
+      d_totalRuleChecks(smtStatisticsRegistry().registerInt(
+          "ProofCheckerStatistics::totalRuleChecks"))
 {
-  smtStatisticsRegistry()->registerStat(&d_ruleChecks);
-  smtStatisticsRegistry()->registerStat(&d_totalRuleChecks);
-}
-
-ProofCheckerStatistics::~ProofCheckerStatistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_ruleChecks);
-  smtStatisticsRegistry()->unregisterStat(&d_totalRuleChecks);
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)

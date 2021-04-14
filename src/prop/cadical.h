@@ -23,7 +23,6 @@
 #ifdef CVC5_USE_CADICAL
 
 #include "prop/sat_solver.h"
-#include "util/stats_timer.h"
 
 #include <cadical.hpp>
 
@@ -70,7 +69,7 @@ class CadicalSolver : public SatSolver
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  CadicalSolver(StatisticsRegistry& registry, const std::string& name = "");
   /**
    * Initialize SAT solver instance.
    * Note: Split out to not call virtual functions in constructor.
@@ -91,13 +90,11 @@ class CadicalSolver : public SatSolver
 
   struct Statistics
   {
-    StatisticsRegistry* d_registry;
     IntStat d_numSatCalls;
     IntStat d_numVariables;
     IntStat d_numClauses;
     TimerStat d_solveTime;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
+    Statistics(StatisticsRegistry& registry, const std::string& prefix);
   };
 
   Statistics d_statistics;

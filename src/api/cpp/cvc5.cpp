@@ -61,25 +61,22 @@
 #include "util/random.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
+#include "util/statistics_value.h"
 #include "util/utility.h"
 
 namespace cvc5 {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
-/* Statistics                                                                 */
+/* APIStatistics                                                              */
 /* -------------------------------------------------------------------------- */
 
-struct Statistics
+struct APIStatistics
 {
-  Statistics()
-      : d_consts("api::CONSTANT"), d_vars("api::VARIABLE"), d_terms("api::TERM")
-  {
-  }
-  IntegralHistogramStat<TypeConstant> d_consts;
-  IntegralHistogramStat<TypeConstant> d_vars;
-  IntegralHistogramStat<Kind> d_terms;
+  HistogramStat<TypeConstant> d_consts;
+  HistogramStat<TypeConstant> d_vars;
+  HistogramStat<Kind> d_terms;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -4056,6 +4053,200 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* Statistics                                                                 */
+/* -------------------------------------------------------------------------- */
+
+struct Stat::StatData
+{
+  cvc5::StatExportData data;
+  template <typename T>
+  StatData(T&& t) : data(std::forward<T>(t))
+  {
+  }
+  StatData() : data() {}
+};
+
+Stat::~Stat() {}
+Stat::Stat(const Stat& s)
+    : d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data))
+{
+}
+Stat& Stat::operator=(const Stat& s)
+{
+  d_expert = s.d_expert;
+  d_data = std::make_unique<StatData>(s.d_data->data);
+  return *this;
+}
+
+bool Stat::isExpert() const { return d_expert; }
+bool Stat::isDefault() const { return d_default; }
+
+bool Stat::isInt() const
+{
+  return std::holds_alternative<int64_t>(d_data->data);
+}
+int64_t Stat::getInt() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(isInt()) << "Expected Stat of type int64_t.";
+  return std::get<int64_t>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+bool Stat::isDouble() const
+{
+  return std::holds_alternative<double>(d_data->data);
+}
+double Stat::getDouble() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(isDouble()) << "Expected Stat of type double.";
+  return std::get<double>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+bool Stat::isString() const
+{
+  return std::holds_alternative<std::string>(d_data->data);
+}
+const std::string& Stat::getString() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(isString()) << "Expected Stat of type std::string.";
+  return std::get<std::string>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+bool Stat::isHistogram() const
+{
+  return std::holds_alternative<HistogramData>(d_data->data);
+}
+const Stat::HistogramData& Stat::getHistogram() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(isHistogram()) << "Expected Stat of type histogram.";
+  return std::get<HistogramData>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+
+Stat::Stat(bool expert, bool def, StatData&& sd)
+    : d_expert(expert),
+      d_default(def),
+      d_data(std::make_unique<StatData>(std::move(sd)))
+{
+}
+
+std::ostream& operator<<(std::ostream& os, const Stat& sv)
+{
+  return cvc5::detail::print(os, sv.d_data->data);
+}
+
+Statistics::BaseType::const_reference Statistics::iterator::operator*() const
+{
+  return d_it.operator*();
+}
+Statistics::BaseType::const_pointer Statistics::iterator::operator->() const
+{
+  return d_it.operator->();
+}
+Statistics::iterator& Statistics::iterator::operator++()
+{
+  do
+  {
+    ++d_it;
+  } while (!isVisible());
+  return *this;
+}
+Statistics::iterator Statistics::iterator::operator++(int)
+{
+  iterator tmp = *this;
+  do
+  {
+    ++d_it;
+  } while (!isVisible());
+  return tmp;
+}
+Statistics::iterator& Statistics::iterator::operator--()
+{
+  do
+  {
+    --d_it;
+  } while (!isVisible());
+  return *this;
+}
+Statistics::iterator Statistics::iterator::operator--(int)
+{
+  iterator tmp = *this;
+  do
+  {
+    --d_it;
+  } while (!isVisible());
+  return tmp;
+}
+bool Statistics::iterator::operator==(const Statistics::iterator& rhs) const
+{
+  return d_it == rhs.d_it;
+}
+bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
+{
+  return d_it != rhs.d_it;
+}
+Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
+                               const Statistics::BaseType& base,
+                               bool expert,
+                               bool def)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(def)
+{
+  while (!isVisible())
+  {
+    ++d_it;
+  }
+}
+bool Statistics::iterator::isVisible() const
+{
+  if (d_it == d_base->end()) return true;
+  if (!d_showExpert && d_it->second.isExpert()) return false;
+  if (!d_showDefault && d_it->second.isDefault()) return false;
+  return true;
+}
+
+const Stat& Statistics::get(const std::string& name)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  auto it = d_stats.find(name);
+  CVC5_API_CHECK(it != d_stats.end())
+      << "No stat with name \"" << name << "\" exists.";
+  return it->second;
+  CVC5_API_TRY_CATCH_END;
+}
+
+Statistics::iterator Statistics::begin(bool expert, bool def) const
+{
+  return iterator(d_stats.begin(), d_stats, expert, def);
+}
+Statistics::iterator Statistics::end() const
+{
+  return iterator(d_stats.end(), d_stats, false, false);
+}
+
+Statistics::Statistics(const StatisticsRegistry& reg)
+{
+  for (const auto& svp : reg)
+  {
+    d_stats.emplace(svp.first,
+                    Stat(svp.second->d_expert,
+                         svp.second->isDefault(),
+                         svp.second->getViewer()));
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, const Statistics& stats)
+{
+  for (const auto& stat : stats)
+  {
+    out << stat.first << " = " << stat.second << std::endl;
+  }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -4070,12 +4261,7 @@ Solver::Solver(Options* opts)
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
-#if CVC5_STATISTICS_ON
-  d_stats.reset(new Statistics());
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_consts);
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_vars);
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_terms);
-#endif
+  resetStatistics();
 }
 
 Solver::~Solver() {}
@@ -4087,27 +4273,29 @@ NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
 
 void Solver::increment_term_stats(Kind kind) const
 {
-#ifdef CVC5_STATISTICS_ON
-  d_stats->d_terms << kind;
-#endif
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_stats->d_terms << kind;
+  }
 }
 
 void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
 {
-#ifdef CVC5_STATISTICS_ON
-  const TypeNode tn = sort.getTypeNode();
-  TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
-                        ? tn.getConst<TypeConstant>()
-                        : LAST_TYPE;
-  if (is_var)
+  if constexpr (Configuration::isStatisticsBuild())
   {
-    d_stats->d_vars << tc;
+    const TypeNode tn = sort.getTypeNode();
+    TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
+                          ? tn.getConst<TypeConstant>()
+                          : LAST_TYPE;
+    if (is_var)
+    {
+      d_stats->d_vars << tc;
+    }
+    else
+    {
+      d_stats->d_consts << tc;
+    }
   }
-  else
-  {
-    d_stats->d_consts << tc;
-  }
-#endif
 }
 
 /* Split out to avoid nested API calls (problematic with API tracing).        */
@@ -4501,6 +4689,20 @@ bool Solver::isValidInteger(const std::string& s) const
   }
 
   return true;
+}
+
+void Solver::resetStatistics()
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_stats.reset(new APIStatistics{
+        d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+            "api::CONSTANT"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+            "api::VARIABLE"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+    });
+  }
 }
 
 /* Helpers for mkTerm checks.                                                 */
@@ -6821,6 +7023,11 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
  * the new API. !!!
  */
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
+
+Statistics Solver::getStatistics() const
+{
+  return Statistics(d_smtEngine->getStatisticsRegistry());
+}
 
 }  // namespace api
 

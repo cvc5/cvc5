@@ -52,7 +52,6 @@ class NonClausalSimp : public PreprocessingPass
   {
     IntStat d_numConstantProps;
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

@@ -62,8 +62,7 @@
 #include "theory/arith/partial_model.h"
 #include "util/dense_map.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {

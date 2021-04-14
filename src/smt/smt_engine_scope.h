@@ -51,7 +51,7 @@ class SmtScope : public NodeManagerScope
    * This returns the StatisticsRegistry attached to the currently in scope
    * SmtEngine.
    */
-  static StatisticsRegistry* currentStatisticsRegistry();
+  static StatisticsRegistry& currentStatisticsRegistry();
 
  private:
   /** The old SmtEngine, to be restored on destruction. */

@@ -15,13 +15,35 @@
 
 #include "util/statistics_public.h"
 
+#include "api/cpp/cvc5_kind.h"
+#include "expr/kind.h"
+#include "theory/inference_id.h"
+#include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
 
 void registerPublicStatistics(StatisticsRegistry& reg)
 {
+  reg.registerHistogram<TypeConstant>("api::CONSTANT", false);
+  reg.registerHistogram<TypeConstant>("api::VARIABLE", false);
+  reg.registerHistogram<api::Kind>("api::TERM", false);
 
+  reg.registerValue<std::string>("driver::filename", false);
+  reg.registerValue<std::string>("driver::sat/unsat", false);
+  reg.registerValue<double>("driver::totalTime", false);
+
+  for (theory::TheoryId id = theory::THEORY_FIRST; id != theory::THEORY_LAST;
+       ++id)
+  {
+    std::string prefix = theory::getStatsPrefix(id);
+    reg.registerHistogram<theory::InferenceId>(prefix + "inferencesConflict",
+                                               false);
+    reg.registerHistogram<theory::InferenceId>(prefix + "inferencesFact",
+                                               false);
+    reg.registerHistogram<theory::InferenceId>(prefix + "inferencesLemma",
+                                               false);
+  }
 }
 
 }  // namespace cvc5

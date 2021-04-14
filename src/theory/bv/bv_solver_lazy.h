@@ -119,7 +119,6 @@ class BVSolverLazy : public BVSolver
     TimerStat d_weightComputationTimer;
     IntStat d_numMultSlice;
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

@@ -31,7 +31,6 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 #include "util/sexpr.h"
-#include "util/statistics.h"
 
 namespace cvc5 {
 
@@ -827,20 +826,28 @@ class CVC4_EXPORT SmtEngine
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** Export statistics from this SmtEngine. */
-  Statistics getStatistics() const;
-
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;
 
-  /** Flush statistics from this SmtEngine and the NodeManager it uses. */
+  /**
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine.
+   */
   void printStatistics(std::ostream& out) const;
 
   /**
-   * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
-   * use in a signal handler.
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
+
+  /**
+   * Print the changes to the statistics from the statistics registry in the
+   * env object owned by this SmtEngine since this method was called the last
+   * time. Internally prints the diff and then stores a snapshot for the next
+   * call.
+   */
+  void printStatisticsDiff(std::ostream&) const;
 
   /**
    * Set user attribute.

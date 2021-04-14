@@ -30,7 +30,7 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau_sizes.h"
 #include "util/bin_heap.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -407,7 +407,6 @@ private:
     IntStat d_enqueuesVarOrderModeDuplicates;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

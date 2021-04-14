@@ -34,7 +34,7 @@
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -109,9 +109,7 @@ class EqualityEngine : public context::ContextNotifyObj {
     /** Number of constant terms managed by the system */
     IntStat d_constantTermsCount;
 
-    Statistics(std::string name);
-
-    ~Statistics();
+    Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */
 
 private:

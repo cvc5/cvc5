@@ -49,7 +49,6 @@ class InequalitySolver : public SubtheorySolver
     IntStat d_numCallstoCheck;
     TimerStat d_solveTime;
     Statistics();
-    ~Statistics();
   };
 
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
