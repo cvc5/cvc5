@@ -45,18 +45,18 @@ class ProofPostproccess;
  * - If we are producing unsat cores using the old proof infrastructure, then
  *   SmtEngine will not have proofs in the sense of this proof manager.
  *
- * - If we are producing unast cores using this proof infrastructure, then the
+ * - If we are producing unsat cores using this proof infrastructure, then the
  *   SmtEngine will have proofs using this proof manager (if --produce-proofs
- *   was not passed by the user it will be activiated), but these proofs will
+ *   was not passed by the user it will be activated), but these proofs will
  *   only cover preprocessing and the prop engine, i.e., the theory engine will
  *   not have proofs.
  *
  * - If we are not producing unsat cores then the SmtEngine will have proofs as
  *   long as --produce-proofs was given.
  *
- * - If SmtEngine has been configured in a way that is incompatible with unsat
- *   cores, then proofs will be disabled, regardless of --produce-proofs being
- *   given.
+ * - If SmtEngine has been configured in a way that is incompatible with proofs
+ *   and it was set to produce unsat cores using proofs, then unsat core
+ *   production will be disabled.
  */
 class PfManager
 {
