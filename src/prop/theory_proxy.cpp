@@ -107,24 +107,24 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     {
       // we need however to register the assumption as this might break the
       // expansion when finalizing the proof (for trying to explain as a literal
-      // what is actually a clause)
-      Node proven = tte.getProven();
+      // what is actually a clause). Since we have no proofs in theory engine,
+      // we cannot go via tte.getProven(). The explanation is decomposing
+      // theoryExplanation => lNode
       NodeManager* nm = NodeManager::currentNM();
       Node clauseExp;
-      // need to eliminate AND
-      if (proven[0].getKind() == kind::AND)
+      if (theoryExplanation.getKind() == kind::AND)
       {
         std::vector<Node> disjunctsRes;
-        for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+        for (unsigned i = 0, size = theoryExplanation.getNumChildren(); i < size; ++i)
         {
-          disjunctsRes.push_back(proven[0][i].notNode());
+          disjunctsRes.push_back(theoryExplanation[i].notNode());
         }
-        disjunctsRes.push_back(proven[1]);
+        disjunctsRes.push_back(lNode);
         clauseExp = nm->mkNode(kind::OR, disjunctsRes);
       }
       else
       {
-        clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+        clauseExp = nm->mkNode(kind::OR, theoryExplanation.notNode(), lNode);
       }
       d_propEngine->getProofCnfStream()->normalizeAndRegister(clauseExp);
     }
