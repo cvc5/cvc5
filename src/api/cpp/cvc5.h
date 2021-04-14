@@ -3379,7 +3379,9 @@ class CVC4_EXPORT Solver
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
    */
-  Term declarePool(const std::string& symbol, const Sort& sort, const std::vector<Term>& initValue) const;
+  Term declarePool(const std::string& symbol,
+                   const Sort& sort,
+                   const std::vector<Term>& initValue) const;
   /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB:

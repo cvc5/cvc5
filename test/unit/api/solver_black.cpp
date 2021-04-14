@@ -1309,7 +1309,7 @@ TEST_F(TestApiBlackSolver, declarePool)
   // declare a pool with initial value { 0, x, y }
   Term p = d_solver.declarePool("p", intSort, {zero, x, y});
   // pool should have the same sort
-  ASSERT_TRUE(p.getSort()==setSort);
+  ASSERT_TRUE(p.getSort() == setSort);
   // cannot pass null sort
   Sort nullSort;
   ASSERT_THROW(d_solver.declarePool("i", nullSort, {}));

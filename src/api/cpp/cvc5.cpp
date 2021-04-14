@@ -6393,7 +6393,9 @@ Term Solver::getSeparationNilTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::declarePool(const std::string& symbol, const Sort& sort, const std::vector<Term>& initValue) const
+Term Solver::declarePool(const std::string& symbol,
+                         const Sort& sort,
+                         const std::vector<Term>& initValue) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
