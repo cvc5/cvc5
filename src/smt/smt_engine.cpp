@@ -1635,13 +1635,11 @@ void SmtEngine::getInstantiationTermVectors(
   if (options::produceProofs() && !options::unsatCoresNew()
       && getSmtMode() == SmtMode::UNSAT)
   {
-    Trace("test") << "test1\n";
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);
   }
   else
   {
-    Trace("test") << "test2\n";
     QuantifiersEngine* qe =
         getAvailableQuantifiersEngine("getInstantiationTermVectors");
     // otherwise, just get the list of all instantiations
