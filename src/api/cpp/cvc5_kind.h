@@ -3392,7 +3392,7 @@ enum CVC4_EXPORT Kind : int32_t
 #endif
 
   /* ----------------------------------------------------------------------- */
-  /** marks the upper-bound of this enumeration */
+  /** Marks the upper-bound of this enumeration. */
   LAST_KIND
 };
 
