@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
-#define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_POOL_H
 
 #include "theory/quantifiers/quant_module.h"
 
