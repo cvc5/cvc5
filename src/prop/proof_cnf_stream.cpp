@@ -571,6 +571,32 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   d_psb.clear();
 }
 
+void ProofCnfStream::convertPropagationTrusted(Node exp, Node lit)
+{
+  // we need however to register the assumption as this might break the
+  // expansion when finalizing the proof (for trying to explain as a literal
+  // what is actually a clause). Since we have no proofs in theory engine,
+  // we cannot go via tte.getProven(). The explanation is decomposing
+  // theoryExplanation => lNode
+  NodeManager* nm = NodeManager::currentNM();
+  Node clauseExp;
+  if (exp.getKind() == kind::AND)
+  {
+    std::vector<Node> disjunctsRes;
+    for (const Node& n : exp)
+    {
+      disjunctsRes.push_back(n.notNode());
+    }
+    disjunctsRes.push_back(lit);
+    clauseExp = nm->mkNode(kind::OR, disjunctsRes);
+  }
+  else
+  {
+    clauseExp = nm->mkNode(kind::OR, exp.notNode(), lit);
+  }
+  normalizeAndRegister(clauseExp);
+}
+
 void ProofCnfStream::ensureLiteral(TNode n)
 {
   Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
