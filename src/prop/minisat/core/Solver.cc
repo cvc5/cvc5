@@ -344,11 +344,6 @@ CRef Solver::reason(Var x) {
     }
     return vardata[x].d_reason;
   }
-  // if we are explaining after being done, no need to explain propagations
-  if (d_conflict.size() && options::unsatCoresNew())
-  {
-    return CRef_Undef;
-  }
   // What's the literal we are trying to explain
   Lit l = mkLit(x, value(x) != l_True);
 

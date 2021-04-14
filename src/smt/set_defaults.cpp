@@ -357,6 +357,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
+    if (options::unsatCoresNew())
+    {
+      Notice() << "SmtEngine: turning off new unsat cores." << std::endl;
+    }
+    options::unsatCoresNew.set(false);
+    options::checkUnsatCoresNew.set(false);
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;

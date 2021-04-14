@@ -103,6 +103,31 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     {
       d_propEngine->getProofCnfStream()->convertPropagation(tte);
     }
+    else
+    {
+      // we need however to register the assumption as this might break the
+      // expansion when finalizing the proof (for trying to explain as a literal
+      // what is actually a clause)
+      Node proven = tte.getProven();
+      NodeManager* nm = NodeManager::currentNM();
+      Node clauseExp;
+      // need to eliminate AND
+      if (proven[0].getKind() == kind::AND)
+      {
+        std::vector<Node> disjunctsRes;
+        for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+        {
+          disjunctsRes.push_back(proven[0][i].notNode());
+        }
+        disjunctsRes.push_back(proven[1]);
+        clauseExp = nm->mkNode(kind::OR, disjunctsRes);
+      }
+      else
+      {
+        clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+      }
+      d_propEngine->getProofCnfStream()->normalizeAndRegister(clauseExp);
+    }
   }
   else if (options::unsatCores())
   {

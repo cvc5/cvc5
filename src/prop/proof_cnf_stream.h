@@ -85,6 +85,18 @@ class ProofCnfStream : public ProofGenerator
    * node are saved in d_proof. */
   void convertPropagation(theory::TrustNode ttn);
 
+
+  /** Normalizes a clause node and registers it in the SAT proof manager.
+   *
+   * Normalization (factoring, reordering, double negation elimination) is done
+   * via the TheoryProofStepBuffer of this class, which will register the
+   * respective steps, if any. This normalization is necessary so that the
+   * resulting clauses of the clausification process are synchronized with the
+   * clauses used in the underlying SAT solver, which automatically performs the
+   * above normalizations on all added clauses.
+   */
+  void normalizeAndRegister(TNode clauseNode);
+
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -142,16 +154,6 @@ class ProofCnfStream : public ProofGenerator
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
-  /** Normalizes a clause node and registers it in the SAT proof manager.
-   *
-   * Normalization (factoring, reordering, double negation elimination) is done
-   * via the TheoryProofStepBuffer of this class, which will register the
-   * respective steps, if any. This normalization is necessary so that the
-   * resulting clauses of the clausification process are synchronized with the
-   * clauses used in the underlying SAT solver, which automatically performs the
-   * above normalizations on all added clauses.
-   */
-  void normalizeAndRegister(TNode clauseNode);
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
   /** The proof manager of underlying SAT solver associated with this stream. */
