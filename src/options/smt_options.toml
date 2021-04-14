@@ -213,7 +213,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "produce-unsat-cores-new"
   type       = "bool"
-  help       = "turn on unsat core generation using the new proof infrastructure. Note this option will activate the --produce-proofs option and that it is incompatible with the regular unsat cores."
+  help       = "turn on unsat core generation using the new proof infrastructure. Note this option is incompatible with the regular unsat cores and with producing proofs."
 
 # Temporary option until old unsat cores are removed and this becomes the standard
 [[option]]
@@ -221,7 +221,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-unsat-cores-new"
   type       = "bool"
-  help       = "after UNSAT/VALID, produce and check an unsat core (expensive) using the new proof infrastructure. Note this option will activate the --produce-proofs option and that it is incompatible with the regular unsat cores."
+  help       = "after UNSAT/VALID, produce and check an unsat core (expensive) using the new proof infrastructure. Note this option is incompatible with the regular unsat cores and with producing proofs."
 
 [[option]]
   name       = "dumpUnsatCores"
