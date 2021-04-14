@@ -25,6 +25,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 using namespace std;
 
@@ -93,76 +94,43 @@ const char* toString(Resource r)
     default: return "?Resource?";
   }
 }
+std::ostream& operator<<(std::ostream& os, Resource r)
+{
+  return os << toString(r);
+}
 
 struct ResourceManager::Statistics
 {
   ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
   IntStat d_spendResourceCalls;
-  std::vector<IntStat> d_inferenceIdSteps;
-  std::vector<IntStat> d_resourceSteps;
+  IntegralHistogramStat<theory::InferenceId> d_inferenceIdSteps;
+  IntegralHistogramStat<Resource> d_resourceSteps;
   Statistics(StatisticsRegistry& stats);
   ~Statistics();
 
-  void bump(theory::InferenceId iid, uint64_t amount)
-  {
-    bump_impl(static_cast<std::size_t>(iid), amount, d_inferenceIdSteps);
-  }
-  void bump(Resource r, uint64_t amount)
-  {
-    bump_impl(static_cast<std::size_t>(r), amount, d_resourceSteps);
-  }
-
  private:
-  void bump_impl(std::size_t id, uint64_t amount, std::vector<IntStat>& stats)
-  {
-    Assert(stats.size() > id);
-    stats[id] += amount;
-  }
-
   StatisticsRegistry& d_statisticsRegistry;
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
       d_spendResourceCalls("resource::spendResourceCalls", 0),
+      d_inferenceIdSteps("resource::steps::inference-id"),
+      d_resourceSteps("resource::steps::resource"),
       d_statisticsRegistry(stats)
 {
   d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
   d_statisticsRegistry.registerStat(&d_spendResourceCalls);
-
-  // Make sure we don't reallocate the vector
-  d_inferenceIdSteps.reserve(resman_detail::InferenceIdMax + 1);
-  for (std::size_t id = 0; id <= resman_detail::InferenceIdMax; ++id)
-  {
-    theory::InferenceId iid = static_cast<theory::InferenceId>(id);
-    d_inferenceIdSteps.emplace_back(
-        "resource::iid::" + std::string(theory::toString(iid)), 0);
-    d_statisticsRegistry.registerStat(&d_inferenceIdSteps[id]);
-  }
-  // Make sure we don't reallocate the vector
-  d_resourceSteps.reserve(resman_detail::ResourceMax + 1);
-  for (std::size_t id = 0; id <= resman_detail::ResourceMax; ++id)
-  {
-    Resource r = static_cast<Resource>(id);
-    d_resourceSteps.emplace_back("resource::res::" + std::string(toString(r)),
-                                 0);
-    d_statisticsRegistry.registerStat(&d_resourceSteps[id]);
-  }
+  d_statisticsRegistry.registerStat(&d_inferenceIdSteps);
+  d_statisticsRegistry.registerStat(&d_resourceSteps);
 }
 
 ResourceManager::Statistics::~Statistics()
 {
   d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
   d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
-
-  for (auto& stat : d_inferenceIdSteps)
-  {
-    d_statisticsRegistry.unregisterStat(&stat);
-  }
-  for (auto& stat : d_resourceSteps)
-  {
-    d_statisticsRegistry.unregisterStat(&stat);
-  }
+  d_statisticsRegistry.unregisterStat(&d_inferenceIdSteps);
+  d_statisticsRegistry.unregisterStat(&d_resourceSteps);
 }
 
 bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)
@@ -297,7 +265,7 @@ void ResourceManager::spendResource(Resource r)
 {
   std::size_t i = static_cast<std::size_t>(r);
   Assert(d_resourceWeights.size() > i);
-  d_statistics->bump(r, 1);
+  d_statistics->d_resourceSteps << r;
   spendResource(d_resourceWeights[i]);
 }
 
@@ -305,7 +273,7 @@ void ResourceManager::spendResource(theory::InferenceId iid)
 {
   std::size_t i = static_cast<std::size_t>(iid);
   Assert(d_infidWeights.size() > i);
-  d_statistics->bump(iid, 1);
+  d_statistics->d_inferenceIdSteps << iid;
   spendResource(d_infidWeights[i]);
 }
 

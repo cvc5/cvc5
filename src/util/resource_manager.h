@@ -95,6 +95,7 @@ enum class Resource
 };
 
 const char* toString(Resource r);
+std::ostream& operator<<(std::ostream& os, Resource r);
 
 namespace resman_detail {
 /** The upper bound of values from the theory::InferenceId enum */
