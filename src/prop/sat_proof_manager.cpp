@@ -33,7 +33,6 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
       d_pnm(pnm),
       d_resChains(pnm, true, userContext),
       d_resChainPg(userContext, pnm),
-      d_finalizing(false),
       d_assumptions(userContext),
       d_conflictLit(undefSatVariable)
 {
@@ -445,7 +444,6 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   Trace("sat-proof")
       << "SatProofManager::finalizeProof: conflicting clause node: "
       << inConflictNode << "\n";
-  d_finalizing = true;
   // nothing to do
   if (inConflictNode == d_false)
   {
@@ -724,8 +722,6 @@ void SatProofManager::finalizeProof(const Minisat::Clause& inConflict,
   }
   finalizeProof(clauseNode, clause);
 }
-
-bool SatProofManager::finalizing() { return d_finalizing; }
 
 std::shared_ptr<ProofNode> SatProofManager::getProof()
 {

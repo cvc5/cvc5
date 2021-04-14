@@ -115,9 +115,9 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
       if (theoryExplanation.getKind() == kind::AND)
       {
         std::vector<Node> disjunctsRes;
-        for (unsigned i = 0, size = theoryExplanation.getNumChildren(); i < size; ++i)
+        for (const Node& n : theoryExplanation)
         {
-          disjunctsRes.push_back(theoryExplanation[i].notNode());
+          disjunctsRes.push_back(n.notNode());
         }
         disjunctsRes.push_back(lNode);
         clauseExp = nm->mkNode(kind::OR, disjunctsRes);

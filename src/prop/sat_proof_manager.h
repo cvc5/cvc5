@@ -349,9 +349,6 @@ class SatProofManager
   /** Set the unit conflict clause d_conflictLit. */
   void storeUnitConflict(Minisat::Lit inConflict);
 
-  /** Whether we are in the finalizing state of the proof. */
-  bool finalizing();
-
   /** Retrive the refutation proof
    *
    * If there is no chain for false in d_resChains, meaning that this call was
@@ -568,9 +565,6 @@ class SatProofManager
   /** The true/false nodes */
   Node d_true;
   Node d_false;
-
-  /** Whether in finalizing state. */
-  bool d_finalizing;
 
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
