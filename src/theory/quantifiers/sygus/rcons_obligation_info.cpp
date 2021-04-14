@@ -13,8 +13,6 @@
  * Reconstruct Obligation Info class implementation.
  */
 
-#include <sstream>
-
 #include "rcons_obligation_info.h"
 
 #include <sstream>

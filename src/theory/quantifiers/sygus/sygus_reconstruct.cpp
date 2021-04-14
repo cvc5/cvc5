@@ -215,7 +215,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
   // terms. So, we add redundant substitutions
   candObs.insert(d_sygusVars.cbegin(), d_sygusVars.cend());
 
-  // try to match the obligation's builtin term with the pattern sz
+  // try to match the obligation's builtin terms with the pattern sz
   for (Node builtin : d_obInfo[k].getBuiltins())
   {
     if (expr::match(Rewriter::rewrite(datatypes::utils::sygusToBuiltin(sz)),
