@@ -27,6 +27,7 @@ namespace api {
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
+// TODO(Gereon): Fix links that involve std::vector. See https://github.com/doxygen/doxygen/issues/8503
 /**
  * The kind of a CVC4 term.
  *
