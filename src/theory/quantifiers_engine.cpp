@@ -65,6 +65,7 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(&d_qreg);
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(qim.getInstantiate());
+  d_util.push_back(tr.getTermPools());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -664,6 +665,10 @@ bool QuantifiersEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
   return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
+}
+void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
+{
+  d_treg.declarePool(p, initValue);
 }
 
 }  // namespace theory

@@ -157,6 +157,11 @@ class TheoryEngine {
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
+  /**
+   * An empty set of relevant assertions, which is returned as a dummy value for
+   * getRelevantAssertions when relevance is disabled.
+   */
+  std::unordered_set<TNode, TNodeHashFunction> d_emptyRelevantSet;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -624,6 +629,21 @@ class TheoryEngine {
    * has (or null if none);
    */
   Node getModelValue(TNode var);
+
+  /**
+   * Get relevant assertions. This returns a set of assertions that are
+   * currently asserted to this TheoryEngine that propositionally entail the
+   * (preprocessed) input formula and all theory lemmas that have been marked
+   * NEEDS_JUSTIFY. For more details on this, see relevance_manager.h.
+   *
+   * This method updates success to false if the set of relevant assertions
+   * is not available. This may occur if we are not in SAT mode, if the
+   * relevance manager is disabled (see option::relevanceFilter) or if the
+   * relevance manager failed to compute relevant assertions due to an internal
+   * error.
+   */
+  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
+      bool& success);
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

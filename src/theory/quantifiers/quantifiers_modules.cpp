@@ -34,6 +34,7 @@ QuantifiersModules::QuantifiersModules()
       d_sg_gen(nullptr),
       d_synth_e(nullptr),
       d_fs(nullptr),
+      d_ipool(nullptr),
       d_i_cbqi(nullptr),
       d_qsplit(nullptr),
       d_sygus_inst(nullptr)
@@ -114,6 +115,11 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
     d_rel_dom.reset(new RelevantDomain(qs, qr, tr));
     d_fs.reset(new InstStrategyEnum(qs, qim, qr, tr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
+  }
+  if (options::poolInst())
+  {
+    d_ipool.reset(new InstStrategyPool(qs, qim, qr, tr));
+    modules.push_back(d_ipool.get());
   }
   if (options::sygusInst())
   {
