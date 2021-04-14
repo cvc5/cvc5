@@ -13,7 +13,7 @@
  * Attributes for the theory quantifiers.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H

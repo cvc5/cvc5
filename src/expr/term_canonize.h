@@ -13,7 +13,7 @@
  * Utilities for constructing canonical terms.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__TERM_CANONIZE_H
 #define CVC5__EXPR__TERM_CANONIZE_H

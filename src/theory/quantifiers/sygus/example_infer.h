@@ -14,7 +14,7 @@
  * (functions applied to concrete arguments only).
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
 #define CVC5__THEORY__QUANTIFIERS__EXAMPLE_INFER_H

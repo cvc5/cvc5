@@ -12,7 +12,7 @@
  * Variable match generator class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__VAR_MATCH_GENERATOR_H
 #define CVC5__THEORY__QUANTIFIERS__VAR_MATCH_GENERATOR_H

@@ -15,7 +15,7 @@
  * These macros implement guards for the cvc5 C++ API functions.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H

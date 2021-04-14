@@ -13,7 +13,7 @@
  * A buffered inference manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 #define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H

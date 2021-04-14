@@ -13,7 +13,7 @@
  * A finite model finding decision strategy for strings.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__STRINGS_FMF_H
 #define CVC5__THEORY__STRINGS__STRINGS_FMF_H

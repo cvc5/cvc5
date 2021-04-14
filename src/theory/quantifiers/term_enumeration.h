@@ -13,7 +13,7 @@
  * Utilities for term enumeration.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
 #define CVC5__THEORY__QUANTIFIERS__TERM_ENUMERATION_H

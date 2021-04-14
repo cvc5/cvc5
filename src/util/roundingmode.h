@@ -12,7 +12,7 @@
  *
  * The definition of rounding mode values.
  */
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__ROUNDINGMODE_H
 #define CVC5__ROUNDINGMODE_H

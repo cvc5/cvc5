@@ -13,7 +13,7 @@
  * Model for Theory UF.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY_UF_MODEL_H
 #define CVC5__THEORY_UF_MODEL_H

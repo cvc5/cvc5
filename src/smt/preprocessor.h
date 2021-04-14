@@ -13,7 +13,7 @@
  * The preprocessor of the SmtEngine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__PREPROCESSOR_H
 #define CVC5__SMT__PREPROCESSOR_H

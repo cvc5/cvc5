@@ -13,7 +13,7 @@
  * Provide compile-time configuration information about the cvc5 library.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__CONFIGURATION_PRIVATE_H
 #define CVC5__CONFIGURATION_PRIVATE_H

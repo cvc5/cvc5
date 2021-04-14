@@ -13,7 +13,7 @@
  * Sandboxed SAT solver for bv quickchecks.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__BV_QUICK_CHECK_H
 #define CVC5__BV_QUICK_CHECK_H

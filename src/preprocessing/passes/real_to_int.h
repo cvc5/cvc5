@@ -15,7 +15,7 @@
  * Converts real operations into integer operations.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__REAL_TO_INT_H
 #define CVC5__PREPROCESSING__PASSES__REAL_TO_INT_H

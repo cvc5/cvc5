@@ -26,7 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "base/check.h"
 #include "base/output.h"
 #include "context/context.h"
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
 #include "prop/minisat/core/SolverTypes.h"
