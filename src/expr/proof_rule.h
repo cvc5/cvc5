@@ -1394,9 +1394,10 @@ enum class PfRule : uint32_t
   // rules
   // ======== veriT rule
   // Children: (P1 ... Pn)
-  // Arguments: (id, Q, A1, ..., Am)
+  // Arguments: (id, Q, Q', A1, ..., Am)
   // ---------------------
   // Conclusion: (Q)
+  // where Q' is the representation of Q to be printed by the veriT printer.
   VERIT_RULE,
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED

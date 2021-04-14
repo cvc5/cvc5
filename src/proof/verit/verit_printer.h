@@ -12,123 +12,53 @@
  ** \brief The module for printing veriT proof nodes
  **/
 
-#include <memory>
-
 #include "cvc4_private.h"
-#include "expr/proof_node_updater.h"
-#include "proof/verit/verit_proof_rule.cpp"
 
 #ifndef CVC4__PROOF__VERIT_PROOF_PRINTER_H
 #define CVC4__PROOF__VERIT_PROOF_PRINTER_H
 
-#include <iostream>
+#include "expr/proof_node.h"
 
 namespace cvc5 {
 
 namespace proof {
 
-// TEMP ad-hoc code to test conversion
-static int veritPrintInternal(std::ostream& out,
-                              std::shared_ptr<ProofNode> pfn,
-                              int i)
+class VeritProofPrinter
 {
-  int temp = i;
-  std::vector<int> childIds;
-  i++;
+ public:
+  VeritProofPrinter(bool extended);
+  ~VeritProofPrinter() {}
+  /**
+   * This method prints a proof node that has been transformed into the veriT
+   * proof format
+   *
+   * @param out The stream to write to
+   * @param pfn The proof node to be printed
+   */
+  void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
-  std::string last_step;
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
-      == VeritRule::ANCHOR)
-  {
-    out << "(anchor :step " << last_step << ":args ";
-    for (size_t ii = 2; ii < pfn->getArguments().size(); ii++)
-    {
-      out << " " << pfn->getArguments()[ii];
-    }
-    out << ")\n";
-  }
-
-  for (auto child : pfn->getChildren())
-  {
-    childIds.push_back(i);
-    i = veritPrintInternal(out, child, i);
-  }
-
-  last_step = i;
-
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
-      == VeritRule::ASSUME)
-  {
-    out << "(assume t" << temp << " " << pfn->getArguments()[1] << ")"
-        << std::endl;
-    return i;
-  }
-
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
-      == VeritRule::ANCHOR)
-  {
-    return i;
-  }
-
-  if (pfn->getArguments().size() == 2)
-  {
-    out << "(step t" << temp << " " << pfn->getArguments()[1] << " :rule "
-        << veritRuletoString(static_cast<VeritRule>(
-               std::stoul(pfn->getArguments()[0].toString())));
-    if (childIds.size() >= 1)
-    {
-      out << " :premises";
-      for (auto j : childIds)
-      {
-        out << " t" << j;
-      }
-    }
-    out << ")\n";
-  }
-  else if (pfn->getArguments().size() > 2)
-  {
-    out << "(step t" << temp << " " << pfn->getArguments()[1] << " :rule "
-        << veritRuletoString(static_cast<VeritRule>(
-               std::stoul(pfn->getArguments()[0].toString())))
-        << " :args";
-    for (size_t ii = 2; ii < pfn->getArguments().size(); ii++)
-    {
-      out << " " << pfn->getArguments()[ii];
-    }
-    if (childIds.size() >= 1)
-    {
-      out << " :premises";
-      for (auto j : childIds)
-      {
-        out << " t" << j;
-      }
-    }
-    out << ")\n";
-  }
-  else
-  {
-    out << "Not translated yet\n";
-  }
-  return i;
-}
-
-static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
-{
-  // should traverse proof node, print each as a proof step, according to the
-  // VERIT_RULE id in the veritRule enum
-
-  out << "\n";
-  out << "\n";
-  out << "Print veriT proof: " << std::endl;
-  // Do not print outermost scope
-  veritPrintInternal(out, pfn->getChildren()[0], 0);
-  // Print outermost scope
-  // veritPrintInternal(out,pfn,0);
-  out << "\n";
-}
+ private:
+  /** Used for printing after the initial anchor */
+  std::string veritPrinterInternal(std::ostream& out,
+                                   std::shared_ptr<ProofNode> pfn);
+  /** Flag to indicate whether the veriT proof format should be extended */
+  bool d_extended;
+  /** The current level of nesting, which increases if a subproof is entered*/
+  int nested_level;
+  /** Current step id */
+  int step_id;
+  /** The current prefix which is updated whenever a subproof is encountered
+   * E.g. prefix = "t19.t2." */
+  std::string prefix;
+  /** A list of assumption lists, one for every level of the nested proof node
+   */
+  std::vector<std::unordered_map<Node, int, NodeHashFunction>> assumptions;
+  /** A list of step lists, one for every level of the nested proof node */
+  std::vector<std::unordered_map<Node, int, NodeHashFunction>> steps;
+};
 
 }  // namespace proof
 
 }  // namespace cvc5
 
-#endif
+#endif /* CVC4__PROOF__VERIT_PROOF_PRINTER_H */
