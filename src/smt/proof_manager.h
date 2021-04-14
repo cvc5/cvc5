@@ -55,8 +55,7 @@ class ProofPostproccess;
  *   long as --produce-proofs was given.
  *
  * - If SmtEngine has been configured in a way that is incompatible with proofs
- *   and it was set to produce unsat cores using proofs, then unsat core
- *   production will be disabled.
+ *   then unsat core production will be disabled.
  */
 class PfManager
 {
