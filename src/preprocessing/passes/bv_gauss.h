@@ -16,7 +16,7 @@
  * Elimination if possible.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BV_GAUSS_ELIM_H
 #define CVC5__PREPROCESSING__PASSES__BV_GAUSS_ELIM_H

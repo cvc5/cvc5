@@ -17,7 +17,7 @@
  * Bruttomesso's PhD thesis.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
 #define CVC5__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H

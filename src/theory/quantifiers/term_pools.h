@@ -13,7 +13,7 @@
  * Utilities for term enumeration.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__TERM_POOLS_H
 #define CVC5__THEORY__QUANTIFIERS__TERM_POOLS_H
@@ -103,6 +103,6 @@ class TermPools : public QuantifiersUtil
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC5
+}  // namespace cvc5
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_POOLS_H */

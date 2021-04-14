@@ -586,6 +586,14 @@ header = "options/quantifiers_options.h"
   name = "agg"
   help = "Consider the phase requirements aggressively for all triggers."
 
+[[option]]
+  name       = "poolInst"
+  category   = "regular"
+  long       = "pool-inst"
+  type       = "bool"
+  default    = "true"
+  help       = "pool-based instantiation: instantiate with ground terms occurring in user-specified pools"
+
 ### Finite model finding options
 
 [[option]]

@@ -13,7 +13,7 @@
  * The solver for interpolation queries.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__INTERPOLATION_SOLVER_H
 #define CVC5__SMT__INTERPOLATION_SOLVER_H

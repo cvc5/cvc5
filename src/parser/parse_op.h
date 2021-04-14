@@ -13,7 +13,7 @@
  * Definitions of parsed operators.
  */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__PARSE_OP_H
 #define CVC5__PARSER__PARSE_OP_H

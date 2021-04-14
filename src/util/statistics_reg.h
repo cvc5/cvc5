@@ -15,7 +15,7 @@
  * The StatisticsRegistry that issues statistic proxy objects.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATISTICS_REG_H
 #define CVC5__UTIL__STATISTICS_REG_H

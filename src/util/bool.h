@@ -13,7 +13,7 @@
  * A hash function for Boolean.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__BOOL_H
 #define CVC5__BOOL_H

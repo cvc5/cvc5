@@ -13,7 +13,7 @@
  * Output utility classes and functions.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__OUTPUT_H
 #define CVC5__OUTPUT_H

@@ -18,7 +18,7 @@
  * This file also provides utilities for ArithVars.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 

@@ -27,7 +27,7 @@
  * do work that only needs to be done once.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_H
 #define CVC5__PREPROCESSING__PREPROCESSING_PASS_H

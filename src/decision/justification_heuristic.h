@@ -19,7 +19,7 @@
  * It needs access to the simplified but non-clausal formula.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__DECISION__JUSTIFICATION_HEURISTIC
 #define CVC5__DECISION__JUSTIFICATION_HEURISTIC

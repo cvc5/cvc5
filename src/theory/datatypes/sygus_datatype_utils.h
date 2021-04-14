@@ -13,7 +13,7 @@
  * Util functions for sygus datatypes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H
 #define CVC5__THEORY__STRINGS__SYGUS_DATATYPE_UTILS_H

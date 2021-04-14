@@ -13,7 +13,7 @@
  * ANTLR input buffer from a memory-mapped file.
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
 #define CVC5__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H

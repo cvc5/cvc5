@@ -22,8 +22,9 @@
 #ifndef CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H
 #define CVC5__THEORY__ARITH__CONSTRAINT_FORWARD_H
 
-#include "cvc4_private.h"
 #include <vector>
+
+#include "cvc5_private.h"
 
 namespace cvc5 {
 namespace theory {

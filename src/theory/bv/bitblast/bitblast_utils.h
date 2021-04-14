@@ -13,7 +13,7 @@
  * Various utility functions for bit-blasting.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
 #define CVC5__THEORY__BV__BITBLAST__BITBLAST_UTILS_H

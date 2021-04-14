@@ -13,7 +13,7 @@
  * Implementation of ceg_bv_instantiator.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__BV_INSTANTIATOR_UTILS_H
 #define CVC5__BV_INSTANTIATOR_UTILS_H

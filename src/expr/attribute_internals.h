@@ -13,7 +13,7 @@
  * Node attributes' internals.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #  error expr/attribute_internals.h should only be included by expr/attribute.h

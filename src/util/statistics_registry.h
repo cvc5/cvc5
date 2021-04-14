@@ -16,7 +16,7 @@
  * to) statistics, the statistics registry, and some other associated
  * classes.
  *
- * This file is somewhat unique in that it is a "cvc4_private_library.h"
+ * This file is somewhat unique in that it is a "cvc5_private_library.h"
  * header. Because of this, most classes need to be marked as CVC4_EXPORT.
  * This is because CVC4_EXPORT is connected to the visibility of the linkage
  * in the object files for the class. It does not dictate what headers are
@@ -80,7 +80,7 @@
  *   (like operator++() or operator+=())
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__STATISTICS_REGISTRY_H
 #define CVC5__STATISTICS_REGISTRY_H

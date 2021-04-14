@@ -13,7 +13,7 @@
  * Implements a match trie, also known as a discrimination tree.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__MATCH_TRIE_H
 #define CVC5__EXPR__MATCH_TRIE_H

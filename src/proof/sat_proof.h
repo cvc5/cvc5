@@ -13,7 +13,7 @@
  * Resolution proof.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SAT__PROOF_H
 #define CVC5__SAT__PROOF_H

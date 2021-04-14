@@ -14,7 +14,7 @@
  * grammars that encode syntactic restrictions for SyGuS.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H

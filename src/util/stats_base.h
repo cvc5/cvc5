@@ -13,7 +13,7 @@
  * Base statistic classes.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATS_BASE_H
 #define CVC5__UTIL__STATS_BASE_H
