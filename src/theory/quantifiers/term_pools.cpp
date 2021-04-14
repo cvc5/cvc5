@@ -81,6 +81,7 @@ void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
   d.initialize();
   for (const Node& i : initValue)
   {
+    Assert(i.getType().isComparableTo(p.getType().getSetElementType()));
     d.add(i);
   }
 }
@@ -156,4 +157,4 @@ void TermPools::processInternal(Node q,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
