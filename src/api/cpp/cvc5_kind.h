@@ -48,8 +48,8 @@ enum CVC4_EXPORT Kind : int32_t
    */
   UNDEFINED_KIND = -1,
   /**
-   * Null kind (kind of null term ``Term()``).
-   * Do not explicitly create via API functions other than ``Term()``.
+   * Null kind (kind of null term `Term::Term()`).
+   * Do not explicitly create via API functions other than `Term::Term()`.
    */
   NULL_EXPR,
 
