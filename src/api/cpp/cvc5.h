@@ -2308,10 +2308,11 @@ class CVC4_EXPORT Stat
   const HistogramData& getHistogram() const;
 
  private:
-  Stat(bool expert);
-  Stat(bool expert, StatData&& sd);
+  Stat(bool expert, bool unset, StatData&& sd);
   /** Whether this statistic is only meant for experts */
   bool d_expert;
+  /** Whether this statistic has not been set */
+  bool d_unset;
   std::unique_ptr<StatData> d_data;
 };
 

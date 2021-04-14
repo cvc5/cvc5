@@ -42,7 +42,6 @@ namespace detail {
 std::ostream& print(std::ostream& out, const StatExportData& sed)
 {
   std::visit(overloaded{
-                 [&out](std::monostate v) { out << "<unset>"; },
                  [&out](int64_t v) { out << v; },
                  [&out](uint64_t v) { out << v; },
                  [&out](double v) { out << v; },

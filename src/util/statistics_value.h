@@ -42,11 +42,8 @@ namespace cvc5 {
 
 class StatisticsRegistry;
 
-using StatExportData = std::variant<std::monostate,
-                                    int64_t,
-                                    double,
-                                    std::string,
-                                    std::map<std::string, uint64_t>>;
+using StatExportData =
+    std::variant<int64_t, double, std::string, std::map<std::string, uint64_t>>;
 namespace detail {
   std::ostream& print(std::ostream& out, const StatExportData& sed);
 }

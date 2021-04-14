@@ -4079,10 +4079,7 @@ Stat& Stat::operator=(const Stat& s)
 }
 
 bool Stat::isExpert() const { return d_expert; }
-bool Stat::hasValue() const
-{
-  return !std::holds_alternative<std::monostate>(d_data->data);
-}
+bool Stat::hasValue() const { return !d_unset; }
 
 bool Stat::isInt() const
 {
@@ -4129,11 +4126,10 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert) : d_expert(expert), d_data(std::make_unique<StatData>())
-{
-}
-Stat::Stat(bool expert, StatData&& sd)
-    : d_expert(expert), d_data(std::make_unique<StatData>(std::move(sd)))
+Stat::Stat(bool expert, bool unset, StatData&& sd)
+    : d_expert(expert),
+      d_unset(unset),
+      d_data(std::make_unique<StatData>(std::move(sd)))
 {
 }
 
@@ -4234,15 +4230,10 @@ Statistics::Statistics(const StatisticsRegistry& reg)
 {
   for (const auto& svp : reg)
   {
-    if (svp.second->hasValue())
-    {
-      d_stats.emplace(svp.first,
-                      Stat(svp.second->d_expert, svp.second->getViewer()));
-    }
-    else
-    {
-      d_stats.emplace(svp.first, Stat(svp.second->d_expert));
-    }
+    d_stats.emplace(svp.first,
+                    Stat(svp.second->d_expert,
+                         !svp.second->hasValue(),
+                         svp.second->getViewer()));
   }
 }
 
