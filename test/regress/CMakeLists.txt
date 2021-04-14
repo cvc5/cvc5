@@ -2393,7 +2393,6 @@ set(regress_2_tests
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
   regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
-  regress2/proofs/slow-if-non-DAG-traversal-for-explainLit.smt2
   regress2/strings/bidir_star.smt2
   regress2/strings/cmi-split-cm-fail.smt2
   regress2/strings/cmu-dis-0707-3.smt2
