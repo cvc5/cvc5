@@ -26,6 +26,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/inst_strategy_pool.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -85,6 +86,8 @@ class QuantifiersModules
   std::unique_ptr<SynthEngine> d_synth_e;
   /** full saturation */
   std::unique_ptr<InstStrategyEnum> d_fs;
+  /** pool-based instantiation */
+  std::unique_ptr<InstStrategyPool> d_ipool;
   /** counterexample-based quantifier instantiation */
   std::unique_ptr<InstStrategyCegqi> d_i_cbqi;
   /** quantifiers splitting */
