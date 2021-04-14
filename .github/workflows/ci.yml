@@ -47,7 +47,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores
 
           - name: production-dbg-clang
-            config: production --auto-download --assertions --tracing --unit-testing--cln --gpl
+            config: production --auto-download --assertions --tracing --unit-testing --cln --gpl
             cache-key: dbgclang
             env: CC=clang CXX=clang++
             os: ubuntu-latest
