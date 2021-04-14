@@ -6411,9 +6411,6 @@ Term Solver::declarePool(const std::string& symbol,
   CVC5_API_TRY_CATCH_END;
 }
 
-/**
- *  ( pop <numeral> )
- */
 void Solver::pop(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());

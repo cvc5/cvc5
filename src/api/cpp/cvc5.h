@@ -3373,7 +3373,7 @@ class CVC4_EXPORT Solver
    * Declare a symbolic pool of terms with the given initial value.
    * SMT-LIB:
    * \verbatim
-   * ( declare-pool <symbol> ( <term>* ) )
+   * ( declare-pool <symbol> <sort> ( <term>* ) )
    * \endverbatim
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
