@@ -1114,6 +1114,18 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
+const std::unordered_set<TNode, TNodeHashFunction>&
+TheoryEngine::getRelevantAssertions(bool& success)
+{
+  // if we are not in SAT mode, or there is no relevance manager, we fail
+  if (!d_inSatMode || d_relManager == nullptr)
+  {
+    success = false;
+    return d_emptyRelevantSet;
+  }
+  return d_relManager->getRelevantAssertions(success);
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
