@@ -31,7 +31,7 @@ namespace theory {
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
                                                TheoryState& state,
                                                ProofNodeManager* pnm,
-                                               const std::string& name,
+                                               const std::string& statsName,
                                                bool cacheLemmas)
     : d_theory(t),
       d_theoryState(state),
@@ -46,11 +46,11 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
       d_conflictIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
-          name + "::inferencesConflict")),
+          statsName + "inferencesConflict")),
       d_factIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
-          name + "::inferencesFact")),
+          statsName + "inferencesFact")),
       d_lemmaIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
-          name + "::inferencesLemma"))
+          statsName + "inferencesLemma"))
 {
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);

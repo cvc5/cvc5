@@ -75,8 +75,8 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       d_name(name),
       d_statistics(name + "::")
 {
-  d_satSolver.reset(
-      prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
+  d_satSolver.reset(prop::SatSolverFactory::createMinisat(
+      c, smtStatisticsRegistry(), name + "::"));
 
   ResourceManager* rm = smt::currentResourceManager();
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
