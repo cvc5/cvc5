@@ -38,9 +38,4 @@ add_library(cvc4context STATIC ${LIBCONTEXT_SOURCES})
 if(ENABLE_SHARED)
   set_target_properties(cvc4context PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
-target_compile_definitions(cvc4context
-  PRIVATE
-    -D__BUILDING_CVC4LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
+target_compile_definitions(cvc4context PRIVATE -D__BUILDING_CVC4LIB)

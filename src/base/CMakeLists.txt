@@ -83,9 +83,4 @@ add_library(cvc4base STATIC ${LIBBASE_SOURCES})
 if(ENABLE_SHARED)
   set_target_properties(cvc4base PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
-target_compile_definitions(cvc4base
-  PRIVATE
-    -D__BUILDING_CVC4LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
+target_compile_definitions(cvc4base PRIVATE -D__BUILDING_CVC4LIB)

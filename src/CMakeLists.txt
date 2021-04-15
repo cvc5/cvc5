@@ -1119,12 +1119,7 @@ install(TARGETS cvc4
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc4
-  PRIVATE
-    -D__BUILDING_CVC4LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
+target_compile_definitions(cvc4 PRIVATE -D__BUILDING_CVC4LIB)
 # Add libcvc4 dependencies for generated sources.
 add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
