@@ -13,6 +13,20 @@ import pycvc4
 import sys
 
 from pycvc4 import kinds
+from contextlib import contextmanager
+
+@contextmanager
+def assert_no_raises(ExpectedException):
+    try:
+        yield
+
+    except ExpectedException as error:
+        pytest.fail()
+        raise AssertionError(f"Raised exception {error} when it should not!")
+
+    except Exception as error:
+        pytest.fail()
+        raise AssertionError(f"An unexpected exception {error} raised.")
 
 @pytest.fixture
 def solver():
@@ -27,25 +41,19 @@ def test_recoverable_exception(solver):
 
 def test_supports_floating_point(solver):
     if solver.supportsFloatingPoint():
-      try:
-          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
-      except RuntimeError:
-          pytest.fail()
+        with assert_no_raises(RuntimeError):
+            solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
     else:
         with pytest.raises(RuntimeError):
-          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+            solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
 
 def test_get_boolean_sort(solver):
-    try:
+    with assert_no_raises(RuntimeError):
         solver.getBooleanSort()
-    except RuntimeError:
-        pytest.fail()
 
 def test_get_integer_sort(solver):
-    try:
+    with assert_no_raises(RuntimeError):
         solver.getIntegerSort()
-    except RuntimeError:
-        pytest.fail()
 
 #def test_get_null_sort(solver):
 #    try:
@@ -54,29 +62,21 @@ def test_get_integer_sort(solver):
 #        pytest.fail()
 
 def test_get_real_sort(solver):
-    try:
+    with assert_no_raises(RuntimeError):
         solver.getRealSort()
-    except RuntimeError:
-        pytest.fail()
 
 def test_get_reg_exp_sort(solver):
-    try:
+    with assert_no_raises(RuntimeError):
         solver.getRegExpSort()
-    except RuntimeError:
-        pytest.fail()
 
 def test_get_string_sort(solver):
-    try:
+    with assert_no_raises(RuntimeError):
         solver.getStringSort()
-    except RuntimeError:
-        pytest.fail()
 
 def test_get_rounding_mode_sort(solver):
     if solver.supportsFloatingPoint():
-      try:
-          solver.getRoundingModeSort()
-      except RuntimeError:
-          pytest.fail()
+        with assert_no_raises(RuntimeError):
+            solver.getRoundingModeSort()
     else:
         with pytest.raises(RuntimeError):
-          solver.getRoundingModeSort()
+            solver.getRoundingModeSort()
