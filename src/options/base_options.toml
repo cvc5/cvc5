@@ -85,23 +85,13 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "statistics"
-  smt_name   = "statistics"
+  smt_name   = "stats"
   long       = "stats"
   category   = "common"
   type       = "bool"
-  predicates = ["statsEnabledBuild"]
+  predicates = ["setStats"]
   read_only  = true
   help       = "give statistics on exit"
-
-[[option]]
-  name       = "statisticsExpert"
-  smt_name   = "stats-expert"
-  long       = "stats-expert"
-  category   = "expert"
-  type       = "bool"
-  predicates = ["statsEnabledBuild"]
-  read_only  = true
-  help       = "print expert (non-public) statistics as well"
 
 [[option]]
   name       = "statisticsAll"
@@ -109,9 +99,19 @@ header = "options/base_options.h"
   long       = "stats-all"
   category   = "expert"
   type       = "bool"
-  predicates = ["statsEnabledBuild"]
+  predicates = ["setStats"]
   read_only  = true
   help       = "print unchanged (defaulted) statistics as well"
+
+[[option]]
+  name       = "statisticsExpert"
+  smt_name   = "stats-expert"
+  long       = "stats-expert"
+  category   = "expert"
+  type       = "bool"
+  predicates = ["setStats"]
+  read_only  = true
+  help       = "print expert (non-public) statistics as well"
 
 [[option]]
   name       = "statisticsEveryQuery"
@@ -119,7 +119,7 @@ header = "options/base_options.h"
   long       = "stats-every-query"
   category   = "regular"
   type       = "bool"
-  predicates = ["statsEnabledBuild"]
+  predicates = ["setStats"]
   default    = "false"
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
