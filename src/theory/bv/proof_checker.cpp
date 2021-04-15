@@ -22,6 +22,47 @@ namespace bv {
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::BV_BITBLAST, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_CONST, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_VAR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_EQUAL, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ULT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ULE, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_UGT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_UGE, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SLT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SLE, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SGT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SGE, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_NOT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_CONCAT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_AND, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_OR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_XOR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_XNOR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_NAND, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_NOR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_COMP, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_MULT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_PLUS, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SUB, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_NEG, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_UDIV, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_UREM, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SDIV, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SREM, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SMOD, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SHL, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_LSHR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ASHR, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ULTBV, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SLTBV, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ITE, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_EXTRACT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_REPEAT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ZERO_EXTEND, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_SIGN_EXTEND, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ROTATE_RIGHT, this);
+  pc->registerChecker(PfRule::BV_BITBLAST_ROTATE_LEFT, this);
   pc->registerChecker(PfRule::BV_EAGER_ATOM, this);
 }
 

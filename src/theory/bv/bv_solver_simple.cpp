@@ -69,7 +69,7 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                TheoryInferenceManager& inferMgr,
                                ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_bitblaster(new BBProof(s)),
+      d_bitblaster(new BBProof(s, pnm)),
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
                 : nullptr)
 {
