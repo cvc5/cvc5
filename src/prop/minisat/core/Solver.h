@@ -161,6 +161,13 @@ public:
  /** Is proof enabled? */
  bool isProofEnabled() const;
 
+ /**
+  * Checks whether we need a proof.
+  *
+  * SAT proofs are not required for assumption-based unsat cores.
+  */
+ bool needProofs() const;
+
  // Less than for literals in a lemma
  struct lemma_lt
  {
@@ -396,9 +403,6 @@ protected:
      * should be notified about when asserted.
      */
     vec<bool> theory;
-
-    /** Indicates if unsat cores should be generated via the old proof infrastructure. */
-    bool d_unsatCoresProofs;
 
     enum TheoryCheckType {
       // Quick check, but don't perform theory reasoning

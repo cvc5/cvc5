@@ -953,7 +953,6 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   }
   if (id == PfRule::SAT_REFUTATION)
   {
-    Assert(children.size() > 0);
     Assert(args.empty());
     return NodeManager::currentNM()->mkConst(false);
   }

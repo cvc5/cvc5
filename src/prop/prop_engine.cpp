@@ -123,8 +123,7 @@ PropEngine::PropEngine(TheoryEngine* te,
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
-  else if (options::unsatCores()
-           && options::unsatCoresMode() == options::UnsatCoresMode::PROOF)
+  else if (options::unsatCores())
   {
     ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
   }
@@ -259,20 +258,23 @@ void PropEngine::assertInternal(
   // Assert as (possibly) removable
   if (isProofEnabled())
   {
-    if (options::unsatCores()
-        && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+    if (options::unsatCoresNew()
+        && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
+        && input)
     {
-      d_cnfStream->ensureLiteral(node);
+      Assert(!negated);
+      d_pfCnfStream->ensureLiteral(node);
       d_assumptions.push_back(node);
     }
     else
     {
       d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
-      // if input, register the assertion
-      if (input)
-      {
-        d_ppm->registerAssertion(node);
-      }
+    }
+
+    // if input, register the assertion
+    if (input)
+    {
+      d_ppm->registerAssertion(node);
     }
   }
   else
@@ -650,7 +652,7 @@ bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
-  Assert(options::unsatCores());
+  Assert(options::unsatCoresNew());
   Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<SatLiteral> unsat_assumptions;
   d_satSolver->getUnsatAssumptions(unsat_assumptions);
@@ -662,7 +664,7 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 
 std::shared_ptr<ProofNode> PropEngine::getRefutation()
 {
-  Assert(options::unsatCores());
+  Assert(options::unsatCoresNew());
   Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<Node> core;
   getUnsatCore(core);

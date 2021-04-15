@@ -56,9 +56,7 @@ namespace {
  */
 bool assertionLevelOnly()
 {
-  return (options::produceProofs()
-          || (options::unsatCores()
-              && options::unsatCoresMode() == options::UnsatCoresMode::PROOF))
+  return (options::produceProofs() || options::unsatCores())
          && options::incrementalSolving();
 }
 
@@ -225,16 +223,12 @@ Solver::Solver(cvc5::prop::TheoryProxy* proxy,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
-  d_unsatCoresProofs =
-      options::unsatCores()
-      && options::unsatCoresMode() == options::UnsatCoresMode::PROOF;
-
   if (pnm)
   {
     d_pfManager.reset(
         new SatProofManager(this, proxy->getCnfStream(), userContext, pnm));
   }
-  else if (d_unsatCoresProofs)
+  else if (options::unsatCores())
   {
     ProofManager::currentPM()->initSatProof(this);
   }
@@ -247,7 +241,7 @@ Solver::Solver(cvc5::prop::TheoryProxy* proxy,
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
   // FIXME: these should be axioms I believe
-  if (d_unsatCoresProofs)
+  if (options::unsatCores())
   {
     ProofManager::getSatProof()->registerTrueLit(mkLit(varTrue, false));
     ProofManager::getSatProof()->registerFalseLit(mkLit(varFalse, true));
@@ -433,7 +427,7 @@ CRef Solver::reason(Var x) {
     // came from (ie. the theory/sharing)
     Trace("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)"
                      << std::endl;
-    if (d_unsatCoresProofs)
+    if (options::unsatCores())
     {
       ClauseId id = ProofManager::getSatProof()->registerClause(real_reason,
                                                                 THEORY_LEMMA);
@@ -490,7 +484,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // If a literal is false at 0 level (both sat and user level) we also
       // ignore it, unless we are tracking the SAT solver's reasoning
       if (value(ps[i]) == l_False) {
-        if (!d_unsatCoresProofs && !isProofEnabled() && level(var(ps[i])) == 0
+        if (!options::unsatCores() && !needProof() && level(var(ps[i])) == 0
             && user_level(var(ps[i])) == 0)
         {
           continue;
@@ -520,7 +514,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       lemmas.push();
       ps.copyTo(lemmas.last());
       lemmas_removable.push(removable);
-      if (d_unsatCoresProofs)
+      if (options::unsatCores())
       {
         // Store the expression being converted to CNF until
         // the clause is actually created
@@ -533,13 +527,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if (d_unsatCoresProofs || isProofEnabled())
+        if (options::unsatCores() || needProof())
         {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
           // as the final conflict.
           if(falseLiteralsCount == 1) {
-            if (d_unsatCoresProofs)
+            if (options::unsatCores())
             {
               ClauseKind ck =
                   ProofManager::getCnfProof()->getCurrentAssertionKind()
@@ -555,7 +549,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
               ProofManager::getSatProof()->finalizeProof(
                   cvc5::Minisat::CRef_Lazy);
             }
-            if (isProofEnabled())
+            if (needProof())
             {
               d_pfManager->finalizeProof(ps[0], true);
             }
@@ -580,9 +574,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         clauses_persistent.push(cr);
         attachClause(cr);
 
-        if (d_unsatCoresProofs || isProofEnabled())
+        if (options::unsatCores() || needProof())
         {
-          if (d_unsatCoresProofs)
+          if (options::unsatCores())
           {
             ClauseKind ck =
                 ProofManager::getCnfProof()->getCurrentAssertionKind()
@@ -598,11 +592,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           if (ps.size() == falseLiteralsCount)
           {
-            if (d_unsatCoresProofs)
+            if (options::unsatCores())
             {
               ProofManager::getSatProof()->finalizeProof(cr);
             }
-            if (isProofEnabled())
+            if (needProof())
             {
               d_pfManager->finalizeProof(ca[cr], true);
             }
@@ -620,7 +614,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                          << std::endl;
           if (ps.size() == 1)
           {
-            if (d_unsatCoresProofs)
+            if (options::unsatCores())
             {
               ClauseKind ck =
                   ProofManager::getCnfProof()->getCurrentAssertionKind()
@@ -639,14 +633,14 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             // already been registered, as the ProofCnfStream will not register
             // them and as they are not the result of propagation will be left
             // hanging in assumptions accumulator
-            if (isProofEnabled())
+            if (needProof())
             {
               d_pfManager->registerSatLitAssumption(ps[0]);
             }
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if (d_unsatCoresProofs)
+            if (options::unsatCores())
             {
               if (ca[confl].size() == 1)
               {
@@ -660,7 +654,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 ProofManager::getSatProof()->finalizeProof(confl);
               }
             }
-            if (isProofEnabled())
+            if (needProof())
             {
               if (ca[confl].size() == 1)
               {
@@ -674,7 +668,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           return ok;
         } else {
-          if (d_unsatCoresProofs)
+          if (options::unsatCores())
           {
             id = ClauseIdUndef;
           }
@@ -721,7 +715,7 @@ void Solver::detachClause(CRef cr, bool strict) {
       Debug("minisat") << "\n";
     }
     Assert(c.size() > 1);
-    if (d_unsatCoresProofs)
+    if (options::unsatCores())
     {
       ProofManager::getSatProof()->markDeleted(cr);
     }
@@ -761,7 +755,7 @@ void Solver::removeClause(CRef cr) {
       // Solver::reason, if it appears in a resolution chain built lazily we
       // will be unable to do so after the step below. Thus we eagerly justify
       // this propagation here.
-      if (isProofEnabled())
+      if (needProof())
       {
         Trace("pf::sat")
             << "Solver::removeClause: eagerly compute propagation of " << c[0]
@@ -1003,11 +997,11 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
   int max_resolution_level = 0;  // Maximal level of the resolved clauses
 
-  if (d_unsatCoresProofs)
+  if (options::unsatCores())
   {
     ProofManager::getSatProof()->startResChain(confl);
     }
-    if (isProofEnabled())
+    if (needProof())
     {
       d_pfManager->startResChain(ca[confl]);
     }
@@ -1067,11 +1061,11 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             // FIXME: can we do it lazily if we actually need the proof?
             if (level(var(q)) == 0)
             {
-              if (d_unsatCoresProofs)
+              if (options::unsatCores())
               {
                 ProofManager::getSatProof()->resolveOutUnit(q);
               }
-              if (isProofEnabled())
+              if (needProof())
               {
                 d_pfManager->addResolutionStep(q);
               }
@@ -1089,11 +1083,11 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
         if (pathC > 0 && confl != CRef_Undef)
         {
-          if (d_unsatCoresProofs)
+          if (options::unsatCores())
           {
             ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p));
           }
-          if (isProofEnabled())
+          if (needProof())
           {
             d_pfManager->addResolutionStep(ca[confl], p);
           }
@@ -1129,11 +1123,11 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 // Literal is not redundant
                 out_learnt[j++] = out_learnt[i];
               } else {
-                if (d_unsatCoresProofs)
+                if (options::unsatCores())
                 {
                   ProofManager::getSatProof()->storeLitRedundant(out_learnt[i]);
                 }
-                if (isProofEnabled())
+                if (needProof())
                 {
                   Debug("newproof::sat")
                       << "Solver::analyze: redundant lit "
@@ -1425,7 +1419,7 @@ void Solver::propagateTheory() {
         addClause(explanation, true, id);
         // explainPropagation() pushes the explanation on the assertion
         // stack in CnfProof, so we need to pop it here.
-        if (d_unsatCoresProofs)
+        if (options::unsatCores())
         {
           ProofManager::getCnfProof()->popCurrentAssertion();
         }
@@ -1569,7 +1563,7 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
         if (satisfied(c)) {
-          if (d_unsatCoresProofs && locked(c))
+          if (options::unsatCores() && locked(c))
           {
             // store a resolution of the literal c propagated
             ProofManager::getSatProof()->storeUnitResolution(c[0]);
@@ -1676,11 +1670,11 @@ lbool Solver::search(int nof_conflicts)
 
       if (decisionLevel() == 0)
       {
-        if (d_unsatCoresProofs)
+        if (options::unsatCores())
         {
           ProofManager::getSatProof()->finalizeProof(confl);
         }
-        if (isProofEnabled())
+        if (needProof())
         {
           if (confl == CRef_Lazy)
           {
@@ -1703,11 +1697,11 @@ lbool Solver::search(int nof_conflicts)
       if (learnt_clause.size() == 1)
       {
         uncheckedEnqueue(learnt_clause[0]);
-        if (d_unsatCoresProofs)
+        if (options::unsatCores())
         {
           ProofManager::getSatProof()->endResChain(learnt_clause[0]);
         }
-        if (isProofEnabled())
+        if (needProof())
         {
           d_pfManager->endResChain(learnt_clause[0]);
         }
@@ -1721,12 +1715,12 @@ lbool Solver::search(int nof_conflicts)
         attachClause(cr);
         claBumpActivity(ca[cr]);
         uncheckedEnqueue(learnt_clause[0], cr);
-        if (d_unsatCoresProofs)
+        if (options::unsatCores())
         {
           ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
           ProofManager::getSatProof()->endResChain(id);
         }
-        if (isProofEnabled())
+        if (needProof())
         {
           d_pfManager->endResChain(ca[cr]);
         }
@@ -2062,10 +2056,10 @@ void Solver::relocAll(ClauseAllocator& to)
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
             {
-              ca.reloc(
-                  ws[j].cref,
-                  to,
-                  d_unsatCoresProofs ? ProofManager::getSatProof() : nullptr);
+              ca.reloc(ws[j].cref,
+                       to,
+                       options::unsatCores() ? ProofManager::getSatProof()
+                                             : nullptr);
             }
         }
 
@@ -2077,11 +2071,10 @@ void Solver::relocAll(ClauseAllocator& to)
         if (hasReasonClause(v)
             && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
         {
-          ca.reloc(vardata[v].d_reason,
-                   to,
-                   d_unsatCoresProofs
-                       ? ProofManager::getSatProof()
-                       : nullptr);
+          ca.reloc(
+              vardata[v].d_reason,
+              to,
+              options::unsatCores() ? ProofManager::getSatProof() : nullptr);
         }
     }
     // All learnt:
@@ -2090,9 +2083,7 @@ void Solver::relocAll(ClauseAllocator& to)
     {
       ca.reloc(clauses_removable[i],
                to,
-               d_unsatCoresProofs
-                   ? ProofManager::getSatProof()
-                   : nullptr);
+               options::unsatCores() ? ProofManager::getSatProof() : nullptr);
     }
     // All original:
     //
@@ -2100,11 +2091,9 @@ void Solver::relocAll(ClauseAllocator& to)
     {
       ca.reloc(clauses_persistent[i],
                to,
-               d_unsatCoresProofs
-                   ? ProofManager::getSatProof()
-                   : nullptr);
+               options::unsatCores() ? ProofManager::getSatProof() : nullptr);
     }
-    if (d_unsatCoresProofs)
+    if (options::unsatCores())
     {
       ProofManager::getSatProof()->finishUpdateCRef();
     }
@@ -2219,7 +2208,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!d_unsatCoresProofs && !isProofEnabled());
+        Assert(!options::unsatCores() && !needProof());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2249,7 +2238,7 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  Assert(!d_unsatCoresProofs || isProofEnabled()
+  Assert(!options::unsatCores() || needProof()
          || lemmas.size() == (int)lemmas_cnf_assertion.size());
 
   // Attach all the clauses and enqueue all the propagations
@@ -2274,7 +2263,7 @@ CRef Solver::updateLemmas() {
       }
 
       lemma_ref = ca.alloc(clauseLevel, lemma, removable);
-      if (d_unsatCoresProofs)
+      if (options::unsatCores())
       {
         TNode cnf_assertion = lemmas_cnf_assertion[j];
 
@@ -2295,7 +2284,7 @@ CRef Solver::updateLemmas() {
     // If the lemma is propagating enqueue its literal (or set the conflict)
     if (conflict == CRef_Undef && value(lemma[0]) != l_True) {
       if (lemma.size() == 1 || (value(lemma[1]) == l_False && trail_index(var(lemma[1])) < backtrack_index)) {
-        if (d_unsatCoresProofs && lemma.size() == 1)
+        if (options::unsatCores() && lemma.size() == 1)
         {
           Node cnf_assertion = lemmas_cnf_assertion[j];
 
@@ -2315,11 +2304,11 @@ CRef Solver::updateLemmas() {
           } else {
             Debug("minisat::lemmas") << "Solver::updateLemmas(): unit conflict or empty clause" << std::endl;
             conflict = CRef_Lazy;
-            if (d_unsatCoresProofs)
+            if (options::unsatCores())
             {
               ProofManager::getSatProof()->storeUnitConflict(lemma[0], LEARNT);
             }
-            if (isProofEnabled())
+            if (needProof())
             {
               d_pfManager->storeUnitConflict(lemma[0]);
             }
@@ -2333,7 +2322,7 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  Assert(!d_unsatCoresProofs || isProofEnabled()
+  Assert(!options::unsatCores() || needProof()
          || lemmas.size() == (int)lemmas_cnf_assertion.size());
   // Clear the lemmas
   lemmas.clear();
@@ -2400,6 +2389,12 @@ std::shared_ptr<ProofNode> Solver::getProof()
 }
 
 bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
+
+bool Solver::needProof() const
+{
+  return isProofEnabled()
+         && options::unsatCoresMode() == options::UnsatCoresMode::PROOF;
+}
 
 }  // namespace Minisat
 }  // namespace cvc5
