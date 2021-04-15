@@ -115,8 +115,12 @@ void BBProof::bbAtom(TNode node)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_TO_BV, bits);
           d_bbMap.emplace(n, n_tobv);
-          d_tcpg->addRewriteStep(
-              n, n_tobv, PfRule::BV_BITBLAST_VAR, {}, {}, false);
+          d_tcpg->addRewriteStep(n,
+                                 n_tobv,
+                                 PfRule::BV_BITBLAST_VAR,
+                                 {},
+                                 {n.eqNode(n_tobv)},
+                                 false);
         }
       }
       else if (n.getType().isBitVector())
@@ -147,8 +151,12 @@ void BBProof::bbAtom(TNode node)
             }
             c_tobv = nm->mkNode(kind, children_tobv);
           }
-          d_tcpg->addRewriteStep(
-              c_tobv, n_tobv, s_kindToPfRule.at(kind), {}, {}, false);
+          d_tcpg->addRewriteStep(c_tobv,
+                                 n_tobv,
+                                 s_kindToPfRule.at(kind),
+                                 {},
+                                 {c_tobv.eqNode(n_tobv)},
+                                 false);
         }
       }
       else
@@ -163,8 +171,12 @@ void BBProof::bbAtom(TNode node)
             children_tobv.push_back(d_bbMap.at(child));
           }
           Node c_tobv = nm->mkNode(n.getKind(), children_tobv);
-          d_tcpg->addRewriteStep(
-              c_tobv, n_tobv, s_kindToPfRule.at(n.getKind()), {}, {}, false);
+          d_tcpg->addRewriteStep(c_tobv,
+                                 n_tobv,
+                                 s_kindToPfRule.at(n.getKind()),
+                                 {},
+                                 {c_tobv.eqNode(n_tobv)},
+                                 false);
         }
       }
       visit.pop_back();

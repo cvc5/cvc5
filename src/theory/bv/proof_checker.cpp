@@ -79,6 +79,32 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
     Node n = bb.getStoredBBAtom(args[0]);
     return args[0].eqNode(n);
   }
+  else if (id == PfRule::BV_BITBLAST_CONST || id == PfRule::BV_BITBLAST_VAR
+           || id == PfRule::BV_BITBLAST_EQUAL || id == PfRule::BV_BITBLAST_ULT
+           || id == PfRule::BV_BITBLAST_ULE || id == PfRule::BV_BITBLAST_UGT
+           || id == PfRule::BV_BITBLAST_UGE || id == PfRule::BV_BITBLAST_SLT
+           || id == PfRule::BV_BITBLAST_SLE || id == PfRule::BV_BITBLAST_SGT
+           || id == PfRule::BV_BITBLAST_SGE || id == PfRule::BV_BITBLAST_NOT
+           || id == PfRule::BV_BITBLAST_CONCAT || id == PfRule::BV_BITBLAST_AND
+           || id == PfRule::BV_BITBLAST_OR || id == PfRule::BV_BITBLAST_XOR
+           || id == PfRule::BV_BITBLAST_XNOR || id == PfRule::BV_BITBLAST_NAND
+           || id == PfRule::BV_BITBLAST_NOR || id == PfRule::BV_BITBLAST_COMP
+           || id == PfRule::BV_BITBLAST_MULT || id == PfRule::BV_BITBLAST_PLUS
+           || id == PfRule::BV_BITBLAST_SUB || id == PfRule::BV_BITBLAST_NEG
+           || id == PfRule::BV_BITBLAST_UDIV || id == PfRule::BV_BITBLAST_UREM
+           || id == PfRule::BV_BITBLAST_SDIV || id == PfRule::BV_BITBLAST_SREM
+           || id == PfRule::BV_BITBLAST_SMOD || id == PfRule::BV_BITBLAST_SHL
+           || id == PfRule::BV_BITBLAST_LSHR || id == PfRule::BV_BITBLAST_ASHR
+           || id == PfRule::BV_BITBLAST_ULTBV || id == PfRule::BV_BITBLAST_SLTBV
+           || id == PfRule::BV_BITBLAST_ITE || id == PfRule::BV_BITBLAST_EXTRACT
+           || id == PfRule::BV_BITBLAST_REPEAT
+           || id == PfRule::BV_BITBLAST_ZERO_EXTEND
+           || id == PfRule::BV_BITBLAST_SIGN_EXTEND
+           || id == PfRule::BV_BITBLAST_ROTATE_RIGHT
+           || id == PfRule::BV_BITBLAST_ROTATE_LEFT)
+  {
+    return args[0];
+  }
   else if (id == PfRule::BV_EAGER_ATOM)
   {
     Assert(children.empty());
