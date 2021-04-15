@@ -77,7 +77,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprSetDepth(depth);
     Notice.getStream() << expr::ExprSetDepth(depth);
     Chat.getStream() << expr::ExprSetDepth(depth);
-    CVC4Message.getStream() << expr::ExprSetDepth(depth);
+    CVC5Message.getStream() << expr::ExprSetDepth(depth);
     Warning.getStream() << expr::ExprSetDepth(depth);
     // intentionally exclude Dump stream from this list
   }
@@ -88,7 +88,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprDag(dag);
     Notice.getStream() << expr::ExprDag(dag);
     Chat.getStream() << expr::ExprDag(dag);
-    CVC4Message.getStream() << expr::ExprDag(dag);
+    CVC5Message.getStream() << expr::ExprDag(dag);
     Warning.getStream() << expr::ExprDag(dag);
     Dump.getStream() << expr::ExprDag(dag);
   }
@@ -104,7 +104,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << Command::printsuccess(value);
     Notice.getStream() << Command::printsuccess(value);
     Chat.getStream() << Command::printsuccess(value);
-    CVC4Message.getStream() << Command::printsuccess(value);
+    CVC5Message.getStream() << Command::printsuccess(value);
     Warning.getStream() << Command::printsuccess(value);
     *options::out() << Command::printsuccess(value);
   }

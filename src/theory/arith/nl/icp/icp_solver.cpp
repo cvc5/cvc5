@@ -371,12 +371,12 @@ void ICPSolver::check()
 
 void ICPSolver::reset(const std::vector<Node>& assertions)
 {
-  Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
+  Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }
 
 void ICPSolver::check()
 {
-  Unimplemented() << "ICPSolver requires CVC4 to be configured with LibPoly";
+  Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }
 
 #endif /* CVC5_POLY_IMP */

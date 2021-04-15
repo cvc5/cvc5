@@ -63,7 +63,7 @@ header = "options/base_options.h"
   type       = "int"
   default    = "0"
   predicates = ["setVerbosity"]
-  help       = "the verbosity level of CVC4"
+  help       = "the verbosity level of cvc5"
 
 [[option]]
   category   = "common"

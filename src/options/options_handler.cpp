@@ -104,7 +104,9 @@ void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 #ifndef CVC5_USE_ABC
   if(value) {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_USE_ABC */
@@ -115,7 +117,9 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 #ifndef CVC5_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_USE_ABC */
@@ -128,7 +132,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CryptoMiniSat build of CVC4; this binary was not built "
+       << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
           "with CryptoMiniSat support";
     throw OptionException(ss.str());
   }
@@ -137,7 +141,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CaDiCaL build of CVC4; this binary was not built with "
+       << "' requires a CaDiCaL build of cvc5; this binary was not built with "
           "CaDiCaL support";
     throw OptionException(ss.str());
   }
@@ -146,7 +150,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a Kissat build of CVC4; this binary was not built with "
+       << "' requires a Kissat build of cvc5; this binary was not built with "
           "Kissat support";
     throw OptionException(ss.str());
   }
@@ -265,7 +269,9 @@ void OptionsHandler::setStats(const std::string& option, bool value)
   if (value)
   {
     std::stringstream ss;
-    ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
+    ss << "option `" << option
+       << "' requires a statistics-enabled build of cvc5; this binary was not "
+          "built with statistics support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */

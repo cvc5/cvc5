@@ -94,7 +94,7 @@ class PropEngine;
  * This is essentially an abstraction for a collection of theories.  A
  * TheoryEngine provides services to a PropEngine, making various
  * T-solvers look like a single unit to the propositional part of
- * CVC4.
+ * cvc5.
  */
 class TheoryEngine {
 
