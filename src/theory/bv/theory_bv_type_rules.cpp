@@ -135,7 +135,7 @@ TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
   uint32_t size = 0;
   for (const auto& child : n)
   {
-    TypeNode t = n.getType(check);
+    TypeNode t = child.getType(check);
     // NOTE: We're throwing a type-checking exception here even
     // when check is false, bc if we don't check that the arguments
     // are bit-vectors the result type will be inaccurate
