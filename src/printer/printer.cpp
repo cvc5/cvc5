@@ -57,10 +57,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_AST:
     return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
-  case LANG_CVC3:
-    return unique_ptr<Printer>(
-        new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
-
   default: Unhandled() << lang;
   }
 }

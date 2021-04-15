@@ -278,7 +278,6 @@ bool SExpr::languageQuotesKeywords(OutputLanguage language) {
     case language::output::LANG_TPTP:
       return true;
     case language::output::LANG_AST:
-    case language::output::LANG_CVC3:
     case language::output::LANG_CVC4:
     default: return language::isOutputLang_smt2(language);
   };

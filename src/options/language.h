@@ -116,8 +116,6 @@ enum CVC4_EXPORT Language
 
   /** The AST output language */
   LANG_AST = 10,
-  /** The CVC3-compatibility output language */
-  LANG_CVC3,
 
   /** LANG_MAX is > any valid OutputLanguage id */
   LANG_MAX
@@ -136,9 +134,6 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
-    break;
-  case LANG_CVC3:
-    out << "LANG_CVC3";
     break;
   default:
     out << "undefined_output_language";
