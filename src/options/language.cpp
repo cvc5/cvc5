@@ -111,10 +111,11 @@ OutputLanguage toOutputLanguage(InputLanguage language) {
   }/* switch(language) */
 }/* toOutputLanguage() */
 
-OutputLanguage toOutputLanguage(std::string language) {
-  if(language == "cvc4" || language == "pl" ||
-     language == "presentation" || language == "native" ||
-     language == "LANG_CVC4") {
+OutputLanguage toOutputLanguage(std::string language)
+{
+  if (language == "cvc4" || language == "pl" || language == "presentation"
+      || language == "native" || language == "LANG_CVC4")
+  {
     return output::LANG_CVC4;
   }
   else if (language == "smtlib" || language == "smt" || language == "smtlib2"
@@ -123,7 +124,9 @@ OutputLanguage toOutputLanguage(std::string language) {
            || language == "LANG_SMTLIB_V2")
   {
     return output::LANG_SMTLIB_V2_6;
-  } else if(language == "tptp" || language == "LANG_TPTP") {
+  }
+  else if (language == "tptp" || language == "LANG_TPTP")
+  {
     return output::LANG_TPTP;
   }
   else if (language == "sygus" || language == "LANG_SYGUS"
@@ -140,8 +143,9 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_AUTO;
   }
 
-  throw OptionException(std::string("unknown output language `" + language + "'"));
-}/* toOutputLanguage() */
+  throw OptionException(
+      std::string("unknown output language `" + language + "'"));
+}
 
 InputLanguage toInputLanguage(std::string language) {
   if(language == "cvc4" || language == "pl" ||
