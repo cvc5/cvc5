@@ -638,6 +638,7 @@ set(regress_0_tests
   regress0/issue5187-div-justification.smt2
   regress0/issue5370.smt2
   regress0/issue5462.smt2
+  regress0/issue5473.smt2
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
   regress0/issue5550-num-children.smt2
