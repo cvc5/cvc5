@@ -15,6 +15,7 @@
 
 #include "theory/bv/bv_solver_simple.h"
 
+#include "expr/term_conversion_proof_generator.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -69,9 +70,16 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                TheoryInferenceManager& inferMgr,
                                ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_bitblaster(new BBProof(s, pnm)),
-      d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
-                : nullptr)
+      d_tcpg(
+          pnm ? new TConvProofGenerator(pnm,
+                                        nullptr,
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::NEVER,
+                                        "BVSolverSimple::TConvProofGenerator",
+                                        nullptr,
+                                        true)
+              : nullptr),
+      d_bitblaster(new BBProof(s, pnm, d_tcpg.get()))
 {
 }
 
@@ -86,13 +94,13 @@ void BVSolverSimple::addBBLemma(TNode fact)
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
 
-  if (d_epg == nullptr)
+  if (d_tcpg == nullptr)
   {
     d_im.lemma(lemma, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
   else
   {
-    TrustNode tlem = d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST, {}, {fact});
+    TrustNode tlem = TrustNode::mkTrustLemma(lemma, d_tcpg.get());
     d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
 }
@@ -116,14 +124,13 @@ bool BVSolverSimple::preNotifyFact(
     NodeManager* nm = NodeManager::currentNM();
     Node lemma = nm->mkNode(kind::EQUAL, fact, n);
 
-    if (d_epg == nullptr)
+    if (d_tcpg == nullptr)
     {
       d_im.lemma(lemma, InferenceId::BV_SIMPLE_LEMMA);
     }
     else
     {
-      TrustNode tlem =
-          d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
+      TrustNode tlem = TrustNode::mkTrustLemma(lemma, d_tcpg.get());
       d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
     }
 

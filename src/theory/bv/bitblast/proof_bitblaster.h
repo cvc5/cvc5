@@ -31,7 +31,7 @@ class BBProof
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(TheoryState* state, ProofNodeManager* pnm);
+  BBProof(TheoryState* state, ProofNodeManager* pnm, TConvProofGenerator* tcpg);
   ~BBProof();
 
   /** Bit-blast atom 'node'. */
@@ -58,7 +58,7 @@ class BBProof
   /** The associated proof node manager. */
   ProofNodeManager* d_pnm;
   /** The associated term conversion proof generator. */
-  std::unique_ptr<TConvProofGenerator> d_tcpg;
+  TConvProofGenerator* d_tcpg;
   /** Map bit-vector nodes to bit-blasted nodes. */
   std::unordered_map<Node, Node, NodeHashFunction> d_bbMap;
 };

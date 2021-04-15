@@ -67,16 +67,10 @@ std::unordered_map<Kind, PfRule, kind::KindHashFunction>
         {kind::BITVECTOR_ROTATE_LEFT, PfRule::BV_BITBLAST_ROTATE_LEFT},
 };
 
-BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm)
-    : d_bb(new BBSimple(state)),
-      d_pnm(pnm),
-      d_tcpg(new TConvProofGenerator(pnm,
-                                     nullptr,
-                                     TConvPolicy::FIXPOINT,
-                                     TConvCachePolicy::NEVER,
-                                     "BBProof::TConvProofGenerator",
-                                     nullptr,
-                                     true))
+BBProof::BBProof(TheoryState* state,
+                 ProofNodeManager* pnm,
+                 TConvProofGenerator* tcpg)
+    : d_bb(new BBSimple(state)), d_pnm(pnm), d_tcpg(tcpg)
 {
 }
 
