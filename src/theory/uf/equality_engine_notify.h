@@ -13,7 +13,7 @@
  * The virtual class for notifications from the equality engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_NOTIFY_H
 #define CVC5__THEORY__UF__EQUALITY_ENGINE_NOTIFY_H

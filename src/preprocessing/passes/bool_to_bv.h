@@ -14,7 +14,7 @@
  *
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H
 #define CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H
@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -44,7 +44,6 @@ class BoolToBV : public PreprocessingPass
     IntStat d_numTermsLowered;
     IntStat d_numIntroducedItes;
     Statistics();
-    ~Statistics();
   };
 
   /** Takes an assertion and attempts to create more bit-vector structure

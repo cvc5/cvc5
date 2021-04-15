@@ -13,7 +13,7 @@
  * This class caches the evaluation of nodes on a fixed list of examples.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
 #define CVC5__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H

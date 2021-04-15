@@ -13,7 +13,7 @@
  * Bitblaster for the lazy bv solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 #define CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
@@ -161,7 +161,6 @@ class TLazyBitblaster : public TBitblaster<Node>
     IntStat d_numBitblastingPropagations;
     TimerStat d_bitblastTimer;
     Statistics(const std::string& name);
-    ~Statistics();
   };
   std::string d_name;
 

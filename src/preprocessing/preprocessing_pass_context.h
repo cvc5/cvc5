@@ -17,7 +17,7 @@
  * from the solver and interact with it without getting full access.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H

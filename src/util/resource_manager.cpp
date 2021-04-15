@@ -101,36 +101,22 @@ std::ostream& operator<<(std::ostream& os, Resource r)
 
 struct ResourceManager::Statistics
 {
-  ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
+  ReferenceStat<uint64_t> d_resourceUnitsUsed;
   IntStat d_spendResourceCalls;
-  IntegralHistogramStat<theory::InferenceId> d_inferenceIdSteps;
-  IntegralHistogramStat<Resource> d_resourceSteps;
+  HistogramStat<theory::InferenceId> d_inferenceIdSteps;
+  HistogramStat<Resource> d_resourceSteps;
   Statistics(StatisticsRegistry& stats);
-  ~Statistics();
-
- private:
-  StatisticsRegistry& d_statisticsRegistry;
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
-    : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
-      d_spendResourceCalls("resource::spendResourceCalls", 0),
-      d_inferenceIdSteps("resource::steps::inference-id"),
-      d_resourceSteps("resource::steps::resource"),
-      d_statisticsRegistry(stats)
+    : d_resourceUnitsUsed(
+        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
+      d_inferenceIdSteps(stats.registerHistogram<theory::InferenceId>(
+          "resource::steps::inference-id")),
+      d_resourceSteps(
+          stats.registerHistogram<Resource>("resource::steps::resource"))
 {
-  d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.registerStat(&d_spendResourceCalls);
-  d_statisticsRegistry.registerStat(&d_inferenceIdSteps);
-  d_statisticsRegistry.registerStat(&d_resourceSteps);
-}
-
-ResourceManager::Statistics::~Statistics()
-{
-  d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
-  d_statisticsRegistry.unregisterStat(&d_inferenceIdSteps);
-  d_statisticsRegistry.unregisterStat(&d_resourceSteps);
 }
 
 bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)

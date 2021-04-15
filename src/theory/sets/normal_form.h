@@ -13,7 +13,7 @@
  * Normal form for set constants.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__NORMAL_FORM_H
 #define CVC5__THEORY__SETS__NORMAL_FORM_H

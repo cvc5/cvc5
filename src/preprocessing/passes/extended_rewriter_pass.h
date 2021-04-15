@@ -15,7 +15,7 @@
  * Applies the extended rewriter to assertions.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__EXTENDED_REWRITER_PASS_H
 #define CVC5__PREPROCESSING__PASSES__EXTENDED_REWRITER_PASS_H

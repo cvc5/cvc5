@@ -29,7 +29,8 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::UserContext* userContext,
                                          ProofNodeManager* pnm)
     : ContextNotifyObj(context),
-      d_statSharedTerms("theory::shared_terms", 0),
+      d_statSharedTerms(
+          smtStatisticsRegistry().registerInt("theory::shared_terms")),
       d_addedSharedTermsSize(context, 0),
       d_termsToTheories(context),
       d_alreadyNotifiedMap(context),
@@ -44,12 +45,6 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_pfee(nullptr),
       d_pnm(pnm)
 {
-  smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
-}
-
-SharedTermsDatabase::~SharedTermsDatabase()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_statSharedTerms);
 }
 
 void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)

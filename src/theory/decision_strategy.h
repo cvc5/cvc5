@@ -14,7 +14,7 @@
  * for use in the DecisionManager of TheoryEngine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__DECISION_STRATEGY__H
 #define CVC5__THEORY__DECISION_STRATEGY__H

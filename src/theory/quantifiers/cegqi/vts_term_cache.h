@@ -13,7 +13,7 @@
  * Virtual term substitution term cache.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
 #define CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H

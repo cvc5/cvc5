@@ -13,7 +13,7 @@
  * Management of a distributed approach for model generation.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 #define CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H

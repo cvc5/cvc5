@@ -13,7 +13,7 @@
  * Debug checks for ensuring proofs are closed.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__PROOF_ENSURE_CLOSED_H
 #define CVC5__EXPR__PROOF_ENSURE_CLOSED_H

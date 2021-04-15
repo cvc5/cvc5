@@ -32,7 +32,7 @@ namespace theory {
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
                                                TheoryState& state,
                                                ProofNodeManager* pnm,
-                                               const std::string& name,
+                                               const std::string& statsName,
                                                bool cacheLemmas)
     : d_theory(t),
       d_theoryState(state),
@@ -46,23 +46,20 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
-      d_conflictIdStats(name + "::inferencesConflict"),
-      d_factIdStats(name + "::inferencesFact"),
-      d_lemmaIdStats(name + "::inferencesLemma")
+      d_conflictIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          statsName + "inferencesConflict")),
+      d_factIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          statsName + "inferencesFact")),
+      d_lemmaIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          statsName + "inferencesLemma"))
 {
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
-  smtStatisticsRegistry()->registerStat(&d_conflictIdStats);
-  smtStatisticsRegistry()->registerStat(&d_factIdStats);
-  smtStatisticsRegistry()->registerStat(&d_lemmaIdStats);
 }
 
 TheoryInferenceManager::~TheoryInferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_conflictIdStats);
-  smtStatisticsRegistry()->unregisterStat(&d_factIdStats);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)

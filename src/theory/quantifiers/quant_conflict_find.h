@@ -13,7 +13,7 @@
  * Quantifiers conflict find class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef QUANT_CONFLICT_FIND
 #define QUANT_CONFLICT_FIND
@@ -287,7 +287,6 @@ public:
     IntStat d_inst_rounds;
     IntStat d_entailment_checks;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
   /** Identify this module */

@@ -15,7 +15,7 @@
  * generators, scrambled. ACM Trans. Math. Softw. 42(4): 30:1-30:23, 2016).
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTIL__RANDOM_H
 #define CVC5__UTIL__RANDOM_H

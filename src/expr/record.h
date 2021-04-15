@@ -13,7 +13,7 @@
  * A class representing a Record definition.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__RECORD_H
 #define CVC5__RECORD_H

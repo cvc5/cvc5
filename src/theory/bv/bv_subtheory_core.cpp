@@ -484,12 +484,9 @@ void CoreSolver::addTermToEqualityEngine(TNode node)
 }
 
 CoreSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::CoreSolver::NumCallsToCheck"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-}
-CoreSolver::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
 }
 
 void CoreSolver::checkExtf(Theory::Effort e)

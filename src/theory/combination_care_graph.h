@@ -13,7 +13,7 @@
  * Management of a care graph based approach for theory combination.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__COMBINATION_CARE_GRAPH__H
 #define CVC5__THEORY__COMBINATION_CARE_GRAPH__H

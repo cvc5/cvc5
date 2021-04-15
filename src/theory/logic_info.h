@@ -14,7 +14,7 @@
  * configuration information).
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__LOGIC_INFO_H
 #define CVC5__LOGIC_INFO_H

@@ -13,7 +13,7 @@
  * The representation of the assertions sent to theories.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ASSERTION_H
 #define CVC5__THEORY__ASSERTION_H

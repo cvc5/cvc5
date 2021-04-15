@@ -13,7 +13,7 @@
  * A class for TupleProjectOp operator.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__PROJECT_OP_H
 #define CVC5__PROJECT_OP_H

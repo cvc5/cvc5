@@ -13,7 +13,7 @@
  * Utility for blocking the current model.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef __CVC5__THEORY__MODEL_BLOCKER_H
 #define __CVC5__THEORY__MODEL_BLOCKER_H

@@ -15,10 +15,9 @@
 
 #pragma once
 
-#include "cvc4_private.h"
-
 #include <vector>
 
+#include "cvc5_private.h"
 #include "expr/node.h"
 
 namespace cvc5 {

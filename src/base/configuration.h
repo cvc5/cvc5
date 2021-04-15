@@ -14,7 +14,7 @@
  * about the CVC4 library.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__CONFIGURATION_H
 #define CVC5__CONFIGURATION_H

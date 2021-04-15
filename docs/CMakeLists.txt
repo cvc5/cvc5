@@ -31,7 +31,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
 file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
 
 add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
-                   DEPENDS ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5.h
+                   DEPENDS
+                    ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5.h
+                    ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h
                    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
                    WORKING_DIRECTORY ${DOXYGEN_BIN_DIR}
                    MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}

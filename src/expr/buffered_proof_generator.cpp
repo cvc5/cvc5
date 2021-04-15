@@ -81,4 +81,23 @@ std::shared_ptr<ProofNode> BufferedProofGenerator::getProofFor(Node fact)
   return cdp.getProofFor(fact);
 }
 
+bool BufferedProofGenerator::hasProofFor(Node f)
+{
+  NodeProofStepMap::iterator it = d_facts.find(f);
+  if (it == d_facts.end())
+  {
+    Node symFact = CDProof::getSymmFact(f);
+    if (symFact.isNull())
+    {
+      return false;
+    }
+    it = d_facts.find(symFact);
+    if (it == d_facts.end())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace cvc5

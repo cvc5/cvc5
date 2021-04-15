@@ -53,7 +53,7 @@ TheoryUF::TheoryUF(context::Context* c,
       d_functionsTerms(c),
       d_symb(u, instanceName),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::uf", false),
+      d_im(*this, d_state, pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );

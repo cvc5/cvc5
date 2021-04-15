@@ -22,7 +22,7 @@
  *     https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BV_ABSTRACTION_H
 #define CVC5__PREPROCESSING__PASSES__BV_ABSTRACTION_H

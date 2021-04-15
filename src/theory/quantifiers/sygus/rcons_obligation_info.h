@@ -13,7 +13,7 @@
  * Utility class for Sygus Reconstruct module.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
 #define CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
@@ -45,9 +45,19 @@ class RConsObligationInfo
   explicit RConsObligationInfo(Node builtin = Node::null());
 
   /**
-   * @return builtin term to reconstruct for this class' obligation
+   * Add `builtin` to the set of equivalent builtins this class' obligation
+   * solves.
+   *
+   * \note `builtin` MUST be equivalent to the builtin terms in `d_builtins`
+   *
+   * @param builtin builtin term to add
    */
-  Node getBuiltin() const;
+  void addBuiltin(Node builtin);
+
+  /**
+   * @return equivalent builtin terms to reconstruct for this class' obligation
+   */
+  const std::unordered_set<Node, NodeHashFunction>& getBuiltins() const;
 
   /**
    * Add candidate solution to the set of candidate solutions for the
@@ -114,12 +124,12 @@ class RConsObligationInfo
           obInfo);
 
  private:
-  /** Builtin term for this class' obligation.
+  /** Equivalent builtin terms for this class' obligation.
    *
-   * To solve the obligation, this builtin term must be reconstructed in the
-   * specified grammar (sygus datatype type) of this class' obligation.
+   * To solve the obligation, one of these builtin terms must be reconstructed
+   * in the specified grammar (sygus datatype type) of the obligation.
    */
-  Node d_builtin;
+  std::unordered_set<Node, NodeHashFunction> d_builtins;
   /** A set of candidate solutions to this class' obligation.
    *
    * Each candidate solution is a sygus datatype term containing skolem subterms
