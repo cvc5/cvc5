@@ -92,6 +92,7 @@ struct TypeConstantHashFunction {
   }
 };/* struct TypeConstantHashFunction */
 
+const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {

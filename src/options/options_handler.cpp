@@ -259,15 +259,40 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
   options::interactiveMode.set(value);
 }
 
-void OptionsHandler::statsEnabledBuild(std::string option, bool value)
+void OptionsHandler::setStats(const std::string& option, bool value)
 {
 #ifndef CVC5_STATISTICS_ON
-  if(value) {
+  if (value)
+  {
     std::stringstream ss;
     ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */
+  if (value)
+  {
+    if (option == options::statisticsAll.getName())
+    {
+      d_options->d_holder->statistics = true;
+    }
+    else if (option == options::statisticsEveryQuery.getName())
+    {
+      d_options->d_holder->statistics = true;
+    }
+    else if (option == options::statisticsExpert.getName())
+    {
+      d_options->d_holder->statistics = true;
+    }
+  }
+  else
+  {
+    if (option == options::statistics.getName())
+    {
+      d_options->d_holder->statisticsAll = false;
+      d_options->d_holder->statisticsEveryQuery = false;
+      d_options->d_holder->statisticsExpert = false;
+    }
+  }
 }
 
 void OptionsHandler::threadN(std::string option) {
