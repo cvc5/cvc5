@@ -544,8 +544,8 @@ std::string SmtEngine::getInfo(const std::string& key) const
     switch (status.asSatisfiabilityResult().isSat())
     {
       case Result::SAT: return "sat";
-      case Result::UNSAT: "unsat";
-      default: "unknown";
+      case Result::UNSAT: return "unsat";
+      default: return "unknown";
     }
   }
   if (key == "time")
