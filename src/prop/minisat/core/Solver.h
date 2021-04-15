@@ -166,7 +166,7 @@ public:
   *
   * SAT proofs are not required for assumption-based unsat cores.
   */
- bool needProofs() const;
+ bool needProof() const;
 
  // Less than for literals in a lemma
  struct lemma_lt
