@@ -123,7 +123,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // non-null. This may throw an options exception.
   d_env->setOptions(optr);
   // set the options manager
-  d_optm.reset(new smt::OptionsManager(&getOptions(), getResourceManager()));
+  d_optm.reset(new smt::OptionsManager(&getOptions()));
   // listen to node manager events
   getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
@@ -1842,13 +1842,20 @@ void SmtEngine::interrupt()
   d_smtSolver->interrupt();
 }
 
-void SmtEngine::setResourceLimit(unsigned long units, bool cumulative)
+void SmtEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
-  getResourceManager()->setResourceLimit(units, cumulative);
+  if (cumulative)
+  {
+    d_env->d_options.set(options::cumulativeResourceLimit__option_t(), units);
+  }
+  else
+  {
+    d_env->d_options.set(options::perCallResourceLimit__option_t(), units);
+  }
 }
-void SmtEngine::setTimeLimit(unsigned long milis)
+void SmtEngine::setTimeLimit(uint64_t millis)
 {
-  getResourceManager()->setTimeLimit(milis);
+  d_env->d_options.set(options::perCallMillisecondLimit__option_t(), millis);
 }
 
 unsigned long SmtEngine::getResourceUsage() const

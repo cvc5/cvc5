@@ -776,7 +776,7 @@ class CVC4_EXPORT SmtEngine
    * resource limit for all remaining calls into the SmtEngine (true), or
    * whether it's a per-call resource limit (false); the default is false
    */
-  void setResourceLimit(unsigned long units, bool cumulative = false);
+  void setResourceLimit(uint64_t units, bool cumulative = false);
 
   /**
    * Set a per-call time limit for SmtEngine operations.
@@ -801,7 +801,7 @@ class CVC4_EXPORT SmtEngine
    *
    * @param millis the time limit in milliseconds, or 0 for no limit
    */
-  void setTimeLimit(unsigned long millis);
+  void setTimeLimit(uint64_t millis);
 
   /**
    * Get the current resource usage count for this SmtEngine.  This
