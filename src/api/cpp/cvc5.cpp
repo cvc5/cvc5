@@ -762,6 +762,12 @@ std::string kindToString(Kind k)
                             : cvc5::kind::kindToString(extToIntKind(k));
 }
 
+const char* toString(Kind k)
+{
+  return k == INTERNAL_KIND ? "INTERNAL_KIND"
+                            : cvc5::kind::toString(extToIntKind(k));
+}
+
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
   switch (k)

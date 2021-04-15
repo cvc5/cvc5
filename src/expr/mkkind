@@ -256,7 +256,7 @@ function register_sort {
 
   type_constant_list="${type_constant_list}  ${id}, /**< ${comment} */
 "
-  type_constant_descriptions="${type_constant_descriptions}  case $id:  out << \"${comment}\"; break;
+  type_constant_descriptions="${type_constant_descriptions}  case $id: return \"${comment}\";
 "
   type_constant_to_theory_id="${type_constant_to_theory_id}  case $id: return $theory_id;
 "
