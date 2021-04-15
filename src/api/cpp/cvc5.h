@@ -2394,25 +2394,22 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
  * Once obtained, an instance of this class is independent of the `Solver`
  * object: it will not change when the solvers internal statistics do, it
  * will not be invalidated if the solver is destroyed.
- * Statistics are generally categorized as public and expert statistics.
- * Furthermore, statistics may hold the default values and thus be not of
- * interest.
  * Iterating on this class (via `begin()` and `end()`) shows only public
- * statistics that have been set. By passing appropriate flags to `begin()`,
- * statistics that are expert, unchanged, or both, can be included as well.
- * A single statistic value is represented as `Stat`.
+ * statistics that have been changed. By passing appropriate flags to
+ * `begin()`, statistics that are expert, defaulted, or both, can be
+ * included as well. A single statistic value is represented as `Stat`.
  */
 class CVC4_EXPORT Statistics
 {
  public:
-  friend Solver;
+  friend class Solver;
   using BaseType = std::map<std::string, Stat>;
 
   /** Custom iterator to hide expert statistics from regular iteration */
   class iterator
   {
    public:
-    friend Statistics;
+    friend class Statistics;
     BaseType::const_reference operator*() const;
     BaseType::const_pointer operator->() const;
     iterator& operator++();
@@ -2426,7 +2423,7 @@ class CVC4_EXPORT Statistics
     iterator(BaseType::const_iterator it,
              const BaseType& base,
              bool expert,
-             bool def);
+             bool defaulted);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
@@ -2441,9 +2438,9 @@ class CVC4_EXPORT Statistics
    * By default, only entries that are public (non-expert) and have been set
    * are visible while the others are skipped.
    * With `expert` set to true, expert statistics are shown as well.
-   * With `def` set to true, defaulted statistics are shown as well.
+   * With `defaulted` set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool expert = false, bool def = false) const;
+  iterator begin(bool expert = false, bool defaulted = false) const;
   /** end iteration */
   iterator end() const;
 

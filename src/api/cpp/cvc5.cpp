@@ -4126,9 +4126,9 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert, bool def, StatData&& sd)
+Stat::Stat(bool expert, bool defaulted, StatData&& sd)
     : d_expert(expert),
-      d_default(def),
+      d_default(defaulted),
       d_data(std::make_unique<StatData>(std::move(sd)))
 {
 }
@@ -4191,8 +4191,8 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
                                bool expert,
-                               bool def)
-    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(def)
+                               bool defaulted)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(defaulted)
 {
   while (!isVisible())
   {
@@ -4217,9 +4217,9 @@ const Stat& Statistics::get(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
-Statistics::iterator Statistics::begin(bool expert, bool def) const
+Statistics::iterator Statistics::begin(bool expert, bool defaulted) const
 {
-  return iterator(d_stats.begin(), d_stats, expert, def);
+  return iterator(d_stats.begin(), d_stats, expert, defaulted);
 }
 Statistics::iterator Statistics::end() const
 {
