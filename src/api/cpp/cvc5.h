@@ -2337,10 +2337,12 @@ struct CVC4_EXPORT RoundingModeHashFunction
 
 /**
  * Represents a snapshot of a single statistic value.
- * A value can be of type int64_t, double, std::string or a histogram
+ * A value can be of type `int64_t`, `double`, `std::string` or a histogram
  * (`std::map<std::string, uint64_t>`).
- * The value type can be queried (using `isInt`, `isString`, etc.) and
- * the stored value can be accessed (using `getInt`, `getString`, etc.).
+ * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
+ * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
+ * It is possible to query whether this statistic is an expert statistic by
+ * `isExpert()` and whether its value is the default value by `isDefault()`.
  */
 class CVC4_EXPORT Stat
 {
@@ -2350,32 +2352,65 @@ class CVC4_EXPORT Stat
   friend class Statistics;
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   using HistogramData = std::map<std::string, uint64_t>;
-  /** Create from the given value. */
+  /** Can only be obtained from a `Statistics` object. */
   Stat() = delete;
+  /** Copy constructor */
   Stat(const Stat& s);
+  /** Destructor */
   ~Stat();
+  /** Copy assignment */
   Stat& operator=(const Stat& s);
 
-  /** Is this value intended for experts only? */
+  /**
+   * Is this value intended for experts only?
+   * @return Whether this is an expert statistic.
+   */
   bool isExpert() const;
-  /** Does this value hold the default value? */
+  /**
+   * Does this value hold the default value?
+   * @return Whether this is a defaulted statistic.
+   */
   bool isDefault() const;
 
-  /** Is this value an integer? */
+  /**
+   * Is this value an integer?
+   * @return Whether the value is an integer.
+   */
   bool isInt() const;
-  /** Return the integer value */
+  /**
+   * Return the integer value.
+   * @return The integer value.
+   */
   int64_t getInt() const;
-  /** Is this value a double? */
+  /**
+   * Is this value a double?
+   * @return Whether the value is a double.
+   */
   bool isDouble() const;
-  /** Return the double value */
+  /**
+   * Return the double value.
+   * @return The double value.
+   */
   double getDouble() const;
-  /** Is this value an string? */
+  /**
+   * Is this value a string?
+   * @return Whether the value is a string.
+   */
   bool isString() const;
-  /** Return the string value */
+  /**
+   * Return the string value.
+   * @return The string value.
+   */
   const std::string& getString() const;
-  /** Is this value an histogram? */
+  /**
+   * Is this value a histogram?
+   * @return Whether the value is a histogram.
+   */
   bool isHistogram() const;
-  /** Return the histogram value */
+  /**
+   * Return the histogram value.
+   * @return The histogram value.
+   */
   const HistogramData& getHistogram() const;
 
  private:
@@ -2387,6 +2422,9 @@ class CVC4_EXPORT Stat
   std::unique_ptr<StatData> d_data;
 };
 
+/**
+ * Print a `Stat` object to an ``std::ostream``.
+ */
 std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC4_EXPORT;
 
 /**
@@ -2403,9 +2441,10 @@ class CVC4_EXPORT Statistics
 {
  public:
   friend class Solver;
+  /** How the statistics are stored internally. */
   using BaseType = std::map<std::string, Stat>;
 
-  /** Custom iterator to hide expert statistics from regular iteration */
+  /** Custom iterator to hide certain statistics from regular iteration */
   class iterator
   {
    public:
@@ -2431,17 +2470,23 @@ class CVC4_EXPORT Statistics
     bool d_showDefault = false;
   };
 
-  /** Retrieve the statistic with the given name. */
+  /**
+   * Retrieve the statistic with the given name.
+   * Asserts that a statistic with the given name actually exists and throws
+   * a `CVC4ApiRecoverableException` if it does not.
+   * @param name Name of the statistic.
+   * @return The statistic with the given name.
+   */
   const Stat& get(const std::string& name);
   /**
    * Begin iteration over the statistics values.
    * By default, only entries that are public (non-expert) and have been set
    * are visible while the others are skipped.
-   * With `expert` set to true, expert statistics are shown as well.
-   * With `defaulted` set to true, defaulted statistics are shown as well.
+   * @param expert If set to true, expert statistics are shown as well.
+   * @param defaulted If set to true, defaulted statistics are shown as well.
    */
   iterator begin(bool expert = false, bool defaulted = false) const;
-  /** end iteration */
+  /** End iteration */
   iterator end() const;
 
  private:
