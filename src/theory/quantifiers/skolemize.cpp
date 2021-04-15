@@ -24,6 +24,7 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -34,8 +35,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersState& qs, ProofNodeManager* pnm)
+Skolemize::Skolemize(QuantifiersState& qs,
+                     TermRegistry& tr,
+                     ProofNodeManager* pnm)
     : d_qstate(qs),
+      d_treg(tr),
       d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
@@ -91,6 +95,8 @@ TrustNode Skolemize::process(Node q)
     lem = nb;
   }
   d_skolemized[q] = lem;
+  // triggered when skolemizing
+  d_treg.processSkolemization(q, d_skolem_constants[q]);
   return TrustNode::mkTrustLemma(lem, pg);
 }
 

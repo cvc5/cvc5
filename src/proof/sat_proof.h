@@ -13,7 +13,7 @@
  * Resolution proof.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SAT__PROOF_H
 #define CVC5__SAT__PROOF_H
@@ -29,8 +29,7 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 // Forward declarations.
 namespace cvc5 {
@@ -214,7 +213,6 @@ class TSatProof {
    * hasResolution(id) does not hold. */
   const ResolutionChain& getResolutionChain(ClauseId id) const;
 
-  const std::string& getName() const { return d_name; }
   const ClauseId& getEmptyClauseId() const { return d_emptyClauseId; }
   const IdSet& getSeenLearnt() const { return d_seenLearnt; }
   const IdToConflicts& getAssumptionConflicts() const
@@ -285,15 +283,12 @@ class TSatProof {
     IntStat d_numLearnedInProof;
     IntStat d_numLemmasInProof;
     AverageStat d_avgChainLength;
-    IntegralHistogramStat<uint64_t> d_resChainLengths;
-    IntegralHistogramStat<uint64_t> d_usedResChainLengths;
-    IntegralHistogramStat<uint64_t> d_clauseGlue;
-    IntegralHistogramStat<uint64_t> d_usedClauseGlue;
+    HistogramStat<uint64_t> d_resChainLengths;
+    HistogramStat<uint64_t> d_usedResChainLengths;
+    HistogramStat<uint64_t> d_clauseGlue;
+    HistogramStat<uint64_t> d_usedClauseGlue;
     Statistics(const std::string& name);
-    ~Statistics();
   };
-
-  std::string d_name;
 
   const ClauseId d_emptyClauseId;
   IdSet d_seenLearnt;

@@ -166,7 +166,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       std::stringstream ss;
-      ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
+      ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy
          << "!" << std::endl;
       ss << "This query has a model : " << std::endl;
       std::vector<Node> pt;
@@ -176,7 +176,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       {
         ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
       }
-      ss << "but CVC4 answered unsat!" << std::endl;
+      ss << "but cvc5 answered unsat!" << std::endl;
       AlwaysAssert(false) << ss.str();
     }
     if (options::sygusQueryGenDumpFiles()

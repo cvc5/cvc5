@@ -47,7 +47,7 @@ int main()
   {
     return runTest();
   }
-  catch (api::CVC4ApiException& e)
+  catch (api::CVC5ApiException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
@@ -97,7 +97,7 @@ std::string parse(std::string instr,
 
   api::Solver solver;
   InputLanguage ilang =
-      input_language == "smt2" ? input::LANG_SMTLIB_V2 : input::LANG_CVC4;
+      input_language == "smt2" ? input::LANG_SMTLIB_V2 : input::LANG_CVC;
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
@@ -131,10 +131,10 @@ std::string translate(std::string instr,
   std::cout << "==============================================" << std::endl
             << "translating from "
             << (input_language == "smt2" ? input::LANG_SMTLIB_V2
-                                         : input::LANG_CVC4)
+                                         : input::LANG_CVC)
             << " to "
             << (output_language == "smt2" ? output::LANG_SMTLIB_V2
-                                          : output::LANG_CVC4)
+                                          : output::LANG_CVC)
             << " this string:" << std::endl
             << instr << std::endl;
   std::string outstr = parse(instr, input_language, output_language);
@@ -142,7 +142,7 @@ std::string translate(std::string instr,
             << outstr << std::endl
             << "reparsing as "
             << (output_language == "smt2" ? input::LANG_SMTLIB_V2
-                                          : input::LANG_CVC4)
+                                          : input::LANG_CVC)
             << std::endl;
   std::string poutstr = parse(outstr, output_language, output_language);
   assert(outstr == poutstr);

@@ -13,7 +13,7 @@
  * The module for processing proof nodes in the prop engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__PROOF_POST_PROCESSOR_H
 #define CVC5__PROP__PROOF_POST_PROCESSOR_H

@@ -13,7 +13,7 @@
  * Expr IO manipulation classes.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__EXPR__EXPR_IOMANIP_H
 #define CVC5__EXPR__EXPR_IOMANIP_H

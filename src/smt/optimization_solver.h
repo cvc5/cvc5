@@ -13,7 +13,7 @@
  * The solver for optimization queries.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__OPTIMIZATION_SOLVER_H
 #define CVC5__SMT__OPTIMIZATION_SOLVER_H

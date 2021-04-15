@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Morgan Deters, Tim King
+ *   Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -14,15 +14,18 @@
  * when the file is included improperly.
  */
 
-#ifndef CVC5_PRIVATE_H
-#define CVC5_PRIVATE_H
+#ifndef CVC5PARSER_PRIVATE_H
+#define CVC5PARSER_PRIVATE_H
 
-#if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
-#  error A private CVC4 header was included when not building the library or private unit test code.
-#endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
+#if !(defined(__BUILDING_CVC4PARSERLIB) \
+      || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST))
+#  error A private cvc5 parser header was included when not building the parser library or private unit test code.
+#endif
 
+#include "cvc5parser_public.h"
+// It would be nice to #include "cvc4autoconfig.h" here, but there are conflicts
+// with antlr3's autoheader stuff, which they export :(
+//
+// #include "cvc4autoconfig.h"
 
-#include "cvc4_public.h"
-#include "cvc4autoconfig.h"
-
-#endif /* CVC5_PRIVATE_H */
+#endif /* CVC5PARSER_PRIVATE_H */

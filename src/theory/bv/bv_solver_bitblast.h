@@ -13,7 +13,7 @@
  * Bit-blasting solver that supports multiple SAT back ends.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 #define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H

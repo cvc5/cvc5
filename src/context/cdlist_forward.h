@@ -26,7 +26,7 @@
  * different compilation units).
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__CONTEXT__CDLIST_FORWARD_H
 #define CVC5__CONTEXT__CDLIST_FORWARD_H

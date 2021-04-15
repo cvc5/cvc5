@@ -13,7 +13,7 @@
  * Inference generator utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H
 #define CVC5__THEORY__BAGS__INFERENCE_GENERATOR_H

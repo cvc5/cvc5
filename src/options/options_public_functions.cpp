@@ -133,10 +133,6 @@ bool Options::getStatsEveryQuery() const{
   return (*this)[options::statisticsEveryQuery];
 }
 
-bool Options::getStatsHideZeros() const{
-  return (*this)[options::statsHideZeros];
-}
-
 bool Options::getStrictParsing() const{
   return (*this)[options::strictParsing];
 }

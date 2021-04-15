@@ -13,7 +13,7 @@
  * Entailment tests involving regular expressions.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H
 #define CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H

@@ -14,7 +14,7 @@
  * stack. Refactored from the UF union-find.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARRAYS__UNION_FIND_H
 #define CVC5__THEORY__ARRAYS__UNION_FIND_H

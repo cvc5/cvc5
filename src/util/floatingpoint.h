@@ -16,7 +16,7 @@
  * This file contains the data structures used by the constant and parametric
  * types of the floating point theory.
  */
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__FLOATINGPOINT_H
 #define CVC5__FLOATINGPOINT_H

@@ -62,23 +62,21 @@ bool isAssociative(::cvc5::Kind k)
   }
 }
 
-std::string kindToString(::cvc5::Kind k)
-{
-  std::stringstream ss;
-  ss << k;
-  return ss.str();
-}
+std::string kindToString(::cvc5::Kind k) { return toString(k); }
 
 }  // namespace kind
 
-std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
-  switch(typeConstant) {
-${type_constant_descriptions}
-  default:
-    out << "UNKNOWN_TYPE_CONSTANT";
-    break;
+const char* toString(TypeConstant tc)
+{
+  switch (tc)
+  {
+    ${type_constant_descriptions}
+    default: return "UNKNOWN_TYPE_CONSTANT";
   }
-  return out;
+}
+std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant)
+{
+  return out << toString(typeConstant);
 }
 
 namespace theory {

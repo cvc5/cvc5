@@ -851,6 +851,7 @@ set(regress_0_tests
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/lra-triv-gn.smt2
+  regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
   regress0/quantifiers/matching-lia-1arg.smt2
@@ -1735,6 +1736,7 @@ set(regress_1_tests
   regress1/quantifiers/constfunc.cvc
   regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
+  regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
   regress1/quantifiers/eqrange_ex_1.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
@@ -2169,6 +2171,7 @@ set(regress_1_tests
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/eq-sub-obs.sy
   regress1/sygus/error1-dt.sy
   regress1/sygus/eval-uc.sy
   regress1/sygus/extract.sy
@@ -2557,8 +2560,6 @@ set(regression_disabled_tests
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
   regress1/quantifiers/arith-snorm.smt2
-  # until we have support for minimizing instantiations based on unsat core
-  regress1/quantifiers/dump-inst-proof.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build, ok with other builds:
