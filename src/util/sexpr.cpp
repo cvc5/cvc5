@@ -16,13 +16,8 @@
 #include "util/sexpr.h"
 
 #include <iostream>
-#include <sstream>
-#include <vector>
 
-#include "base/check.h"
-#include "options/set_language.h"
 #include "util/integer.h"
-#include "util/ostream_util.h"
 #include "util/rational.h"
 #include "util/statistics_value.h"
 
