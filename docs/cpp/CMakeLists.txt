@@ -30,7 +30,7 @@ configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 # make sure the outpur directory exists
 file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
 
-# add the 
+# add the cpp-doxygen target
 add_custom_command(
   OUTPUT ${DOXYGEN_INDEX_FILE}
   COMMAND Doxygen::doxygen ${DOXYFILE_OUT}
