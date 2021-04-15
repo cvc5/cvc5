@@ -17,7 +17,7 @@ set(EXAMPLES_API_JAVA
   ## disabled until bindings for the new API are in place (issue #2284)
   # BitVectors
   # BitVectorsAndArrays
-  # CVC4Streams
+  # CVC5Streams
   # Combination
   # Datatypes
   # Exceptions

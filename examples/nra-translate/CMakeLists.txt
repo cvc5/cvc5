@@ -26,7 +26,7 @@ set(CVC5_EXAMPLES_NRA_TRANSLATE
 )
 
 foreach(example ${CVC5_EXAMPLES_NRA_TRANSLATE})
-  cvc4_add_example(${example} "" "nra-translate"
+  cvc5_add_example(${example} "" "nra-translate"
     # arguments to binary (for testing)
     # input file is required by all tests
     ${CMAKE_CURRENT_SOURCE_DIR}/nra-translate-example-input.smt2

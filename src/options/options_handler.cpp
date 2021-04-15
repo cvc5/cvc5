@@ -15,15 +15,14 @@
 
 #include "options/options_handler.h"
 
+#include <cerrno>
 #include <ostream>
 #include <string>
-#include <cerrno>
-
-#include "cvc4autoconfig.h"
 
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
+#include "base/cvc5config.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"

@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 #include "util/integer.h"
 #include "util/rational.h"
@@ -51,7 +51,7 @@ class SExprKeyword
  * A simple S-expression. An S-expression is either an atom with a
  * string value, or a list of other S-expressions.
  */
-class CVC4_EXPORT SExpr
+class CVC5_EXPORT SExpr
 {
  public:
   typedef SExprKeyword Keyword;
@@ -234,12 +234,12 @@ class CVC4_EXPORT SExpr
 }; /* class SExpr */
 
 /** Prints an SExpr. */
-std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC5_EXPORT;
 
 /**
  * IOStream manipulator to pretty-print SExprs.
  */
-class CVC4_EXPORT PrettySExprs
+class CVC5_EXPORT PrettySExprs
 {
   /**
    * The allocated index in ios_base for our setting.

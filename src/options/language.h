@@ -21,14 +21,14 @@
 #include <ostream>
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 namespace language {
 
 namespace input {
 
-enum CVC4_EXPORT Language
+enum CVC5_EXPORT Language
 {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
@@ -60,7 +60,7 @@ enum CVC4_EXPORT Language
   LANG_MAX
 }; /* enum Language */
 
-inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_EXPORT;
+inline std::ostream& operator<<(std::ostream& out, Language lang) CVC5_EXPORT;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
   case LANG_AUTO:
@@ -84,7 +84,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
 
 namespace output {
 
-enum CVC4_EXPORT Language
+enum CVC5_EXPORT Language
 {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
@@ -121,7 +121,7 @@ enum CVC4_EXPORT Language
   LANG_MAX
 }; /* enum Language */
 
-inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_EXPORT;
+inline std::ostream& operator<<(std::ostream& out, Language lang) CVC5_EXPORT;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
   case LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
@@ -152,24 +152,24 @@ typedef language::output::Language OutputLanguage;
 namespace language {
 
 /** Is the language a variant of the smtlib version 2 language? */
-bool isInputLang_smt2(InputLanguage lang) CVC4_EXPORT;
-bool isOutputLang_smt2(OutputLanguage lang) CVC4_EXPORT;
+bool isInputLang_smt2(InputLanguage lang) CVC5_EXPORT;
+bool isOutputLang_smt2(OutputLanguage lang) CVC5_EXPORT;
 
 /**
   * Is the language smtlib 2.6 or above? If exact=true, then this method returns
   * false if the input language is not exactly SMT-LIB 2.6.
   */
-bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC4_EXPORT;
-bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC4_EXPORT;
+bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC5_EXPORT;
+bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC5_EXPORT;
 
 /** Is the language a variant of the SyGuS input language? */
-bool isInputLangSygus(InputLanguage lang) CVC4_EXPORT;
-bool isOutputLangSygus(OutputLanguage lang) CVC4_EXPORT;
+bool isInputLangSygus(InputLanguage lang) CVC5_EXPORT;
+bool isOutputLangSygus(OutputLanguage lang) CVC5_EXPORT;
 
-InputLanguage toInputLanguage(OutputLanguage language) CVC4_EXPORT;
-OutputLanguage toOutputLanguage(InputLanguage language) CVC4_EXPORT;
-InputLanguage toInputLanguage(std::string language) CVC4_EXPORT;
-OutputLanguage toOutputLanguage(std::string language) CVC4_EXPORT;
+InputLanguage toInputLanguage(OutputLanguage language) CVC5_EXPORT;
+OutputLanguage toOutputLanguage(InputLanguage language) CVC5_EXPORT;
+InputLanguage toInputLanguage(std::string language) CVC5_EXPORT;
+OutputLanguage toOutputLanguage(std::string language) CVC5_EXPORT;
 
 }  // namespace language
 }  // namespace cvc5

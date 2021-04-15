@@ -196,14 +196,14 @@ jobs:
       run: |
         make -j2 install
         echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
-        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
+        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc5
       working-directory: build
 
     - name: Python Install Check
       if: matrix.python-bindings
       run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       python3 -c "import pycvc4"
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc5" -type d))"
+       python3 -c "import pycvc5"
 
       # Examples are built for non-symfpu builds
     - name: Check Examples

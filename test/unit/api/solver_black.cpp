@@ -1763,9 +1763,9 @@ TEST_F(TestApiBlackSolver, blockModelValues5)
 
 TEST_F(TestApiBlackSolver, setInfo)
 {
-  ASSERT_THROW(d_solver.setInfo("cvc4-lagic", "QF_BV"), CVC5ApiException);
+  ASSERT_THROW(d_solver.setInfo("cvc5-lagic", "QF_BV"), CVC5ApiException);
   ASSERT_THROW(d_solver.setInfo("cvc2-logic", "QF_BV"), CVC5ApiException);
-  ASSERT_THROW(d_solver.setInfo("cvc4-logic", "asdf"), CVC5ApiException);
+  ASSERT_THROW(d_solver.setInfo("cvc5-logic", "asdf"), CVC5ApiException);
 
   ASSERT_NO_THROW(d_solver.setInfo("source", "asdf"));
   ASSERT_NO_THROW(d_solver.setInfo("category", "asdf"));

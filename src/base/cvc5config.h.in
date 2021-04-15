@@ -1,25 +1,25 @@
-#ifndef __CVC5__CVC4AUTOCONFIG_H
-#define __CVC5__CVC4AUTOCONFIG_H
+#ifndef CVC5__BASE__CVC5CONFIG_H
+#define CVC5__BASE__CVC5CONFIG_H
 
-/* Major component of the version of CVC4. */
+/* Major component of the version of cvc5. */
 #define CVC5_MAJOR @CVC5_MAJOR@
 
-/* Minor component of the version of CVC4. */
+/* Minor component of the version of cvc5. */
 #define CVC5_MINOR @CVC5_MINOR@
 
-/* Release component of the version of CVC4. */
+/* Release component of the version of cvc5. */
 #define CVC5_RELEASE @CVC5_RELEASE@
 
-/* Extraversion component of the version of CVC4. */
+/* Extraversion component of the version of cvc5. */
 #define CVC5_EXTRAVERSION "@CVC5_EXTRAVERSION@"
 
-/* Full release string for CVC4. */
+/* Full release string for cvc5. */
 #define CVC5_RELEASE_STRING "@CVC5_RELEASE_STRING@"
 
 /* Full name of this package. */
 #define CVC5_PACKAGE_NAME "@CVC5_PACKAGE_NAME@"
 
-/* Define to 1 if CVC4 is built with (optional) GPLed library dependencies. */
+/* Define to 1 if cvc5 is built with (optional) GPLed library dependencies. */
 #cmakedefine01 CVC5_GPL_DEPS
 
 /* Define to use the CLN multi-precision arithmetic library. */
@@ -72,4 +72,4 @@
 
 #cmakedefine01 CVC5_STATIC_BUILD
 
-#endif /* __CVC5__CVC4AUTOCONFIG_H */
+#endif /* __CVC5__CVC5AUTOCONFIG_H */

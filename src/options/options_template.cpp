@@ -15,7 +15,7 @@
 
 #if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
 // force use of optreset; mingw32 croaks on argv-switching otherwise
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #define _BSD_SOURCE
 #undef HAVE_DECL_OPTRESET
 #define HAVE_DECL_OPTRESET 1
@@ -58,7 +58,7 @@ extern int optreset;
 ${headers_module}$
 
 #include "options/options_holder.h"
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #include "options/base_handlers.h"
 
 ${headers_handler}$

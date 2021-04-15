@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc4=./cvc4
+cvc5=./cvc5
 bench="$1"
 
 # Output other than "sat"/"unsat" is either written to stderr or to "err.log"
@@ -26,7 +26,7 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # returns normally and prints the output of the solver to $out_file.
 function trywith {
   limit=$1; shift;
-  result="$({ ulimit -S -t "$limit"; $cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
+  result="$({ ulimit -S -t "$limit"; $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
     *)         echo "$result" &> "$out_file";;
@@ -34,10 +34,10 @@ function trywith {
 }
 
 # use: finishwith [params..]
-# to run cvc4. Only "sat" or "unsat" are output. Other outputs are written to
+# to run cvc5. Only "sat" or "unsat" are output. Other outputs are written to
 # $out_file.
 function finishwith {
-  result="$({ $cvc4 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
+  result="$({ $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
     *)         echo "$result" &> "$out_file";;

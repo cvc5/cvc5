@@ -19,16 +19,16 @@
 #define CVC5__PARSER__PARSER_EXCEPTION_H
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "base/exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 namespace parser {
 
-class CVC4_EXPORT ParserException : public Exception
+class CVC5_EXPORT ParserException : public Exception
 {
  public:
   // Constructors

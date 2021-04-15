@@ -21,9 +21,13 @@ add_custom_target(gen-gitinfo
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
   COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake)
 
+
+# Generate cvc5config.h header
+configure_file(cvc5config.h.in cvc5config.h)
+
 #-----------------------------------------------------------------------------#
 
-libcvc4_add_sources(
+libcvc5_add_sources(
   check.cpp
   check.h
   configuration.cpp
@@ -38,7 +42,7 @@ libcvc4_add_sources(
   output.h
 )
 
-libcvc4_add_sources(GENERATED git_versioninfo.cpp)
+libcvc5_add_sources(GENERATED git_versioninfo.cpp)
 
 #-----------------------------------------------------------------------------#
 # Generate code for debug/trace tags

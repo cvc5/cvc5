@@ -29,16 +29,16 @@ set(java_test_src_files
 add_jar(build-javatests
   SOURCES ${java_test_src_files}
   INCLUDE_JARS
-    ${CMAKE_BINARY_DIR}/src/bindings/java/CVC4.jar
+    ${CMAKE_BINARY_DIR}/src/bindings/java/CVC5.jar
     ${JUnit_JAR}
   OUTPUT_NAME javatests
 )
-add_dependencies(build-javatests cvc4jar)
+add_dependencies(build-javatests cvc5jar)
 add_dependencies(build-tests build-javatests)
 
 # Add java tests to ctest
 set(classpath "${CMAKE_CURRENT_BINARY_DIR}/javatests.jar")
-set(classpath "${classpath}:${CMAKE_BINARY_DIR}/src/bindings/java/CVC4.jar")
+set(classpath "${classpath}:${CMAKE_BINARY_DIR}/src/bindings/java/CVC5.jar")
 set(classpath "${classpath}:${JUnit_JAR}:${JUnit_JAR_DEPS}")
 
 foreach(src_file ${java_test_src_files})

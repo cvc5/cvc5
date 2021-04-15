@@ -14,7 +14,7 @@
  *
  * SExprs have their own language specific printing procedures. The reason for
  * this being implemented on SExpr and not on the Printer class is that the
- * Printer class lives in libcvc4. It has to currently as it prints fairly
+ * Printer class lives in libcvc5. It has to currently as it prints fairly
  * complicated objects, like Model, which in turn uses SmtEngine pointers.
  * However, SExprs need to be printed by Statistics. To get the output
  * consistent with the previous version, the printing of SExprs in different
