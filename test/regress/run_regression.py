@@ -346,7 +346,8 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
-                if '--no-check-unsat-cores-new' not in all_args:
+                if '--no-check-unsat-cores-new' not in all_args and \
+                   '--produce-proofs' not in all_args:
                     extra_command_line_args += ['--check-unsat-cores-new']
                     extra_command_line_args += [['--check-unsat-cores-new', '--unsat-cores-mode=assumptions']]
             if check_proofs and \
