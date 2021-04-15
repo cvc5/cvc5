@@ -11,7 +11,7 @@ statistics at this point in time.
 The :cpp:class:`Statistics <cvc5::api::Statistics>` object is essentially a
 mapping from names (as ``std::string``) to statistic values, represented by the
 :cpp:class:`Stat <cvc5::api::Stat>` class. A :cpp:class:`Stat <cvc5::api::Stat>`
-can hold values of different types (`int64_t`, `double`, `std::string` and
+can hold values of different types (``int64_t``, ``double``, ``std::string`` and
 histograms) and can be inspected by identifying the type
 (:cpp:func:`Stat::isInt() <cvc5::api::Stat::isInt()>`,
 :cpp:func:`Stat::isDouble() <cvc5::api::Stat::isDouble()>`, etc) and obtaining

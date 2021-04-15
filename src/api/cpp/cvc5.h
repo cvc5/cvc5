@@ -2351,6 +2351,7 @@ class CVC4_EXPORT Stat
  public:
   friend class Statistics;
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
+  /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
   /** Can only be obtained from a `Statistics` object. */
   Stat() = delete;
