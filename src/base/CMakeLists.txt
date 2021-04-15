@@ -27,7 +27,7 @@ configure_file(cvc5config.h.in cvc5config.h)
 
 #-----------------------------------------------------------------------------#
 
-libcvc5_add_sources(
+set(LIBBASE_SOURCES
   check.cpp
   check.h
   configuration.cpp
@@ -40,9 +40,12 @@ libcvc5_add_sources(
   modal_exception.h
   output.cpp
   output.h
+  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
 )
-
-libcvc5_add_sources(GENERATED git_versioninfo.cpp)
+set_source_files_properties(
+  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
+  PROPERTIES GENERATED TRUE
+)
 
 #-----------------------------------------------------------------------------#
 # Generate code for debug/trace tags
@@ -79,3 +82,9 @@ set_source_files_properties(
   ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
   PROPERTIES GENERATED TRUE
 )
+
+add_library(cvc5base STATIC ${LIBBASE_SOURCES})
+if(ENABLE_SHARED)
+  set_target_properties(cvc5base PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+target_compile_definitions(cvc5base PRIVATE -D__BUILDING_CVC5LIB)

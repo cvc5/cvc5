@@ -19,24 +19,6 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
-  context/backtrackable.h
-  context/cddense_set.h
-  context/cdhashmap.h
-  context/cdhashmap_forward.h
-  context/cdhashset.h
-  context/cdhashset_forward.h
-  context/cdinsert_hashmap.h
-  context/cdinsert_hashmap_forward.h
-  context/cdlist.h
-  context/cdlist_forward.h
-  context/cdmaybe.h
-  context/cdo.h
-  context/cdqueue.h
-  context/cdtrail_queue.h
-  context/context.cpp
-  context/context.h
-  context/context_mm.cpp
-  context/context_mm.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
@@ -1100,6 +1082,7 @@ set(KINDS_FILES
 # Add subdirectories
 
 add_subdirectory(base)
+add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
@@ -1107,6 +1090,14 @@ if (NOT BUILD_LIB_ONLY)
 endif()
 add_subdirectory(theory)
 add_subdirectory(util)
+
+#-----------------------------------------------------------------------------#
+# Build support library from base and context that can be used in the main
+# library as well as the parser library.
+
+add_library(cvc5support INTERFACE)
+target_link_libraries(cvc5support INTERFACE cvc5base)
+target_link_libraries(cvc5support INTERFACE cvc5context)
 
 #-----------------------------------------------------------------------------#
 # All sources for libcvc5 are now collected in LIBCVC5_SRCS and (if generated)
@@ -1119,6 +1110,7 @@ target_include_directories(cvc5
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(cvc5 PRIVATE cvc5support)
 
 include(GenerateExportHeader)
 generate_export_header(cvc5)
@@ -1129,12 +1121,7 @@ install(TARGETS cvc5
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc5
-  PRIVATE
-    -D__BUILDING_CVC5LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
+target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
 # Add libcvc5 dependencies for generated sources.
 add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
