@@ -271,22 +271,22 @@ void OptionsHandler::setStats(const std::string& option, bool value)
 #endif /* CVC5_STATISTICS_ON */
   if (value)
   {
-    if (option == "stats-all")
+    if (option == options::statisticsAll.getName())
     {
       d_options->d_holder->statistics = true;
     }
-    else if (option == "stats-every-query")
+    else if (option == options::statisticsEveryQuery.getName())
     {
       d_options->d_holder->statistics = true;
     }
-    else if (option == "stats-expert")
+    else if (option == options::statisticsExpert.getName())
     {
       d_options->d_holder->statistics = true;
     }
   }
   else
   {
-    if (option == "stats")
+    if (option == options::statistics.getName())
     {
       d_options->d_holder->statisticsAll = false;
       d_options->d_holder->statisticsEveryQuery = false;
