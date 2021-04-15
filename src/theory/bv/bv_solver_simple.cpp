@@ -73,7 +73,7 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
       d_tcpg(
           pnm ? new TConvProofGenerator(pnm,
                                         nullptr,
-                                        TConvPolicy::FIXPOINT,
+                                        TConvPolicy::ONCE,
                                         TConvCachePolicy::NEVER,
                                         "BVSolverSimple::TConvProofGenerator",
                                         nullptr,
