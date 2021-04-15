@@ -86,7 +86,7 @@ public:
    */
   void setProduceAssertions(std::string option, bool value);
 
-  void statsEnabledBuild(std::string option, bool value);
+  void setStats(const std::string& option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);
   void setResourceWeight(std::string option, std::string optarg);
