@@ -523,7 +523,7 @@ std::string SmtEngine::getInfo(const std::string& key) const
   }
   if (key == "error-behavior")
   {
-    return toSExpr("immediate-exit");
+    return "immediate-exit";
   }
   if (key == "name")
   {
@@ -543,9 +543,9 @@ std::string SmtEngine::getInfo(const std::string& key) const
     Result status = d_state->getStatus();
     switch (status.asSatisfiabilityResult().isSat())
     {
-      case Result::SAT: return toSExpr("sat");
-      case Result::UNSAT: return toSExpr("unsat");
-      default: return toSExpr("unknown");
+      case Result::SAT: return "sat";
+      case Result::UNSAT: "unsat";
+      default: "unknown";
     }
   }
   if (key == "time")
@@ -559,9 +559,9 @@ std::string SmtEngine::getInfo(const std::string& key) const
     {
       std::stringstream ss;
       ss << status.whyUnknown();
-      string s = ss.str();
+      std::string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
-      return toSExpr(s);
+      return s;
     }
     else
     {
