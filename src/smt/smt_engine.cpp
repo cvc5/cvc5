@@ -268,7 +268,7 @@ void SmtEngine::finishInit()
       everything.lock();
       getPrinter().toStreamCmdComment(
           getOutputManager().getDumpOut(),
-          "CVC4 always dumps the most general, all-supported logic (below), as "
+          "cvc5 always dumps the most general, all-supported logic (below), as "
           "some internals might require the use of a logic more general than "
           "the input.");
       getPrinter().toStreamCmdSetBenchmarkLogic(getOutputManager().getDumpOut(),
@@ -357,8 +357,7 @@ SmtEngine::~SmtEngine()
     // destroy the environment
     d_env.reset(nullptr);
   } catch(Exception& e) {
-    Warning() << "CVC4 threw an exception during cleanup." << endl
-              << e << endl;
+    Warning() << "cvc5 threw an exception during cleanup." << endl << e << endl;
   }
 }
 

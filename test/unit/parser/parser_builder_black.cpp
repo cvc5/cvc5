@@ -81,7 +81,7 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   ASSERT_NE(filename, nullptr);
 
   checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), filename)
-                      .withInputLanguage(LANG_CVC4));
+                      .withInputLanguage(LANG_CVC));
 
   remove(filename);
   free(filename);
@@ -96,7 +96,7 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   fs.close();
 
   checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), filename)
-                     .withInputLanguage(LANG_CVC4));
+                     .withInputLanguage(LANG_CVC));
 
   remove(filename);
   free(filename);
@@ -105,14 +105,14 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
 TEST_F(TestParseBlackParserBuilder, empty_string_input)
 {
   checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                      .withInputLanguage(LANG_CVC4)
+                      .withInputLanguage(LANG_CVC)
                       .withStringInput(""));
 }
 
 TEST_F(TestParseBlackParserBuilder, true_string_input)
 {
   checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                     .withInputLanguage(LANG_CVC4)
+                     .withInputLanguage(LANG_CVC)
                      .withStringInput("TRUE"));
 }
 
@@ -120,7 +120,7 @@ TEST_F(TestParseBlackParserBuilder, empty_stream_input)
 {
   std::stringstream ss("", std::ios_base::in);
   checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                      .withInputLanguage(LANG_CVC4)
+                      .withInputLanguage(LANG_CVC)
                       .withStreamInput(ss));
 }
 
@@ -128,7 +128,7 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 {
   std::stringstream ss("TRUE", std::ios_base::in);
   checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                     .withInputLanguage(LANG_CVC4)
+                     .withInputLanguage(LANG_CVC)
                      .withStreamInput(ss));
 }
 
