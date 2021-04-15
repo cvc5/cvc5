@@ -33,8 +33,7 @@ Cardinality CardinalityComputer::computeCardinality(TypeNode type)
   {
     return 0;
   }
-  Integer i = Integer(2).pow(size);
-  return i;
+  return Integer(2).pow(size);
 }
 
 TypeNode BitVectorConstantTypeRule::computeType(NodeManager* nodeManager,
@@ -134,11 +133,9 @@ TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
                                               bool check)
 {
   uint32_t size = 0;
-  TNode::iterator it = n.begin();
-  TNode::iterator it_end = n.end();
-  for (; it != it_end; ++it)
+  for (const auto& child : n)
   {
-    TypeNode t = (*it).getType(check);
+    TypeNode t = n.getType(check);
     // NOTE: We're throwing a type-checking exception here even
     // when check is false, bc if we don't check that the arguments
     // are bit-vectors the result type will be inaccurate
