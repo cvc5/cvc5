@@ -15,7 +15,7 @@
  * Calls Theory::preprocess(...) on every assertion of the formula.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__THEORY_PREPROCESS_H
 #define CVC5__PREPROCESSING__PASSES__THEORY_PREPROCESS_H

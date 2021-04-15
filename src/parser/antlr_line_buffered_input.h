@@ -21,7 +21,7 @@
  * achieve that and stores the lines received so far in a LineBuffer.
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
 #define CVC5__PARSER__ANTLR_LINE_BUFFERED_INPUT_H

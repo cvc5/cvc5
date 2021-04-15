@@ -14,7 +14,7 @@
  * and is interrupted in an unsafe state.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UNSAFE_INTERRUPT_EXCEPTION_H
 #define CVC5__UNSAFE_INTERRUPT_EXCEPTION_H

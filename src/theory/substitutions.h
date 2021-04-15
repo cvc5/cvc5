@@ -13,7 +13,7 @@
  * A substitution mapping for theory simplification.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SUBSTITUTIONS_H
 #define CVC5__THEORY__SUBSTITUTIONS_H

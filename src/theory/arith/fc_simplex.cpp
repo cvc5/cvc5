@@ -20,7 +20,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 using namespace std;
 
@@ -28,62 +28,42 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-
-FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc)
-  , d_focusSize(0)
-  , d_focusErrorVar(ARITHVAR_SENTINEL)
-  , d_focusCoefficients()
-  , d_pivotBudget(0)
-  , d_prevWitnessImprovement(AntiProductive)
-  , d_witnessImprovementInARow(0)
-  , d_sgnDisagreements()
-  , d_statistics(d_pivots)
+FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
+    LinearEqualityModule& linEq,
+    ErrorSet& errors,
+    RaiseConflict conflictChannel,
+    TempVarMalloc tvmalloc)
+    : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc),
+      d_focusSize(0),
+      d_focusErrorVar(ARITHVAR_SENTINEL),
+      d_focusCoefficients(),
+      d_pivotBudget(0),
+      d_prevWitnessImprovement(AntiProductive),
+      d_witnessImprovementInARow(0),
+      d_sgnDisagreements(),
+      d_statistics("theory::arith::FC::", d_pivots)
 { }
 
-FCSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots):
-  d_initialSignalsTime("theory::arith::FC::initialProcessTime"),
-  d_initialConflicts("theory::arith::FC::UpdateConflicts", 0),
-  d_fcFoundUnsat("theory::arith::FC::FoundUnsat", 0),
-  d_fcFoundSat("theory::arith::FC::FoundSat", 0),
-  d_fcMissed("theory::arith::FC::Missed", 0),
-  d_fcTimer("theory::arith::FC::Timer"),
-  d_fcFocusConstructionTimer("theory::arith::FC::Construction"),
-  d_selectUpdateForDualLike("theory::arith::FC::selectUpdateForDualLike"),
-  d_selectUpdateForPrimal("theory::arith::FC::selectUpdateForPrimal"),
-  d_finalCheckPivotCounter("theory::arith::FC::lastPivots", pivots)
+FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
+                                                   uint32_t& pivots)
+    : d_initialSignalsTime(
+        smtStatisticsRegistry().registerTimer(name + "initialProcessTime")),
+      d_initialConflicts(
+          smtStatisticsRegistry().registerInt(name + "UpdateConflicts")),
+      d_fcFoundUnsat(smtStatisticsRegistry().registerInt(name + "FoundUnsat")),
+      d_fcFoundSat(smtStatisticsRegistry().registerInt(name + "FoundSat")),
+      d_fcMissed(smtStatisticsRegistry().registerInt(name + "Missed")),
+      d_fcTimer(smtStatisticsRegistry().registerTimer(name + "Timer")),
+      d_fcFocusConstructionTimer(
+          smtStatisticsRegistry().registerTimer(name + "Construction")),
+      d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer(
+          name + "selectUpdateForDualLike")),
+      d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer(
+          name + "selectUpdateForPrimal")),
+      d_finalCheckPivotCounter(
+          smtStatisticsRegistry().registerReference<uint32_t>(
+              name + "lastPivots", pivots))
 {
-  smtStatisticsRegistry()->registerStat(&d_initialSignalsTime);
-  smtStatisticsRegistry()->registerStat(&d_initialConflicts);
-
-  smtStatisticsRegistry()->registerStat(&d_fcFoundUnsat);
-  smtStatisticsRegistry()->registerStat(&d_fcFoundSat);
-  smtStatisticsRegistry()->registerStat(&d_fcMissed);
-
-  smtStatisticsRegistry()->registerStat(&d_fcTimer);
-  smtStatisticsRegistry()->registerStat(&d_fcFocusConstructionTimer);
-
-  smtStatisticsRegistry()->registerStat(&d_selectUpdateForDualLike);
-  smtStatisticsRegistry()->registerStat(&d_selectUpdateForPrimal);
-
-  smtStatisticsRegistry()->registerStat(&d_finalCheckPivotCounter);
-}
-
-FCSimplexDecisionProcedure::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_initialSignalsTime);
-  smtStatisticsRegistry()->unregisterStat(&d_initialConflicts);
-
-  smtStatisticsRegistry()->unregisterStat(&d_fcFoundUnsat);
-  smtStatisticsRegistry()->unregisterStat(&d_fcFoundSat);
-  smtStatisticsRegistry()->unregisterStat(&d_fcMissed);
-
-  smtStatisticsRegistry()->unregisterStat(&d_fcTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_fcFocusConstructionTimer);
-
-  smtStatisticsRegistry()->unregisterStat(&d_selectUpdateForDualLike);
-  smtStatisticsRegistry()->unregisterStat(&d_selectUpdateForPrimal);
-
-  smtStatisticsRegistry()->unregisterStat(&d_finalCheckPivotCounter);
 }
 
 Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){

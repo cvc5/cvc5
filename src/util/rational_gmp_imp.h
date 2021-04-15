@@ -13,7 +13,7 @@
  * Multiprecision rational constants; wraps a GMP multiprecision rational.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__RATIONAL_H
 #define CVC5__RATIONAL_H

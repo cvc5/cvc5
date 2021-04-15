@@ -15,7 +15,7 @@
  * "(get-assertions)" command in an SMT-LIBv2 script).
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SMT__MODAL_EXCEPTION_H
 #define CVC5__SMT__MODAL_EXCEPTION_H

@@ -16,7 +16,7 @@
  * give the cardinality of sorts.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__CARDINALITY_H
 #define CVC5__CARDINALITY_H

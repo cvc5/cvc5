@@ -51,13 +51,13 @@
  *   These are theory valid and are currently turned into lemmas
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
-#include "theory/arith/simplex.h"
 #include "theory/arith/approx_simplex.h"
-#include "util/statistics_registry.h"
+#include "theory/arith/simplex.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -87,7 +87,6 @@ public:
     IntStat d_conflicts;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 };/* class AttemptSolutionSDP */
 

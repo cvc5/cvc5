@@ -13,7 +13,7 @@
  * Some standard STL-related utility functions for cvc5.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTILITY_H
 #define CVC5__UTILITY_H

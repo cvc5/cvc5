@@ -13,7 +13,7 @@
  * Reference-counted encapsulation of a pointer to node information.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/node_value.h"

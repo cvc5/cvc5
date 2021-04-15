@@ -284,6 +284,8 @@ bool SynthConjecture::needsCheck()
     if (!value)
     {
       Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
+      Warning() << "Warning : the SyGuS conjecture may be infeasible"
+                << std::endl;
       return false;
     }
     else

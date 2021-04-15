@@ -13,7 +13,7 @@
  * SmtEngine: the main public entry point of libcvc5.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SMT_ENGINE_H
 #define CVC5__SMT_ENGINE_H
@@ -31,7 +31,6 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 #include "util/sexpr.h"
-#include "util/statistics.h"
 
 namespace cvc5 {
 
@@ -497,6 +496,17 @@ class CVC4_EXPORT SmtEngine
   /*------------------------- end of sygus commands ------------------------*/
 
   /**
+   * Declare pool whose initial value is the terms in initValue. A pool is
+   * a variable of type (Set T) that is used in quantifier annotations and does
+   * not occur in constraints.
+   *
+   * @param p The pool to declare, which should be a variable of type (Set T)
+   * for some type T.
+   * @param initValue The initial value of p, which should be a vector of terms
+   * of type T.
+   */
+  void declarePool(const Node& p, const std::vector<Node>& initValue);
+  /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
@@ -816,20 +826,28 @@ class CVC4_EXPORT SmtEngine
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** Export statistics from this SmtEngine. */
-  Statistics getStatistics() const;
-
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;
 
-  /** Flush statistics from this SmtEngine and the NodeManager it uses. */
+  /**
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine.
+   */
   void printStatistics(std::ostream& out) const;
 
   /**
-   * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
-   * use in a signal handler.
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
+
+  /**
+   * Print the changes to the statistics from the statistics registry in the
+   * env object owned by this SmtEngine since this method was called the last
+   * time. Internally prints the diff and then stores a snapshot for the next
+   * call.
+   */
+  void printStatisticsDiff(std::ostream&) const;
 
   /**
    * Set user attribute.

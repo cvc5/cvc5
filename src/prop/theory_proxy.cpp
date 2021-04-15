@@ -27,7 +27,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace prop {
@@ -96,8 +96,9 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (cvc5::options::produceProofs())
+  if (options::produceProofs())
   {
+    Assert(options::unsatCoresNew() || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
   else if (options::unsatCores())

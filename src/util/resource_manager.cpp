@@ -96,11 +96,10 @@ const char* toString(Resource r)
 
 struct ResourceManager::Statistics
 {
-  ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
+  ReferenceStat<uint64_t> d_resourceUnitsUsed;
   IntStat d_spendResourceCalls;
   std::vector<IntStat> d_resourceSteps;
   Statistics(StatisticsRegistry& stats);
-  ~Statistics();
 
   void bump(Resource r, uint64_t amount)
   {
@@ -113,37 +112,18 @@ struct ResourceManager::Statistics
     Assert(stats.size() > id);
     stats[id] += amount;
   }
-
-  StatisticsRegistry& d_statisticsRegistry;
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
-    : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
-      d_spendResourceCalls("resource::spendResourceCalls", 0),
-      d_statisticsRegistry(stats)
+    : d_resourceUnitsUsed(
+        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls"))
 {
-  d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.registerStat(&d_spendResourceCalls);
-
-  // Make sure we don't reallocate the vector
-  d_resourceSteps.reserve(resman_detail::ResourceMax + 1);
   for (std::size_t id = 0; id <= resman_detail::ResourceMax; ++id)
   {
     Resource r = static_cast<Resource>(id);
-    d_resourceSteps.emplace_back("resource::res::" + std::string(toString(r)),
-                                 0);
-    d_statisticsRegistry.registerStat(&d_resourceSteps[id]);
-  }
-}
-
-ResourceManager::Statistics::~Statistics()
-{
-  d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
-
-  for (auto& stat : d_resourceSteps)
-  {
-    d_statisticsRegistry.unregisterStat(&stat);
+    d_resourceSteps.emplace_back(
+        stats.registerInt("resource::res::" + std::string(toString(r))));
   }
 }
 

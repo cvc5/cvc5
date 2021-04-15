@@ -13,7 +13,7 @@
  * Template for the Node kind header.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__KIND_H
 #define CVC5__KIND_H

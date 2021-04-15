@@ -13,7 +13,7 @@
  * Global (command-line, set-option, ...) parameters for SMT.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__OPTIONS__OPTIONS_H
 #define CVC5__OPTIONS__OPTIONS_H
@@ -171,7 +171,6 @@ public:
   bool getSemanticChecks() const;
   bool getStatistics() const;
   bool getStatsEveryQuery() const;
-  bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
   unsigned long getCumulativeTimeLimit() const;

@@ -13,7 +13,7 @@
  * The theory inference utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__THEORY_INFERENCE_H
 #define CVC5__THEORY__THEORY_INFERENCE_H

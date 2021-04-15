@@ -13,7 +13,7 @@
  * Replacement for clock_gettime() for systems without it (Windows).
  */
 
-// #warning "TODO(taking): Make lib/clock_gettime.h cvc4_private.h again."
+// #warning "TODO(taking): Make lib/clock_gettime.h cvc5_private.h again."
 
 #include "lib/clock_gettime.h"
 

@@ -19,7 +19,7 @@
  * !!! This header is not to be included in any other headers !!!
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__FP__FP_CONVERTER_H
 #define CVC5__THEORY__FP__FP_CONVERTER_H

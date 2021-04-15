@@ -13,7 +13,7 @@
  * Base for parser inputs.
  */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__INPUT_H
 #define CVC5__PARSER__INPUT_H

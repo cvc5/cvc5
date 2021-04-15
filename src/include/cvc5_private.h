@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters
+ *   Mathias Preiner, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -10,13 +10,18 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Macros that should be defined everywhere during the building of the
- * libraries and driver binary, and also exported to the user.
+ * Inclusion of this file marks a header as private and generates a warning
+ * when the file is included improperly.
  */
 
-#ifndef CVC5PARSER_PUBLIC_H
-#define CVC5PARSER_PUBLIC_H
+#ifndef CVC5_PRIVATE_H
+#define CVC5_PRIVATE_H
 
-#include "cvc4_public.h"
+#if !(defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
+#  error A private cvc5 header was included when not building the library or private unit test code.
+#endif
 
-#endif /* CVC5PARSER_PUBLIC_H */
+#include "cvc4autoconfig.h"
+#include "cvc5_public.h"
+
+#endif /* CVC5_PRIVATE_H */

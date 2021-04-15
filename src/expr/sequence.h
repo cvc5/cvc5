@@ -13,7 +13,7 @@
  * The sequence data type.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__EXPR__SEQUENCE_H
 #define CVC5__EXPR__SEQUENCE_H

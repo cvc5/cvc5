@@ -13,7 +13,7 @@
  * Sets theory type rules.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 #define CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
@@ -384,19 +384,6 @@ struct JoinImageTypeRule {
     if (valType != nodeManager->integerType()) {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be integer");
-    }
-    if (n[1].getKind() != kind::CONST_RATIONAL) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[1].getConst<Rational>() > r) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage Exceeded INT_MAX in cardinality constraint");
-    }
-    if (n[1].getConst<Rational>().getNumerator().getSignedInt() < 0) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage cardinality constraint must be non-negative");
     }
     std::vector<TypeNode> newTupleTypes;
     newTupleTypes.push_back(tupleTypes[0]);

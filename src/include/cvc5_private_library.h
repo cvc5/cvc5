@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Morgan Deters, Tim King
+ *   Andres Noetzli, Mathias Preiner, Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -14,15 +14,17 @@
  * when the file is included improperly.
  */
 
-#ifndef CVC5_PRIVATE_H
-#define CVC5_PRIVATE_H
+#ifndef CVC5_PRIVATE_LIBRARY_H
+#define CVC5_PRIVATE_LIBRARY_H
 
-#if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
-#  error A private cvc5 header was included when not building the library or private unit test code.
-#endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
+#if !(defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST) \
+      || defined(__BUILDING_CVC4PARSERLIB)                                 \
+      || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST)                       \
+      || defined(__BUILDING_CVC4DRIVER))
+#  error A "private library" cvc5 header was included when not building the library, driver, or private unit test code.
+#endif
 
-
-#include "cvc4_public.h"
 #include "cvc4autoconfig.h"
+#include "cvc5_public.h"
 
-#endif /* CVC5_PRIVATE_H */
+#endif /* CVC5_PRIVATE_LIBRARY_H */

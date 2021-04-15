@@ -12,7 +12,7 @@
  *
  * A bit-blaster wrapper around BBSimple for proof logging.
  */
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H
 #define CVC5__THEORY__BV__BITBLAST__PROOF_BITBLASTER_H

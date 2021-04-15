@@ -154,29 +154,17 @@ struct CutScratchPad {
 };
 
 ApproximateStatistics::ApproximateStatistics()
-  :  d_branchMaxDepth("z::approx::branchMaxDepth",0)
-  ,  d_branchesMaxOnAVar("z::approx::branchesMaxOnAVar",0)
-  ,  d_gaussianElimConstructTime("z::approx::gaussianElimConstruct::time")
-  ,  d_gaussianElimConstruct("z::approx::gaussianElimConstruct::calls",0)
-  ,  d_averageGuesses("z::approx::averageGuesses")
+    : d_branchMaxDepth(
+        smtStatisticsRegistry().registerInt("z::approx::branchMaxDepth")),
+      d_branchesMaxOnAVar(
+          smtStatisticsRegistry().registerInt("z::approx::branchesMaxOnAVar")),
+      d_gaussianElimConstructTime(smtStatisticsRegistry().registerTimer(
+          "z::approx::gaussianElimConstruct::time")),
+      d_gaussianElimConstruct(smtStatisticsRegistry().registerInt(
+          "z::approx::gaussianElimConstruct::calls")),
+      d_averageGuesses(
+          smtStatisticsRegistry().registerAverage("z::approx::averageGuesses"))
 {
-  smtStatisticsRegistry()->registerStat(&d_branchMaxDepth);
-  smtStatisticsRegistry()->registerStat(&d_branchesMaxOnAVar);
-
-  smtStatisticsRegistry()->registerStat(&d_gaussianElimConstructTime);
-  smtStatisticsRegistry()->registerStat(&d_gaussianElimConstruct);
-
-  smtStatisticsRegistry()->registerStat(&d_averageGuesses);
-}
-
-ApproximateStatistics::~ApproximateStatistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_branchMaxDepth);
-  smtStatisticsRegistry()->unregisterStat(&d_branchesMaxOnAVar);
-
-  smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstructTime);
-  smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstruct);
-
-  smtStatisticsRegistry()->unregisterStat(&d_averageGuesses);
 }
 
 Integer ApproximateSimplex::s_defaultMaxDenom(1<<26);

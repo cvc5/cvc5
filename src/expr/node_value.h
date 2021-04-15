@@ -18,7 +18,7 @@
  * NodeValue instances.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/metakind.h"

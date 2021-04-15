@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -29,7 +29,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {

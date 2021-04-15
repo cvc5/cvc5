@@ -59,23 +59,23 @@ std::string getStatsPrefix(TheoryId theoryId)
 {
   switch (theoryId)
   {
-    case THEORY_BUILTIN: return "theory::builtin"; break;
-    case THEORY_BOOL: return "theory::bool"; break;
-    case THEORY_UF: return "theory::uf"; break;
-    case THEORY_ARITH: return "theory::arith"; break;
-    case THEORY_BV: return "theory::bv"; break;
-    case THEORY_FP: return "theory::fp"; break;
-    case THEORY_ARRAYS: return "theory::arrays"; break;
-    case THEORY_DATATYPES: return "theory::datatypes"; break;
-    case THEORY_SEP: return "theory::sep"; break;
-    case THEORY_SETS: return "theory::sets"; break;
-    case THEORY_BAGS: return "theory::bags"; break;
-    case THEORY_STRINGS: return "theory::strings"; break;
-    case THEORY_QUANTIFIERS: return "theory::quantifiers"; break;
+    case THEORY_BUILTIN: return "theory::builtin::"; break;
+    case THEORY_BOOL: return "theory::bool::"; break;
+    case THEORY_UF: return "theory::uf::"; break;
+    case THEORY_ARITH: return "theory::arith::"; break;
+    case THEORY_BV: return "theory::bv::"; break;
+    case THEORY_FP: return "theory::fp::"; break;
+    case THEORY_ARRAYS: return "theory::arrays::"; break;
+    case THEORY_DATATYPES: return "theory::datatypes::"; break;
+    case THEORY_SEP: return "theory::sep::"; break;
+    case THEORY_SETS: return "theory::sets::"; break;
+    case THEORY_BAGS: return "theory::bags::"; break;
+    case THEORY_STRINGS: return "theory::strings::"; break;
+    case THEORY_QUANTIFIERS: return "theory::quantifiers::"; break;
 
     default: break;
   }
-  return "unknown";
+  return "unknown::";
 }
 
 TheoryId TheoryIdSetUtil::setPop(TheoryIdSet& set)

@@ -13,7 +13,7 @@
  * A manager for Nodes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 /* circular dependency; force node.h first */
 //#include "expr/attribute.h"

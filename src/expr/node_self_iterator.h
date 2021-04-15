@@ -13,7 +13,7 @@
  * Iterator supporting Node "self-iteration."
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__NODE_SELF_ITERATOR_H
 #define CVC5__EXPR__NODE_SELF_ITERATOR_H

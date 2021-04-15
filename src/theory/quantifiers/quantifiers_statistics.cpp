@@ -22,42 +22,27 @@ namespace theory {
 namespace quantifiers {
 
 QuantifiersStatistics::QuantifiersStatistics()
-    : d_time("theory::QuantifiersEngine::time"),
-      d_qcf_time("theory::QuantifiersEngine::time_qcf"),
-      d_ematching_time("theory::QuantifiersEngine::time_ematching"),
-      d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
-      d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
-      d_instantiation_rounds_lc(
-          "QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
-      d_triggers("QuantifiersEngine::Triggers", 0),
-      d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
-      d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0)
+    : d_time(smtStatisticsRegistry().registerTimer(
+        "theory::QuantifiersEngine::time")),
+      d_qcf_time(smtStatisticsRegistry().registerTimer(
+          "theory::QuantifiersEngine::time_qcf")),
+      d_ematching_time(smtStatisticsRegistry().registerTimer(
+          "theory::QuantifiersEngine::time_ematching")),
+      d_num_quant(smtStatisticsRegistry().registerInt(
+          "QuantifiersEngine::Num_Quantifiers")),
+      d_instantiation_rounds(smtStatisticsRegistry().registerInt(
+          "QuantifiersEngine::Rounds_Instantiation_Full")),
+      d_instantiation_rounds_lc(smtStatisticsRegistry().registerInt(
+          "QuantifiersEngine::Rounds_Instantiation_Last_Call")),
+      d_triggers(
+          smtStatisticsRegistry().registerInt("QuantifiersEngine::Triggers")),
+      d_simple_triggers(smtStatisticsRegistry().registerInt(
+          "QuantifiersEngine::Triggers_Simple")),
+      d_multi_triggers(smtStatisticsRegistry().registerInt(
+          "QuantifiersEngine::Triggers_Multi")),
+      d_red_alpha_equiv(smtStatisticsRegistry().registerInt(
+          "QuantifiersEngine::Reductions_Alpha_Equivalence"))
 {
-  smtStatisticsRegistry()->registerStat(&d_time);
-  smtStatisticsRegistry()->registerStat(&d_qcf_time);
-  smtStatisticsRegistry()->registerStat(&d_ematching_time);
-  smtStatisticsRegistry()->registerStat(&d_num_quant);
-  smtStatisticsRegistry()->registerStat(&d_instantiation_rounds);
-  smtStatisticsRegistry()->registerStat(&d_instantiation_rounds_lc);
-  smtStatisticsRegistry()->registerStat(&d_triggers);
-  smtStatisticsRegistry()->registerStat(&d_simple_triggers);
-  smtStatisticsRegistry()->registerStat(&d_multi_triggers);
-  smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
-}
-
-QuantifiersStatistics::~QuantifiersStatistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_time);
-  smtStatisticsRegistry()->unregisterStat(&d_qcf_time);
-  smtStatisticsRegistry()->unregisterStat(&d_ematching_time);
-  smtStatisticsRegistry()->unregisterStat(&d_num_quant);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiation_rounds_lc);
-  smtStatisticsRegistry()->unregisterStat(&d_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
 }
 
 }  // namespace quantifiers

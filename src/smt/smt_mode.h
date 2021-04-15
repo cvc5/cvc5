@@ -13,7 +13,7 @@
  * Enumeration type for the mode of an SmtEngine.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SMT__SMT_MODE_H
 #define CVC5__SMT__SMT_MODE_H
