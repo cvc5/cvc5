@@ -391,6 +391,27 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::proofEagerChecking.set(false);
   }
 
+  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  {
+    if (options::checkProofs())
+    {
+      Notice() << "Disabling assumption-based unsat cores for proof checking."
+               << std::endl;
+      options::unsatCoresMode.set(options::UnsatCoresMode::PROOF);
+    }
+    else if (options::produceProofs())
+    {
+      Notice() << "Proof production and assumption-based unsat cores are "
+               << "not compatible. Proofs cannot be generated." << std::endl;
+    }
+    else
+    {
+      Notice() << "Proof production not enabled, but is required for unsat "
+               << "cores. Disabling assumption-based unsat cores." << std::endl;
+      options::unsatCoresMode.set(options::UnsatCoresMode::PROOF);
+    }
+  }
+
   // sygus core connective requires unsat cores
   if (options::sygusCoreConnective())
   {
