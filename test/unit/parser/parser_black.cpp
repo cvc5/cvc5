@@ -193,7 +193,7 @@ class TestParserBlackParser : public TestInternal
 class TestParserBlackCvCParser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackCvCParser() : TestParserBlackParser(LANG_CVC4) {}
+  TestParserBlackCvCParser() : TestParserBlackParser(LANG_CVC) {}
 };
 
 TEST_F(TestParserBlackCvCParser, good_inputs)

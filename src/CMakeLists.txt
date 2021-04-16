@@ -19,24 +19,6 @@ libcvc4_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
-  context/backtrackable.h
-  context/cddense_set.h
-  context/cdhashmap.h
-  context/cdhashmap_forward.h
-  context/cdhashset.h
-  context/cdhashset_forward.h
-  context/cdinsert_hashmap.h
-  context/cdinsert_hashmap_forward.h
-  context/cdlist.h
-  context/cdlist_forward.h
-  context/cdmaybe.h
-  context/cdo.h
-  context/cdqueue.h
-  context/cdtrail_queue.h
-  context/context.cpp
-  context/context.h
-  context/context_mm.cpp
-  context/context_mm.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
@@ -1100,6 +1082,7 @@ set(KINDS_FILES
 # Add subdirectories
 
 add_subdirectory(base)
+add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
@@ -1113,7 +1096,8 @@ add_subdirectory(util)
 # LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
 
 set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
+add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS}
+  $<TARGET_OBJECTS:cvc4base> $<TARGET_OBJECTS:cvc4context>)
 target_include_directories(cvc4
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -1129,12 +1113,7 @@ install(TARGETS cvc4
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc4
-  PRIVATE
-    -D__BUILDING_CVC4LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
+target_compile_definitions(cvc4 PRIVATE -D__BUILDING_CVC4LIB)
 # Add libcvc4 dependencies for generated sources.
 add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 

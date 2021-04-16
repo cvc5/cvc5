@@ -90,7 +90,7 @@ parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root p
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
 operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
-operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in CVC4, as integer is a subtype of real)"
+operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in cvc5, as integer is a subtype of real)"
 
 # CAST_TO_REAL is added to distinguish between integers casted to reals internally, and
 # integers casted to reals or using the API \

@@ -26,7 +26,7 @@
 
 namespace cvc5 {
 
-/** The CVC4 string class
+/** The cvc5 string class
  *
  * This data structure is the domain of values for the string type. It can also
  * be used as a generic utility for representing strings.

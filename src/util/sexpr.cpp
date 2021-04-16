@@ -279,7 +279,7 @@ bool SExpr::languageQuotesKeywords(OutputLanguage language) {
       return true;
     case language::output::LANG_AST:
     case language::output::LANG_CVC3:
-    case language::output::LANG_CVC4:
+    case language::output::LANG_CVC:
     default: return language::isOutputLang_smt2(language);
   };
 }

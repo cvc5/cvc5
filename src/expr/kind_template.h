@@ -36,7 +36,7 @@ enum Kind_t
 
 }  // namespace kind
 
-// import Kind into the "CVC4" namespace but keep the individual kind
+// import Kind into the "cvc5" namespace but keep the individual kind
 // constants under kind::
 typedef ::cvc5::kind::Kind_t Kind;
 
@@ -92,6 +92,7 @@ struct TypeConstantHashFunction {
   }
 };/* struct TypeConstantHashFunction */
 
+const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {

@@ -28,8 +28,7 @@
 namespace cvc5 {
 namespace smt {
 
-OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
-    : d_options(opts), d_resourceManager(rm)
+OptionsManager::OptionsManager(Options* opts) : d_options(opts)
 {
   // set options that must take effect immediately
   if (opts->wasSetByUser(options::defaultExprDepth))
@@ -77,7 +76,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprSetDepth(depth);
     Notice.getStream() << expr::ExprSetDepth(depth);
     Chat.getStream() << expr::ExprSetDepth(depth);
-    CVC4Message.getStream() << expr::ExprSetDepth(depth);
+    CVC5Message.getStream() << expr::ExprSetDepth(depth);
     Warning.getStream() << expr::ExprSetDepth(depth);
     // intentionally exclude Dump stream from this list
   }
@@ -88,7 +87,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprDag(dag);
     Notice.getStream() << expr::ExprDag(dag);
     Chat.getStream() << expr::ExprDag(dag);
-    CVC4Message.getStream() << expr::ExprDag(dag);
+    CVC5Message.getStream() << expr::ExprDag(dag);
     Warning.getStream() << expr::ExprDag(dag);
     Dump.getStream() << expr::ExprDag(dag);
   }
@@ -104,7 +103,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << Command::printsuccess(value);
     Notice.getStream() << Command::printsuccess(value);
     Chat.getStream() << Command::printsuccess(value);
-    CVC4Message.getStream() << Command::printsuccess(value);
+    CVC5Message.getStream() << Command::printsuccess(value);
     Warning.getStream() << Command::printsuccess(value);
     *options::out() << Command::printsuccess(value);
   }
@@ -125,20 +124,6 @@ void OptionsManager::notifySetOption(const std::string& key)
 
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
-  // set up the timeouts and resource limits
-  if ((*d_options)[options::perCallResourceLimit] != 0)
-  {
-    d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
-  }
-  if ((*d_options)[options::cumulativeResourceLimit] != 0)
-  {
-    d_resourceManager->setResourceLimit(options::cumulativeResourceLimit(),
-                                        true);
-  }
-  if ((*d_options)[options::perCallMillisecondLimit] != 0)
-  {
-    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
-  }
   // ensure that our heuristics are properly set up
   setDefaults(logic, isInternalSubsolver);
 }

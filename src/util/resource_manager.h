@@ -154,11 +154,6 @@ class ResourceManager
    */
   void spendResource(theory::InferenceId iid);
 
-  /** Sets the resource limit. */
-  void setResourceLimit(uint64_t units, bool cumulative = false);
-  /** Sets the time limit. */
-  void setTimeLimit(uint64_t millis);
-
   /**
    * Resets perCall limits to mark the start of a new call,
    * updates budget for current call and starts the timer
@@ -180,13 +175,6 @@ class ResourceManager
  private:
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
-
-  /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
-  uint64_t d_timeBudgetPerCall;
-  /** A user-imposed cumulative resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetCumulative;
-  /** A user-imposed per-call resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetPerCall;
 
   /** The total number of milliseconds used. */
   uint64_t d_cumulativeTimeUsed;
