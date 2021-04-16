@@ -78,9 +78,9 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
     Debug("arith::findModel") << "fcFindModel("<< instance <<") trivial" << endl;
     Assert(d_conflictVariables.empty());
-    //if (verbose)
+    // if (verbose)
     //{
-    //  CVC4Message() << "fcFindModel(" << instance << ") trivial" << endl;
+    //  CVC5Message() << "fcFindModel(" << instance << ") trivial" << endl;
     //}
     return Result::SAT;
   }
@@ -95,15 +95,15 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
     d_conflictVariables.purge();
     if (verbose)
     {
-      CVC4Message() << "fcFindModel(" << instance << ") early conflict" << endl;
+      CVC5Message() << "fcFindModel(" << instance << ") early conflict" << endl;
     }
     Debug("arith::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    //if (verbose)
+    // if (verbose)
     //{
-    //  CVC4Message() << "fcFindModel(" << instance << ") fixed itself" << endl;
+    //  CVC5Message() << "fcFindModel(" << instance << ") fixed itself" << endl;
     //}
     Debug("arith::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
     if (verbose) Assert(!d_errorSet.moreSignals());
@@ -133,25 +133,25 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
       ++(d_statistics.d_fcFoundUnsat);
       if (verbose)
       {
-        CVC4Message() << "fc found unsat";
+        CVC5Message() << "fc found unsat";
       }
     }else if(d_errorSet.errorEmpty()){
       ++(d_statistics.d_fcFoundSat);
       if (verbose)
       {
-        CVC4Message() << "fc found model";
+        CVC5Message() << "fc found model";
       }
     }else{
       ++(d_statistics.d_fcMissed);
       if (verbose)
       {
-        CVC4Message() << "fc missed";
+        CVC5Message() << "fc missed";
       }
     }
   }
   if (verbose)
   {
-    CVC4Message() << "(" << instance << ") pivots " << d_pivots << endl;
+    CVC5Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
   Assert(!d_errorSet.moreSignals());
@@ -523,7 +523,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     }
     if(degenerate(w) && selected.describesPivot()){
       ArithVar leaving = selected.leaving();
-      CVC4Message() << "degenerate " << leaving << ", atBounds "
+      CVC5Message() << "degenerate " << leaving << ", atBounds "
                     << d_linEq.basicsAtBounds(selected) << ", len "
                     << d_tableau.basicRowLength(leaving) << ", bc "
                     << d_linEq.debugBasicAtBoundCount(leaving) << endl;
@@ -574,8 +574,8 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
 
   if (verbose)
   {
-    CVC4Message() << "conflict variable " << selected << endl;
-    CVC4Message() << ss.str();
+    CVC5Message() << "conflict variable " << selected << endl;
+    CVC5Message() << ss.str();
   }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
@@ -791,7 +791,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
 
     if (verbose)
     {
-      debugDualLike(w, CVC4Message(), instance, prevFocusSize, prevErrorSize);
+      debugDualLike(w, CVC5Message(), instance, prevFocusSize, prevErrorSize);
     }
     Assert(debugDualLike(
         w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));

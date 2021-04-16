@@ -63,7 +63,7 @@ nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be i
 # forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
 # where y ranges over the element type of the (set) type of the comprehension.
 # Notice that since all sets must be interpreted as finite, this means that
-# CVC4 will not be able to construct a model for any set comprehension such
+# cvc5 will not be able to construct a model for any set comprehension such
 # that there are infinitely many y that satisfy the left hand side of the
 # equivalence above. The same limitation occurs more generally when combining
 # finite sets with quantified formulas.

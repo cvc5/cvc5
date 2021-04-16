@@ -2123,7 +2123,7 @@ void Solver::push()
   trail_ok.push(ok);
   assigns_lim.push(assigns.size());
 
-  d_context->push();  // SAT context for CVC4
+  d_context->push();  // SAT context for cvc5
 
   Debug("minisat") << "MINISAT PUSH assertionLevel is " << assertionLevel << ", trail.size is " << trail.size() << std::endl;
 }
@@ -2162,7 +2162,7 @@ void Solver::pop()
   removeClausesAboveLevel(clauses_removable, assertionLevel);
   Debug("minisat") << cvc5::pop;
   // Pop the SAT context to notify everyone
-  d_context->pop();  // SAT context for CVC4
+  d_context->pop();  // SAT context for cvc5
 
   Debug("minisat") << "MINISAT POP assertionLevel is " << assertionLevel
                    << ", trail.size is " << trail.size() << "\n";

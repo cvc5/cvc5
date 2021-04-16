@@ -11,7 +11,7 @@
  * ****************************************************************************
  *
  * Interface to a public class that provides compile-time information
- * about the CVC4 library.
+ * about the cvc5 library.
  */
 
 #include "cvc5_public.h"
@@ -26,7 +26,7 @@
 namespace cvc5 {
 
 /**
- * Represents the (static) configuration of CVC4.
+ * Represents the (static) configuration of cvc5.
  */
 class CVC4_EXPORT Configuration
 {

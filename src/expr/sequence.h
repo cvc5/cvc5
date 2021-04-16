@@ -28,7 +28,7 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
-/** The CVC4 sequence class
+/** The cvc5 sequence class
  *
  * This data structure is the domain of values for the sequence type.
  */

@@ -1,7 +1,7 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --sygus-out=status --lang=sygus2
 ; EXPECT-ERROR: no-logic.sy:8.10: No set-logic command was given before this point.
-; EXPECT-ERROR: no-logic.sy:8.10: CVC4 will make all theories available.
+; EXPECT-ERROR: no-logic.sy:8.10: cvc5 will make all theories available.
 ; EXPECT-ERROR: no-logic.sy:8.10: Consider setting a stricter logic for (likely) better performance.
 ; EXPECT-ERROR: no-logic.sy:8.10: To suppress this warning in the future use (set-logic ALL).
 ; EXPECT: unsat
