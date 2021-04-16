@@ -125,6 +125,7 @@ std::string toSExpr(const T& t)
   toSExpr(ss, t);
   return ss.str();
 }
+
 /**
  * Convert an arbitrary iterator range to an s-expression string.
  */
