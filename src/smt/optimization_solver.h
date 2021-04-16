@@ -36,8 +36,17 @@ namespace smt {
  */
 enum class ObjectiveType
 {
+  // objectives for types that doesn't distinguish signed/unsigned
   OBJECTIVE_MINIMIZE,
   OBJECTIVE_MAXIMIZE,
+  // objective types for BV 
+  // signed 
+  OBJECTIVE_BV_SIGNED_MAXIMIZE, 
+  OBJECTIVE_BV_SIGNED_MINIMIZE, 
+  // unsigned
+  OBJECTIVE_BV_UNSIGNED_MAXIMIZE, 
+  OBJECTIVE_BV_UNSIGNED_MINIMIZE, 
+  // the last objective type 
   OBJECTIVE_UNDEFINED
 };
 

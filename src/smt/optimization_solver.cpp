@@ -49,16 +49,22 @@ OptResult OptimizationSolver::checkOpt()
 
   Assert(optimizer != nullptr);
 
-  std::pair<OptResult, Node> optResult;
-  if (d_activatedObjective.getType() == ObjectiveType::OBJECTIVE_MAXIMIZE)
-  {
-    optResult = optimizer->maximize(this->d_parent,
-                                    this->d_activatedObjective.getNode());
-  }
-  else if (d_activatedObjective.getType() == ObjectiveType::OBJECTIVE_MINIMIZE)
-  {
-    optResult = optimizer->minimize(this->d_parent,
-                                    this->d_activatedObjective.getNode());
+  // default value of optResult is unknown
+  std::pair<OptResult, Node> optResult {OptResult::OPT_UNKNOWN, Node()};
+  ObjectiveType objType = d_activatedObjective.getType();
+  switch (objType) {
+    case ObjectiveType::OBJECTIVE_MAXIMIZE: 
+      optResult = optimizer->maximize(this->d_parent, this->d_activatedObjective.getNode());
+      break;
+    case ObjectiveType::OBJECTIVE_MINIMIZE: 
+      optResult = optimizer->minimize(this->d_parent, this->d_activatedObjective.getNode());
+      break;
+    case ObjectiveType::OBJECTIVE_BV_SIGNED_MAXIMIZE:
+    case ObjectiveType::OBJECTIVE_BV_SIGNED_MINIMIZE:
+    case ObjectiveType::OBJECTIVE_BV_UNSIGNED_MAXIMIZE:
+    case ObjectiveType::OBJECTIVE_BV_UNSIGNED_MINIMIZE:
+    default: 
+      break;
   }
 
   this->d_savedValue = optResult.second;
