@@ -27,8 +27,7 @@ namespace api {
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-// TODO(Gereon): Fix links that involve std::vector. See
-// https://github.com/doxygen/doxygen/issues/8503
+// TODO(Gereon): Fix links that involve std::vector. See https://github.com/doxygen/doxygen/issues/8503
 /**
  * The kind of a cvc5 term.
  *
@@ -89,10 +88,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms with same sorts
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   EQUAL,
@@ -103,10 +100,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms with same sorts
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   DISTINCT,
@@ -147,10 +142,8 @@ enum CVC4_EXPORT Kind : int32_t
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEXPR,
@@ -162,8 +155,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Lambda body
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   LAMBDA,
@@ -193,9 +185,9 @@ enum CVC4_EXPORT Kind : int32_t
    * (e.g. for arithmetic terms in non-linear queries). However, it is not
    * supported by the parser. Moreover, the user of the API should be cautious
    * when using this operator. In general, all witness terms
-   * `(witness ((x Int)) F)` should be such that `(exists ((x Int)) F)` is a
-   * valid formula. If this is not the case, then the semantics in formulas that
-   * use witness terms may be unintuitive. For example, the following formula is
+   * `(witness ((x Int)) F)` should be such that `(exists ((x Int)) F)` is a valid
+   * formula. If this is not the case, then the semantics in formulas that use
+   * witness terms may be unintuitive. For example, the following formula is
    * unsatisfiable:
    * `(or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))`
    * whereas notice that `(or (= z 0) (not (= z 0)))` is true for any `z`.
@@ -205,8 +197,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Witness body
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   WITNESS,
@@ -242,10 +233,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Boolean Term of the conjunction
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   AND,
@@ -256,10 +245,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Boolean Terms, right associative
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   IMPLIES,
@@ -270,10 +257,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Boolean Term of the disjunction
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   OR,
@@ -284,10 +269,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Boolean Terms, `[1] xor ... xor [n]`
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   XOR,
@@ -302,8 +285,7 @@ enum CVC4_EXPORT Kind : int32_t
    * 'then' and 'else' term must have same base sort.
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   ITE,
@@ -318,10 +300,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2..n: Function argument instantiation Terms
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   APPLY_UF,
@@ -339,8 +319,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Positive integer constant that bounds the cardinality of sort S
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   CARDINALITY_CONSTRAINT,
@@ -372,10 +351,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2..n: Arguments of the function
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   HO_APPLY,
@@ -389,10 +366,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   PLUS,
@@ -403,10 +378,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   MULT,
@@ -420,15 +393,14 @@ enum CVC4_EXPORT Kind : int32_t
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
    * Apply integer conversion to bit-vector.
-
+   
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
    *   - 3: Integer term
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
@@ -443,10 +415,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   MINUS,
@@ -467,10 +437,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   DIVISION,
@@ -481,10 +449,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INTS_DIVISION,
@@ -496,8 +462,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Integer
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INTS_MODULUS,
@@ -519,8 +484,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Integer, Real
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   POW,
@@ -680,8 +644,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Integer Term
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   DIVISIBLE,
@@ -689,8 +652,7 @@ enum CVC4_EXPORT Kind : int32_t
    * Multiple-precision rational constant.
    *
    * Parameters:
-   *   See @ref cvc5::api::Solver::mkInteger() "mkInteger()", @ref
-   * cvc5::api::Solver::mkReal() "mkReal()".
+   *   See @ref cvc5::api::Solver::mkInteger() "mkInteger()", @ref cvc5::api::Solver::mkReal() "mkReal()".
    *
    * Create with:
    *   - `Solver::mkInteger(const std::string& s) const`
@@ -707,10 +669,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real; [1] < ... < [n]
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   LT,
@@ -721,8 +681,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real; [1] <= ... <= [n]
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   LEQ,
@@ -733,10 +692,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real, [1] > ... > [n]
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   GT,
@@ -747,10 +704,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of sort Integer, Real; [1] >= ... >= [n]
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   GEQ,
@@ -804,8 +759,7 @@ enum CVC4_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkBitVector(uint32_t size, uint64_t val) const`
    *   - `Solver::mkBitVector(const std::string& s, uint32_t base) const`
-   *   - `Solver::mkBitVector(uint32_t size, const std::string& s, uint32_t
-   * base) const`
+   *   - `Solver::mkBitVector(uint32_t size, const std::string& s, uint32_t base) const`
    */
   CONST_BITVECTOR,
   /**
@@ -815,10 +769,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_CONCAT,
@@ -829,10 +781,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_AND,
@@ -843,10 +793,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_OR,
@@ -857,10 +805,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_XOR,
@@ -881,8 +827,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_NAND,
@@ -893,8 +838,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_NOR,
@@ -905,8 +849,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_XNOR,
@@ -917,10 +860,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_COMP,
@@ -931,10 +872,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_MULT,
@@ -945,10 +884,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_PLUS,
@@ -959,8 +896,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SUB,
@@ -986,8 +922,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_UDIV,
@@ -1003,8 +938,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_UREM,
@@ -1021,8 +955,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SDIV,
@@ -1039,8 +972,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SREM,
@@ -1057,8 +989,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SMOD,
@@ -1070,8 +1001,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SHL,
@@ -1083,8 +1013,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_LSHR,
@@ -1096,8 +1025,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_ASHR,
@@ -1109,8 +1037,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_ULT,
@@ -1122,8 +1049,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_ULE,
@@ -1135,8 +1061,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_UGT,
@@ -1148,8 +1073,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_UGE,
@@ -1161,8 +1085,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SLT,
@@ -1174,8 +1097,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SLE,
@@ -1187,8 +1109,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SGT,
@@ -1200,8 +1121,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SGE,
@@ -1212,8 +1132,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_ULTBV,
@@ -1224,8 +1143,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bit-vector sort (sorts must match)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_SLTBV,
@@ -1240,8 +1158,7 @@ enum CVC4_EXPORT Kind : int32_t
    * 'then' and 'else' term must have same base sort.
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BITVECTOR_ITE,
@@ -1462,8 +1379,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Significand bits as a bit-vector term (without hidden bit)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_FP,
@@ -1474,8 +1390,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_EQ,
@@ -1508,8 +1423,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort FloatingPoint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_PLUS,
@@ -1522,8 +1436,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort FloatingPoint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_SUB,
@@ -1536,8 +1449,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort FloatingPoint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_MULT,
@@ -1550,8 +1462,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort FloatingPoint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_DIV,
@@ -1576,8 +1487,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort FloatingPoint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_SQRT,
@@ -1588,8 +1498,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_REM,
@@ -1600,8 +1509,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   -1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_RTI,
@@ -1612,8 +1520,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_MIN,
@@ -1624,8 +1531,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_MAX,
@@ -1636,8 +1542,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_LEQ,
@@ -1648,8 +1553,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_LT,
@@ -1660,8 +1564,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_GEQ,
@@ -1672,8 +1575,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of floating point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FLOATINGPOINT_GT,
@@ -1934,8 +1836,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Selection index
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   SELECT,
@@ -1948,8 +1849,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term to store at the index
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   STORE,
@@ -1961,14 +1861,12 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term representing a constant
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    *
    * Note: We currently support the creation of constant arrays, but under some
    * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue <a
-   * href="https://github.com/CVC4/CVC4/issues/1667">#1667</a>).
+   * arrays, the solver doesn't know what to do and aborts (Issue <a href="https://github.com/CVC4/CVC4/issues/1667">#1667</a>).
    */
   CONST_ARRAY,
   /**
@@ -2014,10 +1912,8 @@ enum CVC4_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(const Op& op) const`
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   APPLY_CONSTRUCTOR,
@@ -2040,8 +1936,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Datatype term
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   APPLY_TESTER,
@@ -2070,8 +1965,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Element to store in the tuple at the given index
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   TUPLE_UPDATE,
@@ -2092,10 +1986,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Element to store in the record in the given field
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(const Op& op,, const std::vector<Term>& children)
-   * const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(const Op& op,, const std::vector<Term>& children) const`
    */
   RECORD_UPDATE,
   /**
@@ -2114,10 +2006,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of kind MATCH_CASE or MATCH_BIND_CASE
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    *
    */
@@ -2131,8 +2021,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term denoting the return value
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   MATCH_CASE,
@@ -2146,8 +2035,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term denoting the return value
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   MATCH_BIND_CASE,
@@ -2218,8 +2106,7 @@ enum CVC4_EXPORT Kind : int32_t
    *         that is constrained to be empty
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEP_EMP,
@@ -2231,8 +2118,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Data of the points-to constraint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEP_PTO,
@@ -2243,10 +2129,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Child constraints that hold in disjoint (separated) heaps
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEP_STAR,
@@ -2259,8 +2143,7 @@ enum CVC4_EXPORT Kind : int32_t
    *         hold in all heaps that are disjoint extensions of the antecedent.
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEP_WAND,
@@ -2288,8 +2171,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   UNION,
@@ -2300,8 +2182,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INTERSECTION,
@@ -2312,8 +2193,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SETMINUS,
@@ -2324,8 +2204,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort, [1] a subset of set [2]?
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SUBSET,
@@ -2336,8 +2215,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort, [1] a member of set [2]?
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   MEMBER,
@@ -2361,10 +2239,8 @@ enum CVC4_EXPORT Kind : int32_t
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INSERT,
@@ -2403,8 +2279,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   JOIN,
@@ -2415,8 +2290,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   PRODUCT,
@@ -2447,8 +2321,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of set sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   JOIN_IMAGE,
@@ -2468,12 +2341,11 @@ enum CVC4_EXPORT Kind : int32_t
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y )
-   * \Leftrightarrow (member y C)
+   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y ) \Leftrightarrow (member y C)
    * @f]
    * where y ranges over the element type of the (set) type of the
-   * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to
-   * y in the above formula.
+   * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to y in the
+   * above formula.
    *
    * Parameters:
    *   - 1: Term BOUND_VAR_LIST
@@ -2481,10 +2353,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: (optional) a Term denoting the generator for the comprehension
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   COMPREHENSION,
@@ -2529,8 +2399,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bag sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   UNION_MAX,
@@ -2541,8 +2410,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   -1..2: Terms of bag sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   UNION_DISJOINT,
@@ -2553,8 +2421,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bag sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INTERSECTION_MIN,
@@ -2566,8 +2433,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bag sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   DIFFERENCE_SUBTRACT,
@@ -2578,8 +2444,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bag sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   DIFFERENCE_REMOVE,
@@ -2591,8 +2456,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bag sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SUBBAG,
@@ -2603,8 +2467,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of bag sort (Bag E), [1] an element of sort E
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_COUNT,
@@ -2694,10 +2557,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of String sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_CONCAT,
@@ -2709,8 +2570,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of RegExp sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_IN_REGEXP,
@@ -2737,8 +2597,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Integer (length l)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_SUBSTR,
@@ -2755,8 +2614,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort String (replacement string t)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_UPDATE,
@@ -2771,8 +2629,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Integer (index i)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_CHARAT,
@@ -2786,8 +2643,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort String (the string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_CONTAINS,
@@ -2803,8 +2659,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Integer (index i)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_INDEXOF,
@@ -2819,8 +2674,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort String (string s3)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_REPLACE,
@@ -2835,8 +2689,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort String (string s3)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_REPLACE_ALL,
@@ -2852,8 +2705,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort String (string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_REPLACE_RE,
@@ -2868,8 +2720,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort String (string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_REPLACE_RE_ALL,
@@ -2938,8 +2789,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort String (the string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_LT,
@@ -2953,8 +2803,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort String (the string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_LEQ,
@@ -2968,8 +2817,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort String (string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_PREFIX,
@@ -2983,8 +2831,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort String (string s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   STRING_SUFFIX,
@@ -3052,8 +2899,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of Regexp sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   REGEXP_CONCAT,
@@ -3064,8 +2910,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of Regexp sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   REGEXP_UNION,
@@ -3076,8 +2921,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of Regexp sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   REGEXP_INTER,
@@ -3088,8 +2932,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..2: Terms of Regexp sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   REGEXP_DIFF,
@@ -3131,8 +2974,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Upper bound character for the range
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   REGEXP_RANGE,
@@ -3216,10 +3058,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms of Sequence sort
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_CONCAT,
@@ -3246,8 +3086,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Integer (length l)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_EXTRACT,
@@ -3264,8 +3103,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Sequence (replacement sequence t)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_UPDATE,
@@ -3280,8 +3118,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Integer (index i)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_AT,
@@ -3295,8 +3132,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Sequence (the sequence s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_CONTAINS,
@@ -3313,8 +3149,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Integer (index i)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_INDEXOF,
@@ -3329,8 +3164,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Sequence (sequence s3)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_REPLACE,
@@ -3345,8 +3179,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: Term of sort Sequence (sequence s3)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_REPLACE_ALL,
@@ -3370,8 +3203,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Sequence (sequence s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_PREFIX,
@@ -3385,8 +3217,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Term of sort Sequence (sequence s2)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   SEQ_SUFFIX,
@@ -3426,8 +3257,7 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 2: Integer term.
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    */
   SEQ_NTH,
 
@@ -3442,10 +3272,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: (optional) INST_PATTERN_LIST Term
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   FORALL,
@@ -3458,10 +3286,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 3: (optional) INST_PATTERN_LIST Term
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   EXISTS,
@@ -3472,10 +3298,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms with kind BOUND_VARIABLE
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BOUND_VAR_LIST,
@@ -3488,10 +3312,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms with kind BOUND_VARIABLE
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INST_PATTERN,
@@ -3504,10 +3326,8 @@ enum CVC4_EXPORT Kind : int32_t
    *   - 1..n: Terms with kind BOUND_VARIABLE
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INST_NO_PATTERN,
@@ -3531,10 +3351,8 @@ enum CVC4_EXPORT Kind : int32_t
    * INST_ATTRIBUTE.
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INST_PATTERN_LIST,

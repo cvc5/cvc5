@@ -32,9 +32,7 @@ const char* toString(cvc5::Kind k)
     /* special cases */
     case UNDEFINED_KIND: return "UNDEFINED_KIND";
     case NULL_EXPR: return "NULL";
-      // clang-format off
     ${kind_printers}
-      // clang-format on
     case LAST_KIND: return "LAST_KIND";
     default: return "?";
   }
@@ -72,9 +70,7 @@ const char* toString(TypeConstant tc)
 {
   switch (tc)
   {
-    // clang-format off
     ${type_constant_descriptions}
-      // clang-format on
     default: return "UNKNOWN_TYPE_CONSTANT";
   }
 }
@@ -91,9 +87,7 @@ TheoryId kindToTheoryId(::cvc5::Kind k)
   case kind::UNDEFINED_KIND:
   case kind::NULL_EXPR:
     break;
-    // clang-format off
 ${kind_to_theory_id}
-    // clang-format on
   case kind::LAST_KIND:
     break;
   }
@@ -104,9 +98,7 @@ TheoryId typeConstantToTheoryId(::cvc5::TypeConstant typeConstant)
 {
   switch (typeConstant)
   {
-    // clang-format off
 ${type_constant_to_theory_id}
-      // clang-format on
     case LAST_TYPE: break;
   }
   throw IllegalArgumentException(
