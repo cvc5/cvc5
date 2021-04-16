@@ -160,13 +160,9 @@ bool setWeight(const std::string& name, uint64_t weight, Weights& weights)
 
 ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     : d_perCallTimer(),
-      d_timeBudgetPerCall(0),
-      d_resourceBudgetCumulative(0),
-      d_resourceBudgetPerCall(0),
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
-      d_thisCallResourceBudget(0),
       d_statistics(new ResourceManager::Statistics(stats))
 {
   d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
@@ -187,32 +183,6 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
 
 ResourceManager::~ResourceManager() {}
 
-void ResourceManager::setResourceLimit(uint64_t units, bool cumulative)
-{
-  if (cumulative)
-  {
-    Trace("limit") << "ResourceManager: setting cumulative resource limit to "
-                   << units << endl;
-    d_resourceBudgetCumulative =
-        (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
-    d_thisCallResourceBudget = d_resourceBudgetCumulative;
-  }
-  else
-  {
-    Trace("limit") << "ResourceManager: setting per-call resource limit to "
-                   << units << endl;
-    d_resourceBudgetPerCall = units;
-  }
-}
-
-void ResourceManager::setTimeLimit(uint64_t millis)
-{
-  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis
-                 << " ms" << endl;
-  d_timeBudgetPerCall = millis;
-  // perCall timer will be set in beginCall
-}
-
 uint64_t ResourceManager::getResourceUsage() const
 {
   return d_cumulativeResourceUsed;
@@ -222,8 +192,8 @@ uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
 uint64_t ResourceManager::getResourceRemaining() const
 {
-  if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed) return 0;
-  return d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+  if (options::cumulativeResourceLimit() <= d_cumulativeResourceUsed) return 0;
+  return options::cumulativeResourceLimit() - d_cumulativeResourceUsed;
 }
 
 void ResourceManager::spendResource(uint64_t amount)
@@ -261,21 +231,21 @@ void ResourceManager::spendResource(Resource r)
 
 void ResourceManager::beginCall()
 {
-  d_perCallTimer.set(d_timeBudgetPerCall);
+  d_perCallTimer.set(options::perCallMillisecondLimit());
   d_thisCallResourceUsed = 0;
 
-  if (d_resourceBudgetCumulative > 0)
+  if (options::cumulativeResourceLimit() > 0)
   {
     // Compute remaining cumulative resource budget
     d_thisCallResourceBudget =
-        d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+        options::cumulativeResourceLimit() - d_cumulativeResourceUsed;
   }
-  if (d_resourceBudgetPerCall > 0)
+  if (options::perCallResourceLimit() > 0)
   {
     // Check if per-call resource budget is even smaller
-    if (d_resourceBudgetPerCall < d_thisCallResourceBudget)
+    if (options::perCallResourceLimit() < d_thisCallResourceBudget)
     {
-      d_thisCallResourceBudget = d_resourceBudgetPerCall;
+      d_thisCallResourceBudget = options::perCallResourceLimit();
     }
   }
 }
@@ -289,24 +259,25 @@ void ResourceManager::endCall()
 
 bool ResourceManager::limitOn() const
 {
-  return (d_resourceBudgetCumulative > 0) || (d_timeBudgetPerCall > 0)
-         || (d_resourceBudgetPerCall > 0);
+  return (options::cumulativeResourceLimit() > 0)
+         || (options::perCallMillisecondLimit() > 0)
+         || (options::perCallResourceLimit() > 0);
 }
 
 bool ResourceManager::outOfResources() const
 {
-  if (d_resourceBudgetPerCall > 0)
+  if (options::perCallResourceLimit() > 0)
   {
     // Check if per-call resources are exhausted
-    if (d_thisCallResourceUsed >= d_resourceBudgetPerCall)
+    if (d_thisCallResourceUsed >= options::perCallResourceLimit())
     {
       return true;
     }
   }
-  if (d_resourceBudgetCumulative > 0)
+  if (options::cumulativeResourceLimit() > 0)
   {
     // Check if cumulative resources are exhausted
-    if (d_cumulativeResourceUsed >= d_resourceBudgetCumulative)
+    if (d_cumulativeResourceUsed >= options::cumulativeResourceLimit())
     {
       return true;
     }
@@ -316,7 +287,7 @@ bool ResourceManager::outOfResources() const
 
 bool ResourceManager::outOfTime() const
 {
-  if (d_timeBudgetPerCall == 0) return false;
+  if (options::perCallMillisecondLimit() == 0) return false;
   return d_perCallTimer.expired();
 }
 

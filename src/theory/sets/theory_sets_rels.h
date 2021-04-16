@@ -51,7 +51,7 @@ public:
  * This class implements inference schemes described in Meng et al. CADE 2017
  * for handling quantifier-free constraints in the theory of relations.
  *
- * In CVC4, relations are represented as sets of tuples. The theory of
+ * In cvc5, relations are represented as sets of tuples. The theory of
  * relations includes constraints over operators, e.g. TRANSPOSE, JOIN and so
  * on, which apply to sets of tuples.
  *

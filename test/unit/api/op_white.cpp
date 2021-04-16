@@ -29,7 +29,7 @@ TEST_F(TestApiWhiteOp, opFromKind)
 {
   Op plus(&d_solver, PLUS);
   ASSERT_FALSE(plus.isIndexed());
-  ASSERT_THROW(plus.getIndices<uint32_t>(), CVC4ApiException);
+  ASSERT_THROW(plus.getIndices<uint32_t>(), CVC5ApiException);
   ASSERT_EQ(plus, d_solver.mkOp(PLUS));
 }
 }  // namespace test
