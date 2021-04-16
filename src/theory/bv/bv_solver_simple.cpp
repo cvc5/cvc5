@@ -77,7 +77,7 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                         TConvCachePolicy::NEVER,
                                         "BVSolverSimple::TConvProofGenerator",
                                         nullptr,
-                                        true)
+                                        false)
               : nullptr),
       d_bitblaster(new BBProof(s, pnm, d_tcpg.get()))
 {
