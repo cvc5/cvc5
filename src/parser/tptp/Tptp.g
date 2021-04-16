@@ -108,7 +108,6 @@ using namespace cvc5::parser;
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
 #include "util/integer.h"
-#include "util/rational.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;

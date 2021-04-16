@@ -551,7 +551,6 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt/command.h"
-#include "util/rational.h"
 
 namespace cvc5 {
   class Expr;

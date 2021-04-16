@@ -112,7 +112,6 @@ namespace cvc5 {
 #include "util/floatingpoint.h"
 #include "util/hash.h"
 #include "util/integer.h"
-#include "util/rational.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;
