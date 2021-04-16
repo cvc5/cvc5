@@ -13,7 +13,7 @@
  * Term context.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__TERM_CONTEXT_STACK_H
 #define CVC5__EXPR__TERM_CONTEXT_STACK_H

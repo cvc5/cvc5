@@ -26,7 +26,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
 #include "parser/line_buffer.h"

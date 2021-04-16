@@ -23,7 +23,7 @@
  * conversion to the API type `Stat`.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATISTICS_VALUE_H
 #define CVC5__UTIL__STATISTICS_VALUE_H
@@ -42,11 +42,8 @@ namespace cvc5 {
 
 class StatisticsRegistry;
 
-using StatExportData = std::variant<std::monostate,
-                                    int64_t,
-                                    double,
-                                    std::string,
-                                    std::map<std::string, uint64_t>>;
+using StatExportData =
+    std::variant<int64_t, double, std::string, std::map<std::string, uint64_t>>;
 namespace detail {
   std::ostream& print(std::ostream& out, const StatExportData& sed);
 }
@@ -57,26 +54,16 @@ namespace detail {
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue();
-  /** Checks whether the data holds a non-default value. */
-  virtual bool hasValue() const = 0;
+  /** Checks whether the data holds the default value. */
+  virtual bool isDefault() const = 0;
   /**
    * Converts the internal data to an instance of `StatExportData` that is
    * suitable for printing and exporting to the API.
-   * Assumes that `hasValue` returns true. Otherwise, the return value should
-   * assumed to be `std::monostate`.
    */
   virtual StatExportData getViewer() const = 0;
   /**
-   * Writes the data to a regular `std::ostream`.
-   * Assumes that `hasValue` returns true. Otherwise, the user should write
-   * `<undef>` to the stream.
-   */
-  virtual void print(std::ostream&) const = 0;
-  /**
    * Safely writes the data to a file descriptor. Is suitable to be used
    * within a signal handler.
-   * Assumes that `hasValue` returns true. Otherwise, the user should write
-   * `<undef>` to the file descriptor.
    */
   virtual void printSafe(int fd) const = 0;
 
@@ -89,8 +76,7 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv);
 struct StatisticAverageValue : StatisticBaseValue
 {
   StatExportData getViewer() const override;
-  bool hasValue() const override;
-  void print(std::ostream& out) const override;
+  bool isDefault() const override;
   void printSafe(int fd) const override;
   double get() const;
 
@@ -111,8 +97,7 @@ template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
   StatExportData getViewer() const override { return d_value; }
-  bool hasValue() const override { return d_value != T(); }
-  void print(std::ostream& out) const override { out << d_value; }
+  bool isDefault() const override { return d_value == T(); }
   void printSafe(int fd) const override { safe_print<T>(fd, d_value); }
 
   T d_value;
@@ -152,32 +137,10 @@ struct StatisticHistogramValue : StatisticBaseValue
     }
     return res;
   }
-  bool hasValue() const override { return d_hist.size() > 0; }
-  void print(std::ostream& out) const override
-  {
-    out << "[";
-    bool first = true;
-    for (size_t i = 0, n = d_hist.size(); i < n; ++i)
-    {
-      if (d_hist[i] > 0)
-      {
-        if (first)
-        {
-          first = false;
-        }
-        else
-        {
-          out << ", ";
-        }
-        out << "(" << static_cast<Integral>(i + d_offset) << " : " << d_hist[i]
-            << ")";
-      }
-    }
-    out << "]";
-  }
+  bool isDefault() const override { return d_hist.size() == 0; }
   void printSafe(int fd) const override
   {
-    safe_print(fd, "[");
+    safe_print(fd, "{ ");
     bool first = true;
     for (size_t i = 0, n = d_hist.size(); i < n; ++i)
     {
@@ -191,14 +154,12 @@ struct StatisticHistogramValue : StatisticBaseValue
         {
           safe_print(fd, ", ");
         }
-        safe_print(fd, "(");
         safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
-        safe_print(fd, " : ");
+        safe_print(fd, ": ");
         safe_print<uint64_t>(fd, d_hist[i]);
-        safe_print(fd, ")");
       }
     }
-    safe_print(fd, "]");
+    safe_print(fd, " }");
   }
 
   /**
@@ -267,19 +228,24 @@ struct StatisticReferenceValue : StatisticBaseValue
         return *d_value;
       }
     }
-    return {};
+    if constexpr (std::is_integral_v<T>)
+    {
+      return static_cast<int64_t>(0);
+    }
+    else
+    {
+      // this else branch is required to ensure compilation.
+      // if T is unsigned int, this return statement triggers a compiler error
+      return T();
+    }
   }
-  bool hasValue() const override { return d_committed || d_value != nullptr; }
-  void print(std::ostream& out) const override
+  bool isDefault() const override
   {
     if (d_committed)
     {
-      out << *d_committed;
+      return *d_committed == T();
     }
-    else if (d_value != nullptr)
-    {
-      out << *d_value;
-    }
+    return d_value == nullptr || *d_value == T();
   }
   void printSafe(int fd) const override
   {
@@ -290,6 +256,10 @@ struct StatisticReferenceValue : StatisticBaseValue
     else if (d_value != nullptr)
     {
       safe_print<T>(fd, *d_value);
+    }
+    else
+    {
+      safe_print<T>(fd, T());
     }
   }
   void commit()
@@ -324,19 +294,15 @@ struct StatisticSizeValue : StatisticBaseValue
     {
       return static_cast<int64_t>(d_value->size());
     }
-    return {};
+    return static_cast<int64_t>(0);
   }
-  bool hasValue() const override { return d_committed || d_value != nullptr; }
-  void print(std::ostream& out) const override
+  bool isDefault() const override
   {
     if (d_committed)
     {
-      out << *d_committed;
+      return *d_committed == 0;
     }
-    else if (d_value != nullptr)
-    {
-      out << d_value->size();
-    }
+    return d_value == nullptr || d_value->size() == 0;
   }
   void printSafe(int fd) const override
   {
@@ -347,6 +313,10 @@ struct StatisticSizeValue : StatisticBaseValue
     else if (d_value != nullptr)
     {
       safe_print(fd, d_value->size());
+    }
+    else
+    {
+      safe_print(fd, 0);
     }
   }
   void commit()
@@ -376,13 +346,14 @@ struct StatisticTimerValue : StatisticBaseValue
   };
   /** Returns the number of milliseconds */
   StatExportData getViewer() const override;
-  bool hasValue() const override;
-  /** Prints seconds in fixed-point format */
-  void print(std::ostream& out) const override;
+  bool isDefault() const override;
   /** Prints seconds in fixed-point format */
   void printSafe(int fd) const override;
-  /** Make sure that we include the time of a currently running timer */
-  duration get() const;
+  /**
+   * Returns the elapsed time in milliseconds.
+   * Make sure that we include the time of a currently running timer
+   */
+  uint64_t get() const;
 
   /**
    * The cumulative duration of the timer so far. 

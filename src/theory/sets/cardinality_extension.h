@@ -13,7 +13,7 @@
  * An extension of the theory sets for handling cardinality constraints.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__CARDINALITY_EXTENSION_H
 #define CVC5__THEORY__SETS__CARDINALITY_EXTENSION_H

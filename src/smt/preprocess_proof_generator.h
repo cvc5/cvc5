@@ -13,7 +13,7 @@
  * The module for proofs for preprocessing in an SMT engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 #define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H

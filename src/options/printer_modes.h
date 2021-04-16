@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__PRINTER__MODES_H
 #define CVC5__PRINTER__MODES_H

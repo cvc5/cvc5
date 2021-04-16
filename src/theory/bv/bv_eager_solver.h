@@ -13,7 +13,7 @@
  * Eager bit-blasting solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BV_EAGER_SOLVER_H
 #define CVC5__THEORY__BV__BV_EAGER_SOLVER_H

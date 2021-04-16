@@ -72,7 +72,7 @@ void ProofManager::initSatProof(Minisat::Solver* solver)
   // Destroy old instance before initializing new one to avoid issues with
   // registering stats
   d_satProof.reset();
-  d_satProof.reset(new CoreSatProof(solver, d_context, ""));
+  d_satProof.reset(new CoreSatProof(solver, d_context, "satproof::"));
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,

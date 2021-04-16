@@ -16,11 +16,11 @@
  *
  * This is a symfpu literal "back-end".  It allows the library to be used as
  * an arbitrary precision floating-point implementation.  This is effectively
- * the glue between symfpu's notion of "signed bit-vector" and CVC4's
+ * the glue between symfpu's notion of "signed bit-vector" and cvc5's
  * BitVector.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H
 #define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_TRAITS_H

@@ -15,7 +15,7 @@
  * Describes the interface for the internal bit-vector solver of TheoryBV.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BV_SOLVER_H
 #define CVC5__THEORY__BV__BV_SOLVER_H

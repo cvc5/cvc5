@@ -13,7 +13,7 @@
  * Reference-counted encapsulation of a pointer to node information.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
@@ -420,7 +420,7 @@ public:
   /** is closed enumerable type
    *
    * This returns true if this type has an enumerator that produces constants
-   * that are fully handled by CVC4's quantifier-free theory solvers. Examples
+   * that are fully handled by cvc5's quantifier-free theory solvers. Examples
    * of types that are not closed enumerable are:
    * (1) uninterpreted sorts,
    * (2) arrays,

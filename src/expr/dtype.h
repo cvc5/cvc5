@@ -13,7 +13,7 @@
  * A class representing a datatype definition.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__DTYPE_H
 #define CVC5__EXPR__DTYPE_H
@@ -90,7 +90,7 @@ class DTypeConstructor;
  * allow the datatype to construct the necessary testers and selectors.
  *
  * An additional point to make is that we want to ease the burden on
- * both the parser AND the users of the CVC4 API, so this class takes
+ * both the parser AND the users of the cvc5 API, so this class takes
  * on the task of generating its own selectors and testers, for
  * instance.  That means that, after reifying the DType with the
  * NodeManager, the parser needs to go through the (now-resolved)

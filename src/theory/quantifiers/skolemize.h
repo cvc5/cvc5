@@ -13,7 +13,7 @@
  * Utilities for skolemization.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
 #define CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
@@ -32,12 +32,10 @@ namespace cvc5 {
 class DTypeConstructor;
 
 namespace theory {
-
-class SortInference;
-
 namespace quantifiers {
 
 class QuantifiersState;
+class TermRegistry;
 
 /** Skolemization utility
  *
@@ -70,7 +68,7 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersState& qs, ProofNodeManager* pnm);
+  Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -143,6 +141,8 @@ class Skolemize
                          std::vector<Node>& selfSel);
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */

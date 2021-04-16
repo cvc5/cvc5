@@ -13,7 +13,7 @@
  * Algebraic solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define CVC5__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
@@ -49,7 +49,6 @@ class InequalitySolver : public SubtheorySolver
     IntStat d_numCallstoCheck;
     TimerStat d_solveTime;
     Statistics();
-    ~Statistics();
   };
 
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;

@@ -13,7 +13,7 @@
  * A type checker.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // ordering dependence
 #include "expr/node.h"

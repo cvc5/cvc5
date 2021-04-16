@@ -16,7 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__POLY_CONVERSION_H
 #define CVC5__THEORY__ARITH__NL__POLY_CONVERSION_H
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifdef CVC5_POLY_IMP
 
@@ -37,17 +37,17 @@ class BoundInference;
 
 namespace nl {
 
-/** Bijective mapping between CVC4 variables and poly variables. */
+/** Bijective mapping between cvc5 variables and poly variables. */
 struct VariableMapper
 {
-  /** A mapping from CVC4 variables to poly variables. */
+  /** A mapping from cvc5 variables to poly variables. */
   std::map<cvc5::Node, poly::Variable> mVarCVCpoly;
-  /** A mapping from poly variables to CVC4 variables. */
+  /** A mapping from poly variables to cvc5 variables. */
   std::map<poly::Variable, cvc5::Node> mVarpolyCVC;
 
   /** Retrieves the according poly variable. */
   poly::Variable operator()(const cvc5::Node& n);
-  /** Retrieves the according CVC4 variable. */
+  /** Retrieves the according cvc5 variable. */
   cvc5::Node operator()(const poly::Variable& n);
 };
 

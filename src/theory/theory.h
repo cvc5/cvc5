@@ -13,7 +13,7 @@
  * Base of the theory interface.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__THEORY_H
 #define CVC5__THEORY__THEORY_H
@@ -35,8 +35,7 @@
 #include "theory/theory_id.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 

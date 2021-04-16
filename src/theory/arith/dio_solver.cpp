@@ -54,33 +54,19 @@ DioSolver::DioSolver(context::Context* ctxt)
       d_pureSubstitionIter(ctxt, 0),
       d_decompositionLemmaQueue(ctxt) {}
 
-DioSolver::Statistics::Statistics() :
-  d_conflictCalls("theory::arith::dio::conflictCalls",0),
-  d_cutCalls("theory::arith::dio::cutCalls",0),
-  d_cuts("theory::arith::dio::cuts",0),
-  d_conflicts("theory::arith::dio::conflicts",0),
-  d_conflictTimer("theory::arith::dio::conflictTimer"),
-  d_cutTimer("theory::arith::dio::cutTimer")
+DioSolver::Statistics::Statistics()
+    : d_conflictCalls(smtStatisticsRegistry().registerInt(
+        "theory::arith::dio::conflictCalls")),
+      d_cutCalls(
+          smtStatisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
+      d_cuts(smtStatisticsRegistry().registerInt("theory::arith::dio::cuts")),
+      d_conflicts(
+          smtStatisticsRegistry().registerInt("theory::arith::dio::conflicts")),
+      d_conflictTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::dio::conflictTimer")),
+      d_cutTimer(
+          smtStatisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
 {
-  smtStatisticsRegistry()->registerStat(&d_conflictCalls);
-  smtStatisticsRegistry()->registerStat(&d_cutCalls);
-
-  smtStatisticsRegistry()->registerStat(&d_cuts);
-  smtStatisticsRegistry()->registerStat(&d_conflicts);
-
-  smtStatisticsRegistry()->registerStat(&d_conflictTimer);
-  smtStatisticsRegistry()->registerStat(&d_cutTimer);
-}
-
-DioSolver::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_conflictCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_cutCalls);
-
-  smtStatisticsRegistry()->unregisterStat(&d_cuts);
-  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
-
-  smtStatisticsRegistry()->unregisterStat(&d_conflictTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_cutTimer);
 }
 
 bool DioSolver::queueConditions(TrailIndex t){
@@ -790,8 +776,8 @@ void DioSolver::debugPrintTrail(DioSolver::TrailIndex i) const{
   const SumPair& eq = d_trail[i].d_eq;
   const Polynomial& proof = d_trail[i].d_proof;
 
-  CVC4Message() << "d_trail[" << i << "].d_eq = " << eq.getNode() << endl;
-  CVC4Message() << "d_trail[" << i << "].d_proof = " << proof.getNode() << endl;
+  CVC5Message() << "d_trail[" << i << "].d_eq = " << eq.getNode() << endl;
+  CVC5Message() << "d_trail[" << i << "].d_proof = " << proof.getNode() << endl;
 }
 
 void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){

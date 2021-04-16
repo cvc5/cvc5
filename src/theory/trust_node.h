@@ -13,7 +13,7 @@
  * The trust node utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__TRUST_NODE_H
 #define CVC5__THEORY__TRUST_NODE_H

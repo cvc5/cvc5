@@ -14,7 +14,7 @@
  *
  * !!! This header is not to be included in any other headers !!!
  */
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H
 #define CVC5__UTIL__FLOATINGPOINT_LITERAL_SYMFPU_H

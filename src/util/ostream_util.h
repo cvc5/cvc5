@@ -13,7 +13,7 @@
  * Utilities for using ostreams.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTIL__OSTREAM_UTIL_H
 #define CVC5__UTIL__OSTREAM_UTIL_H

@@ -65,42 +65,26 @@ LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, Bou
   d_trackCallback(this)
 {}
 
-LinearEqualityModule::Statistics::Statistics():
-  d_statPivots("theory::arith::pivots",0),
-  d_statUpdates("theory::arith::updates",0),
-  d_pivotTime("theory::arith::pivotTime"),
-  d_adjTime("theory::arith::adjTime"),
-  d_weakeningAttempts("theory::arith::weakening::attempts",0),
-  d_weakeningSuccesses("theory::arith::weakening::success",0),
-  d_weakenings("theory::arith::weakening::total",0),
-  d_weakenTime("theory::arith::weakening::time"),
-  d_forceTime("theory::arith::forcing::time")
+LinearEqualityModule::Statistics::Statistics()
+    : d_statPivots(
+        smtStatisticsRegistry().registerInt("theory::arith::pivots")),
+      d_statUpdates(
+          smtStatisticsRegistry().registerInt("theory::arith::updates")),
+      d_pivotTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::pivotTime")),
+      d_adjTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::adjTime")),
+      d_weakeningAttempts(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::attempts")),
+      d_weakeningSuccesses(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::success")),
+      d_weakenings(smtStatisticsRegistry().registerInt(
+          "theory::arith::weakening::total")),
+      d_weakenTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::weakening::time")),
+      d_forceTime(
+          smtStatisticsRegistry().registerTimer("theory::arith::forcing::time"))
 {
-  smtStatisticsRegistry()->registerStat(&d_statPivots);
-  smtStatisticsRegistry()->registerStat(&d_statUpdates);
-
-  smtStatisticsRegistry()->registerStat(&d_pivotTime);
-  smtStatisticsRegistry()->registerStat(&d_adjTime);
-
-  smtStatisticsRegistry()->registerStat(&d_weakeningAttempts);
-  smtStatisticsRegistry()->registerStat(&d_weakeningSuccesses);
-  smtStatisticsRegistry()->registerStat(&d_weakenings);
-  smtStatisticsRegistry()->registerStat(&d_weakenTime);
-  smtStatisticsRegistry()->registerStat(&d_forceTime);
-}
-
-LinearEqualityModule::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_statPivots);
-  smtStatisticsRegistry()->unregisterStat(&d_statUpdates);
-  smtStatisticsRegistry()->unregisterStat(&d_pivotTime);
-  smtStatisticsRegistry()->unregisterStat(&d_adjTime);
-
-
-  smtStatisticsRegistry()->unregisterStat(&d_weakeningAttempts);
-  smtStatisticsRegistry()->unregisterStat(&d_weakeningSuccesses);
-  smtStatisticsRegistry()->unregisterStat(&d_weakenings);
-  smtStatisticsRegistry()->unregisterStat(&d_weakenTime);
-  smtStatisticsRegistry()->unregisterStat(&d_forceTime);
 }
 
 void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){
@@ -183,12 +167,12 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    CVC4Message() << toRemove << " " << toAdd << endl;
+    CVC5Message() << toRemove << " " << toAdd << endl;
     d_tableau.pivot(toRemove, toAdd, d_trackCallback);
     d_basicVariableUpdates(toAdd);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    CVC4Message() << needsToBeAdded.size() << "to go" << endl;
+    CVC5Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
   }
 }

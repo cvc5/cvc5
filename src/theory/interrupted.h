@@ -22,10 +22,10 @@
  * Theory, the Theory should rethrow the same exception (via "throw;"
  * in the exception block) rather than return, as the Interrupted
  * instance might contain additional information needed for the
- * proper management of CVC4 components.
+ * proper management of cvc5 components.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__INTERRUPTED_H
 #define CVC5__THEORY__INTERRUPTED_H

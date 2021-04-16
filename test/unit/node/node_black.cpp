@@ -623,7 +623,7 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4);
+  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
