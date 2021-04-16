@@ -79,7 +79,7 @@ set_source_files_properties(
   PROPERTIES GENERATED TRUE
 )
 
-add_library(cvc4base STATIC ${LIBBASE_SOURCES})
+add_library(cvc4base OBJECT ${LIBBASE_SOURCES})
 if(ENABLE_SHARED)
   set_target_properties(cvc4base PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
