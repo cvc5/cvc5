@@ -25,7 +25,7 @@ options {
   // defaultErrorHandler = false;
 
   // Only lookahead of <= k requested (disable for LL* parsing)
-  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // Note that cvc5's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in tptp_input.cpp !
   k = 2;
 }/* options */

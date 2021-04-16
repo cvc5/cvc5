@@ -12,11 +12,11 @@
  *
  * Representation of cardinality.
  *
- * Simple class to represent a cardinality; used by the CVC4 type system
+ * Simple class to represent a cardinality; used by the cvc5 type system
  * give the cardinality of sorts.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__CARDINALITY_H
 #define CVC5__CARDINALITY_H

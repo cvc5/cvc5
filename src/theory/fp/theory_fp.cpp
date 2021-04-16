@@ -122,7 +122,7 @@ TheoryFp::TheoryFp(context::Context* c,
       d_floatToRealMap(u),
       d_abstractionMap(u),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::fp", false)
+      d_im(*this, d_state, pnm, "theory::fp::", false)
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;

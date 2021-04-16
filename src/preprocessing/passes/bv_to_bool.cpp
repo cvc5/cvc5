@@ -115,10 +115,8 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
   Kind kind = node.getKind();
 
   if (kind == kind::CONST_BITVECTOR || kind == kind::ITE
-      || kind == kind::BITVECTOR_AND
-      || kind == kind::BITVECTOR_OR
-      || kind == kind::BITVECTOR_NOT
-      || kind == kind::BITVECTOR_XOR
+      || kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
+      || kind == kind::BITVECTOR_NOT || kind == kind::BITVECTOR_XOR
       || kind == kind::BITVECTOR_COMP)
   {
     return true;
@@ -290,24 +288,15 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
 }
 
 BVToBool::Statistics::Statistics()
-    : d_numTermsLifted("preprocessing::passes::BVToBool::NumTermsLifted", 0),
-      d_numAtomsLifted("preprocessing::passes::BVToBool::NumAtomsLifted", 0),
-      d_numTermsForcedLifted(
-          "preprocessing::passes::BVToBool::NumTermsForcedLifted", 0)
+    : d_numTermsLifted(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::BVToBool::NumTermsLifted")),
+      d_numAtomsLifted(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes::BVToBool::NumAtomsLifted")),
+      d_numTermsForcedLifted(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes::BVToBool::NumTermsForcedLifted"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numTermsLifted);
-  smtStatisticsRegistry()->registerStat(&d_numAtomsLifted);
-  smtStatisticsRegistry()->registerStat(&d_numTermsForcedLifted);
 }
 
-BVToBool::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numTermsLifted);
-  smtStatisticsRegistry()->unregisterStat(&d_numAtomsLifted);
-  smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLifted);
-}
-
-
-}  // passes
-}  // Preprocessing
+}  // namespace passes
+}  // namespace preprocessing
 }  // namespace cvc5

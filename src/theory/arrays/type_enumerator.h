@@ -13,7 +13,7 @@
  * An enumerator for arrays.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H
 #define CVC5__THEORY__ARRAYS__TYPE_ENUMERATOR_H

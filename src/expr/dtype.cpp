@@ -488,64 +488,44 @@ bool DType::computeCardinalityRecSingleton(
   return true;
 }
 
-bool DType::isFinite(TypeNode t) const
+CardinalityClass DType::getCardinalityClass(TypeNode t) const
 {
   Trace("datatypes-init") << "DType::isFinite " << std::endl;
   Assert(isResolved());
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
   // is this already in the cache ?
-  if (d_self.getAttribute(DTypeFiniteComputedAttr()))
+  std::map<TypeNode, CardinalityClass>::const_iterator it = d_cardClass.find(t);
+  if (it != d_cardClass.end())
   {
-    return d_self.getAttribute(DTypeFiniteAttr());
+    return it->second;
   }
+  // it is the max cardinality class of a constructor, with base case ONE
+  // if we have one constructor and FINITE otherwise.
+  CardinalityClass c = d_constructors.size() == 1 ? CardinalityClass::ONE
+                                                  : CardinalityClass::FINITE;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
-    if (!ctor->isFinite(t))
-    {
-      d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-      d_self.setAttribute(DTypeFiniteAttr(), false);
-      return false;
-    }
+    CardinalityClass cc = ctor->getCardinalityClass(t);
+    c = maxCardinalityClass(c, cc);
   }
-  d_self.setAttribute(DTypeFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeFiniteAttr(), true);
-  return true;
+  d_cardClass[t] = c;
+  return c;
 }
-bool DType::isFinite() const
+CardinalityClass DType::getCardinalityClass() const
 {
   Assert(isResolved() && !isParametric());
-  return isFinite(d_self);
+  return getCardinalityClass(d_self);
 }
 
-bool DType::isInterpretedFinite(TypeNode t) const
+bool DType::isFinite(TypeNode t, bool fmfEnabled) const
 {
-  Trace("datatypes-init") << "DType::isInterpretedFinite " << std::endl;
-  Assert(isResolved());
-  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
-  // is this already in the cache ?
-  if (d_self.getAttribute(DTypeUFiniteComputedAttr()))
-  {
-    return d_self.getAttribute(DTypeUFiniteAttr());
-  }
-  // start by assuming it is not
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
-  {
-    if (!ctor->isInterpretedFinite(t))
-    {
-      return false;
-    }
-  }
-  d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
-  d_self.setAttribute(DTypeUFiniteAttr(), true);
-  return true;
+  return isCardinalityClassFinite(getCardinalityClass(t), fmfEnabled);
 }
-bool DType::isInterpretedFinite() const
+
+bool DType::isFinite(bool fmfEnabled) const
 {
-  Assert(isResolved() && !isParametric());
-  return isInterpretedFinite(d_self);
+  return isFinite(d_self, fmfEnabled);
 }
 
 bool DType::isWellFounded() const
@@ -915,8 +895,8 @@ const std::vector<std::shared_ptr<DTypeConstructor> >& DType::getConstructors()
 
 std::ostream& operator<<(std::ostream& os, const DType& dt)
 {
-  // can only output datatypes in the CVC4 native language
-  language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  // can only output datatypes in the cvc5 native language
+  language::SetLanguage::Scope ls(os, language::output::LANG_CVC);
   dt.toStream(os);
   return os;
 }

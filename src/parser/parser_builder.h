@@ -13,7 +13,7 @@
  * A builder for parsers.
  */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__PARSER_BUILDER_H
 #define CVC5__PARSER__PARSER_BUILDER_H
@@ -152,7 +152,7 @@ class CVC4_EXPORT ParserBuilder
    * parse would otherwise be an incorrect parse tree and the error
    * would go undetected.  This is specifically for circumstances
    * where the parser is ahead of the functionality present elsewhere
-   * in CVC4 (such as quantifiers, subtypes, records, etc. in the CVC
+   * in cvc5 (such as quantifiers, subtypes, records, etc. in the CVC
    * language parser).
    */
   ParserBuilder& withParseOnly(bool flag = true);

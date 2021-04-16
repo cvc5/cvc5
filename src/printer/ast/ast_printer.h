@@ -13,7 +13,7 @@
  * The pretty-printer interface for the AST output language.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PRINTER__AST_PRINTER_H
 #define CVC5__PRINTER__AST_PRINTER_H

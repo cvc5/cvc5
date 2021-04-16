@@ -13,7 +13,7 @@
  * The care graph datastructure.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__CARE_GRAPH_H
 #define CVC5__THEORY__CARE_GRAPH_H

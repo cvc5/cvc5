@@ -1023,7 +1023,7 @@ int SortModel::addSplit(Region* r)
       }
       if (ss == b_t)
       {
-        CVC4Message() << "Bad split " << s << std::endl;
+        CVC5Message() << "Bad split " << s << std::endl;
         AlwaysAssert(false);
       }
     }
@@ -1420,7 +1420,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
             if( !it->second->hasCardinalityAsserted() ){
               Trace("uf-ss-warn") << "WARNING: Assert " << n << " as a decision before cardinality for " << it->first << "." << std::endl;
-              // CVC4Message() << "Error: constraint asserted before cardinality
+              // CVC5Message() << "Error: constraint asserted before cardinality
               // for " << it->first << std::endl; Unimplemented();
             }
           }
@@ -1748,23 +1748,16 @@ void CardinalityExtension::checkCombinedCardinality()
 }
 
 CardinalityExtension::Statistics::Statistics()
-    : d_clique_conflicts("CardinalityExtension::Clique_Conflicts", 0),
-      d_clique_lemmas("CardinalityExtension::Clique_Lemmas", 0),
-      d_split_lemmas("CardinalityExtension::Split_Lemmas", 0),
-      d_max_model_size("CardinalityExtension::Max_Model_Size", 1)
+    : d_clique_conflicts(smtStatisticsRegistry().registerInt(
+        "CardinalityExtension::Clique_Conflicts")),
+      d_clique_lemmas(smtStatisticsRegistry().registerInt(
+          "CardinalityExtension::Clique_Lemmas")),
+      d_split_lemmas(smtStatisticsRegistry().registerInt(
+          "CardinalityExtension::Split_Lemmas")),
+      d_max_model_size(smtStatisticsRegistry().registerInt(
+          "CardinalityExtension::Max_Model_Size"))
 {
-  smtStatisticsRegistry()->registerStat(&d_clique_conflicts);
-  smtStatisticsRegistry()->registerStat(&d_clique_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_split_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_max_model_size);
-}
-
-CardinalityExtension::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_clique_conflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_clique_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_split_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
+  d_max_model_size.maxAssign(1);
 }
 
 }  // namespace uf

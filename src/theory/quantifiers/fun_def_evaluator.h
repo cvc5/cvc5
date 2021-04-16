@@ -13,7 +13,7 @@
  * Techniques for evaluating terms with recursively defined functions.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
 #define CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H

@@ -13,7 +13,7 @@
  * Skolem manager utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__SKOLEM_MANAGER_H
 #define CVC5__EXPR__SKOLEM_MANAGER_H
@@ -29,14 +29,18 @@ class ProofGenerator;
 /** Skolem function identifier */
 enum class SkolemFunId
 {
-  /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
   DIV_BY_ZERO,
-  /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
   INT_DIV_BY_ZERO,
-  /* an uninterpreted function f s.t. f(x) = x mod 0 */
+  /** an uninterpreted function f s.t. f(x) = x mod 0 */
   MOD_BY_ZERO,
-  /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+  /** an uninterpreted function f s.t. f(x) = sqrt(x) */
   SQRT,
+  /** a wrongly applied selector */
+  SELECTOR_WRONG,
+  /** an application of seq.nth that is out of bounds */
+  SEQ_NTH_OOB,
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
@@ -283,7 +287,7 @@ class SkolemManager
   /**
    * Cached of skolem functions for mkSkolemFunction above.
    */
-  std::map<std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
   /**
    * Mapping from witness terms to proof generators.
    */

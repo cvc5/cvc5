@@ -15,7 +15,7 @@
 
 #include <expr/node.h>
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BAGS__NORMAL_FORM_H
 #define CVC5__THEORY__BAGS__NORMAL_FORM_H

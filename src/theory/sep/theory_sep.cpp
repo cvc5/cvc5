@@ -50,7 +50,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::sep"),
+      d_im(*this, d_state, nullptr, "theory::sep::"),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)
@@ -202,7 +202,8 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           Trace("sep-model") << "_";
           //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
-          if( data_type.isInterpretedFinite() ){
+          if (d_state.isFiniteType(data_type))
+          {
             pto_children.push_back( *te_range );
           }else{
             //must enumerate until we find one that is not explicitly pointed to
@@ -820,7 +821,7 @@ void TheorySep::postCheck(Effort level)
   {
     TypeNode data_type = d_loc_to_data_type[it->first];
     // if the data type is finite
-    if (!data_type.isInterpretedFinite())
+    if (!d_state.isFiniteType(data_type))
     {
       continue;
     }

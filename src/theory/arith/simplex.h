@@ -51,7 +51,7 @@
  *   These are theory valid and are currently turned into lemmas
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -62,8 +62,7 @@
 #include "theory/arith/partial_model.h"
 #include "util/dense_map.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {

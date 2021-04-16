@@ -14,7 +14,7 @@
  * string concatenation plus length constraints.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__CORE_SOLVER_H
 #define CVC5__THEORY__STRINGS__CORE_SOLVER_H

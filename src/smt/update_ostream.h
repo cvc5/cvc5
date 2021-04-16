@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UPDATE_OSTREAM_H
 #define CVC5__UPDATE_OSTREAM_H
@@ -95,8 +95,8 @@ class WarningOstreamUpdate : public OstreamUpdate {
 
 class MessageOstreamUpdate : public OstreamUpdate {
  public:
-  std::ostream& get() override { return CVC4Message.getStream(); }
-  void set(std::ostream* setTo) override { CVC4Message.setStream(setTo); }
+  std::ostream& get() override { return CVC5Message.getStream(); }
+  void set(std::ostream* setTo) override { CVC5Message.setStream(setTo); }
 };  /* class MessageOstreamUpdate */
 
 class NoticeOstreamUpdate : public OstreamUpdate {

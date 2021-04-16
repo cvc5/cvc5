@@ -33,7 +33,7 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes"),
+    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes::"),
       d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm)),

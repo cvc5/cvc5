@@ -48,8 +48,14 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn)
 
 bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
 {
+  if (!tn.isClosedEnumerable())
+  {
+    return false;
+  }
   bool mc = false;
-  if (tn.isClosedEnumerable() && tn.isInterpretedFinite())
+  // we cannot use FMF to complete interpreted types, thus we pass
+  // false for fmfEnabled here
+  if (isCardinalityClassFinite(tn.getCardinalityClass(), false))
   {
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())

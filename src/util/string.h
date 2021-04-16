@@ -13,7 +13,7 @@
  * The string data type.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UTIL__STRING_H
 #define CVC5__UTIL__STRING_H
@@ -26,7 +26,7 @@
 
 namespace cvc5 {
 
-/** The CVC4 string class
+/** The cvc5 string class
  *
  * This data structure is the domain of values for the string type. It can also
  * be used as a generic utility for representing strings.

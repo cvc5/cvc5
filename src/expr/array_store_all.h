@@ -14,7 +14,7 @@
  * same for all indices).
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__ARRAY_STORE_ALL_H
 #define CVC5__ARRAY_STORE_ALL_H

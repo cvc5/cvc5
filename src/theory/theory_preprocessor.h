@@ -13,7 +13,7 @@
  * The theory preprocessor.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__THEORY_PREPROCESSOR_H
 #define CVC5__THEORY__THEORY_PREPROCESSOR_H

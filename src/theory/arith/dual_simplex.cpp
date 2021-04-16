@@ -35,29 +35,21 @@ DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(LinearEqualityModule&
   , d_statistics(d_pivots)
 { }
 
-DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots):
-  d_statUpdateConflicts("theory::arith::dual::UpdateConflicts", 0),
-  d_processSignalsTime("theory::arith::dual::findConflictOnTheQueueTime"),
-  d_simplexConflicts("theory::arith::dual::simplexConflicts",0),
-  d_recentViolationCatches("theory::arith::dual::recentViolationCatches",0),
-  d_searchTime("theory::arith::dual::searchTime"),
-  d_finalCheckPivotCounter("theory::arith::dual::lastPivots", pivots)
+DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
+    : d_statUpdateConflicts(smtStatisticsRegistry().registerInt(
+        "theory::arith::dual::UpdateConflicts")),
+      d_processSignalsTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::dual::findConflictOnTheQueueTime")),
+      d_simplexConflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::dual::simplexConflicts")),
+      d_recentViolationCatches(smtStatisticsRegistry().registerInt(
+          "theory::arith::dual::recentViolationCatches")),
+      d_searchTime(smtStatisticsRegistry().registerTimer(
+          "theory::arith::dual::searchTime")),
+      d_finalCheckPivotCounter(
+          smtStatisticsRegistry().registerReference<uint32_t>(
+              "theory::arith::dual::lastPivots", pivots))
 {
-  smtStatisticsRegistry()->registerStat(&d_statUpdateConflicts);
-  smtStatisticsRegistry()->registerStat(&d_processSignalsTime);
-  smtStatisticsRegistry()->registerStat(&d_simplexConflicts);
-  smtStatisticsRegistry()->registerStat(&d_recentViolationCatches);
-  smtStatisticsRegistry()->registerStat(&d_searchTime);
-  smtStatisticsRegistry()->registerStat(&d_finalCheckPivotCounter);
-}
-
-DualSimplexDecisionProcedure::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_statUpdateConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_processSignalsTime);
-  smtStatisticsRegistry()->unregisterStat(&d_simplexConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_recentViolationCatches);
-  smtStatisticsRegistry()->unregisterStat(&d_searchTime);
-  smtStatisticsRegistry()->unregisterStat(&d_finalCheckPivotCounter);
 }
 
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
@@ -112,15 +104,15 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
     {
       if (result == Result::UNSAT)
       {
-        CVC4Message() << "diff order found unsat" << endl;
+        CVC5Message() << "diff order found unsat" << endl;
       }
       else if (d_errorSet.errorEmpty())
       {
-        CVC4Message() << "diff order found model" << endl;
+        CVC5Message() << "diff order found model" << endl;
       }
       else
       {
-        CVC4Message() << "diff order missed" << endl;
+        CVC5Message() << "diff order missed" << endl;
       }
     }
   }
@@ -144,15 +136,15 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       {
         if (result == Result::UNSAT)
         {
-          CVC4Message() << "restricted var order found unsat" << endl;
+          CVC5Message() << "restricted var order found unsat" << endl;
         }
         else if (d_errorSet.errorEmpty())
         {
-          CVC4Message() << "restricted var order found model" << endl;
+          CVC5Message() << "restricted var order found model" << endl;
         }
         else
         {
-          CVC4Message() << "restricted var order missed" << endl;
+          CVC5Message() << "restricted var order missed" << endl;
         }
       }
     }

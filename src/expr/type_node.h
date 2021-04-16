@@ -13,7 +13,7 @@
  * Reference-counted encapsulation of a pointer to node information.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
@@ -30,6 +30,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/cardinality.h"
+#include "util/cardinality_class.h"
 
 namespace cvc5 {
 
@@ -407,24 +408,19 @@ public:
    * @return a finite or infinite cardinality
    */
   Cardinality getCardinality() const;
-
   /**
-   * Is this type finite? This assumes uninterpreted sorts have infinite
-   * cardinality.
+   * Get the cardinality class of this type node. The cardinality class
+   * is static for each type node and does not depend on the state of the
+   * solver. For details on cardinality classes, see util/cardinality_class.h
+   *
+   * @return the cardinality class
    */
-  bool isFinite();
-
-  /**
-   * Is this type interpreted as finite.
-   * If finite model finding is enabled, this assumes all uninterpreted sorts
-   *   are interpreted as finite.
-   */
-  bool isInterpretedFinite();
+  CardinalityClass getCardinalityClass();
 
   /** is closed enumerable type
    *
    * This returns true if this type has an enumerator that produces constants
-   * that are fully handled by CVC4's quantifier-free theory solvers. Examples
+   * that are fully handled by cvc5's quantifier-free theory solvers. Examples
    * of types that are not closed enumerable are:
    * (1) uninterpreted sorts,
    * (2) arrays,
@@ -711,13 +707,6 @@ public:
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
-
-  /**
-   * Is this type interpreted as finite.
-   * If the flag usortFinite is true, this assumes all uninterpreted sorts
-   *   are interpreted as finite.
-   */
-  bool isFiniteInternal(bool usortFinite);
 
   /**
    * Indents the given stream a given amount of spaces.

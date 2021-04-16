@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 

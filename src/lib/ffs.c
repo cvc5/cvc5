@@ -13,9 +13,9 @@
  * Replacement for ffs() for systems without it (like Win32).
  */
 
-#include "cvc4_private.h"
-
 #include "lib/ffs.h"
+
+#include "cvc5_private.h"
 
 #ifdef __cplusplus
 extern "C" {
