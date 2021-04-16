@@ -25,7 +25,6 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
 
 using namespace std;
 
