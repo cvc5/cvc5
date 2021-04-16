@@ -277,22 +277,23 @@ void OptionsHandler::setStats(const std::string& option, bool value)
 #endif /* CVC5_STATISTICS_ON */
   if (value)
   {
-    if (option == options::statisticsAll.getName())
+    if (option == std::string("--") + options::statisticsAll.getName())
     {
       d_options->d_holder->statistics = true;
     }
-    else if (option == options::statisticsEveryQuery.getName())
+    else if (option
+             == std::string("--") + options::statisticsEveryQuery.getName())
     {
       d_options->d_holder->statistics = true;
     }
-    else if (option == options::statisticsExpert.getName())
+    else if (option == std::string("--") + options::statisticsExpert.getName())
     {
       d_options->d_holder->statistics = true;
     }
   }
   else
   {
-    if (option == options::statistics.getName())
+    if (option == std::string("--") + options::statistics.getName())
     {
       d_options->d_holder->statisticsAll = false;
       d_options->d_holder->statisticsEveryQuery = false;
