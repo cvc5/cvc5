@@ -107,7 +107,7 @@ void BBProof::bbAtom(TNode node)
         d_bb->makeVariable(n, bits);
         if (isProofsEnabled())
         {
-          Node n_tobv = nm->mkNode(kind::BITVECTOR_TO_BV, bits);
+          Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
           d_tcpg->addRewriteStep(n,
                                  n_tobv,
@@ -124,7 +124,7 @@ void BBProof::bbAtom(TNode node)
         Kind kind = n.getKind();
         if (isProofsEnabled())
         {
-          Node n_tobv = nm->mkNode(kind::BITVECTOR_TO_BV, bits);
+          Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
           Node c_tobv;
           if (n.isConst())

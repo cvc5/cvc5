@@ -39,7 +39,7 @@ well-founded BITVECTOR_TYPE \
 ### non-parameterized operator kinds ------------------------------------------
 
 ## conversion to bit-vector from vector of Booleans kind
-operator BITVECTOR_TO_BV 1: "create bit-vector from vector of Booleans"
+operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
 
 ## concatentation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
@@ -161,7 +161,7 @@ parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-
 typerule CONST_BITVECTOR ::cvc5::theory::bv::BitVectorConstantTypeRule
 
 ## conversion to bit-vector from vector of Booleans kind
-typerule BITVECTOR_TO_BV ::cvc5::theory::bv::BitVectorToBVTypeRule
+typerule BITVECTOR_BB_TERM ::cvc5::theory::bv::BitVectorToBVTypeRule
 
 ## concatentation kind
 typerule BITVECTOR_CONCAT ::cvc5::theory::bv::BitVectorConcatTypeRule
