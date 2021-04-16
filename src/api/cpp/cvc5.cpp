@@ -6418,7 +6418,7 @@ std::string Solver::getInfo(const std::string& flag) const
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
       << "Unrecognized flag for getInfo.";
   //////// all checks before this line
-  return d_smtEngine->getInfo(flag).toString();
+  return d_smtEngine->getInfo(flag);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
