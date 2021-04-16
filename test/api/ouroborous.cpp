@@ -66,8 +66,8 @@ std::string parse(std::string instr,
                   std::string input_language,
                   std::string output_language)
 {
-  assert(input_language == "smt2" || input_language == "cvc");
-  assert(output_language == "smt2" || output_language == "cvc");
+  assert(input_language == "smt2" || input_language == "cvc4");
+  assert(output_language == "smt2" || output_language == "cvc4");
 
   std::string declarations;
 
