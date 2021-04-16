@@ -35,6 +35,7 @@ if(cryptominisat5_FOUND)
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
+  check_auto_download("CryptoMiniSat" "--no-cryptominisat")
   include(ExternalProject)
 
   set(CryptoMiniSat_VERSION "5.8.0")
