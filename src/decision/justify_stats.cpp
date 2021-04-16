@@ -19,29 +19,17 @@
 namespace cvc5 {
 
 JustifyStatistics::JustifyStatistics()
-    : d_numStatusNoDecision("JustifyStrategy::StatusNoDecision", 0),
-      d_numStatusDecision("JustifyStrategy::StatusDecision", 0),
-      d_numStatusBacktrack("JustifyStrategy::StatusBacktrack", 0),
-      d_maxStackSize("JustifyStrategy::MaxStackSize", 0),
-      d_maxAssertionsSize("JustifyStrategy::MaxAssertionsSize", 0),
-      d_maxSkolemDefsSize("JustifyStrategy::MaxSkolemDefsSize", 0)
+    : d_numStatusNoDecision(smtStatisticsRegistry().registerInt("JustifyStrategy::StatusNoDecision", 0)),
+      d_numStatusDecision(smtStatisticsRegistry().registerInt("JustifyStrategy::StatusDecision", 0)),
+      d_numStatusBacktrack(smtStatisticsRegistry().registerInt("JustifyStrategy::StatusBacktrack", 0)),
+      d_maxStackSize(smtStatisticsRegistry().registerInt("JustifyStrategy::MaxStackSize", 0)),
+      d_maxAssertionsSize(smtStatisticsRegistry().registerInt("JustifyStrategy::MaxAssertionsSize", 0)),
+      d_maxSkolemDefsSize(smtStatisticsRegistry().registerInt("JustifyStrategy::MaxSkolemDefsSize", 0))
 {
-  smtStatisticsRegistry()->registerStat(&d_numStatusNoDecision);
-  smtStatisticsRegistry()->registerStat(&d_numStatusDecision);
-  smtStatisticsRegistry()->registerStat(&d_numStatusBacktrack);
-  smtStatisticsRegistry()->registerStat(&d_maxStackSize);
-  smtStatisticsRegistry()->registerStat(&d_maxAssertionsSize);
-  smtStatisticsRegistry()->registerStat(&d_maxSkolemDefsSize);
 }
 
 JustifyStatistics::~JustifyStatistics()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_numStatusNoDecision);
-  smtStatisticsRegistry()->unregisterStat(&d_numStatusDecision);
-  smtStatisticsRegistry()->unregisterStat(&d_numStatusBacktrack);
-  smtStatisticsRegistry()->unregisterStat(&d_maxStackSize);
-  smtStatisticsRegistry()->unregisterStat(&d_maxAssertionsSize);
-  smtStatisticsRegistry()->unregisterStat(&d_maxSkolemDefsSize);
 }
 
 }  // namespace cvc5
