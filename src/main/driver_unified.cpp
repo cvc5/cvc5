@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file driver_unified.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Driver for CVC4 executable (cvc4)
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Driver for cvc5 executable (cvc4).
+ */
 
 #include <stdio.h>
 #include <unistd.h>
@@ -77,11 +78,12 @@ TotalTimer::~TotalTimer()
 
 void printUsage(Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << opts.getBinaryName() << " [options] [input-file]"
-     << endl << endl
-     << "Without an input file, or with `-', CVC4 reads from standard input."
-     << endl << endl
-     << "CVC4 options:" << endl;
+  ss << "usage: " << opts.getBinaryName() << " [options] [input-file]" << endl
+     << endl
+     << "Without an input file, or with `-', cvc5 reads from standard input."
+     << endl
+     << endl
+     << "cvc5 options:" << endl;
   if(full) {
     Options::printUsage( ss.str(), *(opts.getOut()) );
   } else {
@@ -150,7 +152,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   if(opts.getInputLanguage() == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      opts.setInputLanguage(language::input::LANG_CVC4);
+      opts.setInputLanguage(language::input::LANG_CVC);
     } else {
       unsigned len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
@@ -160,7 +162,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         opts.setInputLanguage(language::input::LANG_TPTP);
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        opts.setInputLanguage(language::input::LANG_CVC4);
+        opts.setInputLanguage(language::input::LANG_CVC);
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
@@ -210,17 +212,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
       if(opts.getInteractivePrompt()) {
-        CVC4Message() << Configuration::getPackageName() << " "
+        CVC5Message() << Configuration::getPackageName() << " "
                       << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
-          CVC4Message() << " [" << Configuration::getGitId() << "]";
+          CVC5Message() << " [" << Configuration::getGitId() << "]";
         }
-        CVC4Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+        CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                       << " assertions:"
                       << (Configuration::isAssertionBuild() ? "on" : "off")
                       << endl
                       << endl;
-        CVC4Message() << Configuration::copyright() << endl;
+        CVC5Message() << Configuration::copyright() << endl;
       }
 
       while(true) {

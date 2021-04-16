@@ -586,6 +586,14 @@ header = "options/quantifiers_options.h"
   name = "agg"
   help = "Consider the phase requirements aggressively for all triggers."
 
+[[option]]
+  name       = "poolInst"
+  category   = "regular"
+  long       = "pool-inst"
+  type       = "bool"
+  default    = "true"
+  help       = "pool-based instantiation: instantiate with ground terms occurring in user-specified pools"
+
 ### Finite model finding options
 
 [[option]]
@@ -986,7 +994,7 @@ header = "options/quantifiers_options.h"
 
 # Solution reconstruction modes for single invocation conjectures
 #
-# These modes indicate the policy when CVC4 solves a synthesis conjecture using
+# These modes indicate the policy when cvc5 solves a synthesis conjecture using
 # single invocation techniques for a sygus problem with a user-specified
 # grammar.
 #
@@ -1000,7 +1008,7 @@ header = "options/quantifiers_options.h"
   help_mode  = "Modes for reconstruction solutions while using single invocation techniques."
 [[option.mode.NONE]]
   name = "none"
-  help = "Do not try to reconstruct solutions in the original (user-provided) grammar when using single invocation techniques. In this mode, solutions produced by CVC4 may violate grammar restrictions."
+  help = "Do not try to reconstruct solutions in the original (user-provided) grammar when using single invocation techniques. In this mode, solutions produced by cvc5 may violate grammar restrictions."
 [[option.mode.TRY]]
   name = "try"
   help = "Try to reconstruct solutions in the original grammar when using single invocation techniques in an incomplete (fail-fast) manner."
@@ -1530,7 +1538,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-query-gen-check"
   type       = "bool"
   default    = "true"
-  help       = "use interesting satisfiability queries to check soundness of CVC4"
+  help       = "use interesting satisfiability queries to check soundness of cvc5"
 
 [[option]]
   name       = "sygusQueryGenDumpFiles"

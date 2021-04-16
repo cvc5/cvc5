@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file output_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of CVC4 output classes.
- **
- ** Black box testing of CVC4 output classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of CVC4 output classes.
+ */
 
 #include <iostream>
 #include <sstream>
@@ -70,7 +69,7 @@ TEST_F(TestUtilBlackOutput, output)
   Debug.on("foo");
   Debug("foo") << "testing3";
 
-  CVC4Message() << "a message";
+  CVC5Message() << "a message";
   Warning() << "bad warning!";
   Chat() << "chatty";
   Notice() << "note";
@@ -137,7 +136,7 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   ASSERT_FALSE(Debug.isOn("foo"));
   ASSERT_FALSE(Trace.isOn("foo"));
   ASSERT_FALSE(Warning.isOn());
-  ASSERT_FALSE(CVC4Message.isOn());
+  ASSERT_FALSE(CVC5Message.isOn());
   ASSERT_FALSE(Notice.isOn());
   ASSERT_FALSE(Chat.isOn());
 
@@ -148,7 +147,7 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   cout << "warning" << std::endl;
   Warning() << failure() << std::endl;
   cout << "message" << std::endl;
-  CVC4Message() << failure() << std::endl;
+  CVC5Message() << failure() << std::endl;
   cout << "notice" << std::endl;
   Notice() << failure() << std::endl;
   cout << "chat" << std::endl;
@@ -186,7 +185,7 @@ TEST_F(TestUtilBlackOutput, simple_print)
   ASSERT_EQ(d_chatStream.str(), std::string());
   d_chatStream.str("");
 
-  CVC4Message() << "baz foo";
+  CVC5Message() << "baz foo";
   ASSERT_EQ(d_messageStream.str(), std::string());
   d_messageStream.str("");
 
@@ -230,7 +229,7 @@ TEST_F(TestUtilBlackOutput, simple_print)
   ASSERT_EQ(d_chatStream.str(), std::string("baz foo"));
   d_chatStream.str("");
 
-  CVC4Message() << "baz foo";
+  CVC5Message() << "baz foo";
   ASSERT_EQ(d_messageStream.str(), std::string("baz foo"));
   d_messageStream.str("");
 

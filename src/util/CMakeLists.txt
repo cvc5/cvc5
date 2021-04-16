@@ -1,13 +1,18 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Gereon Kremer, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Gereon Kremer, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 configure_file(floatingpoint_literal_symfpu.h.in floatingpoint_literal_symfpu.h)
 configure_file(floatingpoint_literal_symfpu_traits.h.in
                floatingpoint_literal_symfpu_traits.h)
@@ -24,6 +29,8 @@ libcvc4_add_sources(
   bool.h
   cardinality.cpp
   cardinality.h
+  cardinality_class.cpp
+  cardinality_class.h
   dense_map.h
   divisible.cpp
   divisible.h
@@ -60,23 +67,14 @@ libcvc4_add_sources(
   sexpr.h
   smt2_quote_string.cpp
   smt2_quote_string.h
-  statistics.cpp
-  statistics.h
   statistics_public.cpp
   statistics_public.h
-  statistics_reg.cpp
-  statistics_reg.h
   statistics_registry.cpp
   statistics_registry.h
+  statistics_stats.cpp
+  statistics_stats.h
   statistics_value.cpp
   statistics_value.h
-  stats_base.cpp
-  stats_base.h
-  stats_histogram.h
-  stats_timer.cpp
-  stats_timer.h
-  stats_utils.cpp
-  stats_utils.h
   string.cpp
   string.h
   tuple.h

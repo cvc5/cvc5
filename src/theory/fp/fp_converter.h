@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file fp_converter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Converts floating-point nodes to bit-vector expressions.
- **
- ** Uses the symfpu library to convert from floating-point operations to
- ** bit-vectors and propositions allowing the theory to be solved by
- ** 'bit-blasting'.
- **
- ** !!! This header is not to be included in any other headers !!!
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Converts floating-point nodes to bit-vector expressions.
+ *
+ * Uses the symfpu library to convert from floating-point operations to
+ * bit-vectors and propositions allowing the theory to be solved by
+ * 'bit-blasting'.
+ *
+ * !!! This header is not to be included in any other headers !!!
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__FP__FP_CONVERTER_H
 #define CVC5__THEORY__FP__FP_CONVERTER_H
@@ -37,7 +38,7 @@
 #endif
 
 #ifdef CVC5_SYM_SYMBOLIC_EVAL
-// This allows debugging of the CVC4 symbolic back-end.
+// This allows debugging of the cvc5 symbolic back-end.
 // By enabling this and disabling constant folding in the rewriter,
 // SMT files that have operations on constants will be evaluated
 // during the encoding step, which means that the expressions
@@ -53,7 +54,7 @@ namespace fp {
  * This is a symfpu symbolic "back-end".  It allows the library to be used to
  * construct bit-vector expressions that compute floating-point operations.
  * This is effectively the glue between symfpu's notion of "signed bit-vector"
- * and CVC4's node.
+ * and cvc5's node.
  */
 namespace symfpuSymbolic {
 
@@ -102,7 +103,7 @@ typedef traits::bwt bwt;
 class nodeWrapper : public Node
 {
  protected:
-/* CVC5_SYM_SYMBOLIC_EVAL is for debugging CVC4 symbolic back-end issues.
+/* CVC5_SYM_SYMBOLIC_EVAL is for debugging cvc5 symbolic back-end issues.
  * Enable this and disabling constant folding will mean that operations
  * that are input with constant args are 'folded' using the symbolic encoding
  * allowing them to be traced via GDB.
@@ -254,7 +255,7 @@ class symbolicBitVector : public nodeWrapper
   symbolicProposition operator>(const symbolicBitVector<isSigned> &op) const;
 
   /*** Type conversion ***/
-  // CVC4 nodes make no distinction between signed and unsigned, thus these are
+  // cvc5 nodes make no distinction between signed and unsigned, thus these are
   // trivial
   symbolicBitVector<true> toSigned(void) const;
   symbolicBitVector<false> toUnsigned(void) const;

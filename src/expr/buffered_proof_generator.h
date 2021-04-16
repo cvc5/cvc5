@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file buffered_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A proof generator for buffered proof steps
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A proof generator for buffered proof steps.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
 #define CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
@@ -47,6 +48,8 @@ class BufferedProofGenerator : public ProofGenerator
                CDPOverwrite opolicy = CDPOverwrite::NEVER);
   /** Get proof for. It is robust to (dis)equality symmetry. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Whether a step has been registered for f. */
+  bool hasProofFor(Node f) override;
   /** identify */
   std::string identify() const override { return "BufferedProofGenerator"; }
 

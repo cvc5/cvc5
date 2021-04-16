@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file prop_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the propositional engine of CVC4
- **
- ** Implementation of the propositional engine of CVC4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the propositional engine of cvc5.
+ */
 
 #include "prop/prop_engine.h"
 
@@ -248,7 +247,8 @@ void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr);
+  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
+         || options::unsatCores() || options::unsatCoresNew());
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -537,7 +537,7 @@ void PropEngine::interrupt()
   Debug("prop") << "interrupt()" << std::endl;
 }
 
-void PropEngine::spendResource(ResourceManager::Resource r)
+void PropEngine::spendResource(Resource r)
 {
   d_resourceManager->spendResource(r);
 }

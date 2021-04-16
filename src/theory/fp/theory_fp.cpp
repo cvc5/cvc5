@@ -1,19 +1,17 @@
-/*********************                                                        */
-/*! \file theory_fp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of floating-point arithmetic.
+ */
 
 #include "theory/fp/theory_fp.h"
 
@@ -124,7 +122,7 @@ TheoryFp::TheoryFp(context::Context* c,
       d_floatToRealMap(u),
       d_abstractionMap(u),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::fp", false)
+      d_im(*this, d_state, pnm, "theory::fp::", false)
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;

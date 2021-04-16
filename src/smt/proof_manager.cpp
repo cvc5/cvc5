@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager of the SMT engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Diego Della Rocca de Camargos
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager of the SMT engine.
+ */
 
 #include "smt/proof_manager.h"
 
@@ -130,9 +131,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
 
-  // Now make the final scope, which ensures that the only open leaves
-  // of the proof are the assertions.
-  d_finalProof = d_pnm->mkScope(pfn, assertions);
+  // Now make the final scope, which ensures that the only open leaves of the
+  // proof are the assertions, unless we are doing proofs to generate unsat
+  // cores, in which case we do not care.
+  d_finalProof = d_pnm->mkScope(pfn, assertions, !options::unsatCoresNew());
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 

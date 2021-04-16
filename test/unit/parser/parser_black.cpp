@@ -1,19 +1,17 @@
-/*********************                                                        */
-/*! \file parser_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Christopher L. Conway, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::parser::Parser for CVC and SMT-LIBv2
- ** inputs.
- **
- ** Black box testing of cvc5::parser::Parser for CVC and SMT-LIbv2 inputs.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Christopher L. Conway, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::parser::Parser for CVC and SMT-LIbv2 inputs.
+ */
 
 #include <sstream>
 
@@ -195,7 +193,7 @@ class TestParserBlackParser : public TestInternal
 class TestParserBlackCvCParser : public TestParserBlackParser
 {
  protected:
-  TestParserBlackCvCParser() : TestParserBlackParser(LANG_CVC4) {}
+  TestParserBlackCvCParser() : TestParserBlackParser(LANG_CVC) {}
 };
 
 TEST_F(TestParserBlackCvCParser, good_inputs)

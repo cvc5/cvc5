@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_arith_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #pragma once
 
@@ -52,7 +53,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -855,10 +856,9 @@ private:
     IntStat d_cutsRejectedDuringReplay;
     IntStat d_cutsRejectedDuringLemmas;
 
-    IntegralHistogramStat<uint32_t> d_satPivots;
-    IntegralHistogramStat<uint32_t> d_unsatPivots;
-    IntegralHistogramStat<uint32_t> d_unknownPivots;
-
+    HistogramStat<uint32_t> d_satPivots;
+    HistogramStat<uint32_t> d_unsatPivots;
+    HistogramStat<uint32_t> d_unknownPivots;
 
     IntStat d_solveIntModelsAttempts;
     IntStat d_solveIntModelsSuccessful;
@@ -870,10 +870,7 @@ private:
 
     IntStat d_numBranchesFailed;
 
-
-
-    Statistics();
-    ~Statistics();
+    Statistics(const std::string& name);
   };
 
 

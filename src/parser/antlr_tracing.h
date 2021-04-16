@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file antlr_tracing.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #ifndef CVC5__PARSER__ANTLR_TRACING_H
 #define CVC5__PARSER__ANTLR_TRACING_H
@@ -53,7 +54,7 @@ static struct __Cvc4System {
   struct JavaPrinter {
     template <class T>
     JavaPrinter operator+(const T& t) const {
-      CVC4Message() << t;
+      CVC5Message() << t;
       return JavaPrinter();
     }
   };/* struct JavaPrinter */
@@ -66,7 +67,7 @@ static struct __Cvc4System {
      * to the call-by-value semantics of C.  All that's left to
      * do is print the newline.
      */
-    void println(JavaPrinter) { CVC4Message() << std::endl; }
+    void println(JavaPrinter) { CVC5Message() << std::endl; }
   } out;
 } System;
 

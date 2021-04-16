@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file options_template.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Contains code for handling command-line options.
- **
- ** Contains code for handling command-line options
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Contains code for handling command-line options.
+ */
 
 #if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
 // force use of optreset; mingw32 croaks on argv-switching otherwise
@@ -265,13 +264,13 @@ options::OptionsHolder::OptionsHolder() :
 
 
 static const std::string mostCommonOptionsDescription = "\
-Most commonly-used CVC4 options:\n"
+Most commonly-used cvc5 options:\n"
 ${help_common}$;
 
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
-Additional CVC4 options:\n"
+Additional cvc5 options:\n"
 ${help_others}$;
 
 
@@ -284,7 +283,7 @@ static const std::string languageDescription =
     "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
-  cvc4 | presentation | pl       CVC4 presentation language\n\
+  cvc4 | presentation | pl       cvc5 presentation language\n\
   smt | smtlib | smt2 |\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
@@ -292,7 +291,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
-  cvc4 | presentation | pl       CVC4 presentation language\n\
+  cvc4 | presentation | pl       cvc5 presentation language\n\
   cvc3                           CVC3 presentation language\n\
   smt | smtlib | smt2 |\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\

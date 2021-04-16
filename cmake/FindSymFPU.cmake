@@ -1,24 +1,30 @@
-#####################
-## FindSymFPU.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find SymFPU
 # SymFPU_FOUND - should always be true
 # SymFPU - interface target for the SymFPU headers
+##
 
 find_path(SymFPU_INCLUDE_DIR NAMES symfpu/core/unpackedFloat.h)
 
+set(SymFPU_FOUND_SYSTEM FALSE)
 if(SymFPU_INCLUDE_DIR)
   # Found SymFPU to be installed system-wide
   set(SymFPU_FOUND_SYSTEM TRUE)
-else()
-  set(SymFPU_FOUND_SYSTEM FALSE)
+endif()
+
+if(NOT SymFPU_FOUND_SYSTEM)
+  check_auto_download("SymFPU" "--no-symfpu")
   include(ExternalProject)
   include(deps-helper)
 

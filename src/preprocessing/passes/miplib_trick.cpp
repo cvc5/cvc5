@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file miplib_trick.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The MIPLIB trick preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The MIPLIB trick preprocessing pass.
+ *
+ */
 
 #include "preprocessing/passes/miplib_trick.h"
 
@@ -549,7 +550,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              te->getModel()->addSubstitution(*ii, newVar.eqNode(one));
+              d_preprocContext->addModelSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;
             }
@@ -655,15 +656,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 }
 
 MipLibTrick::Statistics::Statistics()
-    : d_numMiplibAssertionsRemoved(
-          "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved", 0)
+    : d_numMiplibAssertionsRemoved(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
-}
-
-MipLibTrick::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
 }
 
 

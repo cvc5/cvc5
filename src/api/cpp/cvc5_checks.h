@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file checks.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check macros for the cvc5 C++ API.
- **
- ** These macros implement guards for the cvc5 C++ API functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check macros for the cvc5 C++ API.
+ *
+ * These macros implement guards for the cvc5 C++ API functions.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
@@ -28,19 +29,19 @@ namespace api {
 
 /**
  * The base check macro.
- * Throws a CVC4ApiException if 'cond' is false.
+ * Throws a CVC5ApiException if 'cond' is false.
  */
 #define CVC5_API_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)    \
-  ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
+  ? (void)0 : OstreamVoider() & CVC5ApiExceptionStream().ostream()
 
 /**
  * The base check macro for throwing recoverable exceptions.
- * Throws a CVC4RecoverableApiException if 'cond' is false.
+ * Throws a CVC5ApiRecoverableException if 'cond' is false.
  */
 #define CVC5_API_RECOVERABLE_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC4ApiRecoverableExceptionStream().ostream()
+  ? (void)0 : OstreamVoider() & CVC5ApiRecoverableExceptionStream().ostream()
 
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
@@ -86,7 +87,7 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                        \
   ? (void)0                                      \
   : OstreamVoider()                              \
-          & CVC4ApiExceptionStream().ostream()   \
+          & CVC5ApiExceptionStream().ostream()   \
                 << "Invalid kind '" << kindToString(kind) << "', expected "
 
 /* -------------------------------------------------------------------------- */
@@ -102,7 +103,7 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
   : OstreamVoider()                                                 \
-          & CVC4ApiExceptionStream().ostream()                      \
+          & CVC5ApiExceptionStream().ostream()                      \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
@@ -115,7 +116,7 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
   : OstreamVoider()                                                 \
-          & CVC4ApiRecoverableExceptionStream().ostream()           \
+          & CVC5ApiRecoverableExceptionStream().ostream()           \
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
@@ -130,7 +131,7 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                           \
   ? (void)0                                         \
   : OstreamVoider()                                 \
-          & CVC4ApiExceptionStream().ostream()      \
+          & CVC5ApiExceptionStream().ostream()      \
                 << "Invalid size of argument '" << #arg << "', expected "
 
 /**
@@ -146,7 +147,7 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                                                    \
   ? (void)0                                                                  \
   : OstreamVoider()                                                          \
-          & CVC4ApiExceptionStream().ostream()                               \
+          & CVC5ApiExceptionStream().ostream()                               \
                 << "Invalid " << (what) << " in '" << #args << "' at index " \
                 << (idx) << ", expected "
 

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_arrays.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of arrays.
- **
- ** Implementation of the theory of arrays.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of arrays.
+ */
 
 #include "theory/arrays/theory_arrays.h"
 
@@ -63,30 +62,34 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            ProofNodeManager* pnm,
                            std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
-      d_numRow(name + "theory::arrays::number of Row lemmas", 0),
-      d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
-      d_numProp(name + "theory::arrays::number of propagations", 0),
-      d_numExplain(name + "theory::arrays::number of explanations", 0),
-      d_numNonLinear(name + "theory::arrays::number of calls to setNonLinear",
-                     0),
-      d_numSharedArrayVarSplits(
-          name + "theory::arrays::number of shared array var splits", 0),
-      d_numGetModelValSplits(
-          name + "theory::arrays::number of getModelVal splits", 0),
-      d_numGetModelValConflicts(
-          name + "theory::arrays::number of getModelVal conflicts", 0),
-      d_numSetModelValSplits(
-          name + "theory::arrays::number of setModelVal splits", 0),
-      d_numSetModelValConflicts(
-          name + "theory::arrays::number of setModelVal conflicts", 0),
-      d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
+      d_numRow(
+          smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(
+          smtStatisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numProp(
+          smtStatisticsRegistry().registerInt(name + "number of propagations")),
+      d_numExplain(
+          smtStatisticsRegistry().registerInt(name + "number of explanations")),
+      d_numNonLinear(smtStatisticsRegistry().registerInt(
+          name + "number of calls to setNonLinear")),
+      d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
+          name + "number of shared array var splits")),
+      d_numGetModelValSplits(smtStatisticsRegistry().registerInt(
+          name + "number of getModelVal splits")),
+      d_numGetModelValConflicts(smtStatisticsRegistry().registerInt(
+          name + "number of getModelVal conflicts")),
+      d_numSetModelValSplits(smtStatisticsRegistry().registerInt(
+          name + "number of setModelVal splits")),
+      d_numSetModelValConflicts(smtStatisticsRegistry().registerInt(
+          name + "number of setModelVal conflicts")),
+      d_ppEqualityEngine(u, name + "pp", true),
       d_ppFacts(u),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
-      d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
+      d_mayEqualEqualityEngine(c, name + "mayEqual", true),
       d_notify(*this),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -113,17 +116,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
 {
-  smtStatisticsRegistry()->registerStat(&d_numRow);
-  smtStatisticsRegistry()->registerStat(&d_numExt);
-  smtStatisticsRegistry()->registerStat(&d_numProp);
-  smtStatisticsRegistry()->registerStat(&d_numExplain);
-  smtStatisticsRegistry()->registerStat(&d_numNonLinear);
-  smtStatisticsRegistry()->registerStat(&d_numSharedArrayVarSplits);
-  smtStatisticsRegistry()->registerStat(&d_numGetModelValSplits);
-  smtStatisticsRegistry()->registerStat(&d_numGetModelValConflicts);
-  smtStatisticsRegistry()->registerStat(&d_numSetModelValSplits);
-  smtStatisticsRegistry()->registerStat(&d_numSetModelValConflicts);
-
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
@@ -148,16 +140,6 @@ TheoryArrays::~TheoryArrays() {
     it2->second->deleteSelf();
   }
   delete d_constReadsContext;
-  smtStatisticsRegistry()->unregisterStat(&d_numRow);
-  smtStatisticsRegistry()->unregisterStat(&d_numExt);
-  smtStatisticsRegistry()->unregisterStat(&d_numProp);
-  smtStatisticsRegistry()->unregisterStat(&d_numExplain);
-  smtStatisticsRegistry()->unregisterStat(&d_numNonLinear);
-  smtStatisticsRegistry()->unregisterStat(&d_numSharedArrayVarSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
 }
 
 TheoryRewriter* TheoryArrays::getTheoryRewriter() { return &d_rewriter; }
@@ -167,7 +149,7 @@ ProofRuleChecker* TheoryArrays::getProofChecker() { return &d_checker; }
 bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
-  esi.d_name = d_instanceName + "theory::arrays::ee";
+  esi.d_name = d_instanceName + "ee";
   return true;
 }
 

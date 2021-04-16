@@ -1,13 +1,18 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 cmake_minimum_required(VERSION 3.9)
 
 #-----------------------------------------------------------------------------#
@@ -99,6 +104,7 @@ cvc4_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
 cvc4_option(ENABLE_SHARED         "Build as shared library")
 cvc4_option(ENABLE_STATIC_BINARY
             "Build static binaries with statically linked system libraries")
+cvc4_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_BEST             "Enable dependencies known to give best performance")
@@ -320,7 +326,7 @@ else()
   find_package(PythonInterp 3 REQUIRED)
 endif()
 
-find_package(GMP 6.2 REQUIRED)
+find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,

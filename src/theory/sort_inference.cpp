@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file sort_inference.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sort inference module
- **
- ** This class implements sort inference, based on a simple algorithm:
- ** First, we assume all functions and predicates have distinct uninterpreted
- ** types.
- ** One pass is made through the input assertions, while a union-find data
- ** structure maintains necessary information regarding constraints on these
- ** types.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sort inference module.
+ *
+ * This class implements sort inference, based on a simple algorithm:
+ * First, we assume all functions and predicates have distinct uninterpreted
+ * types.
+ * One pass is made through the input assertions, while a union-find data
+ * structure maintains necessary information regarding constraints on these
+ * types.
+ */
 
 #include "theory/sort_inference.h"
 

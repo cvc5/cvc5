@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file managed_ostreams.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrappers to handle memory management of ostreams.
- **
- ** This file contains wrappers to handle special cases of managing memory
- ** related to ostreams.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrappers to handle memory management of ostreams.
+ *
+ * This file contains wrappers to handle special cases of managing memory
+ * related to ostreams.
+ */
 
 #include "smt/managed_ostreams.h"
 
@@ -76,7 +77,7 @@ void ManagedDumpOStream::initialize(std::ostream* outStream) {
   dumpGetStream.apply(outStream);
 #else  /* CVC5_DUMPING */
   throw OptionException(
-      "The dumping feature was disabled in this build of CVC4.");
+      "The dumping feature was disabled in this build of cvc5.");
 #endif /* CVC5_DUMPING */
 }
 
@@ -122,9 +123,9 @@ ManagedDiagnosticOutputChannel::~ManagedDiagnosticOutputChannel() {
   if(Warning.getStreamPointer() == getManagedOstream()){
     Warning.setStream(&null_os);
   }
-  if (CVC4Message.getStreamPointer() == getManagedOstream())
+  if (CVC5Message.getStreamPointer() == getManagedOstream())
   {
-    CVC4Message.setStream(&null_os);
+    CVC5Message.setStream(&null_os);
   }
   if(Notice.getStreamPointer() == getManagedOstream()){
     Notice.setStream(&null_os);

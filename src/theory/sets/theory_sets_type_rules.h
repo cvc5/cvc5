@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file theory_sets_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory type rules.
- **
- ** Sets theory type rules.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory type rules.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 #define CVC5__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
@@ -385,19 +384,6 @@ struct JoinImageTypeRule {
     if (valType != nodeManager->integerType()) {
       throw TypeCheckingExceptionPrivate(
           n, " JoinImage cardinality constraint must be integer");
-    }
-    if (n[1].getKind() != kind::CONST_RATIONAL) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[1].getConst<Rational>() > r) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage Exceeded INT_MAX in cardinality constraint");
-    }
-    if (n[1].getConst<Rational>().getNumerator().getSignedInt() < 0) {
-      throw TypeCheckingExceptionPrivate(
-          n, " JoinImage cardinality constraint must be non-negative");
     }
     std::vector<TypeNode> newTupleTypes;
     newTupleTypes.push_back(tupleTypes[0]);

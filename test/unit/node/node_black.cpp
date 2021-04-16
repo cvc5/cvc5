@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::Node.
- **
- ** Black box testing of cvc5::Node.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::Node.
+ */
 
 #include <algorithm>
 #include <sstream>
@@ -624,7 +623,7 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4);
+  sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "

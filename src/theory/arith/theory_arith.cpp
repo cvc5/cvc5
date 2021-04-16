@@ -1,19 +1,17 @@
-/*********************                                                        */
-/*! \file theory_arith.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic theory.
+ */
 
 #include "theory/arith/theory_arith.h"
 
@@ -45,22 +43,20 @@ TheoryArith::TheoryArith(context::Context* c,
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
-      d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
+          "theory::arith::ppRewriteTimer")),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
       d_im(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
       d_arithPreproc(d_astate, d_im, pnm, logicInfo)
 {
-  smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
 }
 
 TheoryArith::~TheoryArith(){
-  smtStatisticsRegistry()->unregisterStat(&d_ppRewriteTimer);
   delete d_internal;
 }
 

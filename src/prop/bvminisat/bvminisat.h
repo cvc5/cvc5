@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file bvminisat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the minisat for cvc4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the minisat for cvc4 (bit-vectors).
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -25,8 +26,7 @@
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace prop {
@@ -46,11 +46,11 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
       return d_notify->notify(toSatLiteral(lit));
     }
     void notify(BVMinisat::vec<BVMinisat::Lit>& clause) override;
-    void spendResource(ResourceManager::Resource r) override
+    void spendResource(Resource r) override
     {
       d_notify->spendResource(r);
     }
-    void safePoint(ResourceManager::Resource r) override
+    void safePoint(Resource r) override
     {
       d_notify->safePoint(r);
     }
@@ -67,19 +67,20 @@ protected:
  void contextNotifyPop() override;
 
 public:
+ BVMinisatSatSolver(StatisticsRegistry& registry,
+                    context::Context* mainSatContext,
+                    const std::string& name = "");
+ virtual ~BVMinisatSatSolver();
 
-  BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
-  virtual ~BVMinisatSatSolver();
+ void setNotify(BVSatSolverNotify* notify) override;
 
-  void setNotify(BVSatSolverNotify* notify) override;
+ ClauseId addClause(SatClause& clause, bool removable) override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
-
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
-  {
-    Unreachable() << "Minisat does not support native XOR reasoning";
-    return ClauseIdError;
-  }
+ ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+ {
+   Unreachable() << "Minisat does not support native XOR reasoning";
+   return ClauseIdError;
+ }
 
   SatValue propagate() override;
 
@@ -129,19 +130,17 @@ public:
 
   class Statistics {
   public:
-    StatisticsRegistry* d_registry;
-    ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
-    ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStat<uint64_t> d_statTotLiterals;
-    ReferenceStat<int> d_statEliminatedVars;
-    IntStat d_statCallsToSolve;
-    TimerStat d_statSolveTime;
-    bool d_registerStats;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
-    void init(BVMinisat::SimpSolver* minisat);
+   ReferenceStat<int64_t> d_statStarts, d_statDecisions;
+   ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
+   ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
+   ReferenceStat<int64_t> d_statLearntsLiterals, d_statMaxLiterals;
+   ReferenceStat<int64_t> d_statTotLiterals;
+   ReferenceStat<int64_t> d_statEliminatedVars;
+   IntStat d_statCallsToSolve;
+   TimerStat d_statSolveTime;
+   bool d_registerStats;
+   Statistics(StatisticsRegistry& registry, const std::string& prefix);
+   void init(BVMinisat::SimpSolver* minisat);
   };
 
   Statistics d_statistics;

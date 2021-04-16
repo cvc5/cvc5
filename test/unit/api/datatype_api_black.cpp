@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file datatype_api_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of the datatype classes of the C++ API.
- **
- ** Black box testing of the datatype classes of the C++ API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of the datatype classes of the C++ API.
+ */
 
 #include "test_api.h"
 
@@ -38,7 +37,7 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSort)
   Datatype d = listSort.getDatatype();
   DatatypeConstructor consConstr = d[0];
   DatatypeConstructor nilConstr = d[1];
-  ASSERT_THROW(d[2], CVC4ApiException);
+  ASSERT_THROW(d[2], CVC5ApiException);
   ASSERT_NO_THROW(consConstr.getConstructorTerm());
   ASSERT_NO_THROW(nilConstr.getConstructorTerm());
 }
@@ -105,7 +104,7 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   std::vector<DatatypeDecl> dtdeclsBad;
   DatatypeDecl emptyD = d_solver.mkDatatypeDecl("emptyD");
   dtdeclsBad.push_back(emptyD);
-  ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackDatatype, datatypeStructs)
@@ -119,7 +118,7 @@ TEST_F(TestApiBlackDatatype, datatypeStructs)
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   Sort nullSort;
-  ASSERT_THROW(cons.addSelector("null", nullSort), CVC4ApiException);
+  ASSERT_THROW(cons.addSelector("null", nullSort), CVC5ApiException);
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
@@ -201,14 +200,14 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   ASSERT_EQ(dt.getName(), std::string("list"));
   ASSERT_NO_THROW(dt.getConstructor("nil"));
   ASSERT_NO_THROW(dt["cons"]);
-  ASSERT_THROW(dt.getConstructor("head"), CVC4ApiException);
-  ASSERT_THROW(dt.getConstructor(""), CVC4ApiException);
+  ASSERT_THROW(dt.getConstructor("head"), CVC5ApiException);
+  ASSERT_THROW(dt.getConstructor(""), CVC5ApiException);
 
   DatatypeConstructor dcons = dt[0];
   ASSERT_EQ(dcons.getName(), std::string("cons"));
   ASSERT_NO_THROW(dcons.getSelector("head"));
   ASSERT_NO_THROW(dcons["tail"]);
-  ASSERT_THROW(dcons.getSelector("cons"), CVC4ApiException);
+  ASSERT_THROW(dcons.getSelector("cons"), CVC5ApiException);
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
@@ -216,7 +215,7 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   ASSERT_EQ(dselTail.getRangeSort(), dtypeSort);
 
   // possible to construct null datatype declarations if not using solver
-  ASSERT_THROW(DatatypeDecl().getName(), CVC4ApiException);
+  ASSERT_THROW(DatatypeDecl().getName(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackDatatype, parametricDatatype)
@@ -544,7 +543,7 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   ASSERT_NO_THROW(testConsTerm = nilc.getSpecializedConstructorTerm(listInt));
   ASSERT_NE(testConsTerm, nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
-  ASSERT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException);
+  ASSERT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC5ApiException);
 }
 }  // namespace test
 }  // namespace cvc5

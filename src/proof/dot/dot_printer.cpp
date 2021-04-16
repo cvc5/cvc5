@@ -1,21 +1,26 @@
-/*********************                                                        */
-/*! \file dot_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Diego Camargos
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implemantation of the module for printing dot proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Diego Della Rocca de Camargos
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implemantation of the module for printing dot proofs.
+ */
 
 #include "proof/dot/dot_printer.h"
 
 #include <sstream>
+
+#include "expr/proof_checker.h"
 #include "expr/proof_node_manager.h"
+#include "printer/smt2/smt2_printer.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
 namespace proof {
@@ -44,20 +49,18 @@ void DotPrinter::printInternal(std::ostream& out,
                                uint64_t& ruleID)
 {
   uint64_t currentRuleID = ruleID;
+  PfRule r = pn->getRule();
+
+  out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \"" << r;
+
   std::ostringstream currentArguments, resultStr;
-  DotPrinter::ruleArguments(currentArguments, pn);
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
-
-  out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \""
-      << pn->getRule() << "(";
-
+  DotPrinter::ruleArguments(currentArguments, pn);
   // guarantee that arguments do not have unescaped quotes
   std::string astring = currentArguments.str();
   cleanQuotes(astring);
-
-  out << astring << ")\"];\n\t\"" << currentRuleID
+  out << astring << "\"];\n\t\"" << currentRuleID
       << "c\" [ shape = \"ellipse\", label = \"";
-
   // guarantee that conclusion does not have unescaped quotes
   resultStr << pn->getResult();
   astring = resultStr.str();
@@ -78,16 +81,53 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
                                const ProofNode* pn)
 {
   const std::vector<Node>& args = pn->getArguments();
+  PfRule r = pn->getRule();
+  // don't process arguments of rules whose conclusion is in the arguments
+  if (!args.size() || r == PfRule::ASSUME || r == PfRule::REORDERING
+      || r == PfRule::REFL)
+  {
+    return;
+  }
+  currentArguments << " :args [ ";
 
-  if (args.size())
+  // if cong, special process
+  if (r == PfRule::CONG)
+  {
+    AlwaysAssert(args.size() == 1 || args.size() == 2);
+    // if two arguments, ignore first and print second
+    if (args.size() == 2)
+    {
+      currentArguments << args[1];
+    }
+    else
+    {
+      Kind k;
+      ProofRuleChecker::getKind(args[0], k);
+      currentArguments << printer::smt2::Smt2Printer::smtKindString(k);
+    }
+  }
+  // if th_rw, likewise
+  else if (r == PfRule::THEORY_REWRITE)
+  {
+    // print the second argument
+    theory::TheoryId id;
+    theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[1], id);
+    std::ostringstream ss;
+    ss << id;
+    std::string s = ss.str();
+    // delete "THEORY_" prefix
+    s.erase(0, 7);
+    currentArguments << s;
+  }
+  else
   {
     currentArguments << args[0];
+    for (size_t i = 1, size = args.size(); i < size; i++)
+    {
+      currentArguments << ", " << args[i];
+    }
   }
-
-  for (size_t i = 1, size = args.size(); i < size; i++)
-  {
-    currentArguments << ", " << args[i];
-  }
+  currentArguments << " ]";
 }
 
 }  // namespace proof

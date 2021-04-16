@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file options_handler.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interface for custom handlers and predicates options.
- **
- ** Interface for custom handlers and predicates options.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interface for custom handlers and predicates options.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__OPTIONS__OPTIONS_HANDLER_H
 #define CVC5__OPTIONS__OPTIONS_HANDLER_H
@@ -87,9 +86,10 @@ public:
    */
   void setProduceAssertions(std::string option, bool value);
 
-  void statsEnabledBuild(std::string option, bool value);
+  void setStats(const std::string& option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);
+  void setResourceWeight(std::string option, std::string optarg);
 
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(std::string option, int depth);
@@ -128,7 +128,7 @@ void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
     && !defined(CVC5_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
-     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
+     << "' requires cvc5 to be built with CryptoMiniSat or CaDiCaL or Kissat";
   throw OptionException(ss.str());
 #endif
 }

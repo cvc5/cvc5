@@ -1,18 +1,17 @@
-/* *******************                                                        */
-/*! \file Smt2.g
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Parser for SMT-LIB v2 input language
- **
- ** Parser for SMT-LIB v2 input language.
- **/
+/* ****************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Parser for SMT-LIB v2 input language.
+ */
 
 grammar Smt2;
 
@@ -24,19 +23,21 @@ options {
   // defaultErrorHandler = false;
 
   // Only lookahead of <= k requested (disable for LL* parsing)
-  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // Note that cvc5's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in smt2_input.cpp !
   k = 2;
 }/* options */
 
 @header {
-/**
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.
- **/
+/* ****************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ */
 }/* @header */
 
 @lexer::includes {
@@ -90,7 +91,7 @@ namespace cvc5 {
     class Sort;
   }
   
-}/* CVC4 namespace */
+}/* cvc5 namespace */
 
 }/* @parser::includes */
 
@@ -482,7 +483,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     /* New SMT-LIB 2.5 command set */
   | smt25Command[cmd]
 
-    /* CVC4-extended SMT-LIB commands */
+    /* cvc5-extended SMT-LIB commands */
   | extendedCommand[cmd]
     { if(PARSER_STATE->strictModeEnabled()) {
         PARSER_STATE->parseError(
@@ -631,7 +632,7 @@ sygusGrammar[cvc5::api::Grammar*& ret,
               << "2.0 format requires a predeclaration of the non-terminal "
               << "symbols of the grammar to be given prior to the definition "
               << "of the grammar. See https://sygus.org/language/ for details "
-              << "and examples. CVC4 versions past 1.8 do not support SyGuS "
+              << "and examples. cvc5 versions past 1.8 do not support SyGuS "
               << "version 1.0.";
         }
         else

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file antlr_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A super-class for ANTLR-generated input language parsers.
- **
- ** A super-class for ANTLR-generated input language parsers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Kshitij Bansal, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A super-class for ANTLR-generated input language parsers.
+ */
 
 #include "parser/antlr_input.h"
 
@@ -240,10 +239,11 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
   AntlrInput* input;
 
   switch(lang) {
-  case LANG_CVC4: {
-    input = new CvcInput(inputStream);
-    break;
-  }
+    case LANG_CVC:
+    {
+      input = new CvcInput(inputStream);
+      break;
+    }
 
   case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
 

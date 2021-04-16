@@ -1,7 +1,7 @@
 # kinds [for builtin theory]                                          -*- sh -*-
 #
 # This "kinds" file is written in a domain-specific language for
-# declaring CVC4 kinds.  Comments are marked with #, as this line is.
+# declaring cvc5 kinds.  Comments are marked with #, as this line is.
 #
 # The first non-blank, non-comment line in this file must be a theory
 # declaration:

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file fp_converter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Conversion of floating-point operations to bit-vectors using symfpu.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Martin Brain, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Conversion of floating-point operations to bit-vectors using symfpu.
+ */
 
 #include "theory/fp/fp_converter.h"
 
@@ -632,7 +633,7 @@ symbolicProposition symbolicBitVector<isSigned>::operator>(
 }
 
 /*** Type conversion ***/
-// CVC4 nodes make no distinction between signed and unsigned, thus ...
+// cvc5 nodes make no distinction between signed and unsigned, thus ...
 template <bool isSigned>
 symbolicBitVector<true> symbolicBitVector<isSigned>::toSigned(void) const
 {

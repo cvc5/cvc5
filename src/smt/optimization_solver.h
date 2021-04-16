@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file optimization_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Michael Chang, Yancheng Ou
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for optimization queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for optimization queries.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__OPTIMIZATION_SOLVER_H
 #define CVC5__SMT__OPTIMIZATION_SOLVER_H
@@ -70,7 +71,7 @@ enum class OptResult
  * - the optimization target node,
  * - whether it's maximize/minimize
  * - and whether it's signed for BitVectors
- **/
+ */
 class Objective
 {
  public:
