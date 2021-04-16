@@ -346,6 +346,10 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
+                if '--no-check-unsat-cores-new' not in all_args and \
+                   '--produce-proofs' not in all_args:
+                    extra_command_line_args += ['--check-unsat-cores-new']
+                    extra_command_line_args += [['--check-unsat-cores-new', '--unsat-cores-mode=assumptions']]
             if check_proofs and \
                '--no-produce-proofs' not in all_args and \
                '--no-check-proofs' not in all_args and \
@@ -358,7 +362,10 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
 
         # Create a test case for each extra argument
         for extra_arg in extra_command_line_args:
-            command_line_args_configs.append(all_args + [extra_arg])
+            if isinstance(extra_arg, list):
+                command_line_args_configs.append(all_args + extra_arg)
+            else:
+                command_line_args_configs.append(all_args + [extra_arg])
 
     # Run cvc5 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
