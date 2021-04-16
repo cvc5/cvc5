@@ -12,7 +12,7 @@
  ** \brief Justification strategy
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC5__DECISION__JUSTIFICATION_STRATEGY_H
