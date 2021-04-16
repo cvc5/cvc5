@@ -12,7 +12,7 @@
  ** \brief Rewrite database term processor
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H
 #define CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H

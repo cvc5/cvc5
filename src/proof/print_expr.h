@@ -12,7 +12,7 @@
  ** \brief The module for printing Lfsc proof nodes
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__PRINT_EXPR_H
 #define CVC4__PROOF__PRINT_EXPR_H

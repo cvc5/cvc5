@@ -12,7 +12,7 @@
  ** \brief The module for processing proof nodes into Lfsc proof nodes
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__LFSC__LFSC_POST_PROCESSOR_H
 #define CVC4__PROOF__LFSC__LFSC_POST_PROCESSOR_H

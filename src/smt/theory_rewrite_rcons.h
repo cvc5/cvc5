@@ -12,7 +12,7 @@
  ** \brief The module for reconstructing proofs of THEORY_REWRITE steps.
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__SMT__THEORY_REWRITE_RCONS_H
 #define CVC4__SMT__THEORY_REWRITE_RCONS_H

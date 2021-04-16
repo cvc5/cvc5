@@ -12,7 +12,7 @@
  ** \brief Utilities for computing letification of proofs
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__PROOF_LETIFY_H
 #define CVC4__PROOF__PROOF_LETIFY_H

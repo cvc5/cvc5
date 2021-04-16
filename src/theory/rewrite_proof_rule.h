@@ -12,7 +12,7 @@
  ** \brief Rewrite proof rule data structure
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__THEORY__REWRITE_PROOF_RULE__H
 #define CVC4__THEORY__REWRITE_PROOF_RULE__H
