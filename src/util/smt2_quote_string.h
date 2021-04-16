@@ -13,7 +13,7 @@
  * Quotes a string if necessary for smt2.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UTIL__SMT2_QUOTE_STRING_H
 #define CVC5__UTIL__SMT2_QUOTE_STRING_H

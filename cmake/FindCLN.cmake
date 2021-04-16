@@ -34,6 +34,7 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
 endif()
 
 if(NOT CLN_FOUND_SYSTEM)
+  check_auto_download("CLN" "--no-cln")
   include(ExternalProject)
 
   fail_if_cross_compiling("Windows" "" "CLN" "autoconf fails")

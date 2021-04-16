@@ -14,7 +14,7 @@
  * https://arxiv.org/pdf/2003.05633.pdf.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
 #define CVC5__THEORY__ARITH__NL__CAD__CDCAC_H

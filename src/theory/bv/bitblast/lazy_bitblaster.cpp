@@ -15,7 +15,7 @@
 
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -73,10 +73,10 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       d_emptyNotify(emptyNotify),
       d_fullModelAssertionLevel(c, 0),
       d_name(name),
-      d_statistics(name)
+      d_statistics(name + "::")
 {
-  d_satSolver.reset(
-      prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
+  d_satSolver.reset(prop::SatSolverFactory::createMinisat(
+      c, smtStatisticsRegistry(), name + "::"));
 
   ResourceManager* rm = smt::currentResourceManager();
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
@@ -362,33 +362,22 @@ void TLazyBitblaster::getConflict(std::vector<TNode>& conflict)
   }
 }
 
-TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
-  d_numTermClauses(prefix + "::NumTermSatClauses", 0),
-  d_numAtomClauses(prefix + "::NumAtomSatClauses", 0),
-  d_numTerms(prefix + "::NumBitblastedTerms", 0),
-  d_numAtoms(prefix + "::NumBitblastedAtoms", 0),
-  d_numExplainedPropagations(prefix + "::NumExplainedPropagations", 0),
-  d_numBitblastingPropagations(prefix + "::NumBitblastingPropagations", 0),
-  d_bitblastTimer(prefix + "::BitblastTimer")
+TLazyBitblaster::Statistics::Statistics(const std::string& prefix)
+    : d_numTermClauses(
+        smtStatisticsRegistry().registerInt(prefix + "NumTermSatClauses")),
+      d_numAtomClauses(
+          smtStatisticsRegistry().registerInt(prefix + "NumAtomSatClauses")),
+      d_numTerms(
+          smtStatisticsRegistry().registerInt(prefix + "NumBitblastedTerms")),
+      d_numAtoms(
+          smtStatisticsRegistry().registerInt(prefix + "NumBitblastedAtoms")),
+      d_numExplainedPropagations(smtStatisticsRegistry().registerInt(
+          prefix + "NumExplainedPropagations")),
+      d_numBitblastingPropagations(smtStatisticsRegistry().registerInt(
+          prefix + "NumBitblastingPropagations")),
+      d_bitblastTimer(
+          smtStatisticsRegistry().registerTimer(prefix + "BitblastTimer"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numTermClauses);
-  smtStatisticsRegistry()->registerStat(&d_numAtomClauses);
-  smtStatisticsRegistry()->registerStat(&d_numTerms);
-  smtStatisticsRegistry()->registerStat(&d_numAtoms);
-  smtStatisticsRegistry()->registerStat(&d_numExplainedPropagations);
-  smtStatisticsRegistry()->registerStat(&d_numBitblastingPropagations);
-  smtStatisticsRegistry()->registerStat(&d_bitblastTimer);
-}
-
-
-TLazyBitblaster::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numTermClauses);
-  smtStatisticsRegistry()->unregisterStat(&d_numAtomClauses);
-  smtStatisticsRegistry()->unregisterStat(&d_numTerms);
-  smtStatisticsRegistry()->unregisterStat(&d_numAtoms);
-  smtStatisticsRegistry()->unregisterStat(&d_numExplainedPropagations);
-  smtStatisticsRegistry()->unregisterStat(&d_numBitblastingPropagations);
-  smtStatisticsRegistry()->unregisterStat(&d_bitblastTimer);
 }
 
 bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {

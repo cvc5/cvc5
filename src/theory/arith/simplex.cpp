@@ -22,6 +22,7 @@
 #include "theory/arith/error_set.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/tableau.h"
+#include "util/statistics_value.h"
 
 using namespace std;
 

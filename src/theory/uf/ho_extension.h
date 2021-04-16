@@ -13,7 +13,7 @@
  * The higher-order extension of TheoryUF.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef __CVC5__THEORY__UF__HO_EXTENSION_H
 #define __CVC5__THEORY__UF__HO_EXTENSION_H

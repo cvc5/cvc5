@@ -31,12 +31,12 @@
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
 template <typename T>
-static CVC4ostream& operator<<(CVC4ostream& out, const std::vector<T>& v)
+static CVC5ostream& operator<<(CVC5ostream& out, const std::vector<T>& v)
 {
   out << "[ ";
   std::copy(v.begin(), v.end(), std::ostream_iterator<T>(out, " "));

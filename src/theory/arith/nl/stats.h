@@ -13,12 +13,12 @@
  * Statistics for non-linear arithmetic.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARITH__NL__STATS_H
 #define CVC5__THEORY__ARITH__NL__STATS_H
 
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -32,7 +32,6 @@ class NlStats
 {
  public:
   NlStats();
-  ~NlStats();
   /**
    * Number of calls to NonlinearExtension::modelBasedRefinement. Notice this
    * may make multiple calls to NonlinearExtension::checkLastCall.

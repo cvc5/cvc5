@@ -15,7 +15,7 @@
  * [[ Add file-specific comments here ]]
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__UF__THEORY_UF_TYPE_RULES_H
 #define CVC5__THEORY__UF__THEORY_UF_TYPE_RULES_H

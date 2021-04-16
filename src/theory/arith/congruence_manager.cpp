@@ -90,32 +90,22 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee,
   d_pfee = pfee;
 }
 
-ArithCongruenceManager::Statistics::Statistics():
-  d_watchedVariables("theory::arith::congruence::watchedVariables", 0),
-  d_watchedVariableIsZero("theory::arith::congruence::watchedVariableIsZero", 0),
-  d_watchedVariableIsNotZero("theory::arith::congruence::watchedVariableIsNotZero", 0),
-  d_equalsConstantCalls("theory::arith::congruence::equalsConstantCalls", 0),
-  d_propagations("theory::arith::congruence::propagations", 0),
-  d_propagateConstraints("theory::arith::congruence::propagateConstraints", 0),
-  d_conflicts("theory::arith::congruence::conflicts", 0)
+ArithCongruenceManager::Statistics::Statistics()
+    : d_watchedVariables(smtStatisticsRegistry().registerInt(
+        "theory::arith::congruence::watchedVariables")),
+      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::watchedVariableIsZero")),
+      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::watchedVariableIsNotZero")),
+      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::equalsConstantCalls")),
+      d_propagations(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::propagations")),
+      d_propagateConstraints(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::propagateConstraints")),
+      d_conflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::conflicts"))
 {
-  smtStatisticsRegistry()->registerStat(&d_watchedVariables);
-  smtStatisticsRegistry()->registerStat(&d_watchedVariableIsZero);
-  smtStatisticsRegistry()->registerStat(&d_watchedVariableIsNotZero);
-  smtStatisticsRegistry()->registerStat(&d_equalsConstantCalls);
-  smtStatisticsRegistry()->registerStat(&d_propagations);
-  smtStatisticsRegistry()->registerStat(&d_propagateConstraints);
-  smtStatisticsRegistry()->registerStat(&d_conflicts);
-}
-
-ArithCongruenceManager::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_watchedVariables);
-  smtStatisticsRegistry()->unregisterStat(&d_watchedVariableIsZero);
-  smtStatisticsRegistry()->unregisterStat(&d_watchedVariableIsNotZero);
-  smtStatisticsRegistry()->unregisterStat(&d_equalsConstantCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_propagations);
-  smtStatisticsRegistry()->unregisterStat(&d_propagateConstraints);
-  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
 }
 
 ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongruenceManager& acm)

@@ -15,7 +15,7 @@
  * ``What do you mean? I don't understand.'' An attempt to be more
  * helpful than that. Similar to one in git.
  *
- * There are no dependencies on CVC4 (except namespace).
+ * There are no dependencies on cvc5 (except namespace).
  */
 
 #include "options/didyoumean.h"

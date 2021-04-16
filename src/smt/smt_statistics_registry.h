@@ -13,11 +13,12 @@
  * Accessor for the SmtEngine's StatisticsRegistry.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -25,6 +26,6 @@ namespace cvc5 {
  * This returns the StatisticsRegistry attached to the currently in scope
  * SmtEngine. This is a synonym for smt::SmtScope::currentStatisticsRegistry().
  */
-StatisticsRegistry* smtStatisticsRegistry();
+StatisticsRegistry& smtStatisticsRegistry();
 
 }  // namespace cvc5

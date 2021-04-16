@@ -22,7 +22,7 @@
  * checks for unsat instead of sat.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
 #define CVC5__PREPROCESSING__PASSES__GLOBAL_NEGATE_H

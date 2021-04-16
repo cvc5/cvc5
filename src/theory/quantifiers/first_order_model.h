@@ -13,7 +13,7 @@
  * Model extended classes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__FIRST_ORDER_MODEL_H
 #define CVC5__FIRST_ORDER_MODEL_H

@@ -23,7 +23,7 @@ add_custom_target(gen-gitinfo
 
 #-----------------------------------------------------------------------------#
 
-libcvc4_add_sources(
+set(LIBBASE_SOURCES
   check.cpp
   check.h
   configuration.cpp
@@ -36,9 +36,12 @@ libcvc4_add_sources(
   modal_exception.h
   output.cpp
   output.h
+  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
 )
-
-libcvc4_add_sources(GENERATED git_versioninfo.cpp)
+set_source_files_properties(
+  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
+  PROPERTIES GENERATED TRUE
+)
 
 #-----------------------------------------------------------------------------#
 # Generate code for debug/trace tags
@@ -75,3 +78,9 @@ set_source_files_properties(
   ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
   PROPERTIES GENERATED TRUE
 )
+
+add_library(cvc4base OBJECT ${LIBBASE_SOURCES})
+if(ENABLE_SHARED)
+  set_target_properties(cvc4base PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+target_compile_definitions(cvc4base PRIVATE -D__BUILDING_CVC4LIB)

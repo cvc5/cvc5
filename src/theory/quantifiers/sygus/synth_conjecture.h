@@ -14,7 +14,7 @@
  * conjecture.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
 #define CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H

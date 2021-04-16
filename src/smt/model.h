@@ -13,7 +13,7 @@
  * Model class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__MODEL_H
 #define CVC5__MODEL_H
@@ -58,7 +58,7 @@ class Model {
   std::string getInputName() const { return d_inputName; }
   /**
    * Returns true if this model is guaranteed to be a model of the input
-   * formula. Notice that when CVC4 answers "unknown", it may have a model
+   * formula. Notice that when cvc5 answers "unknown", it may have a model
    * available for which this method returns false. In this case, this model is
    * only a candidate solution.
    */

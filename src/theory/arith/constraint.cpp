@@ -185,7 +185,7 @@ std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v){
   return o;
 }
 
-void Constraint::debugPrint() const { CVC4Message() << *this << endl; }
+void Constraint::debugPrint() const { CVC5Message() << *this << endl; }
 
 ValueCollection::ValueCollection()
   : d_lowerBound(NullConstraint),
@@ -1003,18 +1003,12 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics():
-  d_unatePropagateCalls("theory::arith::cd::unatePropagateCalls", 0),
-  d_unatePropagateImplications("theory::arith::cd::unatePropagateImplications", 0)
+ConstraintDatabase::Statistics::Statistics()
+    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
+        "theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
+          "theory::arith::cd::unatePropagateImplications"))
 {
-  smtStatisticsRegistry()->registerStat(&d_unatePropagateCalls);
-  smtStatisticsRegistry()->registerStat(&d_unatePropagateImplications);
-
-}
-
-ConstraintDatabase::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_unatePropagateCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_unatePropagateImplications);
 }
 
 void ConstraintDatabase::deleteConstraintAndNegation(ConstraintP c){

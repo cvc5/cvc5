@@ -895,8 +895,8 @@ const std::vector<std::shared_ptr<DTypeConstructor> >& DType::getConstructors()
 
 std::ostream& operator<<(std::ostream& os, const DType& dt)
 {
-  // can only output datatypes in the CVC4 native language
-  language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  // can only output datatypes in the cvc5 native language
+  language::SetLanguage::Scope ls(os, language::output::LANG_CVC);
   dt.toStream(os);
   return os;
 }

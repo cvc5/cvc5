@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner
+ *   Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
@@ -10,27 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Statistic utilities.
+ * Macros that should be defined everywhere during the building of the
+ * libraries and driver binary, and also exported to the user.
  */
 
-#include "cvc4_private_library.h"
+#ifndef CVC5PARSER_PUBLIC_H
+#define CVC5PARSER_PUBLIC_H
 
-#ifndef CVC5__UTIL__STATS_UTILS_H
-#define CVC5__UTIL__STATS_UTILS_H
+#include "cvc5_public.h"
 
-#include <iosfwd>
-
-#include "cvc4_export.h"
-
-namespace cvc5 {
-
-namespace timer_stat_detail {
-struct duration;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const timer_stat_detail::duration& dur) CVC4_EXPORT;
-
-}  // namespace cvc5
-
-#endif
+#endif /* CVC5PARSER_PUBLIC_H */

@@ -13,7 +13,7 @@
  * Sets theory rewriter.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__THEORY_SETS_REWRITER_H
 #define CVC5__THEORY__SETS__THEORY_SETS_REWRITER_H

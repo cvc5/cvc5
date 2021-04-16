@@ -13,7 +13,7 @@
  * Utility for processing single invocation synthesis conjectures.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 #define CVC5__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H

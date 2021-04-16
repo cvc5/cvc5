@@ -13,7 +13,7 @@
  * Simple, commonly-used routines for Boolean simplification.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__BOOLEAN_SIMPLIFICATION_H
 #define CVC5__BOOLEAN_SIMPLIFICATION_H
