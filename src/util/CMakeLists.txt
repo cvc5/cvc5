@@ -29,6 +29,8 @@ libcvc4_add_sources(
   bool.h
   cardinality.cpp
   cardinality.h
+  cardinality_class.cpp
+  cardinality_class.h
   dense_map.h
   divisible.cpp
   divisible.h
@@ -65,23 +67,14 @@ libcvc4_add_sources(
   sexpr.h
   smt2_quote_string.cpp
   smt2_quote_string.h
-  statistics.cpp
-  statistics.h
   statistics_public.cpp
   statistics_public.h
-  statistics_reg.cpp
-  statistics_reg.h
   statistics_registry.cpp
   statistics_registry.h
+  statistics_stats.cpp
+  statistics_stats.h
   statistics_value.cpp
   statistics_value.h
-  stats_base.cpp
-  stats_base.h
-  stats_histogram.h
-  stats_timer.cpp
-  stats_timer.h
-  stats_utils.cpp
-  stats_utils.h
   string.cpp
   string.h
   tuple.h

@@ -13,7 +13,7 @@
  * SAT Solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__SAT_H
 #define CVC5__PROP__SAT_H
@@ -88,7 +88,7 @@ class TheoryProxy : public Registrar
 
   void notifyRestart();
 
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   bool isDecisionEngineDone();
 

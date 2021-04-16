@@ -13,7 +13,7 @@
  * Incompleteness enumeration.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__INCOMPLETE_ID_H
 #define CVC5__THEORY__INCOMPLETE_ID_H
@@ -24,7 +24,7 @@ namespace cvc5 {
 namespace theory {
 
 /**
- * Reasons for incompleteness in CVC4.
+ * Reasons for incompleteness in cvc5.
  */
 enum class IncompleteId
 {

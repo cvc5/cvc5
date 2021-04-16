@@ -13,7 +13,7 @@
  * Registration and documentation for all public statistics.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATISTICS_PUBLIC_H
 #define CVC5__UTIL__STATISTICS_PUBLIC_H

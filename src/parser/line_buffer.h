@@ -17,7 +17,7 @@
  * within the line.
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__LINE_BUFFER_H
 #define CVC5__PARSER__LINE_BUFFER_H

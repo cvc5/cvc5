@@ -13,7 +13,7 @@
  * sygus_repair_const
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H

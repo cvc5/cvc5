@@ -40,7 +40,7 @@ IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
 
 PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   // Remove all of the ITE occurrences and normalize
@@ -62,7 +62,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
       imap[assertions->size()] = newSkolems[j];
       assertions->pushBackTrusted(newAsserts[j]);
       // new assertions have a dependence on the node (old pf architecture)
-      if (options::unsatCores() && !options::produceProofs())
+      if (options::unsatCores())
       {
         ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
                                                  assertion);

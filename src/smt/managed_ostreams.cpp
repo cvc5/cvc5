@@ -77,7 +77,7 @@ void ManagedDumpOStream::initialize(std::ostream* outStream) {
   dumpGetStream.apply(outStream);
 #else  /* CVC5_DUMPING */
   throw OptionException(
-      "The dumping feature was disabled in this build of CVC4.");
+      "The dumping feature was disabled in this build of cvc5.");
 #endif /* CVC5_DUMPING */
 }
 
@@ -123,9 +123,9 @@ ManagedDiagnosticOutputChannel::~ManagedDiagnosticOutputChannel() {
   if(Warning.getStreamPointer() == getManagedOstream()){
     Warning.setStream(&null_os);
   }
-  if (CVC4Message.getStreamPointer() == getManagedOstream())
+  if (CVC5Message.getStreamPointer() == getManagedOstream())
   {
-    CVC4Message.setStream(&null_os);
+    CVC5Message.setStream(&null_os);
   }
   if(Notice.getStreamPointer() == getManagedOstream()){
     Notice.setStream(&null_os);

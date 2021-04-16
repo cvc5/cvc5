@@ -13,7 +13,7 @@
  * Theory of datatypes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
 #define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_H
@@ -96,8 +96,6 @@ private:
   bool hasTester( Node n );
   /** get the possible constructors for n */
   void getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >& cons );
-  /** mkExpDefSkolem */
-  void mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt );
   /** skolems for terms */
   NodeMap d_term_sk;
   Node getTermSkolemFor( Node n );
@@ -153,8 +151,6 @@ private:
   context::CDList<TNode> d_functionTerms;
   /** counter for forcing assignments (ensures fairness) */
   unsigned d_dtfCounter;
-  /** expand definition skolem functions */
-  std::map< TypeNode, std::map< Node, Node > > d_exp_def_skolem;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:

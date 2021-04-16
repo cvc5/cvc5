@@ -13,7 +13,7 @@
  * SAT Solver creation facility
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__SAT_SOLVER_FACTORY_H
 #define CVC5__PROP__SAT_SOLVER_FACTORY_H
@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "prop/minisat/minisat.h"
 #include "prop/sat_solver.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace prop {
@@ -33,18 +33,18 @@ class SatSolverFactory
 {
  public:
   static BVSatSolverInterface* createMinisat(context::Context* mainSatContext,
-                                             StatisticsRegistry* registry,
+                                             StatisticsRegistry& registry,
                                              const std::string& name = "");
 
-  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry* registry);
+  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry& registry);
 
-  static SatSolver* createCryptoMinisat(StatisticsRegistry* registry,
+  static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         const std::string& name = "");
 
-  static SatSolver* createCadical(StatisticsRegistry* registry,
+  static SatSolver* createCadical(StatisticsRegistry& registry,
                                   const std::string& name = "");
 
-  static SatSolver* createKissat(StatisticsRegistry* registry,
+  static SatSolver* createKissat(StatisticsRegistry& registry,
                                  const std::string& name = "");
 }; /* class SatSolverFactory */
 

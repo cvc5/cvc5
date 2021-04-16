@@ -13,7 +13,7 @@
  * A cache of skolems for theory of strings.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__SKOLEM_CACHE_H
 #define CVC5__THEORY__STRINGS__SKOLEM_CACHE_H
@@ -164,7 +164,7 @@ class SkolemCache
    * Specific version for seq.nth, used for cases where the index is out of
    * range for sequence type seqType.
    */
-  Node mkSkolemSeqNth(TypeNode seqType, const char* c);
+  static Node mkSkolemSeqNth(TypeNode seqType, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */

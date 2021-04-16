@@ -13,7 +13,7 @@
  * Lazy bit-vector solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BV_SOLVER_LAZY_H
 #define CVC5__THEORY__BV__BV_SOLVER_LAZY_H
@@ -119,13 +119,12 @@ class BVSolverLazy : public BVSolver
     TimerStat d_weightComputationTimer;
     IntStat d_numMultSlice;
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;
 
   void check(Theory::Effort e);
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;

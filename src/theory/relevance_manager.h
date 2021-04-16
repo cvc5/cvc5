@@ -13,7 +13,7 @@
  * Relevance manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__RELEVANCE_MANAGER__H
 #define CVC5__THEORY__RELEVANCE_MANAGER__H
@@ -88,11 +88,24 @@ class RelevanceManager
    */
   void resetRound();
   /**
-   * Is lit part of the current relevant selection? This call is valid during
-   * full effort check in TheoryEngine. This means that theories can query this
-   * during FULL or LAST_CALL efforts, through the Valuation class.
+   * Is lit part of the current relevant selection? This computes the set of
+   * relevant assertions if not already done so. This call is valid during a
+   * full effort check in TheoryEngine, or after TheoryEngine has terminated
+   * with "sat". This means that theories can query this during FULL or
+   * LAST_CALL efforts, through the Valuation class.
    */
   bool isRelevant(Node lit);
+  /**
+   * Get the current relevant selection (see above). This computes this set
+   * if not already done so. This call is valid during a full effort check in
+   * TheoryEngine, or after TheoryEngine has terminated with "sat". This method
+   * sets the flag success to false if we failed to compute relevant
+   * assertions, which can occur if
+   *
+   * The value of this return is only valid if success was not updated to false.
+   */
+  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
+      bool& success);
 
  private:
   /**

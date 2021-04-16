@@ -38,16 +38,11 @@ using namespace cvc5::theory;
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
-      d_numUnconstrainedElim("preprocessor::number of unconstrained elims", 0),
+      d_numUnconstrainedElim(smtStatisticsRegistry().registerInt(
+          "preprocessor::number of unconstrained elims")),
       d_context(preprocContext->getDecisionContext()),
       d_substitutions(preprocContext->getDecisionContext())
 {
-  smtStatisticsRegistry()->registerStat(&d_numUnconstrainedElim);
-}
-
-UnconstrainedSimplifier::~UnconstrainedSimplifier()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numUnconstrainedElim);
 }
 
 struct unc_preprocess_stack_element
@@ -846,7 +841,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   const std::vector<Node>& assertions = assertionsToPreprocess->ref();
 
@@ -860,7 +855,7 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
   if (!d_unconstrained.empty())
   {
     processUnconstrained();
-    //    d_substitutions.print(CVC4Message.getStream());
+    //    d_substitutions.print(CVC5Message.getStream());
     for (size_t i = 0, asize = assertions.size(); i < asize; ++i)
     {
       Node a = assertions[i];

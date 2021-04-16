@@ -75,9 +75,10 @@ Theory::Theory(TheoryId id,
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(nullptr),
       d_instanceName(name),
-      d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
-      d_computeCareGraphTime(getStatsPrefix(id) + name
-                             + "::computeCareGraphTime"),
+      d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id)
+                                                        + name + "checkTime")),
+      d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
+          getStatsPrefix(id) + name + "computeCareGraphTime")),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
@@ -88,13 +89,9 @@ Theory::Theory(TheoryId id,
       d_quantEngine(nullptr),
       d_pnm(pnm)
 {
-  smtStatisticsRegistry()->registerStat(&d_checkTime);
-  smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
 }
 
 Theory::~Theory() {
-  smtStatisticsRegistry()->unregisterStat(&d_checkTime);
-  smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
 }
 
 bool Theory::needsEqualityEngine(EeSetupInfo& esi)
@@ -489,7 +486,7 @@ void Theory::check(Effort level)
   }
   Assert(d_theoryState!=nullptr);
   // standard calls for resource, stats
-  d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_out->spendResource(Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
                         << std::endl;

@@ -13,7 +13,7 @@
  * An enumerator for datatypes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 #define CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H
@@ -63,7 +63,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   bool hasCyclesDt(const DType& dt)
   {
-    return dt.isRecursiveSingleton(d_type) || !dt.isFinite(d_type);
+    return dt.isRecursiveSingleton(d_type)
+           || dt.getCardinalityClass(d_type) == CardinalityClass::INFINITE;
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){

@@ -13,7 +13,7 @@
  * Utilities for management of equality engines.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__EE_MANAGER__H
 #define CVC5__THEORY__EE_MANAGER__H

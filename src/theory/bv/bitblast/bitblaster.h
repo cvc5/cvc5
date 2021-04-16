@@ -13,7 +13,7 @@
  * Wrapper around the SAT solver used for bitblasting.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BITBLAST__BITBLASTER_H
 #define CVC5__THEORY__BV__BITBLAST__BITBLASTER_H
@@ -108,12 +108,12 @@ class MinisatEmptyNotify : public prop::BVSatSolverNotify
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) override { return true; }
   void notify(prop::SatClause& clause) override {}
-  void spendResource(ResourceManager::Resource r) override
+  void spendResource(Resource r) override
   {
     smt::currentResourceManager()->spendResource(r);
   }
 
-  void safePoint(ResourceManager::Resource r) override {}
+  void safePoint(Resource r) override {}
 };
 
 // Bitblaster implementation

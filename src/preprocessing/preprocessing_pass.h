@@ -27,15 +27,14 @@
  * do work that only needs to be done once.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_H
 #define CVC5__PREPROCESSING__PREPROCESSING_PASS_H
 
 #include <string>
 
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {

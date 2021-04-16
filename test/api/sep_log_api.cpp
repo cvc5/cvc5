@@ -85,7 +85,7 @@ int validate_exception(void)
   {
     Term heap_expr = slv.getSeparationHeap();
   }
-  catch (const CVC4ApiException& e)
+  catch (const CVC5ApiException& e)
   {
     caught_on_heap = true;
 
@@ -101,7 +101,7 @@ int validate_exception(void)
   {
     Term nil_expr = slv.getSeparationNilTerm();
   }
-  catch (const CVC4ApiException& e)
+  catch (const CVC5ApiException& e)
   {
     caught_on_nil = true;
 

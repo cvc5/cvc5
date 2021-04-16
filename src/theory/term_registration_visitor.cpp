@@ -41,7 +41,10 @@ std::string PreRegisterVisitor::toString() const {
  * current. This method is used by PreRegisterVisitor and SharedTermsVisitor
  * below.
  */
-bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
+bool isAlreadyVisited(TheoryEngine* te,
+                      TheoryIdSet visitedTheories,
+                      TNode current,
+                      TNode parent)
 {
   TheoryId currentTheoryId = Theory::theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
@@ -67,7 +70,7 @@ bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
 
   // do we need to consider the type?
   TypeNode type = current.getType();
-  if (currentTheoryId == parentTheoryId && !type.isInterpretedFinite())
+  if (currentTheoryId == parentTheoryId && !te->isFiniteType(type))
   {
     // current and parent are the same theory, and we are infinite, return true
     return true;
@@ -100,7 +103,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(visitedTheories, current, parent);
+  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
 }
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
@@ -149,7 +152,7 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     // Note that if enclosed by different theories it's shared, for example,
     // in read(a, f(a)), f(a) should be shared with integers.
     TypeNode type = current.getType();
-    if (currentTheoryId != parentTheoryId || type.isInterpretedFinite())
+    if (currentTheoryId != parentTheoryId || te->isFiniteType(type))
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
@@ -244,7 +247,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(visitedTheories, current, parent);
+  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
 }
 
 void SharedTermsVisitor::visit(TNode current, TNode parent) {

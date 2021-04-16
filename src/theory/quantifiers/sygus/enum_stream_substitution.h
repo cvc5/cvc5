@@ -13,7 +13,7 @@
  * Class for streaming concrete values (through substitutions) from
  * enumerated abstract ones.
  */
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H

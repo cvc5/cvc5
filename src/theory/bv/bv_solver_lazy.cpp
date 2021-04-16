@@ -118,39 +118,27 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(Resource r)
 {
   d_im.spendResource(r);
 }
 
 BVSolverLazy::Statistics::Statistics()
-    : d_avgConflictSize("theory::bv::lazy::AvgBVConflictSize"),
-      d_solveSubstitutions("theory::bv::lazy::NumSolveSubstitutions", 0),
-      d_solveTimer("theory::bv::lazy::solveTimer"),
-      d_numCallsToCheckFullEffort("theory::bv::lazy::NumFullCheckCalls", 0),
-      d_numCallsToCheckStandardEffort("theory::bv::lazy::NumStandardCheckCalls",
-                                      0),
-      d_weightComputationTimer("theory::bv::lazy::weightComputationTimer"),
-      d_numMultSlice("theory::bv::lazy::NumMultSliceApplied", 0)
+    : d_avgConflictSize(smtStatisticsRegistry().registerAverage(
+        "theory::bv::lazy::AvgBVConflictSize")),
+      d_solveSubstitutions(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumSolveSubstitutions")),
+      d_solveTimer(smtStatisticsRegistry().registerTimer(
+          "theory::bv::lazy::solveTimer")),
+      d_numCallsToCheckFullEffort(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumFullCheckCalls")),
+      d_numCallsToCheckStandardEffort(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumStandardCheckCalls")),
+      d_weightComputationTimer(smtStatisticsRegistry().registerTimer(
+          "theory::bv::lazy::weightComputationTimer")),
+      d_numMultSlice(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumMultSliceApplied"))
 {
-  smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
-  smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);
-  smtStatisticsRegistry()->registerStat(&d_solveTimer);
-  smtStatisticsRegistry()->registerStat(&d_numCallsToCheckFullEffort);
-  smtStatisticsRegistry()->registerStat(&d_numCallsToCheckStandardEffort);
-  smtStatisticsRegistry()->registerStat(&d_weightComputationTimer);
-  smtStatisticsRegistry()->registerStat(&d_numMultSlice);
-}
-
-BVSolverLazy::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_avgConflictSize);
-  smtStatisticsRegistry()->unregisterStat(&d_solveSubstitutions);
-  smtStatisticsRegistry()->unregisterStat(&d_solveTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_numCallsToCheckFullEffort);
-  smtStatisticsRegistry()->unregisterStat(&d_numCallsToCheckStandardEffort);
-  smtStatisticsRegistry()->unregisterStat(&d_weightComputationTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_numMultSlice);
 }
 
 void BVSolverLazy::preRegisterTerm(TNode node)

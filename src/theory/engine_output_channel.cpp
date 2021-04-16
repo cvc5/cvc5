@@ -26,32 +26,21 @@ namespace cvc5 {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
-    : conflicts(getStatsPrefix(theory) + "::conflicts", 0),
-      propagations(getStatsPrefix(theory) + "::propagations", 0),
-      lemmas(getStatsPrefix(theory) + "::lemmas", 0),
-      requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-      restartDemands(getStatsPrefix(theory) + "::restartDemands", 0),
-      trustedConflicts(getStatsPrefix(theory) + "::trustedConflicts", 0),
-      trustedLemmas(getStatsPrefix(theory) + "::trustedLemmas", 0)
+    : conflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                    + "conflicts")),
+      propagations(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                       + "propagations")),
+      lemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                 + "lemmas")),
+      requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                       + "requirePhase")),
+      restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                         + "restartDemands")),
+      trustedConflicts(smtStatisticsRegistry().registerInt(
+          getStatsPrefix(theory) + "trustedConflicts")),
+      trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                        + "trustedLemmas"))
 {
-  smtStatisticsRegistry()->registerStat(&conflicts);
-  smtStatisticsRegistry()->registerStat(&propagations);
-  smtStatisticsRegistry()->registerStat(&lemmas);
-  smtStatisticsRegistry()->registerStat(&requirePhase);
-  smtStatisticsRegistry()->registerStat(&restartDemands);
-  smtStatisticsRegistry()->registerStat(&trustedConflicts);
-  smtStatisticsRegistry()->registerStat(&trustedLemmas);
-}
-
-EngineOutputChannel::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&conflicts);
-  smtStatisticsRegistry()->unregisterStat(&propagations);
-  smtStatisticsRegistry()->unregisterStat(&lemmas);
-  smtStatisticsRegistry()->unregisterStat(&requirePhase);
-  smtStatisticsRegistry()->unregisterStat(&restartDemands);
-  smtStatisticsRegistry()->unregisterStat(&trustedConflicts);
-  smtStatisticsRegistry()->unregisterStat(&trustedLemmas);
 }
 
 EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
@@ -60,7 +49,7 @@ EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
 {
 }
 
-void EngineOutputChannel::safePoint(ResourceManager::Resource r)
+void EngineOutputChannel::safePoint(Resource r)
 {
   spendResource(r);
   if (d_engine->d_interrupted)
@@ -146,7 +135,7 @@ void EngineOutputChannel::setIncomplete(IncompleteId id)
   d_engine->setIncomplete(d_theory, id);
 }
 
-void EngineOutputChannel::spendResource(ResourceManager::Resource r)
+void EngineOutputChannel::spendResource(Resource r)
 {
   d_engine->spendResource(r);
 }

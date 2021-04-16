@@ -188,7 +188,7 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
-  d_bv->d_im.spendResource(ResourceManager::Resource::TheoryCheckStep);
+  d_bv->d_im.spendResource(Resource::TheoryCheckStep);
 
   d_checkCalled = true;
   Assert(!d_bv->inConflict());
@@ -484,12 +484,9 @@ void CoreSolver::addTermToEqualityEngine(TNode node)
 }
 
 CoreSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::CoreSolver::NumCallsToCheck"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-}
-CoreSolver::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
 }
 
 void CoreSolver::checkExtf(Theory::Effort e)

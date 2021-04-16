@@ -14,7 +14,7 @@
  * solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__BVSATSOLVERNOTIFY_H
 #define CVC5__PROP__BVSATSOLVERNOTIFY_H
@@ -40,8 +40,8 @@ public:
    * Notify about a learnt clause.
    */
   virtual void notify(SatClause& clause) = 0;
-  virtual void spendResource(ResourceManager::Resource r) = 0;
-  virtual void safePoint(ResourceManager::Resource r) = 0;
+  virtual void spendResource(Resource r) = 0;
+  virtual void safePoint(Resource r) = 0;
 
 };/* class BVSatSolverInterface::Notify */
 

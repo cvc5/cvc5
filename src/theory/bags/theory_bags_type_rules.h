@@ -13,17 +13,17 @@
  * Bags theory type rules.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H
 #define CVC5__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H
 
 #include "expr/node.h"
-#include "expr/type_node.h"
 
 namespace cvc5 {
 
 class NodeManager;
+class TypeNode;
 
 namespace theory {
 namespace bags {
@@ -130,13 +130,9 @@ struct BagsProperties
     return Cardinality::INTEGERS;
   }
 
-  static bool isWellFounded(TypeNode type) { return type[0].isWellFounded(); }
+  static bool isWellFounded(TypeNode type);
 
-  static Node mkGroundTerm(TypeNode type)
-  {
-    Assert(type.isBag());
-    return NodeManager::currentNM()->mkConst(EmptyBag(type));
-  }
+  static Node mkGroundTerm(TypeNode type);
 }; /* struct BagsProperties */
 
 }  // namespace bags

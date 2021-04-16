@@ -108,15 +108,9 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
 /* -------------------------------------------------------------------------- */
 
 ITESimp::Statistics::Statistics()
-    : d_arithSubstitutionsAdded(
-          "preprocessing::passes::ITESimp::ArithSubstitutionsAdded", 0)
+    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
 {
-  smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
-}
-
-ITESimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
@@ -236,12 +230,12 @@ ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ITESimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t nasserts = assertionsToPreprocess->size();
   for (size_t i = 0; i < nasserts; ++i)
   {
-    d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+    d_preprocContext->spendResource(Resource::PreprocessStep);
     Node simp = simpITE(&d_iteUtilities, (*assertionsToPreprocess)[i]);
     assertionsToPreprocess->replace(i, simp);
     if (simp.isConst() && !simp.getConst<bool>())

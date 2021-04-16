@@ -35,9 +35,6 @@ namespace main {
 
 class CommandExecutor
 {
- private:
-  std::string d_lastStatistics;
-
  protected:
   /**
    * The solver object, which is allocated by this class and is used for

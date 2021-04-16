@@ -34,6 +34,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/options_holder.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -80,6 +81,12 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
+
+void OptionsHandler::setResourceWeight(std::string option, std::string optarg)
+{
+  d_options->d_holder->resourceWeightHolder.emplace_back(optarg);
+}
+
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
@@ -97,7 +104,9 @@ void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 #ifndef CVC5_USE_ABC
   if(value) {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_USE_ABC */
@@ -108,7 +117,9 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 #ifndef CVC5_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_USE_ABC */
@@ -121,7 +132,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CryptoMiniSat build of CVC4; this binary was not built "
+       << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
           "with CryptoMiniSat support";
     throw OptionException(ss.str());
   }
@@ -130,7 +141,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CaDiCaL build of CVC4; this binary was not built with "
+       << "' requires a CaDiCaL build of cvc5; this binary was not built with "
           "CaDiCaL support";
     throw OptionException(ss.str());
   }
@@ -139,7 +150,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a Kissat build of CVC4; this binary was not built with "
+       << "' requires a Kissat build of cvc5; this binary was not built with "
           "Kissat support";
     throw OptionException(ss.str());
   }
@@ -252,15 +263,44 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
   options::interactiveMode.set(value);
 }
 
-void OptionsHandler::statsEnabledBuild(std::string option, bool value)
+void OptionsHandler::setStats(const std::string& option, bool value)
 {
 #ifndef CVC5_STATISTICS_ON
-  if(value) {
+  if (value)
+  {
     std::stringstream ss;
-    ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
+    ss << "option `" << option
+       << "' requires a statistics-enabled build of cvc5; this binary was not "
+          "built with statistics support";
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */
+  Assert(option.substr(0, 2) == "--");
+  std::string opt = option.substr(2);
+  if (value)
+  {
+    if (opt == options::statisticsAll.getName())
+    {
+      d_options->d_holder->statistics = true;
+    }
+    else if (opt == options::statisticsEveryQuery.getName())
+    {
+      d_options->d_holder->statistics = true;
+    }
+    else if (opt == options::statisticsExpert.getName())
+    {
+      d_options->d_holder->statistics = true;
+    }
+  }
+  else
+  {
+    if (opt == options::statistics.getName())
+    {
+      d_options->d_holder->statisticsAll = false;
+      d_options->d_holder->statisticsEveryQuery = false;
+      d_options->d_holder->statisticsExpert = false;
+    }
+  }
 }
 
 void OptionsHandler::threadN(std::string option) {

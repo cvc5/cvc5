@@ -13,7 +13,7 @@
  * Term conversion proof generator utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
 #define CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # mkexpr
-# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010-2013  The CVC4 Project
+# Morgan Deters <mdeters@cs.nyu.edu> for cvc5
+# Copyright (c) 2010-2013  The cvc5 Project
 #
 # The purpose of this script is to create {expr,expr_manager}.{h,cpp}
 # from template files and a list of theory kinds.  Basically it just

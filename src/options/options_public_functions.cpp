@@ -133,10 +133,6 @@ bool Options::getStatsEveryQuery() const{
   return (*this)[options::statisticsEveryQuery];
 }
 
-bool Options::getStatsHideZeros() const{
-  return (*this)[options::statsHideZeros];
-}
-
 bool Options::getStrictParsing() const{
   return (*this)[options::strictParsing];
 }
@@ -180,10 +176,6 @@ std::ostream* Options::getOutConst() const{
 
 std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
-}
-
-unsigned Options::getParseStep() const{
-  return (*this)[options::parseStep];
 }
 
 std::ostream* Options::currentGetOut() {

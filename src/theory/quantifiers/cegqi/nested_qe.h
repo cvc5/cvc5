@@ -14,7 +14,7 @@
  * based on nested quantifier elimination.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H
 #define CVC5__THEORY__QUANTIFIERS__CEQGI__NESTED_QE_H

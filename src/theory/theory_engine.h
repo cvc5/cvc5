@@ -13,7 +13,7 @@
  * The theory engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY_ENGINE_H
 #define CVC5__THEORY_ENGINE_H
@@ -37,7 +37,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
@@ -94,7 +94,7 @@ class PropEngine;
  * This is essentially an abstraction for a collection of theories.  A
  * TheoryEngine provides services to a PropEngine, making various
  * T-solvers look like a single unit to the propositional part of
- * CVC4.
+ * cvc5.
  */
 class TheoryEngine {
 
@@ -157,6 +157,11 @@ class TheoryEngine {
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
+  /**
+   * An empty set of relevant assertions, which is returned as a dummy value for
+   * getRelevantAssertions when relevance is disabled.
+   */
+  std::unordered_set<TNode, TNodeHashFunction> d_emptyRelevantSet;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -302,7 +307,7 @@ class TheoryEngine {
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
@@ -626,11 +631,44 @@ class TheoryEngine {
   Node getModelValue(TNode var);
 
   /**
+   * Get relevant assertions. This returns a set of assertions that are
+   * currently asserted to this TheoryEngine that propositionally entail the
+   * (preprocessed) input formula and all theory lemmas that have been marked
+   * NEEDS_JUSTIFY. For more details on this, see relevance_manager.h.
+   *
+   * This method updates success to false if the set of relevant assertions
+   * is not available. This may occur if we are not in SAT mode, if the
+   * relevance manager is disabled (see option::relevanceFilter) or if the
+   * relevance manager failed to compute relevant assertions due to an internal
+   * error.
+   */
+  const std::unordered_set<TNode, TNodeHashFunction>& getRelevantAssertions(
+      bool& success);
+
+  /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
   std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
+  //---------------------- information about cardinality of types
+  /**
+   * Is the cardinality of type tn finite? This method depends on whether
+   * finite model finding is enabled. If finite model finding is enabled, then
+   * we assume that all uninterpreted sorts have finite cardinality.
+   *
+   * Notice that if finite model finding is enabled, this method returns true
+   * if tn is an uninterpreted sort. It also returns true for the sort
+   * (Array Int U) where U is an uninterpreted sort. This type
+   * is finite if and only if U has cardinality one; for cases like this,
+   * we conservatively return that tn has finite cardinality.
+   *
+   * This method does *not* depend on the state of the theory engine, e.g.
+   * if U in the above example currently is entailed to have cardinality >1
+   * based on the assertions.
+   */
+  bool isFiniteType(TypeNode tn) const;
+  //---------------------- end information about cardinality of types
  private:
 
   /** Dump the assertions to the dump */

@@ -2270,17 +2270,12 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
   }
 }
 
-QuantConflictFind::Statistics::Statistics():
-  d_inst_rounds("QuantConflictFind::Inst_Rounds", 0),
-  d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
+QuantConflictFind::Statistics::Statistics()
+    : d_inst_rounds(
+        smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(smtStatisticsRegistry().registerInt(
+          "QuantConflictFind::Entailment_Checks"))
 {
-  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
-  smtStatisticsRegistry()->registerStat(&d_entailment_checks);
-}
-
-QuantConflictFind::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 
 TNode QuantConflictFind::getZero( Kind k ) {

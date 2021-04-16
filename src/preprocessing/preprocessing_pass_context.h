@@ -17,7 +17,7 @@
  * from the solver and interact with it without getting full access.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define CVC5__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
@@ -62,7 +62,7 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(ResourceManager::Resource r)
+  void spendResource(Resource r)
   {
     d_resourceManager->spendResource(r);
   }
@@ -79,6 +79,13 @@ class PreprocessingPassContext
    * the symbols to d_symsInAssertions that occur in assertions.
    */
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
+
+  /**
+   * Add substitution to theory model.
+   * @param lhs The node replaced by node 'rhs'
+   * @param rhs The node to substitute node 'lhs'
+   */
+  void addModelSubstitution(const Node& lhs, const Node& rhs);
 
   /** The the proof node manager associated with this context, if it exists */
   ProofNodeManager* getProofNodeManager();

@@ -732,7 +732,7 @@ void Smt2::checkThatLogicIsSet()
       else
       {
         warning("No set-logic command was given before this point.");
-        warning("CVC4 will make all theories available.");
+        warning("cvc5 will make all theories available.");
         warning(
             "Consider setting a stricter logic for (likely) better "
             "performance.");

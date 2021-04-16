@@ -16,7 +16,7 @@
 #include "theory/bv/bitblast/aig_bitblaster.h"
 
 #include "base/check.h"
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -148,24 +148,25 @@ AigBitblaster::AigBitblaster()
     case options::SatSolverMode::MINISAT:
     {
       prop::BVSatSolverInterface* minisat =
-          prop::SatSolverFactory::createMinisat(
-              d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
+          prop::SatSolverFactory::createMinisat(d_nullContext.get(),
+                                                smtStatisticsRegistry(),
+                                                "theory::bv::AigBitblaster::");
       d_notify.reset(new MinisatEmptyNotify());
       minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }
     case options::SatSolverMode::CADICAL:
-      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
-                                                     "AigBitblaster");
+      solver = prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "theory::bv::AigBitblaster::");
       break;
     case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "AigBitblaster");
+          smtStatisticsRegistry(), "theory::bv::AigBitblaster::");
       break;
     case options::SatSolverMode::KISSAT:
-      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
-                                                    "AigBitblaster");
+      solver = prop::SatSolverFactory::createKissat(
+          smtStatisticsRegistry(), "theory::bv::AigBitblaster::");
       break;
     default: CVC5_FATAL() << "Unknown SAT solver type";
   }

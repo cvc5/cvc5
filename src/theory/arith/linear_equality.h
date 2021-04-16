@@ -26,7 +26,7 @@
  * using both the Tableau and PartialModel.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -38,8 +38,7 @@
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
 #include "util/maybe.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -714,7 +713,6 @@ private:
     TimerStat d_forceTime;
 
     Statistics();
-    ~Statistics();
   };
   mutable Statistics d_statistics;
 

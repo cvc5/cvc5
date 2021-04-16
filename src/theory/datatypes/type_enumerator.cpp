@@ -199,7 +199,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum") << "datatype is " << d_type << std::endl;
    Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " "
                     << d_datatype.isRecursiveSingleton(d_type);
-   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
+   Debug("dt-enum") << " " << d_datatype.getCardinalityClass(d_type)
                     << std::endl;
    // Start with the ground term constructed via mkGroundValue, which does
    // a traversal over the structure of the datatype to find a finite term.
@@ -312,7 +312,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        // or other cases
        if (prevSize == d_size_limit
            || (d_size_limit == 0 && d_datatype.isCodatatype())
-           || !d_datatype.isInterpretedFinite(d_type))
+           || d_datatype.getCardinalityClass(d_type)
+                  == CardinalityClass::INFINITE)
        {
          d_size_limit++;
          d_ctor = 0;

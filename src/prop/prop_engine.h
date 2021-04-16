@@ -15,7 +15,7 @@
  * Main interface point between cvc5's SMT infrastructure and the SAT solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
@@ -252,7 +252,7 @@ class PropEngine
    * Informs the ResourceManager that a resource has been spent.  If out of
    * resources, can throw an UnsafeInterruptException exception.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * For debugging.  Return true if "expl" is a well-formed

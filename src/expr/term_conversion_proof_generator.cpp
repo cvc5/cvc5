@@ -533,6 +533,16 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         }
         else
         {
+          // If we changed due to congruence, and then rewrote, then we
+          // require a trans step to connect here
+          if (!rret.isNull() && childChanged)
+          {
+            std::vector<Node> pfChildren;
+            pfChildren.push_back(cur.eqNode(ret));
+            pfChildren.push_back(ret.eqNode(rret));
+            Node result = cur.eqNode(rret);
+            pf.addStep(result, PfRule::TRANS, pfChildren, {});
+          }
           // take its rewrite if it rewrote and we have ONCE rewriting policy
           ret = rret.isNull() ? ret : rret;
           Trace("tconv-pf-gen-rewrite")

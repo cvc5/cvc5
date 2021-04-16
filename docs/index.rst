@@ -16,3 +16,4 @@ cvc5 API Documentation
    :maxdepth: 2
 
    cpp
+   references

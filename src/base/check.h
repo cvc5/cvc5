@@ -28,7 +28,7 @@
  *       signal-handling code.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__CHECK_H
 #define CVC5__CHECK_H
