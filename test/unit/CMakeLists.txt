@@ -33,8 +33,7 @@ add_custom_target(units
   DEPENDS build-units)
 
 set(CVC5_UNIT_TEST_FLAGS_BLACK
-  -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST
-  -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
+  -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST)
 
 # Generate and add unit test.
 macro(cvc5_add_unit_test is_white name output_dir)

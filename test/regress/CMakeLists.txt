@@ -1012,10 +1012,10 @@ set(regress_0_tests
   regress0/sets/insert.smt2
   regress0/sets/int-real-univ-unsat.smt2
   regress0/sets/int-real-univ.smt2
-  regress0/sets/jan24/deepmeas0.hs.fqout.cvc5.47.smt2
+  regress0/sets/jan24/deepmeas0.hs.fqout.cvc4.47.smt2
   regress0/sets/jan24/deepmeas0.hs.fqout.small.smt2
   regress0/sets/jan27/ListConcat.hs.fqout.177minimized.smt2
-  regress0/sets/jan27/ListConcat.hs.fqout.cvc5.177.smt2
+  regress0/sets/jan27/ListConcat.hs.fqout.cvc4.177.smt2
   regress0/sets/jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2
   regress0/sets/jan30/UniqueZipper.hs.fqout.minimized10.smt2
   regress0/sets/jan30/UniqueZipper.hs.fqout.minimized1832.smt2
@@ -1932,13 +1932,13 @@ set(regress_1_tests
   regress1/sets/choose3.smt2
   regress1/sets/choose4.smt2
   regress1/sets/issue5705-cg-subtyping.smt2
-  regress1/sets/ListElem.hs.fqout.cvc5.38.smt2
-  regress1/sets/ListElts.hs.fqout.cvc5.317.smt2
-  regress1/sets/TalkingAboutSets.hs.fqout.cvc5.3577.smt2
-  regress1/sets/UniqueZipper.hs.1030minimized.cvc5.smt2
-  regress1/sets/UniqueZipper.hs.1030minimized2.cvc5.smt2
-  regress1/sets/UniqueZipper.hs.fqout.cvc5.10.smt2
-  regress1/sets/UniqueZipper.hs.fqout.cvc5.1832.smt2
+  regress1/sets/ListElem.hs.fqout.cvc4.38.smt2
+  regress1/sets/ListElts.hs.fqout.cvc4.317.smt2
+  regress1/sets/TalkingAboutSets.hs.fqout.cvc4.3577.smt2
+  regress1/sets/UniqueZipper.hs.1030minimized.cvc4.smt2
+  regress1/sets/UniqueZipper.hs.1030minimized2.cvc4.smt2
+  regress1/sets/UniqueZipper.hs.fqout.cvc4.10.smt2
+  regress1/sets/UniqueZipper.hs.fqout.cvc4.1832.smt2
   regress1/sets/arjun-set-univ.cvc
   regress1/sets/card-3.smt2
   regress1/sets/card-4.smt2
@@ -1951,7 +1951,7 @@ set(regress_1_tests
   regress1/sets/comp-positive.smt2
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
-  regress1/sets/deepmeas0.hs.fqout.cvc5.41.smt2
+  regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
   regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
   regress1/sets/finite-type/sets-card-arrunit.smt2
@@ -2034,7 +2034,7 @@ set(regress_1_tests
   regress1/strings/issue3217.smt2
   regress1/strings/issue3272.smt2
   regress1/strings/issue3357.smt2
-  regress1/strings/issue3657-unexpectedUnsatCVC5.smt2
+  regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
   regress1/strings/issue4608-re-derive.smt2
   regress1/strings/issue4701_substr_splice.smt2
