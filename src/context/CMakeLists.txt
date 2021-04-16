@@ -34,7 +34,7 @@ set(LIBCONTEXT_SOURCES
   context_mm.h
 )
 
-add_library(cvc4context STATIC ${LIBCONTEXT_SOURCES})
+add_library(cvc4context OBJECT ${LIBCONTEXT_SOURCES})
 if(ENABLE_SHARED)
   set_target_properties(cvc4context PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()

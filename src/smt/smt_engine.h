@@ -30,7 +30,6 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
-#include "util/sexpr.h"
 
 namespace cvc5 {
 
@@ -217,7 +216,7 @@ class CVC4_EXPORT SmtEngine
   bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
-  cvc5::SExpr getInfo(const std::string& key) const;
+  std::string getInfo(const std::string& key) const;
 
   /**
    * Set an aspect of the current SMT execution environment.
@@ -826,9 +825,6 @@ class CVC4_EXPORT SmtEngine
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** Get the value of one named statistic from this SmtEngine. */
-  SExpr getStatistic(std::string name) const;
-
   /**
    * Print statistics from the statistics registry in the env object owned by
    * this SmtEngine.
@@ -1144,7 +1140,7 @@ class CVC4_EXPORT SmtEngine
   /**
    * Verbosity of various commands.
    */
-  std::map<std::string, Integer> d_commandVerbosity;
+  std::map<std::string, int> d_commandVerbosity;
 
   /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;

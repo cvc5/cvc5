@@ -275,24 +275,26 @@ void OptionsHandler::setStats(const std::string& option, bool value)
     throw OptionException(ss.str());
   }
 #endif /* CVC5_STATISTICS_ON */
+  Assert(option.substr(0, 2) == "--");
+  std::string opt = option.substr(2);
   if (value)
   {
-    if (option == options::statisticsAll.getName())
+    if (opt == options::statisticsAll.getName())
     {
       d_options->d_holder->statistics = true;
     }
-    else if (option == options::statisticsEveryQuery.getName())
+    else if (opt == options::statisticsEveryQuery.getName())
     {
       d_options->d_holder->statistics = true;
     }
-    else if (option == options::statisticsExpert.getName())
+    else if (opt == options::statisticsExpert.getName())
     {
       d_options->d_holder->statistics = true;
     }
   }
   else
   {
-    if (option == options::statistics.getName())
+    if (opt == options::statistics.getName())
     {
       d_options->d_holder->statisticsAll = false;
       d_options->d_holder->statisticsEveryQuery = false;
