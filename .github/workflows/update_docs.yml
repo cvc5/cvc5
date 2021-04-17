@@ -47,7 +47,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           branch: master
-          folder: docs/sphinx-gh
+          folder: build/docs/sphinx-gh
           repository-name: nafur/python-playground #cvc5/cvc5.github.io
           target-folder: docs-master
 
@@ -56,6 +56,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           branch: master
-          folder: docs/sphinx-gh
+          folder: build/docs/sphinx-gh
           repository-name: nafur/python-playground #cvc5/cvc5.github.io
           target-folder: docs-pr${{ github.event.number }}
