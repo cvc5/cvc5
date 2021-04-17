@@ -43,7 +43,7 @@ jobs:
         working-directory: build
 
       - name: Update master docs
-        if: github.event == 'push' # && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' # && github.ref == 'refs/heads/master'
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           branch: master
@@ -52,7 +52,7 @@ jobs:
           target-folder: docs-master
 
       - name: Update PR docs
-        if: github.event == 'pull_request'
+        if: github.event_name == 'pull_request'
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           branch: master
