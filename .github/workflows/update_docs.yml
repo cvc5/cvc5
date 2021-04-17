@@ -28,9 +28,10 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             libgmp-dev \
-            doxygen python3-docutils
+            doxygen
           python3 -m pip install toml setuptools \
-            sphinxcontrib-bibtex sphinx-tabs breathe
+            sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
+            breathe docutils
 
       - name: Configure
         run: ./configure.sh debug --docs
