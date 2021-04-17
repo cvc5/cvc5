@@ -1,3 +1,4 @@
+name: documentation
 on:
   push:
 #    branches:
@@ -14,7 +15,6 @@ on:
       - 'docs/**'
       - 'src/api/**'
 
-name: documentation
 
 jobs:
   build:
