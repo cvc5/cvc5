@@ -85,21 +85,37 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isIndexed(JNIEnv* env,
  */
 JNIEXPORT jintArray JNICALL Java_cvc5_Op_getIntegerIndices(JNIEnv* env,
                                                            jobject,
-                                                           jlong pointer);
-//{
-//  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-//  Op* current = (Op*)pointer;
-//  current->
-//  std::vector<long> sortPointers(sorts.size());
-//  for (size_t i = 0; i < sorts.size(); i++)
-//  {
-//    sortPointers[i] = (long)new Sort(sorts[i]);
-//  }
-//  jlongArray ret = env->NewLongArray(sorts.size());
-//  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
-//  return ret;
-//  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-//}
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* current = (Op*)pointer;
+  size_t size = current->getNumIndices();
+  std::vector<int> indices(size);
+  if (size == 1)
+  {
+    uint32_t index = current->getIndices<uint32_t>();
+    indices.push_back(index);
+  }
+
+  if (size == 2)
+  {
+    std::pair<uint32_t, uint32_t> pair =
+        current->getIndices<std::pair<uint32_t, uint32_t>>();
+    indices.push_back(pair.first);
+    indices.push_back(pair.second);
+  }
+
+  if (size > 2)
+  {
+    std::string message = "Unhandled case when number of indices > 2.";
+    throw CVC5ApiException(message);
+  }
+
+  jintArray ret = env->NewIntArray((jsize)size);
+  env->SetIntArrayRegion(ret, 0, size, indices.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Op
@@ -110,10 +126,17 @@ JNIEXPORT jobjectArray JNICALL Java_cvc5_Op_getStringIndices(JNIEnv* env,
                                                              jobject,
                                                              jlong pointer);
 
-
 /*
  * Class:     cvc5_Op
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Op_toString(JNIEnv*, jobject, jlong);
+JNIEXPORT jstring JNICALL Java_cvc5_Op_toString(JNIEnv* env,
+                                                jobject,
+                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* current = (Op*)pointer;
+  return env->NewStringUTF(current->toString().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
