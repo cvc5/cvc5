@@ -657,212 +657,412 @@ Java_cvc5_Sort_getConstructorDomainSorts(JNIEnv* env, jobject, jlong pointer)
  * Method:    getConstructorCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getConstructorCodomainSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getConstructorCodomainSort(JNIEnv* env,
                                                                   jobject,
-                                                                  jlong);
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getConstructorCodomainSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getSelectorDomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSelectorDomainSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSelectorDomainSort(JNIEnv* env,
                                                              jobject,
-                                                             jlong);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getSelectorDomainSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getSelectorCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSelectorCodomainSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSelectorCodomainSort(JNIEnv* env,
                                                                jobject,
-                                                               jlong);
+                                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getSelectorCodomainSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getTesterDomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getTesterDomainSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getTesterDomainSort(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getTesterDomainSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getTesterCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getTesterCodomainSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getTesterCodomainSort(JNIEnv* env,
                                                              jobject,
-                                                             jlong);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getTesterCodomainSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getFunctionArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getFunctionArity(JNIEnv*, jobject, jlong);
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getFunctionArity(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getFunctionArity();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getFunctionDomainSorts
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getFunctionDomainSorts(JNIEnv*,
-                                                                   jobject,
-                                                                   jlong);
+JNIEXPORT jlongArray JNICALL
+Java_cvc5_Sort_getFunctionDomainSorts(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  std::vector<Sort> sorts = current->getFunctionDomainSorts();
+  std::vector<long> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = (long)new Sort(sorts[i]);
+  }
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getFunctionCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getFunctionCodomainSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getFunctionCodomainSort(JNIEnv* env,
                                                                jobject,
-                                                               jlong);
+                                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getFunctionCodomainSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getArrayIndexSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getArrayIndexSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getArrayIndexSort(JNIEnv* env,
                                                          jobject,
-                                                         jlong);
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getArrayIndexSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getArrayElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getArrayElementSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getArrayElementSort(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getArrayElementSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getSetElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSetElementSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSetElementSort(JNIEnv* env,
                                                          jobject,
-                                                         jlong);
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getSetElementSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getBagElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getBagElementSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getBagElementSort(JNIEnv* env,
                                                          jobject,
-                                                         jlong);
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getBagElementSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getSequenceElementSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSequenceElementSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSequenceElementSort(JNIEnv* env,
                                                               jobject,
-                                                              jlong);
+                                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  Sort* retPointer = new Sort(current->getSequenceElementSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getUninterpretedSortName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Sort_getUninterpretedSortName(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_Sort_getUninterpretedSortName(JNIEnv* env,
                                                                   jobject,
-                                                                  jlong);
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return env->NewStringUTF(current->getUninterpretedSortName().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    isUninterpretedSortParameterized
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_cvc5_Sort_isUninterpretedSortParameterized(JNIEnv*, jobject, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isUninterpretedSortParameterized(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jboolean)current->isUninterpretedSortParameterized();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getUninterpretedSortParamSorts
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL
-Java_cvc5_Sort_getUninterpretedSortParamSorts(JNIEnv*, jobject, jlong);
+JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getUninterpretedSortParamSorts(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  std::vector<Sort> sorts = current->getUninterpretedSortParamSorts();
+  std::vector<long> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = (long)new Sort(sorts[i]);
+  }
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getSortConstructorName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Sort_getSortConstructorName(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_Sort_getSortConstructorName(JNIEnv* env,
                                                                 jobject,
-                                                                jlong);
+                                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return env->NewStringUTF(current->getSortConstructorName().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getSortConstructorArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getSortConstructorArity(JNIEnv*,
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getSortConstructorArity(JNIEnv* env,
                                                               jobject,
-                                                              jlong);
+                                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getSortConstructorArity();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getBVSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getBVSize(JNIEnv*, jobject, jlong);
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getBVSize(JNIEnv* env,
+                                                jobject,
+                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getBVSize();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getFPExponentSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getFPExponentSize(JNIEnv*,
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getFPExponentSize(JNIEnv* env,
                                                         jobject,
-                                                        jlong);
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getFPExponentSize();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getFPSignificandSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getFPSignificandSize(JNIEnv*,
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getFPSignificandSize(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getFPSignificandSize();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getDatatypeParamSorts
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getDatatypeParamSorts(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getDatatypeParamSorts(JNIEnv* env,
                                                                   jobject,
-                                                                  jlong);
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  std::vector<Sort> sorts = current->getDatatypeParamSorts();
+  std::vector<long> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = (long)new Sort(sorts[i]);
+  }
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getDatatypeArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getDatatypeArity(JNIEnv*, jobject, jlong);
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getDatatypeArity(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getDatatypeArity();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getTupleLength
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Sort_getTupleLength(JNIEnv*, jobject, jlong);
+JNIEXPORT jint JNICALL Java_cvc5_Sort_getTupleLength(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  return (jint)current->getTupleLength();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Sort
  * Method:    getTupleSorts
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getTupleSorts(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getTupleSorts(JNIEnv* env,
                                                           jobject,
-                                                          jlong);
+                                                          jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = (Sort*)pointer;
+  std::vector<Sort> sorts = current->getDatatypeParamSorts();
+  std::vector<long> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = (long)new Sort(sorts[i]);
+  }
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+} /**/
