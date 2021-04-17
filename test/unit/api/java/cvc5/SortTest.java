@@ -564,7 +564,7 @@ class SortTest
   Sort bvSort2 = d_solver.mkBitVectorSort(32);
   assertTrue(bvSort.compareTo(bvSort2) >= 0);
   assertTrue(bvSort.compareTo(bvSort2) <= 0);
-  assertTrue(intSort.compareTo(boolSort) != intSort.compareTo(boolSort));
+  assertTrue(intSort.compareTo(boolSort) > 0 != intSort.compareTo(boolSort) < 0);
   assertTrue((intSort.compareTo(bvSort) > 0 || intSort.equals(bvSort)) == (intSort.compareTo(bvSort)>= 0));
 }
 
