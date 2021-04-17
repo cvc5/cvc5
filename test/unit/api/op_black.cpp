@@ -48,7 +48,7 @@ TEST_F(TestApiBlackOp, opFromKind)
 
 TEST_F(TestApiBlackOp, getNumIndices)
 {
-  Op null;
+  Op plus = d_solver.mkOp(PLUS);
   Op divisible = d_solver.mkOp(DIVISIBLE, 4);
   Op record_update = d_solver.mkOp(RECORD_UPDATE, "test");
   Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
@@ -74,7 +74,7 @@ TEST_F(TestApiBlackOp, getNumIndices)
       d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
   Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 2, 3);
 
-  ASSERT_EQ(0, null.getNumIndices());
+  ASSERT_EQ(0, plus.getNumIndices());
   ASSERT_EQ(1, divisible.getNumIndices());
   ASSERT_EQ(1, record_update.getNumIndices());
   ASSERT_EQ(1, bitvector_repeat.getNumIndices());
