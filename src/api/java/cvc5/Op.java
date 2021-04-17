@@ -80,12 +80,12 @@ public class Op extends AbstractPointer
    *
    * @return the indices used to create this Op
    */
-  public int [] getIntegerIndices()
+  public int[] getIntegerIndices()
   {
     return getIntegerIndices(pointer);
   }
 
-  private native int [] getIntegerIndices(long pointer);
+  private native int[] getIntegerIndices(long pointer);
 
   /**
    * Get the indices used to create this Op.
@@ -93,12 +93,12 @@ public class Op extends AbstractPointer
    *
    * @return the indices used to create this Op
    */
-  public String [] getStringIndices()
+  public String[] getStringIndices()
   {
     return getStringIndices(pointer);
   }
 
-  private native String [] getStringIndices(long pointer);
+  private native String[] getStringIndices(long pointer);
 
   /**
    * @return a string representation of this operator
