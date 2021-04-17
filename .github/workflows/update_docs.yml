@@ -43,6 +43,8 @@ jobs:
 
       - name: Update master docs
         if: github.event == 'push' && github.ref == 'refs/heads/master'
+        run: echo "foo"
 
       - name: Update PR docs
         if: github.event == 'pull_request'
+        run: echo "bar"
