@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file inference_manager_buffered.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A buffered inference manager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A buffered inference manager.
+ */
 
 #include "theory/inference_manager_buffered.h"
 
@@ -26,9 +27,9 @@ namespace theory {
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
                                                    TheoryState& state,
                                                    ProofNodeManager* pnm,
-                                                   const std::string& name,
+                                                   const std::string& statsName,
                                                    bool cacheLemmas)
-    : TheoryInferenceManager(t, state, pnm, name, cacheLemmas),
+    : TheoryInferenceManager(t, state, pnm, statsName, cacheLemmas),
       d_processingPendingLemmas(false)
 {
 }

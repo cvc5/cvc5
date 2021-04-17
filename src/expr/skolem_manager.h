@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file skolem_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Skolem manager utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Skolem manager utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__SKOLEM_MANAGER_H
-#define CVC4__EXPR__SKOLEM_MANAGER_H
+#ifndef CVC5__EXPR__SKOLEM_MANAGER_H
+#define CVC5__EXPR__SKOLEM_MANAGER_H
 
 #include <string>
 
@@ -28,14 +29,18 @@ class ProofGenerator;
 /** Skolem function identifier */
 enum class SkolemFunId
 {
-  /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
   DIV_BY_ZERO,
-  /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
   INT_DIV_BY_ZERO,
-  /* an uninterpreted function f s.t. f(x) = x mod 0 */
+  /** an uninterpreted function f s.t. f(x) = x mod 0 */
   MOD_BY_ZERO,
-  /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+  /** an uninterpreted function f s.t. f(x) = sqrt(x) */
   SQRT,
+  /** a wrongly applied selector */
+  SELECTOR_WRONG,
+  /** an application of seq.nth that is out of bounds */
+  SEQ_NTH_OOB,
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
@@ -282,7 +287,7 @@ class SkolemManager
   /**
    * Cached of skolem functions for mkSkolemFunction above.
    */
-  std::map<std::pair<SkolemFunId, Node>, Node> d_skolemFuns;
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
   /**
    * Mapping from witness terms to proof generators.
    */
@@ -314,4 +319,4 @@ class SkolemManager
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_SKOLEM_CACHE_H */
+#endif /* CVC5__EXPR__PROOF_SKOLEM_CACHE_H */

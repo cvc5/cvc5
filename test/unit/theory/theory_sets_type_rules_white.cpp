@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_sets_type_rules_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of sets typing rules
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of sets typing rules
+ */
 
 #include "expr/dtype.h"
 #include "test_api.h"
@@ -52,7 +53,7 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
   //    (singleton (singleton_op Int) 1)
   //    (as emptyset (Set Real)))
   ASSERT_THROW(d_solver.mkTerm(UNION, singletonInt, emptyReal),
-               CVC4ApiException);
+               CVC5ApiException);
   // (union
   //    (singleton (singleton_op Real) 1)
   //    (as emptyset (Set Real)))

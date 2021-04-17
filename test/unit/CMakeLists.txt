@@ -1,13 +1,18 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Mathias Preiner, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
@@ -27,7 +32,7 @@ add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-units)
 
-set(CVC4_UNIT_TEST_FLAGS_BLACK
+set(CVC5_UNIT_TEST_FLAGS_BLACK
   -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
   -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
@@ -35,7 +40,7 @@ set(CVC4_UNIT_TEST_FLAGS_BLACK
 macro(cvc4_add_unit_test is_white name output_dir)
   set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
   add_executable(${name} ${test_src})
-  target_compile_definitions(${name} PRIVATE ${CVC4_UNIT_TEST_FLAGS_BLACK})
+  target_compile_definitions(${name} PRIVATE ${CVC5_UNIT_TEST_FLAGS_BLACK})
   gtest_add_tests(TARGET ${name})
   target_link_libraries(${name} PUBLIC main-test)
   target_link_libraries(${name} PUBLIC GTest::Main)

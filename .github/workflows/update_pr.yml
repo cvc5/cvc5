@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.4.0
+        uses: adRise/update-pr-branch@v0.5.1
         with:
           token: ${{ secrets.ACTION_USER_TOKEN }}
           base: 'master'

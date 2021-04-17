@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file approx_simplex.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 #include <vector>
@@ -25,8 +26,7 @@
 #include "util/dense_map.h"
 #include "util/maybe.h"
 #include "util/rational.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -52,7 +52,6 @@ std::ostream& operator<<(std::ostream& out, MipResult res);
 class ApproximateStatistics {
  public:
   ApproximateStatistics();
-  ~ApproximateStatistics();
 
   IntStat d_branchMaxDepth;
   IntStat d_branchesMaxOnAVar;

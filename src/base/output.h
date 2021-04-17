@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file output.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Output utility classes and functions
- **
- ** Output utility classes and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Output utility classes and functions.
+ */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
-#ifndef CVC4__OUTPUT_H
-#define CVC4__OUTPUT_H
+#ifndef CVC5__OUTPUT_H
+#define CVC5__OUTPUT_H
 
 #include <cstdio>
 #include <ios>
@@ -61,7 +60,7 @@ extern null_streambuf null_sb;
 /** A null output stream singleton */
 extern std::ostream null_os CVC4_EXPORT;
 
-class CVC4_EXPORT CVC4ostream
+class CVC4_EXPORT CVC5ostream
 {
   static const std::string s_tab;
   static const int s_indentIosIndex;
@@ -75,18 +74,13 @@ class CVC4_EXPORT CVC4ostream
   std::ostream& (*const d_endl)(std::ostream&);
 
   // do not allow use
-  CVC4ostream& operator=(const CVC4ostream&);
+  CVC5ostream& operator=(const CVC5ostream&);
 
-public:
-  CVC4ostream() :
-    d_os(NULL),
-    d_firstColumn(false),
-    d_endl(&std::endl) {
-  }
-  explicit CVC4ostream(std::ostream* os) :
-    d_os(os),
-    d_firstColumn(true),
-    d_endl(&std::endl) {
+ public:
+  CVC5ostream() : d_os(NULL), d_firstColumn(false), d_endl(&std::endl) {}
+  explicit CVC5ostream(std::ostream* os)
+      : d_os(os), d_firstColumn(true), d_endl(&std::endl)
+  {
   }
 
   void pushIndent() {
@@ -103,7 +97,8 @@ public:
     }
   }
 
-  CVC4ostream& flush() {
+  CVC5ostream& flush()
+  {
     if(d_os != NULL) {
       d_os->flush();
     }
@@ -116,10 +111,11 @@ public:
   std::ostream* getStreamPointer() const { return d_os; }
 
   template <class T>
-  CVC4ostream& operator<<(T const& t) CVC4_EXPORT;
+  CVC5ostream& operator<<(T const& t) CVC4_EXPORT;
 
   // support manipulators, endl, etc..
-  CVC4ostream& operator<<(std::ostream& (*pf)(std::ostream&)) {
+  CVC5ostream& operator<<(std::ostream& (*pf)(std::ostream&))
+  {
     if(d_os != NULL) {
       d_os = &(*d_os << pf);
 
@@ -129,35 +125,41 @@ public:
     }
     return *this;
   }
-  CVC4ostream& operator<<(std::ios& (*pf)(std::ios&)) {
+  CVC5ostream& operator<<(std::ios& (*pf)(std::ios&))
+  {
     if(d_os != NULL) {
       d_os = &(*d_os << pf);
     }
     return *this;
   }
-  CVC4ostream& operator<<(std::ios_base& (*pf)(std::ios_base&)) {
+  CVC5ostream& operator<<(std::ios_base& (*pf)(std::ios_base&))
+  {
     if(d_os != NULL) {
       d_os = &(*d_os << pf);
     }
     return *this;
   }
-  CVC4ostream& operator<<(CVC4ostream& (*pf)(CVC4ostream&)) {
+  CVC5ostream& operator<<(CVC5ostream& (*pf)(CVC5ostream&))
+  {
     return pf(*this);
   }
-}; /* class CVC4ostream */
+}; /* class CVC5ostream */
 
-inline CVC4ostream& push(CVC4ostream& stream) {
+inline CVC5ostream& push(CVC5ostream& stream)
+{
   stream.pushIndent();
   return stream;
 }
 
-inline CVC4ostream& pop(CVC4ostream& stream) {
+inline CVC5ostream& pop(CVC5ostream& stream)
+{
   stream.popIndent();
   return stream;
 }
 
 template <class T>
-CVC4ostream& CVC4ostream::operator<<(T const& t) {
+CVC5ostream& CVC5ostream::operator<<(T const& t)
+{
   if(d_os != NULL) {
     if(d_firstColumn) {
       d_firstColumn = false;
@@ -180,7 +182,7 @@ class NullC
 {
  public:
   operator bool() const { return false; }
-  operator CVC4ostream() const { return CVC4ostream(); }
+  operator CVC5ostream() const { return CVC5ostream(); }
   operator std::ostream&() const { return null_os; }
 }; /* class NullC */
 
@@ -195,12 +197,12 @@ class DebugC
 public:
   explicit DebugC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()(const std::string& tag) const
+  CVC5ostream operator()(const std::string& tag) const
   {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return CVC4ostream(d_os);
+      return CVC5ostream(d_os);
     } else {
-      return CVC4ostream();
+      return CVC5ostream();
     }
   }
 
@@ -235,7 +237,7 @@ class WarningC
 public:
   explicit WarningC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()() const { return CVC4ostream(d_os); }
+  CVC5ostream operator()() const { return CVC5ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() const { return *d_os; }
@@ -245,7 +247,7 @@ public:
 
   // This function supports the WarningOnce() macro, which allows you
   // to easily indicate that a warning should be emitted, but only
-  // once for a given run of CVC4.
+  // once for a given run of cvc5.
   bool warnOnce(const std::string& file, size_t line)
   {
     std::pair<std::string, size_t> pr = std::make_pair(file, line);
@@ -269,7 +271,7 @@ class MessageC
 public:
   explicit MessageC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()() const { return CVC4ostream(d_os); }
+  CVC5ostream operator()() const { return CVC5ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() const { return *d_os; }
@@ -286,7 +288,7 @@ class NoticeC
 public:
   explicit NoticeC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()() const { return CVC4ostream(d_os); }
+  CVC5ostream operator()() const { return CVC5ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() const { return *d_os; }
@@ -303,7 +305,7 @@ class ChatC
 public:
   explicit ChatC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()() const { return CVC4ostream(d_os); }
+  CVC5ostream operator()() const { return CVC5ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
   std::ostream& getStream() const { return *d_os; }
@@ -321,12 +323,12 @@ class TraceC
 public:
   explicit TraceC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()(std::string tag) const
+  CVC5ostream operator()(std::string tag) const
   {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return CVC4ostream(d_os);
+      return CVC5ostream(d_os);
     } else {
-      return CVC4ostream();
+      return CVC5ostream();
     }
   }
 
@@ -368,11 +370,12 @@ public:
 
   explicit DumpOutC(std::ostream* os) : d_os(os) {}
 
-  CVC4ostream operator()(std::string tag) {
+  CVC5ostream operator()(std::string tag)
+  {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return CVC4ostream(d_os);
+      return CVC5ostream(d_os);
     } else {
-      return CVC4ostream();
+      return CVC5ostream();
     }
   }
 
@@ -410,7 +413,7 @@ extern TraceC TraceChannel CVC4_EXPORT;
 /** The dump output singleton */
 extern DumpOutC DumpOutChannel CVC4_EXPORT;
 
-#ifdef CVC4_MUZZLE
+#ifdef CVC5_MUZZLE
 
 #define Debug \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DebugChannel
@@ -418,7 +421,7 @@ extern DumpOutC DumpOutChannel CVC4_EXPORT;
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::WarningChannel
 #define WarningOnce \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::WarningChannel
-#define CVC4Message \
+#define CVC5Message \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::MessageChannel
 #define Notice \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::NoticeChannel
@@ -429,14 +432,14 @@ extern DumpOutC DumpOutChannel CVC4_EXPORT;
 #define DumpOut \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DumpOutChannel
 
-#else /* CVC4_MUZZLE */
+#else /* CVC5_MUZZLE */
 
-#  if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 #define Debug ::cvc5::DebugChannel
-#  else /* CVC4_DEBUG && CVC4_TRACING */
+#else /* CVC5_DEBUG && CVC5_TRACING */
 #define Debug \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DebugChannel
-#  endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 #define Warning                                             \
   (!::cvc5::WarningChannel.isOn()) ? ::cvc5::nullCvc4Stream \
                                    : ::cvc5::WarningChannel
@@ -445,7 +448,7 @@ extern DumpOutC DumpOutChannel CVC4_EXPORT;
    || !::cvc5::WarningChannel.warnOnce(__FILE__, __LINE__)) \
       ? ::cvc5::nullCvc4Stream                              \
       : ::cvc5::WarningChannel
-#define CVC4Message                                         \
+#define CVC5Message                                         \
   (!::cvc5::MessageChannel.isOn()) ? ::cvc5::nullCvc4Stream \
                                    : ::cvc5::MessageChannel
 #define Notice                                             \
@@ -453,35 +456,36 @@ extern DumpOutC DumpOutChannel CVC4_EXPORT;
                                   : ::cvc5::NoticeChannel
 #define Chat \
   (!::cvc5::ChatChannel.isOn()) ? ::cvc5::nullCvc4Stream : ::cvc5::ChatChannel
-#  ifdef CVC4_TRACING
+#ifdef CVC5_TRACING
 #define Trace ::cvc5::TraceChannel
-#  else /* CVC4_TRACING */
+#else /* CVC5_TRACING */
 #define Trace \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::TraceChannel
-#  endif /* CVC4_TRACING */
-#  ifdef CVC4_DUMPING
+#endif /* CVC5_TRACING */
+#ifdef CVC5_DUMPING
 #define DumpOut ::cvc5::DumpOutChannel
-#  else /* CVC4_DUMPING */
+#else /* CVC5_DUMPING */
 #define DumpOut \
   ::cvc5::__cvc4_true() ? ::cvc5::nullCvc4Stream : ::cvc5::DumpOutChannel
-#  endif /* CVC4_DUMPING */
+#endif /* CVC5_DUMPING */
 
-#endif /* CVC4_MUZZLE */
+#endif /* CVC5_MUZZLE */
 
 // Disallow e.g. !Debug("foo").isOn() forms
 // because the ! will apply before the ? .
 // If a compiler error has directed you here,
 // just parenthesize it e.g. !(Debug("foo").isOn())
 class __cvc4_true {
-  void operator!() CVC4_UNUSED;
-  void operator~() CVC4_UNUSED;
-  void operator-() CVC4_UNUSED;
-  void operator+() CVC4_UNUSED;
-public:
+  void operator!() CVC5_UNUSED;
+  void operator~() CVC5_UNUSED;
+  void operator-() CVC5_UNUSED;
+  void operator+() CVC5_UNUSED;
+
+ public:
   inline operator bool() { return true; }
 };/* __cvc4_true */
 
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 
 class ScopedDebug
 {
@@ -509,7 +513,7 @@ public:
   }
 }; /* class ScopedDebug */
 
-#else /* CVC4_DEBUG && CVC4_TRACING */
+#else /* CVC5_DEBUG && CVC5_TRACING */
 
 class ScopedDebug
 {
@@ -517,9 +521,9 @@ class ScopedDebug
   ScopedDebug(std::string tag, bool newSetting = true) {}
 }; /* class ScopedDebug */
 
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 
-#ifdef CVC4_TRACING
+#ifdef CVC5_TRACING
 
 class ScopedTrace
 {
@@ -547,7 +551,7 @@ public:
   }
 }; /* class ScopedTrace */
 
-#else /* CVC4_TRACING */
+#else /* CVC5_TRACING */
 
 class ScopedTrace
 {
@@ -555,7 +559,7 @@ class ScopedTrace
   ScopedTrace(std::string tag, bool newSetting = true) {}
 }; /* class ScopedTrace */
 
-#endif /* CVC4_TRACING */
+#endif /* CVC5_TRACING */
 
 /**
  * Pushes an indentation level on construction, pop on destruction.
@@ -565,20 +569,24 @@ class ScopedTrace
  */
 class IndentedScope
 {
-  CVC4ostream d_out;
-public:
-  inline IndentedScope(CVC4ostream out);
+  CVC5ostream d_out;
+
+ public:
+  inline IndentedScope(CVC5ostream out);
   inline ~IndentedScope();
 }; /* class IndentedScope */
 
-#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
-inline IndentedScope::IndentedScope(CVC4ostream out) : d_out(out) { d_out << push; }
+#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
+inline IndentedScope::IndentedScope(CVC5ostream out) : d_out(out)
+{
+  d_out << push;
+}
 inline IndentedScope::~IndentedScope() { d_out << pop; }
-#else /* CVC4_DEBUG && CVC4_TRACING */
-inline IndentedScope::IndentedScope(CVC4ostream out) {}
+#else  /* CVC5_DEBUG && CVC5_TRACING */
+inline IndentedScope::IndentedScope(CVC5ostream out) {}
 inline IndentedScope::~IndentedScope() {}
-#endif /* CVC4_DEBUG && CVC4_TRACING */
+#endif /* CVC5_DEBUG && CVC5_TRACING */
 
 }  // namespace cvc5
 
-#endif /* CVC4__OUTPUT_H */
+#endif /* CVC5__OUTPUT_H */

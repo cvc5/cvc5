@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file bv_intro_pow2.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BvIntroPow2 preprocessing pass
- **
- ** Traverses the formula and applies the IsPowerOfTwo rewrite rule. This
- ** preprocessing pass is particularly useful on QF_BV/pspace benchmarks and
- ** can be enabled via option `--bv-intro-pow2`.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BvIntroPow2 preprocessing pass.
+ *
+ * Traverses the formula and applies the IsPowerOfTwo rewrite rule. This
+ * preprocessing pass is particularly useful on QF_BV/pspace benchmarks and
+ * can be enabled via option `--bv-intro-pow2`.
+ */
 
 #include "preprocessing/passes/bv_intro_pow2.h"
 

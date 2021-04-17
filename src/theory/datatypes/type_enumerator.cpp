@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file type_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for datatypes
- **
- ** Enumerators for datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for datatypes.
+ */
 
 #include "expr/dtype_cons.h"
 #include "theory/datatypes/type_enumerator.h"
@@ -200,7 +199,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum") << "datatype is " << d_type << std::endl;
    Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " "
                     << d_datatype.isRecursiveSingleton(d_type);
-   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
+   Debug("dt-enum") << " " << d_datatype.getCardinalityClass(d_type)
                     << std::endl;
    // Start with the ground term constructed via mkGroundValue, which does
    // a traversal over the structure of the datatype to find a finite term.
@@ -313,7 +312,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        // or other cases
        if (prevSize == d_size_limit
            || (d_size_limit == 0 && d_datatype.isCodatatype())
-           || !d_datatype.isInterpretedFinite(d_type))
+           || d_datatype.getCardinalityClass(d_type)
+                  == CardinalityClass::INFINITE)
        {
          d_size_limit++;
          d_ctor = 0;

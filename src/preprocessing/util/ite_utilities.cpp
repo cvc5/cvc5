@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file ite_utilities.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simplifications for ITE expressions
- **
- ** This module implements preprocessing phases designed to simplify ITE
- ** expressions.  Based on:
- ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
- ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simplifications for ITE expressions.
+ *
+ * This module implements preprocessing phases designed to simplify ITE
+ * expressions.  Based on:
+ * Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
+ * Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
  *'96
- **/
+ */
 #include "preprocessing/util/ite_utilities.h"
 
 #include <utility>
@@ -167,9 +168,7 @@ void ITEUtilities::clear()
   d_containsVisitor->garbageCollect();
 }
 
-/*********************                                                        */
-/* ContainsTermITEVisitor
- */
+/** ContainsTermITEVisitor. */
 ContainsTermITEVisitor::ContainsTermITEVisitor() : d_cache() {}
 ContainsTermITEVisitor::~ContainsTermITEVisitor() {}
 bool ContainsTermITEVisitor::containsTermITE(TNode e)
@@ -240,9 +239,7 @@ bool ContainsTermITEVisitor::containsTermITE(TNode e)
 }
 void ContainsTermITEVisitor::garbageCollect() { d_cache.clear(); }
 
-/*********************                                                        */
-/* IncomingArcCounter
- */
+/** IncomingArcCounter. */
 IncomingArcCounter::IncomingArcCounter(bool skipVars, bool skipConstants)
     : d_reachCount(), d_skipVariables(skipVars), d_skipConstants(skipConstants)
 {
@@ -289,9 +286,7 @@ void IncomingArcCounter::computeReachability(
 
 void IncomingArcCounter::clear() { d_reachCount.clear(); }
 
-/*********************                                                        */
-/* ITECompressor
- */
+/** ITECompressor. */
 ITECompressor::ITECompressor(ContainsTermITEVisitor* contains)
     : d_contains(contains), d_assertions(NULL), d_incoming(true, true)
 {
@@ -312,16 +307,10 @@ void ITECompressor::reset()
 void ITECompressor::garbageCollect() { reset(); }
 
 ITECompressor::Statistics::Statistics()
-    : d_compressCalls("ite-simp::compressCalls", 0),
-      d_skolemsAdded("ite-simp::skolems", 0)
+    : d_compressCalls(
+        smtStatisticsRegistry().registerInt("ite-simp::compressCalls")),
+      d_skolemsAdded(smtStatisticsRegistry().registerInt("ite-simp::skolems"))
 {
-  smtStatisticsRegistry()->registerStat(&d_compressCalls);
-  smtStatisticsRegistry()->registerStat(&d_skolemsAdded);
-}
-ITECompressor::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_compressCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_skolemsAdded);
 }
 
 Node ITECompressor::push_back_boolean(Node original, Node compressed)
@@ -709,35 +698,22 @@ bool ITESimplifier::doneALotOfWorkHeuristic() const
 }
 
 ITESimplifier::Statistics::Statistics()
-    : d_maxNonConstantsFolded("ite-simp::maxNonConstantsFolded", 0),
-      d_unexpected("ite-simp::unexpected", 0),
-      d_unsimplified("ite-simp::unsimplified", 0),
-      d_exactMatchFold("ite-simp::exactMatchFold", 0),
-      d_binaryPredFold("ite-simp::binaryPredFold", 0),
-      d_specialEqualityFolds("ite-simp::specialEqualityFolds", 0),
-      d_simpITEVisits("ite-simp::simpITE.visits", 0),
-      d_inSmaller("ite-simp::inSmaller")
+    : d_maxNonConstantsFolded(
+        smtStatisticsRegistry().registerInt("ite-simp::maxNonConstantsFolded")),
+      d_unexpected(smtStatisticsRegistry().registerInt("ite-simp::unexpected")),
+      d_unsimplified(
+          smtStatisticsRegistry().registerInt("ite-simp::unsimplified")),
+      d_exactMatchFold(
+          smtStatisticsRegistry().registerInt("ite-simp::exactMatchFold")),
+      d_binaryPredFold(
+          smtStatisticsRegistry().registerInt("ite-simp::binaryPredFold")),
+      d_specialEqualityFolds(smtStatisticsRegistry().registerInt(
+          "ite-simp::specialEqualityFolds")),
+      d_simpITEVisits(
+          smtStatisticsRegistry().registerInt("ite-simp::simpITE.visits")),
+      d_inSmaller(smtStatisticsRegistry().registerHistogram<uint32_t>(
+          "ite-simp::inSmaller"))
 {
-  smtStatisticsRegistry()->registerStat(&d_maxNonConstantsFolded);
-  smtStatisticsRegistry()->registerStat(&d_unexpected);
-  smtStatisticsRegistry()->registerStat(&d_unsimplified);
-  smtStatisticsRegistry()->registerStat(&d_exactMatchFold);
-  smtStatisticsRegistry()->registerStat(&d_binaryPredFold);
-  smtStatisticsRegistry()->registerStat(&d_specialEqualityFolds);
-  smtStatisticsRegistry()->registerStat(&d_simpITEVisits);
-  smtStatisticsRegistry()->registerStat(&d_inSmaller);
-}
-
-ITESimplifier::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_maxNonConstantsFolded);
-  smtStatisticsRegistry()->unregisterStat(&d_unexpected);
-  smtStatisticsRegistry()->unregisterStat(&d_unsimplified);
-  smtStatisticsRegistry()->unregisterStat(&d_exactMatchFold);
-  smtStatisticsRegistry()->unregisterStat(&d_binaryPredFold);
-  smtStatisticsRegistry()->unregisterStat(&d_specialEqualityFolds);
-  smtStatisticsRegistry()->unregisterStat(&d_simpITEVisits);
-  smtStatisticsRegistry()->unregisterStat(&d_inSmaller);
 }
 
 bool ITESimplifier::isConstantIte(TNode e)
@@ -1476,7 +1452,7 @@ uint32_t countReachable(TNode x, Kind k)
 
 Node ITESimplifier::simpITEAtom(TNode atom)
 {
-  static int CVC4_UNUSED instance = 0;
+  static int CVC5_UNUSED instance = 0;
   Debug("ite::atom") << "still simplifying " << (++instance) << endl;
   Node attempt = transformAtom(atom);
   Debug("ite::atom") << "  finished " << instance << endl;

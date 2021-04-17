@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file extf_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of solver for extended functions of theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of solver for extended functions of theory of strings.
+ */
 
 #include "theory/strings/extf_solver.h"
 
@@ -18,6 +19,7 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -132,7 +134,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
           }
           // this depends on the current assertions, so this
           // inference is context-dependent
-          d_extt.markReduced(n, true);
+          d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
           return true;
         }
         else
@@ -183,7 +185,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
     // context-dependent because it depends on the polarity of n itself
-    d_extt.markReduced(n, true);
+    d_extt.markReduced(n, ExtReducedId::STRINGS_POS_CTN, true);
   }
   else if (k != kind::STRING_TO_CODE)
   {
@@ -297,7 +299,7 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         if (effort < 3)
         {
-          d_extt.markReduced(n);
+          d_extt.markReduced(n, ExtReducedId::STRINGS_SR_CONST);
           Trace("strings-extf-debug")
               << "  resolvable by evaluation..." << std::endl;
           std::vector<Node> exps;
@@ -549,7 +551,7 @@ void ExtfSolver::checkExtfInference(Node n,
             else if (d_extt.hasFunctionKind(conc.getKind()))
             {
               // can mark as reduced, since model for n implies model for conc
-              d_extt.markReduced(conc);
+              d_extt.markReduced(conc, ExtReducedId::STRINGS_CTN_DECOMPOSE);
             }
           }
         }
@@ -730,9 +732,10 @@ std::string ExtfSolver::debugPrintModel()
   for (const Node& n : extf)
   {
     ss << "- " << n;
-    if (!d_extt.isActive(n))
+    ExtReducedId id;
+    if (!d_extt.isActive(n, id))
     {
-      ss << " :extt-inactive";
+      ss << " :extt-inactive " << id;
     }
     if (!d_extfInfoTmp[n].d_modelActive)
     {

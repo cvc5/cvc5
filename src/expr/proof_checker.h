@@ -1,28 +1,28 @@
-/*********************                                                        */
-/*! \file proof_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof checker utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof checker utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__PROOF_CHECKER_H
-#define CVC4__EXPR__PROOF_CHECKER_H
+#ifndef CVC5__EXPR__PROOF_CHECKER_H
+#define CVC5__EXPR__PROOF_CHECKER_H
 
 #include <map>
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -91,9 +91,8 @@ class ProofCheckerStatistics
 {
  public:
   ProofCheckerStatistics();
-  ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
-  IntegralHistogramStat<PfRule> d_ruleChecks;
+  HistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
   IntStat d_totalRuleChecks;
 };
@@ -204,4 +203,4 @@ class ProofChecker
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_CHECKER_H */
+#endif /* CVC5__EXPR__PROOF_CHECKER_H */

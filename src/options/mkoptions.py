@@ -1,14 +1,17 @@
 #!/usr/bin/env python
-#####################
-## mkoptions.py
-## Top contributors (to current version):
-##   Mathias Preiner, Everett Maus
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Everett Maus
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
@@ -20,7 +23,7 @@
       <tpl-src> location of all *_template.{cpp,h} files
       <tpl-doc> location of all *_template documentation files
       <dst>     destination directory for the generated source code files
-      <toml>+   one or more *_optios.toml files
+      <toml>+   one or more *_options.toml files
 
 
     Directory <tpl-src> must contain:
@@ -92,7 +95,7 @@ g_getopt_long_start = 256
 
 ### Source code templates
 
-TPL_HOLDER_MACRO_NAME = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
+TPL_HOLDER_MACRO_NAME = 'CVC5_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
 TPL_RUN_HANDLER = \
 """template <> options::{name}__option_t::type runHandlerAndPredicates(

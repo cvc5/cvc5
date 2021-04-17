@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file quantifiers_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory instantiator, Instantiation Engine classes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory instantiator, Instantiation Engine classes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS_ENGINE_H
-#define CVC4__THEORY__QUANTIFIERS_ENGINE_H
+#ifndef CVC5__THEORY__QUANTIFIERS_ENGINE_H
+#define CVC5__THEORY__QUANTIFIERS_ENGINE_H
 
 #include <map>
 #include <unordered_map>
@@ -171,7 +172,8 @@ public:
   * SynthConjecture::getSynthSolutions.
   */
  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
+ /** Declare pool */
+ void declarePool(Node p, const std::vector<Node>& initValue);
  //----------end user interface for instantiations
 
  private:
@@ -211,4 +213,4 @@ public:
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS_ENGINE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS_ENGINE_H */

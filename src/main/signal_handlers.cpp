@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file signal_handlers.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Gereon Kremer, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of signal handlers.
- **
- ** Implementation of signal handlers.
- **
- ** It is important to only call async-signal-safe functions from signal
- ** handlers. See: http://man7.org/linux/man-pages/man7/signal-safety.7.html for
- ** a list of async-signal-safe POSIX.1 functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of signal handlers.
+ *
+ * It is important to only call async-signal-safe functions from signal
+ * handlers. See: http://man7.org/linux/man-pages/man7/signal-safety.7.html for
+ * a list of async-signal-safe POSIX.1 functions.
+ */
 
 #include <string.h>
 
@@ -47,7 +46,7 @@ namespace cvc5 {
 namespace main {
 
 /**
- * If true, will not spin on segfault even when CVC4_DEBUG is on.
+ * If true, will not spin on segfault even when CVC5_DEBUG is on.
  * Useful for nightly regressions, noninteractive performance runs
  * etc.
  */
@@ -66,7 +65,7 @@ void print_statistics()
 
 void timeout_handler()
 {
-  safe_print(STDERR_FILENO, "CVC4 interrupted by timeout.\n");
+  safe_print(STDERR_FILENO, "cvc5 interrupted by timeout.\n");
   print_statistics();
   abort();
 }
@@ -84,7 +83,7 @@ void timeout_handler(int sig, siginfo_t* info, void*) { timeout_handler(); }
 /** Handler for SIGTERM. */
 void sigterm_handler(int sig, siginfo_t* info, void*)
 {
-  safe_print(STDERR_FILENO, "CVC4 interrupted by SIGTERM.\n");
+  safe_print(STDERR_FILENO, "cvc5 interrupted by SIGTERM.\n");
   print_statistics();
   abort();
 }
@@ -92,7 +91,7 @@ void sigterm_handler(int sig, siginfo_t* info, void*)
 /** Handler for SIGINT, i.e., when the user hits control C. */
 void sigint_handler(int sig, siginfo_t* info, void*)
 {
-  safe_print(STDERR_FILENO, "CVC4 interrupted by user.\n");
+  safe_print(STDERR_FILENO, "cvc5 interrupted by user.\n");
   print_statistics();
   abort();
 }
@@ -103,8 +102,8 @@ void segv_handler(int sig, siginfo_t* info, void* c)
 {
   uintptr_t extent = reinterpret_cast<uintptr_t>(cvc4StackBase) - cvc4StackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
-#ifdef CVC4_DEBUG
-  safe_print(STDERR_FILENO, "CVC4 suffered a segfault in DEBUG mode.\n");
+#ifdef CVC5_DEBUG
+  safe_print(STDERR_FILENO, "cvc5 suffered a segfault in DEBUG mode.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
   safe_print(STDERR_FILENO, "\n");
@@ -148,8 +147,8 @@ void segv_handler(int sig, siginfo_t* info, void* c)
       sleep(60);
     }
   }
-#else  /* CVC4_DEBUG */
-  safe_print(STDERR_FILENO, "CVC4 suffered a segfault.\n");
+#else  /* CVC5_DEBUG */
+  safe_print(STDERR_FILENO, "cvc5 suffered a segfault.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
   safe_print(STDERR_FILENO, "\n");
@@ -167,16 +166,16 @@ void segv_handler(int sig, siginfo_t* info, void* c)
   }
   print_statistics();
   abort();
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGILL (illegal instruction). */
 void ill_handler(int sig, siginfo_t* info, void*)
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO,
-             "CVC4 executed an illegal instruction in DEBUG mode.\n");
+             "cvc5 executed an illegal instruction in DEBUG mode.\n");
   if (!segvSpin)
   {
     print_statistics();
@@ -201,11 +200,11 @@ void ill_handler(int sig, siginfo_t* info, void*)
       sleep(60);
     }
   }
-#else  /* CVC4_DEBUG */
-  safe_print(STDERR_FILENO, "CVC4 executed an illegal instruction.\n");
+#else  /* CVC5_DEBUG */
+  safe_print(STDERR_FILENO, "cvc5 executed an illegal instruction.\n");
   print_statistics();
   abort();
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 #endif /* __WIN32__ */
@@ -215,30 +214,30 @@ static terminate_handler default_terminator;
 void cvc4terminate()
 {
   set_terminate(default_terminator);
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   LastExceptionBuffer::setCurrent(NULL);
   delete current;
 
   safe_print(STDERR_FILENO,
              "\n"
-             "CVC4 was terminated by the C++ runtime.\n"
+             "cvc5 was terminated by the C++ runtime.\n"
              "Perhaps an exception was thrown during stack unwinding.  "
              "(Don't do that.)\n");
   print_statistics();
   default_terminator();
-#else  /* CVC4_DEBUG */
+#else  /* CVC5_DEBUG */
   safe_print(STDERR_FILENO,
-             "CVC4 was terminated by the C++ runtime.\n"
+             "cvc5 was terminated by the C++ runtime.\n"
              "Perhaps an exception was thrown during stack unwinding.\n");
   print_statistics();
   default_terminator();
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 void install()
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   LastExceptionBuffer::setCurrent(new LastExceptionBuffer());
 #endif
 

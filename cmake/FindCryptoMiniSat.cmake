@@ -1,17 +1,20 @@
-#####################
-## FindCryptoMiniSat.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find CryptoMiniSat
 # CryptoMiniSat_FOUND - system has CryptoMiniSat lib
 # CryptoMiniSat_INCLUDE_DIR - the CryptoMiniSat include directory
 # CryptoMiniSat_LIBRARIES - Libraries needed to use CryptoMiniSat
+##
 
 include(deps-helper)
 
@@ -32,6 +35,7 @@ if(cryptominisat5_FOUND)
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
+  check_auto_download("CryptoMiniSat" "--no-cryptominisat")
   include(ExternalProject)
 
   set(CryptoMiniSat_VERSION "5.8.0")

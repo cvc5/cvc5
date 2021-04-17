@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file floatingpoint.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Haniel Barbosa
- ** Copyright (c) 2013  University of Oxford
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A floating-point value.
- **
- ** This file contains the data structures used by the constant and parametric
- ** types of the floating point theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Martin Brain, Haniel Barbosa
+ * Copyright (c) 2013  University of Oxford
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A floating-point value.
+ *
+ * This file contains the data structures used by the constant and parametric
+ * types of the floating point theory.
+ */
 
 #include "util/floatingpoint.h"
 
@@ -435,7 +436,7 @@ FloatingPoint::PartialRational FloatingPoint::convertToRational(void) const
   // unsigned int is not smaller than uint32_t
   static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
                 "Conversion float -> real could loose data");
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Note that multipling by 2^n requires n bits of space (worst case)
   // so, in effect, these tests limit us to cases where the resultant
   // number requires up to 2^32 bits = 512 megabyte to represent.

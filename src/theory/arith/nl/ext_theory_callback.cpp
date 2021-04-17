@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file ext_theory_callback.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The extended theory callback for non-linear arithmetic
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The extended theory callback for non-linear arithmetic
+ */
 
 #include "theory/arith/nl/ext_theory_callback.h"
 
@@ -69,17 +70,21 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
   return retVal;
 }
 
-bool NlExtTheoryCallback::isExtfReduced(int effort,
-                                        Node n,
-                                        Node on,
-                                        std::vector<Node>& exp)
+bool NlExtTheoryCallback::isExtfReduced(
+    int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
 {
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    return k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND;
+    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND)
+    {
+      id = ExtReducedId::ARITH_SR_LINEAR;
+      return true;
+    }
+    return false;
   }
   Assert(n == d_zero);
+  id = ExtReducedId::ARITH_SR_ZERO;
   if (on.getKind() == NONLINEAR_MULT)
   {
     Trace("nl-ext-zero-exp")

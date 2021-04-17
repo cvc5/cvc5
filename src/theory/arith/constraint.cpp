@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file constraint.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "theory/arith/constraint.h"
 
 #include <algorithm>
@@ -184,7 +185,7 @@ std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v){
   return o;
 }
 
-void Constraint::debugPrint() const { CVC4Message() << *this << endl; }
+void Constraint::debugPrint() const { CVC5Message() << *this << endl; }
 
 ValueCollection::ValueCollection()
   : d_lowerBound(NullConstraint),
@@ -1002,18 +1003,12 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics():
-  d_unatePropagateCalls("theory::arith::cd::unatePropagateCalls", 0),
-  d_unatePropagateImplications("theory::arith::cd::unatePropagateImplications", 0)
+ConstraintDatabase::Statistics::Statistics()
+    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
+        "theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
+          "theory::arith::cd::unatePropagateImplications"))
 {
-  smtStatisticsRegistry()->registerStat(&d_unatePropagateCalls);
-  smtStatisticsRegistry()->registerStat(&d_unatePropagateImplications);
-
-}
-
-ConstraintDatabase::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_unatePropagateCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_unatePropagateImplications);
 }
 
 void ConstraintDatabase::deleteConstraintAndNegation(ConstraintP c){

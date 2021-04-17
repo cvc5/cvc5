@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_sep.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of sep.
- **
- ** Implementation of the theory of sep.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of separation logic.
+ */
 
 #include "theory/sep/theory_sep.h"
 
@@ -51,7 +50,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::sep"),
+      d_im(*this, d_state, nullptr, "theory::sep::"),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)
@@ -203,7 +202,8 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           Trace("sep-model") << "_";
           //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
-          if( data_type.isInterpretedFinite() ){
+          if (d_state.isFiniteType(data_type))
+          {
             pto_children.push_back( *te_range );
           }else{
             //must enumerate until we find one that is not explicitly pointed to
@@ -821,7 +821,7 @@ void TheorySep::postCheck(Effort level)
   {
     TypeNode data_type = d_loc_to_data_type[it->first];
     // if the data type is finite
-    if (!data_type.isInterpretedFinite())
+    if (!d_state.isFiniteType(data_type))
     {
       continue;
     }
@@ -899,7 +899,7 @@ void TheorySep::postCheck(Effort level)
 
   if (needAddLemma)
   {
-    d_im.setIncomplete();
+    d_im.setIncomplete(IncompleteId::SEP);
   }
   Trace("sep-check") << "Sep::check(): " << level
                      << " done, conflict=" << d_state.isInConflict()

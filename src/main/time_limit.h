@@ -1,21 +1,20 @@
-/*********************                                                        */
-/*! \file time_limit.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of time limits.
- **
- ** Implementation of time limits that are imposed by the --tlimit option.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of time limits that are imposed by the --tlimit option.
+ */
 
-#ifndef CVC4__MAIN__TIME_LIMIT_H
-#define CVC4__MAIN__TIME_LIMIT_H
+#ifndef CVC5__MAIN__TIME_LIMIT_H
+#define CVC5__MAIN__TIME_LIMIT_H
 
 #include "options/options.h"
 
@@ -49,4 +48,4 @@ TimeLimit install_time_limit(const Options& opts);
 }  // namespace main
 }  // namespace cvc5
 
-#endif /* CVC4__MAIN__TIME_LIMIT_H */
+#endif /* CVC5__MAIN__TIME_LIMIT_H */

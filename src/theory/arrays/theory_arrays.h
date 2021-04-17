@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_arrays.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of arrays
- **
- ** Theory of arrays.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of arrays.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
-#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
+#define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include <tuple>
 #include <unordered_map>
@@ -33,7 +32,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -139,7 +138,7 @@ class TheoryArrays : public Theory {
                Valuation valuation,
                const LogicInfo& logicInfo,
                ProofNodeManager* pnm = nullptr,
-               std::string name = "");
+               std::string name = "theory::arrays::");
   ~TheoryArrays();
 
   //--------------------------------- initialization
@@ -494,4 +493,4 @@ class TheoryArrays : public Theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */
+#endif /* CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H */

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file proof_cnf_stream.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Dejan Jovanovic, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof-producing CNF stream
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Dejan Jovanovic, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof-producing CNF stream.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PROP__PROOF_CNF_STREAM_H
-#define CVC4__PROP__PROOF_CNF_STREAM_H
+#ifndef CVC5__PROP__PROOF_CNF_STREAM_H
+#define CVC5__PROP__PROOF_CNF_STREAM_H
 
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
@@ -78,12 +79,11 @@ class ProofCnfStream : public ProofGenerator
                         ProofGenerator* pg);
 
   /**
-   * Clausifies the given propagation lemma *without* registering the
-   * resoluting clause in the SAT solver, as this is handled internally by the
-   * SAT solver. The clausification steps and the generator within the trust
-   * node are saved in d_proof. */
+   * Clausifies the given propagation lemma *without* registering the resoluting
+   * clause in the SAT solver, as this is handled internally by the SAT
+   * solver. The clausification steps and the generator within the trust node
+   * are saved in d_proof if we are producing proofs in the theory engine. */
   void convertPropagation(theory::TrustNode ttn);
-
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -151,6 +151,7 @@ class ProofCnfStream : public ProofGenerator
    * above normalizations on all added clauses.
    */
   void normalizeAndRegister(TNode clauseNode);
+
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
   /** The proof manager of underlying SAT solver associated with this stream. */

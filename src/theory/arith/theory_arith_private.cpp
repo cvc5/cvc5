@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_arith_private.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/theory_arith_private.h"
 
@@ -71,7 +72,7 @@
 #include "util/random.h"
 #include "util/rational.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -170,7 +171,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntAttempts(0u),
       d_newFacts(false),
       d_previousStatus(Result::SAT_UNKNOWN),
-      d_statistics()
+      d_statistics("theory::arith::")
 {
 }
 
@@ -213,7 +214,7 @@ static void drop( ConstraintCPVec& v, ConstraintP con){
 
 
 static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& pos, const ConstraintCPVec& neg){
-  unsigned posPos CVC4_UNUSED = pos.size();
+  unsigned posPos CVC5_UNUSED = pos.size();
   for(unsigned i = 0, N = pos.size(); i < N; ++i){
     if(pos[i] == c){
       posPos = i;
@@ -223,7 +224,7 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   }
   Assert(posPos < pos.size());
   ConstraintP negc = c->getNegation();
-  unsigned negPos CVC4_UNUSED = neg.size();
+  unsigned negPos CVC5_UNUSED = neg.size();
   for(unsigned i = 0, N = neg.size(); i < N; ++i){
     if(neg[i] == negc){
       negPos = i;
@@ -253,265 +254,154 @@ TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
 }
 TheoryArithPrivate::ModelException::~ModelException() {}
 
-TheoryArithPrivate::Statistics::Statistics()
-  : d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0)
-  , d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0)
-  , d_statUserVariables("theory::arith::UserVariables", 0)
-  , d_statAuxiliaryVariables("theory::arith::AuxiliaryVariables", 0)
-  , d_statDisequalitySplits("theory::arith::DisequalitySplits", 0)
-  , d_statDisequalityConflicts("theory::arith::DisequalityConflicts", 0)
-  , d_simplifyTimer("theory::arith::simplifyTimer")
-  , d_staticLearningTimer("theory::arith::staticLearningTimer")
-  , d_presolveTime("theory::arith::presolveTime")
-  , d_newPropTime("theory::arith::newPropTimer")
-  , d_externalBranchAndBounds("theory::arith::externalBranchAndBounds",0)
-  , d_initialTableauSize("theory::arith::initialTableauSize", 0)
-  , d_currSetToSmaller("theory::arith::currSetToSmaller", 0)
-  , d_smallerSetToCurr("theory::arith::smallerSetToCurr", 0)
-  , d_restartTimer("theory::arith::restartTimer")
-  , d_boundComputationTime("theory::arith::bound::time")
-  , d_boundComputations("theory::arith::bound::boundComputations",0)
-  , d_boundPropagations("theory::arith::bound::boundPropagations",0)
-  , d_unknownChecks("theory::arith::status::unknowns", 0)
-  , d_maxUnknownsInARow("theory::arith::status::maxUnknownsInARow", 0)
-  , d_avgUnknownsInARow("theory::arith::status::avgUnknownsInARow")
-  , d_revertsOnConflicts("theory::arith::status::revertsOnConflicts",0)
-  , d_commitsOnConflicts("theory::arith::status::commitsOnConflicts",0)
-  , d_nontrivialSatChecks("theory::arith::status::nontrivialSatChecks",0)
-  , d_replayLogRecCount("theory::arith::z::approx::replay::rec",0)
-  , d_replayLogRecConflictEscalation("theory::arith::z::approx::replay::rec::escalation",0)
-  , d_replayLogRecEarlyExit("theory::arith::z::approx::replay::rec::earlyexit",0)
-  , d_replayBranchCloseFailures("theory::arith::z::approx::replay::rec::branch::closefailures",0)
-  , d_replayLeafCloseFailures("theory::arith::z::approx::replay::rec::leaf::closefailures",0)
-  , d_replayBranchSkips("theory::arith::z::approx::replay::rec::branch::skips",0)
-  , d_mirCutsAttempted("theory::arith::z::approx::cuts::mir::attempted",0)
-  , d_gmiCutsAttempted("theory::arith::z::approx::cuts::gmi::attempted",0)
-  , d_branchCutsAttempted("theory::arith::z::approx::cuts::branch::attempted",0)
-  , d_cutsReconstructed("theory::arith::z::approx::cuts::reconstructed",0)
-  , d_cutsReconstructionFailed("theory::arith::z::approx::cuts::reconstructed::failed",0)
-  , d_cutsProven("theory::arith::z::approx::cuts::proofs",0)
-  , d_cutsProofFailed("theory::arith::z::approx::cuts::proofs::failed",0)
-  , d_mipReplayLemmaCalls("theory::arith::z::approx::external::calls",0)
-  , d_mipExternalCuts("theory::arith::z::approx::external::cuts",0)
-  , d_mipExternalBranch("theory::arith::z::approx::external::branches",0)
-  , d_inSolveInteger("theory::arith::z::approx::inSolverInteger",0)
-  , d_branchesExhausted("theory::arith::z::approx::exhausted::branches",0)
-  , d_execExhausted("theory::arith::z::approx::exhausted::exec",0)
-  , d_pivotsExhausted("theory::arith::z::approx::exhausted::pivots",0)
-  , d_panicBranches("theory::arith::z::arith::paniclemmas",0)
-  , d_relaxCalls("theory::arith::z::arith::relax::calls",0)
-  , d_relaxLinFeas("theory::arith::z::arith::relax::feasible::res",0)
-  , d_relaxLinFeasFailures("theory::arith::z::arith::relax::feasible::failures",0)
-  , d_relaxLinInfeas("theory::arith::z::arith::relax::infeasible",0)
-  , d_relaxLinInfeasFailures("theory::arith::z::arith::relax::infeasible::failures",0)
-  , d_relaxLinExhausted("theory::arith::z::arith::relax::exhausted",0)
-  , d_relaxOthers("theory::arith::z::arith::relax::other",0)
-  , d_applyRowsDeleted("theory::arith::z::arith::cuts::applyRowsDeleted",0)
-  , d_replaySimplexTimer("theory::arith::z::approx::replay::simplex::timer")
-  , d_replayLogTimer("theory::arith::z::approx::replay::log::timer")
-  , d_solveIntTimer("theory::arith::z::solveInt::timer")
-  , d_solveRealRelaxTimer("theory::arith::z::solveRealRelax::timer")
-  , d_solveIntCalls("theory::arith::z::solveInt::calls", 0)
-  , d_solveStandardEffort("theory::arith::z::solveInt::calls::standardEffort", 0)
-  , d_approxDisabled("theory::arith::z::approxDisabled", 0)
-  , d_replayAttemptFailed("theory::arith::z::replayAttemptFailed",0)
-  , d_cutsRejectedDuringReplay("theory::arith::z::approx::replay::cuts::rejected", 0)
-  , d_cutsRejectedDuringLemmas("theory::arith::z::approx::external::cuts::rejected", 0)
-  , d_satPivots("theory::arith::pivots::sat")
-  , d_unsatPivots("theory::arith::pivots::unsat")
-  , d_unknownPivots("theory::arith::pivots::unknown")
-  , d_solveIntModelsAttempts("theory::arith::z::solveInt::models::attempts", 0)
-  , d_solveIntModelsSuccessful("theory::arith::zzz::solveInt::models::successful", 0)
-  , d_mipTimer("theory::arith::z::approx::mip::timer")
-  , d_lpTimer("theory::arith::z::approx::lp::timer")
-  , d_mipProofsAttempted("theory::arith::z::mip::proofs::attempted", 0)
-  , d_mipProofsSuccessful("theory::arith::z::mip::proofs::successful", 0)
-  , d_numBranchesFailed("theory::arith::z::mip::branch::proof::failed", 0)
+TheoryArithPrivate::Statistics::Statistics(const std::string& name)
+    : d_statAssertUpperConflicts(
+        smtStatisticsRegistry().registerInt(name + "AssertUpperConflicts")),
+      d_statAssertLowerConflicts(
+          smtStatisticsRegistry().registerInt(name + "AssertLowerConflicts")),
+      d_statUserVariables(
+          smtStatisticsRegistry().registerInt(name + "UserVariables")),
+      d_statAuxiliaryVariables(
+          smtStatisticsRegistry().registerInt(name + "AuxiliaryVariables")),
+      d_statDisequalitySplits(
+          smtStatisticsRegistry().registerInt(name + "DisequalitySplits")),
+      d_statDisequalityConflicts(
+          smtStatisticsRegistry().registerInt(name + "DisequalityConflicts")),
+      d_simplifyTimer(
+          smtStatisticsRegistry().registerTimer(name + "simplifyTimer")),
+      d_staticLearningTimer(
+          smtStatisticsRegistry().registerTimer(name + "staticLearningTimer")),
+      d_presolveTime(
+          smtStatisticsRegistry().registerTimer(name + "presolveTime")),
+      d_newPropTime(
+          smtStatisticsRegistry().registerTimer(name + "newPropTimer")),
+      d_externalBranchAndBounds(smtStatisticsRegistry().registerInt(
+          name + "externalBranchAndBounds")),
+      d_initialTableauSize(
+          smtStatisticsRegistry().registerInt(name + "initialTableauSize")),
+      d_currSetToSmaller(
+          smtStatisticsRegistry().registerInt(name + "currSetToSmaller")),
+      d_smallerSetToCurr(
+          smtStatisticsRegistry().registerInt(name + "smallerSetToCurr")),
+      d_restartTimer(
+          smtStatisticsRegistry().registerTimer(name + "restartTimer")),
+      d_boundComputationTime(
+          smtStatisticsRegistry().registerTimer(name + "bound::time")),
+      d_boundComputations(smtStatisticsRegistry().registerInt(
+          name + "bound::boundComputations")),
+      d_boundPropagations(smtStatisticsRegistry().registerInt(
+          name + "bound::boundPropagations")),
+      d_unknownChecks(
+          smtStatisticsRegistry().registerInt(name + "status::unknowns")),
+      d_maxUnknownsInARow(smtStatisticsRegistry().registerInt(
+          name + "status::maxUnknownsInARow")),
+      d_avgUnknownsInARow(smtStatisticsRegistry().registerAverage(
+          name + "status::avgUnknownsInARow")),
+      d_revertsOnConflicts(smtStatisticsRegistry().registerInt(
+          name + "status::revertsOnConflicts")),
+      d_commitsOnConflicts(smtStatisticsRegistry().registerInt(
+          name + "status::commitsOnConflicts")),
+      d_nontrivialSatChecks(smtStatisticsRegistry().registerInt(
+          name + "status::nontrivialSatChecks")),
+      d_replayLogRecCount(
+          smtStatisticsRegistry().registerInt(name + "z::approx::replay::rec")),
+      d_replayLogRecConflictEscalation(smtStatisticsRegistry().registerInt(
+          name + "z::approx::replay::rec::escalation")),
+      d_replayLogRecEarlyExit(smtStatisticsRegistry().registerInt(
+          name + "z::approx::replay::rec::earlyexit")),
+      d_replayBranchCloseFailures(smtStatisticsRegistry().registerInt(
+          name + "z::approx::replay::rec::branch::closefailures")),
+      d_replayLeafCloseFailures(smtStatisticsRegistry().registerInt(
+          name + "z::approx::replay::rec::leaf::closefailures")),
+      d_replayBranchSkips(smtStatisticsRegistry().registerInt(
+          name + "z::approx::replay::rec::branch::skips")),
+      d_mirCutsAttempted(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::mir::attempted")),
+      d_gmiCutsAttempted(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::gmi::attempted")),
+      d_branchCutsAttempted(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::branch::attempted")),
+      d_cutsReconstructed(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::reconstructed")),
+      d_cutsReconstructionFailed(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::reconstructed::failed")),
+      d_cutsProven(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::proofs")),
+      d_cutsProofFailed(smtStatisticsRegistry().registerInt(
+          name + "z::approx::cuts::proofs::failed")),
+      d_mipReplayLemmaCalls(smtStatisticsRegistry().registerInt(
+          name + "z::approx::external::calls")),
+      d_mipExternalCuts(smtStatisticsRegistry().registerInt(
+          name + "z::approx::external::cuts")),
+      d_mipExternalBranch(smtStatisticsRegistry().registerInt(
+          name + "z::approx::external::branches")),
+      d_inSolveInteger(smtStatisticsRegistry().registerInt(
+          name + "z::approx::inSolverInteger")),
+      d_branchesExhausted(smtStatisticsRegistry().registerInt(
+          name + "z::approx::exhausted::branches")),
+      d_execExhausted(smtStatisticsRegistry().registerInt(
+          name + "z::approx::exhausted::exec")),
+      d_pivotsExhausted(smtStatisticsRegistry().registerInt(
+          name + "z::approx::exhausted::pivots")),
+      d_panicBranches(
+          smtStatisticsRegistry().registerInt(name + "z::arith::paniclemmas")),
+      d_relaxCalls(
+          smtStatisticsRegistry().registerInt(name + "z::arith::relax::calls")),
+      d_relaxLinFeas(smtStatisticsRegistry().registerInt(
+          name + "z::arith::relax::feasible::res")),
+      d_relaxLinFeasFailures(smtStatisticsRegistry().registerInt(
+          name + "z::arith::relax::feasible::failures")),
+      d_relaxLinInfeas(smtStatisticsRegistry().registerInt(
+          name + "z::arith::relax::infeasible")),
+      d_relaxLinInfeasFailures(smtStatisticsRegistry().registerInt(
+          name + "z::arith::relax::infeasible::failures")),
+      d_relaxLinExhausted(smtStatisticsRegistry().registerInt(
+          name + "z::arith::relax::exhausted")),
+      d_relaxOthers(
+          smtStatisticsRegistry().registerInt(name + "z::arith::relax::other")),
+      d_applyRowsDeleted(smtStatisticsRegistry().registerInt(
+          name + "z::arith::cuts::applyRowsDeleted")),
+      d_replaySimplexTimer(smtStatisticsRegistry().registerTimer(
+          name + "z::approx::replay::simplex::timer")),
+      d_replayLogTimer(smtStatisticsRegistry().registerTimer(
+          name + "z::approx::replay::log::timer")),
+      d_solveIntTimer(
+          smtStatisticsRegistry().registerTimer(name + "z::solveInt::timer")),
+      d_solveRealRelaxTimer(smtStatisticsRegistry().registerTimer(
+          name + "z::solveRealRelax::timer")),
+      d_solveIntCalls(
+          smtStatisticsRegistry().registerInt(name + "z::solveInt::calls")),
+      d_solveStandardEffort(smtStatisticsRegistry().registerInt(
+          name + "z::solveInt::calls::standardEffort")),
+      d_approxDisabled(
+          smtStatisticsRegistry().registerInt(name + "z::approxDisabled")),
+      d_replayAttemptFailed(
+          smtStatisticsRegistry().registerInt(name + "z::replayAttemptFailed")),
+      d_cutsRejectedDuringReplay(smtStatisticsRegistry().registerInt(
+          name + "z::approx::replay::cuts::rejected")),
+      d_cutsRejectedDuringLemmas(smtStatisticsRegistry().registerInt(
+          name + "z::approx::external::cuts::rejected")),
+      d_satPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
+          name + "pivots::sat")),
+      d_unsatPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
+          name + "pivots::unsat")),
+      d_unknownPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
+          name + "pivots::unknown")),
+      d_solveIntModelsAttempts(smtStatisticsRegistry().registerInt(
+          name + "z::solveInt::models::attempts")),
+      d_solveIntModelsSuccessful(smtStatisticsRegistry().registerInt(
+          name + "zzz::solveInt::models::successful")),
+      d_mipTimer(smtStatisticsRegistry().registerTimer(
+          name + "z::approx::mip::timer")),
+      d_lpTimer(
+          smtStatisticsRegistry().registerTimer(name + "z::approx::lp::timer")),
+      d_mipProofsAttempted(smtStatisticsRegistry().registerInt(
+          name + "z::mip::proofs::attempted")),
+      d_mipProofsSuccessful(smtStatisticsRegistry().registerInt(
+          name + "z::mip::proofs::successful")),
+      d_numBranchesFailed(smtStatisticsRegistry().registerInt(
+          name + "z::mip::branch::proof::failed"))
 {
-  smtStatisticsRegistry()->registerStat(&d_statAssertUpperConflicts);
-  smtStatisticsRegistry()->registerStat(&d_statAssertLowerConflicts);
-
-  smtStatisticsRegistry()->registerStat(&d_statUserVariables);
-  smtStatisticsRegistry()->registerStat(&d_statAuxiliaryVariables);
-  smtStatisticsRegistry()->registerStat(&d_statDisequalitySplits);
-  smtStatisticsRegistry()->registerStat(&d_statDisequalityConflicts);
-  smtStatisticsRegistry()->registerStat(&d_simplifyTimer);
-  smtStatisticsRegistry()->registerStat(&d_staticLearningTimer);
-
-  smtStatisticsRegistry()->registerStat(&d_presolveTime);
-  smtStatisticsRegistry()->registerStat(&d_newPropTime);
-
-  smtStatisticsRegistry()->registerStat(&d_externalBranchAndBounds);
-
-  smtStatisticsRegistry()->registerStat(&d_initialTableauSize);
-  smtStatisticsRegistry()->registerStat(&d_currSetToSmaller);
-  smtStatisticsRegistry()->registerStat(&d_smallerSetToCurr);
-  smtStatisticsRegistry()->registerStat(&d_restartTimer);
-
-  smtStatisticsRegistry()->registerStat(&d_boundComputationTime);
-  smtStatisticsRegistry()->registerStat(&d_boundComputations);
-  smtStatisticsRegistry()->registerStat(&d_boundPropagations);
-
-  smtStatisticsRegistry()->registerStat(&d_unknownChecks);
-  smtStatisticsRegistry()->registerStat(&d_maxUnknownsInARow);
-  smtStatisticsRegistry()->registerStat(&d_avgUnknownsInARow);
-  smtStatisticsRegistry()->registerStat(&d_revertsOnConflicts);
-  smtStatisticsRegistry()->registerStat(&d_commitsOnConflicts);
-  smtStatisticsRegistry()->registerStat(&d_nontrivialSatChecks);
-
-
-  smtStatisticsRegistry()->registerStat(&d_satPivots);
-  smtStatisticsRegistry()->registerStat(&d_unsatPivots);
-  smtStatisticsRegistry()->registerStat(&d_unknownPivots);
-
-  smtStatisticsRegistry()->registerStat(&d_replayLogRecCount);
-  smtStatisticsRegistry()->registerStat(&d_replayLogRecConflictEscalation);
-  smtStatisticsRegistry()->registerStat(&d_replayLogRecEarlyExit);
-  smtStatisticsRegistry()->registerStat(&d_replayBranchCloseFailures);
-  smtStatisticsRegistry()->registerStat(&d_replayLeafCloseFailures);
-  smtStatisticsRegistry()->registerStat(&d_replayBranchSkips);
-  smtStatisticsRegistry()->registerStat(&d_mirCutsAttempted);
-  smtStatisticsRegistry()->registerStat(&d_gmiCutsAttempted);
-  smtStatisticsRegistry()->registerStat(&d_branchCutsAttempted);
-  smtStatisticsRegistry()->registerStat(&d_cutsReconstructed);
-  smtStatisticsRegistry()->registerStat(&d_cutsProven);
-  smtStatisticsRegistry()->registerStat(&d_cutsProofFailed);
-  smtStatisticsRegistry()->registerStat(&d_cutsReconstructionFailed);
-  smtStatisticsRegistry()->registerStat(&d_mipReplayLemmaCalls);
-  smtStatisticsRegistry()->registerStat(&d_mipExternalCuts);
-  smtStatisticsRegistry()->registerStat(&d_mipExternalBranch);
-
-  smtStatisticsRegistry()->registerStat(&d_inSolveInteger);
-  smtStatisticsRegistry()->registerStat(&d_branchesExhausted);
-  smtStatisticsRegistry()->registerStat(&d_execExhausted);
-  smtStatisticsRegistry()->registerStat(&d_pivotsExhausted);
-  smtStatisticsRegistry()->registerStat(&d_panicBranches);
-  smtStatisticsRegistry()->registerStat(&d_relaxCalls);
-  smtStatisticsRegistry()->registerStat(&d_relaxLinFeas);
-  smtStatisticsRegistry()->registerStat(&d_relaxLinFeasFailures);
-  smtStatisticsRegistry()->registerStat(&d_relaxLinInfeas);
-  smtStatisticsRegistry()->registerStat(&d_relaxLinInfeasFailures);
-  smtStatisticsRegistry()->registerStat(&d_relaxLinExhausted);
-  smtStatisticsRegistry()->registerStat(&d_relaxOthers);
-
-  smtStatisticsRegistry()->registerStat(&d_applyRowsDeleted);
-
-  smtStatisticsRegistry()->registerStat(&d_replaySimplexTimer);
-  smtStatisticsRegistry()->registerStat(&d_replayLogTimer);
-  smtStatisticsRegistry()->registerStat(&d_solveIntTimer);
-  smtStatisticsRegistry()->registerStat(&d_solveRealRelaxTimer);
-
-  smtStatisticsRegistry()->registerStat(&d_solveIntCalls);
-  smtStatisticsRegistry()->registerStat(&d_solveStandardEffort);
-
-  smtStatisticsRegistry()->registerStat(&d_approxDisabled);
-
-  smtStatisticsRegistry()->registerStat(&d_replayAttemptFailed);
-
-  smtStatisticsRegistry()->registerStat(&d_cutsRejectedDuringReplay);
-  smtStatisticsRegistry()->registerStat(&d_cutsRejectedDuringLemmas);
-
-  smtStatisticsRegistry()->registerStat(&d_solveIntModelsAttempts);
-  smtStatisticsRegistry()->registerStat(&d_solveIntModelsSuccessful);
-  smtStatisticsRegistry()->registerStat(&d_mipTimer);
-  smtStatisticsRegistry()->registerStat(&d_lpTimer);
-  smtStatisticsRegistry()->registerStat(&d_mipProofsAttempted);
-  smtStatisticsRegistry()->registerStat(&d_mipProofsSuccessful);
-  smtStatisticsRegistry()->registerStat(&d_numBranchesFailed);
-}
-
-TheoryArithPrivate::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_statAssertUpperConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_statAssertLowerConflicts);
-
-  smtStatisticsRegistry()->unregisterStat(&d_statUserVariables);
-  smtStatisticsRegistry()->unregisterStat(&d_statAuxiliaryVariables);
-  smtStatisticsRegistry()->unregisterStat(&d_statDisequalitySplits);
-  smtStatisticsRegistry()->unregisterStat(&d_statDisequalityConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_simplifyTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_staticLearningTimer);
-
-  smtStatisticsRegistry()->unregisterStat(&d_presolveTime);
-  smtStatisticsRegistry()->unregisterStat(&d_newPropTime);
-
-  smtStatisticsRegistry()->unregisterStat(&d_externalBranchAndBounds);
-
-  smtStatisticsRegistry()->unregisterStat(&d_initialTableauSize);
-  smtStatisticsRegistry()->unregisterStat(&d_currSetToSmaller);
-  smtStatisticsRegistry()->unregisterStat(&d_smallerSetToCurr);
-  smtStatisticsRegistry()->unregisterStat(&d_restartTimer);
-
-  smtStatisticsRegistry()->unregisterStat(&d_boundComputationTime);
-  smtStatisticsRegistry()->unregisterStat(&d_boundComputations);
-  smtStatisticsRegistry()->unregisterStat(&d_boundPropagations);
-
-  smtStatisticsRegistry()->unregisterStat(&d_unknownChecks);
-  smtStatisticsRegistry()->unregisterStat(&d_maxUnknownsInARow);
-  smtStatisticsRegistry()->unregisterStat(&d_avgUnknownsInARow);
-  smtStatisticsRegistry()->unregisterStat(&d_revertsOnConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_commitsOnConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_nontrivialSatChecks);
-
-  smtStatisticsRegistry()->unregisterStat(&d_satPivots);
-  smtStatisticsRegistry()->unregisterStat(&d_unsatPivots);
-  smtStatisticsRegistry()->unregisterStat(&d_unknownPivots);
-
-  smtStatisticsRegistry()->unregisterStat(&d_replayLogRecCount);
-  smtStatisticsRegistry()->unregisterStat(&d_replayLogRecConflictEscalation);
-  smtStatisticsRegistry()->unregisterStat(&d_replayLogRecEarlyExit);
-  smtStatisticsRegistry()->unregisterStat(&d_replayBranchCloseFailures);
-  smtStatisticsRegistry()->unregisterStat(&d_replayLeafCloseFailures);
-  smtStatisticsRegistry()->unregisterStat(&d_replayBranchSkips);
-  smtStatisticsRegistry()->unregisterStat(&d_mirCutsAttempted);
-  smtStatisticsRegistry()->unregisterStat(&d_gmiCutsAttempted);
-  smtStatisticsRegistry()->unregisterStat(&d_branchCutsAttempted);
-  smtStatisticsRegistry()->unregisterStat(&d_cutsReconstructed);
-  smtStatisticsRegistry()->unregisterStat(&d_cutsProven);
-  smtStatisticsRegistry()->unregisterStat(&d_cutsProofFailed);
-  smtStatisticsRegistry()->unregisterStat(&d_cutsReconstructionFailed);
-  smtStatisticsRegistry()->unregisterStat(&d_mipReplayLemmaCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_mipExternalCuts);
-  smtStatisticsRegistry()->unregisterStat(&d_mipExternalBranch);
-
-
-  smtStatisticsRegistry()->unregisterStat(&d_inSolveInteger);
-  smtStatisticsRegistry()->unregisterStat(&d_branchesExhausted);
-  smtStatisticsRegistry()->unregisterStat(&d_execExhausted);
-  smtStatisticsRegistry()->unregisterStat(&d_pivotsExhausted);
-  smtStatisticsRegistry()->unregisterStat(&d_panicBranches);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxLinFeas);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxLinFeasFailures);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxLinInfeas);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxLinInfeasFailures);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxLinExhausted);
-  smtStatisticsRegistry()->unregisterStat(&d_relaxOthers);
-
-  smtStatisticsRegistry()->unregisterStat(&d_applyRowsDeleted);
-
-  smtStatisticsRegistry()->unregisterStat(&d_replaySimplexTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_replayLogTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_solveIntTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_solveRealRelaxTimer);
-
-  smtStatisticsRegistry()->unregisterStat(&d_solveIntCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_solveStandardEffort);
-
-  smtStatisticsRegistry()->unregisterStat(&d_approxDisabled);
-
-  smtStatisticsRegistry()->unregisterStat(&d_replayAttemptFailed);
-
-  smtStatisticsRegistry()->unregisterStat(&d_cutsRejectedDuringReplay);
-  smtStatisticsRegistry()->unregisterStat(&d_cutsRejectedDuringLemmas);
-
-
-  smtStatisticsRegistry()->unregisterStat(&d_solveIntModelsAttempts);
-  smtStatisticsRegistry()->unregisterStat(&d_solveIntModelsSuccessful);
-  smtStatisticsRegistry()->unregisterStat(&d_mipTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_lpTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_mipProofsAttempted);
-  smtStatisticsRegistry()->unregisterStat(&d_mipProofsSuccessful);
-  smtStatisticsRegistry()->unregisterStat(&d_numBranchesFailed);
 }
 
 bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
@@ -2373,8 +2263,8 @@ struct SizeOrd {
 
 void TheoryArithPrivate::subsumption(
     std::vector<ConstraintCPVec> &confs) const {
-  int checks CVC4_UNUSED = 0;
-  int subsumed CVC4_UNUSED = 0;
+  int checks CVC5_UNUSED = 0;
+  int subsumed CVC5_UNUSED = 0;
 
   for (size_t i = 0, N = confs.size(); i < N; ++i) {
     ConstraintCPVec &conf = confs[i];
@@ -2405,8 +2295,7 @@ void TheoryArithPrivate::subsumption(
 
 std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth){
   ++(d_statistics.d_replayLogRecCount);
-  Debug("approx::replayLogRec") << "replayLogRec()"
-                                << d_statistics.d_replayLogRecCount.get() << std::endl;
+  Debug("approx::replayLogRec") << "replayLogRec()" << std::endl;
 
   size_t rpvars_size = d_replayVariables.size();
   size_t rpcons_size = d_replayConstraints.size();
@@ -2841,7 +2730,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   TimerStat::CodeTimer codeTimer0(d_statistics.d_solveIntTimer);
 
   ++(d_statistics.d_solveIntCalls);
-  d_statistics.d_inSolveInteger.set(1);
+  d_statistics.d_inSolveInteger = 1;
 
   if(!Theory::fullEffort(effortLevel)){
     d_solveIntAttempts++;
@@ -2970,7 +2859,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     }
   }
 
-  d_statistics.d_inSolveInteger.set(0);
+  d_statistics.d_inSolveInteger = 0;
 }
 
 SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
@@ -3214,7 +3103,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //               mipRes = approxSolver->solveMIP(true);
 //             }
 //             d_errorSet.reduceToSignals();
-//             //CVC4Message() << "here" << endl;
+//             //CVC5Message() << "here" << endl;
 //             if(mipRes == ApproximateSimplex::ApproxSat){
 //               mipSolution = approxSolver->extractMIP();
 //               d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
@@ -3232,7 +3121,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
 //           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus =
 //           simplex.findModel(false); }
-//           //CVC4Message() << "done" << endl;
+//           //CVC5Message() << "done" << endl;
 //         }
 //         break;
 //       case ApproximateSimplex::ApproxUnsat:
@@ -3258,13 +3147,13 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //   }else{
 
 //     if(d_qflraStatus == Result::SAT_UNKNOWN){
-//       //CVC4Message() << "got sat unknown" << endl;
+//       //CVC5Message() << "got sat unknown" << endl;
 //       vector<ArithVar> toCut = cutAllBounded();
 //       if(toCut.size() > 0){
 //         //branchVector(toCut);
 //         emmittedConflictOrSplit = true;
 //       }else{
-//         //CVC4Message() << "splitting" << endl;
+//         //CVC5Message() << "splitting" << endl;
 
 //         d_qflraStatus = simplex.findModel(noPivotLimit);
 //       }
@@ -3336,7 +3225,7 @@ void TheoryArithPrivate::preNotifyFact(TNode atom, bool pol, TNode fact)
   ConstraintP curr = constraintFromFactQueue(fact);
   if (curr != NullConstraint)
   {
-    bool res CVC4_UNUSED = assertionCases(curr);
+    bool res CVC5_UNUSED = assertionCases(curr);
     Assert(!res || anyConflict());
   }
 }
@@ -3350,7 +3239,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       d_learnedBounds.pop();
       Debug("arith::learned") << curr << endl;
 
-      bool res CVC4_UNUSED = assertionCases(curr);
+      bool res CVC5_UNUSED = assertionCases(curr);
       Assert(!res || anyConflict());
 
       if(anyConflict()){ break; }
@@ -3496,7 +3385,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   for (std::size_t i = 0; i < nPivots; ++i)
   {
     d_containing.d_out->spendResource(
-        ResourceManager::Resource::ArithPivotStep);
+        Resource::ArithPivotStep);
   }
 
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
@@ -4323,7 +4212,7 @@ bool TheoryArithPrivate::unenqueuedVariablesAreConsistent(){
 void TheoryArithPrivate::presolve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_presolveTime);
 
-  d_statistics.d_initialTableauSize.set(d_tableau.size());
+  d_statistics.d_initialTableauSize = d_tableau.size();
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
@@ -5035,7 +4924,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
       }
       // intentionally fall through to DISTINCT case!
       // entailments of negations are eager exit cases for EQUAL
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     case DISTINCT:
       if(!bestPrimDiff.first.isNull()){
         // primDir [dm * dp] <= primDir * dm * U < primDir * sep

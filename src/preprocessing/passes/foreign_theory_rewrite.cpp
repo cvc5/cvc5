@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file foreign_theory_rewrite.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The foreign_theory_rewrite preprocessing pass
- **
- ** Simplifies nodes of one theory using rewrites from another.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The foreign_theory_rewrite preprocessing pass.
+ *
+ * Simplifies nodes of one theory using rewrites from another.
+ */
 
 #include "preprocessing/passes/foreign_theory_rewrite.h"
 

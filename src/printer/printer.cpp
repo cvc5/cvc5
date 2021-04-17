@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base of the pretty-printer interface
- **
- ** Base of the pretty-printer interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base of the pretty-printer interface.
+ */
 #include "printer/printer.h"
 
 #include <string>
@@ -46,8 +45,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_TPTP:
     return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
-  case LANG_CVC4:
-    return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
+  case LANG_CVC: return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
   case LANG_SYGUS_V2:
     // sygus version 2.0 does not have discrepancies with smt2, hence we use

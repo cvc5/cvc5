@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file bv_gauss.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Gaussian Elimination preprocessing pass.
- **
- ** Simplify a given equation system modulo a (prime) number via Gaussian
- ** Elimination if possible.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Gaussian Elimination preprocessing pass.
+ *
+ * Simplify a given equation system modulo a (prime) number via Gaussian
+ * Elimination if possible.
+ */
 
 #include "preprocessing/passes/bv_gauss.h"
 
@@ -263,7 +264,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
 
-  #ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
 #endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
@@ -284,7 +285,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
     /* lhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
     {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       for (size_t k = 0; k < pcol; ++k)
       {
         Assert(lhs[j][k] == 0);
@@ -577,7 +578,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     return BVGauss::Result::INVALID;
   }
   size_t nrows = vars.begin()->second.size();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& p : vars)
   {
     Assert(p.second.size() == nrows);
@@ -597,7 +598,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& row : lhs)
   {
     Assert(row.size() == nvars);

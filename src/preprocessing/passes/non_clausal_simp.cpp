@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file non_clausal_simp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Non-clausal simplification preprocessing pass.
- **
- ** Run the nonclausal solver and try to solve all assigned theory literals.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Non-clausal simplification preprocessing pass.
+ *
+ * Run the nonclausal solver and try to solve all assigned theory literals.
+ */
 
 #include "preprocessing/passes/non_clausal_simp.h"
 
@@ -40,16 +41,11 @@ namespace passes {
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::Statistics::Statistics()
-    : d_numConstantProps(
-          "preprocessing::passes::NonClausalSimp::NumConstantProps", 0)
+    : d_numConstantProps(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::NonClausalSimp::NumConstantProps"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numConstantProps);
 }
 
-NonClausalSimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -76,7 +72,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   Assert(!options::unsatCores() || isProofEnabled())
       << "Unsat cores with non-clausal simp only supported with new proofs";
 
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();
@@ -131,7 +127,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // No conflict, go through the literals and solve them
   context::Context* u = d_preprocContext->getUserContext();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
-  CVC4_UNUSED SubstitutionMap& top_level_substs = ttls.get();
+  CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
@@ -261,7 +257,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // NOTE: When debugging this code, consider moving this check inside of the
   // loop over propagator->getLearnedLiterals(). This check has been moved
   // outside because it is costly for certain inputs (see bug 508).
@@ -288,7 +284,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
     Assert(cps.apply((*pos).second) == (*pos).second);
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   // Resize the learnt
   Trace("non-clausal-simplify")
@@ -329,8 +325,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   // add substitutions to model, or as assertions if needed (when incremental)
-  TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
-  Assert(m != nullptr);
   NodeManager* nm = NodeManager::currentNM();
   for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
   {
@@ -345,7 +339,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "substitute: " << lhs << " " << rhs << std::endl;
-      m->addSubstitution(lhs, rhs);
+      d_preprocContext->addModelSubstitution(lhs, rhs);
     }
     else
     {

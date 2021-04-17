@@ -1,17 +1,20 @@
-#####################
-## FindCLN.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find CLN
 # CLN_FOUND - system has CLN lib
 # CLN_INCLUDE_DIR - the CLN include directory
 # CLN_LIBRARIES - Libraries needed to use CLN
+##
 
 include(deps-helper)
 
@@ -31,6 +34,7 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
 endif()
 
 if(NOT CLN_FOUND_SYSTEM)
+  check_auto_download("CLN" "--no-cln")
   include(ExternalProject)
 
   fail_if_cross_compiling("Windows" "" "CLN" "autoconf fails")

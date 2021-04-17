@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file synth_conjecture.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of class that encapsulates techniques for a single
- ** (SyGuS) synthesis conjecture.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of class that encapsulates techniques for a single
+ * (SyGuS) synthesis conjecture.
+ */
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
@@ -283,6 +284,8 @@ bool SynthConjecture::needsCheck()
     if (!value)
     {
       Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
+      Warning() << "Warning : the SyGuS conjecture may be infeasible"
+                << std::endl;
       return false;
     }
     else
@@ -616,7 +619,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // We should set incomplete, since a "sat" answer should not be
       // interpreted as "infeasible", which would make a difference in the rare
       // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qim.setIncomplete();
+      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
       return false;
     }
     // otherwise we are unsat, and we will process the solution below
