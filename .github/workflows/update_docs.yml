@@ -45,7 +45,10 @@ jobs:
       - name: Update docs
         if: github.event_name == 'push'
         run: |
+          git config --global user.email "docbot@cvc4"
+          git config --global user.name "DocBot"
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
+          echo "Identified branch $BRANCH_NAME"
           git clone https://github.com/nafur/python-playground.git target/
           rsync -a --delete build/docs/sphinx-gh target/docs-$BRANCH_NAME-${{ github.sha }}
           ln -sf target/docs-$BRANCH_NAME target/docs-$BRANCH_NAME-${{ github.sha }}
@@ -56,7 +59,10 @@ jobs:
       - name: Update PR docs
         if: github.event_name == 'pull_request'
         run: |
+          git config --global user.email "docbot@cvc4"
+          git config --global user.name "DocBot"
           PRID=$(echo "${GITHUB_REF}" | sed -E "s,refs/pull/([0-9]+)/merge,\1,")
+          echo "Identified PR #$PRID"
           git clone https://github.com/nafur/python-playground.git target/
           rsync -a --delete build/docs/sphinx-gh target/docs-pr$PRID-${{ github.sha }}
           ln -sf target/docs-pr$PRID target/docs-pr$PRID-${{ github.sha }}
