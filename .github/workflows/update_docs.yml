@@ -42,20 +42,24 @@ jobs:
         run: make -j2 docs-gh
         working-directory: build
 
-      - name: Update master docs
-        if: github.event_name == 'push' # && github.ref == 'refs/heads/master'
-        uses: JamesIves/github-pages-deploy-action@4.1.1
-        with:
-          branch: master
-          folder: build/docs/sphinx-gh
-          repository-name: nafur/python-playground #cvc5/cvc5.github.io
-          target-folder: docs-master
+      - name: Update docs
+        if: github.event_name == 'push'
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
+          git clone https://github.com/nafur/python-playground.git target/
+          rsync -a --delete build/docs/sphinx-gh target/docs-$BRANCH_NAME-${{ github.sha }}
+          ln -sf target/docs-$BRANCH_NAME target/docs-$BRANCH_NAME-${{ github.sha }}
+          git add target/docs-$BRANCH_NAME-${{ github.sha }}
+          git commit -m "Update docs for branch $BRANCH_NAME"
+          git push
 
       - name: Update PR docs
         if: github.event_name == 'pull_request'
-        uses: JamesIves/github-pages-deploy-action@4.1.1
-        with:
-          branch: master
-          folder: build/docs/sphinx-gh
-          repository-name: nafur/python-playground #cvc5/cvc5.github.io
-          target-folder: docs-pr${{ github.event.number }}
+        run: |
+          PRID=$(echo "${GITHUB_REF}" | sed -E "s,refs/pull/([0-9]+)/merge,\1,")
+          git clone https://github.com/nafur/python-playground.git target/
+          rsync -a --delete build/docs/sphinx-gh target/docs-pr$PRID-${{ github.sha }}
+          ln -sf target/docs-pr$PRID target/docs-pr$PRID-${{ github.sha }}
+          git add target/docs-pr$PRID-${{ github.sha }}
+          git commit -m "Update docs for PR #$PRID"
+          git push
