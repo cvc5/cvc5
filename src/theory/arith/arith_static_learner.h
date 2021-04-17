@@ -24,7 +24,7 @@
 #include "context/cdhashmap.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace context {
@@ -66,7 +66,6 @@ public:
     IntStat d_iteConstantApplications;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

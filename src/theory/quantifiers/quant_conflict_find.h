@@ -287,7 +287,6 @@ public:
     IntStat d_inst_rounds;
     IntStat d_entailment_checks;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
   /** Identify this module */

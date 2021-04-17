@@ -28,8 +28,7 @@
 #include "context/cdqueue.h"
 #include "theory/arith/normal_form.h"
 #include "util/rational.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace context {
@@ -413,7 +412,6 @@ public:
     TimerStat d_cutTimer;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

@@ -30,8 +30,6 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
-#include "util/sexpr.h"
-#include "util/statistics.h"
 
 namespace cvc5 {
 
@@ -218,7 +216,7 @@ class CVC4_EXPORT SmtEngine
   bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
-  cvc5::SExpr getInfo(const std::string& key) const;
+  std::string getInfo(const std::string& key) const;
 
   /**
    * Set an aspect of the current SMT execution environment.
@@ -270,7 +268,7 @@ class CVC4_EXPORT SmtEngine
    * block-models option is set to a mode other than "none".
    *
    * This adds an assertion to the assertion stack that blocks the current
-   * model based on the current options configured by CVC4.
+   * model based on the current options configured by cvc5.
    *
    * The return value has the same meaning as that of assertFormula.
    */
@@ -705,14 +703,14 @@ class CVC4_EXPORT SmtEngine
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
-   * ENTAILED query).  Only permitted if CVC4 was built with unsat-core support
+   * ENTAILED query).  Only permitted if cvc5 was built with unsat-core support
    * and produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
 
   /**
    * Get a refutation proof (only if immediately preceded by an UNSAT or
-   * ENTAILED query). Only permitted if CVC4 was built with proof support and
+   * ENTAILED query). Only permitted if cvc5 was built with proof support and
    * the proof option is on. */
   std::string getProof();
 
@@ -751,9 +749,9 @@ class CVC4_EXPORT SmtEngine
    * limit, but it's deterministic so that reproducible results can be
    * obtained.  Currently, it's based on the number of conflicts.
    * However, please note that the definition may change between different
-   * versions of CVC4 (as may the number of conflicts required, anyway),
+   * versions of cvc5 (as may the number of conflicts required, anyway),
    * and it might even be different between instances of the same version
-   * of CVC4 on different platforms.
+   * of cvc5 on different platforms.
    *
    * A cumulative and non-cumulative (per-call) resource limit can be
    * set at the same time.  A call to setResourceLimit() with
@@ -777,7 +775,7 @@ class CVC4_EXPORT SmtEngine
    * resource limit for all remaining calls into the SmtEngine (true), or
    * whether it's a per-call resource limit (false); the default is false
    */
-  void setResourceLimit(unsigned long units, bool cumulative = false);
+  void setResourceLimit(uint64_t units, bool cumulative = false);
 
   /**
    * Set a per-call time limit for SmtEngine operations.
@@ -802,7 +800,7 @@ class CVC4_EXPORT SmtEngine
    *
    * @param millis the time limit in milliseconds, or 0 for no limit
    */
-  void setTimeLimit(unsigned long millis);
+  void setTimeLimit(uint64_t millis);
 
   /**
    * Get the current resource usage count for this SmtEngine.  This
@@ -827,20 +825,25 @@ class CVC4_EXPORT SmtEngine
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** Export statistics from this SmtEngine. */
-  Statistics getStatistics() const;
-
-  /** Get the value of one named statistic from this SmtEngine. */
-  SExpr getStatistic(std::string name) const;
-
-  /** Flush statistics from this SmtEngine and the NodeManager it uses. */
+  /**
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine.
+   */
   void printStatistics(std::ostream& out) const;
 
   /**
-   * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
-   * use in a signal handler.
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
+
+  /**
+   * Print the changes to the statistics from the statistics registry in the
+   * env object owned by this SmtEngine since this method was called the last
+   * time. Internally prints the diff and then stores a snapshot for the next
+   * call.
+   */
+  void printStatisticsDiff(std::ostream&) const;
 
   /**
    * Set user attribute.
@@ -920,7 +923,7 @@ class CVC4_EXPORT SmtEngine
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
-   * by an UNSAT or ENTAILED query). Only permitted if CVC4 was built with
+   * by an UNSAT or ENTAILED query). Only permitted if cvc5 was built with
    * unsat-core support and produce-unsat-cores is on. Does not dump the
    * command.
    */
@@ -976,7 +979,7 @@ class CVC4_EXPORT SmtEngine
    * return nullptr.
    *
    * This ensures that the underlying theory model of the SmtSolver maintained
-   * by this class is currently available, which means that CVC4 is producing
+   * by this class is currently available, which means that cvc5 is producing
    * models, and is in "SAT mode", otherwise a recoverable exception is thrown.
    *
    * @param c used for giving an error message to indicate the context
@@ -1137,7 +1140,7 @@ class CVC4_EXPORT SmtEngine
   /**
    * Verbosity of various commands.
    */
-  std::map<std::string, Integer> d_commandVerbosity;
+  std::map<std::string, int> d_commandVerbosity;
 
   /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;

@@ -23,7 +23,6 @@
 #ifdef CVC5_USE_CRYPTOMINISAT
 
 #include "prop/sat_solver.h"
-#include "util/stats_timer.h"
 
 // Cryptominisat has name clashes with the other Minisat implementations since
 // the Minisat implementations export var_Undef, l_True, ... as macro whereas
@@ -75,21 +74,18 @@ class CryptoMinisatSolver : public SatSolver
   class Statistics
   {
    public:
-    StatisticsRegistry* d_registry;
     IntStat d_statCallsToSolve;
     IntStat d_xorClausesAdded;
     IntStat d_clausesAdded;
     TimerStat d_solveTime;
-    bool d_registerStats;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
+    Statistics(StatisticsRegistry& registry, const std::string& prefix);
   };
 
   /**
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
    */
-  CryptoMinisatSolver(StatisticsRegistry* registry,
+  CryptoMinisatSolver(StatisticsRegistry& registry,
                       const std::string& name = "");
   /**
    * Initialize SAT solver instance.

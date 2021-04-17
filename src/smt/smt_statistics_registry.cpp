@@ -16,11 +16,12 @@
 #include "smt/smt_statistics_registry.h"
 
 #include "smt/smt_engine_scope.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
-StatisticsRegistry* smtStatisticsRegistry() {
+StatisticsRegistry& smtStatisticsRegistry()
+{
   return smt::SmtScope::currentStatisticsRegistry();
 }
 

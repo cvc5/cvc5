@@ -18,7 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -31,7 +31,6 @@ class SygusStatistics
 {
  public:
   SygusStatistics();
-  ~SygusStatistics();
   /** Number of counterexample lemmas */
   IntStat d_cegqi_lemmas_ce;
   /** Number of refinement lemmas */

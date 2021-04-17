@@ -55,9 +55,9 @@
 
 #pragma once
 
-#include "theory/arith/simplex.h"
 #include "theory/arith/approx_simplex.h"
-#include "util/statistics_registry.h"
+#include "theory/arith/simplex.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -87,7 +87,6 @@ public:
     IntStat d_conflicts;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 };/* class AttemptSolutionSDP */
 

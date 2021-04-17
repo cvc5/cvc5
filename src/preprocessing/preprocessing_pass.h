@@ -34,8 +34,7 @@
 
 #include <string>
 
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {

@@ -25,8 +25,7 @@
 #include "context/backtrackable.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -117,7 +116,7 @@ private:
   IntStat d_listsCount;
   IntStat d_callsMergeInfo;
   IntStat d_maxList;
-  SizeStat<CNodeInfoMap > d_tableSize;
+  SizeStat<CNodeInfoMap> d_tableSize;
 
   /**
    * checks if a certain element is in the list l

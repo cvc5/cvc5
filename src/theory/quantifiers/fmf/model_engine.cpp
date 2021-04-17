@@ -104,7 +104,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
 
     if( addedLemmas==0 ){
       Trace("model-engine-debug") << "No lemmas added, incomplete = " << ( d_incomplete_check || !d_incomplete_quants.empty() ) << std::endl;
-      //CVC4 will answer SAT or unknown
+      // cvc5 will answer SAT or unknown
       if( Trace.isOn("fmf-consistent") ){
         Trace("fmf-consistent") << std::endl;
         debugPrint("fmf-consistent");

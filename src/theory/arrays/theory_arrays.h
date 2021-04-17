@@ -32,7 +32,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -138,7 +138,7 @@ class TheoryArrays : public Theory {
                Valuation valuation,
                const LogicInfo& logicInfo,
                ProofNodeManager* pnm = nullptr,
-               std::string name = "");
+               std::string name = "theory::arrays::");
   ~TheoryArrays();
 
   //--------------------------------- initialization

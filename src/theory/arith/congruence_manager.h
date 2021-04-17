@@ -24,14 +24,14 @@
 #include "context/cdlist.h"
 #include "context/cdmaybe.h"
 #include "context/cdtrail_queue.h"
-#include "theory/arith/arithvar.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -291,7 +291,6 @@ private:
     IntStat d_conflicts;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 
 };/* class ArithCongruenceManager */
