@@ -28,10 +28,7 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             libgmp-dev \
-            flex \
-            libfl-dev \
-            flexc++ \
-            doxygen
+            doxygen python3-docutils
           python3 -m pip install toml setuptools \
             sphinxcontrib-bibtex sphinx-tabs breathe
 
