@@ -551,6 +551,7 @@ class SortTest
 {
   Sort tupleSort = d_solver.mkTupleSort(
       new Sort[]{d_solver.getIntegerSort(), d_solver.getIntegerSort()});
+  System.out.println("Hello there"+  tupleSort);
   assertDoesNotThrow(() -> tupleSort.getTupleSorts());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   assertThrows(CVC5ApiException.class, () -> bvSort.getTupleSorts());

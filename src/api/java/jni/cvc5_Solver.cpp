@@ -33,9 +33,15 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv*,
  * Method:    supportsFloatingPoint
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Solver_supportsFloatingPoint(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_Solver_supportsFloatingPoint(JNIEnv* env,
                                                                   jobject,
-                                                                  jlong);
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  return (jboolean)solver->supportsFloatingPoint();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -131,7 +137,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRoundingModeSort(JNIEnv*,
  * Method:    getStringSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getStringSort(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getStringSort(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sortPointer = new Sort(solver->getStringSort());
+  return ((jlong)sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -266,20 +281,82 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkParamSort(JNIEnv* env,
  * Method:    mkPredicateSort
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPredicateSort(JNIEnv*,
-                                                         jobject,
-                                                         jlong,
-                                                         jlongArray);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPredicateSort(
+    JNIEnv* env, jobject, jlong pointer, jlongArray sortPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize sortsSize = env->GetArrayLength(sortPointers);
+  // allocate buffer for the long array
+  jlong* sortsBuffer = new jlong[sortsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
+  // copy the terms into a vector
+  std::vector<Sort> sorts;
+  for (jsize i = 0; i < sortsSize; i++)
+  {
+    Sort* sort = (Sort*)sortsBuffer[i];
+    sorts.push_back(*sort);
+  }
+  // free the buffer memory
+  delete[] sortsBuffer;
+
+  Sort* retPointer = new Sort(solver->mkPredicateSort(sorts));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkRecordSort
  * Signature: (J[Lcvc5/Pair;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRecordSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRecordSort(JNIEnv* env,
                                                       jobject,
-                                                      jlong,
-                                                      jobjectArray);
+                                                      jlong pointer,
+                                                      jobjectArray jFields)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  jsize size = env->GetArrayLength(jFields);
+  // Lcvc5/Pair; is signature of cvc5.Pair<String, Long>
+  jclass pairClass = env->FindClass("Lcvc5/Pair;");
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  // Ljava/lang/Object; is the signature of cvc5.Pair.first field
+  jfieldID firstFieldId =
+      env->GetFieldID(pairClass, "first", "Ljava/lang/Object;");
+  // Ljava/lang/Object; is the signature of cvc5.Pair.second field
+  jfieldID secondFieldId =
+      env->GetFieldID(pairClass, "second", "Ljava/lang/Object;");
+  // we need to call method longValue to get long Long object
+  jmethodID methodId = env->GetMethodID(longClass, "longValue", "()J");
+
+  std::vector<std::pair<std::string, Sort>> cFields;
+  for (jsize i = 0; i < size; i++)
+  {
+    // get the pair at index i
+    jobject object = env->GetObjectArrayElement(jFields, i);
+
+    // get the object at cvc.Pair.first and convert it to char *
+    jstring jFirst = (jstring)env->GetObjectField(object, firstFieldId);
+    const char* cFirst = env->GetStringUTFChars(jFirst, nullptr);
+
+    // get the object at cvc.Pair.second and convert it to Sort
+    jobject jSecond = env->GetObjectField(object, secondFieldId);
+    jlong sortPointer = env->CallLongMethod(jSecond, methodId);
+    Sort* sort = (Sort*)sortPointer;
+
+    // add the pair to to the list of fields
+    cFields.push_back(std::make_pair(std::string(cFirst), *sort));
+  }
+  // get the record sort from the solver
+  Sort* sort = new Sort(solver->mkRecordSort(cFields));
+
+  // return a pointer to the sort
+  return (jlong)sort;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -369,7 +446,8 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSortConstructorSort(
   Solver* solver = (Solver*)pointer;
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Sort* retPointer = new Sort(solver->mkSortConstructorSort(cSymbol, (size_t)arity));
+  Sort* retPointer =
+      new Sort(solver->mkSortConstructorSort(cSymbol, (size_t)arity));
   env->ReleaseStringUTFChars(jSymbol, s);
   return (jlong)retPointer;
 

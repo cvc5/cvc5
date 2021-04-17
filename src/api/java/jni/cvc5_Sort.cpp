@@ -566,7 +566,7 @@ Java_cvc5_Sort_substitute__J_3J_3J(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = (Sort*)pointer;
-  // get the size of params pointers
+  // get the size of pointers
   jsize sortsSize = env->GetArrayLength(sortPointers);
   jsize replacementsSize = env->GetArrayLength(replacementPointers);
   // allocate buffer for the long array
@@ -1055,7 +1055,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getTupleSorts(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = (Sort*)pointer;
-  std::vector<Sort> sorts = current->getDatatypeParamSorts();
+  std::vector<Sort> sorts = current->getTupleSorts();
   std::vector<long> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
