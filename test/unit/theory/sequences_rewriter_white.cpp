@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file sequences_rewriter_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Unit tests for the strings/sequences rewriter
- **
- ** Unit tests for the strings/sequences rewriter.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Unit tests for the strings/sequences rewriter.
+ */
 
 #include <iostream>
 #include <memory>
@@ -518,36 +517,6 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
       a,
       i);
   sameNormalForm(idof_substr, negOne);
-
-  {
-    // Same normal form for:
-    //
-    // (str.indexof (str.++ "B" (str.substr "CCC" i j) x "A") "A" 0)
-    //
-    // (+ 1 (str.len (str.substr "CCC" i j))
-    //    (str.indexof (str.++ "A" x y) "A" 0))
-    Node lhs = d_nodeManager->mkNode(
-        kind::STRING_STRIDOF,
-        d_nodeManager->mkNode(
-            kind::STRING_CONCAT,
-            b,
-            d_nodeManager->mkNode(kind::STRING_SUBSTR, ccc, i, j),
-            x,
-            a),
-        a,
-        zero);
-    Node rhs = d_nodeManager->mkNode(
-        kind::PLUS,
-        one,
-        d_nodeManager->mkNode(
-            kind::STRING_LENGTH,
-            d_nodeManager->mkNode(kind::STRING_SUBSTR, ccc, i, j)),
-        d_nodeManager->mkNode(kind::STRING_STRIDOF,
-                              d_nodeManager->mkNode(kind::STRING_CONCAT, x, a),
-                              a,
-                              zero));
-    sameNormalForm(lhs, rhs);
-  }
 
   {
     // Same normal form for:
@@ -1315,23 +1284,6 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
         abc);
     rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, abc);
     differentNormalForms(lhs, rhs);
-  }
-
-  {
-    // Same normal form for:
-    //
-    // (str.contains (str.++ (str.substr "DEF" n m) x) "AB")
-    //
-    // (str.contains x "AB")
-    lhs = d_nodeManager->mkNode(
-        kind::STRING_STRCTN,
-        d_nodeManager->mkNode(
-            kind::STRING_CONCAT,
-            d_nodeManager->mkNode(kind::STRING_SUBSTR, def, n, m),
-            x),
-        ab);
-    rhs = d_nodeManager->mkNode(kind::STRING_STRCTN, x, ab);
-    sameNormalForm(lhs, rhs);
   }
 
   {

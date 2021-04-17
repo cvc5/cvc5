@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file regexp_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the regular expression solver for the theory of
- ** strings.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the regular expression solver for the theory of strings.
+ */
 
 #include "theory/strings/regexp_solver.h"
 
@@ -23,6 +22,7 @@
 #include "theory/ext_theory.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
+#include "util/statistics_value.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -265,11 +265,11 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
           // if so, do simple unrolling
           Trace("strings-regexp") << "Simplify on " << atom << std::endl;
           Node conc = d_regexp_opr.simplify(atom, polarity);
-          Trace("strings-regexp") << "...finished" << std::endl;
+          Trace("strings-regexp") << "...finished, got " << conc << std::endl;
           // if simplifying successfully generated a lemma
           if (!conc.isNull())
           {
-            std::vector<Node> iexp = rnfexp;
+            std::vector<Node> iexp;
             std::vector<Node> noExplain;
             iexp.push_back(assertion);
             noExplain.push_back(assertion);
@@ -284,21 +284,26 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             }
             InferenceId inf =
                 polarity ? InferenceId::STRINGS_RE_UNFOLD_POS : InferenceId::STRINGS_RE_UNFOLD_NEG;
-            d_im.sendInference(iexp, noExplain, conc, inf);
-            addedLemma = true;
-            processed.push_back(assertion);
-            if (e == 0)
+            // in very rare cases, we may find out that the unfolding lemma
+            // for a membership is equivalent to true, in spite of the RE
+            // not being rewritten to true.
+            if (d_im.sendInference(iexp, noExplain, conc, inf))
             {
-              // Remember that we have unfolded a membership for x
-              // notice that we only do this here, after we have definitely
-              // added a lemma.
-              repUnfold.insert(rep);
+              addedLemma = true;
+              if (e == 0)
+              {
+                // Remember that we have unfolded a membership for x
+                // notice that we only do this here, after we have definitely
+                // added a lemma.
+                repUnfold.insert(rep);
+              }
             }
+            processed.push_back(assertion);
           }
           else
           {
             // otherwise we are incomplete
-            d_im.setIncomplete();
+            d_im.setIncomplete(IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY);
           }
         }
         if (d_state.isInConflict())
@@ -356,14 +361,14 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
           {
             // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
             //   mark ~str.in.re(x, R2) as reduced
-            d_im.markReduced(m2Lit);
+            d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
             remove.insert(m2);
           }
           else
           {
             // str.in.re(x, R1) includes str.in.re(x, R2) --->
             //   mark str.in.re(x, R1) as reduced
-            d_im.markReduced(m1Lit);
+            d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
             remove.insert(m1);
 
             // We don't need to process m1 anymore
@@ -484,12 +489,12 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
-      d_im.markReduced(m);
+      d_im.markReduced(m, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
     }
     else if (mresr == m)
     {
       // same as above, opposite direction
-      d_im.markReduced(mi);
+      d_im.markReduced(mi, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
     }
     else
     {
@@ -505,8 +510,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       d_im.sendInference(
           vec_nodes, mres, InferenceId::STRINGS_RE_INTER_INFER, false, true);
       // both are reduced
-      d_im.markReduced(m);
-      d_im.markReduced(mi);
+      d_im.markReduced(m, ExtReducedId::STRINGS_REGEXP_INTER);
+      d_im.markReduced(mi, ExtReducedId::STRINGS_REGEXP_INTER);
       // do not send more than one lemma for this class
       return true;
     }

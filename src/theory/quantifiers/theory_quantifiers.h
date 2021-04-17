@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_quantifiers.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of quantifiers.
- **
- ** Theory of quantifiers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of quantifiers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
-#define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#define CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/proof_checker.h"
@@ -47,6 +46,8 @@ class TheoryQuantifiers : public Theory {
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /** finish initialization */
   void finishInit() override;
   /** needs equality engine */
@@ -83,7 +84,7 @@ class TheoryQuantifiers : public Theory {
   /** The theory rewriter for this theory. */
   QuantifiersRewriter d_rewriter;
   /** The proof rule checker */
-  QuantifiersProofRuleChecker d_qChecker;
+  QuantifiersProofRuleChecker d_checker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
   /** The quantifiers registry */
@@ -100,4 +101,4 @@ class TheoryQuantifiers : public Theory {
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */

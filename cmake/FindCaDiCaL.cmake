@@ -1,17 +1,20 @@
-#####################
-## FindCaDiCaL.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find CaDiCaL
 # CaDiCaL_FOUND - system has CaDiCaL lib
 # CaDiCaL_INCLUDE_DIR - the CaDiCaL include directory
 # CaDiCaL_LIBRARIES - Libraries needed to use CaDiCaL
+##
 
 include(deps-helper)
 
@@ -36,6 +39,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 endif()
 
 if(NOT CaDiCaL_FOUND_SYSTEM)
+  check_auto_download("CaDiCaL" "--no-cadical")
   include(CheckSymbolExists)
   include(ExternalProject)
 
@@ -61,9 +65,12 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     URL_HASH SHA1=9de1176737b74440921ba86395fe5edbb3b131eb
     CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
     # avoid configure script, prepare the makefile manually
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/makefile.in
+            <SOURCE_DIR>/build/makefile
     COMMAND
-      sed -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e "s,@CXXFLAGS@,${CXXFLAGS}," -e
-      "s,@MAKEFLAGS@,," <SOURCE_DIR>/makefile.in > <SOURCE_DIR>/build/makefile
+      sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
+      "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
+      <SOURCE_DIR>/build/makefile
     # use $(MAKE) instead of "make" to allow for parallel builds
     BUILD_COMMAND $(MAKE) -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a

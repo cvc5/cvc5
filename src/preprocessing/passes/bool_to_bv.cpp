@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file bool_to_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Makai Mann, Yoni Zohar, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BoolToBV preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Makai Mann, Yoni Zohar, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BoolToBV preprocessing pass.
+ *
+ */
 
 #include "preprocessing/passes/bool_to_bv.h"
 
@@ -40,7 +41,7 @@ BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BoolToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t size = assertionsToPreprocess->size();
 
@@ -266,7 +267,11 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
-    ++(d_statistics.d_numIntroducedItes);
+    if (d_boolToBVMode == options::BoolToBVMode::ALL)
+    {
+      // this statistic only makes sense for ALL mode
+      ++(d_statistics.d_numIntroducedItes);
+    }
     return;
   }
   else if (safe_to_rebuild && needToRebuild(n))
@@ -286,7 +291,11 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
-    ++(d_statistics.d_numIntroducedItes);
+    if (d_boolToBVMode == options::BoolToBVMode::ALL)
+    {
+      // this statistic only makes sense for ALL mode
+      ++(d_statistics.d_numIntroducedItes);
+    }
   }
   else
   {
@@ -356,7 +365,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 {
   Kind k = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
-  NodeBuilder<> builder(new_kind);
+  NodeBuilder builder(new_kind);
 
   Debug("bool-to-bv") << "BoolToBV::rebuildNode with " << n
                       << " and new_kind = " << kindToString(new_kind)
@@ -364,6 +373,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 
   if ((d_boolToBVMode == options::BoolToBVMode::ALL) && (new_kind != k))
   {
+    // this statistic only makes sense for ALL mode
     ++(d_statistics.d_numTermsLowered);
   }
 
@@ -393,32 +403,17 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 }
 
 BoolToBV::Statistics::Statistics()
-    : d_numIteToBvite("preprocessing::passes::BoolToBV::NumIteToBvite", 0),
-      d_numTermsLowered("preprocessing::passes:BoolToBV::NumTermsLowered", 0),
-      d_numIntroducedItes(
-          "preprocessing::passes::BoolToBV::NumTermsForcedLowered", 0)
+    : d_numIteToBvite(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::BoolToBV::NumIteToBvite")),
+      // the following two statistics are not correct in the ITE mode, because
+      // we might discard rebuilt nodes if we fails to convert a bool to
+      // width-one bit-vector (never forces)
+      d_numTermsLowered(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes:BoolToBV::NumTermsLowered")),
+      d_numIntroducedItes(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes::BoolToBV::NumTermsForcedLowered"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numIteToBvite);
-  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
-  {
-    // these statistics wouldn't be correct in the ITE mode,
-    // because it might discard rebuilt nodes if it fails to
-    // convert a bool to width-one bit-vector (never forces)
-    smtStatisticsRegistry()->registerStat(&d_numTermsLowered);
-    smtStatisticsRegistry()->registerStat(&d_numIntroducedItes);
-  }
 }
-
-BoolToBV::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numIteToBvite);
-  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
-  {
-    smtStatisticsRegistry()->unregisterStat(&d_numTermsLowered);
-    smtStatisticsRegistry()->unregisterStat(&d_numIntroducedItes);
-  }
-}
-
 
 }  // namespace passes
 }  // namespace preprocessing

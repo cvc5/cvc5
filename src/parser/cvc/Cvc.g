@@ -1,18 +1,17 @@
-/* *******************                                                        */
-/*! \file Cvc.g
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Parser for CVC presentation input language
- **
- ** Parser for CVC presentation input language.
- **/
+/* ****************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Parser for CVC presentation input language.
+ */
 
 grammar Cvc;
 
@@ -24,7 +23,7 @@ options {
   // defaultErrorHandler = false;
 
   // Only lookahead of <= k requested (disable for LL* parsing)
-  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // Note that cvc5's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in cvc_input.cpp !
   k = 3;
 }/* options */
@@ -509,13 +508,15 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 }/* @parser::members */
 
 @header {
-/**
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.
- **/
+/* ****************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ */
 }/* @header */
 
 @lexer::includes {
@@ -525,7 +526,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
 #pragma GCC system_header
 
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+#if defined(CVC5_COMPETITION_MODE) && !defined(CVC5_SMTCOMP_APPLICATION_TRACK)
 /* This improves performance by ~10 percent on big inputs.
  * This option is only valid if we know the input is ASCII (or some 8-bit encoding).
  * If we know the input is UTF-16, we can use ANTLR3_INLINE_INPUT_UTF16.
@@ -533,7 +534,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
  */
 #  define ANTLR3_INLINE_INPUT_ASCII
 #  define ANTLR3_INLINE_INPUT_8BIT
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+#endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
 
 #include "parser/antlr_input.h"
 #include "parser/antlr_tracing.h"
@@ -554,7 +555,7 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 
 namespace cvc5 {
   class Expr;
-}/* CVC4 namespace */
+}/* cvc5 namespace */
 
 }/* @parser::includes */
 
@@ -632,16 +633,16 @@ parseCommand returns [cvc5::Command* cmd_return = NULL]
     { std::string s = AntlrInput::tokenText($IDENTIFIER);
     if(s == "benchmark") {
         PARSER_STATE->parseError(
-            "In CVC4 presentation language mode, but SMT-LIBv1 format "
+            "In cvc5 presentation language mode, but SMT-LIBv1 format "
             "detected, which is not supported anymore.");
       } else if(s == "set" || s == "get" || s == "declare" ||
                 s == "define" || s == "assert") {
         PARSER_STATE->parseError(
-            "In CVC4 presentation language mode, but SMT-LIB format detected. "
+            "In cvc5 presentation language mode, but SMT-LIB format detected. "
             "Use --lang smt for SMT-LIB support.");
       } else {
         PARSER_STATE->parseError(
-            "A CVC4 presentation language command cannot begin with a "
+            "A cvc5 presentation language command cannot begin with a "
             "parenthesis; expected command name.");
       }
     }
@@ -797,24 +798,24 @@ mainCommand[std::unique_ptr<cvc5::Command>* cmd]
   | DBG_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Debug.on(s); Trace.on(s); }
-    | { CVC4Message() << "Please specify what to debug." << std::endl; }
+    | { CVC5Message() << "Please specify what to debug." << std::endl; }
     )
 
   | TRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.on(s); }
-    | { CVC4Message() << "Please specify something to trace." << std::endl; }
+    | { CVC5Message() << "Please specify something to trace." << std::endl; }
     )
   | UNTRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.off(s); }
-    | { CVC4Message() << "Please specify something to untrace." << std::endl; }
+    | { CVC5Message() << "Please specify something to untrace." << std::endl; }
     )
 
   | HELP_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-      { CVC4Message() << "No help available for `" << s << "'." << std::endl; }
-  |   { CVC4Message() << "Please use --help at the command line for help."
+      { CVC5Message() << "No help available for `" << s << "'." << std::endl; }
+  |   { CVC5Message() << "Please use --help at the command line for help."
                 << std::endl; }
             )
 
@@ -1103,7 +1104,7 @@ declareVariables[std::unique_ptr<cvc5::Command>* cmd, cvc5::api::Sort& t,
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
               std::stringstream ss;
-              ss << language::SetLanguage(language::output::LANG_CVC4)
+              ss << language::SetLanguage(language::output::LANG_CVC)
                  << "incompatible type for `" << *i << "':" << std::endl
                  << "  old type: " << oldType << std::endl
                  << "  new type: " << t << std::endl;
@@ -1393,7 +1394,7 @@ typeLetDecl[cvc5::parser::DeclarationCheck check]
   ;
 
 /**
- * Matches a CVC4 expression.  Formulas and terms are not really
+ * Matches a cvc5 expression.  Formulas and terms are not really
  * distinguished during parsing; please ignore the naming of the
  * grammar rules.
  *
@@ -1525,7 +1526,7 @@ letDecl
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
     {
-      Debug("parser") << language::SetLanguage(language::output::LANG_CVC4)
+      Debug("parser") << language::SetLanguage(language::output::LANG_CVC)
                       << e.getSort() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "

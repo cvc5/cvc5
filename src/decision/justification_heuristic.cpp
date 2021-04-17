@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file justification_heuristic.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andres Noetzli, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification heuristic for decision making
- **
- ** A ATGP-inspired justification-based decision heuristic. This code is based
- ** on the CVC3 implementation of the same heuristic -- note below.
- **
- ** It needs access to the simplified but non-clausal formula.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification heuristic for decision making
+ *
+ * A ATGP-inspired justification-based decision heuristic. This code is based
+ * on the CVC3 implementation of the same heuristic -- note below.
+ *
+ * It needs access to the simplified but non-clausal formula.
+ */
 #include "justification_heuristic.h"
 
 #include "decision/decision_attributes.h"
@@ -39,9 +40,10 @@ JustificationHeuristic::JustificationHeuristic(cvc5::DecisionEngine* de,
       d_exploredThreshold(c),
       d_prvsIndex(c, 0),
       d_threshPrvsIndex(c, 0),
-      d_helpfulness("decision::jh::helpfulness", 0),
-      d_giveup("decision::jh::giveup", 0),
-      d_timestat("decision::jh::time"),
+      d_helpfulness(
+          smtStatisticsRegistry().registerInt("decision::jh::helpfulness")),
+      d_giveup(smtStatisticsRegistry().registerInt("decision::jh::giveup")),
+      d_timestat(smtStatisticsRegistry().registerTimer("decision::jh::time")),
       d_assertions(uc),
       d_skolemAssertions(uc),
       d_skolemCache(uc),
@@ -53,18 +55,10 @@ JustificationHeuristic::JustificationHeuristic(cvc5::DecisionEngine* de,
       d_weightCache(uc),
       d_startIndexCache(c)
 {
-  smtStatisticsRegistry()->registerStat(&d_helpfulness);
-  smtStatisticsRegistry()->registerStat(&d_giveup);
-  smtStatisticsRegistry()->registerStat(&d_timestat);
   Trace("decision") << "Justification heuristic enabled" << std::endl;
 }
 
-JustificationHeuristic::~JustificationHeuristic()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_helpfulness);
-  smtStatisticsRegistry()->unregisterStat(&d_giveup);
-  smtStatisticsRegistry()->unregisterStat(&d_timestat);
-}
+JustificationHeuristic::~JustificationHeuristic() {}
 
 cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 {
@@ -126,7 +120,7 @@ cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
 
   Trace("decision") << "jh: Nothing to split on " << std::endl;
 
-#if defined CVC4_DEBUG
+#if defined CVC5_DEBUG
   bool alljustified = true;
   for(unsigned i = 0 ; i < d_assertions.size() && alljustified ; ++i) {
     TNode curass = d_assertions[i];
@@ -442,7 +436,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     return DONT_KNOW;
   }
 
-#if defined CVC4_ASSERTIONS || defined CVC4_DEBUG
+#if defined CVC5_ASSERTIONS || defined CVC5_DEBUG
   // We don't always have a sat literal, so remember that. Will need
   // it for some assertions we make.
   bool litPresent = d_decisionEngine->hasSatLiteral(node);

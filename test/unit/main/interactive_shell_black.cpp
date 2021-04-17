@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file interactive_shell_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Christopher L. Conway, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::InteractiveShell.
- **
- ** Black box testing of cvc5::InteractiveShell.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Christopher L. Conway, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::InteractiveShell.
+ */
 
 #include <sstream>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
@@ -40,7 +39,7 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_sout.reset(new std::stringstream);
     d_options.set(options::in, d_sin.get());
     d_options.set(options::out, d_sout.get());
-    d_options.set(options::inputLanguage, language::input::LANG_CVC4);
+    d_options.set(options::inputLanguage, language::input::LANG_CVC);
     d_solver.reset(new cvc5::api::Solver(&d_options));
     d_symman.reset(new SymbolManager(d_solver.get()));
   }

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file proof_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The proof manager of SmtEngine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The proof manager of SmtEngine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__PROOF_MANAGER_H
-#define CVC4__SMT__PROOF_MANAGER_H
+#ifndef CVC5__SMT__PROOF_MANAGER_H
+#define CVC5__SMT__PROOF_MANAGER_H
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
@@ -37,6 +38,24 @@ class ProofPostproccess;
 /**
  * This class is responsible for managing the proof output of SmtEngine, as
  * well as setting up the global proof checker and proof node manager.
+ *
+ * The proof production of an SmtEngine is directly impacted by whether, and
+ * how, we are producing unsat cores:
+ *
+ * - If we are producing unsat cores using the old proof infrastructure, then
+ *   SmtEngine will not have proofs in the sense of this proof manager.
+ *
+ * - If we are producing unsat cores using this proof infrastructure, then the
+ *   SmtEngine will have proofs using this proof manager (if --produce-proofs
+ *   was not passed by the user it will be activated), but these proofs will
+ *   only cover preprocessing and the prop engine, i.e., the theory engine will
+ *   not have proofs.
+ *
+ * - If we are not producing unsat cores then the SmtEngine will have proofs as
+ *   long as --produce-proofs was given.
+ *
+ * - If SmtEngine has been configured in a way that is incompatible with proofs
+ *   then unsat core production will be disabled.
  */
 class PfManager
 {
@@ -119,4 +138,4 @@ class PfManager
 }  // namespace smt
 }  // namespace cvc5
 
-#endif /* CVC4__SMT__PROOF_MANAGER_H */
+#endif /* CVC5__SMT__PROOF_MANAGER_H */

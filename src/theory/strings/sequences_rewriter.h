@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file sequences_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewriter for the theory of strings and sequences
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewriter for the theory of strings and sequences.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
-#define CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H
+#ifndef CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H
+#define CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H
 
 #include <vector>
 
@@ -33,7 +33,7 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics);
+  SequencesRewriter(HistogramStat<Rewrite>* statistics);
 
  protected:
   /** rewrite regular expression concatenation
@@ -288,7 +288,7 @@ class SequencesRewriter : public TheoryRewriter
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
   /** Reference to the rewriter statistics. */
-  IntegralHistogramStat<Rewrite>* d_statistics;
+  HistogramStat<Rewrite>* d_statistics;
 
   /** Instance of the entailment checker for strings. */
   StringsEntail d_stringsEntail;
@@ -298,4 +298,4 @@ class SequencesRewriter : public TheoryRewriter
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SEQUENCES_REWRITER_H */
+#endif /* CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H */

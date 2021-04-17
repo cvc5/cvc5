@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file quantifier_macros.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Pre-process step for detecting quantifier macro definitions
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Pre-process step for detecting quantifier macro definitions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
-#define CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
+#ifndef CVC5__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
+#define CVC5__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
 
 #include <map>
 #include <vector>
@@ -43,49 +44,38 @@ class QuantifierMacros : public PreprocessingPass
                      Node op,
                      std::vector<Node>& opc,
                      std::map<Node, bool>& visited);
-  bool isMacroLiteral(Node n, bool pol);
   bool isGroundUfTerm(Node f, Node n);
   void getMacroCandidates(Node n,
                           std::vector<Node>& candidates,
                           std::map<Node, bool>& visited);
   Node solveInEquality(Node n, Node lit);
-  bool getFreeVariables(Node n,
-                        std::vector<Node>& v_quant,
-                        std::vector<Node>& vars,
-                        bool retOnly,
-                        std::map<Node, bool>& visited);
-  bool getSubstitution(std::vector<Node>& v_quant,
-                       std::map<Node, Node>& solved,
-                       std::vector<Node>& vars,
-                       std::vector<Node>& subs,
-                       bool reqComplete);
-  void addMacro(Node op, Node n, std::vector<Node>& opc);
-  void debugMacroDefinition(Node oo, Node n);
+  /**
+   * Called when we have inferred a quantified formula is of the form
+   *   forall x1 ... xn. n = ndef
+   * where n is of the form U(x1...xn). Returns true if this is a legal
+   * macro definition for U.
+   */
+  bool addMacroEq(Node n, Node ndef);
   /**
    * This applies macro elimination to the given pipeline, which discovers
-   * whether there are any quantified formulas corresponding to macros.
+   * whether there are any quantified formulas corresponding to macros,
+   * and rewrites the given assertions pipeline.
    *
    * @param ap The pipeline to apply macros to.
-   * @param doRewrite Whether we also wish to rewrite the assertions based on
-   * the discovered macro definitions.
    * @return Whether new definitions were inferred and we rewrote the assertions
    * based on them.
    */
-  bool simplify(AssertionPipeline* ap, bool doRewrite = false);
-  Node simplify(Node n);
+  bool simplify(AssertionPipeline* ap);
   void finalizeDefinitions();
   void clearMaps();
 
-  // map from operators to macro basis terms
-  std::map<Node, std::vector<Node> > d_macro_basis;
-  // map from operators to macro definition
-  std::map<Node, Node> d_macro_defs;
-  std::map<Node, Node> d_macro_defs_new;
-  // operators to macro ops that contain them
-  std::map<Node, std::vector<Node> > d_macro_def_contains;
-  // simplify caches
-  std::map<Node, Node> d_simplify_cache;
+  /** All macros inferred by this class */
+  std::map<Node, Node> d_macroDefs;
+  /** The current list of macros inferring during a call to simplify */
+  std::map<Node, Node> d_macroDefsNew;
+  /** Map from quantified formulas to whether they are macro definitions */
   std::map<Node, bool> d_quant_macros;
+  /** Whether we are currently limited to inferring ground macros */
   bool d_ground_macros;
 };
 
@@ -93,4 +83,4 @@ class QuantifierMacros : public PreprocessingPass
 }  // preprocessing
 }  // namespace cvc5
 
-#endif /*CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */
+#endif /*CVC5__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */

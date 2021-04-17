@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file language.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Francois Bobot
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definition of input and output languages
- **
- ** Definition of input and output languages.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of input and output languages.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__LANGUAGE_H
-#define CVC4__LANGUAGE_H
+#ifndef CVC5__LANGUAGE_H
+#define CVC5__LANGUAGE_H
 
 #include <ostream>
 #include <string>
@@ -49,8 +48,8 @@ enum CVC4_EXPORT Language
   LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
   /** The TPTP input language */
   LANG_TPTP,
-  /** The CVC4 input language */
-  LANG_CVC4,
+  /** The cvc5 input language */
+  LANG_CVC,
   /** The SyGuS input language version 2.0 */
   LANG_SYGUS_V2,
 
@@ -73,9 +72,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
-  case LANG_CVC4:
-    out << "LANG_CVC4";
-    break;
+  case LANG_CVC: out << "LANG_CVC"; break;
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
@@ -107,8 +104,8 @@ enum CVC4_EXPORT Language
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
   /** The TPTP output language */
   LANG_TPTP = input::LANG_TPTP,
-  /** The CVC4 output language */
-  LANG_CVC4 = input::LANG_CVC4,
+  /** The cvc5 output language */
+  LANG_CVC = input::LANG_CVC,
   /** The sygus output language version 2.0 */
   LANG_SYGUS_V2 = input::LANG_SYGUS_V2,
 
@@ -131,9 +128,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
-  case LANG_CVC4:
-    out << "LANG_CVC4";
-    break;
+  case LANG_CVC: out << "LANG_CVC"; break;
   case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
@@ -179,4 +174,4 @@ OutputLanguage toOutputLanguage(std::string language) CVC4_EXPORT;
 }  // namespace language
 }  // namespace cvc5
 
-#endif /* CVC4__LANGUAGE_H */
+#endif /* CVC5__LANGUAGE_H */

@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file update_ostream.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__UPDATE_OSTREAM_H
-#define CVC4__UPDATE_OSTREAM_H
+#ifndef CVC5__UPDATE_OSTREAM_H
+#define CVC5__UPDATE_OSTREAM_H
 
 #include <ostream>
 
@@ -94,8 +95,8 @@ class WarningOstreamUpdate : public OstreamUpdate {
 
 class MessageOstreamUpdate : public OstreamUpdate {
  public:
-  std::ostream& get() override { return CVC4Message.getStream(); }
-  void set(std::ostream* setTo) override { CVC4Message.setStream(setTo); }
+  std::ostream& get() override { return CVC5Message.getStream(); }
+  void set(std::ostream* setTo) override { CVC5Message.setStream(setTo); }
 };  /* class MessageOstreamUpdate */
 
 class NoticeOstreamUpdate : public OstreamUpdate {
@@ -118,4 +119,4 @@ class TraceOstreamUpdate : public OstreamUpdate {
 
 }  // namespace cvc5
 
-#endif /* CVC4__UPDATE_OSTREAM_H */
+#endif /* CVC5__UPDATE_OSTREAM_H */

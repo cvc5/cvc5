@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of arithmetic proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Alex Ozdemir, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of arithmetic proof checker.
+ */
 
 #include "theory/arith/proof_checker.h"
 
@@ -108,8 +109,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder<> leftSum(Kind::PLUS);
-      NodeBuilder<> rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::PLUS);
+      NodeBuilder rightSum(Kind::PLUS);
       for (size_t i = 0; i < children.size(); ++i)
       {
         // Adjust strictness
@@ -163,8 +164,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder<> leftSum(Kind::PLUS);
-      NodeBuilder<> rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::PLUS);
+      NodeBuilder rightSum(Kind::PLUS);
       for (size_t i = 0; i < children.size(); ++i)
       {
         Rational scalar = args[i].getConst<Rational>();

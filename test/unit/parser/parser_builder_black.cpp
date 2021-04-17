@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file parser_builder_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Christopher L. Conway, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::parser::ParserBuilder.
- **
- ** Black box testing of cvc5::parser::ParserBuilder.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Christopher L. Conway, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::parser::ParserBuilder.
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +21,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "parser/parser.h"
@@ -82,7 +81,7 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   ASSERT_NE(filename, nullptr);
 
   checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), filename)
-                      .withInputLanguage(LANG_CVC4));
+                      .withInputLanguage(LANG_CVC));
 
   remove(filename);
   free(filename);
@@ -97,7 +96,7 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   fs.close();
 
   checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), filename)
-                     .withInputLanguage(LANG_CVC4));
+                     .withInputLanguage(LANG_CVC));
 
   remove(filename);
   free(filename);
@@ -106,14 +105,14 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
 TEST_F(TestParseBlackParserBuilder, empty_string_input)
 {
   checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                      .withInputLanguage(LANG_CVC4)
+                      .withInputLanguage(LANG_CVC)
                       .withStringInput(""));
 }
 
 TEST_F(TestParseBlackParserBuilder, true_string_input)
 {
   checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                     .withInputLanguage(LANG_CVC4)
+                     .withInputLanguage(LANG_CVC)
                      .withStringInput("TRUE"));
 }
 
@@ -121,7 +120,7 @@ TEST_F(TestParseBlackParserBuilder, empty_stream_input)
 {
   std::stringstream ss("", std::ios_base::in);
   checkEmptyInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                      .withInputLanguage(LANG_CVC4)
+                      .withInputLanguage(LANG_CVC)
                       .withStreamInput(ss));
 }
 
@@ -129,7 +128,7 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 {
   std::stringstream ss("TRUE", std::ios_base::in);
   checkTrueInput(ParserBuilder(&d_solver, d_symman.get(), "foo")
-                     .withInputLanguage(LANG_CVC4)
+                     .withInputLanguage(LANG_CVC)
                      .withStreamInput(ss));
 }
 

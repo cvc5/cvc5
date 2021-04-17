@@ -63,7 +63,7 @@ header = "options/base_options.h"
   type       = "int"
   default    = "0"
   predicates = ["setVerbosity"]
-  help       = "the verbosity level of CVC4"
+  help       = "the verbosity level of cvc5"
 
 [[option]]
   category   = "common"
@@ -85,31 +85,44 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "statistics"
-  smt_name   = "statistics"
-  category   = "common"
+  smt_name   = "stats"
   long       = "stats"
+  category   = "common"
   type       = "bool"
-  predicates = ["statsEnabledBuild"]
+  predicates = ["setStats"]
   read_only  = true
   help       = "give statistics on exit"
 
 [[option]]
-  name       = "statsEveryQuery"
-  category   = "regular"
-  long       = "stats-every-query"
+  name       = "statisticsAll"
+  smt_name   = "stats-all"
+  long       = "stats-all"
+  category   = "expert"
   type       = "bool"
+  predicates = ["setStats"]
+  read_only  = true
+  help       = "print unchanged (defaulted) statistics as well"
+
+[[option]]
+  name       = "statisticsExpert"
+  smt_name   = "stats-expert"
+  long       = "stats-expert"
+  category   = "expert"
+  type       = "bool"
+  predicates = ["setStats"]
+  read_only  = true
+  help       = "print expert (non-public) statistics as well"
+
+[[option]]
+  name       = "statisticsEveryQuery"
+  smt_name   = "stats-every-query"
+  long       = "stats-every-query"
+  category   = "regular"
+  type       = "bool"
+  predicates = ["setStats"]
   default    = "false"
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
-
-[[option]]
-  name       = "statsHideZeros"
-  category   = "regular"
-  long       = "stats-hide-zeros"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "hide statistics which are zero"
 
 [[option]]
   name       = "parseOnly"

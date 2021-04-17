@@ -96,4 +96,4 @@ double BVMinisat::memUsed() {
 #endif
 
 } /* cvc5::BVMinisat namespace */
-} /* CVC4 namespace */
+} /* cvc5 namespace */

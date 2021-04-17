@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file instantiate.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of instantiate
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of instantiate.
+ */
 
 #include "theory/quantifiers/instantiate.h"
 
@@ -74,12 +75,13 @@ bool Instantiate::reset(Theory::Effort e)
 }
 
 void Instantiate::registerQuantifier(Node q) {}
-bool Instantiate::checkComplete()
+bool Instantiate::checkComplete(IncompleteId& incId)
 {
   if (!d_recordedInst.empty())
   {
     Trace("quant-engine-debug")
         << "Set incomplete due to recorded instantiations." << std::endl;
+    incId = IncompleteId::QUANTIFIERS_RECORDED_INST;
     return false;
   }
   return true;
@@ -98,7 +100,7 @@ bool Instantiate::addInstantiation(Node q,
                                    bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
+  d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Trace("inst-add-debug") << "For quantified formula " << q
@@ -130,7 +132,7 @@ bool Instantiate::addInstantiation(Node q,
           << std::endl;
       return false;
     }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     bool bad_inst = false;
     if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
@@ -376,6 +378,7 @@ bool Instantiate::addInstantiation(Node q,
           orig_body, q[1], maxInstLevel + 1);
     }
   }
+  d_treg.processInstantiation(q, terms);
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;
@@ -739,23 +742,15 @@ InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
 }
 
 Instantiate::Statistics::Statistics()
-    : d_instantiations("Instantiate::Instantiations_Total", 0),
-      d_inst_duplicate("Instantiate::Duplicate_Inst", 0),
-      d_inst_duplicate_eq("Instantiate::Duplicate_Inst_Eq", 0),
-      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0)
+    : d_instantiations(smtStatisticsRegistry().registerInt(
+        "Instantiate::Instantiations_Total")),
+      d_inst_duplicate(
+          smtStatisticsRegistry().registerInt("Instantiate::Duplicate_Inst")),
+      d_inst_duplicate_eq(smtStatisticsRegistry().registerInt(
+          "Instantiate::Duplicate_Inst_Eq")),
+      d_inst_duplicate_ent(smtStatisticsRegistry().registerInt(
+          "Instantiate::Duplicate_Inst_Entailed"))
 {
-  smtStatisticsRegistry()->registerStat(&d_instantiations);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
-}
-
-Instantiate::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
 }
 
 }  // namespace quantifiers

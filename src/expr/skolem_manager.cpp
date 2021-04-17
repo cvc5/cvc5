@@ -1,18 +1,21 @@
-/*********************                                                        */
-/*! \file skolem_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of skolem manager class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of skolem manager class.
+ */
 
 #include "expr/skolem_manager.h"
+
+#include <sstream>
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
@@ -38,6 +41,26 @@ struct OriginalFormAttributeId
 {
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
+
+const char* toString(SkolemFunId id)
+{
+  switch (id)
+  {
+    case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
+    case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
+    case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
+    case SkolemFunId::SQRT: return "SQRT";
+    case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
+    case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, SkolemFunId id)
+{
+  out << toString(id);
+  return out;
+}
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
@@ -165,6 +188,31 @@ Node SkolemManager::mkPurifySkolem(Node t,
   Trace("sk-manager-skolem")
       << "skolem: " << k << " purify " << to << std::endl;
   return k;
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
+{
+  std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
+  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
+      d_skolemFuns.find(key);
+  if (it == d_skolemFuns.end())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::stringstream ss;
+    ss << "SKOLEM_FUN_" << id;
+    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function");
+    d_skolemFuns[key] = k;
+    return k;
+  }
+  return it->second;
+}
+
+Node SkolemManager::mkDummySkolem(const std::string& prefix,
+                                  const TypeNode& type,
+                                  const std::string& comment,
+                                  int flags)
+{
+  return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
 }
 
 Node SkolemManager::mkBooleanTermVariable(Node t)

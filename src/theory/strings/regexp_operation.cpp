@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file regexp_operation.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Symbolic Regular Expresion Operations
- **
- ** Symbolic Regular Expresion Operations
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tianyi Liang, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Symbolic Regular Expresion Operations
+ */
 
 #include "theory/strings/regexp_operation.h"
 
@@ -274,6 +273,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
   int ret = 1;
   retNode = d_emptyRegexp;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -355,7 +355,8 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
             }
           }
           if(ret == 0) {
-            Node sk = NodeManager::currentNM()->mkSkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
+            Node sk =
+                sm->mkDummySkolem("rsp", nm->stringType(), "Split RegExp");
             retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));

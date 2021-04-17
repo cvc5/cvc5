@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file boolean_simplification_black.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Black box testing of cvc5::BooleanSimplification
- **
- ** Black box testing of cvc5::BooleanSimplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Black box testing of cvc5::BooleanSimplification.
+ */
 
 #include <algorithm>
 #include <set>
@@ -36,20 +35,20 @@ class TestUtilBlackBooleanSimplification : public TestNode
   {
     TestNode::SetUp();
 
-    d_a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
-    d_b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
-    d_c = d_nodeManager->mkSkolem("c", d_nodeManager->booleanType());
-    d_d = d_nodeManager->mkSkolem("d", d_nodeManager->booleanType());
-    d_e = d_nodeManager->mkSkolem("e", d_nodeManager->booleanType());
-    d_f = d_nodeManager->mkSkolem(
+    d_a = d_skolemManager->mkDummySkolem("a", d_nodeManager->booleanType());
+    d_b = d_skolemManager->mkDummySkolem("b", d_nodeManager->booleanType());
+    d_c = d_skolemManager->mkDummySkolem("c", d_nodeManager->booleanType());
+    d_d = d_skolemManager->mkDummySkolem("d", d_nodeManager->booleanType());
+    d_e = d_skolemManager->mkDummySkolem("e", d_nodeManager->booleanType());
+    d_f = d_skolemManager->mkDummySkolem(
         "f",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));
-    d_g = d_nodeManager->mkSkolem(
+    d_g = d_skolemManager->mkDummySkolem(
         "g",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));
-    d_h = d_nodeManager->mkSkolem(
+    d_h = d_skolemManager->mkDummySkolem(
         "h",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));
@@ -73,7 +72,7 @@ class TestUtilBlackBooleanSimplification : public TestNode
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
 
     std::cout << expr::ExprSetDepth(-1)
-              << language::SetLanguage(language::output::LANG_CVC4);
+              << language::SetLanguage(language::output::LANG_CVC);
   }
 
   // assert equality up to commuting children
@@ -124,7 +123,7 @@ TEST_F(TestUtilBlackBooleanSimplification, negate)
   out = d_fa.andNode(d_ac).notNode();
   test_nodes_equal(out, BooleanSimplification::negate(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = Node();
   ASSERT_THROW(BooleanSimplification::negate(in), AssertArgumentException);
 #endif
@@ -152,8 +151,8 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyClause)
                              d_hfc,
                              d_ac,
                              d_d.andNode(d_b));
-  out = NodeBuilder<>(kind::OR) << d_fa << d_ga.orNode(d_c).notNode() << d_hfc
-                                << d_ac << d_d.andNode(d_b);
+  out = NodeBuilder(kind::OR) << d_fa << d_ga.orNode(d_c).notNode() << d_hfc
+                              << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
   in = d_nodeManager->mkNode(kind::OR,
@@ -162,11 +161,11 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyClause)
                              d_hfc,
                              d_ac,
                              d_d.andNode(d_b));
-  out = NodeBuilder<>(kind::OR) << d_fa << d_ga.notNode() << d_c.notNode()
-                                << d_hfc << d_ac << d_d.andNode(d_b);
+  out = NodeBuilder(kind::OR) << d_fa << d_ga.notNode() << d_c.notNode()
+                              << d_hfc << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = d_nodeManager->mkNode(kind::AND, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyClause(in),
                AssertArgumentException);
@@ -207,12 +206,12 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyHornClause)
                             d_ga.orNode(d_c).notNode(),
                             d_hfc.orNode(d_ac),
                             d_d.andNode(d_b).notNode()));
-  out = NodeBuilder<>(kind::OR)
+  out = NodeBuilder(kind::OR)
         << d_a.notNode() << d_b.notNode() << d_fa << d_ga.orNode(d_c).notNode()
         << d_hfc << d_ac << d_d.notNode();
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = d_nodeManager->mkNode(kind::OR, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyHornClause(in),
                AssertArgumentException);
@@ -237,11 +236,11 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
                              d_fa,
                              d_hfc.orNode(d_ac),
                              d_d.andNode(d_b));
-  out = NodeBuilder<>(kind::AND) << d_fa << d_ga.notNode() << d_c.notNode()
-                                 << d_hfc.orNode(d_ac) << d_d << d_b;
+  out = NodeBuilder(kind::AND) << d_fa << d_ga.notNode() << d_c.notNode()
+                               << d_hfc.orNode(d_ac) << d_d << d_b;
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   in = d_nodeManager->mkNode(kind::OR, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyConflict(in),
                AssertArgumentException);

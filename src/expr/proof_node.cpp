@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_node.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of proof node utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of proof node utility.
+ */
 
 #include "expr/proof_node.h"
 
@@ -42,19 +43,6 @@ bool ProofNode::isClosed()
   std::vector<Node> assumps;
   expr::getFreeAssumptions(this, assumps);
   return assumps.empty();
-}
-
-std::shared_ptr<ProofNode> ProofNode::clone() const
-{
-  std::vector<std::shared_ptr<ProofNode>> cchildren;
-  for (const std::shared_ptr<ProofNode>& cp : d_children)
-  {
-    cchildren.push_back(cp->clone());
-  }
-  std::shared_ptr<ProofNode> thisc =
-      std::make_shared<ProofNode>(d_rule, cchildren, d_args);
-  thisc->d_proven = d_proven;
-  return thisc;
 }
 
 void ProofNode::setValue(

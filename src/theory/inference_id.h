@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file inference_id.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer, Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Inference enumeration.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inference enumeration.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
+
+#ifndef CVC5__THEORY__INFERENCE_ID_H
+#define CVC5__THEORY__INFERENCE_ID_H
 
 #include <iosfwd>
-
-#ifndef CVC4__THEORY__INFERENCE_ID_H
-#define CVC4__THEORY__INFERENCE_ID_H
 
 namespace cvc5 {
 namespace theory {
@@ -264,6 +265,8 @@ enum class InferenceId
   QUANTIFIERS_INST_SYQI,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
+  // instantiations from pool instantiation
+  QUANTIFIERS_INST_POOL,
   //-------------------- bounded integers
   // a proxy lemma from bounded integers, used to control bounds on ground terms
   QUANTIFIERS_BINT_PROXY,
@@ -754,4 +757,4 @@ std::ostream& operator<<(std::ostream& out, InferenceId i);
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__INFERENCE_H */
+#endif /* CVC5__THEORY__INFERENCE_H */

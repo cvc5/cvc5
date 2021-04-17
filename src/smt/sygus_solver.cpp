@@ -1,22 +1,24 @@
-/*********************                                                        */
-/*! \file sygus_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for sygus queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for SyGuS queries.
+ */
 
 #include "smt/sygus_solver.h"
 
 #include <sstream>
 
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -261,6 +263,7 @@ void SygusSolver::printSynthSolution(std::ostream& out)
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Notice() << "SygusSolver::checkSynthSolution(): checking synthesis solution"
            << std::endl;
   std::map<Node, std::map<Node, Node>> sol_map;
@@ -363,7 +366,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
         vars.push_back(conj[1][0][j]);
         std::stringstream ss;
         ss << "sk_" << j;
-        skos.push_back(nm->mkSkolem(ss.str(), conj[1][0][j].getType()));
+        skos.push_back(sm->mkDummySkolem(ss.str(), conj[1][0][j].getType()));
         Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
                                  << skos.back() << "\n";
       }

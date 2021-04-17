@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file interactive_shell.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew V. Jones
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Interactive shell for CVC4
- **
- ** This file is the implementation for the CVC4 interactive shell.
- ** The shell supports the editline library.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Christopher L. Conway, Andrew V. Jones
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Interactive shell for cvc5.
+ *
+ * This file is the implementation for the cvc5 interactive shell.
+ * The shell supports the editline library.
+ */
 #include "main/interactive_shell.h"
 
 #include <algorithm>
@@ -35,7 +36,7 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif   /* HAVE_LIBEDITLINE */
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
@@ -100,7 +101,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
 
 #if HAVE_LIBEDITLINE
   if(&d_in == &cin) {
-    ::rl_readline_name = const_cast<char*>("CVC4");
+    ::rl_readline_name = const_cast<char*>("cvc5");
 #if EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
 #else /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
@@ -110,30 +111,32 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
 
     OutputLanguage lang = toOutputLanguage(d_options.getInputLanguage());
     switch(lang) {
-    case output::LANG_CVC4:
-      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
-      commandsBegin = cvc_commands;
-      commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
-      break;
-    case output::LANG_TPTP:
-      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
-      commandsBegin = tptp_commands;
-      commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
-      break;
-    default:
-      if (language::isOutputLang_smt2(lang))
-      {
-        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
-        commandsBegin = smt2_commands;
+      case output::LANG_CVC:
+        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
+        commandsBegin = cvc_commands;
         commandsEnd =
-            smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-      }
-      else
-      {
-        std::stringstream ss;
-        ss << "internal error: unhandled language " << lang;
-        throw Exception(ss.str());
-      }
+            cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
+        break;
+      case output::LANG_TPTP:
+        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
+        commandsBegin = tptp_commands;
+        commandsEnd =
+            tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
+        break;
+      default:
+        if (language::isOutputLang_smt2(lang))
+        {
+          d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
+          commandsBegin = smt2_commands;
+          commandsEnd =
+              smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "internal error: unhandled language " << lang;
+          throw Exception(ss.str());
+        }
     }
     d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
@@ -193,7 +196,8 @@ restart:
   {
 #if HAVE_LIBEDITLINE
     lineBuf = ::readline(d_options.getInteractivePrompt()
-                         ? (line == "" ? "CVC4> " : "... > ") : "");
+                             ? (line == "" ? "cvc5> " : "... > ")
+                             : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -205,7 +209,7 @@ restart:
   {
     if(d_options.getInteractivePrompt()) {
       if(line == "") {
-        d_out << "CVC4> " << flush;
+        d_out << "cvc5> " << flush;
       } else {
         d_out << "... > " << flush;
       }
@@ -261,7 +265,7 @@ restart:
     if (!d_usingEditline)
     {
       /* Extract the newline delimiter from the stream too */
-      int c CVC4_UNUSED = d_in.get();
+      int c CVC5_UNUSED = d_in.get();
       Assert(c == '\n');
       Debug("interactive") << "Next char is '" << (char)c << "'" << endl
                            << flush;
@@ -366,7 +370,7 @@ restart:
     // because the parse error might be for the second command on the
     // line.  The first ones haven't yet been executed by the SmtEngine,
     // but the parser state has already made the variables and the mappings
-    // in the symbol table.  So unfortunately, either we exit CVC4 entirely,
+    // in the symbol table.  So unfortunately, either we exit cvc5 entirely,
     // or we commit to the current line up to the command with the parse
     // error.
     //

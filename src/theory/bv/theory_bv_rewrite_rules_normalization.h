@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules_normalization.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -284,7 +285,7 @@ static inline void updateCoefMap(TNode current, unsigned size,
         }
       }
       else if (current[current.getNumChildren()-1].isConst()) {
-        NodeBuilder<> nb(kind::BITVECTOR_MULT);
+        NodeBuilder nb(kind::BITVECTOR_MULT);
         TNode::iterator child_it = current.begin();
         for(; (child_it+1) != current.end(); ++child_it) {
           Assert(!(*child_it).isConst());
@@ -353,7 +354,7 @@ static inline void addToChildren(TNode term,
   }
   else if (term.getKind() == kind::BITVECTOR_MULT)
   {
-    NodeBuilder<> nb(kind::BITVECTOR_MULT);
+    NodeBuilder nb(kind::BITVECTOR_MULT);
     TNode::iterator child_it = term.begin();
     for (; child_it != term.end(); ++child_it)
     {
@@ -896,7 +897,7 @@ bool RewriteRule<BitwiseEq>::applies(TNode node) {
 static inline Node mkNodeKind(Kind k, TNode node, TNode c) {
   unsigned i = 0;
   unsigned nc = node.getNumChildren();
-  NodeBuilder<> nb(k);
+  NodeBuilder nb(k);
   for(; i < nc; ++i) {
     nb << node[i].eqNode(c);
   }
@@ -991,7 +992,7 @@ template<> inline
 Node RewriteRule<NegMult>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<NegMult>(" << node << ")" << std::endl;
   TNode mult = node[0];
-  NodeBuilder<> nb(kind::BITVECTOR_MULT);
+  NodeBuilder nb(kind::BITVECTOR_MULT);
   BitVector bv(utils::getSize(node), (unsigned)1);
   TNode::iterator child_it = mult.begin();
   for(; (child_it+1) != mult.end(); ++child_it) {
@@ -1492,8 +1493,8 @@ inline Node RewriteRule<NormalizeEqPlusNeg>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<NormalizeEqPlusNeg>(" << node << ")"
                       << std::endl;
 
-  NodeBuilder<> nb_lhs(kind::BITVECTOR_PLUS);
-  NodeBuilder<> nb_rhs(kind::BITVECTOR_PLUS);
+  NodeBuilder nb_lhs(kind::BITVECTOR_PLUS);
+  NodeBuilder nb_rhs(kind::BITVECTOR_PLUS);
   NodeManager *nm = NodeManager::currentNM();
 
   if (node[0].getKind() == kind::BITVECTOR_PLUS)

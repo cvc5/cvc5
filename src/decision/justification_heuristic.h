@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file justification_heuristic.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Gereon Kremer, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification heuristic for decision making
- **
- ** A ATGP-inspired justification-based decision heuristic. See
- ** [insert reference] for more details. This code is, or not, based
- ** on the CVC3 implementation of the same heuristic.
- **
- ** It needs access to the simplified but non-clausal formula.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification heuristic for decision making
+ *
+ * A ATGP-inspired justification-based decision heuristic. See
+ * [insert reference] for more details. This code is, or not, based
+ * on the CVC3 implementation of the same heuristic.
+ *
+ * It needs access to the simplified but non-clausal formula.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__DECISION__JUSTIFICATION_HEURISTIC
-#define CVC4__DECISION__JUSTIFICATION_HEURISTIC
+#ifndef CVC5__DECISION__JUSTIFICATION_HEURISTIC
+#define CVC5__DECISION__JUSTIFICATION_HEURISTIC
 
 #include <unordered_set>
 #include <utility>
@@ -34,8 +35,7 @@
 #include "expr/node.h"
 #include "options/decision_weight.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace decision {
@@ -197,4 +197,4 @@ private:
 }/* namespace decision */
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__JUSTIFICATION_HEURISTIC */
+#endif /* CVC5__DECISION__JUSTIFICATION_HEURISTIC */

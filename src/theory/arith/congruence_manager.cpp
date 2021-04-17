@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file congruence_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/congruence_manager.h"
 
@@ -89,32 +90,22 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee,
   d_pfee = pfee;
 }
 
-ArithCongruenceManager::Statistics::Statistics():
-  d_watchedVariables("theory::arith::congruence::watchedVariables", 0),
-  d_watchedVariableIsZero("theory::arith::congruence::watchedVariableIsZero", 0),
-  d_watchedVariableIsNotZero("theory::arith::congruence::watchedVariableIsNotZero", 0),
-  d_equalsConstantCalls("theory::arith::congruence::equalsConstantCalls", 0),
-  d_propagations("theory::arith::congruence::propagations", 0),
-  d_propagateConstraints("theory::arith::congruence::propagateConstraints", 0),
-  d_conflicts("theory::arith::congruence::conflicts", 0)
+ArithCongruenceManager::Statistics::Statistics()
+    : d_watchedVariables(smtStatisticsRegistry().registerInt(
+        "theory::arith::congruence::watchedVariables")),
+      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::watchedVariableIsZero")),
+      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::watchedVariableIsNotZero")),
+      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::equalsConstantCalls")),
+      d_propagations(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::propagations")),
+      d_propagateConstraints(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::propagateConstraints")),
+      d_conflicts(smtStatisticsRegistry().registerInt(
+          "theory::arith::congruence::conflicts"))
 {
-  smtStatisticsRegistry()->registerStat(&d_watchedVariables);
-  smtStatisticsRegistry()->registerStat(&d_watchedVariableIsZero);
-  smtStatisticsRegistry()->registerStat(&d_watchedVariableIsNotZero);
-  smtStatisticsRegistry()->registerStat(&d_equalsConstantCalls);
-  smtStatisticsRegistry()->registerStat(&d_propagations);
-  smtStatisticsRegistry()->registerStat(&d_propagateConstraints);
-  smtStatisticsRegistry()->registerStat(&d_conflicts);
-}
-
-ArithCongruenceManager::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_watchedVariables);
-  smtStatisticsRegistry()->unregisterStat(&d_watchedVariableIsZero);
-  smtStatisticsRegistry()->unregisterStat(&d_watchedVariableIsNotZero);
-  smtStatisticsRegistry()->unregisterStat(&d_equalsConstantCalls);
-  smtStatisticsRegistry()->unregisterStat(&d_propagations);
-  smtStatisticsRegistry()->unregisterStat(&d_propagateConstraints);
-  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
 }
 
 ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongruenceManager& acm)
@@ -223,7 +214,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   TNode eq = d_watchedEqualities[s];
   ConstraintCP eqC = d_constraintDatabase.getConstraint(
       s, ConstraintType::Equality, lb->getValue());
-  NodeBuilder<> reasonBuilder(Kind::AND);
+  NodeBuilder reasonBuilder(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
   Node reason = safeConstructNary(reasonBuilder);
@@ -256,7 +247,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   //Explain for conflict is correct as these proofs are generated
   //and stored eagerly
   //These will be safe for propagation later as well
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
   if (Debug.isOn("arith::cong"))
   {
@@ -284,7 +275,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
 
   //Explain for conflict is correct as these proofs are generated and stored eagerly
   //These will be safe for propagation later as well
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
   auto pf = c->externalExplainByAssertions(nb);
   if (Debug.isOn("arith::cong::notzero"))
@@ -456,7 +447,9 @@ void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumpti
   }
 }
 
-void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<>& nb){
+void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
+                                           NodeBuilder& nb)
+{
   std::set<TNode>::const_iterator it = s.begin();
   std::set<TNode>::const_iterator it_end = s.end();
   for(; it != it_end; ++it) {
@@ -504,7 +497,8 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   return trn;
 }
 
-void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
+void ArithCongruenceManager::explain(TNode external, NodeBuilder& out)
+{
   Node internal = externalToInternal(external);
 
   std::vector<TNode> assumptions;
@@ -627,7 +621,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Node eq = xAsNode.eqNode(asRational);
   d_keepAlive.push_back(eq);
 
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
   Node reason = safeConstructNary(nb);
   d_keepAlive.push_back(reason);
@@ -646,7 +640,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
                           << ub << std::endl;
 
   ArithVar x = lb->getVariable();
-  NodeBuilder<> nb(Kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(nb);
   auto pfUb = ub->externalExplainByAssertions(nb);
   Node reason = safeConstructNary(nb);

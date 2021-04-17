@@ -1,20 +1,22 @@
-/*********************                                                        */
-/*! \file synth_conjecture.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of class that encapsulates techniques for a single
- ** (SyGuS) synthesis conjecture.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of class that encapsulates techniques for a single
+ * (SyGuS) synthesis conjecture.
+ */
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
 #include "base/configuration.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -29,9 +31,9 @@
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -102,9 +104,10 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : assign : " << q << std::endl;
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   // initialize the guard
-  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
+  d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
   d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
@@ -170,8 +173,7 @@ void SynthConjecture::assign(Node q)
   for (unsigned i = 0; i < d_embed_quant[0].getNumChildren(); i++)
   {
     vars.push_back(d_embed_quant[0][i]);
-    Node e =
-        NodeManager::currentNM()->mkSkolem("e", d_embed_quant[0][i].getType());
+    Node e = sm->mkDummySkolem("e", d_embed_quant[0][i].getType());
     d_candidates.push_back(e);
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
@@ -179,7 +181,7 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qim.getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
-  if (!d_embedSideCondition.isNull())
+  if (!d_embedSideCondition.isNull() && !vars.empty())
   {
     d_embedSideCondition = d_embedSideCondition.substitute(
         vars.begin(), vars.end(), d_candidates.begin(), d_candidates.end());
@@ -282,6 +284,8 @@ bool SynthConjecture::needsCheck()
     if (!value)
     {
       Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
+      Warning() << "Warning : the SyGuS conjecture may be infeasible"
+                << std::endl;
       return false;
     }
     else
@@ -460,6 +464,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
 
   // check the side condition if we constructed a candidate
   if (constructed_cand)
@@ -540,7 +545,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       for (const Node& v : inst[0][0])
       {
-        Node sk = nm->mkSkolem("rsk", v.getType());
+        Node sk = sm->mkDummySkolem("rsk", v.getType());
         sks.push_back(sk);
         vars.push_back(v);
         Trace("cegqi-check-debug")
@@ -614,7 +619,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // We should set incomplete, since a "sat" answer should not be
       // interpreted as "infeasible", which would make a difference in the rare
       // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qim.setIncomplete();
+      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
       return false;
     }
     // otherwise we are unsat, and we will process the solution below
@@ -639,8 +644,12 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 {
   if (!d_embedSideCondition.isNull())
   {
-    Node sc = d_embedSideCondition.substitute(
+    Node sc = d_embedSideCondition;
+    if (!cvals.empty())
+    {
+      sc = sc.substitute(
         d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
+    }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     Result r = checkWithSubsolver(sc);

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file smt_engine_state.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Ying Sheng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for maintaining the state of the SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Ying Sheng
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for maintaining the state of the SMT engine.
+ */
 
 #include "smt/smt_engine_state.h"
 
@@ -96,7 +97,7 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
       && d_status != d_expectedStatus)
   {
-    CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+    CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
                  << d_status;
   }
   // clear expected status

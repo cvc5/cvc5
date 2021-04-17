@@ -1,5 +1,5 @@
 ; EXPECT: unknown
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status -q
 (set-logic SLIA)
 
 (synth-fun f ((col1 String) (col2 String)) String

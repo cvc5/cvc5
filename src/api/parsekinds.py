@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-#####################
-## genkinds.py
-## Top contributors (to current version):
-##   Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
 
 """
 This script implements KindsParser which
-parses the header file CVC4/src/api/cvc4cppkind.h
+parses the header file cvc5/src/api/cpp/cvc5_kind.h
 
 The script is aware of the '#if 0' pattern and will ignore
 kinds declared between '#if 0' and '#endif'. It can also
@@ -21,8 +23,6 @@ handle nested '#if 0' pairs.
 
 from collections import OrderedDict
 
-#################### Default Filenames ################
-DEFAULT_HEADER = 'cvc4cppkind.h'
 
 ##################### Useful Constants ################
 OCB = '{'

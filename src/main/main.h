@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file main.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Header for main CVC4 driver
- **
- ** Header for main CVC4 driver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Header for main cvc5 driver.
+ */
 
 #include <chrono>
 #include <exception>
@@ -23,8 +22,8 @@
 #include "cvc4autoconfig.h"
 #include "options/options.h"
 
-#ifndef CVC4__MAIN__MAIN_H
-#define CVC4__MAIN__MAIN_H
+#ifndef CVC5__MAIN__MAIN_H
+#define CVC5__MAIN__MAIN_H
 
 namespace cvc5 {
 namespace main {
@@ -54,7 +53,7 @@ class TotalTimer
 extern std::unique_ptr<TotalTimer> totalTime;
 
 /**
- * If true, will not spin on segfault even when CVC4_DEBUG is on.
+ * If true, will not spin on segfault even when CVC5_DEBUG is on.
  * Useful for nightly regressions, noninteractive performance runs
  * etc.  See util.cpp.
  */
@@ -78,4 +77,4 @@ void cvc4_shutdown() noexcept;
 int runCvc4(int argc, char* argv[], cvc5::Options&);
 void printUsage(cvc5::Options&, bool full = false);
 
-#endif /* CVC4__MAIN__MAIN_H */
+#endif /* CVC5__MAIN__MAIN_H */
