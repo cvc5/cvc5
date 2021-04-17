@@ -42,7 +42,16 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Solver_supportsFloatingPoint(JNIEnv*,
  * Method:    getNullSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getNullSort(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getNullSort(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sortPointer = new Sort(solver->getNullSort());
+  return ((jlong)sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -97,7 +106,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRealSort(JNIEnv* env,
  * Method:    getRegExpSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRegExpSort(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRegExpSort(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sortPointer = new Sort(solver->getRegExpSort());
+  return ((jlong)sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -268,20 +286,36 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRecordSort(JNIEnv*,
  * Method:    mkSetSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSetSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSetSort(JNIEnv* env,
                                                    jobject,
-                                                   jlong,
-                                                   jlong);
+                                                   jlong pointer,
+                                                   jlong elemSortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* elemSort = (Sort*)elemSortPointer;
+  Sort* retPointer = new Sort(solver->mkSetSort(*elemSort));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkBagSort
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBagSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBagSort(JNIEnv* env,
                                                    jobject,
-                                                   jlong,
-                                                   jlong);
+                                                   jlong pointer,
+                                                   jlong elemSortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* elemSort = (Sort*)elemSortPointer;
+  Sort* retPointer = new Sort(solver->mkSetSort(*elemSort));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -327,18 +361,53 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkUninterpretedSort(JNIEnv* env,
  * Method:    mkSortConstructorSort
  * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkSortConstructorSort(JNIEnv*, jobject, jlong, jstring, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSortConstructorSort(
+    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Sort* sort = new Sort(solver->mkSortConstructorSort(cSymbol, (size_t)arity));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return (jlong)sort;
+
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkTupleSort
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTupleSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTupleSort(JNIEnv* env,
                                                      jobject,
-                                                     jlong,
-                                                     jlongArray);
+                                                     jlong pointer,
+                                                     jlongArray sortPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of sort pointers
+  jsize size = env->GetArrayLength(sortPointers);
+  // allocate buffer for the long array
+  jlong* buffer = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(sortPointers, 0, size, buffer);
+  // copy the terms into a vector
+  std::vector<Sort> sorts;
+  for (jsize i = 0; i < size; i++)
+  {
+    Sort* sort = (Sort*)buffer[i];
+    sorts.push_back(*sort);
+  }
+  // free the buffer memory
+  delete[] buffer;
+
+  Sort* retPointer = new Sort(solver->mkTupleSort(sorts));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
