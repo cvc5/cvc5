@@ -31,7 +31,8 @@ jobs:
             flex \
             libfl-dev \
             flexc++ \
-            doxygen
+            doxygen \
+            python3-breathe
           python3 -m pip install toml setuptools sphinx-tabs
 
       - name: Configure
