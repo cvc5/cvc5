@@ -128,9 +128,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRegExpSort(JNIEnv* env,
  * Method:    getRoundingModeSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRoundingModeSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getRoundingModeSort(JNIEnv* env,
                                                              jobject,
-                                                             jlong);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sortPointer = new Sort(solver->getRoundingModeSort());
+  return ((jlong)sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -190,8 +197,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVectorSort(JNIEnv* env,
  * Method:    mkFloatingPointSort
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkFloatingPointSort(JNIEnv*, jobject, jlong, jint, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkFloatingPointSort(
+    JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sortPointer =
+      new Sort(solver->mkFloatingPointSort((uint32_t)exp, (uint32_t)sig));
+  return ((jlong)sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
