@@ -671,7 +671,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getSortConstructorArity()
   {
-    return getSortConstructorArity();
+    return getSortConstructorArity(pointer);
   }
 
   private native int getSortConstructorArity(long pointer);
