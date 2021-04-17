@@ -54,9 +54,15 @@ Java_cvc5_DatatypeConstructor_getSpecializedConstructorTerm(JNIEnv*,
  * Method:    getTesterTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_DatatypeConstructor_getTesterTerm(JNIEnv*,
-                                                                    jobject,
-                                                                    jlong);
+JNIEXPORT jlong JNICALL
+Java_cvc5_DatatypeConstructor_getTesterTerm(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeConstructor* current = (DatatypeConstructor*)pointer;
+  Term* retPointer = new Term(current->getTesterTerm());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_DatatypeConstructor
@@ -72,10 +78,16 @@ JNIEXPORT jint JNICALL Java_cvc5_DatatypeConstructor_getNumSelectors(JNIEnv*,
  * Method:    getSelector
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_DatatypeConstructor_getSelector__JI(JNIEnv*,
-                                                                      jobject,
-                                                                      jlong,
-                                                                      jint);
+JNIEXPORT jlong JNICALL Java_cvc5_DatatypeConstructor_getSelector__JI(
+    JNIEnv* env, jobject, jlong pointer, jint index)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeConstructor* current = (DatatypeConstructor*)pointer;
+  DatatypeSelector* retPointer =
+      new DatatypeSelector(current->operator[]((size_t)index));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_DatatypeConstructor
@@ -93,10 +105,18 @@ Java_cvc5_DatatypeConstructor_getSelector__JLjava_lang_String_2(JNIEnv*,
  * Method:    getSelectorTerm
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_DatatypeConstructor_getSelectorTerm(JNIEnv*,
-                                                                      jobject,
-                                                                      jlong,
-                                                                      jstring);
+JNIEXPORT jlong JNICALL Java_cvc5_DatatypeConstructor_getSelectorTerm(
+    JNIEnv* env, jobject, jlong pointer, jstring jName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeConstructor* current = (DatatypeConstructor*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string cName(s);
+  Term* retPointer = new Term(current->getSelectorTerm(cName));
+  env->ReleaseStringUTFChars(jName, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_DatatypeConstructor

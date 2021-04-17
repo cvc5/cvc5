@@ -369,9 +369,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSortConstructorSort(
   Solver* solver = (Solver*)pointer;
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Sort* sort = new Sort(solver->mkSortConstructorSort(cSymbol, (size_t)arity));
+  Sort* retPointer = new Sort(solver->mkSortConstructorSort(cSymbol, (size_t)arity));
   env->ReleaseStringUTFChars(jSymbol, s);
-  return (jlong)sort;
+  return (jlong)retPointer;
 
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
