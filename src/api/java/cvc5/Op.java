@@ -78,14 +78,14 @@ public class Op extends AbstractPointer
    * Get the indices used to create this Op.
    * Check the Op Kind with getKind() to determine which argument to use.
    *
-   * @return the index used to create this Op
+   * @return the indices used to create this Op
    */
-  public int getIntegerIndex()
+  public int [] getIntegerIndices()
   {
-    return getIntegerIndex(pointer);
+    return getIntegerIndices(pointer);
   }
 
-  private native int getIntegerIndex(long pointer);
+  private native int [] getIntegerIndices(long pointer);
 
   /**
    * Get the indices used to create this Op.
@@ -93,27 +93,12 @@ public class Op extends AbstractPointer
    *
    * @return the indices used to create this Op
    */
-  public String getStringIndices()
+  public String [] getStringIndices()
   {
     return getStringIndices(pointer);
   }
 
-  private native String getStringIndices(long pointer);
-
-  /**
-   * Get the indices used to create this Op.
-   * Check the Op Kind with getKind() to determine which argument to use.
-   *
-   * @return the indices used to create this Op
-   */
-  public Pair<Integer, Integer> getIntegerPairIndices()
-  {
-    int[] pair = getIntegerPairIndices(pointer);
-    // invariant getIntegerPairIndices returns an array of two integers
-    return new Pair<>(pair[0], pair[1]);
-  }
-
-  private native int[] getIntegerPairIndices(long pointer);
+  private native String [] getStringIndices(long pointer);
 
   /**
    * @return a string representation of this operator

@@ -2477,4 +2477,15 @@ public class Solver implements IPointer
   }
 
   private native long getNullResult(long pointer);
+
+  /**
+   * @return null op
+   */
+  public Op getNullOp()
+  {
+    long opPointer = getNullOp(pointer);
+    return new Op(this, opPointer);
+  }
+
+  private native long getNullOp(long pointer);
 }
