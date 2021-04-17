@@ -12,24 +12,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
-            ccache \
-            libcln-dev \
             libgmp-dev \
-            libgtest-dev \
-            libedit-dev \
             flex \
             libfl-dev \
             flexc++
-          python3 -m pip install toml
-          python3 -m pip install setuptools
-          python3 -m pip install pexpect
-
-      - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.5.1
-        with:
-          token: ${{ secrets.ACTION_USER_TOKEN }}
-          base: 'master'
-          required_approval_count: 1
+          python3 -m pip install toml setuptools sphinx-tabs
 
       - name: Configure
         run: ./configure.sh debug --docs
