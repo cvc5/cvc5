@@ -2466,4 +2466,15 @@ public class Solver implements IPointer
   }
 
   private native long getNullTerm(long pointer);
+
+  /**
+   * @return null result
+   */
+  public Result getNullResult()
+  {
+    long resultPointer = getNullResult(pointer);
+    return new Result(this, resultPointer);
+  }
+
+  private native long getNullResult(long pointer);
 }

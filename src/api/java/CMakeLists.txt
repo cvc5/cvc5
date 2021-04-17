@@ -112,6 +112,7 @@ add_library(cvc5jni SHARED
   jni/cvc5_DatatypeDecl.cpp
   jni/cvc5_DatatypeSelector.cpp
   jni/cvc5_Op.cpp
+  jni/cvc5_Result.cpp
   jni/cvc5_Solver.cpp
   jni/cvc5_Sort.cpp
   jni/cvc5_Term.cpp)

@@ -1221,17 +1221,33 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_simplify(JNIEnv*,
  * Method:    assertFormula
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_assertFormula(JNIEnv*,
+JNIEXPORT void JNICALL Java_cvc5_Solver_assertFormula(JNIEnv* env,
                                                       jobject,
-                                                      jlong,
-                                                      jlong);
+                                                      jlong pointer,
+                                                      jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  solver->assertFormula(*term);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    checkSat
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSat(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSat(JNIEnv* env,
+                                                  jobject,
+                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Result* retPointer = new Result(solver->checkSat());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1258,10 +1274,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__J_3J(JNIEnv*,
  * Method:    checkEntailed
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__JJ(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__JJ(JNIEnv* env,
                                                            jobject,
-                                                           jlong,
-                                                           jlong);
+                                                           jlong pointer,
+                                                           jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  Result* retPointer = new Result(solver->checkEntailed(*term));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1553,8 +1577,20 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_setLogic(JNIEnv* env,
  * Method:    setOption
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL
-Java_cvc5_Solver_setOption(JNIEnv*, jobject, jlong, jstring, jstring);
+JNIEXPORT void JNICALL Java_cvc5_Solver_setOption(
+    JNIEnv* env, jobject, jlong pointer, jstring jOption, jstring jValue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* sOption = env->GetStringUTFChars(jOption, nullptr);
+  const char* sValue = env->GetStringUTFChars(jValue, nullptr);
+  std::string cOption(sOption);
+  std::string cValue(sValue);
+  solver->setOption(cOption, cValue);
+  env->ReleaseStringUTFChars(jOption, sOption);
+  env->ReleaseStringUTFChars(jValue, sValue);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1668,6 +1704,21 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getNullTerm(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* ret = new Term();
+  return ((jlong)ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getNullResult
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getNullResult(JNIEnv* env,
+                                                       jobject,
+                                                       jlong)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Result* ret = new Result();
   return ((jlong)ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
