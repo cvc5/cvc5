@@ -1836,6 +1836,49 @@ bool Op::isIndexed() const
   CVC5_API_TRY_CATCH_END;
 }
 
+size_t Op::getNumIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  if (!isIndexedHelper())
+  {
+    return 0;
+  }
+
+  Kind k = intToExtKind(d_node->getKind());
+  size_t size = 0;
+  switch (k)
+  {
+    case DIVISIBLE: size = 1; break;
+    case RECORD_UPDATE: size = 1; break;
+    case BITVECTOR_REPEAT: size = 1; break;
+    case BITVECTOR_ZERO_EXTEND: size = 1; break;
+    case BITVECTOR_SIGN_EXTEND: size = 1; break;
+    case BITVECTOR_ROTATE_LEFT: size = 1; break;
+    case BITVECTOR_ROTATE_RIGHT: size = 1; break;
+    case INT_TO_BITVECTOR: size = 1; break;
+    case IAND: size = 1; break;
+    case FLOATINGPOINT_TO_UBV: size = 1; break;
+    case FLOATINGPOINT_TO_SBV: size = 1; break;
+    case TUPLE_UPDATE: size = 1; break;
+    case REGEXP_REPEAT: size = 1; break;
+    case BITVECTOR_EXTRACT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_REAL: size = 2; break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
+    case REGEXP_LOOP: size = 2; break;
+    default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+  }
+
+  //////// all checks before this line
+  return size;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 template <>
 std::string Op::getIndices() const
 {
