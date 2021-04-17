@@ -351,10 +351,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRecordSort(JNIEnv* env,
     cFields.push_back(std::make_pair(std::string(cFirst), *sort));
   }
   // get the record sort from the solver
-  Sort* sort = new Sort(solver->mkRecordSort(cFields));
-
+  Sort* retPointer = new Sort(solver->mkRecordSort(cFields));
   // return a pointer to the sort
-  return (jlong)sort;
+  return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
