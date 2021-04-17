@@ -102,6 +102,7 @@ message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvc5jni SHARED
   jni/cvc5_Datatype.cpp
+  jni/cvc5_DatatypeConstructor.cpp
   jni/cvc5_DatatypeConstructorDecl.cpp
   jni/cvc5_DatatypeDecl.cpp
   jni/cvc5_Op.cpp
