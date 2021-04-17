@@ -819,6 +819,11 @@ class CVC4_EXPORT Op
   bool isIndexed() const;
 
   /**
+   * @return the number of indices of this op
+   */
+  size_t getNumIndices() const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
