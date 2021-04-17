@@ -28,8 +28,10 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             libgmp-dev \
-            doxygen python3-docutils
-          python3 -m pip install toml setuptools \
+            doxygen \
+            python3-docutils
+          python3 -m pip install \
+            setuptools toml \
             sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
             breathe
 
@@ -37,13 +39,23 @@ jobs:
         run: ./configure.sh debug --docs
 
       - name: Build
-        run: make -j2 docs
+        run: make -j2 docs-gh
         working-directory: build
 
       - name: Update master docs
-        if: github.event == 'push' && github.ref == 'refs/heads/master'
-        run: echo "foo"
+        if: github.event == 'push' # && github.ref == 'refs/heads/master'
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: master
+          folder: docs/sphinx-gh
+          repository-name: nafur/python-playground #cvc5/cvc5.github.io
+          target-folder: docs-master
 
       - name: Update PR docs
         if: github.event == 'pull_request'
-        run: echo "bar"
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: master
+          folder: docs/sphinx-gh
+          repository-name: nafur/python-playground #cvc5/cvc5.github.io
+          target-folder: docs-pr${{ github.event.number }}
