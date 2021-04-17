@@ -312,7 +312,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBagSort(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = (Solver*)pointer;
   Sort* elemSort = (Sort*)elemSortPointer;
-  Sort* retPointer = new Sort(solver->mkSetSort(*elemSort));
+  Sort* retPointer = new Sort(solver->mkBagSort(*elemSort));
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

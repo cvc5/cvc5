@@ -17,10 +17,18 @@ JNIEXPORT void JNICALL Java_cvc5_Datatype_deletePointer(JNIEnv*, jclass, jlong);
  * Method:    getConstructor
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JI(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JI(JNIEnv* env,
                                                               jobject,
-                                                              jlong,
-                                                              jint);
+                                                              jlong pointer,
+                                                              jint idx)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  DatatypeConstructor* retPointer =
+      new DatatypeConstructor(current->operator[](idx));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
