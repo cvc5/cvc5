@@ -6,13 +6,13 @@
   {
 #define CVC5_JAVA_API_TRY_CATCH_END(env)                             \
   }                                                                  \
-  catch (const CVC4ApiRecoverableException& e)                       \
+  catch (const CVC5ApiRecoverableException& e)                       \
   {                                                                  \
     jclass exceptionClass =                                          \
         env->FindClass("cvc5/CVC5ApiRecoverableException");          \
     env->ThrowNew(exceptionClass, e.what());                         \
   }                                                                  \
-  catch (const CVC4ApiException& e)                                  \
+  catch (const CVC5ApiException& e)                                  \
   {                                                                  \
     jclass exceptionClass = env->FindClass("cvc5/CVC5ApiException"); \
     env->ThrowNew(exceptionClass, e.what());                         \

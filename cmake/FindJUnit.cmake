@@ -29,7 +29,7 @@ if(JUnit_JAR)
 endif()
 
 if(NOT JUnit_FOUND_SYSTEM)
-
+  check_auto_download("JUnit" "")
   set(JUNIT_VERSION 1.7.1)
   include(ExternalProject)
 
