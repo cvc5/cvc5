@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 class OpTest
 {
   private Solver d_solver;
@@ -65,7 +67,9 @@ class OpTest
   assertTrue(bitvector_repeat_ot.isIndexed());
   int bitvector_repeat_idx = bitvector_repeat_ot.getIntegerIndices()[0];
   assertEquals(bitvector_repeat_idx, 5);
-  assertThrows(CVC5ApiException.class, () -> bitvector_repeat_ot.getIntegerIndices());
+  // unlike bitvector_repeat_ot.getIndices<std::pair<uint32_t, uint32_t>>() in c++,
+  // this does not throw in Java
+  // assertThrows(CVC5ApiException.class, () -> bitvector_repeat_ot.getIntegerIndices());
 
   Op bitvector_zero_extend_ot = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
   int bitvector_zero_extend_idx =
@@ -113,50 +117,48 @@ class OpTest
   assertTrue(bitvector_extract_ot.isIndexed());
   int [] bitvector_extract_indices =
       bitvector_extract_ot.getIntegerIndices();
-  assertTrue(bitvector_extract_indices.equals(new int[]{4, 0}));
+  assertArrayEquals(bitvector_extract_indices, new int[]{4, 0});
 
   Op floatingpoint_to_fp_ieee_bitvector_ot =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
   int[] floatingpoint_to_fp_ieee_bitvector_indices =
       floatingpoint_to_fp_ieee_bitvector_ot
           .getIntegerIndices();
-  assertTrue((floatingpoint_to_fp_ieee_bitvector_indices
-               .equals(new int[]{4, 25})));
+  assertArrayEquals(floatingpoint_to_fp_ieee_bitvector_indices, new int[]{4, 25});
 
   Op floatingpoint_to_fp_floatingpoint_ot =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25);
   int[] floatingpoint_to_fp_floatingpoint_indices =
       floatingpoint_to_fp_floatingpoint_ot
           .getIntegerIndices();
-  assertTrue((floatingpoint_to_fp_floatingpoint_indices
-               .equals(new int[]{4, 25})));
+  assertArrayEquals(floatingpoint_to_fp_floatingpoint_indices, new int[]{4, 25});
 
   Op floatingpoint_to_fp_real_ot =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25);
   int[] floatingpoint_to_fp_real_indices =
       floatingpoint_to_fp_real_ot.getIntegerIndices();
-  assertTrue(floatingpoint_to_fp_real_indices.equals(new int[]{4, 25}));
+  assertArrayEquals(floatingpoint_to_fp_real_indices, new int[]{4, 25});
 
   Op floatingpoint_to_fp_signed_bitvector_ot =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25);
   int[] floatingpoint_to_fp_signed_bitvector_indices =
       floatingpoint_to_fp_signed_bitvector_ot
           .getIntegerIndices();
-  assertTrue(floatingpoint_to_fp_signed_bitvector_indices.equals(new int[]{4, 25}));
+  assertArrayEquals(floatingpoint_to_fp_signed_bitvector_indices, new int[]{4, 25});
 
   Op floatingpoint_to_fp_unsigned_bitvector_ot =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25);
   int[] floatingpoint_to_fp_unsigned_bitvector_indices =
       floatingpoint_to_fp_unsigned_bitvector_ot
           .getIntegerIndices();
-  assertTrue(floatingpoint_to_fp_unsigned_bitvector_indices.equals(new int[]{4, 25}));
+  assertArrayEquals(floatingpoint_to_fp_unsigned_bitvector_indices, new int[]{4, 25});
 
   Op floatingpoint_to_fp_generic_ot =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
   int[] floatingpoint_to_fp_generic_indices =
       floatingpoint_to_fp_generic_ot
           .getIntegerIndices();
-  assertTrue(floatingpoint_to_fp_generic_indices.equals(new int[]{4, 25}));
+  assertArrayEquals(floatingpoint_to_fp_generic_indices, new int[]{4, 25});
   assertThrows(CVC5ApiException.class, () -> floatingpoint_to_fp_generic_ot.getStringIndices());
 }
 

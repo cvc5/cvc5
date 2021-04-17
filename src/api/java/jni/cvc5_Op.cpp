@@ -90,19 +90,19 @@ JNIEXPORT jintArray JNICALL Java_cvc5_Op_getIntegerIndices(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = (Op*)pointer;
   size_t size = current->getNumIndices();
-  std::vector<int> indices(size);
+  std::vector<jint> indices(size);
   if (size == 1)
   {
     uint32_t index = current->getIndices<uint32_t>();
-    indices.push_back(index);
+    indices[0] = index;
   }
 
   if (size == 2)
   {
     std::pair<uint32_t, uint32_t> pair =
         current->getIndices<std::pair<uint32_t, uint32_t>>();
-    indices.push_back(pair.first);
-    indices.push_back(pair.second);
+    indices[0] = pair.first;
+    indices[1] = pair.second;
   }
 
   if (size > 2)
@@ -124,7 +124,35 @@ JNIEXPORT jintArray JNICALL Java_cvc5_Op_getIntegerIndices(JNIEnv* env,
  */
 JNIEXPORT jobjectArray JNICALL Java_cvc5_Op_getStringIndices(JNIEnv* env,
                                                              jobject,
-                                                             jlong pointer);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* current = (Op*)pointer;
+  size_t size = current->getNumIndices();
+  std::vector<jstring> indices(size);
+  if (size == 1)
+  {
+    std::string cIndex = current->getIndices<std::string>();
+    jstring jIndex = env->NewStringUTF(cIndex.c_str());
+    indices[0] = jIndex;
+  }
+
+  if (size > 1)  // currently only one string is implemented in cvc5.cpp
+  {
+    std::string message = "Unhandled case when number of indices > 1.";
+    throw CVC5ApiException(message);
+  }
+
+  // construct a java array of String
+  jclass stringClass = env->FindClass("Ljava/lang/String;");
+  jobjectArray ret = env->NewObjectArray((jsize)size, stringClass, nullptr);
+  for (size_t i = 0; i < size; i++)
+  {
+    env->SetObjectArrayElement(ret, i, indices[i]);
+  }
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Op
