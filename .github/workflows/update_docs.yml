@@ -52,7 +52,7 @@ jobs:
           git clone https://github.com/nafur/python-playground.git target/
           rsync -a --delete build/docs/sphinx-gh target/docs-$BRANCH_NAME-${{ github.sha }}
           cd target/
-          ln -sf docs-$BRANCH_NAME docs-$BRANCH_NAME-${{ github.sha }}
+          ln -sf docs-$BRANCH_NAME-${{ github.sha }} docs-$BRANCH_NAME
           git add docs-$BRANCH_NAME docs-$BRANCH_NAME-${{ github.sha }}
           git commit -m "Update docs for branch $BRANCH_NAME"
           git push
@@ -67,7 +67,7 @@ jobs:
           git clone https://github.com/nafur/python-playground.git target/
           rsync -a --delete build/docs/sphinx-gh target/docs-pr$PRID-${{ github.sha }}
           cd target/
-          ln -sf docs-pr$PRID docs-pr$PRID-${{ github.sha }}
+          ln -sf docs-pr$PRID-${{ github.sha }} docs-pr$PRID
           git add docs-pr$PRID docs-pr$PRID-${{ github.sha }}
           git commit -m "Update docs for PR #$PRID"
           git push
