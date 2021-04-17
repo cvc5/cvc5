@@ -1,4 +1,19 @@
-on: [push, pull_request]
+on:
+  push:
+#    branches:
+#      - master
+    paths:
+      - '.ci/**'
+      - 'docs/**'
+      - 'src/api/**'
+  pull_request:
+#    branches:
+#      - master
+    paths:
+      - '.ci/**'
+      - 'docs/**'
+      - 'src/api/**'
+
 name: documentation
 
 jobs:
@@ -15,7 +30,8 @@ jobs:
             libgmp-dev \
             flex \
             libfl-dev \
-            flexc++
+            flexc++ \
+            doxygen
           python3 -m pip install toml setuptools sphinx-tabs
 
       - name: Configure
@@ -24,3 +40,9 @@ jobs:
       - name: Build
         run: make -j2 docs
         working-directory: build
+
+      - name: Update master docs
+        if: github.event == 'push' && github.ref == 'refs/heads/master'
+
+      - name: Update PR docs
+        if: github.event == 'pull_request'
