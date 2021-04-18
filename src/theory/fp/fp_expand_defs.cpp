@@ -21,6 +21,50 @@ namespace cvc5 {
 namespace theory {
 namespace fp {
 
+
+namespace removeToFPGeneric {
+
+Node removeToFPGeneric(TNode node) {
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
+
+  FloatingPointToFPGeneric info =
+      node.getOperator().getConst<FloatingPointToFPGeneric>();
+
+  size_t children = node.getNumChildren();
+
+  Node op;
+  NodeManager *nm = NodeManager::currentNM();
+
+  if (children == 1) {
+    op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
+    return nm->mkNode(op, node[0]);
+
+  } else {
+    Assert(children == 2);
+    Assert(node[0].getType().isRoundingMode());
+
+    TypeNode t = node[1].getType();
+
+    if (t.isFloatingPoint()) {
+      op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
+    } else if (t.isReal()) {
+      op = nm->mkConst(FloatingPointToFPReal(info));
+    } else if (t.isBitVector()) {
+      op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
+    } else {
+      throw TypeCheckingExceptionPrivate(
+          node,
+          "cannot rewrite to_fp generic due to incorrect type of second "
+          "argument");
+    }
+
+    return nm->mkNode(op, node[0], node[1]);
+  }
+
+  Unreachable() << "to_fp generic not rewritten";
+}
+}  // namespace removeToFPGeneric
+
 FpExpandDefs::FpExpandDefs(context::UserContext* u)
     :
 

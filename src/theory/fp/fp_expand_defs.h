@@ -28,9 +28,16 @@ namespace fp {
 
 class FpExpandDefs
 {
+  using PairTypeNodeHashFunction = PairHashFunction<TypeNode,
+                                                    TypeNode,
+                                                    TypeNodeHashFunction,
+                                                    TypeNodeHashFunction>;
   /** Uninterpreted functions for undefined cases of non-total operators. */
   using ComparisonUFMap =
       context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
+  /** Uninterpreted functions for lazy handling of conversions. */
+  using ConversionUFMap = context::
+      CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
 
  public:
   FpExpandDefs(context::UserContext* u);

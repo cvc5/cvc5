@@ -22,6 +22,7 @@
 #include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;

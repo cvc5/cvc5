@@ -33,12 +33,10 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryFpRewriter : public TheoryRewriter
 {
  public:
-  TheoryFpRewriter();
+  TheoryFpRewriter(context::UserContext* u);
 
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
-
-  TrustNode expandDefinition(Node node) override;
 
   /**
    * Rewrite an equality, in case special handling is required.
