@@ -41,9 +41,6 @@ enum class ObjectiveType
   OBJECTIVE_MAXIMIZE,
   // no support for minmax and maxmin for now
   // because minmax and maxmin are just syntactic sugar
-
-  // the last objective type
-  OBJECTIVE_UNDEFINED
 };
 
 /**
@@ -68,9 +65,7 @@ enum class ObjectiveOrder
 
 /**
  * An enum for optimization queries.
- *
  * Represents the result of a checkopt query
- * (unimplemented) OPT_OPTIMAL: if value was found
  */
 enum class OptResult
 {
@@ -83,7 +78,10 @@ enum class OptResult
   OPT_UNSAT,
   // the optimization loop finished and optimal
   OPT_OPTIMAL,
-
+  // the result is unbounded,
+  // if maximize, the result is +infinity,
+  // if minimize, the result is -infinity
+  OPT_UNBOUNDED
 };
 
 /**
@@ -136,19 +134,28 @@ class OptimizationSolver
   OptResult checkOpt();
 
   /**
-   * Activates an objective: will be optimized for
+   * Push an objective that will be optimized for
    * @param node the Node representing the expression that will be optimized for
    * @param objType specifies whether it's maximize or minimize
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
-   *   and its default is false
+   *   and its default value is false
    **/
   void pushObj(Node node, ObjectiveType objType, bool bvSigned = false);
+
+  /**
+   * Pop the most-recently pushed objective
+   **/
+  void popObj();
 
   /** Gets the value of the optimized objective after checkopt is called **/
   std::vector<Node> objectiveGetValues();
 
-  void setObjectiveOrder(ObjectiveOrder newObjOrder);
+  /**
+   * Specifies how to deal with multigoal optimization
+   * @param objOrder the enum specifying the order.
+   **/
+  void setObjectiveOrder(ObjectiveOrder objOrder);
 
  private:
   /**
@@ -161,11 +168,12 @@ class OptimizationSolver
   std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
       bool needsTimeout = false, unsigned long timeout = 0);
 
-  /** Optimize multiple goals in Box order **/
-  OptResult optimizeBox();
+  /** Optimize multiple goals in Box order, naive implementation **/
+  OptResult optimizeBoxNaive();
 
-  /** Optimize multiple goals in Lexicographic order **/
-  OptResult optimizeLex();
+  /** Optimize multiple goals in Lexicographic order, using iterative
+   * implementation **/
+  OptResult optimizeLexIterative();
 
   /** Optimize multiple goals in Pareto order **/
   OptResult optimizePareto();
