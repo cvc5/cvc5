@@ -81,7 +81,7 @@ class ArithPreprocess
   /** Reference to the inference manager */
   InferenceManager& d_im;
   /** The operator elimination utility */
-  OperatorElim d_opElim;
+  OperatorElim& d_opElim;
   /** The set of assertions that were reduced */
   context::CDHashMap<Node, bool, NodeHashFunction> d_reduced;
 };

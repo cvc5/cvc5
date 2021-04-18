@@ -1418,6 +1418,10 @@ TheoryFpRewriter::TheoryFpRewriter()
 
     return res;
   }
+  TrustNode TheoryFpRewriter::expandDefinition(Node node)
+  {
+    return d_fpExpDef.expandDefinition(node);
+  }
 
   }  // namespace fp
   }  // namespace theory

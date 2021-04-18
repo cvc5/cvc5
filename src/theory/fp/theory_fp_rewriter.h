@@ -22,6 +22,7 @@
 #define CVC5__THEORY__FP__THEORY_FP_REWRITER_H
 
 #include "theory/theory_rewriter.h"
+#include "theory/fp/fp_expand_defs.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,6 +38,8 @@ class TheoryFpRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
 
+  TrustNode expandDefinition(Node node) override;
+
   /**
    * Rewrite an equality, in case special handling is required.
    */
@@ -45,11 +48,15 @@ class TheoryFpRewriter : public TheoryRewriter
     // often this will suffice
     return postRewrite(equality).d_node;
   }
+  /** expand definitions in node */
+  TrustNode expandDefinition(Node node) override;
 
  protected:
   RewriteFunction d_preRewriteTable[kind::LAST_KIND];
   RewriteFunction d_postRewriteTable[kind::LAST_KIND];
   RewriteFunction d_constantFoldTable[kind::LAST_KIND];
+  /** the expand definitions module */
+  FpExpandDefs d_fpExpDef;
 }; /* class TheoryFpRewriter */
 
 }  // namespace fp

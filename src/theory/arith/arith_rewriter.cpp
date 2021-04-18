@@ -900,7 +900,7 @@ TrustNode ArithRewriter::expandDefinition(Node node)
 {
   // call eliminate operators, to eliminate partial operators only
   std::vector<SkolemLemma> lems;
-  TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
+  TrustNode ret = d_opElim.eliminate(node, lems, true);
   Assert(lems.empty());
   return ret;
 }

@@ -255,7 +255,7 @@ TrustNode ExpandDefs::expandDefinitions(
         // do not do any theory stuff if expandOnly is true
 
         theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
-        theory::TheoryRewriter* tr = t->getRewriter();
+        theory::TheoryRewriter* tr = t->getTheoryRewriter();
 
         Assert(t != NULL);
         TrustNode trn = tr->expandDefinition(n);
