@@ -46,24 +46,5 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(Objective o
   }
 }
 
-std::unique_ptr<SmtEngine> OMTOptimizer::createOptCheckerWithTimeout(
-    SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
-{
-  std::unique_ptr<SmtEngine> optChecker;
-  // initializeSubSolver will copy the options and theories enabled
-  // from the current solver to optChecker and adds timeout
-  theory::initializeSubsolver(optChecker, needsTimeout, timeout);
-  // we need to be in incremental mode for multiple objectives since we need to
-  // push pop we need to produce models to inrement on our objective
-  optChecker->setOption("incremental", "true");
-  optChecker->setOption("produce-models", "true");
-  // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
-  for (const Node& e : p_assertions)
-  {
-    optChecker->assertFormula(e);
-  }
-  return optChecker;
-}
 
 }  // namespace cvc5::omt

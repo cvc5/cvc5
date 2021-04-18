@@ -50,12 +50,8 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
 }
 
 std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
-    SmtEngine* parentSMTSolver, Node target)
+    SmtEngine* optChecker, Node target)
 {
-  // the smt engine to which we send intermediate queries
-  // for the binary search.
-  std::unique_ptr<SmtEngine> optChecker =
-      OMTOptimizer::createOptCheckerWithTimeout(parentSMTSolver, false);
   NodeManager* nm = optChecker->getNodeManager();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
@@ -112,6 +108,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
+      optChecker->pop();  // make sure to pop before return
       return std::make_pair(OptResult::OPT_UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
@@ -126,6 +123,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
         // lowerBound == pivot ==> upperbound = lowerbound + 1
         // and lowerbound <= target < upperbound is UNSAT
         // return the upperbound
+        optChecker->pop();  // make sure to pop before return
         return std::make_pair(OptResult::OPT_OPTIMAL, value);
       }
       else
@@ -135,6 +133,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
     }
     else
     {
+      optChecker->pop();  // make sure to pop before return
       return std::make_pair(OptResult::OPT_UNKNOWN, value);
     }
     optChecker->pop();
@@ -143,12 +142,8 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
 }
 
 std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
-    SmtEngine* parentSMTSolver, Node target)
+    SmtEngine* optChecker, Node target)
 {
-  // the smt engine to which we send intermediate queries
-  // for the binary search.
-  std::unique_ptr<SmtEngine> optChecker =
-      OMTOptimizer::createOptCheckerWithTimeout(parentSMTSolver, false);
   NodeManager* nm = optChecker->getNodeManager();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
@@ -207,6 +202,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
+      optChecker->pop();  // make sure to pop before return
       return std::make_pair(OptResult::OPT_UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
@@ -221,6 +217,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
         // upperbound = lowerbound + 1
         // and lowerbound < target <= upperbound is UNSAT
         // return the lowerbound
+        optChecker->pop();  // make sure to pop before return
         return std::make_pair(OptResult::OPT_OPTIMAL, value);
       }
       else
@@ -230,6 +227,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     }
     else
     {
+      optChecker->pop();  // make sure to pop before return
       return std::make_pair(OptResult::OPT_UNKNOWN, value);
     }
     optChecker->pop();

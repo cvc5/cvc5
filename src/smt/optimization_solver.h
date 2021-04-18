@@ -84,14 +84,6 @@ enum class OptResult
   // the optimization loop finished and optimal
   OPT_OPTIMAL,
 
-  // the goal is unbounded, so it would be -inf or +inf
-  OPT_UNBOUNDED,
-
-  // The last value is here as a preparation for future work
-  // in which pproximate optimizations will be supported.
-
-  // if the solver halted early and value is only approximate
-  OPT_SAT_APPROX
 };
 
 /**
@@ -151,10 +143,12 @@ class OptimizationSolver
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void activateObj(Node node, ObjectiveType objType, bool bvSigned = false);
+  void pushObj(Node node, ObjectiveType objType, bool bvSigned = false);
 
   /** Gets the value of the optimized objective after checkopt is called **/
   std::vector<Node> objectiveGetValues();
+
+  void setObjectiveOrder(ObjectiveOrder newObjOrder);
 
  private:
   /**
@@ -166,6 +160,15 @@ class OptimizationSolver
    **/
   std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
       bool needsTimeout = false, unsigned long timeout = 0);
+
+  /** Optimize multiple goals in Box order **/
+  OptResult optimizeBox();
+
+  /** Optimize multiple goals in Lexicographic order **/
+  OptResult optimizeLex();
+
+  /** Optimize multiple goals in Pareto order **/
+  OptResult optimizePareto();
 
   /** The parent SMT engine **/
   SmtEngine* d_parent;

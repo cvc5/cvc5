@@ -42,41 +42,32 @@ class OMTOptimizer
       smt::Objective objective);
 
   /**
-   * Initialize an SMT subsolver for offline optimization purpose
-   * @param parentSMTSolver the parental solver containing the assertions
-   * @param needsTimeout specifies whether it needs timeout for each single
-   *    query
-   * @param timeout the timeout value, given in milliseconds (ms)
-   * @return a unique_pointer of SMT subsolver
-   **/
-  static std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
-      SmtEngine* parentSMTSolver,
-      bool needsTimeout = false,
-      unsigned long timeout = 0);
-
-  /**
-   * Minimize the target node with constraints encoded in parentSMTSolver
+   * Minimize the target node with constraints encoded in optChecker
+   * 
+   * This function is REQUIRED to restore the assertions in optChecker! 
    *
-   * @param parentSMTSolver an SMT solver encoding the assertions as the
+   * @param optChecker an SMT solver encoding the assertions as the
    *   constraints
    * @param target the target expression to optimize
    * @return pair<OptResult, Node>: the result of optimization and the optimized
    *   value, if OptResult is OPT_UNKNOWN, value returned could be empty node or
    *   something suboptimal.
    **/
-  virtual std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+  virtual std::pair<smt::OptResult, Node> minimize(SmtEngine* optChecker,
                                                    Node target) = 0;
   /**
-   * Maximize the target node with constraints encoded in parentSMTSolver
+   * Maximize the target node with constraints encoded in optChecker
+   * 
+   * This function is REQUIRED to restore the assertions in optChecker! 
    *
-   * @param parentSMTSolver an SMT solver encoding the assertions as the
+   * @param optChecker an SMT solver encoding the assertions as the
    *   constraints
    * @param target the target expression to optimize
    * @return pair<OptResult, Node>: the result of optimization and the optimized
    *   value, if OptResult is OPT_UNKNOWN, value returned could be empty node or
    *   something suboptimal.
    **/
-  virtual std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+  virtual std::pair<smt::OptResult, Node> maximize(SmtEngine* optChecker,
                                                    Node target) = 0;
 };
 

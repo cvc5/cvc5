@@ -55,17 +55,17 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
 
   const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MINIMIZE;
-  d_optslv->activateObj(x, obj_type, false);
+  d_optslv->pushObj(x, obj_type, false);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(BitVector(32u, (unsigned)0x3FFFFFA1)));
 
   std::cout << "Passed!" << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
             << std::endl;
 }
 
@@ -80,20 +80,20 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
   const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MINIMIZE;
-  d_optslv->activateObj(x, obj_type, true);
+  d_optslv->pushObj(x, obj_type, true);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
-  BitVector val = d_optslv->objectiveGetValue().getConst<BitVector>();
+  BitVector val = d_optslv->objectiveGetValues()[0].getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
 
   // expect the minimum x = -1
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000)));
   std::cout << "Passed!" << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
             << std::endl;
 }
 
@@ -111,18 +111,18 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
 
   const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
-  d_optslv->activateObj(x, obj_type, false);
+  d_optslv->pushObj(x, obj_type, false);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
-  BitVector val = d_optslv->objectiveGetValue().getConst<BitVector>();
+  BitVector val = d_optslv->objectiveGetValues()[0].getConst<BitVector>();
   std::cout << "opt value is: " << val << std::endl;
 
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(BitVector(32u, (unsigned)2)));
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
             << std::endl;
 }
 
@@ -138,16 +138,16 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
   const ObjectiveType obj_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
-  d_optslv->activateObj(x, obj_type, true);
+  d_optslv->pushObj(x, obj_type, true);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   // expect the maxmum x =
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(BitVector(32u, 10u)));
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
             << std::endl;
 }
 

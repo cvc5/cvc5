@@ -28,9 +28,9 @@ class OMTOptimizerBitVector : public OMTOptimizer
  public:
   OMTOptimizerBitVector(bool isSigned);
   virtual ~OMTOptimizerBitVector() = default;
-  std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+  std::pair<smt::OptResult, Node> minimize(SmtEngine* optChecker,
                                            Node target) override;
-  std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+  std::pair<smt::OptResult, Node> maximize(SmtEngine* optChecker,
                                            Node target) override;
 
  private:

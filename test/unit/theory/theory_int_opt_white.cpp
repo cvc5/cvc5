@@ -61,18 +61,15 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   const ObjectiveType max_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->activateObj(max_cost, max_type);
+  d_optslv->pushObj(max_cost, max_type);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   // We expect max_cost == 99
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(Rational("99")));
-
-  std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
 }
 
 TEST_F(TestTheoryWhiteIntOpt, min)
@@ -95,18 +92,15 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   const ObjectiveType min_type = ObjectiveType::OBJECTIVE_MINIMIZE;
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->activateObj(max_cost, min_type);
+  d_optslv->pushObj(max_cost, min_type);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   // We expect max_cost == 99
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(Rational("1")));
-
-  std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
 }
 
 TEST_F(TestTheoryWhiteIntOpt, result)
@@ -129,11 +123,11 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   const ObjectiveType max_type = ObjectiveType::OBJECTIVE_MAXIMIZE;
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->activateObj(max_cost, max_type);
+  d_optslv->pushObj(max_cost, max_type);
 
   // This should return OPT_UNSAT since 0 > x > 100 is impossible.
   OptResult r = d_optslv->checkOpt();
-  
+
   // We expect our check to have returned UNSAT
   ASSERT_EQ(r, OptResult::OPT_UNSAT);
 }
@@ -162,17 +156,15 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   Node cost3 = d_nodeManager->mkNode(kind::PLUS, cost1, cost2);
 
   const ObjectiveType min_type = ObjectiveType::OBJECTIVE_MINIMIZE;
-  d_optslv->activateObj(cost3, min_type);
+  d_optslv->pushObj(cost3, min_type);
 
   OptResult r = d_optslv->checkOpt();
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
             d_nodeManager->mkConst(Rational("112")));
-  std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
 }
 
 }  // namespace test
