@@ -12,7 +12,10 @@ using namespace cvc5::api;
  */
 JNIEXPORT void JNICALL Java_cvc5_DatatypeDecl_deletePointer(JNIEnv*,
                                                             jclass,
-                                                            jlong);
+                                                            jlong pointer)
+{
+  delete ((DatatypeDecl*)pointer);
+}
 
 /*
  * Class:     cvc5_DatatypeDecl
@@ -36,36 +39,60 @@ JNIEXPORT void JNICALL Java_cvc5_DatatypeDecl_addConstructor(JNIEnv* env,
  * Method:    getNumConstructors
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_DatatypeDecl_getNumConstructors(JNIEnv*,
+JNIEXPORT jint JNICALL Java_cvc5_DatatypeDecl_getNumConstructors(JNIEnv* env,
                                                                  jobject,
-                                                                 jlong);
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* current = (DatatypeDecl*)pointer;
+  return (jint)current->getNumConstructors();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_DatatypeDecl
  * Method:    isParametric
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeDecl_isParametric(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeDecl_isParametric(JNIEnv* env,
                                                                jobject,
-                                                               jlong);
+                                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* current = (DatatypeDecl*)pointer;
+  return (jboolean)current->isParametric();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
 
 /*
  * Class:     cvc5_DatatypeDecl
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeDecl_isNull(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeDecl_isNull(JNIEnv* env,
                                                          jobject,
-                                                         jlong);
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* current = (DatatypeDecl*)pointer;
+  return (jboolean)current->isNull();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
 
 /*
  * Class:     cvc5_DatatypeDecl
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeDecl_toString(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_DatatypeDecl_toString(JNIEnv* env,
                                                           jobject,
-                                                          jlong);
+                                                          jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* current = (DatatypeDecl*)pointer;
+  return env->NewStringUTF(current->toString().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_DatatypeDecl
