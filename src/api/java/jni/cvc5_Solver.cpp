@@ -805,10 +805,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkFalse(JNIEnv* env,
  * Method:    mkBoolean
  * Signature: (JZ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBoolean(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBoolean(JNIEnv* env,
                                                    jobject,
-                                                   jlong,
-                                                   jboolean);
+                                                   jlong pointer,
+                                                   jboolean val)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkBoolean((bool)val));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1661,8 +1668,45 @@ Java_cvc5_Solver_mkSygusVar(JNIEnv*, jobject, jlong, jlong, jstring);
  * Method:    mkSygusGrammar
  * Signature: (J[J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusGrammar(
-    JNIEnv*, jobject, jlong, jlongArray, jlongArray);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusGrammar(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer,
+                                                        jlongArray jBoundVars,
+                                                        jlongArray jNtSymbols)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize varsSize = env->GetArrayLength(jBoundVars);
+  jsize symbolsSize = env->GetArrayLength(jNtSymbols);
+  // allocate buffer for the long array
+  jlong* cBoundVars = new jlong[varsSize];
+  jlong* cNtSymbols = new jlong[symbolsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jBoundVars, 0, varsSize, cBoundVars);
+  env->GetLongArrayRegion(jNtSymbols, 0, symbolsSize, cNtSymbols);
+  // copy the terms into a vector
+  std::vector<Term> boundVars;
+  for (jsize i = 0; i < varsSize; i++)
+  {
+    Term* term = (Term*)cBoundVars[i];
+    boundVars.push_back(*term);
+  }
+  std::vector<Term> ntSymbols;
+  for (jsize i = 0; i < symbolsSize; i++)
+  {
+    Term* term = (Term*)cNtSymbols[i];
+    ntSymbols.push_back(*term);
+  }
+  // free the buffer memory
+  delete[] cBoundVars;
+  delete[] cNtSymbols;
+
+  Grammar* retPointer =
+      new Grammar(solver->mkSygusGrammar(boundVars, ntSymbols));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1677,8 +1721,45 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJ(
  * Method:    synthFun
  * Signature: (JLjava/lang/String;[JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jlong, jlong);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer,
+                                                     jstring jSymbol,
+                                                     jlongArray jBoundVars,
+                                                     jlong sortPointer,
+                                                     jlong grammarPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Grammar* grammar = (Grammar*)grammarPointer;
+
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jBoundVars);
+  // allocate buffer for the long array
+  jlong* cBoundVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jBoundVars, 0, size, cBoundVars);
+  // copy the terms into a vector
+  std::vector<Term> boundVars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)cBoundVars[i];
+    boundVars.push_back(*term);
+  }
+  // free the buffer memory
+  delete[] cBoundVars;
+
+  Term* retPointer =
+      new Term(solver->synthFun(cSymbol, boundVars, *sort, *grammar));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
