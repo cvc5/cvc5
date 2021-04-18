@@ -54,7 +54,6 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return res; 
 }
 
-
 TrustNode TheoryBVRewriter::expandDefinition(Node node)
 {
   Debug("bitvector-expandDefinition")
@@ -64,9 +63,7 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
   {
     case kind::BITVECTOR_SDIV:
     case kind::BITVECTOR_SREM:
-    case kind::BITVECTOR_SMOD:
-      ret = eliminateBVSDiv(node);
-      break;
+    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
 
     default: break;
   }
@@ -76,7 +73,6 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
   }
   return TrustNode::null();
 }
-
 
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
 {

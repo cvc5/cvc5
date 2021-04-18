@@ -44,6 +44,7 @@ static inline Node mkEqNode(Node a, Node b) {
 class TheoryArraysRewriter : public TheoryRewriter
 {
   static Node normalizeConstant(TNode node);
+
  public:
   //this function is called by printers when using the option "--model-u-dt-enum"
   static Node normalizeConstant(TNode node, Cardinality indexCard);

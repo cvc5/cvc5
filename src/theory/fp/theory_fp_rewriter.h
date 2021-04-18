@@ -21,8 +21,8 @@
 #ifndef CVC5__THEORY__FP__THEORY_FP_REWRITER_H
 #define CVC5__THEORY__FP__THEORY_FP_REWRITER_H
 
-#include "theory/theory_rewriter.h"
 #include "theory/fp/fp_expand_defs.h"
+#include "theory/theory_rewriter.h"
 
 namespace cvc5 {
 namespace theory {

@@ -39,7 +39,8 @@ class TheoryUfRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
 
  public:  // conversion between HO_APPLY AND APPLY_UF
-  // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a) b)
+  // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a)
+  // b)
   static Node getHoApplyForApplyUf(TNode n);
   /**
    * Given a curried HO_APPLY term n, this method adds its arguments into args

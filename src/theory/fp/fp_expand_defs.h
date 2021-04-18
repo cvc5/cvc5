@@ -18,7 +18,6 @@
 #ifndef CVC5__THEORY__FP__FP_EXPAND_DEFS_H
 #define CVC5__THEORY__FP__FP_EXPAND_DEFS_H
 
-
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/trust_node.h"
@@ -32,10 +31,12 @@ class FpExpandDefs
   /** Uninterpreted functions for undefined cases of non-total operators. */
   using ComparisonUFMap =
       context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
+
  public:
   FpExpandDefs(context::UserContext* u);
   /** expand definitions in node */
   TrustNode expandDefinition(Node node);
+
  private:
   Node minUF(Node);
   Node maxUF(Node);
