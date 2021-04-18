@@ -368,7 +368,7 @@ class DatatypeTest
     dtdecls.clear();
     dtdecls.add(ns2);
 
-    dtsorts.clear();
+    // dtsorts.clear();
     // this is not well-founded due to non-simple recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
     dtsorts = atomic.get();
@@ -414,7 +414,7 @@ class DatatypeTest
     dtdecls.add(list3);
     dtdecls.add(ns3);
 
-    dtsorts.clear();
+    //dtsorts.clear();
     // both are well-founded and have nested recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
     dtsorts = atomic.get();
@@ -453,7 +453,7 @@ class DatatypeTest
     dtdecls.add(list4);
     dtdecls.add(ns4);
 
-    dtsorts.clear();
+    // dtsorts.clear();
     // both are well-founded and have nested recursion
     assertDoesNotThrow(() -> atomic.set(d_solver.mkDatatypeSorts(dtdecls, unresTypes)));
     dtsorts = atomic.get();

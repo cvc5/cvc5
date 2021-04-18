@@ -72,6 +72,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_DatatypeDecl_toString(JNIEnv*,
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeDecl_getName(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_DatatypeDecl_getName(JNIEnv* env,
                                                          jobject,
-                                                         jlong);
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* current = (DatatypeDecl*)pointer;
+  return env->NewStringUTF(current->getName().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}

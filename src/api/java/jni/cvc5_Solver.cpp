@@ -229,18 +229,92 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkDatatypeSort(
  * Method:    mkDatatypeSorts
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_mkDatatypeSorts__J_3J(JNIEnv*,
-                                                                    jobject,
-                                                                    jlong,
-                                                                    jlongArray);
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_mkDatatypeSorts__J_3J(
+    JNIEnv* env, jobject, jlong pointer, jlongArray jDecls)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize declsSize = env->GetArrayLength(jDecls);
+  // allocate buffer for the long array
+  jlong* cDecls = new jlong[declsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jDecls, 0, declsSize, cDecls);
+  // copy into a vector
+  std::vector<DatatypeDecl> decls;
+  for (jsize i = 0; i < declsSize; i++)
+  {
+    DatatypeDecl* decl = (DatatypeDecl*)cDecls[i];
+    decls.push_back(*decl);
+  }
+  // free the buffer memory
+  delete[] cDecls;
+
+  std::vector<Sort> sorts = solver->mkDatatypeSorts(decls);
+  std::vector<jlong> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = (jlong) new Sort(sorts[i]);
+  }
+
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkDatatypeSorts
  * Signature: (J[J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_mkDatatypeSorts__J_3J_3J(
-    JNIEnv*, jobject, jlong, jlongArray, jlongArray);
+JNIEXPORT jlongArray JNICALL
+Java_cvc5_Solver_mkDatatypeSorts__J_3J_3J(JNIEnv* env,
+                                          jobject,
+                                          jlong pointer,
+                                          jlongArray jDecls,
+                                          jlongArray jUnresolved)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize declsSize = env->GetArrayLength(jDecls);
+  jsize unresolvedSize = env->GetArrayLength(jUnresolved);
+  // allocate buffer for the long array
+  jlong* cDecls = new jlong[declsSize];
+  jlong* cUnresolved = new jlong[unresolvedSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jDecls, 0, declsSize, cDecls);
+  env->GetLongArrayRegion(jUnresolved, 0, unresolvedSize, cUnresolved);
+  // copy into a vector
+  std::vector<DatatypeDecl> decls;
+  for (jsize i = 0; i < declsSize; i++)
+  {
+    DatatypeDecl* decl = (DatatypeDecl*)cDecls[i];
+    decls.push_back(*decl);
+  }
+  std::set<Sort> unresolved;
+  for (jsize i = 0; i < unresolvedSize; i++)
+  {
+    Sort* sort = (Sort*)cUnresolved[i];
+    unresolved.insert(*sort);
+  }
+  // free the buffer memory
+  delete[] cDecls;
+  delete[] cUnresolved;
+
+  std::vector<Sort> sorts = solver->mkDatatypeSorts(decls, unresolved);
+  std::vector<jlong> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = (jlong) new Sort(sorts[i]);
+  }
+
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1258,8 +1332,40 @@ Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2JZ(JNIEnv* env,
  * Signature: (JLjava/lang/String;[JZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jboolean);
+Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer,
+                                                          jstring jName,
+                                                          jlongArray jParams,
+                                                          jboolean isCoDatatype)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string cName(s);
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jParams);
+  // allocate buffer for the long array
+  jlong* cParams = new jlong[size];
+
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jParams, 0, size, cParams);
+  // copy the terms into a vector
+  std::vector<Sort> params;
+  for (jsize i = 0; i < size; i++)
+  {
+    Sort* sort = (Sort*)cParams[i];
+    params.push_back(*sort);
+  }
+  // free the buffer memory
+  delete[] cParams;
+
+  DatatypeDecl* retPointer = new DatatypeDecl(
+      solver->mkDatatypeDecl(cName, params, (bool)isCoDatatype));
+  env->ReleaseStringUTFChars(jName, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1861,6 +1967,21 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getNullOp(JNIEnv* env, jobject, jlong)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* ret = new Op();
+  return ((jlong)ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getNullDatatypeDecl
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getNullDatatypeDecl(JNIEnv* env,
+                                                             jobject,
+                                                             jlong)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* ret = new DatatypeDecl();
   return ((jlong)ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

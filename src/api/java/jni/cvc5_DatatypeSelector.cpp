@@ -19,9 +19,15 @@ JNIEXPORT void JNICALL Java_cvc5_DatatypeSelector_deletePointer(JNIEnv*,
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_getName(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_getName(JNIEnv* env,
                                                              jobject,
-                                                             jlong);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* current = (DatatypeSelector*)pointer;
+  return env->NewStringUTF(current->getName().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_DatatypeSelector
@@ -43,9 +49,16 @@ Java_cvc5_DatatypeSelector_getSelectorTerm(JNIEnv* env, jobject, jlong pointer)
  * Method:    getRangeSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getRangeSort(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getRangeSort(JNIEnv* env,
                                                                 jobject,
-                                                                jlong);
+                                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* current = (DatatypeSelector*)pointer;
+  Sort* retPointer = new Sort(current->getRangeSort());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_DatatypeSelector

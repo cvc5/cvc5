@@ -4749,7 +4749,8 @@ void Solver::resetStatistics()
             "api::CONSTANT"),
         d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
             "api::VARIABLE"),
-        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>(
+            "api::TERM"),
     });
   }
 }

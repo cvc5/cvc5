@@ -10,7 +10,12 @@ using namespace cvc5::api;
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Datatype_deletePointer(JNIEnv*, jclass, jlong);
+JNIEXPORT void JNICALL Java_cvc5_Datatype_deletePointer(JNIEnv* env,
+                                                        jclass,
+                                                        jlong pointer)
+{
+  delete ((Datatype*)pointer);
+}
 
 /*
  * Class:     cvc5_Datatype
@@ -36,7 +41,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JI(JNIEnv* env,
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JLjava_lang_String_2(
-    JNIEnv*, jobject, jlong, jstring);
+    JNIEnv* env, jobject, jlong pointer, jstring jName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string cName(s);
+  DatatypeConstructor* retPointer =
+      new DatatypeConstructor(current->operator[](cName));
+  env->ReleaseStringUTFChars(jName, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
@@ -63,84 +79,162 @@ JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructorTerm(JNIEnv* env,
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Datatype_getName(JNIEnv*, jobject, jlong);
+JNIEXPORT jstring JNICALL Java_cvc5_Datatype_getName(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return env->NewStringUTF(current->getName().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    getNumConstructors
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Datatype_getNumConstructors(JNIEnv*,
+JNIEXPORT jint JNICALL Java_cvc5_Datatype_getNumConstructors(JNIEnv* env,
                                                              jobject,
-                                                             jlong);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jint)current->getNumConstructors();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isParametric
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isParametric(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isParametric(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isParametric();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isCodatatype
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isCodatatype(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isCodatatype(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isCodatatype();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isTuple
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isTuple(JNIEnv*, jobject, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isTuple(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isTuple();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isRecord
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isRecord(JNIEnv*, jobject, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isRecord(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isRecord();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isFinite
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isFinite(JNIEnv*, jobject, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isFinite(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isFinite();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isWellFounded
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isWellFounded(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isWellFounded(JNIEnv* env,
                                                             jobject,
-                                                            jlong);
+                                                            jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isWellFounded();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    hasNestedRecursion
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_hasNestedRecursion(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_hasNestedRecursion(JNIEnv* env,
                                                                  jobject,
-                                                                 jlong);
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->hasNestedRecursion();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isNull(JNIEnv*, jobject, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isNull(JNIEnv* env,
+                                                     jobject,
+                                                     jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return (jboolean)current->isNull();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Datatype
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Datatype_toString(JNIEnv*, jobject, jlong);
+JNIEXPORT jstring JNICALL Java_cvc5_Datatype_toString(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  return env->NewStringUTF(current->toString().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
