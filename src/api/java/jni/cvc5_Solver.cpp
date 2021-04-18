@@ -409,7 +409,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPredicateSort(
   jlong* sortsBuffer = new jlong[sortsSize];
   // copy java array to the buffer
   env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
-  // copy the terms into a vector
+  // copy into a vector
   std::vector<Sort> sorts;
   for (jsize i = 0; i < sortsSize; i++)
   {
@@ -588,7 +588,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTupleSort(JNIEnv* env,
   jlong* buffer = new jlong[size];
   // copy java array to the buffer
   env->GetLongArrayRegion(sortPointers, 0, size, buffer);
-  // copy the terms into a vector
+  // copy into a vector
   std::vector<Sort> sorts;
   for (jsize i = 0; i < size; i++)
   {
@@ -690,17 +690,53 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JIJJJ(JNIEnv* env,
  * Signature: (JI[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkTerm__JI_3J(JNIEnv*, jobject, jlong, jint, jlongArray);
+Java_cvc5_Solver_mkTerm__JI_3J(JNIEnv* env,
+                               jobject,
+                               jlong pointer,
+                               jint kindValue,
+                               jlongArray childrenPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Kind kind = (Kind)kindValue;
+  // get the size of sort pointers
+  jsize size = env->GetArrayLength(childrenPointers);
+  // allocate buffer for the long array
+  jlong* buffer = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(childrenPointers, 0, size, buffer);
+  // copy into a vector
+  std::vector<Term> children;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)buffer[i];
+    children.push_back(*term);
+  }
+  // free the buffer memory
+  delete[] buffer;
+
+  Term* retPointer = new Term(solver->mkTerm(kind, children));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJ(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJ(JNIEnv* env,
                                                     jobject,
-                                                    jlong,
-                                                    jlong);
+                                                    jlong pointer,
+                                                    jlong opPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Op* op = (Op*)opPointer;
+  Term* retPointer = new Term(solver->mkTerm(*op));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -724,16 +760,46 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJJ(
  * Method:    mkTerm
  * Signature: (JJJJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkTerm__JJJJ(JNIEnv*, jobject, jlong, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJJJ(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer,
+                                                      jlong opPointer,
+                                                      jlong child1Pointer,
+                                                      jlong child2Pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Op* op = (Op*)opPointer;
+  Term* child1 = (Term*)child1Pointer;
+  Term* child2 = (Term*)child2Pointer;
+  Term* retPointer = new Term(solver->mkTerm(*op, *child1, *child2));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkTerm
  * Signature: (JJJJJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJJJJ(
-    JNIEnv*, jobject, jlong, jlong, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JJJJJ(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jlong opPointer,
+                                                       jlong child1Pointer,
+                                                       jlong child2Pointer,
+                                                       jlong child3Pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Op* op = (Op*)opPointer;
+  Term* child1 = (Term*)child1Pointer;
+  Term* child2 = (Term*)child2Pointer;
+  Term* child3 = (Term*)child3Pointer;
+  Term* retPointer = new Term(solver->mkTerm(*op, *child1, *child2, *child3));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -757,7 +823,7 @@ Java_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
   jlong* buffer = new jlong[size];
   // copy java array to the buffer
   env->GetLongArrayRegion(childrenPointers, 0, size, buffer);
-  // copy the terms into a vector
+  // copy into a vector
   std::vector<Term> children;
   for (jsize i = 0; i < size; i++)
   {
@@ -777,8 +843,43 @@ Java_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
  * Method:    mkTuple
  * Signature: (J[J[J)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkTuple(JNIEnv*, jobject, jlong, jlongArray, jlongArray);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTuple(JNIEnv* env,
+                                                 jobject,
+                                                 jlong pointer,
+                                                 jlongArray sortPointers,
+                                                 jlongArray termPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of children pointers
+  jsize sortsSize = env->GetArrayLength(sortPointers);
+  jsize termsSize = env->GetArrayLength(termPointers);
+  // allocate buffer for the long array
+  jlong* sortsBuffer = new jlong[termsSize];
+  jlong* termsBuffer = new jlong[termsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
+  env->GetLongArrayRegion(termPointers, 0, termsSize, termsBuffer);
+  // copy into a vector
+  std::vector<Sort> sorts;
+  for (jsize i = 0; i < sortsSize; i++)
+  {
+    Sort* sort = (Sort*)sortsBuffer[i];
+    sorts.push_back(*sort);
+  }
+  std::vector<Term> terms;
+  for (jsize i = 0; i < termsSize; i++)
+  {
+    Term* term = (Term*)termsBuffer[i];
+    terms.push_back(*term);
+  }
+  // free the buffer memory
+  delete[] termsBuffer;
+
+  Term* retPointer = new Term(solver->mkTuple(sorts, terms));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -932,7 +1033,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBoolean(JNIEnv* env,
  * Method:    mkPi
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPi(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPi(JNIEnv* env,
+                                              jobject,
+                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkPi());
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -974,10 +1084,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkInteger__JJ(JNIEnv* env,
  * Method:    mkReal
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkReal__JLjava_lang_String_2(JNIEnv*,
-                                                                      jobject,
-                                                                      jlong,
-                                                                      jstring);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkReal__JLjava_lang_String_2(
+    JNIEnv* env, jobject, jlong pointer, jstring jS)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer = new Term(solver->mkReal(cS));
+  env->ReleaseStringUTFChars(jS, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1001,52 +1119,101 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRealValue(JNIEnv* env,
  * Method:    mkReal
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkReal__JJJ(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkReal__JJJ(
+    JNIEnv* env, jobject, jlong pointer, jlong num, jlong den)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkReal((int64_t)num, (int64_t)den));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkRegexpEmpty
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRegexpEmpty(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRegexpEmpty(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkRegexpEmpty());
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkRegexpSigma
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRegexpSigma(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRegexpSigma(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkRegexpSigma());
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkEmptySet
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkEmptySet(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkEmptySet(JNIEnv* env,
                                                     jobject,
-                                                    jlong,
-                                                    jlong);
+                                                    jlong pointer,
+                                                    jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer = new Term(solver->mkEmptySet(*sort));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkEmptyBag
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkEmptyBag(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkEmptyBag(JNIEnv* env,
                                                     jobject,
-                                                    jlong,
-                                                    jlong);
+                                                    jlong pointer,
+                                                    jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer = new Term(solver->mkEmptyBag(*sort));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkSepNil
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSepNil(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSepNil(JNIEnv* env,
                                                   jobject,
-                                                  jlong,
-                                                  jlong);
+                                                  jlong pointer,
+                                                  jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer = new Term(solver->mkSepNil(*sort));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1069,12 +1236,19 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__JLjava_lang_String_2Z(
 /*
  * Class:     cvc5_Solver
  * Method:    mkString
- * Signature: (JC)J
+ * Signature: (JB)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__JC(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__JB(JNIEnv* env,
                                                       jobject,
-                                                      jlong,
-                                                      jchar);
+                                                      jlong pointer,
+                                                      jbyte c)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkString((unsigned char)c));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1386,7 +1560,7 @@ Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(JNIEnv* env,
 
   // copy java array to the buffer
   env->GetLongArrayRegion(jParams, 0, size, cParams);
-  // copy the terms into a vector
+  // copy into a vector
   std::vector<Sort> params;
   for (jsize i = 0; i < size; i++)
   {
@@ -1827,7 +2001,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusGrammar(JNIEnv* env,
   // copy java array to the buffer
   env->GetLongArrayRegion(jBoundVars, 0, varsSize, cBoundVars);
   env->GetLongArrayRegion(jNtSymbols, 0, symbolsSize, cNtSymbols);
-  // copy the terms into a vector
+  // copy into a vector
   std::vector<Term> boundVars;
   for (jsize i = 0; i < varsSize; i++)
   {
@@ -1886,7 +2060,7 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
   jlong* cBoundVars = new jlong[size];
   // copy java array to the buffer
   env->GetLongArrayRegion(jBoundVars, 0, size, cBoundVars);
-  // copy the terms into a vector
+  // copy into a vector
   std::vector<Term> boundVars;
   for (jsize i = 0; i < size; i++)
   {

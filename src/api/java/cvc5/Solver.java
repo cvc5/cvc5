@@ -936,14 +936,13 @@ public class Solver implements IPointer
    * @param c the character this constant represents
    * @return the String constant
    */
-  public Term mkString(char c)
+  public Term mkString(byte c)
   {
-    // TODO: review unicode
     long termPointer = mkString(pointer, c);
     return new Term(this, termPointer);
   }
 
-  private native long mkString(long pointer, char c);
+  private native long mkString(long pointer, byte c);
 
   /**
    * Create a String constant.
