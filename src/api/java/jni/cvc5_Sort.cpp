@@ -1065,4 +1065,4 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getTupleSorts(JNIEnv* env,
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-} /**/
+}
