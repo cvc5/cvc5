@@ -83,7 +83,7 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyConstant(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = (Grammar*)pointer;
   Term* ntSymbol = (Term*)ntSymbolPointer;
-  current->addAnyVariable(*ntSymbol);
+  current->addAnyConstant(*ntSymbol);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 

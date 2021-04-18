@@ -1751,12 +1751,12 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
     Term* term = (Term*)cBoundVars[i];
     boundVars.push_back(*term);
   }
-  // free the buffer memory
-  delete[] cBoundVars;
 
   Term* retPointer =
       new Term(solver->synthFun(cSymbol, boundVars, *sort, *grammar));
   env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cBoundVars;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
