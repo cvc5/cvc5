@@ -10,9 +10,11 @@ using namespace cvc5::api;
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_DatatypeConstructor_deletePointer(JNIEnv*,
-                                                                   jclass,
-                                                                   jlong);
+JNIEXPORT void JNICALL
+Java_cvc5_DatatypeConstructor_deletePointer(JNIEnv*, jclass, jlong pointer)
+{
+  delete ((DatatypeConstructor*)pointer);
+}
 
 /*
  * Class:     cvc5_DatatypeConstructor
@@ -151,15 +153,27 @@ JNIEXPORT jlong JNICALL Java_cvc5_DatatypeConstructor_getSelectorTerm(
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeConstructor_isNull(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeConstructor_isNull(JNIEnv* env,
                                                                 jobject,
-                                                                jlong);
+                                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeConstructor* current = (DatatypeConstructor*)pointer;
+  return (jboolean)current->isNull();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
 
 /*
  * Class:     cvc5_DatatypeConstructor
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeConstructor_toString(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_DatatypeConstructor_toString(JNIEnv* env,
                                                                  jobject,
-                                                                 jlong);
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeConstructor* current = (DatatypeConstructor*)pointer;
+  return env->NewStringUTF(current->toString().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
