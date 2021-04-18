@@ -31,6 +31,7 @@ namespace arith {
 
 class ArithState;
 class InferenceManager;
+class OperatorElim;
 
 /**
  * This module can be used for (on demand) elimination of extended arithmetic
@@ -45,7 +46,7 @@ class ArithPreprocess
   ArithPreprocess(ArithState& state,
                   InferenceManager& im,
                   ProofNodeManager* pnm,
-                  const LogicInfo& info);
+                  OperatorElim& oe);
   ~ArithPreprocess() {}
   /**
    * Call eliminate operators on formula n, return the resulting trust node,
