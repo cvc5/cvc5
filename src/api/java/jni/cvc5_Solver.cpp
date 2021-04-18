@@ -342,8 +342,36 @@ Java_cvc5_Solver_mkFunctionSort__JJJ(JNIEnv* env,
  * Method:    mkFunctionSort
  * Signature: (J[JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkFunctionSort__J_3JJ(
-    JNIEnv*, jobject, jlong, jlongArray, jlong);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_mkFunctionSort__J_3JJ(JNIEnv* env,
+                                       jobject,
+                                       jlong pointer,
+                                       jlongArray sortPointers,
+                                       jlong codomainPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* codomain = (Sort*)codomainPointer;
+  // get the size of pointers
+  jsize sortsSize = env->GetArrayLength(sortPointers);
+  // allocate buffer for the long array
+  jlong* sortsBuffer = new jlong[sortsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(sortPointers, 0, sortsSize, sortsBuffer);
+  // copy into a vector
+  std::vector<Sort> sorts;
+  for (jsize i = 0; i < sortsSize; i++)
+  {
+    Sort* sort = (Sort*)sortsBuffer[i];
+    sorts.push_back(*sort);
+  }
+  // free the buffer memory
+  delete[] sortsBuffer;
+
+  Sort* retPointer = new Sort(solver->mkFunctionSort(sorts, *codomain));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -427,11 +455,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRecordSort(JNIEnv* env,
     // get the pair at index i
     jobject object = env->GetObjectArrayElement(jFields, i);
 
-    // get the object at cvc.Pair.first and convert it to char *
+    // get the object at cvc5.Pair.first and convert it to char *
     jstring jFirst = (jstring)env->GetObjectField(object, firstFieldId);
     const char* cFirst = env->GetStringUTFChars(jFirst, nullptr);
 
-    // get the object at cvc.Pair.second and convert it to Sort
+    // get the object at cvc5.Pair.second and convert it to Sort
     jobject jSecond = env->GetObjectField(object, secondFieldId);
     jlong sortPointer = env->CallLongMethod(jSecond, methodId);
     Sort* sort = (Sort*)sortPointer;
@@ -580,10 +608,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTupleSort(JNIEnv* env,
  * Method:    mkTerm
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JI(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkTerm__JI(JNIEnv* env,
                                                     jobject,
-                                                    jlong,
-                                                    jint);
+                                                    jlong pointer,
+                                                    jint kindValue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Kind kind = (Kind)kindValue;
+  Term* retPointer = new Term(solver->mkTerm(kind));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
