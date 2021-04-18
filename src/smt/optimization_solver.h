@@ -39,15 +39,31 @@ enum class ObjectiveType
   // objectives for types that doesn't distinguish signed/unsigned
   OBJECTIVE_MINIMIZE,
   OBJECTIVE_MAXIMIZE,
-  // objective types for BV 
-  // signed 
-  OBJECTIVE_BV_SIGNED_MAXIMIZE, 
-  OBJECTIVE_BV_SIGNED_MINIMIZE, 
-  // unsigned
-  OBJECTIVE_BV_UNSIGNED_MAXIMIZE, 
-  OBJECTIVE_BV_UNSIGNED_MINIMIZE, 
-  // the last objective type 
+  // no support for minmax and maxmin for now
+  // because minmax and maxmin are just syntactic sugar
+
+  // the last objective type
   OBJECTIVE_UNDEFINED
+};
+
+/**
+ * The optimization order for multiple objectives
+ * Box: treat the objectives as independent objectives
+ *    v_x = max(x) w.r.t. phi(x, y)
+ *    v_y = max(y) w.r.t. phi(x, y)
+ * Lexicographic: optimize the objectives one-by-one
+ *    v_x = max(x) w.r.t. phi(x, y)
+ *    v_y = max(y) w.r.t. phi(v_x, y)
+ * Pareto: optimize multiple goals to a state such that
+ *  further optimization of one goal will worsen the other goal(s)
+ *    (v_x, v_y) s.t. phi(v_x, v_y) is sat, and
+ *      forall (x, y), phi(x, y) -> x <= v_x or y <= v_y
+ * **/
+enum class ObjectiveOrder
+{
+  OBJORDER_BOX,
+  OBJORDER_LEXICOGRAPHIC,
+  OBJORDER_PARETO
 };
 
 /**
@@ -58,6 +74,9 @@ enum class ObjectiveType
  */
 enum class OptResult
 {
+  // objective type is not supported
+  OPT_UNSUPPORTED,
+
   // the original set of assertions has result UNKNOWN
   OPT_UNKNOWN,
   // the original set of assertions has result UNSAT
@@ -79,40 +98,25 @@ enum class OptResult
  * The optimization objective, which contains:
  * - the optimization target node,
  * - whether it's maximize/minimize
- * - and whether it's signed for BitVectors
+ * - and whether it's signed for BitVectors (optional, defaults to false)
+ * Use struct here because it's passive objective and it only carries data
  */
-class Objective
+struct Objective
 {
- public:
   /**
-   * Constructor
-   * @param n the optimization target node
-   * @param type speficies whether it's maximize/minimize
-   * @param bvSigned specifies whether it's using signed or unsigned comparison
-   *    for BitVectors this parameter is only valid when the type of target node
-   *    is BitVector
+   * The node associated to the term that was used to construct the objective.
    **/
-  Objective(Node n, ObjectiveType type, bool bvSigned = false);
-  ~Objective(){};
-
-  /** A getter for d_type **/
-  ObjectiveType getType();
-  /** A getter for d_node **/
-  Node getNode();
-  /** A getter for d_bvSigned **/
-  bool getSigned();
-
- private:
-  /** The type of objective this is, either OBJECTIVE_MAXIMIZE OR
-   * OBJECTIVE_MINIMIZE  **/
-  ObjectiveType d_type;
-  /** The node associated to the term that was used to construct the objective.
-   * **/
   Node d_node;
-
-  /** Specify whether to use signed or unsigned comparison
-   * for BitVectors (only for BitVectors), this variable is defaulted to false
-   * **/
+  /**
+   * The type of objective this is,
+   * either OBJECTIVE_MAXIMIZE OR OBJECTIVE_MINIMIZE
+   **/
+  ObjectiveType d_type;
+  /**
+   * Specify whether to use signed or unsigned comparison
+   * for BitVectors (only for BitVectors),
+   * this variable is defaulted to false
+   **/
   bool d_bvSigned;
 };
 
@@ -130,33 +134,50 @@ class OptimizationSolver
   /**
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
+   * @param objOrder the optimization order for multiple objectives
    **/
-  OptimizationSolver(SmtEngine* parent);
-  ~OptimizationSolver();
+  OptimizationSolver(SmtEngine* parent,
+                     ObjectiveOrder objOrder = ObjectiveOrder::OBJORDER_BOX);
+  ~OptimizationSolver() = default;
 
   /** Runs the optimization loop for the activated objective **/
   OptResult checkOpt();
+
   /**
    * Activates an objective: will be optimized for
-   * @param obj the Node representing the expression that will be optimized for
-   * @param type specifies whether it's maximize or minimize
+   * @param node the Node representing the expression that will be optimized for
+   * @param objType specifies whether it's maximize or minimize
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void activateObj(const Node& obj,
-                   const ObjectiveType type,
-                   bool bvSigned = false);
+  void activateObj(Node node, ObjectiveType objType, bool bvSigned = false);
+
   /** Gets the value of the optimized objective after checkopt is called **/
-  Node objectiveGetValue();
+  std::vector<Node> objectiveGetValues();
 
  private:
+  /**
+   * Initialize an SMT subsolver for offline optimization purpose
+   * @param needsTimeout specifies whether it needs timeout for each single
+   *    query
+   * @param timeout the timeout value, given in milliseconds (ms)
+   * @return a unique_pointer of SMT subsolver
+   **/
+  std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
+      bool needsTimeout = false, unsigned long timeout = 0);
+
   /** The parent SMT engine **/
   SmtEngine* d_parent;
+
   /** The objectives to optimize for **/
-  Objective d_activatedObjective;
+  std::vector<Objective> d_objectives;
+
   /** A saved value of the objective from the last sat call. **/
-  Node d_savedValue;
+  std::vector<Node> d_optValues;
+
+  /** The optimization order for multiple objectives **/
+  ObjectiveOrder d_objOrder;
 };
 
 }  // namespace smt

@@ -26,11 +26,10 @@ using namespace cvc5::theory;
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
-std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(Node targetNode,
-                                                                bool isSigned)
+std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(Objective objective)
 {
   // the datatype of the target node
-  TypeNode objectiveType = targetNode.getType(true);
+  TypeNode objectiveType = objective.d_node.getType(true);
   if (objectiveType.isInteger())
   {
     // integer type: use OMTOptimizerInteger
@@ -39,7 +38,7 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(Node targetNode,
   else if (objectiveType.isBitVector())
   {
     // bitvector type: use OMTOptimizerBitVector
-    return std::unique_ptr<OMTOptimizer>(new OMTOptimizerBitVector(isSigned));
+    return std::unique_ptr<OMTOptimizer>(new OMTOptimizerBitVector(objective.d_bvSigned));
   }
   else
   {

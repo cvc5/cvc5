@@ -32,14 +32,14 @@ class OMTOptimizer
    * the second field isSigned specifies whether we should use signed comparison
    * for BitVectors and it's only valid when the type is BitVector
    *
-   * @param targetNode the target node for the expression to be optimized
-   * @param isSigned speficies whether to use signed comparison for BitVectors
-   *   and it's only valid when the type of targetNode is BitVector
+   * @param objective the target objective, which contains the target node
+   *   for the expression to be optimized and
+   *   whether the expression is signed if the type of node is BitVector
    * @return a unique_pointer pointing to a derived class of OMTOptimizer
    *   and this is the optimizer for targetNode
    **/
-  static std::unique_ptr<OMTOptimizer> getOptimizerForNode(
-      Node targetNode, bool isSigned = false);
+  static std::unique_ptr<OMTOptimizer> getOptimizerForObjective(
+      smt::Objective objective);
 
   /**
    * Initialize an SMT subsolver for offline optimization purpose

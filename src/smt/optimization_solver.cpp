@@ -16,6 +16,7 @@
 #include "smt/optimization_solver.h"
 
 #include "omt/omt_optimizer.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::omt;
@@ -29,71 +30,115 @@ namespace smt {
  * d_savedValue is initialized to a default node (Null Node)
  */
 
-OptimizationSolver::OptimizationSolver(SmtEngine* parent)
-    : d_parent(parent),
-      d_activatedObjective(Node(), ObjectiveType::OBJECTIVE_UNDEFINED),
-      d_savedValue()
+OptimizationSolver::OptimizationSolver(SmtEngine* parent,
+                                       ObjectiveOrder objOrder)
+    : d_parent(parent), d_objectives(), d_optValues(), d_objOrder(objOrder)
 {
 }
-
-OptimizationSolver::~OptimizationSolver() {}
 
 OptResult OptimizationSolver::checkOpt()
 {
   // Make sure that the objective is not the default one
-  Assert(d_activatedObjective.getType() != ObjectiveType::OBJECTIVE_UNDEFINED);
-  Assert(!d_activatedObjective.getNode().isNull());
-
-  std::unique_ptr<OMTOptimizer> optimizer = OMTOptimizer::getOptimizerForNode(
-      d_activatedObjective.getNode(), d_activatedObjective.getSigned());
-
-  Assert(optimizer != nullptr);
-
-  // default value of optResult is unknown
-  std::pair<OptResult, Node> optResult {OptResult::OPT_UNKNOWN, Node()};
-  ObjectiveType objType = d_activatedObjective.getType();
-  switch (objType) {
-    case ObjectiveType::OBJECTIVE_MAXIMIZE: 
-      optResult = optimizer->maximize(this->d_parent, this->d_activatedObjective.getNode());
-      break;
-    case ObjectiveType::OBJECTIVE_MINIMIZE: 
-      optResult = optimizer->minimize(this->d_parent, this->d_activatedObjective.getNode());
-      break;
-    case ObjectiveType::OBJECTIVE_BV_SIGNED_MAXIMIZE:
-    case ObjectiveType::OBJECTIVE_BV_SIGNED_MINIMIZE:
-    case ObjectiveType::OBJECTIVE_BV_UNSIGNED_MAXIMIZE:
-    case ObjectiveType::OBJECTIVE_BV_UNSIGNED_MINIMIZE:
-    default: 
-      break;
+  Assert(!d_objectives.empty());
+  for (Objective& obj : d_objectives)
+  {
+    Assert(!obj.d_node.isNull());
+    Assert(obj.d_type != ObjectiveType::OBJECTIVE_UNDEFINED);
   }
 
-  this->d_savedValue = optResult.second;
-  return optResult.first;
+  // creates a blackbox subsolver without timeout
+  std::unique_ptr<SmtEngine> optChecker = this->createOptCheckerWithTimeout();
+
+  std::unique_ptr<OMTOptimizer> optimizer;
+
+  std::pair<OptResult, Node> optPartialResult;
+
+  OptResult optResult = OptResult::OPT_UNKNOWN; 
+
+  for (size_t i = 0; i < d_objectives.size(); ++i)
+  {
+    Objective &obj = d_objectives[i];
+    optimizer = OMTOptimizer::getOptimizerForObjective(obj);
+    // optimizer is nullptr, meaning that we don't have support for the node type
+    if (!optimizer) {
+      return OptResult::OPT_UNSUPPORTED;
+    }
+
+    ObjectiveType objType = obj.d_type;
+    switch (objType)
+    {
+    case ObjectiveType::OBJECTIVE_MAXIMIZE:
+      optPartialResult = optimizer->maximize(optChecker.get(), obj.d_node);
+      break;
+    case ObjectiveType::OBJECTIVE_MINIMIZE: 
+      optPartialResult = optimizer->minimize(optChecker.get(), obj.d_node);
+      break;
+    default:
+      break;
+    }
+
+    switch (optPartialResult.first)
+    {
+    case OptResult::OPT_OPTIMAL :
+      // just continue 
+      break;
+    case OptResult::OPT_UNBOUNDED: 
+      break;
+    case OptResult::OPT_SAT_APPROX: 
+      optResult = OptResult::OPT_SAT_APPROX;
+      // also continue 
+      break;
+    
+    case OptResult::OPT_UNSAT: 
+      // unsatisfiable target 
+      return OptResult::OPT_UNSAT;
+    case OptResult::OPT_UNKNOWN: 
+      return OptResult::OPT_UNKNOWN;
+    default:
+      break;
+    }
+
+    this->d_optValues[i] = optPartialResult.second;
+
+  }
+
+  return optResult; 
 }
 
-void OptimizationSolver::activateObj(const Node& obj,
-                                     const ObjectiveType type,
+void OptimizationSolver::activateObj(Node node,
+                                     ObjectiveType objType,
                                      bool bvSigned)
 {
-  d_activatedObjective = Objective(obj, type, bvSigned);
+  d_objectives.push_back({node, objType, bvSigned});
+  // also creates a placeholder for optValue 
+  d_optValues.emplace_back();
 }
 
-Node OptimizationSolver::objectiveGetValue()
+std::vector<Node> OptimizationSolver::objectiveGetValues()
 {
-  Assert(!d_savedValue.isNull());
-  return d_savedValue;
+  Assert(d_optValues.size() == d_objectives.size());
+  return d_optValues;
 }
 
-Objective::Objective(Node obj, ObjectiveType type, bool bvSigned)
-    : d_type(type), d_node(obj), d_bvSigned(bvSigned)
+std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
+    bool needsTimeout, unsigned long timeout)
 {
+  std::unique_ptr<SmtEngine> optChecker;
+  // initializeSubSolver will copy the options and theories enabled
+  // from the current solver to optChecker and adds timeout
+  theory::initializeSubsolver(optChecker, needsTimeout, timeout);
+  // we need to be in incremental mode for multiple objectives since we need to
+  // push pop we need to produce models to inrement on our objective
+  optChecker->setOption("incremental", "true");
+  optChecker->setOption("produce-models", "true");
+  // Move assertions from the parent solver to the subsolver
+  std::vector<Node> p_assertions = this->d_parent->getExpandedAssertions();
+  for (const Node& e : p_assertions)
+  {
+    optChecker->assertFormula(e);
+  }
+  return optChecker;
 }
-
-ObjectiveType Objective::getType() { return d_type; }
-
-Node Objective::getNode() { return d_node; }
-
-bool Objective::getSigned() { return d_bvSigned; }
 
 }  // namespace smt
 }  // namespace cvc5
