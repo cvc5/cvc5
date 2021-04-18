@@ -12,7 +12,10 @@ using namespace cvc5::api;
  */
 JNIEXPORT void JNICALL Java_cvc5_DatatypeSelector_deletePointer(JNIEnv*,
                                                                 jclass,
-                                                                jlong);
+                                                                jlong pointer)
+{
+  delete ((DatatypeSelector*)pointer);
+}
 
 /*
  * Class:     cvc5_DatatypeSelector
@@ -65,15 +68,27 @@ JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getRangeSort(JNIEnv* env,
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeSelector_isNull(JNIEnv*,
+JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeSelector_isNull(JNIEnv* env,
                                                              jobject,
-                                                             jlong);
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* current = (DatatypeSelector*)pointer;
+  return (jboolean)current->isNull();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
 
 /*
  * Class:     cvc5_DatatypeSelector
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_toString(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_toString(JNIEnv* env,
                                                               jobject,
-                                                              jlong);
+                                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* current = (DatatypeSelector*)pointer;
+  return env->NewStringUTF(current->toString().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
