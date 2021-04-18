@@ -50,6 +50,7 @@ class DatatypesRewriter : public TheoryRewriter
   static Node normalizeConstant(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
+
  private:
   /** rewrite constructor term in */
   static RewriteResponse rewriteConstructor(TNode in);

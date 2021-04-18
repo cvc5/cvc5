@@ -1516,7 +1516,8 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
 
 TrustNode TheoryStrings::expandDefinition(Node node)
 {
-  Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
+  Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node
+                           << std::endl;
 
   if (node.getKind() == kind::SEQ_NTH)
   {

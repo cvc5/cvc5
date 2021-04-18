@@ -793,7 +793,6 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-
 TrustNode DatatypesRewriter::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -818,7 +817,9 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
                            << std::endl;
         Assert(selectorIndex < c.getNumArgs());
         selector_use = c.getSelectorInternal(ndt, selectorIndex);
-      }else{
+      }
+      else
+      {
         selector_use = selector;
       }
       Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
