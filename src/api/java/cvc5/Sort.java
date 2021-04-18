@@ -1,5 +1,7 @@
 package cvc5;
 
+import java.util.List;
+
 public class Sort extends AbstractPointer implements Comparable<Sort>
 {
   // region construction and destruction
@@ -387,6 +389,16 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long getDatatype(long pointer);
+
+  /**
+   * Instantiate a parameterized datatype/sort sort.
+   * Create sorts parameter with Solver.mkParamSort().
+   * @param params the list of sort parameters to instantiate with
+   */
+  Sort instantiate(List<Sort> params)
+  {
+    return instantiate(params.toArray(new Sort[0]));
+  }
 
   /**
    * Instantiate a parameterized datatype/sort sort.

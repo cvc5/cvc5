@@ -15,6 +15,7 @@ find_package(JUnit REQUIRED)
 
 # specify source files for junit tests
 set(java_test_src_files
+  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/DatatypeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/GrammarTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/OpTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/ResultTest.java
