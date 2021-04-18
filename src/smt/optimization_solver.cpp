@@ -33,11 +33,6 @@ OptResult OptimizationSolver::checkOpt()
 {
   // Make sure that the objective is not the default one
   Assert(!d_objectives.empty());
-  for (Objective& obj : d_objectives)
-  {
-    Assert(!obj.d_node.isNull());
-    Assert(obj.d_type != ObjectiveType::OBJECTIVE_UNDEFINED);
-  }
   switch (this->d_objOrder)
   {
     case ObjectiveOrder::OBJORDER_BOX: return this->optimizeBox();
@@ -102,6 +97,8 @@ OptResult OptimizationSolver::optimizeBox()
   for (size_t i = 0; i < d_objectives.size(); ++i)
   {
     Objective& obj = d_objectives[i];
+    Assert(!obj.d_node.isNull());
+    Assert(obj.d_type != ObjectiveType::OBJECTIVE_UNDEFINED);
     optimizer = OMTOptimizer::getOptimizerForObjective(obj);
     // optimizer is nullptr, meaning that we don't have support for the node
     // type
