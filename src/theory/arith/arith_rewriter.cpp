@@ -26,15 +26,15 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
 #include "util/iand.h"
-#include "theory/arith/operator_elim.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe){}
+ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 
 bool ArithRewriter::isAtom(TNode n) {
   Kind k = n.getKind();
