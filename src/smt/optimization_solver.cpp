@@ -109,10 +109,7 @@ OptResult OptimizationSolver::optimizeBoxNaive()
     optimizer = OMTOptimizer::getOptimizerForObjective(obj);
     // optimizer is nullptr, meaning that we don't have support for the node
     // type
-    if (!optimizer)
-    {
-      return OptResult::OPT_UNSUPPORTED;
-    }
+    if (!optimizer) return OptResult::OPT_UNSUPPORTED;
 
     // notice there's no push and pop around the calls to maximize and minimize!
     // so we require optimizer->maximize and optimizer->minimize to be
@@ -162,10 +159,7 @@ OptResult OptimizationSolver::optimizeLexIterative()
     optimizer = OMTOptimizer::getOptimizerForObjective(obj);
     // optimizer is nullptr,
     // meaning that we don't have support for the node type
-    if (!optimizer)
-    {
-      return OptResult::OPT_UNSUPPORTED;
-    }
+    if (!optimizer) return OptResult::OPT_UNSUPPORTED;
     // notice there's no push and pop around the calls to maximize and minimize!
     // so we require optimizer->maximize and optimizer->minimize to be
     // re-enterable!
@@ -200,8 +194,66 @@ OptResult OptimizationSolver::optimizeLexIterative()
   return result;
 }
 
+/**
+ * A basic strategy is to iteratively improving the results such that
+ * no objective is worse and there's at least one objective that could be
+ * better.
+ *
+ * A more clever strategy is to use a procedure called partialLex instead of
+ * checkSat
+ *
+ * partialLex finds a partially optimial assignment of the given
+ * formula.
+ * It works as follows: find a satisfying assignment to the
+ * propositional statements and then within the propositional statement, use
+ * theory solver's online optimization procedure to produce a result
+ *
+ * Unfortunately, we don't have online optimization yet...
+ **/
 OptResult OptimizationSolver::optimizePareto()
 {
+  // creates a blackbox subsolver without timeout
+  std::unique_ptr<SmtEngine> optChecker = this->createOptCheckerWithTimeout();
+  // NodeManager* nm = optChecker->getNodeManager();
+
+  Result satResult;
+
+  while (true)
+  {
+    satResult = optChecker->checkSat();
+    switch (satResult.isSat())
+    {
+      case Result::Sat::UNSAT: return OptResult::OPT_UNSAT;
+      case Result::Sat::SAT_UNKNOWN:
+      {
+        // returns the SAT_UNKNOWN values
+        // for (size_t i = 0; i < d_objectives.size(); ++i)
+        // {
+        //   d_optValues[i] = optChecker->getValue(d_objectives[i].d_node);
+        // }
+        return OptResult::OPT_UNKNOWN;
+      }
+      case Result::Sat::SAT: break;
+      default: Unreachable(); break;
+    }
+
+    std::vector<Node> noWorseObj;
+    std::vector<Node> someObjBetter;
+    while (satResult.isSat() == Result::Sat::SAT)
+    {
+      // TODO Not finished 
+      for (size_t i = 0; i < d_objectives.size(); ++i)
+      {
+        switch (d_objectives[i].d_type)
+        {
+          case ObjectiveType::OBJECTIVE_MAXIMIZE: break;
+          case ObjectiveType::OBJECTIVE_MINIMIZE: break;
+          default: Unreachable(); break;
+        }
+      }
+    }
+  }
+
   return OptResult::OPT_UNSUPPORTED;
 }
 
