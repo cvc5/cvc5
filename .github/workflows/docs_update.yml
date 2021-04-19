@@ -44,7 +44,7 @@ jobs:
 
       - name: Update docs
         run: |
-          git config --global user.email "docbot@cvc4"
+          git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
           if [ "${{ github.event_name }}" == "push" ] ; then
             NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
