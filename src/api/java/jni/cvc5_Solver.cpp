@@ -1854,8 +1854,17 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareFun(JNIEnv* env,
  * Method:    declareSort
  * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_declareSort(JNIEnv*, jobject, jlong, jstring, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareSort(
+    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Sort* retPointer = new Sort(solver->declareSort(cSymbol, (uint32_t)arity));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
