@@ -107,7 +107,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Node new_body = node[0][1];
       if (node[0][0].getNumChildren() > 1)
       {
-        std::vector<Node> new_vars(node[0][0].begin()+1, node[0][0].end());
+        std::vector<Node> new_vars(node[0][0].begin() + 1, node[0][0].end());
         std::vector<Node> largs;
         largs.push_back(
             NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, new_vars));
