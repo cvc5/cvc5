@@ -54,7 +54,7 @@ jobs:
             echo "Identified PR #$NAME"
             NAME="pr$NAME"
           fi
-          if [ -z "$NAME" ]; then
+          if [ ! -z "$NAME" ]; then
             git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
             rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
             cd target/
