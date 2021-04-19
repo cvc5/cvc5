@@ -33,14 +33,19 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // computes (a + b) / 2 without overflow
   // rounding towards -infinity: -1.5 --> -2,  1.5 --> 1
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
+  // For unsigned bitvectors, this algorithm should be equivalent to: 
+  // if (!isSigned) {
+  //   return BitVector(a.getSize(),
+  //     (a.toInteger() + b.toInteger()).floorDivideQuotient(Integer(2)));
+  // }
   uint32_t aMod2 = static_cast<uint32_t>(a.isBitSet(0));
   uint32_t bMod2 = static_cast<uint32_t>(b.isBitSet(0));
-  BitVector aMod2PlusbMod2(a.getSize(), (aMod2 + bMod2) / 2);
+  BitVector aMod2PlusbMod2Div2(a.getSize(), (aMod2 + bMod2) / 2);
   BitVector bv1 = BitVector::mkOne(a.getSize());
   return (isSigned) ? ((a.arithRightShift(bv1) + b.arithRightShift(bv1)
-                        + aMod2PlusbMod2.arithRightShift(bv1)))
+                        + aMod2PlusbMod2Div2))
                     : ((a.logicalRightShift(bv1) + b.logicalRightShift(bv1)
-                        + aMod2PlusbMod2.logicalRightShift(bv1)));
+                        + aMod2PlusbMod2Div2));
 }
 
 std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
@@ -109,6 +114,16 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
           // and lowerbound <= target < upperbound is UNSAT
           // return the upperbound
           optChecker->pop();  // make sure to pop before return
+          // if (!d_isSigned)
+          // {
+          //   uint32_t a = lowerBound.toInteger().toUnsignedInt();
+          //   uint32_t b = upperBound.toInteger().toUnsignedInt();
+          //   uint32_t p = (a + b) / 2;
+          //   std::cerr << p << " " << pivot.toInteger().toUnsignedInt()
+          //                << "\n"
+          //                << a << " " << b << "\n";
+          //   std::cerr.flush();
+          // }
           return std::make_pair(OptResult::OPT_OPTIMAL, value);
         }
         else

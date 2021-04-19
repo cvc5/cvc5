@@ -61,12 +61,8 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
-  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
-            d_nodeManager->mkConst(BitVector(32u, (unsigned)0x3FFFFFA1)));
-
-  std::cout << "Passed!" << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
-            << std::endl;
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0].getConst<BitVector>(),
+            BitVector(32u, (unsigned)0x3FFFFFA1));
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_min)
@@ -87,14 +83,10 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   BitVector val = d_optslv->objectiveGetValues()[0].getConst<BitVector>();
-  std::cout << "opt value is: " << val << std::endl;
 
   // expect the minimum x = -1
-  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
-            d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000)));
-  std::cout << "Passed!" << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
-            << std::endl;
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0].getConst<BitVector>(),
+            BitVector(32u, (unsigned)0x80000000));
 }
 
 TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
@@ -118,12 +110,9 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   BitVector val = d_optslv->objectiveGetValues()[0].getConst<BitVector>();
-  std::cout << "opt value is: " << val << std::endl;
 
-  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
-            d_nodeManager->mkConst(BitVector(32u, (unsigned)2)));
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
-            << std::endl;
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0].getConst<BitVector>(),
+            BitVector(32u, (unsigned)2));
 }
 
 TEST_F(TestTheoryWhiteBVOpt, signed_max)
@@ -145,10 +134,67 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
   // expect the maxmum x =
-  ASSERT_EQ(d_optslv->objectiveGetValues()[0],
-            d_nodeManager->mkConst(BitVector(32u, 10u)));
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValues()[0]
-            << std::endl;
+  ASSERT_EQ(d_optslv->objectiveGetValues()[0].getConst<BitVector>(),
+            BitVector(32u, 10u));
+}
+
+TEST_F(TestTheoryWhiteBVOpt, multigoal)
+{
+  Node x = d_nodeManager->mkVar(*d_BV32Type);
+  Node y = d_nodeManager->mkVar(*d_BV32Type);
+  Node z = d_nodeManager->mkVar(*d_BV32Type);
+
+  // 18 <= x
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(
+      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+
+  // y <= x
+  // I got wrong answer when changing ULE to SLE, what's happening???!
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, y, x));
+
+  // Box optimization
+  OptimizationSolver optSolver(d_smtEngine.get(), ObjectiveOrder::OBJORDER_BOX);
+
+  // minimize x
+  optSolver.pushObj(x, ObjectiveType::OBJECTIVE_MINIMIZE, false);
+  // maximize y
+  optSolver.pushObj(y, ObjectiveType::OBJECTIVE_MAXIMIZE, false);
+  // maximize z
+  optSolver.pushObj(z, ObjectiveType::OBJECTIVE_MAXIMIZE, false);
+
+  OptResult r = optSolver.checkOpt();
+
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+
+  std::vector<Node> results = optSolver.objectiveGetValues();
+
+  // x == 18
+  ASSERT_EQ(results[0].getConst<BitVector>(), BitVector(32u, 18u));
+
+  // y == 0xFFFFFFFF
+  ASSERT_EQ(results[1].getConst<BitVector>(),
+            BitVector(32u, (unsigned)0xFFFFFFFF));
+
+  // z == 0xFFFFFFFF
+  ASSERT_EQ(results[2].getConst<BitVector>(),
+            BitVector(32u, (unsigned)0xFFFFFFFF));
+
+  optSolver.setObjectiveOrder(ObjectiveOrder::OBJORDER_LEXICOGRAPHIC);
+  r = optSolver.checkOpt();
+
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+
+  results = optSolver.objectiveGetValues();
+
+  // x == 18
+  ASSERT_EQ(results[0].getConst<BitVector>(), BitVector(32u, 18u));
+
+  // y == 0xFFFFFFFF
+  ASSERT_EQ(results[1].getConst<BitVector>(), BitVector(32u, 18u));
+
+  // z == 0xFFFFFFFF
+  ASSERT_EQ(results[2].getConst<BitVector>(),
+            BitVector(32u, (unsigned)0xFFFFFFFF));
 }
 
 }  // namespace test
