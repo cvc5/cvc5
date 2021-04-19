@@ -13,7 +13,7 @@
  * Utility for quantifiers macro definitions.
  */
 
-#include "theory/quantifiers/quantifier_macros.h"
+#include "theory/quantifiers/quantifiers_macros.h"
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
