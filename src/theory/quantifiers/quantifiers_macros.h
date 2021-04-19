@@ -28,26 +28,28 @@ namespace quantifiers {
 
 class QuantifiersRegistry;
 
-class QuantifierMacros
+class QuantifiersMacros
 {
  public:
-  QuantifierMacros(QuantifiersRegistry& qr);
-  ~QuantifierMacros() {}
+  QuantifiersMacros(QuantifiersRegistry& qr);
+  ~QuantifiersMacros() {}
   /**
-   * Called on quantified formulas lit of the form
+   * Called on bodies of quantified formulas lit of the form
    *   forall x1 ... xn. n = ndef
    * where n is of the form U(x1...xn). Returns an equality of the form
    *   U = lambda x1 ... xn. ndef
    * if this is a legal macro definition for U, and the null node otherwise.
+   * 
+   * @param lit The body of the quantified formula
+   * @param reqGround Whether we require the macro definition to be ground,
+   * i.e. does not contain quantified formulas as subterms.
    */
   Node solve(Node lit, bool reqGround = false);
 
  private:
   bool isBoundVarApplyUf(Node n);
   bool containsBadOp(Node n,
-                     Node op,
-                     std::vector<Node>& opc,
-                     std::map<Node, bool>& visited);
+                     Node op, bool reqGround);
   bool isGroundUfTerm(Node f, Node n);
   void getMacroCandidates(Node n,
                           std::vector<Node>& candidates,

@@ -29,15 +29,14 @@
 using namespace cvc5::kind;
 
 namespace cvc5 {
+namespace theory {
 namespace quantifiers {
-namespace passes {
 
-QuantifierMacros::QuantifierMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
+QuantifiersMacros::QuantifiersMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
 
-
-Node QuantifierMacros::solve(Node lit, bool reqGround)
+Node QuantifiersMacros::solve(Node lit, bool reqGround)
 {
-  Trace("macros-debug") << "  process " << n << std::endl;
+  Trace("macros-debug") << "  process " << lit << std::endl;
   bool pol = lit.getKind() != NOT;
   Node n = pol ? lit : lit[0];
   NodeManager* nm = NodeManager::currentNM();
@@ -49,7 +48,7 @@ Node QuantifierMacros::solve(Node lit, bool reqGround)
       Node op = n.getOperator();
       Node n_def = nm->mkConst(pol);
       Node fdef = solveEq(n, n_def);
-      Assert (!fdef.isNull();
+      Assert (!fdef.isNull());
       return fdef;
     }
   }
@@ -67,10 +66,6 @@ Node QuantifierMacros::solve(Node lit, bool reqGround)
     {
       Node op = m.getOperator();
       Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
-      if (d_macroDefs.find(op) != d_macroDefs.end())
-      {
-        continue;
-      }
       // get definition and condition
       Node n_def = solveInEquality(m, n);  // definition for the macro
       if (n_def.isNull())
@@ -105,7 +100,7 @@ Node QuantifierMacros::solve(Node lit, bool reqGround)
   return Node::null();
 }
 
-bool QuantifierMacros::containsBadOp(Node n, Node op, bool reqGround)
+bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -138,12 +133,9 @@ bool QuantifierMacros::containsBadOp(Node n, Node op, bool reqGround)
   return false;
 }
 
-bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
+bool QuantifiersMacros::isGroundUfTerm(Node q, Node n)
 {
-  Node icn = d_preprocContext->getTheoryEngine()
-                 ->getQuantifiersEngine()
-                 ->getQuantifiersRegistry()
-                 .substituteBoundVariablesToInstConstants(n, q);
+  Node icn = d_qreg.substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector<Node> var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
@@ -155,7 +147,7 @@ bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
   return trigger_var.size() >= var.size();
 }
 
-bool QuantifierMacros::isBoundVarApplyUf(Node n)
+bool QuantifiersMacros::isBoundVarApplyUf(Node n)
 {
   Assert(n.getKind() == APPLY_UF);
   TypeNode tno = n.getOperator().getType();
@@ -183,7 +175,7 @@ bool QuantifierMacros::isBoundVarApplyUf(Node n)
   return true;
 }
 
-void QuantifierMacros::getMacroCandidates(Node n,
+void QuantifiersMacros::getMacroCandidates(Node n,
                                           std::vector<Node>& candidates,
                                           std::map<Node, bool>& visited)
 {
@@ -219,7 +211,7 @@ void QuantifierMacros::getMacroCandidates(Node n,
   }
 }
 
-Node QuantifierMacros::solveInEquality(Node n, Node lit)
+Node QuantifiersMacros::solveInEquality(Node n, Node lit)
 {
   if (lit.getKind() == EQUAL)
   {
@@ -251,7 +243,7 @@ Node QuantifierMacros::solveInEquality(Node n, Node lit)
   return Node::null();
 }
 
-Node QuantifierMacros::solveEq(Node n, Node ndef)
+Node QuantifiersMacros::solveEq(Node n, Node ndef)
 {
   Assert(n.getKind() == APPLY_UF);
   NodeManager* nm = NodeManager::currentNM();
