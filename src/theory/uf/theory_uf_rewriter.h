@@ -42,6 +42,8 @@ class TheoryUfRewriter : public TheoryRewriter
   // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a)
   // b)
   static Node getHoApplyForApplyUf(TNode n);
+  // converts a curried HO_APPLY into an APPLY_UF e.g. (@ (@ f a) b) becomes (f a b)
+  static Node getApplyUfForHoApply(TNode n);
   /**
    * Given a curried HO_APPLY term n, this method adds its arguments into args
    * and returns its operator. If the argument opInArgs is true, then we add

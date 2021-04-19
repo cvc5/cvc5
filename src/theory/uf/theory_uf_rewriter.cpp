@@ -183,7 +183,7 @@ Node TheoryUfRewriter::getApplyUfForHoApply(TNode n)
 }
 Node TheoryUfRewriter::decomposeHoApply(TNode n,
                                         std::vector<TNode>& args,
-                                        bool opInArgs = false)
+                                        bool opInArgs)
 {
   TNode curr = n;
   while (curr.getKind() == kind::HO_APPLY)
