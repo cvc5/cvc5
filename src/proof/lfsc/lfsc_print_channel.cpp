@@ -80,7 +80,7 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   std::stringstream ss;
   n.toStream(ss, -1, 0, language::output::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
-  cleanIndexedSymbols(s);
+  cleanSymbols(s);
   out << s;
 }
 
@@ -90,7 +90,7 @@ void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
   std::stringstream ss;
   tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
   std::string s = ss.str();
-  cleanIndexedSymbols(s);
+  cleanSymbols(s);
   out << s;
 }
 
@@ -128,13 +128,18 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
   out << "__a" << id;
 }
 
-void LfscPrintChannelOut::cleanIndexedSymbols(std::string& s)
+void LfscPrintChannelOut::cleanSymbols(std::string& s)
 {
   size_t start_pos = 0;
   while ((start_pos = s.find("(_ ", start_pos)) != std::string::npos)
   {
     s.replace(start_pos, 3, "(");
     start_pos += 1;
+  }
+  start_pos = 0;
+  while ((start_pos = s.find("__LFSC_TMP", start_pos)) != std::string::npos)
+  {
+    s.replace(start_pos, 10, "");
   }
 }
 

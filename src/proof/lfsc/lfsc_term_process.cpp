@@ -139,13 +139,12 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == CONST_RATIONAL)
   {
     TypeNode tnv = nm->mkFunctionType(tn, tn);
-    // FIXME: subtyping makes this incorrect, also handle CAST_TO_REAL here
     Node rconstf;
     Node arg;
+    Rational r = n.getConst<Rational>();
     if (tn.isInteger())
     {
       rconstf = getSymbolInternal(k, tnv, "int");
-      Rational r = n.getConst<Rational>();
       if (r.sgn() == -1)
       {
         // use LFSC syntax for mpz negation
@@ -160,10 +159,33 @@ Node LfscTermProcessor::runConvert(Node n)
     else
     {
       rconstf = getSymbolInternal(k, tnv, "real");
-      // FIXME: ensure rationals are printed properly here using mpq syntax
-      arg = n;
+      // ensure rationals are printed properly here using mpq syntax
+      // Note that inconvieniently, LFSC uses (non-sexpr) syntax n/m for
+      // constant rationals, hence we must use a string
+      std::stringstream ss;
+      ss << "__LFSC_TMP" << r.getNumerator() << "/" << r.getDenominator();
+      arg = mkInternalSymbol(ss.str(), tn);
     }
     return nm->mkNode(APPLY_UF, rconstf, arg);
+  }
+  else if (k == CONST_BITVECTOR)
+  {
+    TypeNode btn = nm->booleanType();
+    TypeNode tnv = nm->mkFunctionType(btn, tn);
+    TypeNode btnv = nm->mkFunctionType(btn, btn);
+    BitVector bv = n.getConst<BitVector>();
+    size_t w = bv.getSize();
+    Node ret = getSymbolInternal(k, btn, "bvn");
+    Node b0 = getSymbolInternal(k, btn, "b0");
+    Node b1 = getSymbolInternal(k, btn, "b1");
+    Node bvc = getSymbolInternal(k, btnv, "bvc");
+    for (size_t i=0; i<w; i++)
+    {
+      Node arg = bv.isBitSet((w-1)-i) ? b1 : b0;
+      ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
+    }
+    Node bconstf = getSymbolInternal(k, tnv, "bv");
+    return nm->mkNode(APPLY_UF, bconstf, ret);
   }
   else if (k == CONST_STRING)
   {
