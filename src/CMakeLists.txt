@@ -755,6 +755,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp
   theory/quantifiers/quantifiers_inference_manager.h
+  theory/quantifiers/quantifiers_macros.cpp
+  theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_registry.cpp
