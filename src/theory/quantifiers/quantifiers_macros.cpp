@@ -89,7 +89,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
             << "...does not contain bad (recursive) operator." << std::endl;
         // must be ground UF term if mode is GROUND_UF
         if (options::macrosQuantMode() != options::MacrosQuantMode::GROUND_UF
-            || isGroundUfTerm(lit, n_def))
+            || preservesTriggerVariables(lit, n_def))
         {
           Trace("macros-debug")
               << "...respects ground-uf constraint." << std::endl;
@@ -138,7 +138,7 @@ bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
   return false;
 }
 
-bool QuantifiersMacros::isGroundUfTerm(Node q, Node n)
+bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
 {
   Node icn = d_qreg.substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
