@@ -28,7 +28,6 @@
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
-#include "util/abstract_value.h"
 
 namespace cvc5 {
 
