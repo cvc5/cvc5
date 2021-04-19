@@ -43,14 +43,13 @@ jobs:
         working-directory: build
 
       - name: Update docs
-        if: github.event_name == 'push'
         run: |
           git config --global user.email "docbot@cvc4"
           git config --global user.name "DocBot"
-          if [ "${{ github.event_name }}" = "push"] ; then
+          if [ "${{ github.event_name }}" == "push"] ; then
             NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
             echo "Identified branch $NAME"
-          elif [ "${{ github.event_name }}" = "pull_request"] ; then
+          elif [ "${{ github.event_name }}" == "pull_request"] ; then
             NAME=$(echo "${GITHUB_REF}" | sed -E "s,refs/pull/([0-9]+)/merge,\1, ")
             echo "Identified PR #$NAME"
             NAME="pr$NAME"
