@@ -31,8 +31,6 @@ OptimizationSolver::OptimizationSolver(SmtEngine* parent,
 
 OptResult OptimizationSolver::checkOpt()
 {
-  // Make sure that the objective is not the default one
-  Assert(!d_objectives.empty());
   switch (this->d_objOrder)
   {
     case ObjectiveOrder::OBJORDER_BOX: return this->optimizeBoxNaive();
@@ -195,7 +193,7 @@ OptResult OptimizationSolver::optimizeLexIterative()
       default: Unreachable(); break;
     }
     this->d_optValues[i] = optPartialResult.second;
-    // asserts obj_i == optvalue_i
+    // assert obj_i == optvalue_i
     optChecker->assertFormula(optChecker->getNodeManager()->mkNode(
         kind::EQUAL, obj.d_node, optPartialResult.second));
   }
