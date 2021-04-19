@@ -1813,8 +1813,41 @@ Java_cvc5_Solver_declareDatatype(JNIEnv*, jobject, jlong, jstring, jlongArray);
  * Method:    declareFun
  * Signature: (JLjava/lang/String;[JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareFun(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareFun(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer,
+                                                    jstring jSymbol,
+                                                    jlongArray jSorts,
+                                                    jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jSorts);
+  // allocate buffer for the long array
+  jlong* cSorts = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jSorts, 0, size, cSorts);
+  // copy into a vector
+  std::vector<Sort> sorts;
+  for (jsize i = 0; i < size; i++)
+  {
+    Sort* so = (Sort*)cSorts[i];
+    sorts.push_back(*so);
+  }
+
+  Term* retPointer = new Term(solver->declareFun(cSymbol, sorts, *sort));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cSorts;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

@@ -928,54 +928,54 @@ class SolverTest
   assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort, zero2));
 }
 
-/*
-@Test void declareDatatype)
+
+@Test void declareDatatype()
 {
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
-  std::vector<DatatypeConstructorDecl> ctors1 = {nil};
+  DatatypeConstructorDecl[] ctors1 = new DatatypeConstructorDecl[]{nil};
   assertDoesNotThrow(() -> d_solver.declareDatatype(("a"), ctors1));
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil2 = d_solver.mkDatatypeConstructorDecl("nil");
-  std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
+  DatatypeConstructorDecl[] ctors2 = new DatatypeConstructorDecl[]{cons, nil2};
   assertDoesNotThrow(() -> d_solver.declareDatatype(("b"), ctors2));
   DatatypeConstructorDecl cons2 = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil3 = d_solver.mkDatatypeConstructorDecl("nil");
-  std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
+  DatatypeConstructorDecl[] ctors3 = new DatatypeConstructorDecl[]{cons2, nil3};
   assertDoesNotThrow(() -> d_solver.declareDatatype((""), ctors3));
-  std::vector<DatatypeConstructorDecl> ctors4;
-  assertThrows(CVC5ApiException.class, () -> d_solver.declareDatatype(("c"), ctors4),
+  DatatypeConstructorDecl[] ctors4 = new DatatypeConstructorDecl[0];
+  assertThrows(CVC5ApiException.class, () -> d_solver.declareDatatype(("c"), ctors4));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.declareDatatype((""), ctors4),
+  assertThrows(CVC5ApiException.class, () -> d_solver.declareDatatype((""), ctors4));
                
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.declareDatatype(("a"), ctors1), 
+  assertThrows(CVC5ApiException.class, () -> slv.declareDatatype(("a"), ctors1));
 }
 
-@Test void declareFun)
+@Test void declareFun() throws CVC5ApiException
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
-  assertDoesNotThrow(() -> d_solver.declareFun("f1", {}, bvSort));
+  assertDoesNotThrow(() -> d_solver.declareFun("f1", new Sort[]{}, bvSort));
   assertDoesNotThrow(() -> 
-      d_solver.declareFun("f3", {bvSort, d_solver.getIntegerSort()}, bvSort));
-  assertThrows(CVC5ApiException.class, () -> d_solver.declareFun("f2", {}, funSort), 
+      d_solver.declareFun("f3", new Sort[]{bvSort, d_solver.getIntegerSort()}, bvSort));
+  assertThrows(CVC5ApiException.class, () -> d_solver.declareFun("f2", new Sort[]{}, funSort));
   // functions as arguments is allowed
-  assertDoesNotThrow(() -> d_solver.declareFun("f4", {bvSort, funSort}, bvSort));
-  assertThrows(CVC5ApiException.class, () -> d_solver.declareFun("f5", {bvSort, bvSort}, funSort),
+  assertDoesNotThrow(() -> d_solver.declareFun("f4", new Sort[]{bvSort, funSort}, bvSort));
+  assertThrows(CVC5ApiException.class, () -> d_solver.declareFun("f5", new Sort[]{bvSort, bvSort}, funSort));
                
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.declareFun("f1", {}, bvSort), 
+  assertThrows(CVC5ApiException.class, () -> slv.declareFun("f1", new Sort[]{}, bvSort));
 }
 
-@Test void declareSort)
+@Test void declareSort()
 {
   assertDoesNotThrow(() -> d_solver.declareSort("s", 0));
   assertDoesNotThrow(() -> d_solver.declareSort("s", 2));
   assertDoesNotThrow(() -> d_solver.declareSort("", 2));
 }
 
-@Test void defineSort)
+@Test void defineSort()
 {
   Sort sortVar0 = d_solver.mkParamSort("T0");
   Sort sortVar1 = d_solver.mkParamSort("T1");
@@ -986,10 +986,10 @@ class SolverTest
   // Now create instantiations of the defined sorts
   assertDoesNotThrow(() -> arraySort0.substitute(sortVar0, intSort));
   assertDoesNotThrow(() -> 
-      arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
+      arraySort1.substitute(new Sort[]{sortVar0, sortVar1}, new Sort[]{intSort, realSort}));
 }
 
-@Test void defineFun)
+@Test void defineFun() throws CVC5ApiException
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort1 = d_solver.mkFunctionSort(new Sort[]{bvSort, bvSort}, bvSort);
@@ -1005,59 +1005,61 @@ class SolverTest
   Term f1 = d_solver.mkConst(funSort1, "f1");
   Term f2 = d_solver.mkConst(funSort2, "f2");
   Term f3 = d_solver.mkConst(bvSort, "f3");
-  assertDoesNotThrow(() -> d_solver.defineFun("f", {}, bvSort, v1));
-  assertDoesNotThrow(() -> d_solver.defineFun("ff", {b1, b2}, bvSort, v1));
-  assertDoesNotThrow(() -> d_solver.defineFun(f1, {b1, b11}, v1));
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun("ff", {v1, b2}, bvSort, v1),
+  assertDoesNotThrow(() -> d_solver.defineFun("f", new Term[]{}, bvSort, v1));
+  assertDoesNotThrow(() -> d_solver.defineFun("ff", new Term[]{b1, b2}, bvSort, v1));
+  assertDoesNotThrow(() -> d_solver.defineFun(f1, new Term[]{b1, b11}, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun("ff", new Term[]{v1, b2}, bvSort, v1));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun("fff", {b1}, bvSort, v3), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun("ffff", {b1}, funSort2, v3),
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[]{b1}, bvSort, v3));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[]{b1}, funSort2, v3));
                
   // b3 has function sort, which is allowed as an argument
-  assertDoesNotThrow(() -> d_solver.defineFun("fffff", {b1, b3}, bvSort, v1));
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, {v1, b11}, v1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, {b1}, v1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, {b1, b11}, v2), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, {b1, b11}, v3), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f2, {b1}, v2), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f3, {b1}, v1), 
+  assertDoesNotThrow(() -> d_solver.defineFun("fffff", new Term[]{b1, b3}, bvSort, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[]{v1, b11}, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[]{b1}, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[]{b1, b11}, v2));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[]{b1, b11}, v3));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f2, new Term[]{b1}, v2));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f3, new Term[]{b1}, v1));
 
   Solver slv = new Solver();
   Sort bvSort2 = slv.mkBitVectorSort(32);
   Term v12 = slv.mkConst(bvSort2, "v1");
   Term b12 = slv.mkVar(bvSort2, "b1");
   Term b22 = slv.mkVar(slv.getIntegerSort(), "b2");
-  assertThrows(CVC5ApiException.class, () -> slv.defineFun("f", {}, bvSort, v12), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFun("f", {}, bvSort2, v1), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", {b1, b22}, bvSort2, v12), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", {b12, b2}, bvSort2, v12), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", {b12, b22}, bvSort, v12), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", {b12, b22}, bvSort2, v1), 
+  assertThrows(CVC5ApiException.class, () -> slv.defineFun("f", new Term[]{}, bvSort, v12));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFun("f", new Term[]{}, bvSort2, v1));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", new Term[]{b1, b22}, bvSort2, v12));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", new Term[]{b12, b2}, bvSort2, v12));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", new Term[]{b12, b22}, bvSort, v12));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFun("ff", new Term[]{b12, b22}, bvSort2, v1));
 }
 
-@Test void defineFunGlobal)
+@Test void defineFunGlobal()
 {
   Sort bSort = d_solver.getBooleanSort();
   Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
 
   Term bTrue = d_solver.mkBoolean(true);
   // (define-fun f () Bool true)
-  Term f = d_solver.defineFun("f", {}, bSort, bTrue, true);
+  Term f = d_solver.defineFun("f", new Term[]{}, bSort, bTrue, true);
   Term b = d_solver.mkVar(bSort, "b");
   Term gSym = d_solver.mkConst(fSort, "g");
   // (define-fun g (b Bool) Bool b)
-  Term g = d_solver.defineFun(gSym, {b}, b, true);
+  Term g = d_solver.defineFun(gSym, new Term[]{b}, b, true);
 
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, f.notd_solver.getNullTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notd_solver.getNullTerm()));
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+      OR, f.notTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  assertTrue(d_solver.checkSat().isUnsat());
   d_solver.resetAssertions();
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, f.notd_solver.getNullTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notd_solver.getNullTerm()));
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+      OR, f.notTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  assertTrue(d_solver.checkSat().isUnsat());
 }
+
+/*
 
 @Test void defineFunRec)
 {
@@ -1139,13 +1141,13 @@ class SolverTest
 
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, f.notd_solver.getNullTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notd_solver.getNullTerm()));
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+      OR, f.notTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  assertTrue(d_solver.checkSat().isUnsat());
   d_solver.pop();
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, f.notd_solver.getNullTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notd_solver.getNullTerm()));
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+      OR, f.notTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  assertTrue(d_solver.checkSat().isUnsat());
 }
 
 @Test void defineFunsRec)
@@ -1239,12 +1241,12 @@ class SolverTest
   d_solver.defineFunsRec({gSym}, {{b}}, {b}, true);
 
   // (assert (not (g true)))
-  d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, gSym, bTrue).notd_solver.getNullTerm());
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+  d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, gSym, bTrue).notTerm());
+  assertTrue(d_solver.checkSat().isUnsat());
   d_solver.pop();
   // (assert (not (g true)))
-  d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, gSym, bTrue).notd_solver.getNullTerm());
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+  d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, gSym, bTrue).notTerm());
+  assertTrue(d_solver.checkSat().isUnsat());
 }
 
 @Test void uFIteration)
@@ -1299,7 +1301,7 @@ class SolverTest
   d_solver.getInterpolant(conj, output);
 
   // We expect the resulting output to be a boolean formula
-  ASSERT_TRUE(output.getSort().isBoolean());
+  assertTrue(output.getSort().isBoolean());
 }
 
 @Test void getOp)
@@ -1311,7 +1313,7 @@ class SolverTest
 
   ASSERT_FALSE(a.hasOp());
   assertThrows(CVC5ApiException.class, () -> a.getOp(), 
-  ASSERT_TRUE(exta.hasOp());
+  assertTrue(exta.hasOp());
   assertEquals(exta.getOp(), ext);
 
   // Test Datatypes -- more complicated
@@ -1334,9 +1336,9 @@ class SolverTest
       APPLY_CONSTRUCTOR, consTerm, d_solver.mkInteger(1), listnil);
   Term listhead = d_solver.mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
-  ASSERT_TRUE(listnil.hasOp());
-  ASSERT_TRUE(listcons1.hasOp());
-  ASSERT_TRUE(listhead.hasOp());
+  assertTrue(listnil.hasOp());
+  assertTrue(listcons1.hasOp());
+  assertTrue(listhead.hasOp());
 }
 
 @Test void getOption)
@@ -1414,8 +1416,8 @@ class SolverTest
   d_solver.assertFormula(d_solver.mkTerm(GT, zero, f_y));
   d_solver.assertFormula(d_solver.mkTerm(GT, sum, one));
   d_solver.assertFormula(p_0);
-  d_solver.assertFormula(p_f_y.notd_solver.getNullTerm());
-  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+  d_solver.assertFormula(p_f_y.notTerm());
+  assertTrue(d_solver.checkSat().isUnsat());
 
   assertDoesNotThrow(() -> unsat_core = d_solver.getUnsatCore());
 
@@ -1425,7 +1427,7 @@ class SolverTest
     d_solver.assertFormula(t);
   }
   cvc5::api::Result res = d_solver.checkSat();
-  ASSERT_TRUE(res.isUnsat());
+  assertTrue(res.isUnsat());
 }
 
 @Test void getValue1)
@@ -1472,9 +1474,9 @@ class SolverTest
   d_solver.assertFormula(d_solver.mkTerm(LEQ, zero, f_x));
   d_solver.assertFormula(d_solver.mkTerm(LEQ, zero, f_y));
   d_solver.assertFormula(d_solver.mkTerm(LEQ, sum, one));
-  d_solver.assertFormula(p_0.notd_solver.getNullTerm());
+  d_solver.assertFormula(p_0.notTerm());
   d_solver.assertFormula(p_f_y);
-  ASSERT_TRUE(d_solver.checkSat().isSat());
+  assertTrue(d_solver.checkSat().isSat());
   assertDoesNotThrow(() -> d_solver.getValue(x));
   assertDoesNotThrow(() -> d_solver.getValue(y));
   assertDoesNotThrow(() -> d_solver.getValue(z));
@@ -1932,7 +1934,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
                           d_solver.mkTerm(LEQ, zero, f_x),  // 0 <= f(x)
                           d_solver.mkTerm(LEQ, zero, f_y),  // 0 <= f(y)
                           d_solver.mkTerm(LEQ, sum, one),   // f(x) + f(y) <= 1
-                          p_0.notd_solver.getNullTerm(),                    // not p(0)
+                          p_0.notTerm(),                    // not p(0)
                           p_f_y                             // p(f(y))
                       });
 
@@ -2012,7 +2014,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
                           d_solver.mkTerm(LEQ, zero, f_x),  // 0 <= f(x)
                           d_solver.mkTerm(LEQ, zero, f_y),  // 0 <= f(y)
                           d_solver.mkTerm(LEQ, sum, one),   // f(x) + f(y) <= 1
-                          p_0.notd_solver.getNullTerm(),                    // not p(0)
+                          p_0.notTerm(),                    // not p(0)
                           p_f_y                             // p(f(y))
                       });
 
