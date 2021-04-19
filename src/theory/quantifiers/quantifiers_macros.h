@@ -54,7 +54,7 @@ class QuantifiersMacros
   Node solve(Node lit, bool reqGround = false);
 
  private:
-  /** 
+  /**
    * Return true n is an APPLY_UF with pairwise unique BOUND_VARIABLE as
    * children.
    */
@@ -64,19 +64,19 @@ class QuantifiersMacros
    * as a subterm and reqGround is true.
    */
   bool containsBadOp(Node n, Node op, bool reqGround);
-  /** 
+  /**
    * Return true if n preserves trigger variables in quantified formula q, that
    * is, triggers can be inferred containing all variables in q in term n.
    */
   bool preservesTriggerVariables(Node q, Node n);
-  /** 
+  /**
    * From n, get a list of possible subterms of n that could be the head of a
    * macro definition.
    */
   void getMacroCandidates(Node n,
                           std::vector<Node>& candidates,
                           std::map<Node, bool>& visited);
-  /** 
+  /**
    * Solve n in literal lit, return n' such that n = n' is equivalent to lit
    * if possible, or null otherwise.
    */

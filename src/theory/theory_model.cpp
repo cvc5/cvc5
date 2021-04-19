@@ -716,7 +716,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Node n = it->first;
     Assert(!n.isNull());
     // should not have been solved for in a substitution
-    Assert(d_substitutions.apply(n)==n);
+    Assert(d_substitutions.apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){
