@@ -496,7 +496,7 @@ public class Solver implements IPointer
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
     long termPointer = mkTerm(
-        pointer, kind.getValue(), child1.getPointer(), child2.getPointer(), child2.getPointer());
+        pointer, kind.getValue(), child1.getPointer(), child2.getPointer(), child3.getPointer());
     return new Term(this, termPointer);
   }
 
