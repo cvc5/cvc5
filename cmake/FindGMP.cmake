@@ -39,7 +39,7 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
       "${MAJOR}.${MINOR}.${PATCH}"
   )
 
-#  check_system_version("GMP")
+  check_system_version("GMP")
 endif()
 
 if(NOT GMP_FOUND_SYSTEM)
