@@ -28,6 +28,11 @@ namespace quantifiers {
 
 class QuantifiersRegistry;
 
+/**
+ * A utility for inferring macros from quantified formulas. This can be seen as
+ * a method for putting quantified formulas in solved form, e.g.
+ *   forall x. P(x) ---> P = (lambda x. true)
+ */
 class QuantifiersMacros
 {
  public:
@@ -43,8 +48,10 @@ class QuantifiersMacros
    * @param lit The body of the quantified formula
    * @param reqGround Whether we require the macro definition to be ground,
    * i.e. does not contain quantified formulas as subterms.
+   * @return If a macro can be inferred, an equality of the form
+   * (op = lambda x1 ... xn. def)), or the null node otherwise.
    */
-  Node solve(Node lit, bool reqGround = false);
+  TrustNode solve(Node lit, bool reqGround = false);
 
  private:
   bool isBoundVarApplyUf(Node n);

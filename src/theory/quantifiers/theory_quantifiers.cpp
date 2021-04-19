@@ -68,6 +68,11 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
   d_quantEngine = d_qengine.get();
+  
+  if (options::macrosQuant())
+  {
+    d_qmacros.reset(new QuantifiersMacros(d_qreg));
+  }
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
@@ -116,6 +121,24 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
+PPAssertStatus TheoryQuantifiers::ppAssert(TrustNode tin,
+                                TrustSubstitutionMap& outSubstitutions)
+{
+  if (d_qmacros!=nullptr) {
+    bool reqGround = options::macrosQuantMode() != options::MacrosQuantMode::ALL;
+    Node eq = d_qmacros->solve(tin, reqGround);
+    if (!eq.isNull())
+    {
+      // must be legal
+      if (isLegalElimination(eq[0], eq[1]))
+      {
+        outSubstitutions.addSubstitution(eq[0], eq[1]);
+        return Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }
+  }
+  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+}
 void TheoryQuantifiers::ppNotifyAssertions(
     const std::vector<Node>& assertions) {
   Trace("quantifiers-presolve")
