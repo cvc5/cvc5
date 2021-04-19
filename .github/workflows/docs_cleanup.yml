@@ -1,7 +1,7 @@
 name: documentation cleanup
-on:
-  schedule:
-    - cron: '0 1 * * SUN'
+on: [push]
+#  schedule:
+#    - cron: '0 1 * * SUN' 
 
 jobs:
   build:
