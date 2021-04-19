@@ -3,7 +3,6 @@ CVC4 prerelease version 1.9
 
 ## Building CVC4
 
-    ./contrib/get-antlr-3.4  # download and build ANTLR
     ./configure.sh   # use --prefix to specify a prefix (default: /usr/local)
                      # use --name=<PATH> for custom build directory
     cd <build_dir>   # default is ./build
@@ -57,15 +56,6 @@ compatible.
 
 Some features, such as the theory of floating-point numbers, require
 [optional dependencies](optional-dependencies) (see below).
-
-### Installing libantlr3c: ANTLR parser generator C support library
-
-For libantlr3c, you can use the script `contrib/get-antlr-3.4`.
-This will download, patch, and install libantlr3c.
-
-If you're on a 32-bit machine, or if you have difficulty building
-libantlr3c (or difficulty getting CVC4 to link against it), you
-may need to remove the configure option `--enable-64bit` in the script.
 
 ### Warning: GCC 4.5.1
 
