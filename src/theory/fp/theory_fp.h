@@ -93,7 +93,7 @@ class TheoryFp : public Theory
   TrustNode explain(TNode n) override;
 
  protected:
-  using ConversionAbstractionMap = 
+  using ConversionAbstractionMap =
       context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
   using AbstractionMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 

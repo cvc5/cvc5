@@ -21,10 +21,10 @@ namespace cvc5 {
 namespace theory {
 namespace fp {
 
-
 namespace removeToFPGeneric {
 
-Node removeToFPGeneric(TNode node) {
+Node removeToFPGeneric(TNode node)
+{
   Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
 
   FloatingPointToFPGeneric info =
@@ -33,25 +33,34 @@ Node removeToFPGeneric(TNode node) {
   size_t children = node.getNumChildren();
 
   Node op;
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
-  if (children == 1) {
+  if (children == 1)
+  {
     op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
     return nm->mkNode(op, node[0]);
-
-  } else {
+  }
+  else
+  {
     Assert(children == 2);
     Assert(node[0].getType().isRoundingMode());
 
     TypeNode t = node[1].getType();
 
-    if (t.isFloatingPoint()) {
+    if (t.isFloatingPoint())
+    {
       op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
-    } else if (t.isReal()) {
+    }
+    else if (t.isReal())
+    {
       op = nm->mkConst(FloatingPointToFPReal(info));
-    } else if (t.isBitVector()) {
+    }
+    else if (t.isBitVector())
+    {
       op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
-    } else {
+    }
+    else
+    {
       throw TypeCheckingExceptionPrivate(
           node,
           "cannot rewrite to_fp generic due to incorrect type of second "

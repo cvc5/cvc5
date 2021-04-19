@@ -26,7 +26,7 @@ namespace cvc5 {
 namespace theory {
 namespace fp {
 
-/** 
+/**
  * Module responsibile for expanding definitions for the FP theory.
  */
 class FpExpandDefs
@@ -41,6 +41,7 @@ class FpExpandDefs
   /** Uninterpreted functions for lazy handling of conversions. */
   using ConversionUFMap = context::
       CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
+
  public:
   FpExpandDefs(context::UserContext* u);
   /** expand definitions in node */

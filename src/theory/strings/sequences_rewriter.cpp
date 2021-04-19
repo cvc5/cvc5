@@ -21,11 +21,11 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/statistics_registry.h"
-#include "theory/strings/skolem_cache.h"
 
 using namespace std;
 using namespace cvc5::kind;
