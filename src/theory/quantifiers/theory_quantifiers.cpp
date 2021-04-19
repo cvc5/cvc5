@@ -68,7 +68,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
   d_quantEngine = d_qengine.get();
-  
+
   if (options::macrosQuant())
   {
     d_qmacros.reset(new QuantifiersMacros(d_qreg));
@@ -121,11 +121,13 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
-PPAssertStatus TheoryQuantifiers::ppAssert(TrustNode tin,
-                                TrustSubstitutionMap& outSubstitutions)
+PPAssertStatus TheoryQuantifiers::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  if (d_qmacros!=nullptr) {
-    bool reqGround = options::macrosQuantMode() != options::MacrosQuantMode::ALL;
+  if (d_qmacros != nullptr)
+  {
+    bool reqGround =
+        options::macrosQuantMode() != options::MacrosQuantMode::ALL;
     Node eq = d_qmacros->solve(tin, reqGround);
     if (!eq.isNull())
     {
