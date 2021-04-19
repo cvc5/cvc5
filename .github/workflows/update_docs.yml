@@ -50,7 +50,7 @@ jobs:
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
           echo "Identified branch $BRANCH_NAME"
           git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
-          rsync -a --delete build/docs/sphinx-gh target/docs-$BRANCH_NAME-${{ github.sha }}
+          rsync -a --delete build/docs/sphinx-gh/ target/docs-$BRANCH_NAME-${{ github.sha }}
           cd target/
           ln -sf docs-$BRANCH_NAME-${{ github.sha }} docs-$BRANCH_NAME
           git add docs-$BRANCH_NAME docs-$BRANCH_NAME-${{ github.sha }}
@@ -65,7 +65,7 @@ jobs:
           PRID=$(echo "${GITHUB_REF}" | sed -E "s,refs/pull/([0-9]+)/merge,\1,")
           echo "Identified PR #$PRID"
           git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
-          rsync -a --delete build/docs/sphinx-gh target/docs-pr$PRID-${{ github.sha }}
+          rsync -a --delete build/docs/sphinx-gh/ target/docs-pr$PRID-${{ github.sha }}
           cd target/
           ln -sf docs-pr$PRID-${{ github.sha }} docs-pr$PRID
           git add docs-pr$PRID docs-pr$PRID-${{ github.sha }}
