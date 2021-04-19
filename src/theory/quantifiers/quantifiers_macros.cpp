@@ -36,7 +36,12 @@ QuantifiersMacros::QuantifiersMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
 
 Node QuantifiersMacros::solve(Node lit, bool reqGround)
 {
-  Trace("macros-debug") << "  process " << lit << std::endl;
+  Trace("macros-debug") << "QuantifiersMacros::solve " << lit << std::endl;
+  if (lit.getKind()!=FORALL)
+  {
+    return Node::null();
+  }
+  lit = lit[1];
   bool pol = lit.getKind() != NOT;
   Node n = pol ? lit : lit[0];
   NodeManager* nm = NodeManager::currentNM();

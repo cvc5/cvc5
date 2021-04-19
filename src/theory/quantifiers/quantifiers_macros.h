@@ -39,7 +39,7 @@ class QuantifiersMacros
   QuantifiersMacros(QuantifiersRegistry& qr);
   ~QuantifiersMacros() {}
   /**
-   * Called on bodies of quantified formulas lit of the form
+   * Called on quantified formulas lit of the form
    *   forall x1 ... xn. n = ndef
    * where n is of the form U(x1...xn). Returns an equality of the form
    *   U = lambda x1 ... xn. ndef
@@ -51,7 +51,7 @@ class QuantifiersMacros
    * @return If a macro can be inferred, an equality of the form
    * (op = lambda x1 ... xn. def)), or the null node otherwise.
    */
-  TrustNode solve(Node lit, bool reqGround = false);
+  Node solve(Node lit, bool reqGround = false);
 
  private:
   bool isBoundVarApplyUf(Node n);

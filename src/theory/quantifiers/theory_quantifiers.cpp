@@ -19,7 +19,9 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_macros.h"
 #include "theory/valuation.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
@@ -121,14 +123,14 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
-PPAssertStatus TheoryQuantifiers::ppAssert(
+Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   if (d_qmacros != nullptr)
   {
     bool reqGround =
         options::macrosQuantMode() != options::MacrosQuantMode::ALL;
-    Node eq = d_qmacros->solve(tin, reqGround);
+    Node eq = d_qmacros->solve(tin.getProven(), reqGround);
     if (!eq.isNull())
     {
       // must be legal
