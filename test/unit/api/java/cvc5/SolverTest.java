@@ -408,8 +408,9 @@ class SolverTest
   assertDoesNotThrow(() -> d_solver.mkAbstractValue((int)1));
   assertDoesNotThrow(() -> d_solver.mkAbstractValue((long)1));
   assertDoesNotThrow(() -> d_solver.mkAbstractValue((long)1));
-  assertDoesNotThrow(() -> d_solver.mkAbstractValue((int)-1));
-  assertDoesNotThrow(() -> d_solver.mkAbstractValue((long)-1));
+  // java does not have specific types for unsigned integers, therefore the two lines below do not make sense in java.
+  // assertDoesNotThrow(() -> d_solver.mkAbstractValue((int)-1));
+  // assertDoesNotThrow(() -> d_solver.mkAbstractValue((long)-1));
   assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(0));
 }
 

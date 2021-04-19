@@ -1265,10 +1265,20 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__J_3I(JNIEnv*,
  * Method:    mkChar
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkChar(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkChar(JNIEnv* env,
                                                 jobject,
-                                                jlong,
-                                                jstring);
+                                                jlong pointer,
+                                                jstring jS)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer = new Term(solver->mkChar(cS));
+  env->ReleaseStringUTFChars(jS, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1303,8 +1313,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkUniverseSet(JNIEnv*,
  * Method:    mkBitVector
  * Signature: (JIJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkBitVector__JIJ(JNIEnv*, jobject, jlong, jint, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JIJ(
+    JNIEnv* env, jobject, jlong pointer, jint size, jlong val)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer =
+      new Term(solver->mkBitVector((uint32_t)size, (uint64_t)val));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1312,7 +1330,17 @@ Java_cvc5_Solver_mkBitVector__JIJ(JNIEnv*, jobject, jlong, jint, jlong);
  * Signature: (JLjava/lang/String;I)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JLjava_lang_String_2I(
-    JNIEnv*, jobject, jlong, jstring, jint);
+    JNIEnv* env, jobject, jlong pointer, jstring jS, jint base)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer = new Term(solver->mkBitVector(cS, (uint32_t)base));
+  env->ReleaseStringUTFChars(jS, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1320,7 +1348,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JLjava_lang_String_2I(
  * Signature: (JILjava/lang/String;I)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
-    JNIEnv*, jobject, jlong, jint, jstring, jint);
+    JNIEnv* env, jobject, jlong pointer, jint size, jstring jS, jint base)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer =
+      new Term(solver->mkBitVector((uint32_t)size, cS, (uint32_t)base));
+  env->ReleaseStringUTFChars(jS, s);
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1344,16 +1383,30 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkConstArray(
  * Method:    mkPosInf
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkPosInf(JNIEnv*, jobject, jlong, jint, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPosInf(
+    JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkPosInf((uint32_t)exp, (uint32_t)sig));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkNegInf
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkNegInf(JNIEnv*, jobject, jlong, jint, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkNegInf(
+    JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkNegInf((uint32_t)exp, (uint32_t)sig));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1361,41 +1414,78 @@ Java_cvc5_Solver_mkNegInf(JNIEnv*, jobject, jlong, jint, jint);
  * Signature: (JII)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkNaN(JNIEnv*, jobject, jlong, jint, jint);
+Java_cvc5_Solver_mkNaN(JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkNaN((uint32_t)exp, (uint32_t)sig));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkPosZero
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkPosZero(JNIEnv*, jobject, jlong, jint, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkPosZero(
+    JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkPosZero((uint32_t)exp, (uint32_t)sig));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkNegZero
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkNegZero(JNIEnv*, jobject, jlong, jint, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkNegZero(
+    JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkNegZero((uint32_t)exp, (uint32_t)sig));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkRoundingMode
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRoundingMode(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkRoundingMode(JNIEnv* env,
                                                         jobject,
-                                                        jlong,
-                                                        jint);
+                                                        jlong pointer,
+                                                        jint rm)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkRoundingMode((RoundingMode)rm));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkUninterpretedConst
  * Signature: (JJI)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkUninterpretedConst(JNIEnv*, jobject, jlong, jlong, jint);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkUninterpretedConst(
+    JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jint index)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer =
+      new Term(solver->mkUninterpretedConst(*sort, (int32_t)index));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1403,25 +1493,51 @@ Java_cvc5_Solver_mkUninterpretedConst(JNIEnv*, jobject, jlong, jlong, jint);
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkAbstractValue__JLjava_lang_String_2(
-    JNIEnv*, jobject, jlong, jstring);
+    JNIEnv* env, jobject, jlong pointer, jstring jIndex)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jIndex, nullptr);
+  std::string cIndex(s);
+  Term* retPointer = new Term(solver->mkAbstractValue(cIndex));
+  env->ReleaseStringUTFChars(jIndex, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkAbstractValue
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkAbstractValue__JJ(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkAbstractValue__JJ(JNIEnv* env,
                                                              jobject,
-                                                             jlong,
-                                                             jlong);
+                                                             jlong pointer,
+                                                             jlong index)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->mkAbstractValue((uint64_t)index));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkFloatingPoint
  * Signature: (JIIJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkFloatingPoint(JNIEnv*, jobject, jlong, jint, jint, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkFloatingPoint(
+    JNIEnv* env, jobject, jlong pointer, jint exp, jint sig, jlong valPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* val = (Term*)valPointer;
+  Term* retPointer =
+      new Term(solver->mkFloatingPoint((uint32_t)exp, (uint32_t)sig, *val));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1785,10 +1901,18 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatCore(JNIEnv*,
  * Method:    getValue
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getValue__JJ(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getValue__JJ(JNIEnv* env,
                                                       jobject,
-                                                      jlong,
-                                                      jlong);
+                                                      jlong pointer,
+                                                      jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  Term* retPointer = new Term(solver->getValue(*term));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
