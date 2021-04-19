@@ -2198,7 +2198,13 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationNilTerm(JNIEnv* env,
 JNIEXPORT void JNICALL Java_cvc5_Solver_pop(JNIEnv* env,
                                             jobject,
                                             jlong pointer,
-                                            jint);
+                                            jint nscopes)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  solver->pop((uint32_t)nscopes);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2257,7 +2263,13 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_blockModelValues(JNIEnv* env,
 JNIEXPORT void JNICALL Java_cvc5_Solver_push(JNIEnv* env,
                                              jobject,
                                              jlong pointer,
-                                             jint);
+                                             jint nscopes)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  solver->push((uint32_t)nscopes);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
