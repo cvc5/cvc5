@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Michael Chang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -48,12 +48,14 @@ void OptimizationSolver::pushObj(Node node,
   d_objectives.push_back({node, objType, bvSigned});
   // also creates a placeholder for optValue
   d_optValues.emplace_back();
+  optCheckerForPareto.reset();
 }
 
 void OptimizationSolver::popObj()
 {
   d_objectives.pop_back();
   d_optValues.pop_back();
+  optCheckerForPareto.reset();
 }
 
 std::vector<Node> OptimizationSolver::objectiveGetValues()
@@ -65,6 +67,7 @@ std::vector<Node> OptimizationSolver::objectiveGetValues()
 void OptimizationSolver::setObjectiveOrder(ObjectiveOrder objOrder)
 {
   this->d_objOrder = objOrder;
+  optCheckerForPareto.reset();
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
@@ -208,80 +211,86 @@ OptResult OptimizationSolver::optimizeLexIterative()
  * propositional statements and then within the propositional statement, use
  * theory solver's online optimization procedure to produce a result
  *
- * Unfortunately, we don't have online optimization yet...
+ * We don't have online optimization yet...
  **/
 OptResult OptimizationSolver::optimizeParetoNaive()
 {
   // creates a blackbox subsolver without timeout
-  std::unique_ptr<SmtEngine> optChecker = this->createOptCheckerWithTimeout();
-  NodeManager* nm = optChecker->getNodeManager();
+  if (!optCheckerForPareto)
+    optCheckerForPareto = this->createOptCheckerWithTimeout();
+
+  NodeManager* nm = optCheckerForPareto->getNodeManager();
   Result satResult;
 
-  while (true)
+  satResult = optCheckerForPareto->checkSat();
+  switch (satResult.isSat())
   {
-    satResult = optChecker->checkSat();
-    switch (satResult.isSat())
+    case Result::Sat::UNSAT: return OptResult::OPT_UNSAT;
+    case Result::Sat::SAT_UNKNOWN: return OptResult::OPT_UNKNOWN;
+    case Result::Sat::SAT:
+      for (size_t i = 0; i < d_objectives.size(); ++i)
+      {
+        d_optValues[i] = optCheckerForPareto->getValue(d_objectives[i].d_node);
+      }
+      break;
+    default: Unreachable(); break;
+  }
+  optCheckerForPareto->push();
+  // a vector of exprs stating no objective is worse
+  std::vector<Node> noWorseObj;
+  // a vector of exprs stating some objective is better
+  std::vector<Node> someObjBetter;
+  while (satResult.isSat() == Result::Sat::SAT)
+  {
+    // remember to clear the vectors
+    // do not move them to the end of the loop
+    // because we need them after the loop
+    noWorseObj.clear();
+    someObjBetter.clear();
+    for (size_t i = 0; i < d_objectives.size(); ++i)
     {
-      case Result::Sat::UNSAT: return OptResult::OPT_UNSAT;
-      case Result::Sat::SAT_UNKNOWN: return OptResult::OPT_UNKNOWN;
-      case Result::Sat::SAT:
-        for (size_t i = 0; i < d_objectives.size(); ++i)
-        {
-          d_optValues[i] = optChecker->getValue(d_objectives[i].d_node);
-        }
-        break;
-      default: Unreachable(); break;
+      std::pair<Kind, Kind> op = OMTOptimizer::getLTLEOperator(d_objectives[i]);
+      Kind lt = op.first;
+      Kind leq = op.second;
+      switch (d_objectives[i].d_type)
+      {
+        case ObjectiveType::OBJECTIVE_MAXIMIZE:
+          // value_i <= obj_i
+          noWorseObj.push_back(
+              nm->mkNode(leq, d_optValues[i], d_objectives[i].d_node));
+          // value_i < obj_i
+          someObjBetter.push_back(
+              nm->mkNode(lt, d_optValues[i], d_objectives[i].d_node));
+          break;
+        case ObjectiveType::OBJECTIVE_MINIMIZE:
+          // obj_i <= value_i
+          noWorseObj.push_back(
+              nm->mkNode(leq, d_objectives[i].d_node, d_optValues[i]));
+          // obj_i < value_i
+          someObjBetter.push_back(
+              nm->mkNode(lt, d_objectives[i].d_node, d_optValues[i]));
+          break;
+        default: Unreachable(); break;
+      }
     }
-
-    // a vector of exprs stating no objective is worse
-    std::vector<Node> noWorseObj;
-    // a vector of exprs stating some objective is better
-    std::vector<Node> someObjBetter;
-    while (satResult.isSat() == Result::Sat::SAT)
+    optCheckerForPareto->assertFormula(nm->mkAnd(noWorseObj));
+    optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
+    satResult = optCheckerForPareto->checkSat();
+    // retrieve the partial results
+    if (satResult.isSat() == Result::Sat::SAT)
     {
       for (size_t i = 0; i < d_objectives.size(); ++i)
       {
-        std::pair<Kind, Kind> op =
-            OMTOptimizer::getLTLEOperator(d_objectives[i]);
-        Kind lt = op.first;
-        Kind leq = op.second;
-        switch (d_objectives[i].d_type)
-        {
-          case ObjectiveType::OBJECTIVE_MAXIMIZE:
-            // value_i <= obj_i
-            noWorseObj.push_back(
-                nm->mkNode(leq, d_optValues[i], d_objectives[i].d_node));
-            // value_i < obj_i
-            someObjBetter.push_back(
-                nm->mkNode(lt, d_optValues[i], d_objectives[i].d_node));
-            break;
-          case ObjectiveType::OBJECTIVE_MINIMIZE:
-            // obj_i <= value_i
-            noWorseObj.push_back(
-                nm->mkNode(leq, d_objectives[i].d_node, d_optValues[i]));
-            // obj_i < value_i
-            someObjBetter.push_back(
-                nm->mkNode(lt, d_objectives[i].d_node, d_optValues[i]));
-            break;
-          default: Unreachable(); break;
-        }
+        d_optValues[i] = optCheckerForPareto->getValue(d_objectives[i].d_node);
       }
-      optChecker->assertFormula(nm->mkAnd(noWorseObj));
-      optChecker->assertFormula(nm->mkOr(someObjBetter));
-      satResult = optChecker->checkSat();
-      // retrieve the partial results
-      if (satResult.isSat() == Result::Sat::SAT)
-      {
-        for (size_t i = 0; i < d_objectives.size(); ++i)
-        {
-          d_optValues[i] = optChecker->getValue(d_objectives[i].d_node);
-        }
-      }
-      // remember to clear the vectors
-      noWorseObj.clear();
-      someObjBetter.clear();
     }
   }
+  optCheckerForPareto->pop();
+
+  // before we return!
+  // please do assert that some objective could be better
+  // in order to break the ties for the next run!!!
+  optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
 
   // this return should be a yield...
   return OptResult::OPT_OPTIMAL;

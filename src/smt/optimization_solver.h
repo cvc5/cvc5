@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Michael Chang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -189,6 +189,11 @@ class OptimizationSolver
 
   /** The optimization order for multiple objectives **/
   ObjectiveOrder d_objOrder;
+
+  /** The subchecker specifically for pareto goals,
+   * because we need to save the states so that each call would return a
+   * different value **/
+  std::unique_ptr<SmtEngine> optCheckerForPareto;
 };
 
 }  // namespace smt
