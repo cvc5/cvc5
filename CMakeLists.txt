@@ -104,6 +104,7 @@ cvc4_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
 cvc4_option(ENABLE_SHARED         "Build as shared library")
 cvc4_option(ENABLE_STATIC_BINARY
             "Build static binaries with statically linked system libraries")
+cvc4_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_BEST             "Enable dependencies known to give best performance")
