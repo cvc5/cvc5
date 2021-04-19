@@ -37,7 +37,7 @@ QuantifiersMacros::QuantifiersMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
 Node QuantifiersMacros::solve(Node lit, bool reqGround)
 {
   Trace("macros-debug") << "QuantifiersMacros::solve " << lit << std::endl;
-  if (lit.getKind()!=FORALL)
+  if (lit.getKind() != FORALL)
   {
     return Node::null();
   }

@@ -17,11 +17,11 @@
 
 #include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_macros.h"
 #include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/quantifiers_macros.h"
-#include "theory/valuation.h"
 #include "theory/trust_substitutions.h"
+#include "theory/valuation.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
