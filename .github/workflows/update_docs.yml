@@ -49,7 +49,7 @@ jobs:
           git config --global user.name "DocBot"
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
           echo "Identified branch $BRANCH_NAME"
-          git clone https://nafur:$TOKEN@github.com/nafur/python-playground.git target/
+          git clone https://nafur:${{ secrets.token }}@github.com/nafur/python-playground.git target/
           rsync -a --delete build/docs/sphinx-gh target/docs-$BRANCH_NAME-${{ github.sha }}
           cd target/
           ln -sf docs-$BRANCH_NAME-${{ github.sha }} docs-$BRANCH_NAME
@@ -64,7 +64,7 @@ jobs:
           git config --global user.name "DocBot"
           PRID=$(echo "${GITHUB_REF}" | sed -E "s,refs/pull/([0-9]+)/merge,\1,")
           echo "Identified PR #$PRID"
-          git clone https://nafur:$TOKEN@github.com/nafur/python-playground.git target/
+          git clone https://nafur:$${{ secrets.token }}@github.com/nafur/python-playground.git target/
           rsync -a --delete build/docs/sphinx-gh target/docs-pr$PRID-${{ github.sha }}
           cd target/
           ln -sf docs-pr$PRID-${{ github.sha }} docs-pr$PRID
