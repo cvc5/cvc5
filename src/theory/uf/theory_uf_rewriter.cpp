@@ -83,16 +83,8 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       }
       else
       {
-        std::vector<TNode> vars;
-        std::vector<TNode> subs;
-        for (const TNode& v : lambda[0])
-        {
-          vars.push_back(v);
-        }
-        for (const TNode& s : node)
-        {
-          subs.push_back(s);
-        }
+        std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+        std::vector<TNode> subs(node.begin(), node.end());
         ret = lambda[1].substitute(
             vars.begin(), vars.end(), subs.begin(), subs.end());
       }
@@ -115,11 +107,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Node new_body = node[0][1];
       if (node[0][0].getNumChildren() > 1)
       {
-        std::vector<Node> new_vars;
-        for (unsigned i = 1; i < node[0][0].getNumChildren(); i++)
-        {
-          new_vars.push_back(node[0][0][i]);
-        }
+        std::vector<Node> new_vars(node[0][0].begin()+1, node[0][0].end());
         std::vector<Node> largs;
         largs.push_back(
             NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, new_vars));
