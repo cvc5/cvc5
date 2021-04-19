@@ -750,16 +750,15 @@ class SolverTest
   assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(DISTINCT, v6));
 }
 
-/*
-@Test void mkTermFromOp)
+@Test void mkTermFromOp() throws CVC5ApiException
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);
   Term a = d_solver.mkConst(bv32, "a");
   Term b = d_solver.mkConst(bv32, "b");
-  Term[] v1 = {d_solver.mkInteger(1), d_solver.mkInteger(2)};
-  Term[] v2 = {d_solver.mkInteger(1), d_solver.getNullTerm()};
-  Term[] v3 = {};
-  Term[] v4 = {d_solver.mkInteger(5)};
+  Term[] v1 = new Term[]{d_solver.mkInteger(1), d_solver.mkInteger(2)};
+  Term[] v2 = new Term[]{d_solver.mkInteger(1), d_solver.getNullTerm()};
+  Term[] v3 = new Term[]{};
+  Term[] v4 = new Term[]{d_solver.mkInteger(5)};
   Solver slv = new Solver();
 
   // simple operator terms
@@ -777,42 +776,42 @@ class SolverTest
   listDecl.addConstructor(nil);
   Sort listSort = d_solver.mkDatatypeSort(listDecl);
   Sort intListSort =
-      listSort.instantiate(Sort[]{d_solver.getIntegerSort()});
+      listSort.instantiate(new Sort[]{d_solver.getIntegerSort()});
   Term c = d_solver.mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
 
   // list datatype constructor and selector operator terms
   Term consTerm1 = list.getConstructorTerm("cons");
-  Term consTerm2 = list.getConstructor("cons").getConstructord_solver.getNullTerm();
+  Term consTerm2 = list.getConstructor("cons").getConstructorTerm();
   Term nilTerm1 = list.getConstructorTerm("nil");
-  Term nilTerm2 = list.getConstructor("nil").getConstructord_solver.getNullTerm();
-  Term headTerm1 = list["cons"].getSelectorTerm("head");
-  Term headTerm2 = list["cons"].getSelector("head").getSelectord_solver.getNullTerm();
-  Term tailTerm1 = list["cons"].getSelectorTerm("tail");
-  Term tailTerm2 = list["cons"]["tail"].getSelectord_solver.getNullTerm();
+  Term nilTerm2 = list.getConstructor("nil").getConstructorTerm();
+  Term headTerm1 = list.getConstructor("cons").getSelectorTerm("head");
+  Term headTerm2 = list.getConstructor("cons").getSelector("head").getSelectorTerm();
+  Term tailTerm1 = list.getConstructor("cons").getSelectorTerm("tail");
+  Term tailTerm2 = list.getConstructor("cons").getSelector("tail").getSelectorTerm();
 
   // mkTerm(Op op, Term term) const
   assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm1));
   assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm2));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, nilTerm1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, consTerm1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm2), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1), 
-  assertThrows(CVC5ApiException.class, () -> slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm1), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, nilTerm1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, consTerm1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm2));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1));
+  assertThrows(CVC5ApiException.class, () -> slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm1));
 
   // mkTerm(Op op, Term child) const
   assertDoesNotThrow(() -> d_solver.mkTerm(opterm1, a));
   assertDoesNotThrow(() -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1)));
   assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, headTerm1, c));
   assertDoesNotThrow(() -> d_solver.mkTerm(APPLY_SELECTOR, tailTerm2, c));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, a), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, d_solver.getNullTerm()), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, a));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, d_solver.getNullTerm()));
   assertThrows(CVC5ApiException.class, () -> 
-      d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm1, d_solver.mkInteger(0)),
+      d_solver.mkTerm(APPLY_CONSTRUCTOR, consTerm1, d_solver.mkInteger(0)));
       
-  assertThrows(CVC5ApiException.class, () -> slv.mkTerm(opterm1, a), 
+  assertThrows(CVC5ApiException.class, () -> slv.mkTerm(opterm1, a));
 
   // mkTerm(Op op, Term child1, Term child2) const
   assertDoesNotThrow(() -> 
@@ -821,33 +820,35 @@ class SolverTest
                       d_solver.mkInteger(0),
                       d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm1)));
   assertThrows(CVC5ApiException.class, () -> 
-      d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.mkInteger(2)),
+      d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.mkInteger(2)));
       
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.getNullTerm()),
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.getNullTerm()));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, d_solver.getNullTerm(), d_solver.mkInteger(1)),
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, d_solver.getNullTerm(), d_solver.mkInteger(1)));
                
   assertThrows(CVC5ApiException.class, () -> slv.mkTerm(APPLY_CONSTRUCTOR,
                           consTerm1,
                           d_solver.mkInteger(0),
-                          d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm1)),
+                          d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm1)));
                
 
   // mkTerm(Op op, Term child1, Term child2, Term child3) const
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b, a), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b, a));
   assertThrows(CVC5ApiException.class, () -> 
       d_solver.mkTerm(
-          opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), d_solver.getNullTerm()),
+          opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), d_solver.getNullTerm()));
       
 
-  // mkTerm(Op op, const Term[]& children) const
+  // mkTerm(Op op, Term[] children)
   assertDoesNotThrow(() -> d_solver.mkTerm(opterm2, v4));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v2), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v3), 
-  assertThrows(CVC5ApiException.class, () -> slv.mkTerm(opterm2, v4), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v2));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v3));
+  assertThrows(CVC5ApiException.class, () -> slv.mkTerm(opterm2, v4));
 }
+
+/*
 
 @Test void mkTrue)
 {
@@ -2330,7 +2331,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
 
   for (size_t i = 0; i < indices.size(); i++)
   {
-    Term selectorTerm = constructor[indices[i]].getSelectord_solver.getNullTerm();
+    Term selectorTerm = constructor[indices[i]].getSelectorTerm();
     Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
     assertEquals(elements[indices[i]], simplifiedTerm);
