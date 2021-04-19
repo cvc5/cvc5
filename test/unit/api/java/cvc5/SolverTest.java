@@ -848,45 +848,47 @@ class SolverTest
   assertThrows(CVC5ApiException.class, () -> slv.mkTerm(opterm2, v4));
 }
 
-/*
 
-@Test void mkTrue)
+
+@Test void mkTrue()
 {
   assertDoesNotThrow(() -> d_solver.mkTrue());
   assertDoesNotThrow(() -> d_solver.mkTrue());
 }
 
-@Test void mkTuple)
+@Test void mkTuple()
 {
-  assertDoesNotThrow(() -> d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
-                                   {d_solver.mkBitVector("101", 2)}));
+  assertDoesNotThrow(() -> d_solver.mkTuple(new Sort[]{d_solver.mkBitVectorSort(3)},
+                                  new Term[] {d_solver.mkBitVector("101", 2)}));
   assertDoesNotThrow(() -> 
-      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}));
+      d_solver.mkTuple(new Sort[]{d_solver.getRealSort()}, new Term[] {d_solver.mkInteger("5")}));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTuple(new Sort[]{}, new Term[]{d_solver.mkBitVector("101", 2)}));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
-                                {d_solver.mkBitVector("101", 2)}),
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTuple(new Sort[]{d_solver.mkBitVectorSort(4)},
+                                new Term[] {d_solver.mkBitVector("101", 2)}));
                
   assertThrows(CVC5ApiException.class, () -> 
-      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
+      d_solver.mkTuple(new Sort[]{d_solver.getIntegerSort()}, new Term[]{d_solver.mkReal("5.3")}));
       
   Solver slv = new Solver();
   assertThrows(CVC5ApiException.class, () -> 
-      slv.mkTuple({d_solver.mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
+      slv.mkTuple(new Sort[]{d_solver.mkBitVectorSort(3)}, new Term[]{slv.mkBitVector("101", 2)}));
       
   assertThrows(CVC5ApiException.class, () -> 
-      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver.mkBitVector("101", 2)}),
+      slv.mkTuple(new Sort[]{slv.mkBitVectorSort(3)}, new Term[]{d_solver.mkBitVector("101", 2)}));
       
 }
 
-@Test void mkUniverseSet)
+@Test void mkUniverseSet()
 {
   assertDoesNotThrow(() -> d_solver.mkUniverseSet(d_solver.getBooleanSort()));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkUniverseSet(d_solver.getNullSort()), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkUniverseSet(d_solver.getNullSort()));
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.mkUniverseSet(d_solver.getBooleanSort()), 
+  assertThrows(CVC5ApiException.class, () -> slv.mkUniverseSet(d_solver.getBooleanSort()));
 }
+
+/*
 
 @Test void mkConst)
 {
