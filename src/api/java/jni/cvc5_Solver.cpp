@@ -1571,10 +1571,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkConst__JJLjava_lang_String_2(
  * Method:    mkConst
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkConst__JJ(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkConst__JJ(JNIEnv* env,
                                                      jobject,
-                                                     jlong,
-                                                     jlong);
+                                                     jlong pointer,
+                                                     jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer = new Term(solver->mkConst(*sort));
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

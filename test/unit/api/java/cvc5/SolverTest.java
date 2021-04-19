@@ -888,9 +888,9 @@ class SolverTest
   assertThrows(CVC5ApiException.class, () -> slv.mkUniverseSet(d_solver.getBooleanSort()));
 }
 
-/*
 
-@Test void mkConst)
+
+@Test void mkConst()
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
@@ -901,14 +901,14 @@ class SolverTest
   assertDoesNotThrow(() -> d_solver.mkConst(intSort, ("i")));
   assertDoesNotThrow(() -> d_solver.mkConst(funSort, "f"));
   assertDoesNotThrow(() -> d_solver.mkConst(funSort, ""));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkConst(d_solver.getNullSort()), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkConst(d_solver.getNullSort(), "a"), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkConst(d_solver.getNullSort()));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkConst(d_solver.getNullSort(), "a"));
 
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.mkConst(boolSort), 
+  assertThrows(CVC5ApiException.class, () -> slv.mkConst(boolSort));
 }
 
-@Test void mkConstArray)
+@Test void mkConstArray()
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort arrSort = d_solver.mkArraySort(intSort, intSort);
@@ -916,18 +916,19 @@ class SolverTest
   Term constArr = d_solver.mkConstArray(arrSort, zero);
 
   assertDoesNotThrow(() -> d_solver.mkConstArray(arrSort, zero));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(d_solver.getNullSort(), zero), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(arrSort, d_solver.getNullTerm()), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(arrSort, d_solver.mkBitVector(1, 1)),
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(d_solver.getNullSort(), zero));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(arrSort, d_solver.getNullTerm()));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(arrSort, d_solver.mkBitVector(1, 1)));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(intSort, zero), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(intSort, zero));
   Solver slv = new Solver();
   Term zero2 = slv.mkInteger(0);
   Sort arrSort2 = slv.mkArraySort(slv.getIntegerSort(), slv.getIntegerSort());
-  assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort2, zero), 
-  assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort, zero2), 
+  assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort2, zero));
+  assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort, zero2));
 }
 
+/*
 @Test void declareDatatype)
 {
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
