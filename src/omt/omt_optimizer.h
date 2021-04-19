@@ -42,9 +42,17 @@ class OMTOptimizer
       smt::Objective objective);
 
   /**
+   * Returns the [less than] and [less than equal to] operators for parameter
+   *target
+   * @param objective the target objective to optimize
+   * @return a pair of <less than operator, less than or equal to operator>
+   **/
+  static std::pair<Kind, Kind> getLTLEOperator(smt::Objective objective);
+
+  /**
    * Minimize the target node with constraints encoded in optChecker
-   * 
-   * This function is REQUIRED to restore the assertions in optChecker! 
+   *
+   * This function is REQUIRED to restore the assertions in optChecker!
    *
    * @param optChecker an SMT solver encoding the assertions as the
    *   constraints
@@ -57,8 +65,8 @@ class OMTOptimizer
                                                    Node target) = 0;
   /**
    * Maximize the target node with constraints encoded in optChecker
-   * 
-   * This function is REQUIRED to restore the assertions in optChecker! 
+   *
+   * This function is REQUIRED to restore the assertions in optChecker!
    *
    * @param optChecker an SMT solver encoding the assertions as the
    *   constraints

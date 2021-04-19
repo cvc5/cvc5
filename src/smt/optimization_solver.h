@@ -176,7 +176,7 @@ class OptimizationSolver
   OptResult optimizeLexIterative();
 
   /** Optimize multiple goals in Pareto order **/
-  OptResult optimizePareto();
+  OptResult optimizeParetoNaive();
 
   /** The parent SMT engine **/
   SmtEngine* d_parent;

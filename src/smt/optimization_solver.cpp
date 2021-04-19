@@ -36,7 +36,7 @@ OptResult OptimizationSolver::checkOpt()
     case ObjectiveOrder::OBJORDER_BOX: return this->optimizeBoxNaive();
     case ObjectiveOrder::OBJORDER_LEXICOGRAPHIC:
       return this->optimizeLexIterative();
-    case ObjectiveOrder::OBJORDER_PARETO: return this->optimizePareto();
+    case ObjectiveOrder::OBJORDER_PARETO: return this->optimizeParetoNaive();
     default: return OptResult::OPT_UNSUPPORTED;
   }
 }
@@ -210,12 +210,11 @@ OptResult OptimizationSolver::optimizeLexIterative()
  *
  * Unfortunately, we don't have online optimization yet...
  **/
-OptResult OptimizationSolver::optimizePareto()
+OptResult OptimizationSolver::optimizeParetoNaive()
 {
   // creates a blackbox subsolver without timeout
   std::unique_ptr<SmtEngine> optChecker = this->createOptCheckerWithTimeout();
-  // NodeManager* nm = optChecker->getNodeManager();
-
+  NodeManager* nm = optChecker->getNodeManager();
   Result satResult;
 
   while (true)
@@ -224,37 +223,68 @@ OptResult OptimizationSolver::optimizePareto()
     switch (satResult.isSat())
     {
       case Result::Sat::UNSAT: return OptResult::OPT_UNSAT;
-      case Result::Sat::SAT_UNKNOWN:
-      {
-        // returns the SAT_UNKNOWN values
-        // for (size_t i = 0; i < d_objectives.size(); ++i)
-        // {
-        //   d_optValues[i] = optChecker->getValue(d_objectives[i].d_node);
-        // }
-        return OptResult::OPT_UNKNOWN;
-      }
-      case Result::Sat::SAT: break;
+      case Result::Sat::SAT_UNKNOWN: return OptResult::OPT_UNKNOWN;
+      case Result::Sat::SAT:
+        for (size_t i = 0; i < d_objectives.size(); ++i)
+        {
+          d_optValues[i] = optChecker->getValue(d_objectives[i].d_node);
+        }
+        break;
       default: Unreachable(); break;
     }
 
+    // a vector of exprs stating no objective is worse
     std::vector<Node> noWorseObj;
+    // a vector of exprs stating some objective is better
     std::vector<Node> someObjBetter;
     while (satResult.isSat() == Result::Sat::SAT)
     {
-      // TODO Not finished 
       for (size_t i = 0; i < d_objectives.size(); ++i)
       {
+        std::pair<Kind, Kind> op =
+            OMTOptimizer::getLTLEOperator(d_objectives[i]);
+        Kind lt = op.first;
+        Kind leq = op.second;
         switch (d_objectives[i].d_type)
         {
-          case ObjectiveType::OBJECTIVE_MAXIMIZE: break;
-          case ObjectiveType::OBJECTIVE_MINIMIZE: break;
+          case ObjectiveType::OBJECTIVE_MAXIMIZE:
+            // value_i <= obj_i
+            noWorseObj.push_back(
+                nm->mkNode(leq, d_optValues[i], d_objectives[i].d_node));
+            // value_i < obj_i
+            someObjBetter.push_back(
+                nm->mkNode(lt, d_optValues[i], d_objectives[i].d_node));
+            break;
+          case ObjectiveType::OBJECTIVE_MINIMIZE:
+            // obj_i <= value_i
+            noWorseObj.push_back(
+                nm->mkNode(leq, d_objectives[i].d_node, d_optValues[i]));
+            // obj_i < value_i
+            someObjBetter.push_back(
+                nm->mkNode(lt, d_objectives[i].d_node, d_optValues[i]));
+            break;
           default: Unreachable(); break;
         }
       }
+      optChecker->assertFormula(nm->mkAnd(noWorseObj));
+      optChecker->assertFormula(nm->mkOr(someObjBetter));
+      satResult = optChecker->checkSat();
+      // retrieve the partial results
+      if (satResult.isSat() == Result::Sat::SAT)
+      {
+        for (size_t i = 0; i < d_objectives.size(); ++i)
+        {
+          d_optValues[i] = optChecker->getValue(d_objectives[i].d_node);
+        }
+      }
+      // remember to clear the vectors
+      noWorseObj.clear();
+      someObjBetter.clear();
     }
   }
 
-  return OptResult::OPT_UNSUPPORTED;
+  // this return should be a yield...
+  return OptResult::OPT_OPTIMAL;
 }
 
 }  // namespace smt

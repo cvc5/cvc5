@@ -26,7 +26,8 @@ using namespace cvc5::theory;
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
-std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(Objective objective)
+std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
+    Objective objective)
 {
   // the datatype of the target node
   TypeNode objectiveType = objective.d_node.getType(true);
@@ -38,7 +39,8 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(Objective o
   else if (objectiveType.isBitVector())
   {
     // bitvector type: use OMTOptimizerBitVector
-    return std::unique_ptr<OMTOptimizer>(new OMTOptimizerBitVector(objective.d_bvSigned));
+    return std::unique_ptr<OMTOptimizer>(
+        new OMTOptimizerBitVector(objective.d_bvSigned));
   }
   else
   {
@@ -46,5 +48,30 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(Objective o
   }
 }
 
+std::pair<Kind, Kind> OMTOptimizer::getLTLEOperator(Objective objective)
+{
+  // the datatype of the target node
+  TypeNode objectiveType = objective.d_node.getType();
+  if (objectiveType.isInteger() || objectiveType.isReal())
+  {
+    // integer type
+    return {kind::LT, kind::LEQ};
+  }
+  else if (objectiveType.isBitVector())
+  {
+    // bitvector type
+    return (objective.d_bvSigned)
+               ? (std::make_pair(kind::BITVECTOR_SLT, kind::BITVECTOR_SLE))
+               : (std::make_pair(kind::BITVECTOR_ULT, kind::BITVECTOR_ULE));
+  }
+  else if (objectiveType.isFloatingPoint())
+  {
+    return {kind::FLOATINGPOINT_LT, kind::FLOATINGPOINT_LEQ};
+  }
+  else
+  {
+    return {kind::NULL_EXPR, kind::NULL_EXPR};
+  }
+}
 
 }  // namespace cvc5::omt
