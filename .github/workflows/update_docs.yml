@@ -53,14 +53,16 @@ jobs:
             NAME=$(echo "${GITHUB_REF}" | sed -E "s,refs/pull/([0-9]+)/merge,\1, ")
             echo "Identified PR #$NAME"
             NAME="pr$NAME"
-          else
-            return
           fi
-          git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
-          rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
-          cd target/
-          rm -f docs-$NAME
-          ln -s docs-$NAME-${{ github.sha }} docs-$NAME
-          git add docs-$NAME docs-$NAME-${{ github.sha }}
-          git commit -m "Update docs for $NAME"
-          git push
+          if [ -z "$NAME" ]; then
+            git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
+            rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
+            cd target/
+            rm -f docs-$NAME
+            ln -s docs-$NAME-${{ github.sha }} docs-$NAME
+            git add docs-$NAME docs-$NAME-${{ github.sha }}
+            git commit -m "Update docs for $NAME"
+            git push
+          else
+            echo "Ignored run"
+          fi
