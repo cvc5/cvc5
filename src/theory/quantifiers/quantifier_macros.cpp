@@ -34,6 +34,77 @@ namespace passes {
 
 QuantifierMacros::QuantifierMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
 
+
+Node QuantifierMacros::solve(Node lit, bool reqGround)
+{
+  Trace("macros-debug") << "  process " << n << std::endl;
+  bool pol = lit.getKind() != NOT;
+  Node n = pol ? lit : lit[0];
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == APPLY_UF)
+  {
+    // predicate case
+    if (isBoundVarApplyUf(n))
+    {
+      Node op = n.getOperator();
+      Node n_def = nm->mkConst(pol);
+      Node fdef = solveEq(n, n_def);
+      Assert (!fdef.isNull();
+      return fdef;
+    }
+  }
+  else if (pol && n.getKind() == EQUAL)
+  {
+    // literal case
+    Trace("macros-debug") << "Check macro literal : " << n << std::endl;
+    std::map<Node, bool> visited;
+    std::vector<Node> candidates;
+    for (const Node& nc : n)
+    {
+      getMacroCandidates(nc, candidates, visited);
+    }
+    for (const Node& m : candidates)
+    {
+      Node op = m.getOperator();
+      Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
+      if (d_macroDefs.find(op) != d_macroDefs.end())
+      {
+        continue;
+      }
+      // get definition and condition
+      Node n_def = solveInEquality(m, n);  // definition for the macro
+      if (n_def.isNull())
+      {
+        continue;
+      }
+      Trace("macros-debug")
+          << m << " is possible macro in " << lit << std::endl;
+      Trace("macros-debug")
+          << "  corresponding definition is : " << n_def << std::endl;
+      visited.clear();
+      // cannot contain a defined operator
+      if (!containsBadOp(n_def, op, reqGround))
+      {
+        Trace("macros-debug")
+            << "...does not contain bad (recursive) operator." << std::endl;
+        // must be ground UF term if mode is GROUND_UF
+        if (options::macrosQuantMode() != options::MacrosQuantMode::GROUND_UF
+            || isGroundUfTerm(lit, n_def))
+        {
+          Trace("macros-debug")
+              << "...respects ground-uf constraint." << std::endl;
+          Node fdef = solveEq(m, n_def);
+          if (!fdef.isNull())
+          {
+            return fdef;
+          }
+        }
+      }
+    }
+  }
+  return Node::null();
+}
+
 bool QuantifierMacros::containsBadOp(Node n, Node op, bool reqGround)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -54,6 +125,10 @@ bool QuantifierMacros::containsBadOp(Node n, Node op, bool reqGround)
         return true;
       }
       else if (cur == op)
+      {
+        return true;
+      }
+      else if (cur.hasOperator() && cur.getOperator()==op)
       {
         return true;
       }
@@ -176,77 +251,7 @@ Node QuantifierMacros::solveInEquality(Node n, Node lit)
   return Node::null();
 }
 
-Node QuantifierMacros::solve(Node lit)
-{
-  Trace("macros-debug") << "  process " << n << std::endl;
-  bool pol = lit.getKind() != NOT;
-  Node n = pol ? lit : lit[0];
-  NodeManager* nm = NodeManager::currentNM();
-  if (n.getKind() == APPLY_UF)
-  {
-    // predicate case
-    if (isBoundVarApplyUf(n))
-    {
-      Node op = n.getOperator();
-      Node n_def = nm->mkConst(pol);
-      Node fdef = addMacroEq(n, n_def);
-      Assert (!fdef.isNull();
-      return fdef;
-    }
-  }
-  else if (pol && n.getKind() == EQUAL)
-  {
-    // literal case
-    Trace("macros-debug") << "Check macro literal : " << n << std::endl;
-    std::map<Node, bool> visited;
-    std::vector<Node> candidates;
-    for (const Node& nc : n)
-    {
-      getMacroCandidates(nc, candidates, visited);
-    }
-    for (const Node& m : candidates)
-    {
-      Node op = m.getOperator();
-      Trace("macros-debug") << "Check macro candidate : " << m << std::endl;
-      if (d_macroDefs.find(op) != d_macroDefs.end())
-      {
-        continue;
-      }
-      // get definition and condition
-      Node n_def = solveInEquality(m, n);  // definition for the macro
-      if (n_def.isNull())
-      {
-        continue;
-      }
-      Trace("macros-debug")
-          << m << " is possible macro in " << lit << std::endl;
-      Trace("macros-debug")
-          << "  corresponding definition is : " << n_def << std::endl;
-      visited.clear();
-      // cannot contain a defined operator
-      if (!containsBadOp(n_def, op, reqGround))
-      {
-        Trace("macros-debug")
-            << "...does not contain bad (recursive) operator." << std::endl;
-        // must be ground UF term if mode is GROUND_UF
-        if (options::macrosQuantMode() != options::MacrosQuantMode::GROUND_UF
-            || isGroundUfTerm(lit, n_def))
-        {
-          Trace("macros-debug")
-              << "...respects ground-uf constraint." << std::endl;
-          Node fdef = addMacroEq(m, n_def);
-          if (!fdef.isNull())
-          {
-            return fdef;
-          }
-        }
-      }
-    }
-  }
-  return Node::null();
-}
-
-Node QuantifierMacros::addMacroEq(Node n, Node ndef)
+Node QuantifierMacros::solveEq(Node n, Node ndef)
 {
   Assert(n.getKind() == APPLY_UF);
   NodeManager* nm = NodeManager::currentNM();

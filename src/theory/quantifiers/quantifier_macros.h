@@ -58,7 +58,7 @@ class QuantifierMacros
    *   forall x1 ... xn. n = ndef
    * where n is of the form U(x1...xn).
    */
-  Node addMacroEq(Node n, Node ndef);
+  Node solveEq(Node n, Node ndef);
   /** Reference to the quantifiers registry */
   QuantifiersRegistry& d_qreg;
 };
