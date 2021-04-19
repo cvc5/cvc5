@@ -82,8 +82,6 @@ libcvc4_add_sources(
   preprocessing/passes/non_clausal_simp.h
   preprocessing/passes/pseudo_boolean_processor.cpp
   preprocessing/passes/pseudo_boolean_processor.h
-  preprocessing/passes/quantifier_macros.cpp
-  preprocessing/passes/quantifier_macros.h
   preprocessing/passes/quantifiers_preprocess.cpp
   preprocessing/passes/quantifiers_preprocess.h
   preprocessing/passes/real_to_int.cpp
