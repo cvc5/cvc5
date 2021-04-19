@@ -48,7 +48,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
       Node op = n.getOperator();
       Node n_def = nm->mkConst(pol);
       Node fdef = solveEq(n, n_def);
-      Assert (!fdef.isNull());
+      Assert(!fdef.isNull());
       return fdef;
     }
   }
@@ -123,7 +123,7 @@ bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
       {
         return true;
       }
-      else if (cur.hasOperator() && cur.getOperator()==op)
+      else if (cur.hasOperator() && cur.getOperator() == op)
       {
         return true;
       }
@@ -176,8 +176,8 @@ bool QuantifiersMacros::isBoundVarApplyUf(Node n)
 }
 
 void QuantifiersMacros::getMacroCandidates(Node n,
-                                          std::vector<Node>& candidates,
-                                          std::map<Node, bool>& visited)
+                                           std::vector<Node>& candidates,
+                                           std::map<Node, bool>& visited)
 {
   if (visited.find(n) == visited.end())
   {
@@ -273,6 +273,6 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   return op.eqNode(fdef);
 }
 
-}  // namespace passes
 }  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5
