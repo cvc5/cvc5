@@ -16,12 +16,12 @@
 
 #include <sstream>
 
-#include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
-#include "proof/lfsc/lfsc_print_channel.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
+#include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::kind;
 
@@ -96,7 +96,7 @@ void LfscPrinter::print(std::ostream& out,
           {
             const DTypeConstructor& cons = dt[0];
             size_t arity = cons.getNumArgs();
-            if (tupleArity.find(arity)==tupleArity.end())
+            if (tupleArity.find(arity) == tupleArity.end())
             {
               tupleArity.insert(arity);
               preamble << "(declare Tuple ";
@@ -125,7 +125,8 @@ void LfscPrinter::print(std::ostream& out,
             {
               const DTypeSelector& arg = cons[j];
               // print selector
-              preamble << "(declare " << arg.getSelector() << " term)" << std::endl;
+              preamble << "(declare " << arg.getSelector() << " term)"
+                       << std::endl;
             }
           }
         }

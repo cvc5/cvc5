@@ -166,7 +166,7 @@ Node LfscTermProcessor::runConvert(Node n)
       ss << "__LFSC_TMP" << r.getNumerator().abs() << "/" << r.getDenominator();
       arg = mkInternalSymbol(ss.str(), tn);
       // negative (~ n/m)
-      if (r.sgn()==-1)
+      if (r.sgn() == -1)
       {
         Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
         arg = nm->mkNode(APPLY_UF, mpzn, arg);
