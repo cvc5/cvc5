@@ -685,7 +685,7 @@ TrustNode TheoryFp::expandDefinition(Node node)
 {
   return d_rewriter.expandDefinition(node);
 }
-  
+
 void TheoryFp::handleLemma(Node node, InferenceId id)
 {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
