@@ -52,7 +52,8 @@ jobs:
           git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
           rsync -a --delete build/docs/sphinx-gh/ target/docs-$BRANCH_NAME-${{ github.sha }}
           cd target/
-          ln -sf docs-$BRANCH_NAME-${{ github.sha }} docs-$BRANCH_NAME
+          rm -f docs-$BRANCH_NAME
+          ln -s docs-$BRANCH_NAME-${{ github.sha }} docs-$BRANCH_NAME
           git add docs-$BRANCH_NAME docs-$BRANCH_NAME-${{ github.sha }}
           git commit -m "Update docs for branch $BRANCH_NAME"
           git push
@@ -67,7 +68,8 @@ jobs:
           git clone https://${{ secrets.TOKEN }}@github.com/nafur/playground.git target/
           rsync -a --delete build/docs/sphinx-gh/ target/docs-pr$PRID-${{ github.sha }}
           cd target/
-          ln -sf docs-pr$PRID-${{ github.sha }} docs-pr$PRID
+          rm -f docs-pr$PRID
+          ln -s docs-pr$PRID-${{ github.sha }} docs-pr$PRID
           git add docs-pr$PRID docs-pr$PRID-${{ github.sha }}
           git commit -m "Update docs for PR #$PRID"
           git push
