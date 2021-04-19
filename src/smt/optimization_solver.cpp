@@ -25,7 +25,11 @@ namespace smt {
 
 OptimizationSolver::OptimizationSolver(SmtEngine* parent,
                                        ObjectiveOrder objOrder)
-    : d_parent(parent), d_objectives(), d_optValues(), d_objOrder(objOrder)
+    : d_parent(parent),
+      d_objectives(),
+      d_optValues(),
+      d_objOrder(objOrder),
+      d_optCheckerForPareto()
 {
 }
 
@@ -48,14 +52,14 @@ void OptimizationSolver::pushObj(Node node,
   d_objectives.push_back({node, objType, bvSigned});
   // also creates a placeholder for optValue
   d_optValues.emplace_back();
-  optCheckerForPareto.reset();
+  d_optCheckerForPareto.reset();
 }
 
 void OptimizationSolver::popObj()
 {
   d_objectives.pop_back();
   d_optValues.pop_back();
-  optCheckerForPareto.reset();
+  d_optCheckerForPareto.reset();
 }
 
 std::vector<Node> OptimizationSolver::objectiveGetValues()
@@ -67,7 +71,7 @@ std::vector<Node> OptimizationSolver::objectiveGetValues()
 void OptimizationSolver::setObjectiveOrder(ObjectiveOrder objOrder)
 {
   this->d_objOrder = objOrder;
-  optCheckerForPareto.reset();
+  d_optCheckerForPareto.reset();
 }
 
 std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
@@ -216,13 +220,13 @@ OptResult OptimizationSolver::optimizeLexIterative()
 OptResult OptimizationSolver::optimizeParetoNaive()
 {
   // creates a blackbox subsolver without timeout
-  if (!optCheckerForPareto)
-    optCheckerForPareto = this->createOptCheckerWithTimeout();
+  if (!d_optCheckerForPareto)
+    d_optCheckerForPareto = this->createOptCheckerWithTimeout();
 
-  NodeManager* nm = optCheckerForPareto->getNodeManager();
+  NodeManager* nm = d_optCheckerForPareto->getNodeManager();
   Result satResult;
 
-  satResult = optCheckerForPareto->checkSat();
+  satResult = d_optCheckerForPareto->checkSat();
   switch (satResult.isSat())
   {
     case Result::Sat::UNSAT: return OptResult::OPT_UNSAT;
@@ -230,12 +234,12 @@ OptResult OptimizationSolver::optimizeParetoNaive()
     case Result::Sat::SAT:
       for (size_t i = 0; i < d_objectives.size(); ++i)
       {
-        d_optValues[i] = optCheckerForPareto->getValue(d_objectives[i].d_node);
+        d_optValues[i] = d_optCheckerForPareto->getValue(d_objectives[i].d_node);
       }
       break;
     default: Unreachable(); break;
   }
-  optCheckerForPareto->push();
+  d_optCheckerForPareto->push();
   // a vector of exprs stating no objective is worse
   std::vector<Node> noWorseObj;
   // a vector of exprs stating some objective is better
@@ -273,24 +277,24 @@ OptResult OptimizationSolver::optimizeParetoNaive()
         default: Unreachable(); break;
       }
     }
-    optCheckerForPareto->assertFormula(nm->mkAnd(noWorseObj));
-    optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
-    satResult = optCheckerForPareto->checkSat();
+    d_optCheckerForPareto->assertFormula(nm->mkAnd(noWorseObj));
+    d_optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
+    satResult = d_optCheckerForPareto->checkSat();
     // retrieve the partial results
     if (satResult.isSat() == Result::Sat::SAT)
     {
       for (size_t i = 0; i < d_objectives.size(); ++i)
       {
-        d_optValues[i] = optCheckerForPareto->getValue(d_objectives[i].d_node);
+        d_optValues[i] = d_optCheckerForPareto->getValue(d_objectives[i].d_node);
       }
     }
   }
-  optCheckerForPareto->pop();
+  d_optCheckerForPareto->pop();
 
   // before we return!
   // please do assert that some objective could be better
   // in order to break the ties for the next run!!!
-  optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
+  d_optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
 
   // this return should be a yield...
   return OptResult::OPT_OPTIMAL;

@@ -193,7 +193,7 @@ class OptimizationSolver
   /** The subchecker specifically for pareto goals,
    * because we need to save the states so that each call would return a
    * different value **/
-  std::unique_ptr<SmtEngine> optCheckerForPareto;
+  std::unique_ptr<SmtEngine> d_optCheckerForPareto;
 };
 
 }  // namespace smt
