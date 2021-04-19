@@ -19,6 +19,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/dtype_selector.h"
 
 using namespace cvc5::kind;
 
@@ -76,12 +79,56 @@ void LfscPrinter::print(std::ostream& out,
     }
     std::unordered_set<TypeNode, TypeNodeHashFunction> types;
     expr::getComponentTypes(st, types);
+    std::unordered_set<size_t> tupleArity;
     for (const TypeNode& stc : types)
     {
-      if (stc.isSort() && sts.find(stc) == sts.end())
+      if (sts.find(stc) == sts.end())
       {
         sts.insert(stc);
-        preamble << "(declare " << stc << " sort)" << std::endl;
+        if (stc.isSort())
+        {
+          preamble << "(declare " << stc << " sort)" << std::endl;
+        }
+        else if (stc.isDatatype())
+        {
+          const DType& dt = stc.getDType();
+          if (dt.isTuple())
+          {
+            const DTypeConstructor& cons = dt[0];
+            size_t arity = cons.getNumArgs();
+            if (tupleArity.find(arity)==tupleArity.end())
+            {
+              tupleArity.insert(arity);
+              preamble << "(declare Tuple ";
+              std::stringstream tcparen;
+              for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+              {
+                preamble << "(! a" << j << " type ";
+                tcparen << ")";
+              }
+              preamble << "type" << tcparen.str() << ")";
+            }
+          }
+          else
+          {
+            preamble << "(declare " << dt.getName() << " sort)" << std::endl;
+          }
+          for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+          {
+            const DTypeConstructor& cons = dt[i];
+            std::stringstream sscons;
+            sscons << cons.getConstructor();
+            // print construct/tester
+            preamble << "(declare " << sscons.str() << " term)" << std::endl;
+            preamble << "(declare is-" << sscons.str() << " term)" << std::endl;
+            for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+            {
+              const DTypeSelector& arg = cons[j];
+              // print selector
+              preamble << "(declare " << arg.getSelector() << " term)" << std::endl;
+            }
+          }
+        }
       }
     }
   }

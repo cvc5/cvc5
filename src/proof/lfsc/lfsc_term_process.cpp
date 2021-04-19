@@ -163,8 +163,14 @@ Node LfscTermProcessor::runConvert(Node n)
       // Note that inconvieniently, LFSC uses (non-sexpr) syntax n/m for
       // constant rationals, hence we must use a string
       std::stringstream ss;
-      ss << "__LFSC_TMP" << r.getNumerator() << "/" << r.getDenominator();
+      ss << "__LFSC_TMP" << r.getNumerator().abs() << "/" << r.getDenominator();
       arg = mkInternalSymbol(ss.str(), tn);
+      // negative (~ n/m)
+      if (r.sgn()==-1)
+      {
+        Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
+        arg = nm->mkNode(APPLY_UF, mpzn, arg);
+      }
     }
     return nm->mkNode(APPLY_UF, rconstf, arg);
   }

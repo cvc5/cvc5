@@ -245,7 +245,9 @@ void Smt2Printer::toStream(std::ostream& out,
       const std::vector<Node>& snvec = sn.getVec();
       if (snvec.empty())
       {
-        out << "(as seq.empty " << n.getType() << ")";
+        out << "(as seq.empty ";
+        toStreamType(out, n.getType());
+        out << ")";
       }
       if (snvec.size() > 1)
       {
@@ -264,7 +266,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::STORE_ALL: {
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
-      out << "((as const " << asa.getType() << ") " << asa.getValue() << ")";
+      out << "((as const ";
+      toStreamType(out, asa.getType());
+      out << ") " << asa.getValue() << ")";
       break;
     }
 
@@ -284,7 +288,8 @@ void Smt2Printer::toStream(std::ostream& out,
           out << "(Tuple";
           for (unsigned int i = 0; i < nargs; i++)
           {
-            out << " " << dt[0][i].getRangeType();
+            out << " ";
+            toStreamType(out, dt[0][i].getRangeType());
           }
           out << ")";
         }
@@ -1323,6 +1328,12 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // no SMT way to print these
   return kind::kindToString(k);
+}
+
+void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
+{
+  // TODO: should be able to call this
+  tn.toStream(out, language::output::LANG_SMTLIB_V2_6);
 }
 
 template <class T>

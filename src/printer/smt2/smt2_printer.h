@@ -235,6 +235,8 @@ class Smt2Printer : public cvc5::Printer
                 TNode n,
                 int toDepth,
                 LetBinding* lbind = nullptr) const;
+  /** To stream type node */
+  void toStreamType(std::ostream& out, TypeNode tn) const;
   /**
    * To stream, with a forced type. This method is used in some corner cases
    * to force a node n to be printed as if it had type tn. This is used e.g.

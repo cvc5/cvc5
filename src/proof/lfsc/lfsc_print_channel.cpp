@@ -39,7 +39,9 @@ void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
 {
   d_trustCount++;
-  d_out << std::endl << "(trust " << res << ") ; from " << src << std::endl;
+  d_out << std::endl << "(trust ";
+  printNodeInternal(d_out, res);
+  d_out << ") ; from " << src << std::endl;
 }
 
 void LfscPrintChannelOut::printOpenRule(const ProofNode* pn)
