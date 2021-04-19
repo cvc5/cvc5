@@ -1983,19 +1983,80 @@ JNIEXPORT jlong JNICALL
 Java_cvc5_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer,
-                                                          jstring,
-                                                          jlongArray,
-                                                          jlong,
-                                                          jlong,
-                                                          jboolean);
+                                                          jstring jSymbol,
+                                                          jlongArray jVars,
+                                                          jlong sortPointer,
+                                                          jlong termPointer,
+                                                          jboolean global)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* term = (Term*)termPointer;
+
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> vars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* t = (Term*)cVars[i];
+    vars.push_back(*t);
+  }
+  Term* retPointer =
+      new Term(solver->defineFunRec(cSymbol, vars, *sort, *term, (bool)global));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    defineFunRec
  * Signature: (JJ[JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFunRec__JJ_3JJZ(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlongArray, jlong, jboolean);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_defineFunRec__JJ_3JJZ(JNIEnv* env,
+                                       jobject,
+                                       jlong pointer,
+                                       jlong funPointer,
+                                       jlongArray jVars,
+                                       jlong termPointer,
+                                       jboolean global)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* fun = (Term*)funPointer;
+  Term* term = (Term*)termPointer;
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> vars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* t = (Term*)cVars[i];
+    vars.push_back(*t);
+  }
+  Term* retPointer =
+      new Term(solver->defineFunRec(*fun, vars, *term, (bool)global));
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

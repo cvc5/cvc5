@@ -1059,9 +1059,7 @@ class SolverTest
   assertTrue(d_solver.checkSat().isUnsat());
 }
 
-/*
-
-@Test void defineFunRec()
+@Test void defineFunRec() throws CVC5ApiException
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort1 = d_solver.mkFunctionSort(new Sort[]{bvSort, bvSort}, bvSort);
@@ -1077,43 +1075,43 @@ class SolverTest
   Term f1 = d_solver.mkConst(funSort1, "f1");
   Term f2 = d_solver.mkConst(funSort2, "f2");
   Term f3 = d_solver.mkConst(bvSort, "f3");
-  assertDoesNotThrow(() -> d_solver.defineFunRec("f", {}, bvSort, v1));
-  assertDoesNotThrow(() -> d_solver.defineFunRec("ff", {b1, b2}, bvSort, v1));
-  assertDoesNotThrow(() -> d_solver.defineFunRec(f1, {b1, b11}, v1));
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("fff", {b1}, bvSort, v3),
+  assertDoesNotThrow(() -> d_solver.defineFunRec("f", new Term[]{}, bvSort, v1));
+  assertDoesNotThrow(() -> d_solver.defineFunRec("ff", new Term[]{b1, b2}, bvSort, v1));
+  assertDoesNotThrow(() -> d_solver.defineFunRec(f1, new Term[]{b1, b11}, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("fff", new Term[]{b1}, bvSort, v3));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("ff", {b1, v2}, bvSort, v1),
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("ff", new Term[]{b1, v2}, bvSort, v1));
                
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("ffff", {b1}, funSort2, v3),
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("ffff", new Term[]{b1}, funSort2, v3));
                
   // b3 has function sort, which is allowed as an argument
-  assertDoesNotThrow(() -> d_solver.defineFunRec("fffff", {b1, b3}, bvSort, v1));
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f1, {b1}, v1), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f1, {b1, b11}, v2), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f1, {b1, b11}, v3), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f2, {b1}, v2), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f3, {b1}, v1), 
+  assertDoesNotThrow(() -> d_solver.defineFunRec("fffff", new Term[]{b1, b3}, bvSort, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f1, new Term[]{b1}, v1));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f1, new Term[]{b1, b11}, v2));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f1, new Term[]{b1, b11}, v3));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f2, new Term[]{b1}, v2));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f3, new Term[]{b1}, v1));
 
   Solver slv = new Solver();
   Sort bvSort2 = slv.mkBitVectorSort(32);
   Term v12 = slv.mkConst(bvSort2, "v1");
   Term b12 = slv.mkVar(bvSort2, "b1");
   Term b22 = slv.mkVar(slv.getIntegerSort(), "b2");
-  assertDoesNotThrow(() -> slv.defineFunRec("f", {}, bvSort2, v12));
-  assertDoesNotThrow(() -> slv.defineFunRec("ff", {b12, b22}, bvSort2, v12));
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("f", {}, bvSort, v12), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("f", {}, bvSort2, v1), 
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", {b1, b22}, bvSort2, v12),
+  assertDoesNotThrow(() -> slv.defineFunRec("f", new Term[]{}, bvSort2, v12));
+  assertDoesNotThrow(() -> slv.defineFunRec("ff", new Term[]{b12, b22}, bvSort2, v12));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("f", new Term[]{}, bvSort, v12));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("f", new Term[]{}, bvSort2, v1));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", new Term[]{b1, b22}, bvSort2, v12));
                
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", {b12, b2}, bvSort2, v12),
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", new Term[]{b12, b2}, bvSort2, v12));
                
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", {b12, b22}, bvSort, v12),
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", new Term[]{b12, b22}, bvSort, v12));
                
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", {b12, b22}, bvSort2, v1),
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunRec("ff", new Term[]{b12, b22}, bvSort2, v1));
                
 }
 
-@Test void defineFunRecWrongLogic)
+@Test void defineFunRecWrongLogic() throws CVC5ApiException
 {
   d_solver.setLogic("QF_BV");
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -1121,9 +1119,11 @@ class SolverTest
   Term b = d_solver.mkVar(bvSort, "b");
   Term v = d_solver.mkConst(bvSort, "v");
   Term f = d_solver.mkConst(funSort, "f");
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("f", {}, bvSort, v), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f, {b, b}, v), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec("f", new Term[]{}, bvSort, v));
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunRec(f, new Term[]{b, b}, v));
 }
+
+/*
 
 @Test void defineFunRecGlobal)
 {
