@@ -179,9 +179,9 @@ Node LfscTermProcessor::runConvert(Node n)
     Node b0 = getSymbolInternal(k, btn, "b0");
     Node b1 = getSymbolInternal(k, btn, "b1");
     Node bvc = getSymbolInternal(k, btnv, "bvc");
-    for (size_t i=0; i<w; i++)
+    for (size_t i = 0; i < w; i++)
     {
-      Node arg = bv.isBitSet((w-1)-i) ? b1 : b0;
+      Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
       ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
     }
     Node bconstf = getSymbolInternal(k, tnv, "bv");
@@ -214,9 +214,10 @@ Node LfscTermProcessor::runConvert(Node n)
     Node iteOp = getOperatorOfTerm(n, true);
     return nm->mkNode(APPLY_UF, iteOp, n[0], n[1], n[2]);
   }
-  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS || k == DIVISION
-      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS)
+  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
+           || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
+           || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
+           || k == INTS_MODULUS_TOTAL || k == UMINUS)
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that MINUS is not n-ary

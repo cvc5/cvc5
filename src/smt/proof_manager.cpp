@@ -186,7 +186,7 @@ void PfManager::printProof(std::ostream& out,
     vpfpp.process(fp);
     proof::VeritProofPrinter vpp(options::proofFormatMode()
                                  == options::ProofFormatMode::VERIT_EXTENDED);
-    vpp.veritPrinter(out,fp);
+    vpp.veritPrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
