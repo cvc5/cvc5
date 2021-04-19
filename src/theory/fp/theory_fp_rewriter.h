@@ -47,7 +47,7 @@ class TheoryFpRewriter : public TheoryRewriter
     return postRewrite(equality).d_node;
   }
   /** expand definitions in node */
-  TrustNode expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node);
 
  protected:
   RewriteFunction d_preRewriteTable[kind::LAST_KIND];
