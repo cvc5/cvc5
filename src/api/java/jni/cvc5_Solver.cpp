@@ -10,7 +10,7 @@ using namespace cvc5::api;
  * Method:    newSolver
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv*, jobject)
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv* env, jobject)
 {
   Solver* solver = new Solver();
   return ((jlong)solver);
@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv*, jobject)
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv*,
+JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv* env,
                                                       jclass,
                                                       jlong pointer)
 {
@@ -1255,7 +1255,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__JB(JNIEnv* env,
  * Method:    mkString
  * Signature: (J[I)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__J_3I(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__J_3I(JNIEnv* env,
                                                         jobject,
                                                         jlong,
                                                         jintArray);
@@ -1714,7 +1714,7 @@ Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(JNIEnv* env,
  * Method:    simplify
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_simplify(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_simplify(JNIEnv* env,
                                                   jobject,
                                                   jlong,
                                                   jlong);
@@ -1757,7 +1757,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSat(JNIEnv* env,
  * Method:    checkSatAssuming
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__JJ(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__JJ(JNIEnv* env,
                                                               jobject,
                                                               jlong,
                                                               jlong);
@@ -1767,7 +1767,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__JJ(JNIEnv*,
  * Method:    checkSatAssuming
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__J_3J(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__J_3J(JNIEnv* env,
                                                                 jobject,
                                                                 jlong,
                                                                 jlongArray);
@@ -1795,7 +1795,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__JJ(JNIEnv* env,
  * Method:    checkEntailed
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__J_3J(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__J_3J(JNIEnv* env,
                                                              jobject,
                                                              jlong,
                                                              jlongArray);
@@ -1805,8 +1805,33 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__J_3J(JNIEnv*,
  * Method:    declareDatatype
  * Signature: (JLjava/lang/String;[J)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_declareDatatype(JNIEnv*, jobject, jlong, jstring, jlongArray);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareDatatype(
+    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlongArray jCtors)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jCtors);
+  // allocate buffer for the long array
+  jlong* cCtors = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jCtors, 0, size, cCtors);
+  // copy into a vector
+  std::vector<DatatypeConstructorDecl> ctors;
+  for (jsize i = 0; i < size; i++)
+  {
+    DatatypeConstructorDecl* decl = (DatatypeConstructorDecl*)cCtors[i];
+    ctors.push_back(*decl);
+  }
+  Sort* retPointer = new Sort(solver->declareDatatype(cSymbol, ctors));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cCtors;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1871,16 +1896,83 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_declareSort(
  * Method:    defineFun
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFun__JLjava_lang_String_2_3JJJZ(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jlong, jlong, jboolean);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_defineFun__JLjava_lang_String_2_3JJJZ(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jstring jSymbol,
+                                                       jlongArray jVars,
+                                                       jlong sortPointer,
+                                                       jlong termPointer,
+                                                       jboolean global)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* term = (Term*)termPointer;
+
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> vars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* t = (Term*)cVars[i];
+    vars.push_back(*t);
+  }
+  Term* retPointer =
+      new Term(solver->defineFun(cSymbol, vars, *sort, *term, (bool)global));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    defineFun
- * Signature: (J[JJZ)J
+ * Signature: (JJ[JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFun__J_3JJZ(
-    JNIEnv*, jobject, jlong, jlongArray, jlong, jboolean);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFun__JJ_3JJZ(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer,
+                                                            jlong funPointer,
+                                                            jlongArray jVars,
+                                                            jlong termPointer,
+                                                            jboolean global)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* fun = (Term*)funPointer;
+  Term* term = (Term*)termPointer;
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> vars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* t = (Term*)cVars[i];
+    vars.push_back(*t);
+  }
+  Term* retPointer =
+      new Term(solver->defineFun(*fun, vars, *term, (bool)global));
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1888,8 +1980,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFun__J_3JJZ(
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jlong, jlong, jboolean);
+Java_cvc5_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer,
+                                                          jstring,
+                                                          jlongArray,
+                                                          jlong,
+                                                          jlong,
+                                                          jboolean);
 
 /*
  * Class:     cvc5_Solver
@@ -1897,22 +1995,27 @@ Java_cvc5_Solver_defineFunRec__JLjava_lang_String_2_3JJJZ(
  * Signature: (JJ[JJZ)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_defineFunRec__JJ_3JJZ(
-    JNIEnv*, jobject, jlong, jlong, jlongArray, jlong, jboolean);
+    JNIEnv* env, jobject, jlong pointer, jlong, jlongArray, jlong, jboolean);
 
 /*
  * Class:     cvc5_Solver
  * Method:    defineFunsRec
  * Signature: (J[J[[J[JZ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_defineFunsRec(
-    JNIEnv*, jobject, jlong, jlongArray, jobjectArray, jlongArray, jboolean);
+JNIEXPORT void JNICALL Java_cvc5_Solver_defineFunsRec(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer,
+                                                      jlongArray,
+                                                      jobjectArray,
+                                                      jlongArray,
+                                                      jboolean);
 
 /*
  * Class:     cvc5_Solver
  * Method:    getAssertions
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getAssertions(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getAssertions(JNIEnv* env,
                                                             jobject,
                                                             jlong);
 
@@ -1921,7 +2024,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getAssertions(JNIEnv*,
  * Method:    getInfo
  * Signature: (JLjava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Solver_getInfo(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_Solver_getInfo(JNIEnv* env,
                                                    jobject,
                                                    jlong,
                                                    jstring);
@@ -1931,7 +2034,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Solver_getInfo(JNIEnv*,
  * Method:    getOption
  * Signature: (JLjava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Solver_getOption(JNIEnv*,
+JNIEXPORT jstring JNICALL Java_cvc5_Solver_getOption(JNIEnv* env,
                                                      jobject,
                                                      jlong,
                                                      jstring);
@@ -1941,7 +2044,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Solver_getOption(JNIEnv*,
  * Method:    getUnsatAssumptions
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatAssumptions(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatAssumptions(JNIEnv* env,
                                                                   jobject,
                                                                   jlong);
 
@@ -1950,7 +2053,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatAssumptions(JNIEnv*,
  * Method:    getUnsatCore
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatCore(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatCore(JNIEnv* env,
                                                            jobject,
                                                            jlong);
 
@@ -1977,7 +2080,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getValue__JJ(JNIEnv* env,
  * Method:    getValue
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(JNIEnv* env,
                                                              jobject,
                                                              jlong,
                                                              jlongArray);
@@ -1987,7 +2090,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(JNIEnv*,
  * Method:    getQuantifierElimination
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierElimination(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierElimination(JNIEnv* env,
                                                                   jobject,
                                                                   jlong,
                                                                   jlong);
@@ -1998,22 +2101,22 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierElimination(JNIEnv*,
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierEliminationDisjunct(
-    JNIEnv*, jobject, jlong, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    declareSeparationHeap
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL
-Java_cvc5_Solver_declareSeparationHeap(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT void JNICALL Java_cvc5_Solver_declareSeparationHeap(
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    getSeparationHeap
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationHeap(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationHeap(JNIEnv* env,
                                                            jobject,
                                                            jlong);
 
@@ -2022,7 +2125,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationHeap(JNIEnv*,
  * Method:    getSeparationNilTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationNilTerm(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationNilTerm(JNIEnv* env,
                                                               jobject,
                                                               jlong);
 
@@ -2031,15 +2134,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationNilTerm(JNIEnv*,
  * Method:    pop
  * Signature: (JI)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_pop(JNIEnv*, jobject, jlong, jint);
+JNIEXPORT void JNICALL Java_cvc5_Solver_pop(JNIEnv* env,
+                                            jobject,
+                                            jlong pointer,
+                                            jint);
 
 /*
  * Class:     cvc5_Solver
  * Method:    getInterpolant
  * Signature: (JJJ)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_cvc5_Solver_getInterpolant__JJJ(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getInterpolant__JJJ(
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
@@ -2047,37 +2153,37 @@ Java_cvc5_Solver_getInterpolant__JJJ(JNIEnv*, jobject, jlong, jlong, jlong);
  * Signature: (JJJJ)Z
  */
 JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getInterpolant__JJJJ(
-    JNIEnv*, jobject, jlong, jlong, jlong, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    getAbduct
  * Signature: (JJJ)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_cvc5_Solver_getAbduct__JJJ(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getAbduct__JJJ(
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    getAbduct
  * Signature: (JJJJ)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_cvc5_Solver_getAbduct__JJJJ(JNIEnv*, jobject, jlong, jlong, jlong, jlong);
+JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getAbduct__JJJJ(
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    blockModel
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_blockModel(JNIEnv*, jobject, jlong);
+JNIEXPORT void JNICALL Java_cvc5_Solver_blockModel(JNIEnv* env, jobject, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    blockModelValues
  * Signature: (J[J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_blockModelValues(JNIEnv*,
+JNIEXPORT void JNICALL Java_cvc5_Solver_blockModelValues(JNIEnv* env,
                                                          jobject,
                                                          jlong,
                                                          jlongArray);
@@ -2087,16 +2193,25 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_blockModelValues(JNIEnv*,
  * Method:    push
  * Signature: (JI)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_push(JNIEnv*, jobject, jlong, jint);
+JNIEXPORT void JNICALL Java_cvc5_Solver_push(JNIEnv* env,
+                                             jobject,
+                                             jlong pointer,
+                                             jint);
 
 /*
  * Class:     cvc5_Solver
  * Method:    resetAssertions
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_resetAssertions(JNIEnv*,
+JNIEXPORT void JNICALL Java_cvc5_Solver_resetAssertions(JNIEnv* env,
                                                         jobject,
-                                                        jlong);
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  solver->resetAssertions();
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2104,7 +2219,7 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_resetAssertions(JNIEnv*,
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL
-Java_cvc5_Solver_setInfo(JNIEnv*, jobject, jlong, jstring, jstring);
+Java_cvc5_Solver_setInfo(JNIEnv* env, jobject, jlong pointer, jstring, jstring);
 
 /*
  * Class:     cvc5_Solver
@@ -2150,16 +2265,16 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_setOption(
  * Method:    ensureTermSort
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_ensureTermSort(JNIEnv*, jobject, jlong, jlong, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_ensureTermSort(
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    mkSygusVar
  * Signature: (JJLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL
-Java_cvc5_Solver_mkSygusVar(JNIEnv*, jobject, jlong, jlong, jstring);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusVar(
+    JNIEnv* env, jobject, jlong pointer, jlong, jstring);
 
 /*
  * Class:     cvc5_Solver
@@ -2212,7 +2327,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusGrammar(JNIEnv* env,
  * Signature: (JLjava/lang/String;[JJ)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJ(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jlong);
+    JNIEnv* env, jobject, jlong pointer, jstring, jlongArray, jlong);
 
 /*
  * Class:     cvc5_Solver
@@ -2265,7 +2380,7 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
  * Signature: (JLjava/lang/String;[J)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthInv__JLjava_lang_String_2_3J(
-    JNIEnv*, jobject, jlong, jstring, jlongArray);
+    JNIEnv* env, jobject, jlong pointer, jstring, jlongArray);
 
 /*
  * Class:     cvc5_Solver
@@ -2273,14 +2388,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthInv__JLjava_lang_String_2_3J(
  * Signature: (JLjava/lang/String;[JJ)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthInv__JLjava_lang_String_2_3JJ(
-    JNIEnv*, jobject, jlong, jstring, jlongArray, jlong);
+    JNIEnv* env, jobject, jlong pointer, jstring, jlongArray, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    addSygusConstraint
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJ(JNIEnv*,
+JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJ(JNIEnv* env,
                                                                jobject,
                                                                jlong,
                                                                jlong);
@@ -2291,21 +2406,23 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJ(JNIEnv*,
  * Signature: (JJJJJ)V
  */
 JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJJJJ(
-    JNIEnv*, jobject, jlong, jlong, jlong, jlong, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    checkSynth
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSynth(JNIEnv*, jobject, jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSynth(JNIEnv* env,
+                                                    jobject,
+                                                    jlong);
 
 /*
  * Class:     cvc5_Solver
  * Method:    getSynthSolution
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSynthSolution(JNIEnv*,
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSynthSolution(JNIEnv* env,
                                                           jobject,
                                                           jlong,
                                                           jlong);
@@ -2315,7 +2432,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSynthSolution(JNIEnv*,
  * Method:    getSynthSolutions
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getSynthSolutions(JNIEnv*,
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getSynthSolutions(JNIEnv* env,
                                                                 jobject,
                                                                 jlong,
                                                                 jlongArray);

@@ -1061,7 +1061,7 @@ class SolverTest
 
 /*
 
-@Test void defineFunRec)
+@Test void defineFunRec()
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
   Sort funSort1 = d_solver.mkFunctionSort(new Sort[]{bvSort, bvSort}, bvSort);

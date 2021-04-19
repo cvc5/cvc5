@@ -1606,7 +1606,7 @@ public class Solver implements IPointer
    */
   public Term defineFun(String symbol, Term[] bound_vars, Sort sort, Term term)
   {
-    return defineFun(symbol, bound_vars, sort, term);
+    return defineFun(symbol, bound_vars, sort, term, false);
   }
 
   /**
@@ -1671,12 +1671,12 @@ public class Solver implements IPointer
   public Term defineFun(Term fun, Term[] bound_vars, Term term, boolean global)
   {
     long[] boundVarPointers = Utils.getPointers(bound_vars);
-    long termPointer = defineFun(pointer, boundVarPointers, term.getPointer(), global);
+    long termPointer = defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
     return new Term(this, termPointer);
   }
 
   private native long defineFun(
-      long pointer, long[] boundVarPointers, long termPointer, boolean global);
+      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
 
   /**
    * Define recursive function in the current context.
