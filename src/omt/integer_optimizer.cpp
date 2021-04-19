@@ -30,13 +30,13 @@ std::pair<OptResult, Node> OMTOptimizerInteger::optimize(SmtEngine* optChecker,
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
-  if (intermediateSatResult.isUnknown())
+  switch (intermediateSatResult.isSat())
   {
-    return std::make_pair(OptResult::OPT_UNKNOWN, value);
-  }
-  if (intermediateSatResult.isSat() == Result::UNSAT)
-  {
-    return std::make_pair(OptResult::OPT_UNSAT, value);
+    case Result::Sat::SAT_UNKNOWN:
+      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    case Result::Sat::UNSAT: return std::make_pair(OptResult::OPT_UNSAT, value);
+    case Result::Sat::SAT: break;
+    default: Unreachable(); break;
   }
   // asserts objective > old_value (used in optimization loop)
   Node increment;
