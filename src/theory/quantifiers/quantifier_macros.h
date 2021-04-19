@@ -25,7 +25,7 @@
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
-  
+
 class QuantifiersRegistry;
 
 class QuantifierMacros
@@ -41,6 +41,7 @@ class QuantifierMacros
    * if this is a legal macro definition for U, and the null node otherwise.
    */
   Node solve(Node lit, bool reqGround = false);
+
  private:
   bool isBoundVarApplyUf(Node n);
   bool containsBadOp(Node n,
@@ -62,8 +63,8 @@ class QuantifierMacros
   QuantifiersRegistry& d_qreg;
 };
 
-}  // quantifiers
-}  // theory
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5
 
 #endif /*CVC5__THEORY__QUANTIFIERS__QUANTIFIER_MACROS_H */

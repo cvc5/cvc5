@@ -32,31 +32,32 @@ namespace cvc5 {
 namespace quantifiers {
 namespace passes {
 
-QuantifierMacros::QuantifierMacros(QuantifiersRegistry& qr) : d_qreg(qr)
-{
-}
+QuantifierMacros::QuantifierMacros(QuantifiersRegistry& qr) : d_qreg(qr) {}
 
-bool QuantifierMacros::containsBadOp( Node n, Node op, bool reqGround ){
+bool QuantifierMacros::containsBadOp(Node n, Node op, bool reqGround)
+{
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited.insert(cur);
       if (cur.isClosure() && reqGround)
       {
         return true;
       }
-      else if (cur==op)
+      else if (cur == op)
       {
         return true;
       }
-      visit.insert(visit.end(),cur.begin(),cur.end());
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
   return false;
@@ -69,68 +70,94 @@ bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
                  ->getQuantifiersRegistry()
                  .substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
-  std::vector< Node > var;
+  std::vector<Node> var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
-  std::vector< Node > trigger_var;
+  std::vector<Node> trigger_var;
   inst::PatternTermSelector::getTriggerVariables(icn, q, trigger_var);
   Trace("macros-debug2") << "Done." << std::endl;
-  //only if all variables are also trigger variables
-  return trigger_var.size()>=var.size();
+  // only if all variables are also trigger variables
+  return trigger_var.size() >= var.size();
 }
 
-bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
+bool QuantifierMacros::isBoundVarApplyUf(Node n)
+{
   Assert(n.getKind() == APPLY_UF);
   TypeNode tno = n.getOperator().getType();
-  std::map< Node, bool > vars;
+  std::map<Node, bool> vars;
   // allow if a vector of unique variables of the same type as UF arguments
   for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
   {
-    if( n[i].getKind()!=BOUND_VARIABLE ){
+    if (n[i].getKind() != BOUND_VARIABLE)
+    {
       return false;
     }
-    if( n[i].getType()!=tno[i] ){
+    if (n[i].getType() != tno[i])
+    {
       return false;
     }
-    if( vars.find( n[i] )==vars.end() ){
+    if (vars.find(n[i]) == vars.end())
+    {
       vars[n[i]] = true;
-    }else{
+    }
+    else
+    {
       return false;
     }
   }
   return true;
 }
 
-void QuantifierMacros::getMacroCandidates( Node n, std::vector< Node >& candidates, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
+void QuantifierMacros::getMacroCandidates(Node n,
+                                          std::vector<Node>& candidates,
+                                          std::map<Node, bool>& visited)
+{
+  if (visited.find(n) == visited.end())
+  {
     visited[n] = true;
-    if( n.getKind()==APPLY_UF ){
-      if( isBoundVarApplyUf( n ) ){
-        candidates.push_back( n );
+    if (n.getKind() == APPLY_UF)
+    {
+      if (isBoundVarApplyUf(n))
+      {
+        candidates.push_back(n);
       }
-    }else if( n.getKind()==PLUS ){
-      for( size_t i=0; i<n.getNumChildren(); i++ ){
-        getMacroCandidates( n[i], candidates, visited );
+    }
+    else if (n.getKind() == PLUS)
+    {
+      for (size_t i = 0; i < n.getNumChildren(); i++)
+      {
+        getMacroCandidates(n[i], candidates, visited);
       }
-    }else if( n.getKind()==MULT ){
-      //if the LHS is a constant
-      if( n.getNumChildren()==2 && n[0].isConst() ){
-        getMacroCandidates( n[1], candidates, visited );
+    }
+    else if (n.getKind() == MULT)
+    {
+      // if the LHS is a constant
+      if (n.getNumChildren() == 2 && n[0].isConst())
+      {
+        getMacroCandidates(n[1], candidates, visited);
       }
-    }else if( n.getKind()==NOT ){
-      getMacroCandidates( n[0], candidates, visited );
+    }
+    else if (n.getKind() == NOT)
+    {
+      getMacroCandidates(n[0], candidates, visited);
     }
   }
 }
 
-Node QuantifierMacros::solveInEquality( Node n, Node lit ){
-  if( lit.getKind()==EQUAL ){
-    //return the opposite side of the equality if defined that way
-    for( int i=0; i<2; i++ ){
-      if( lit[i]==n ){
-        return lit[i==0 ? 1 : 0];
-      }else if( lit[i].getKind()==NOT && lit[i][0]==n ){
-        return lit[i==0 ? 1 : 0].negate();
+Node QuantifierMacros::solveInEquality(Node n, Node lit)
+{
+  if (lit.getKind() == EQUAL)
+  {
+    // return the opposite side of the equality if defined that way
+    for (int i = 0; i < 2; i++)
+    {
+      if (lit[i] == n)
+      {
+        return lit[i == 0 ? 1 : 0];
+      }
+      else if (lit[i].getKind() == NOT && lit[i][0] == n)
+      {
+        return lit[i == 0 ? 1 : 0].negate();
       }
     }
     std::map<Node, Node> msum;
@@ -149,14 +176,17 @@ Node QuantifierMacros::solveInEquality( Node n, Node lit ){
   return Node::null();
 }
 
-Node QuantifierMacros::solve( Node lit ){
+Node QuantifierMacros::solve(Node lit)
+{
   Trace("macros-debug") << "  process " << n << std::endl;
-  bool pol = lit.getKind()!=NOT;
+  bool pol = lit.getKind() != NOT;
   Node n = pol ? lit : lit[0];
   NodeManager* nm = NodeManager::currentNM();
-  if( n.getKind()==APPLY_UF ){
-    //predicate case
-    if( isBoundVarApplyUf( n ) ){
+  if (n.getKind() == APPLY_UF)
+  {
+    // predicate case
+    if (isBoundVarApplyUf(n))
+    {
       Node op = n.getOperator();
       Node n_def = nm->mkConst(pol);
       Node fdef = addMacroEq(n, n_def);
@@ -166,7 +196,7 @@ Node QuantifierMacros::solve( Node lit ){
   }
   else if (pol && n.getKind() == EQUAL)
   {
-    //literal case
+    // literal case
     Trace("macros-debug") << "Check macro literal : " << n << std::endl;
     std::map<Node, bool> visited;
     std::vector<Node> candidates;
@@ -188,7 +218,8 @@ Node QuantifierMacros::solve( Node lit ){
       {
         continue;
       }
-      Trace("macros-debug") << m << " is possible macro in " << lit << std::endl;
+      Trace("macros-debug")
+          << m << " is possible macro in " << lit << std::endl;
       Trace("macros-debug")
           << "  corresponding definition is : " << n_def << std::endl;
       visited.clear();
@@ -245,6 +276,6 @@ Node QuantifierMacros::addMacroEq(Node n, Node ndef)
   return op.eqNode(fdef);
 }
 
-}  // passes
-}  // preprocessing
+}  // namespace passes
+}  // namespace quantifiers
 }  // namespace cvc5
