@@ -1,8 +1,8 @@
-Linear Arithmetic
-=================
+Datatypes
+===========
 
 
 .. api-examples::
-    ../../examples/api/linear_arith.cpp
-    ../../examples/api/java/LinearArith.java
-    ../../examples/api/python/linear_arith.py
+    ../../examples/api/datatypes.cpp
+    ../../examples/api/java/Datatypes.java
+    ../../examples/api/python/datatypes.py
