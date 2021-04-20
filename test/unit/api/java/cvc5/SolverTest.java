@@ -1481,44 +1481,46 @@ class SolverTest
   assertThrows(CVC5ApiException.class, () -> slv.getValue(x));
 }
 
-/*
-@Test void getQuantifierElimination)
+
+@Test void getQuantifierElimination()
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
   Term forall =
       d_solver.mkTerm(FORALL,
                       d_solver.mkTerm(BOUND_VAR_LIST, x),
                       d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
-  assertThrows(CVC5ApiException.class, () -> d_solver.getQuantifierElimination(d_solver.getNullTerm()), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getQuantifierElimination(Solver().mkBoolean(false)),
+  assertThrows(CVC5ApiException.class, () -> d_solver.getQuantifierElimination(d_solver.getNullTerm()));
+  assertThrows(CVC5ApiException.class, () -> d_solver.getQuantifierElimination(new Solver().mkBoolean(false)));
                
   assertDoesNotThrow(() -> d_solver.getQuantifierElimination(forall));
 }
 
-@Test void getQuantifierEliminationDisjunct)
+@Test void getQuantifierEliminationDisjunct()
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
   Term forall =
       d_solver.mkTerm(FORALL,
                       d_solver.mkTerm(BOUND_VAR_LIST, x),
                       d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
-  assertThrows(CVC5ApiException.class, () -> d_solver.getQuantifierEliminationDisjunct(d_solver.getNullTerm()),
+  assertThrows(CVC5ApiException.class, () -> d_solver.getQuantifierEliminationDisjunct(d_solver.getNullTerm()));
                
   assertThrows(CVC5ApiException.class, () -> 
-      d_solver.getQuantifierEliminationDisjunct(Solver().mkBoolean(false)),
+      d_solver.getQuantifierEliminationDisjunct(new Solver().mkBoolean(false)));
       
   assertDoesNotThrow(() -> d_solver.getQuantifierEliminationDisjunct(forall));
 }
 
-@Test void declareSeparationHeap)
+@Test void declareSeparationHeap() throws CVC5ApiException
 {
   d_solver.setLogic("ALL_SUPPORTED");
   Sort integer = d_solver.getIntegerSort();
   assertDoesNotThrow(() -> d_solver.declareSeparationHeap(integer, integer));
   // cannot declare separation logic heap more than once
-  assertThrows(CVC5ApiException.class, () -> d_solver.declareSeparationHeap(integer, integer),
+  assertThrows(CVC5ApiException.class, () -> d_solver.declareSeparationHeap(integer, integer));
                
 }
+
+/*
 
 namespace {
  */

@@ -2256,10 +2256,16 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(JNIEnv* env,
  * Method:    getQuantifierElimination
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierElimination(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong,
-                                                                  jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierElimination(
+    JNIEnv* env, jobject, jlong pointer, jlong qPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* q = (Term*)qPointer;
+  Term* retPointer = new Term(solver->getQuantifierElimination(*q));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2267,15 +2273,35 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierElimination(JNIEnv* env,
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_getQuantifierEliminationDisjunct(
-    JNIEnv* env, jobject, jlong pointer, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong qPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* q = (Term*)qPointer;
+  Term* retPointer = new Term(solver->getQuantifierEliminationDisjunct(*q));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    declareSeparationHeap
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_declareSeparationHeap(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
+JNIEXPORT void JNICALL
+Java_cvc5_Solver_declareSeparationHeap(JNIEnv* env,
+                                       jobject,
+                                       jlong pointer,
+                                       jlong locSortPointer,
+                                       jlong dataSortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* locSort = (Sort*)locSortPointer;
+  Sort* dataSort = (Sort*)dataSortPointer;
+  solver->declareSeparationHeap(*locSort, *dataSort);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
