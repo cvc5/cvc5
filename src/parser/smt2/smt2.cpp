@@ -21,7 +21,6 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
