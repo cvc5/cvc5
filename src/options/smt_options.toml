@@ -219,6 +219,7 @@ header = "options/smt_options.h"
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
