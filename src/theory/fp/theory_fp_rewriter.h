@@ -50,7 +50,7 @@ class TheoryFpRewriter : public TheoryRewriter
   TrustNode expandDefinition(Node node);
 
  protected:
-   /** TODO: document (projects issue #265) */
+  /** TODO: document (projects issue #265) */
   RewriteFunction d_preRewriteTable[kind::LAST_KIND];
   RewriteFunction d_postRewriteTable[kind::LAST_KIND];
   RewriteFunction d_constantFoldTable[kind::LAST_KIND];
