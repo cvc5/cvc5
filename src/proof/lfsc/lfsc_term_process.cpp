@@ -265,11 +265,11 @@ Node LfscTermProcessor::runConvert(Node n)
     // indexed operators?
     
   }
-  else if (k==EMPTYSET)
+  else if (k==EMPTYSET || k==UNIVERSE_SET)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
-    Node ef = getSymbolInternal(k, etype, "emptyset");
+    Node ef = getSymbolInternal(k, etype, k==EMPTYSET ? "emptyset" : "univset");
     return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
