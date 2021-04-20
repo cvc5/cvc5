@@ -46,7 +46,7 @@ class TheoryFpRewriter : public TheoryRewriter
     // often this will suffice
     return postRewrite(equality).d_node;
   }
-  /** expand definitions in node */
+  /** Expand definitions in node. */
   TrustNode expandDefinition(Node node);
 
  protected:
@@ -54,7 +54,7 @@ class TheoryFpRewriter : public TheoryRewriter
   RewriteFunction d_preRewriteTable[kind::LAST_KIND];
   RewriteFunction d_postRewriteTable[kind::LAST_KIND];
   RewriteFunction d_constantFoldTable[kind::LAST_KIND];
-  /** the expand definitions module */
+  /** The expand definitions module. */
   FpExpandDefs d_fpExpDef;
 }; /* class TheoryFpRewriter */
 
