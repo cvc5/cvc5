@@ -91,22 +91,25 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::unsatCores.set(true);
     }
   }
-  if (options::unsatCoresNew()
-      && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
-      && ((options::produceProofs() && options::produceProofs.wasSetByUser())
-          || (options::checkProofs() && options::checkProofs.wasSetByUser())
-          || (options::dumpProofs() && options::dumpProofs.wasSetByUser())))
-  {
-    AlwaysAssert(false)
-        << "Can't simultaneously produce proofs and not have the new "
-           "unsat cores in full proof mode .\n";
-  }
   if (options::checkProofs() || options::unsatCoresNew()
       || options::dumpProofs())
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
     options::produceProofs.set(true);
   }
+
+  if (options::unsatCoresNew() && options::produceProofs())
+  {
+    if (options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
+        && options::unsatCoresMode.wasSetByUser())
+    {
+      Notice() << "Forcing full-proof mode unsat cores mode since proofs are "
+                  "being produced."
+               << std::endl;
+      options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
+    }
+  }
+
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;

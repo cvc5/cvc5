@@ -59,11 +59,11 @@ class ProofPostproccess;
  *
  *   - full-proof mode: proofs for the whole solver as normal
  *
- *   Note that if --produce-proofs/--check-proofs/--dump-proofs are set by the
- *   user then an error is thrown unless the unsat core mode is full-proof.
+ *   Note that if --produce-proofs is set then full-proof mode of unsat cores is
+ *   forced.
  *
  * - If we are not producing unsat cores then the SmtEngine will have proofs as
- *   long as --produce-proofs or friends were given.
+ *   long as --produce-proofs is on.
  *
  * - If SmtEngine has been configured in a way that is incompatible with proofs
  *   then unsat core production will be disabled.
