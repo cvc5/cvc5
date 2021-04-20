@@ -2467,15 +2467,37 @@ Java_cvc5_Solver_getInterpolant__JJJJ(JNIEnv* env,
  * Signature: (JJJ)Z
  */
 JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getAbduct__JJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong conjPointer, jlong outputPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* conj = (Term*)conjPointer;
+  Term* output = (Term*)outputPointer;
+  return (jboolean)solver->getAbduct(*conj, *output);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    getAbduct
  * Signature: (JJJJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getAbduct__JJJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong, jlong);
+JNIEXPORT jboolean JNICALL
+Java_cvc5_Solver_getAbduct__JJJJ(JNIEnv* env,
+                                 jobject,
+                                 jlong pointer,
+                                 jlong conjPointer,
+                                 jlong grammarPointer,
+                                 jlong outputPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* conj = (Term*)conjPointer;
+  Grammar* grammar = (Grammar*)grammarPointer;
+  Term* output = (Term*)outputPointer;
+  return (jboolean)solver->getAbduct(*conj, *grammar, *output);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
