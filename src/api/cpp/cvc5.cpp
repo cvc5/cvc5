@@ -1871,6 +1871,9 @@ size_t Op::getNumIndices() const
     case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: size = 2; break;
     case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
+    case TUPLE_PROJECT:
+      size = d_node->getConst<TupleProjectOp>().getIndices().size();
+      break;
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
 
