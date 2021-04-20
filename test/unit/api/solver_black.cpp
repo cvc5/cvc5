@@ -1295,12 +1295,13 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Sort boolean = d_solver.getBooleanSort();
   Term truen = d_solver.mkBoolean(true);
   Term start = d_solver.mkVar(boolean);
+  Term output2;
   Grammar g = d_solver.mkSygusGrammar({}, {start});
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the interpolation api, while the resulting abduct is the output
-  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  ASSERT_TRUE(d_solver.getAbduct(conj, output2));
   // abduct must be true
-  ASSERT_EQ(output, truen);
+  ASSERT_EQ(output2, truen);
 }
 
 TEST_F(TestApiBlackSolver, getInterpolant)
