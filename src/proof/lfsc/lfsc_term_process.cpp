@@ -258,6 +258,12 @@ Node LfscTermProcessor::runConvert(Node n)
     // indexed operators?
     
   }
+  else if (k==EMPTYSET)
+  {
+    TypeNode etype = nm->mkFunctionType(d_sortType, tn);
+    Node ef = getSymbolInternal(k, etype, "emptyset");
+    return nm->mkNode(ef, typeAsNode(tn));
+  }
   else if (n.isClosure())
   {
     // (forall ((x1 T1) ... (xn Tk)) P) is
