@@ -20,7 +20,9 @@
 #include "expr/type_checker.h"
 #include "expr/type_checker_util.h"
 
+// clang-format off
 ${typechecker_includes}
+// clang-format on
 
 namespace cvc5 {
 namespace expr {
@@ -30,20 +32,23 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
   TypeNode typeNode;
 
   // Infer the type
-  switch(n.getKind()) {
-  case kind::VARIABLE:
-  case kind::SKOLEM:
-    typeNode = nodeManager->getAttribute(n, TypeAttr());
-    break;
-  case kind::BUILTIN:
-    typeNode = nodeManager->builtinOperatorType();
-    break;
+  switch (n.getKind())
+  {
+    case kind::VARIABLE:
+    case kind::SKOLEM:
+      typeNode = nodeManager->getAttribute(n, TypeAttr());
+      break;
+    case kind::BUILTIN:
+      typeNode = nodeManager->builtinOperatorType();
+      break;
 
+      // clang-format off
 ${typerules}
+      // clang-format on
 
-  default:
-    Debug("getType") << "FAILURE" << std::endl;
-    Unhandled() << " " << n.getKind();
+    default:
+      Debug("getType") << "FAILURE" << std::endl;
+      Unhandled() << " " << n.getKind();
   }
 
   nodeManager->setAttribute(n, TypeAttr(), typeNode);
@@ -60,8 +65,11 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
          || n.getMetaKind() == kind::metakind::PARAMETERIZED
          || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
-  switch(n.getKind()) {
+  switch (n.getKind())
+  {
+    // clang-format off
 ${construles}
+      // clang-format on
 
     default:;
   }

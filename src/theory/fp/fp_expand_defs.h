@@ -48,6 +48,7 @@ class FpExpandDefs
   TrustNode expandDefinition(Node node);
 
  private:
+  /** TODO: document (projects issue #265) */
   Node minUF(Node);
   Node maxUF(Node);
   Node toUBVUF(Node);
