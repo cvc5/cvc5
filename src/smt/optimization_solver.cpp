@@ -242,13 +242,14 @@ OptResult OptimizationSolver::optimizeParetoNaive()
   }
   d_optCheckerForPareto->push();
   // a vector of exprs stating no objective is worse
-  Node noWorseObj;
+  std::vector<Node> noWorseObj;
   // a vector of exprs stating some objective is better
-  Node someObjBetter;
+  std::vector<Node> someObjBetter;
+
   while (satResult.isSat() == Result::Sat::SAT)
   {
-    noWorseObj = nm->mkConst(true);
-    someObjBetter = nm->mkConst(false);
+    noWorseObj.clear();
+    someObjBetter.clear();
     for (size_t i = 0; i < d_objectives.size(); ++i)
     {
       std::pair<Kind, Kind> op = OMTOptimizer::getLTLEOperator(d_objectives[i]);
@@ -259,45 +260,44 @@ OptResult OptimizationSolver::optimizeParetoNaive()
         case ObjectiveType::OBJECTIVE_MAXIMIZE:
         {
           // value_i <= obj_i
-          noWorseObj = nm->mkNode(
-              kind::AND,
-              noWorseObj,
+          noWorseObj.push_back(
               nm->mkNode(leq, d_optValues[i], d_objectives[i].d_node));
           // value_i < obj_i
-          someObjBetter = nm->mkNode(
-              Kind::OR,
-              someObjBetter,
+          someObjBetter.push_back(
               nm->mkNode(lt, d_optValues[i], d_objectives[i].d_node));
           break;
         }
         case ObjectiveType::OBJECTIVE_MINIMIZE:
         {
           // obj_i <= value_i
-          noWorseObj = nm->mkNode(
-              kind::AND,
-              noWorseObj,
+          noWorseObj.push_back(
               nm->mkNode(leq, d_objectives[i].d_node, d_optValues[i]));
           // obj_i < value_i
-          someObjBetter = nm->mkNode(
-              kind::OR,
-              someObjBetter,
+          someObjBetter.push_back(
               nm->mkNode(lt, d_objectives[i].d_node, d_optValues[i]));
           break;
         }
         default: Unreachable(); break;
       }
     }
-    d_optCheckerForPareto->assertFormula(noWorseObj);
-    d_optCheckerForPareto->assertFormula(someObjBetter);
+    d_optCheckerForPareto->assertFormula(nm->mkAnd(noWorseObj));
+    d_optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
     satResult = d_optCheckerForPareto->checkSat();
-    // retrieve the partial results
-    if (satResult.isSat() == Result::Sat::SAT)
+
+    switch (satResult.isSat())
     {
-      for (size_t i = 0; i < d_objectives.size(); ++i)
-      {
-        d_optValues[i] =
-            d_optCheckerForPareto->getValue(d_objectives[i].d_node);
-      }
+      case Result::Sat::UNSAT: break;
+      case Result::Sat::SAT_UNKNOWN:
+        d_optCheckerForPareto.reset();
+        return OptResult::OPT_UNKNOWN;
+      case Result::Sat::SAT:
+        for (size_t i = 0; i < d_objectives.size(); ++i)
+        {
+          d_optValues[i] =
+              d_optCheckerForPareto->getValue(d_objectives[i].d_node);
+        }
+        break;
+      default: Unreachable(); break;
     }
   }
   d_optCheckerForPareto->pop();
@@ -305,8 +305,7 @@ OptResult OptimizationSolver::optimizeParetoNaive()
   // before we return!
   // please do assert that some objective could be better
   // in order to break the ties for the next run!!!
-  d_optCheckerForPareto->assertFormula(someObjBetter);
-  // Assert(d_optCheckerForPareto->checkSat().isSat() == Result::SAT);
+  d_optCheckerForPareto->assertFormula(nm->mkOr(someObjBetter));
 
   // this return should be a yield...
   return OptResult::OPT_OPTIMAL;

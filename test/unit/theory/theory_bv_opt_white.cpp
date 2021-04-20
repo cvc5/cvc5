@@ -151,7 +151,6 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
       kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
 
   // y <= x
-  // I got wrong answer when changing ULE to SLE, what's happening???!
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
   // Box optimization
@@ -202,52 +201,40 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
 TEST_F(TestTheoryWhiteBVOpt, multigoalPareto)
 {
   d_smtEngine->resetAssertions();
-  TypeNode bv4ty(d_nodeManager->integerType());
+  TypeNode bv4ty(d_nodeManager->mkBitVectorType(4u));
   Node a = d_nodeManager->mkVar(bv4ty);
   Node b = d_nodeManager->mkVar(bv4ty);
 
-  Node bv1 = d_nodeManager->mkConst(Rational(1));
-  Node bv2 = d_nodeManager->mkConst(Rational(2));
-  Node bv3 = d_nodeManager->mkConst(Rational(3));
+  Node bv1 = d_nodeManager->mkConst(BitVector(4u, 1u));
+  Node bv2 = d_nodeManager->mkConst(BitVector(4u, 2u));
+  Node bv3 = d_nodeManager->mkConst(BitVector(4u, 3u));
 
   std::vector<Node> stmts = {
-    // (and (= a 1) (= b 1))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv1),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv1)
-    ), 
-    // (and (= a 2) (= b 1))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv2),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv1)
-    ), 
-    // (and (= a 1) (= b 2))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv1),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv2)
-    ), 
-    // (and (= a 2) (= b 2))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv2),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv2)
-    ), 
-    // (and (= a 3) (= b 1))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv3),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv1)
-    ), 
-    // (and (= a 1) (= b 3))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv1),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv3)
-    ),
-
-    // // (and (= a 3) (= b 3))
-    // d_nodeManager->mkNode(kind::AND, 
-    //   d_nodeManager->mkNode(kind::EQUAL, a, bv3),
-    //   d_nodeManager->mkNode(kind::EQUAL, b, bv3)
-    // )
-  }; 
+      // (and (= a 1) (= b 1))
+      d_nodeManager->mkNode(kind::AND,
+                            d_nodeManager->mkNode(kind::EQUAL, a, bv1),
+                            d_nodeManager->mkNode(kind::EQUAL, b, bv1)),
+      // (and (= a 2) (= b 1))
+      d_nodeManager->mkNode(kind::AND,
+                            d_nodeManager->mkNode(kind::EQUAL, a, bv2),
+                            d_nodeManager->mkNode(kind::EQUAL, b, bv1)),
+      // (and (= a 1) (= b 2))
+      d_nodeManager->mkNode(kind::AND,
+                            d_nodeManager->mkNode(kind::EQUAL, a, bv1),
+                            d_nodeManager->mkNode(kind::EQUAL, b, bv2)),
+      // (and (= a 2) (= b 2))
+      d_nodeManager->mkNode(kind::AND,
+                            d_nodeManager->mkNode(kind::EQUAL, a, bv2),
+                            d_nodeManager->mkNode(kind::EQUAL, b, bv2)),
+      // (and (= a 3) (= b 1))
+      d_nodeManager->mkNode(kind::AND,
+                            d_nodeManager->mkNode(kind::EQUAL, a, bv3),
+                            d_nodeManager->mkNode(kind::EQUAL, b, bv1)),
+      // (and (= a 1) (= b 3))
+      d_nodeManager->mkNode(kind::AND,
+                            d_nodeManager->mkNode(kind::EQUAL, a, bv1),
+                            d_nodeManager->mkNode(kind::EQUAL, b, bv3)),
+  };
   /*
   (assert (or
     (and (= a 1) (= b 1))
@@ -258,49 +245,65 @@ TEST_F(TestTheoryWhiteBVOpt, multigoalPareto)
     (and (= a 1) (= b 3))
   ))
   */
-  Node expr = d_nodeManager->mkConst(false);
-  for (Node &s : stmts) {
-    expr = d_nodeManager->mkNode(kind::OR, expr, s);
-  }
-  d_smtEngine->assertFormula(expr);
+  d_smtEngine->assertFormula(d_nodeManager->mkOr(stmts));
 
   /*
     (maximize a)
     (maximize b)
    */
-  OptimizationSolver optSolver(d_smtEngine.get(), ObjectiveOrder::OBJORDER_PARETO);
+  OptimizationSolver optSolver(d_smtEngine.get(),
+                               ObjectiveOrder::OBJORDER_PARETO);
   optSolver.pushObj(a, ObjectiveType::OBJECTIVE_MAXIMIZE);
-  optSolver.pushObj(b, ObjectiveType::OBJECTIVE_MINIMIZE);
+  optSolver.pushObj(b, ObjectiveType::OBJECTIVE_MAXIMIZE);
 
-  OptResult r; 
+  OptResult r;
+
+  std::set<std::pair<uint32_t, uint32_t>> possibleResults = {
+      {1, 3}, {2, 2}, {3, 1}};
 
   r = optSolver.checkOpt();
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
-  std::vector<Node> results = optSolver.objectiveGetValues(); 
-  for (auto &rn : results) {
-    std::cout << rn.getConst<Rational>() << " ";
+  std::vector<Node> results = optSolver.objectiveGetValues();
+  std::pair<uint32_t, uint32_t> res = {
+      results[0].getConst<BitVector>().toInteger().toUnsignedInt(),
+      results[1].getConst<BitVector>().toInteger().toUnsignedInt()};
+  ASSERT_EQ(possibleResults.count(res), 1);
+  possibleResults.erase(res);
+  for (auto& rn : results)
+  {
+    std::cout << rn.getConst<BitVector>().toInteger().toUnsignedInt() << " ";
   }
   std::cout << std::endl;
 
-  // r = optSolver.checkOpt();
-  // ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
-  // results = optSolver.objectiveGetValues(); 
-  // for (auto &rn : results) {
-  //   std::cout << rn.getConst<Rational>() << " ";
-  // }
-  // std::cout << std::endl;
-  
-  // r = optSolver.checkOpt();
-  // ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
-  // results = optSolver.objectiveGetValues(); 
-  // for (auto &rn : results) {
-  //   std::cout << rn.getConst<Rational>() << " ";
-  // }
-  // std::cout << std::endl;
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  results = optSolver.objectiveGetValues();
+  res = {results[0].getConst<BitVector>().toInteger().toUnsignedInt(),
+         results[1].getConst<BitVector>().toInteger().toUnsignedInt()};
+  ASSERT_EQ(possibleResults.count(res), 1);
+  possibleResults.erase(res);
+  for (auto& rn : results)
+  {
+    std::cout << rn.getConst<BitVector>().toInteger().toUnsignedInt() << " ";
+  }
+  std::cout << std::endl;
 
-  // r = optSolver.checkOpt();
-  // ASSERT_EQ(r, OptResult::OPT_UNSAT);
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  results = optSolver.objectiveGetValues();
+  res = {results[0].getConst<BitVector>().toInteger().toUnsignedInt(),
+         results[1].getConst<BitVector>().toInteger().toUnsignedInt()};
+  ASSERT_EQ(possibleResults.count(res), 1);
+  possibleResults.erase(res);
+  for (auto& rn : results)
+  {
+    std::cout << rn.getConst<BitVector>().toInteger().toUnsignedInt() << " ";
+  }
+  std::cout << std::endl;
 
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptResult::OPT_UNSAT);
+  ASSERT_EQ(possibleResults.size(), 0);
 }
 
 }  // namespace test
