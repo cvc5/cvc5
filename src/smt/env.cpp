@@ -31,7 +31,7 @@ using namespace cvc5::smt;
 
 namespace cvc5 {
 
-Env::Env(NodeManager* nm)
+Env::Env(NodeManager* nm, Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
@@ -40,21 +40,17 @@ Env::Env(NodeManager* nm)
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
-      d_resourceManager(std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options))
+      d_options(),
+      d_resourceManager()
 {
+  if (opts != nullptr)
+  {
+    d_options.copyValues(*opts);
+  }
+  d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
 Env::~Env() {}
-
-void Env::setOptions(Options* optr)
-{
-  if (optr != nullptr)
-  {
-    // if we provided a set of options, copy their values to the options
-    // owned by this Env.
-    d_options.copyValues(*optr);
-  }
-}
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)
 {

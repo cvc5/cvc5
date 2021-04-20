@@ -83,7 +83,7 @@ using namespace cvc5::theory;
 namespace cvc5 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
-    : d_env(new Env(nm)),
+    : d_env(new Env(nm, optr)),
       d_state(new SmtEngineState(getContext(), getUserContext(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
@@ -120,9 +120,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // On the other hand, this hack breaks use cases where multiple SmtEngine
   // objects are created by the user.
   d_scope.reset(new SmtScope(this));
-  // Set options in the environment, which makes a deep copy of optr if
-  // non-null. This may throw an options exception.
-  d_env->setOptions(optr);
   // set the options manager
   d_optm.reset(new smt::OptionsManager(&getOptions()));
   // listen to node manager events

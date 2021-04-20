@@ -93,38 +93,29 @@ const char* toString(Resource r)
     default: return "?Resource?";
   }
 }
+std::ostream& operator<<(std::ostream& os, Resource r)
+{
+  return os << toString(r);
+}
 
 struct ResourceManager::Statistics
 {
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
   IntStat d_spendResourceCalls;
-  std::vector<IntStat> d_resourceSteps;
+  HistogramStat<theory::InferenceId> d_inferenceIdSteps;
+  HistogramStat<Resource> d_resourceSteps;
   Statistics(StatisticsRegistry& stats);
-
-  void bump(Resource r, uint64_t amount)
-  {
-    bump_impl(static_cast<std::size_t>(r), amount, d_resourceSteps);
-  }
-
- private:
-  void bump_impl(std::size_t id, uint64_t amount, std::vector<IntStat>& stats)
-  {
-    Assert(stats.size() > id);
-    stats[id] += amount;
-  }
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed(
         stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
-      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls"))
+      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
+      d_inferenceIdSteps(stats.registerHistogram<theory::InferenceId>(
+          "resource::steps::inference-id")),
+      d_resourceSteps(
+          stats.registerHistogram<Resource>("resource::steps::resource"))
 {
-  for (std::size_t id = 0; id <= resman_detail::ResourceMax; ++id)
-  {
-    Resource r = static_cast<Resource>(id);
-    d_resourceSteps.emplace_back(
-        stats.registerInt("resource::res::" + std::string(toString(r))));
-  }
 }
 
 bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)
@@ -145,6 +136,7 @@ bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)
 template <typename T, typename Weights>
 bool setWeight(const std::string& name, uint64_t weight, Weights& weights)
 {
+  using theory::toString;
   for (std::size_t i = 0; i < weights.size(); ++i)
   {
     if (name == toString(static_cast<T>(i)))
@@ -167,6 +159,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
 {
   d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
 
+  d_infidWeights.fill(1);
   d_resourceWeights.fill(1);
   for (const auto& opt :
        options[cvc5::options::resourceWeightHolder__option_t()])
@@ -175,6 +168,8 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     uint64_t weight;
     if (parseOption(opt, name, weight))
     {
+      if (setWeight<theory::InferenceId>(name, weight, d_infidWeights))
+        continue;
       if (setWeight<Resource>(name, weight, d_resourceWeights)) continue;
       throw OptionException("Did not recognize resource type " + name);
     }
@@ -225,8 +220,16 @@ void ResourceManager::spendResource(Resource r)
 {
   std::size_t i = static_cast<std::size_t>(r);
   Assert(d_resourceWeights.size() > i);
-  d_statistics->bump(r, d_resourceWeights[i]);
+  d_statistics->d_resourceSteps << r;
   spendResource(d_resourceWeights[i]);
+}
+
+void ResourceManager::spendResource(theory::InferenceId iid)
+{
+  std::size_t i = static_cast<std::size_t>(iid);
+  Assert(d_infidWeights.size() > i);
+  d_statistics->d_inferenceIdSteps << iid;
+  spendResource(d_infidWeights[i]);
 }
 
 void ResourceManager::beginCall()
