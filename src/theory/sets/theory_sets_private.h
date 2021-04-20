@@ -137,7 +137,7 @@ class TheorySetsPrivate {
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
-                       ProofNodeManager* pnm);
+                    ProofNodeManager* pnm);
 
   ~TheorySetsPrivate();
 

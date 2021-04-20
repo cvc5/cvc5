@@ -113,7 +113,9 @@ void LfscPrinter::print(std::ostream& out,
           }
           else
           {
-            preamble << "(declare " << LfscTermProcessor::getNameForUserName(dt.getName()) << " sort)" << std::endl;
+            preamble << "(declare "
+                     << LfscTermProcessor::getNameForUserName(dt.getName())
+                     << " sort)" << std::endl;
           }
           for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
           {
@@ -129,8 +131,7 @@ void LfscPrinter::print(std::ostream& out,
               const DTypeSelector& arg = cons[j];
               // print selector
               Node si = d_tproc.convert(arg.getSelector());
-              preamble << "(declare " << si << " term)"
-                       << std::endl;
+              preamble << "(declare " << si << " term)" << std::endl;
             }
           }
           preamble << "; END DATATYPE " << std::endl;
@@ -149,8 +150,8 @@ void LfscPrinter::print(std::ostream& out,
       continue;
     }
     Node si = d_tproc.convert(s);
-    preamble << "(define " << si << " (var " << d_tproc.getOrAssignIndexForVar(s)
-             << " ";
+    preamble << "(define " << si << " (var "
+             << d_tproc.getOrAssignIndexForVar(s) << " ";
     printType(preamble, st);
     preamble << "))" << std::endl;
   }

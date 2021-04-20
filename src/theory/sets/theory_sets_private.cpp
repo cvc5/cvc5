@@ -39,7 +39,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc,
-                       ProofNodeManager* pnm)
+                                     ProofNodeManager* pnm)
     : d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
       d_fullCheckIncomplete(false),

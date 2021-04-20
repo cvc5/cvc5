@@ -27,12 +27,15 @@ namespace sets {
 
 TermRegistry::TermRegistry(SolverState& state,
                            InferenceManager& im,
-                           SkolemCache& skc, ProofNodeManager * pnm)
+                           SkolemCache& skc,
+                           ProofNodeManager* pnm)
     : d_im(im),
       d_skCache(skc),
       d_proxy(state.getUserContext()),
       d_proxy_to_term(state.getUserContext()),
-      d_epg(pnm ? new EagerProofGenerator(pnm, nullptr, "sets::TermRegistry::epg") : nullptr)
+      d_epg(
+          pnm ? new EagerProofGenerator(pnm, nullptr, "sets::TermRegistry::epg")
+              : nullptr)
 {
 }
 
@@ -50,7 +53,7 @@ Node TermRegistry::getProxy(Node n)
     return (*it).second;
   }
   NodeManager* nm = NodeManager::currentNM();
-    Node k = d_skCache.mkTypedSkolemCached(
+  Node k = d_skCache.mkTypedSkolemCached(
       n.getType(), n, SkolemCache::SK_PURIFY, "sp");
 
   d_proxy[n] = k;
@@ -154,9 +157,10 @@ void TermRegistry::debugPrintSet(Node s, const char* c) const
 void TermRegistry::sendSimpleLemmaInternal(Node eq, InferenceId id)
 {
   Trace("sets-lemma") << "Sets::Lemma : " << eq << " by " << id << std::endl;
-  if (d_epg.get()!=nullptr)
+  if (d_epg.get() != nullptr)
   {
-    TrustNode teq = d_epg->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
+    TrustNode teq =
+        d_epg->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
     d_im.trustedLemma(teq, id);
   }
   else

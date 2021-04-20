@@ -22,10 +22,10 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
-#include "theory/eager_proof_generator.h"
 
 namespace cvc5 {
 namespace theory {
@@ -40,7 +40,10 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc, ProofNodeManager * pnm);
+  TermRegistry(SolverState& state,
+               InferenceManager& im,
+               SkolemCache& skc,
+               ProofNodeManager* pnm);
   /** Get type constraint skolem
    *
    * The sets theory solver outputs equality lemmas of the form:

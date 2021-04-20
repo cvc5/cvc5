@@ -84,7 +84,7 @@ Node LfscTermProcessor::runConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  else if (k == SKOLEM || k==BOOLEAN_TERM_VARIABLE)
+  else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -143,17 +143,16 @@ Node LfscTermProcessor::runConvert(Node n)
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
-  else if (k == CONST_RATIONAL || k==CAST_TO_REAL)
+  else if (k == CONST_RATIONAL || k == CAST_TO_REAL)
   {
-    if (k==CAST_TO_REAL)
+    if (k == CAST_TO_REAL)
     {
       // already converted
       do
       {
-        Assert (n[0].getKind()==APPLY_UF);
+        Assert(n[0].getKind() == APPLY_UF);
         n = n[0];
-      }
-      while (n.getKind()!=CONST_RATIONAL);
+      } while (n.getKind() != CONST_RATIONAL);
     }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
     Node rconstf;
@@ -263,13 +262,13 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == BITVECTOR_EXTRACT)
   {
     // indexed operators?
-    
   }
-  else if (k==EMPTYSET || k==UNIVERSE_SET)
+  else if (k == EMPTYSET || k == UNIVERSE_SET)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
-    Node ef = getSymbolInternal(k, etype, k==EMPTYSET ? "emptyset" : "univset");
+    Node ef =
+        getSymbolInternal(k, etype, k == EMPTYSET ? "emptyset" : "univset");
     return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())

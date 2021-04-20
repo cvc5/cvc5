@@ -37,9 +37,9 @@ Node SkolemCache::mkTypedSkolemCached(
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     Node sk;
-    if (id==SkolemId::SK_PURIFY)
+    if (id == SkolemId::SK_PURIFY)
     {
-      Assert (a.getType()==tn);
+      Assert(a.getType() == tn);
       sk = sm->mkPurifySkolem(a, c);
     }
     else
