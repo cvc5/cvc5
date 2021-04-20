@@ -26,7 +26,9 @@
 #include "expr/type_node.h"
 #include "options/language.h"
 
+// clang-format off
 ${type_properties_includes}
+// clang-format on
 
 namespace cvc5 {
 namespace kind {
@@ -41,7 +43,9 @@ inline Cardinality getCardinality(TypeConstant tc)
 {
   switch (tc)
   {
+    // clang-format off
 ${type_constant_cardinalities}
+      // clang-format on
     default: InternalError() << "No cardinality known for type constant " << tc;
   }
 } /* getCardinality(TypeConstant) */
@@ -57,7 +61,9 @@ inline Cardinality getCardinality(TypeNode typeNode) {
   switch(Kind k = typeNode.getKind()) {
   case TYPE_CONSTANT:
     return getCardinality(typeNode.getConst<TypeConstant>());
+    // clang-format off
 ${type_cardinalities}
+    // clang-format on
   default:
     InternalError() << "A theory kinds file did not provide a cardinality "
                     << "or cardinality computer for type:\n"
@@ -67,10 +73,12 @@ ${type_cardinalities}
 
 inline bool isWellFounded(TypeConstant tc) {
   switch(tc) {
+    // clang-format off
 ${type_constant_wellfoundednesses}
-default:
-  InternalError() << "No well-foundedness status known for type constant: "
-                  << tc;
+    // clang-format on
+    default:
+      InternalError() << "No well-foundedness status known for type constant: "
+                      << tc;
   }
 }/* isWellFounded(TypeConstant) */
 
@@ -79,7 +87,9 @@ inline bool isWellFounded(TypeNode typeNode) {
   switch(Kind k = typeNode.getKind()) {
   case TYPE_CONSTANT:
     return isWellFounded(typeNode.getConst<TypeConstant>());
+    // clang-format off
 ${type_wellfoundednesses}
+    // clang-format on
   default:
     InternalError() << "A theory kinds file did not provide a well-foundedness "
                     << "or well-foundedness computer for type:\n"
@@ -91,7 +101,9 @@ inline Node mkGroundTerm(TypeConstant tc)
 {
   switch (tc)
   {
+    // clang-format off
 ${type_constant_groundterms}
+      // clang-format on
     default:
       InternalError() << "No ground term known for type constant: " << tc;
   }
@@ -104,7 +116,9 @@ inline Node mkGroundTerm(TypeNode typeNode)
   {
     case TYPE_CONSTANT:
       return mkGroundTerm(typeNode.getConst<TypeConstant>());
+      // clang-format off
 ${type_groundterms}
+      // clang-format on
     default:
       InternalError() << "A theory kinds file did not provide a ground term "
                       << "or ground term computer for type:\n"

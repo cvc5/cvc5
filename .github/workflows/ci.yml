@@ -23,7 +23,7 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --editline --poly --symfpu
+            config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -31,7 +31,7 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: production-clang
-            config: production
+            config: production --auto-download
             cache-key: productionclang
             check-examples: true
             env: CC=clang CXX=clang++
@@ -40,14 +40,14 @@ jobs:
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: production-dbg
-            config: production --assertions --tracing --unit-testing --symfpu --editline
+            config: production --auto-download --assertions --tracing --unit-testing --editline
             cache-key: dbg
             os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores
 
           - name: production-dbg-clang
-            config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --poly
+            config: production --auto-download --assertions --tracing --unit-testing --cln --gpl
             cache-key: dbgclang
             env: CC=clang CXX=clang++
             os: ubuntu-latest
