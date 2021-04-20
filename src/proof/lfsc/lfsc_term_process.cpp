@@ -512,6 +512,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   return cur;
 }
 
+std::string LfscTermProcessor::getNameForUserName(const std::string& name)
+{
+  std::stringstream ss;
+  ss << "cvc." << name;
+  return ss.str();
+}
+
 bool LfscTermProcessor::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
