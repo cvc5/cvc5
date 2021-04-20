@@ -10,7 +10,7 @@ header = "options/main_options.h"
   type       = "bool"
   read_only  = true
   alternate  = false
-  help       = "identify this CVC4 binary"
+  help       = "identify this cvc5 binary"
 
 [[option]]
   name       = "help"
@@ -28,7 +28,7 @@ header = "options/main_options.h"
   type       = "void"
   handler    = "showConfiguration"
   read_only  = true
-  help       = "show CVC4 static configuration"
+  help       = "show cvc5 static configuration"
 
 [[option]]
   category   = "common"
@@ -36,7 +36,7 @@ header = "options/main_options.h"
   type       = "void"
   handler    = "copyright"
   read_only  = true
-  help       = "show CVC4 copyright information"
+  help       = "show cvc5 copyright information"
 
 [[option]]
   name       = "seed"

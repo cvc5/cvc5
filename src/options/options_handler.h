@@ -86,7 +86,7 @@ public:
    */
   void setProduceAssertions(std::string option, bool value);
 
-  void statsEnabledBuild(std::string option, bool value);
+  void setStats(const std::string& option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);
   void setResourceWeight(std::string option, std::string optarg);
@@ -128,7 +128,7 @@ void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
     && !defined(CVC5_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
-     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
+     << "' requires cvc5 to be built with CryptoMiniSat or CaDiCaL or Kissat";
   throw OptionException(ss.str());
 #endif
 }

@@ -17,3 +17,4 @@ cvc5 API Documentation
 
    cpp/cpp
    references
+   examples/examples

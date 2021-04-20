@@ -32,7 +32,9 @@ const char* toString(cvc5::Kind k)
     /* special cases */
     case UNDEFINED_KIND: return "UNDEFINED_KIND";
     case NULL_EXPR: return "NULL";
+      // clang-format off
     ${kind_printers}
+      // clang-format on
     case LAST_KIND: return "LAST_KIND";
     default: return "?";
   }
@@ -62,36 +64,38 @@ bool isAssociative(::cvc5::Kind k)
   }
 }
 
-std::string kindToString(::cvc5::Kind k)
-{
-  std::stringstream ss;
-  ss << k;
-  return ss.str();
-}
+std::string kindToString(::cvc5::Kind k) { return toString(k); }
 
 }  // namespace kind
 
-std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
-  switch(typeConstant) {
-${type_constant_descriptions}
-  default:
-    out << "UNKNOWN_TYPE_CONSTANT";
-    break;
+const char* toString(TypeConstant tc)
+{
+  switch (tc)
+  {
+    // clang-format off
+    ${type_constant_descriptions}
+      // clang-format on
+    default: return "UNKNOWN_TYPE_CONSTANT";
   }
-  return out;
+}
+std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant)
+{
+  return out << toString(typeConstant);
 }
 
 namespace theory {
 
 TheoryId kindToTheoryId(::cvc5::Kind k)
 {
-  switch(k) {
-  case kind::UNDEFINED_KIND:
-  case kind::NULL_EXPR:
-    break;
+  switch (k)
+  {
+    case kind::UNDEFINED_KIND:
+    case kind::NULL_EXPR:
+      break;
+      // clang-format off
 ${kind_to_theory_id}
-  case kind::LAST_KIND:
-    break;
+      // clang-format on
+    case kind::LAST_KIND: break;
   }
   throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }
@@ -100,7 +104,9 @@ TheoryId typeConstantToTheoryId(::cvc5::TypeConstant typeConstant)
 {
   switch (typeConstant)
   {
+    // clang-format off
 ${type_constant_to_theory_id}
+      // clang-format on
     case LAST_TYPE: break;
   }
   throw IllegalArgumentException(

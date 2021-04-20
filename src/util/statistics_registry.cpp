@@ -97,7 +97,7 @@ void StatisticsRegistry::printSafe(int fd) const
       safe_print(fd, s.first);
       safe_print(fd, " = ");
       s.second->printSafe(fd);
-      safe_print(fd, '\n');
+      safe_print(fd, "\n");
     }
   }
 }

@@ -23,7 +23,7 @@ options {
   // defaultErrorHandler = false;
 
   // Only lookahead of <= k requested (disable for LL* parsing)
-  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // Note that cvc5's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in cvc_input.cpp !
   k = 3;
 }/* options */
@@ -551,11 +551,10 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt/command.h"
-#include "util/rational.h"
 
 namespace cvc5 {
   class Expr;
-}/* CVC4 namespace */
+}/* cvc5 namespace */
 
 }/* @parser::includes */
 
@@ -633,16 +632,16 @@ parseCommand returns [cvc5::Command* cmd_return = NULL]
     { std::string s = AntlrInput::tokenText($IDENTIFIER);
     if(s == "benchmark") {
         PARSER_STATE->parseError(
-            "In CVC4 presentation language mode, but SMT-LIBv1 format "
+            "In cvc5 presentation language mode, but SMT-LIBv1 format "
             "detected, which is not supported anymore.");
       } else if(s == "set" || s == "get" || s == "declare" ||
                 s == "define" || s == "assert") {
         PARSER_STATE->parseError(
-            "In CVC4 presentation language mode, but SMT-LIB format detected. "
+            "In cvc5 presentation language mode, but SMT-LIB format detected. "
             "Use --lang smt for SMT-LIB support.");
       } else {
         PARSER_STATE->parseError(
-            "A CVC4 presentation language command cannot begin with a "
+            "A cvc5 presentation language command cannot begin with a "
             "parenthesis; expected command name.");
       }
     }
@@ -798,24 +797,24 @@ mainCommand[std::unique_ptr<cvc5::Command>* cmd]
   | DBG_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Debug.on(s); Trace.on(s); }
-    | { CVC4Message() << "Please specify what to debug." << std::endl; }
+    | { CVC5Message() << "Please specify what to debug." << std::endl; }
     )
 
   | TRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.on(s); }
-    | { CVC4Message() << "Please specify something to trace." << std::endl; }
+    | { CVC5Message() << "Please specify something to trace." << std::endl; }
     )
   | UNTRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.off(s); }
-    | { CVC4Message() << "Please specify something to untrace." << std::endl; }
+    | { CVC5Message() << "Please specify something to untrace." << std::endl; }
     )
 
   | HELP_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-      { CVC4Message() << "No help available for `" << s << "'." << std::endl; }
-  |   { CVC4Message() << "Please use --help at the command line for help."
+      { CVC5Message() << "No help available for `" << s << "'." << std::endl; }
+  |   { CVC5Message() << "Please use --help at the command line for help."
                 << std::endl; }
             )
 
@@ -1104,7 +1103,7 @@ declareVariables[std::unique_ptr<cvc5::Command>* cmd, cvc5::api::Sort& t,
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
               std::stringstream ss;
-              ss << language::SetLanguage(language::output::LANG_CVC4)
+              ss << language::SetLanguage(language::output::LANG_CVC)
                  << "incompatible type for `" << *i << "':" << std::endl
                  << "  old type: " << oldType << std::endl
                  << "  new type: " << t << std::endl;
@@ -1321,12 +1320,6 @@ restrictedTypePossiblyFunctionLHS[cvc5::api::Sort& t,
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
     }
 
-    /* subrange types */
-  | LBRACKET bound DOTDOT bound RBRACKET
-    {
-      PARSER_STATE->unimplementedFeature("subrange typing not supported in this release");
-    }
-
     /* tuple types / old-style function types */
   | LBRACKET ( type[t,check] { types.push_back(t); }
     ( COMMA type[t,check] { types.push_back(t); } )* )? RBRACKET
@@ -1379,11 +1372,6 @@ parameterization[cvc5::parser::DeclarationCheck check,
     ( COMMA restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); } )* RBRACKET
   ;
 
-bound
-  : UNDERSCORE
-  | integer
-;
-
 typeLetDecl[cvc5::parser::DeclarationCheck check]
 @init {
   api::Sort t;
@@ -1394,7 +1382,7 @@ typeLetDecl[cvc5::parser::DeclarationCheck check]
   ;
 
 /**
- * Matches a CVC4 expression.  Formulas and terms are not really
+ * Matches a cvc5 expression.  Formulas and terms are not really
  * distinguished during parsing; please ignore the naming of the
  * grammar rules.
  *
@@ -1526,7 +1514,7 @@ letDecl
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
     {
-      Debug("parser") << language::SetLanguage(language::output::LANG_CVC4)
+      Debug("parser") << language::SetLanguage(language::output::LANG_CVC)
                       << e.getSort() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
@@ -2191,16 +2179,10 @@ simpleTerm[cvc5::api::Term& f]
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
   | DECIMAL_LITERAL {
-      Rational r = AntlrInput::tokenToRational($DECIMAL_LITERAL);
-      std::stringstream strRat;
-      strRat << r;
-      f = SOLVER->mkReal(strRat.str());
+      f = SOLVER->mkReal(AntlrInput::tokenText($DECIMAL_LITERAL));
     }
   | INTEGER_LITERAL {
-      Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
-      std::stringstream strRat;
-      strRat << r;
-      f = SOLVER->mkInteger(strRat.str());
+      f = SOLVER->mkInteger(AntlrInput::tokenText($INTEGER_LITERAL));
     }
     /* bitvector literals */
   | HEX_LITERAL
@@ -2373,16 +2355,6 @@ IDENTIFIER : (ALPHA | '_') (ALPHA | DIGIT | '_' | '\'' | '\\' | '?' | '$' | '~')
 numeral returns [unsigned k = 0]
   : INTEGER_LITERAL
     { $k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL); }
-  ;
-
-/**
- * Similar to numeral but for arbitrary-precision, signed integer.
- */
-integer returns [cvc5::Rational k = 0]
-  : INTEGER_LITERAL
-    { $k = AntlrInput::tokenToInteger($INTEGER_LITERAL); }
-  | MINUS_TOK INTEGER_LITERAL
-    { $k = -AntlrInput::tokenToInteger($INTEGER_LITERAL); }
   ;
 
 /**

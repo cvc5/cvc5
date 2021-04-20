@@ -66,6 +66,7 @@
 #include "theory/theory_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "util/sexpr.h"
 #include "util/statistics_registry.h"
 
 // required for hacks related to old proofs for unsat cores
@@ -123,7 +124,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // non-null. This may throw an options exception.
   d_env->setOptions(optr);
   // set the options manager
-  d_optm.reset(new smt::OptionsManager(&getOptions(), getResourceManager()));
+  d_optm.reset(new smt::OptionsManager(&getOptions()));
   // listen to node manager events
   getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
@@ -268,7 +269,7 @@ void SmtEngine::finishInit()
       everything.lock();
       getPrinter().toStreamCmdComment(
           getOutputManager().getDumpOut(),
-          "CVC4 always dumps the most general, all-supported logic (below), as "
+          "cvc5 always dumps the most general, all-supported logic (below), as "
           "some internals might require the use of a logic more general than "
           "the input.");
       getPrinter().toStreamCmdSetBenchmarkLogic(getOutputManager().getDumpOut(),
@@ -357,8 +358,7 @@ SmtEngine::~SmtEngine()
     // destroy the environment
     d_env.reset(nullptr);
   } catch(Exception& e) {
-    Warning() << "CVC4 threw an exception during cleanup." << endl
-              << e << endl;
+    Warning() << "cvc5 threw an exception during cleanup." << endl << e << endl;
   }
 }
 
@@ -511,40 +511,30 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   return false;
 }
 
-cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
+std::string SmtEngine::getInfo(const std::string& key) const
 {
   SmtScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
   if (key == "all-statistics")
   {
-    vector<SExpr> stats;
-    for (const auto& s : d_env->getStatisticsRegistry())
-    {
-      std::stringstream ss;
-      ss << *s.second;
-      vector<SExpr> v;
-      v.push_back(s.first);
-      v.push_back(ss.str());
-      stats.push_back(v);
-    }
-    return SExpr(stats);
+    return toSExpr(d_env->getStatisticsRegistry().begin(), d_env->getStatisticsRegistry().end());
   }
   if (key == "error-behavior")
   {
-    return SExpr(SExpr::Keyword("immediate-exit"));
+    return "immediate-exit";
   }
   if (key == "name")
   {
-    return SExpr(Configuration::getName());
+    return toSExpr(Configuration::getName());
   }
   if (key == "version")
   {
-    return SExpr(Configuration::getVersionString());
+    return toSExpr(Configuration::getVersionString());
   }
   if (key == "authors")
   {
-    return SExpr(Configuration::about());
+    return toSExpr(Configuration::about());
   }
   if (key == "status")
   {
@@ -552,14 +542,14 @@ cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
     Result status = d_state->getStatus();
     switch (status.asSatisfiabilityResult().isSat())
     {
-      case Result::SAT: return SExpr(SExpr::Keyword("sat"));
-      case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
-      default: return SExpr(SExpr::Keyword("unknown"));
+      case Result::SAT: return "sat";
+      case Result::UNSAT: return "unsat";
+      default: return "unknown";
     }
   }
   if (key == "time")
   {
-    return SExpr(std::clock());
+    return toSExpr(std::clock());
   }
   if (key == "reason-unknown")
   {
@@ -568,9 +558,9 @@ cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
     {
       std::stringstream ss;
       ss << status.whyUnknown();
-      string s = ss.str();
+      std::string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
-      return SExpr(SExpr::Keyword(s));
+      return s;
     }
     else
     {
@@ -583,13 +573,11 @@ cvc5::SExpr SmtEngine::getInfo(const std::string& key) const
   {
     size_t ulevel = d_state->getNumUserLevels();
     AlwaysAssert(ulevel <= std::numeric_limits<unsigned long int>::max());
-    return SExpr(static_cast<unsigned long int>(ulevel));
+    return toSExpr(ulevel);
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
-  std::vector<std::vector<std::string>> current_options =
-      Options::current()->getOptions();
-  return SExpr::parseListOfListOfAtoms(current_options);
+  return toSExpr(Options::current()->getOptions());
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
@@ -1842,13 +1830,20 @@ void SmtEngine::interrupt()
   d_smtSolver->interrupt();
 }
 
-void SmtEngine::setResourceLimit(unsigned long units, bool cumulative)
+void SmtEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
-  getResourceManager()->setResourceLimit(units, cumulative);
+  if (cumulative)
+  {
+    d_env->d_options.set(options::cumulativeResourceLimit__option_t(), units);
+  }
+  else
+  {
+    d_env->d_options.set(options::perCallResourceLimit__option_t(), units);
+  }
 }
-void SmtEngine::setTimeLimit(unsigned long milis)
+void SmtEngine::setTimeLimit(uint64_t millis)
 {
-  getResourceManager()->setTimeLimit(milis);
+  d_env->d_options.set(options::perCallMillisecondLimit__option_t(), millis);
 }
 
 unsigned long SmtEngine::getResourceUsage() const
@@ -1869,14 +1864,6 @@ unsigned long SmtEngine::getResourceRemaining() const
 NodeManager* SmtEngine::getNodeManager() const
 {
   return d_env->getNodeManager();
-}
-
-SExpr SmtEngine::getStatistic(std::string name) const
-{
-  const auto* val = d_env->getStatisticsRegistry().get(name);
-  std::stringstream ss;
-  ss << *val;
-  return SExpr({SExpr(name), SExpr(ss.str())});
 }
 
 void SmtEngine::printStatistics(std::ostream& out) const
@@ -1958,18 +1945,17 @@ std::string SmtEngine::getOption(const std::string& key) const
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
 
-  if (key.length() >= 18 && key.compare(0, 18, "command-verbosity:") == 0)
+  if (key.find("command-verbosity:") == 0)
   {
-    map<string, Integer>::const_iterator i =
-        d_commandVerbosity.find(key.c_str() + 18);
-    if (i != d_commandVerbosity.end())
+    auto it = d_commandVerbosity.find(key.substr(std::strlen("command-verbosity:")));
+    if (it != d_commandVerbosity.end())
     {
-      return i->second.toString();
+      return std::to_string(it->second);
     }
-    i = d_commandVerbosity.find("*");
-    if (i != d_commandVerbosity.end())
+    it = d_commandVerbosity.find("*");
+    if (it != d_commandVerbosity.end())
     {
-      return i->second.toString();
+      return std::to_string(it->second);
     }
     return "2";
   }
@@ -1983,15 +1969,13 @@ std::string SmtEngine::getOption(const std::string& key) const
   {
     vector<Node> result;
     Node defaultVerbosity;
-    for (map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
-         i != d_commandVerbosity.end();
-         ++i)
+    for (const auto& verb: d_commandVerbosity)
     {
       // treat the command name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name
-      Node name = nm->mkBoundVar(i->first, nm->integerType());
-      Node value = nm->mkConst(Rational(i->second));
-      if ((*i).first == "*")
+      Node name = nm->mkBoundVar(verb.first, nm->integerType());
+      Node value = nm->mkConst(Rational(verb.second));
+      if (verb.first == "*")
       {
         // put the default at the end of the SExpr
         defaultVerbosity = nm->mkNode(Kind::SEXPR, name, value);
