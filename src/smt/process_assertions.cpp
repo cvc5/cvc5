@@ -236,11 +236,6 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
-    if (options::macrosQuant())
-    {
-      // quantifiers macro expansion
-      d_passes["quantifier-macros"]->apply(&assertions);
-    }
 
     // fmf-fun : assume admissible functions, applying preprocessing reduction
     // to FMF
