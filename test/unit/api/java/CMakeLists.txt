@@ -58,3 +58,4 @@ add_custom_target(
 
 add_dependencies(run-junit-tests build-junit-tests)
 add_dependencies(units run-junit-tests)
+add_dependencies(check run-junit-tests)
