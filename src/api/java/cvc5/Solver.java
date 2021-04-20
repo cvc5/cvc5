@@ -255,7 +255,8 @@ public class Solver implements IPointer
   public List<Sort> mkDatatypeSorts(List<DatatypeDecl> dtypedecls, Set<Sort> unresolvedSorts)
       throws CVC5ApiException
   {
-    Sort[] array = mkDatatypeSorts(dtypedecls.toArray(new DatatypeDecl[0]), unresolvedSorts.toArray(new Sort[0]));
+    Sort[] array = mkDatatypeSorts(
+        dtypedecls.toArray(new DatatypeDecl[0]), unresolvedSorts.toArray(new Sort[0]));
     return Arrays.asList(array);
   }
 
@@ -1671,7 +1672,8 @@ public class Solver implements IPointer
   public Term defineFun(Term fun, Term[] bound_vars, Term term, boolean global)
   {
     long[] boundVarPointers = Utils.getPointers(bound_vars);
-    long termPointer = defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
+    long termPointer =
+        defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
     return new Term(this, termPointer);
   }
 
