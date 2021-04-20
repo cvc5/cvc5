@@ -551,7 +551,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName)
 // clang-format off
 static const char* smtOptions[] = {
   ${options_smt}$
-  NULL};
+  nullptr};
 // clang-format on
 
 std::vector<std::string> Options::suggestSmtOptions(
