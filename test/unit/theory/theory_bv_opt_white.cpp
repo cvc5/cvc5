@@ -241,11 +241,11 @@ TEST_F(TestTheoryWhiteBVOpt, multigoalPareto)
       d_nodeManager->mkNode(kind::EQUAL, b, bv3)
     ),
 
-    // (and (= a 3) (= b 3))
-    d_nodeManager->mkNode(kind::AND, 
-      d_nodeManager->mkNode(kind::EQUAL, a, bv3),
-      d_nodeManager->mkNode(kind::EQUAL, b, bv3)
-    )
+    // // (and (= a 3) (= b 3))
+    // d_nodeManager->mkNode(kind::AND, 
+    //   d_nodeManager->mkNode(kind::EQUAL, a, bv3),
+    //   d_nodeManager->mkNode(kind::EQUAL, b, bv3)
+    // )
   }; 
   /*
   (assert (or
@@ -281,21 +281,21 @@ TEST_F(TestTheoryWhiteBVOpt, multigoalPareto)
   }
   std::cout << std::endl;
 
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
-  results = optSolver.objectiveGetValues(); 
-  for (auto &rn : results) {
-    std::cout << rn.getConst<Rational>() << " ";
-  }
-  std::cout << std::endl;
+  // r = optSolver.checkOpt();
+  // ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  // results = optSolver.objectiveGetValues(); 
+  // for (auto &rn : results) {
+  //   std::cout << rn.getConst<Rational>() << " ";
+  // }
+  // std::cout << std::endl;
   
-  r = optSolver.checkOpt();
-  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
-  results = optSolver.objectiveGetValues(); 
-  for (auto &rn : results) {
-    std::cout << rn.getConst<Rational>() << " ";
-  }
-  std::cout << std::endl;
+  // r = optSolver.checkOpt();
+  // ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  // results = optSolver.objectiveGetValues(); 
+  // for (auto &rn : results) {
+  //   std::cout << rn.getConst<Rational>() << " ";
+  // }
+  // std::cout << std::endl;
 
   // r = optSolver.checkOpt();
   // ASSERT_EQ(r, OptResult::OPT_UNSAT);
