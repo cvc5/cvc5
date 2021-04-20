@@ -89,7 +89,7 @@ class CADProofGenerator
    *   and the origin of this is constraint.
    *
    * @param var The variable for which the interval is excluded
-   * @param vm A variable mapper between CVC4 and libpoly variables
+   * @param vm A variable mapper between cvc5 and libpoly variables
    * @param p The polynomial of the constraint
    * @param a The current partial assignment
    * @param sc The sign condition of the constraint
@@ -113,7 +113,7 @@ class CADProofGenerator
    * @param i The concrete interval that is excluded
    * @param a The current partial assignment
    * @param s The sample point that is refuted for var
-   * @param vm A variable mapper between CVC4 and libpoly variables
+   * @param vm A variable mapper between cvc5 and libpoly variables
    */
   std::vector<Node> constructCell(Node var,
                                   const CACInterval& i,

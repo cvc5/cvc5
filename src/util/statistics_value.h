@@ -154,11 +154,9 @@ struct StatisticHistogramValue : StatisticBaseValue
         {
           safe_print(fd, ", ");
         }
-        safe_print(fd, "(");
         safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
         safe_print(fd, ": ");
         safe_print<uint64_t>(fd, d_hist[i]);
-        safe_print(fd, ")");
       }
     }
     safe_print(fd, " }");

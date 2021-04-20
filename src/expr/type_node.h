@@ -420,7 +420,7 @@ public:
   /** is closed enumerable type
    *
    * This returns true if this type has an enumerator that produces constants
-   * that are fully handled by CVC4's quantifier-free theory solvers. Examples
+   * that are fully handled by cvc5's quantifier-free theory solvers. Examples
    * of types that are not closed enumerable are:
    * (1) uninterpreted sorts,
    * (2) arrays,

@@ -1656,7 +1656,7 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->mkTerm(api::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1734,7 +1734,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1867,7 +1867,7 @@ void BlockModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->blockModel();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1921,7 +1921,7 @@ void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->blockModelValues(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1967,7 +1967,7 @@ void GetProofCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getSmtEngine()->getProof();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2372,7 +2372,7 @@ void GetUnsatAssumptionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getUnsatAssumptions();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2434,7 +2434,7 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2669,7 +2669,7 @@ void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setInfo(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
+  catch (api::CVC5ApiRecoverableException&)
   {
     // As per SMT-LIB spec, silently accept unknown set-info keys
     d_commandStatus = CommandSuccess::instance();
@@ -2711,7 +2711,7 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2770,7 +2770,7 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setOption(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
+  catch (api::CVC5ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
@@ -2808,7 +2808,7 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
+  catch (api::CVC5ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }

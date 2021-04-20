@@ -21,10 +21,8 @@
       || defined(__BUILDING_CVC4PARSERLIB)                                 \
       || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST)                       \
       || defined(__BUILDING_CVC4DRIVER))
-#  error A "private library" CVC4 header was included when not building the library, driver, or private unit test code.
-#endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST ||          \
-          __BUILDING_CVC4PARSERLIB || __BUILDING_CVC4PARSERLIB_UNIT_TEST || \
-          __BUILDING_CVC4DRIVER) */
+#  error A "private library" cvc5 header was included when not building the library, driver, or private unit test code.
+#endif
 
 #include "cvc4autoconfig.h"
 #include "cvc5_public.h"

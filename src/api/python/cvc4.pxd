@@ -14,7 +14,7 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "CVC4":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
         pass
 
@@ -142,6 +142,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
+        Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
@@ -283,6 +284,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isRecord() except +
         bint isArray() except +
         bint isSet() except +
+        bint isBag() except +
         bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isSortConstructor() except +
@@ -295,12 +297,17 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
         Sort getConstructorCodomainSort() except +
+        Sort getSelectorDomainSort() except +
+        Sort getSelectorCodomainSort() except +
+        Sort getTesterDomainSort() except +
+        Sort getTesterCodomainSort() except +
         size_t getFunctionArity() except +
         vector[Sort] getFunctionDomainSorts() except +
         Sort getFunctionCodomainSort() except +
         Sort getArrayIndexSort() except +
         Sort getArrayElementSort() except +
         Sort getSetElementSort() except +
+        Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
         string getUninterpretedSortName() except +
         bint isUninterpretedSortParameterized() except +

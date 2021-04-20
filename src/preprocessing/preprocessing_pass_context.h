@@ -80,6 +80,13 @@ class PreprocessingPassContext
    */
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
+  /**
+   * Add substitution to theory model.
+   * @param lhs The node replaced by node 'rhs'
+   * @param rhs The node to substitute node 'lhs'
+   */
+  void addModelSubstitution(const Node& lhs, const Node& rhs);
+
   /** The the proof node manager associated with this context, if it exists */
   ProofNodeManager* getProofNodeManager();
 

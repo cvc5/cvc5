@@ -426,7 +426,7 @@ inline void NodeValue::inc() {
     ++d_rc;
     Assert(NodeManager::currentNM() != NULL)
         << "No current NodeManager on incrementing of NodeValue: "
-           "maybe a public CVC4 interface function is missing a "
+           "maybe a public cvc5 interface function is missing a "
            "NodeManagerScope ?";
     NodeManager::currentNM()->markRefCountMaxedOut(this);
   }
@@ -439,7 +439,7 @@ inline void NodeValue::dec() {
     if(__builtin_expect( ( d_rc == 0 ), false )) {
       Assert(NodeManager::currentNM() != NULL)
           << "No current NodeManager on destruction of NodeValue: "
-             "maybe a public CVC4 interface function is missing a "
+             "maybe a public cvc5 interface function is missing a "
              "NodeManagerScope ?";
       NodeManager::currentNM()->markForDeletion(this);
     }

@@ -554,6 +554,11 @@ cdef class Solver:
         sort.csort = self.csolver.mkSetSort(elemSort.csort)
         return sort
 
+    def mkBagSort(self, Sort elemSort):
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkBagSort(elemSort.csort)
+        return sort
+
     def mkSequenceSort(self, Sort elemSort):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
@@ -1249,6 +1254,9 @@ cdef class Sort:
     def isSet(self):
         return self.csort.isSet()
 
+    def isBag(self):
+        return self.csort.isBag()
+    
     def isSequence(self):
         return self.csort.isSequence()
 
@@ -1299,6 +1307,26 @@ cdef class Sort:
         sort.csort = self.csort.getConstructorCodomainSort()
         return sort
 
+    def getSelectorDomainSort(self):
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getSelectorDomainSort()
+        return sort
+
+    def getSelectorCodomainSort(self):
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getSelectorCodomainSort()
+        return sort
+
+    def getTesterDomainSort(self):
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getTesterDomainSort()
+        return sort
+
+    def getTesterCodomainSort(self):
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getTesterCodomainSort()
+        return sort
+    
     def getFunctionArity(self):
         return self.csort.getFunctionArity()
 
@@ -1328,6 +1356,11 @@ cdef class Sort:
     def getSetElementSort(self):
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSetElementSort()
+        return sort
+
+    def getBagElementSort(self):
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getBagElementSort()
         return sort
 
     def getSequenceElementSort(self):

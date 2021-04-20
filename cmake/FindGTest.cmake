@@ -25,6 +25,7 @@ if(GTest_INCLUDE_DIR AND GTest_LIBRARIES AND GTest_MAIN_LIBRARIES)
 endif()
 
 if(NOT GTest_FOUND_SYSTEM)
+    check_auto_download("GTest" "")
     include(ExternalProject)
 
     set(GTest_VERSION "1.10.0")

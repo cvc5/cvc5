@@ -53,7 +53,7 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
   //    (singleton (singleton_op Int) 1)
   //    (as emptyset (Set Real)))
   ASSERT_THROW(d_solver.mkTerm(UNION, singletonInt, emptyReal),
-               CVC4ApiException);
+               CVC5ApiException);
   // (union
   //    (singleton (singleton_op Real) 1)
   //    (as emptyset (Set Real)))
