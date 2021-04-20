@@ -1257,8 +1257,29 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__JB(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkString__J_3I(JNIEnv* env,
                                                         jobject,
-                                                        jlong,
-                                                        jintArray);
+                                                        jlong pointer,
+                                                        jintArray jS)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jS);
+  // allocate buffer for the long array
+  jint* cS = new jint[size];
+  // copy java array to the buffer
+  env->GetIntArrayRegion(jS, 0, size, cS);
+  // copy into a vector
+  std::vector<uint32_t> s;
+  for (jint i = 0; i < size; i++)
+  {
+    s.push_back((uint32_t)cS[i]);
+  }
+  // free the buffer memory
+  delete[] cS;
+  Term* retPointer = new Term(solver->mkString(s));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
