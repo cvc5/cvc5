@@ -47,5 +47,5 @@ void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
   d_childIndex = 0;
 }
 
-}
+}  // namespace decision
 }  // namespace cvc5

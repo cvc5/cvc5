@@ -645,5 +645,5 @@ bool JustificationStrategy::isTheoryAtom(TNode n)
          && (k != EQUAL || !n[0].getType().isBoolean());
 }
 
-}
+}  // namespace decision
 }  // namespace cvc5

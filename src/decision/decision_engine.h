@@ -83,7 +83,7 @@ class DecisionEngine
   bool d_useOld;
 };
 
-}
+}  // namespace decision
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__DECISION_ENGINE_H */

@@ -85,5 +85,5 @@ JustifyInfo* JustifyStack::getOrAllocJustifyInfo(size_t i)
   return d_stack[i].get();
 }
 
-}
+}  // namespace decision
 }  // namespace cvc5

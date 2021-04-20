@@ -151,7 +151,7 @@ class JustificationStrategy
   JustifyStatistics d_stats;
 };
 
-}
+}  // namespace decision
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFICATION_STRATEGY_H */

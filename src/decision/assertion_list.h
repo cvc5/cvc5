@@ -78,7 +78,7 @@ class AssertionList
   context::CDO<size_t> d_dindex;
 };
 
-}
+}  // namespace decision
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__ASSERTION_LIST_H */

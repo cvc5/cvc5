@@ -104,5 +104,5 @@ void DecisionEngine::notifyAsserted(TNode n)
   d_jstrat->notifyAsserted(n);
 }
 
-}
+}  // namespace decision
 }  // namespace cvc5

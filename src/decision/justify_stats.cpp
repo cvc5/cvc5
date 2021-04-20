@@ -37,5 +37,5 @@ JustifyStatistics::JustifyStatistics()
 
 JustifyStatistics::~JustifyStatistics() {}
 
-}
+}  // namespace decision
 }  // namespace cvc5
