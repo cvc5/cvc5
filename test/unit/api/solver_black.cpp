@@ -1286,7 +1286,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   // Conjecture for abduction: y > 0
   Term conj = d_solver.mkTerm(GT, y, zero);
   Term output;
-  // Call the interpolation api, while the resulting abduct is the output
+  // Call the abduction api, while the resulting abduct is the output
   ASSERT_TRUE(d_solver.getAbduct(conj, output));
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
@@ -1297,9 +1297,10 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term start = d_solver.mkVar(boolean);
   Term output2;
   Grammar g = d_solver.mkSygusGrammar({}, {start});
+  Term conj2 = d_solver.mkTerm(GT, x, zero);
   ASSERT_NO_THROW(g.addRule(start, truen));
-  // Call the interpolation api, while the resulting abduct is the output
-  ASSERT_TRUE(d_solver.getAbduct(conj, g, output2));
+  // Call the abduction api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj2, g, output2));
   // abduct must be true
   ASSERT_EQ(output2, truen);
 }
