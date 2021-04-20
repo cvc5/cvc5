@@ -1147,8 +1147,8 @@ class SolverTest
       OR, f.notTerm(), d_solver.mkTerm(APPLY_UF, g, bTrue).notTerm()));
   assertTrue(d_solver.checkSat().isUnsat());
 }
-/*
-@Test void defineFunsRec()
+
+@Test void defineFunsRec() throws CVC5ApiException
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -1167,7 +1167,7 @@ class SolverTest
   Term f2 = d_solver.mkConst(funSort2, "f2");
   Term f3 = d_solver.mkConst(bvSort, "f3");
   assertDoesNotThrow(() -> 
-      d_solver.defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v2}));
+      d_solver.defineFunsRec(new Term[]{f1, f2}, new Term[][]{{b1, b11}, {b4}}, new Term[]{v1, v2}));
   assertThrows(CVC5ApiException.class, () -> d_solver.defineFunsRec(new Term[]{f1, f2}, new Term[][]{{v1, b11}, {b4}}, new Term[]{v1, v2}));
   assertThrows(CVC5ApiException.class, () -> d_solver.defineFunsRec(new Term[]{f1, f3}, new Term[][]{{b1, b11}, {b4}}, new Term[]{v1, v2}));
   assertThrows(CVC5ApiException.class, () -> d_solver.defineFunsRec(new Term[]{f1, f2}, new Term[][]{{b1}, {b4}},      new Term[]{v1, v2}));
@@ -1188,20 +1188,14 @@ class SolverTest
   Term f12 = slv.mkConst(funSort12, "f1");
   Term f22 = slv.mkConst(funSort22, "f2");
   assertDoesNotThrow(() -> 
-      slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v22}));
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f1, f22}, {{b12, b112}, {b42}}, {v12, v22}),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f12, f2}, {{b12, b112}, {b42}}, {v12, v22}),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f12, f22}, {{b1, b112}, {b42}}, {v12, v22}),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f12, f22}, {{b12, b11}, {b42}}, {v12, v22}),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f12, f22}, {{b12, b112}, {b4}}, {v12, v22}),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v1, v22}),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v2}),
+      slv.defineFunsRec(new Term[]{f12, f22}, new Term[][]{{b12, b112}, {b42}}, new Term[]{v12, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f1, f22}, new Term[][]{{b12, b112}, {b42}}, new Term[]{v12, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f12, f2}, new Term[][]{{b12, b112}, {b42}}, new Term[]{v12, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f12, f22}, new Term[][]{{b1, b112}, {b42}}, new Term[]{v12, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f12, f22}, new Term[][]{{b12, b11}, {b42}}, new Term[]{v12, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f12, f22}, new Term[][]{{b12, b112}, {b4}}, new Term[]{v12, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f12, f22}, new Term[][]{{b12, b112}, {b42}}, new Term[]{v1, v22}));
+  assertThrows(CVC5ApiException.class, () -> slv.defineFunsRec(new Term[]{f12, f22}, new Term[][]{{b12, b112}, {b42}}, new Term[]{v12, v2}));
                
 }
 

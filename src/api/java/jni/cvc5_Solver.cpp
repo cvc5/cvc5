@@ -2066,10 +2066,59 @@ Java_cvc5_Solver_defineFunRec__JJ_3JJZ(JNIEnv* env,
 JNIEXPORT void JNICALL Java_cvc5_Solver_defineFunsRec(JNIEnv* env,
                                                       jobject,
                                                       jlong pointer,
-                                                      jlongArray,
-                                                      jobjectArray,
-                                                      jlongArray,
-                                                      jboolean);
+                                                      jlongArray jFuns,
+                                                      jobjectArray jVars,
+                                                      jlongArray jTerms,
+                                                      jboolean global)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  std::vector<Term> funs;
+  std::vector<std::vector<Term>> varsMatrix;
+  std::vector<Term> terms;
+
+  // get the size of pointers
+  jsize funsSize = env->GetArrayLength(jFuns);
+  jsize rows = env->GetArrayLength(jVars);
+  jsize termsSize = env->GetArrayLength(jTerms);
+  // allocate buffer for the long array
+  jlong* cFuns = new jlong[funsSize];
+  jlong* cTerms = new jlong[termsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jFuns, 0, funsSize, cFuns);
+  env->GetLongArrayRegion(jTerms, 0, termsSize, cTerms);
+  // copy into a vector
+  for (jsize i = 0; i < funsSize; i++)
+  {
+    Term* t = (Term*)cFuns[i];
+    funs.push_back(*t);
+  }
+  for (jsize i = 0; i < termsSize; i++)
+  {
+    Term* t = (Term*)cTerms[i];
+    terms.push_back(*t);
+  }
+
+  for (jint i = 0; i < rows; i++)
+  {
+    std::vector<Term> vars;
+    jlongArray row = (jlongArray)env->GetObjectArrayElement(jVars, i);
+    jsize columns = env->GetArrayLength(row);
+    jlong* columnElements = env->GetLongArrayElements(row, nullptr);
+    for (jint j = 0; j < columns; j++)
+    {
+      Term* var = (Term*)(jlongArray)columnElements[j];
+      vars.push_back(*var);
+    }
+    varsMatrix.push_back(vars);
+  }
+
+  solver->defineFunsRec(funs, varsMatrix, terms, (bool)global);
+  // free the buffer memory
+  delete[] cFuns;
+  delete[] cTerms;
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
