@@ -92,6 +92,7 @@ void LfscPrinter::print(std::ostream& out,
         else if (stc.isDatatype())
         {
           const DType& dt = stc.getDType();
+          preamble << "; DATATYPE " << dt.getName() << std::endl;
           if (dt.isTuple())
           {
             const DTypeConstructor& cons = dt[0];
@@ -129,6 +130,7 @@ void LfscPrinter::print(std::ostream& out,
                        << std::endl;
             }
           }
+          preamble << "; END DATATYPE " << std::endl;
         }
       }
     }

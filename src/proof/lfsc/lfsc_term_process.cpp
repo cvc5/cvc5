@@ -84,7 +84,7 @@ Node LfscTermProcessor::runConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  else if (k == SKOLEM)
+  else if (k == SKOLEM || k==BOOLEAN_TERM_VARIABLE)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -136,8 +136,18 @@ Node LfscTermProcessor::runConvert(Node n)
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
-  else if (k == CONST_RATIONAL)
+  else if (k == CONST_RATIONAL || k==CAST_TO_REAL)
   {
+    if (k==CAST_TO_REAL)
+    {
+      // already converted
+      do
+      {
+        Assert (n[0].getKind()==APPLY_UF);
+        n = n[0];
+      }
+      while (n.getKind()!=CONST_RATIONAL);
+    }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
     Node rconstf;
     Node arg;
@@ -214,6 +224,15 @@ Node LfscTermProcessor::runConvert(Node n)
     }
     return ret;
   }
+  else if (k == STORE_ALL)
+  {
+    Node t = typeAsNode(tn);
+    TypeNode caRetType = nm->mkFunctionType(tn.getArrayConstituentType(), tn);
+    TypeNode catype = nm->mkFunctionType(d_sortType, caRetType, false);
+    Node bconstf = getSymbolInternal(k, catype, "array_const");
+    Node f = nm->mkNode(APPLY_UF, bconstf, t);
+    return nm->mkNode(APPLY_UF, f, n[0]);
+  }
   else if (k == ITE)
   {
     // (ite C A B) is ((ite T) C A B) where T is the return type.
@@ -233,6 +252,11 @@ Node LfscTermProcessor::runConvert(Node n)
     children.push_back(opc);
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
+  }
+  else if (k == BITVECTOR_EXTRACT)
+  {
+    // indexed operators?
+    
   }
   else if (n.isClosure())
   {
