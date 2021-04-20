@@ -32,7 +32,8 @@ struct SetsBinaryOperatorTypeRule
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
-struct SubsetTypeRule {
+struct SubsetTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
@@ -48,19 +49,23 @@ struct SingletonTypeRule
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
-struct EmptySetTypeRule {
+struct EmptySetTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct CardTypeRule {
+struct CardTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct ComplementTypeRule {
+struct ComplementTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct UniverseSetTypeRule {
+struct UniverseSetTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
@@ -79,31 +84,38 @@ struct IsSingletonTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct InsertTypeRule {
+struct InsertTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct RelBinaryOperatorTypeRule {
+struct RelBinaryOperatorTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct RelTransposeTypeRule {
+struct RelTransposeTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct RelTransClosureTypeRule {
+struct RelTransClosureTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct JoinImageTypeRule {
+struct JoinImageTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct RelIdenTypeRule {
+struct RelIdenTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct SetsProperties {
+struct SetsProperties
+{
   static Cardinality computeCardinality(TypeNode type);
 
   static bool isWellFounded(TypeNode type);
