@@ -16,6 +16,7 @@
 #include "decision/justify_info.h"
 
 namespace cvc5 {
+namespace decision {
 
 JustifyInfo::JustifyInfo(context::Context* c)
     : d_node(c), d_desiredVal(c, prop::SAT_VALUE_UNKNOWN), d_childIndex(c, 0)
@@ -47,4 +48,5 @@ void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
   d_childIndex = 0;
 }
 
+}
 }  // namespace cvc5

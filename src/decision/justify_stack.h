@@ -24,6 +24,7 @@
 #include "expr/node.h"
 
 namespace cvc5 {
+namespace decision {
 
 /**
  * A justify stack, which tracks the progress in justifying a formula. It
@@ -74,6 +75,7 @@ class JustifyStack
   context::CDO<size_t> d_stackSizeValid;
 };
 
+}
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFY_INFO_H */

@@ -21,6 +21,7 @@
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
+namespace decision {
 
 class JustifyStatistics
 {
@@ -41,6 +42,7 @@ class JustifyStatistics
   IntStat d_maxSkolemDefsSize;
 };
 
+}
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFY_STATS_H */
