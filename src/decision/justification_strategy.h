@@ -35,6 +35,8 @@ namespace prop {
 class SkolemDefManager;
 }
 
+namespace decision {
+
 /**
  * An implementation of justification SAT decision heuristic.
  *
@@ -149,6 +151,7 @@ class JustificationStrategy
   JustifyStatistics d_stats;
 };
 
+}
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFICATION_STRATEGY_H */

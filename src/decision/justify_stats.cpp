@@ -17,6 +17,7 @@
 #include "smt/smt_statistics_registry.h"
 
 namespace cvc5 {
+namespace decision {
 
 JustifyStatistics::JustifyStatistics()
     : d_numStatusNoDecision(smtStatisticsRegistry().registerInt(
@@ -36,4 +37,5 @@ JustifyStatistics::JustifyStatistics()
 
 JustifyStatistics::~JustifyStatistics() {}
 
+}
 }  // namespace cvc5

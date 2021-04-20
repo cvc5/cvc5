@@ -35,7 +35,9 @@
 
 namespace cvc5 {
 
+namespace decision {
 class DecisionEngine;
+}
 class TheoryEngine;
 
 namespace prop {
@@ -52,7 +54,7 @@ class TheoryProxy : public Registrar
  public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              DecisionEngine* decisionEngine,
+              decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm,
               context::Context* context,
               context::UserContext* userContext,
@@ -141,7 +143,7 @@ class TheoryProxy : public Registrar
   CnfStream* d_cnfStream;
 
   /** The decision engine we are using. */
-  DecisionEngine* d_decisionEngine;
+  decision::DecisionEngine* d_decisionEngine;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;

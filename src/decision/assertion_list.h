@@ -24,6 +24,7 @@
 #include "expr/node.h"
 
 namespace cvc5 {
+namespace decision {
 
 /**
  * For monitoring activity of assertions
@@ -77,6 +78,7 @@ class AssertionList
   context::CDO<size_t> d_dindex;
 };
 
+}
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__ASSERTION_LIST_H */

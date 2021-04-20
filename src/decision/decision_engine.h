@@ -32,6 +32,8 @@ class SkolemDefManager;
 
 class DecisionEngineOld;
 
+namespace decision {
+
 class DecisionEngine
 {
  public:
@@ -81,6 +83,7 @@ class DecisionEngine
   bool d_useOld;
 };
 
+}
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__DECISION_ENGINE_H */

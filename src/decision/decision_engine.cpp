@@ -20,6 +20,7 @@
 #include "util/resource_manager.h"
 
 namespace cvc5 {
+namespace decision {
 
 DecisionEngine::DecisionEngine(context::Context* c,
                                context::UserContext* u,
@@ -103,4 +104,5 @@ void DecisionEngine::notifyAsserted(TNode n)
   d_jstrat->notifyAsserted(n);
 }
 
+}
 }  // namespace cvc5

@@ -30,10 +30,13 @@
 namespace cvc5 {
 
 class ResourceManager;
-class DecisionEngine;
 class OutputManager;
 class ProofNodeManager;
 class TheoryEngine;
+
+namespace decision {
+class DecisionEngine;
+}
 
 namespace prop {
 
@@ -332,7 +335,7 @@ class PropEngine
   TheoryEngine* d_theoryEngine;
 
   /** The decision engine we will be using */
-  std::unique_ptr<DecisionEngine> d_decisionEngine;
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /** The context */
   context::Context* d_context;

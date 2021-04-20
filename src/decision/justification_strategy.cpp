@@ -20,6 +20,7 @@ using namespace cvc5::kind;
 using namespace cvc5::prop;
 
 namespace cvc5 {
+namespace decision {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u,
@@ -644,4 +645,5 @@ bool JustificationStrategy::isTheoryAtom(TNode n)
          && (k != EQUAL || !n[0].getType().isBoolean());
 }
 
+}
 }  // namespace cvc5

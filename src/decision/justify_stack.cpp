@@ -15,6 +15,7 @@
 #include "decision/justify_stack.h"
 
 namespace cvc5 {
+namespace decision {
 
 JustifyStack::JustifyStack(context::Context* c)
     : d_context(c), d_current(c), d_stack(c), d_stackSizeValid(c, 0)
@@ -84,4 +85,5 @@ JustifyInfo* JustifyStack::getOrAllocJustifyInfo(size_t i)
   return d_stack[i].get();
 }
 
+}
 }  // namespace cvc5

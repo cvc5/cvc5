@@ -35,7 +35,7 @@ namespace prop {
 
 TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
-                         DecisionEngine* decisionEngine,
+                         decision::DecisionEngine* decisionEngine,
                          SkolemDefManager* skdm,
                          context::Context* context,
                          context::UserContext* userContext,
