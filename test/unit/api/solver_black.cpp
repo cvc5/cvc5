@@ -1290,7 +1290,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   ASSERT_TRUE(d_solver.getAbduct(conj, output));
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
-  
+
   // try with a grammar, a simple grammar admitting true
   Term truen = d_solver.mkBoolean(true);
   Term start = d_solver.mkVar(boolean);
