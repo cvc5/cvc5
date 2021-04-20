@@ -1199,8 +1199,8 @@ class SolverTest
                
 }
 
-/*
-@Test void defineFunsRecWrongLogic)
+
+@Test void defineFunsRecWrongLogic() throws CVC5ApiException
 {
   d_solver.setLogic("QF_BV");
   Sort uSort = d_solver.mkUninterpretedSort("u");
@@ -1213,10 +1213,11 @@ class SolverTest
   Term v2 = d_solver.mkConst(d_solver.getIntegerSort(), "v2");
   Term f1 = d_solver.mkConst(funSort1, "f1");
   Term f2 = d_solver.mkConst(funSort2, "f2");
-  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunsRec({f1, f2}, {{b, b}, {u}}, {v1, v2}),
+  assertThrows(CVC5ApiException.class, () -> d_solver.defineFunsRec(new Term[]{f1, f2}, new Term[][]{{b, b}, {u}}, new Term[]{v1, v2}));
                
 }
 
+/*
 @Test void defineFunsRecGlobal)
 {
   Sort bSort = d_solver.getBooleanSort();
