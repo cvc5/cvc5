@@ -44,6 +44,7 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
   }
   else
   {
+    CVC5_FATAL() << "Unsupported Type for optimization\n";
     return nullptr;
   }
 }
@@ -55,7 +56,7 @@ std::pair<Kind, Kind> OMTOptimizer::getLTLEOperator(Objective objective)
   if (objectiveType.isInteger() || objectiveType.isReal())
   {
     // integer type
-    return {kind::LT, kind::LEQ};
+    return std::make_pair(kind::LT, kind::LEQ);
   }
   else if (objectiveType.isBitVector())
   {
@@ -66,11 +67,12 @@ std::pair<Kind, Kind> OMTOptimizer::getLTLEOperator(Objective objective)
   }
   else if (objectiveType.isFloatingPoint())
   {
-    return {kind::FLOATINGPOINT_LT, kind::FLOATINGPOINT_LEQ};
+    return std::make_pair(kind::FLOATINGPOINT_LT, kind::FLOATINGPOINT_LEQ);
   }
   else
   {
-    return {kind::NULL_EXPR, kind::NULL_EXPR};
+    CVC5_FATAL() << "Unsupported Type for optimization\n";
+    return std::make_pair(kind::NULL_EXPR, kind::NULL_EXPR);
   }
 }
 

@@ -140,6 +140,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
 
 TEST_F(TestTheoryWhiteBVOpt, multigoal)
 {
+  d_smtEngine->resetAssertions();
   Node x = d_nodeManager->mkVar(*d_BV32Type);
   Node y = d_nodeManager->mkVar(*d_BV32Type);
   Node z = d_nodeManager->mkVar(*d_BV32Type);
@@ -195,6 +196,110 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
   // z == 0xFFFFFFFF
   ASSERT_EQ(results[2].getConst<BitVector>(),
             BitVector(32u, (unsigned)0xFFFFFFFF));
+}
+
+TEST_F(TestTheoryWhiteBVOpt, multigoalPareto)
+{
+  d_smtEngine->resetAssertions();
+  TypeNode bv4ty(d_nodeManager->integerType());
+  Node a = d_nodeManager->mkVar(bv4ty);
+  Node b = d_nodeManager->mkVar(bv4ty);
+
+  Node bv1 = d_nodeManager->mkConst(Rational(1));
+  Node bv2 = d_nodeManager->mkConst(Rational(2));
+  Node bv3 = d_nodeManager->mkConst(Rational(3));
+
+  std::vector<Node> stmts = {
+    // (and (= a 1) (= b 1))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv1),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv1)
+    ), 
+    // (and (= a 2) (= b 1))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv2),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv1)
+    ), 
+    // (and (= a 1) (= b 2))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv1),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv2)
+    ), 
+    // (and (= a 2) (= b 2))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv2),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv2)
+    ), 
+    // (and (= a 3) (= b 1))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv3),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv1)
+    ), 
+    // (and (= a 1) (= b 3))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv1),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv3)
+    ),
+
+    // (and (= a 3) (= b 3))
+    d_nodeManager->mkNode(kind::AND, 
+      d_nodeManager->mkNode(kind::EQUAL, a, bv3),
+      d_nodeManager->mkNode(kind::EQUAL, b, bv3)
+    )
+  }; 
+  /*
+  (assert (or
+    (and (= a 1) (= b 1))
+    (and (= a 2) (= b 1))
+    (and (= a 1) (= b 2))
+    (and (= a 2) (= b 2))
+    (and (= a 3) (= b 1))
+    (and (= a 1) (= b 3))
+  ))
+  */
+  Node expr = d_nodeManager->mkConst(false);
+  for (Node &s : stmts) {
+    expr = d_nodeManager->mkNode(kind::OR, expr, s);
+  }
+  d_smtEngine->assertFormula(expr);
+
+  /*
+    (maximize a)
+    (maximize b)
+   */
+  OptimizationSolver optSolver(d_smtEngine.get(), ObjectiveOrder::OBJORDER_PARETO);
+  optSolver.pushObj(a, ObjectiveType::OBJECTIVE_MAXIMIZE);
+  optSolver.pushObj(b, ObjectiveType::OBJECTIVE_MINIMIZE);
+
+  OptResult r; 
+
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  std::vector<Node> results = optSolver.objectiveGetValues(); 
+  for (auto &rn : results) {
+    std::cout << rn.getConst<Rational>() << " ";
+  }
+  std::cout << std::endl;
+
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  results = optSolver.objectiveGetValues(); 
+  for (auto &rn : results) {
+    std::cout << rn.getConst<Rational>() << " ";
+  }
+  std::cout << std::endl;
+  
+  r = optSolver.checkOpt();
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+  results = optSolver.objectiveGetValues(); 
+  for (auto &rn : results) {
+    std::cout << rn.getConst<Rational>() << " ";
+  }
+  std::cout << std::endl;
+
+  // r = optSolver.checkOpt();
+  // ASSERT_EQ(r, OptResult::OPT_UNSAT);
+
 }
 
 }  // namespace test
