@@ -3331,6 +3331,34 @@ enum CVC4_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   INST_NO_PATTERN,
+  /*
+   * An instantiation pool.
+   * Specifies an annotation for pool based instantiation.
+   * Parameters: n > 1
+   *   - 1..n: Terms that comprise the pools, which are one-to-one with
+   * the variables of the quantified formula to be instantiated.
+   * Create with:
+   *   - `mkTerm(Kind kind, Term child1, Term child2)
+   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   - `mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  INST_POOL,
+  /*
+   * A instantantiation-add-to-pool annotation.
+   * Parameters: n = 1
+   *   - 1: The pool to add to.
+   * Create with:
+   *   - `mkTerm(Kind kind, Term child)
+   */
+  INST_ADD_TO_POOL,
+  /*
+   * A skolemization-add-to-pool annotation.
+   * Parameters: n = 1
+   *   - 1: The pool to add to.
+   * Create with:
+   *   - `mkTerm(Kind kind, Term child)
+   */
+  SKOLEM_ADD_TO_POOL,
   /**
    * An instantiation attribute
    * Specifies a custom property for a quantified formula given by a
