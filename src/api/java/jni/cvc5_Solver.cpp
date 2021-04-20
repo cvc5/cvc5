@@ -2155,8 +2155,17 @@ JNIEXPORT jstring JNICALL Java_cvc5_Solver_getInfo(JNIEnv* env,
  */
 JNIEXPORT jstring JNICALL Java_cvc5_Solver_getOption(JNIEnv* env,
                                                      jobject,
-                                                     jlong,
-                                                     jstring);
+                                                     jlong pointer,
+                                                     jstring jOption)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jOption, nullptr);
+  std::string cOption(s);
+  env->ReleaseStringUTFChars(jOption, s);
+  return env->NewStringUTF(solver->getOption(cOption).c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2285,8 +2294,22 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getInterpolant__JJJ(
  * Method:    getInterpolant
  * Signature: (JJJJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getInterpolant__JJJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong, jlong);
+JNIEXPORT jboolean JNICALL
+Java_cvc5_Solver_getInterpolant__JJJJ(JNIEnv* env,
+                                      jobject,
+                                      jlong pointer,
+                                      jlong conjPointer,
+                                      jlong grammarPointer,
+                                      jlong outputPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* conj = (Term*)conjPointer;
+  Grammar* grammar = (Grammar*)grammarPointer;
+  Term* output = (Term*)outputPointer;
+  return (jboolean)solver->getInterpolant(*conj, *grammar, *output);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

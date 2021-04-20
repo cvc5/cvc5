@@ -1293,16 +1293,16 @@ class SolverTest
   assertTrue(output.getSort().isBoolean());
 }
 
-/*
-@Test void getOp)
+
+@Test void getOp() throws CVC5ApiException
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);
   Term a = d_solver.mkConst(bv32, "a");
   Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 2, 1);
   Term exta = d_solver.mkTerm(ext, a);
 
-  ASSERT_FALSE(a.hasOp());
-  assertThrows(CVC5ApiException.class, () -> a.getOp(), 
+  assertFalse(a.hasOp());
+  assertThrows(CVC5ApiException.class, () -> a.getOp());
   assertTrue(exta.hasOp());
   assertEquals(exta.getOp(), ext);
 
@@ -1319,7 +1319,7 @@ class SolverTest
 
   Term consTerm = consList.getConstructorTerm("cons");
   Term nilTerm = consList.getConstructorTerm("nil");
-  Term headTerm = consList["cons"].getSelectorTerm("head");
+  Term headTerm = consList.getConstructor("cons").getSelectorTerm("head");
 
   Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm);
   Term listcons1 = d_solver.mkTerm(
@@ -1331,12 +1331,13 @@ class SolverTest
   assertTrue(listhead.hasOp());
 }
 
-@Test void getOption)
+@Test void getOption()
 {
   assertDoesNotThrow(() -> d_solver.getOption("incremental"));
-  assertThrows(CVC5ApiException.class, () -> d_solver.getOption("asdf"), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getOption("asdf"));
 }
 
+/*
 @Test void getUnsatAssumptions1)
 {
   d_solver.setOption("incremental", "false");
