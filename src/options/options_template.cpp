@@ -353,7 +353,7 @@ void Options::printLanguageHelp(std::ostream& out) {
 // clang-format off
 static struct option cmdlineOptions[] = {
   ${cmdline_options}$
-  {NULL, no_argument, NULL, '\0'}};
+  {nullptr, no_argument, nullptr, '\0'}};
 // clang-format on
 
 namespace options {
