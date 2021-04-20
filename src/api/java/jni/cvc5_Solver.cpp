@@ -2642,7 +2642,16 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_setOption(
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_ensureTermSort(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer, jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  Sort* sort = (Sort*)sortPointer;
+  Term* retPointer = new Term(solver->ensureTermSort(*term, *sort));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
