@@ -1292,6 +1292,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
 
   // try with a grammar, a simple grammar admitting true
+  Sort boolean = d_solver.getBooleanSort();
   Term truen = d_solver.mkBoolean(true);
   Term start = d_solver.mkVar(boolean);
   Grammar g = d_solver.mkSygusGrammar({}, {start});
