@@ -214,7 +214,7 @@ void SubstitutionMap::print(ostream& out) const {
   }
 }
 
-void SubstitutionMap::debugPrint() const { print(CVC4Message.getStream()); }
+void SubstitutionMap::debugPrint() const { print(CVC5Message.getStream()); }
 
 }  // namespace theory
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # mkkind
-# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010-2013  The CVC4 Project
+# Morgan Deters <mdeters@cs.nyu.edu> for cvc5
+# Copyright (c) 2010-2013  The cvc5 Project
 #
 # The purpose of this script is to create kind.h (and also
 # type_properties.h) from a template and a list of theory kinds.
@@ -256,7 +256,7 @@ function register_sort {
 
   type_constant_list="${type_constant_list}  ${id}, /**< ${comment} */
 "
-  type_constant_descriptions="${type_constant_descriptions}  case $id:  out << \"${comment}\"; break;
+  type_constant_descriptions="${type_constant_descriptions}  case $id: return \"${comment}\";
 "
   type_constant_to_theory_id="${type_constant_to_theory_id}  case $id: return $theory_id;
 "
