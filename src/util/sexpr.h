@@ -70,24 +70,15 @@ void toSExpr(std::ostream& out, const T& t)
   }
 }
 
-<<<<<<< HEAD
-/** Prints an SExpr. */
-std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC5_EXPORT;
-=======
 // Forward declarations of templated overloads
 template <typename T>
 void toSExpr(std::ostream& out, const std::vector<T>& v);
->>>>>>> upstream/master
 
 /**
  * Render an `std::pair` to an s-expression string.
  */
-<<<<<<< HEAD
-class CVC5_EXPORT PrettySExprs
-=======
 template <typename T1, typename T2>
 void toSExpr(std::ostream& out, const std::pair<T1, T2>& p)
->>>>>>> upstream/master
 {
   out << "(";
   toSExpr(out, p.first);
