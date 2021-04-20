@@ -1299,7 +1299,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Grammar g = d_solver.mkSygusGrammar({}, {start});
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the interpolation api, while the resulting abduct is the output
-  ASSERT_TRUE(d_solver.getAbduct(conj, output2));
+  ASSERT_TRUE(d_solver.getAbduct(conj, g, output2));
   // abduct must be true
   ASSERT_EQ(output2, truen);
 }
