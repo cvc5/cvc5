@@ -39,9 +39,6 @@
 #include "base/exception.h"
 #include "cvc5_export.h"
 
-// Define CVC5_NO_RETURN macro replacement for [[noreturn]].
-#define CVC5_NO_RETURN [[noreturn]]
-
 // Define CVC5_PREDICT_FALSE(x) that helps the compiler predict that x will be
 // false (if there is compiler support).
 #ifdef __has_builtin
@@ -87,7 +84,7 @@ class CVC5_EXPORT FatalStream
 {
  public:
   FatalStream(const char* function, const char* file, int line);
-  CVC5_NO_RETURN ~FatalStream();
+  [[noreturn]] ~FatalStream();
 
   std::ostream& stream();
 

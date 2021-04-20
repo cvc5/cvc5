@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * "Ouroborous" test: does CVC5 read its own output?
+ * "Ouroborous" test: does cvc5 read its own output?
  *
  * The "Ouroborous" test, named after the serpent that swallows its
- * own tail, ensures that CVC5 can parse some input, output it again
+ * own tail, ensures that cvc5 can parse some input, output it again
  * (in any of its languages) and then parse it again.  The result of
  * the first parse must be equal to the result of the second parse;
  * both strings and expressions are compared for equality.

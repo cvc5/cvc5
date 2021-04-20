@@ -22,17 +22,17 @@ project(cvc5)
 
 include(GNUInstallDirs)
 
-set(CVC5_MAJOR   1) # Major component of the version of CVC5.
-set(CVC5_MINOR   9) # Minor component of the version of CVC5.
-set(CVC5_RELEASE 0) # Release component of the version of CVC5.
+set(CVC5_MAJOR   1) # Major component of the version of cvc5.
+set(CVC5_MINOR   0) # Minor component of the version of cvc5.
+set(CVC5_RELEASE 0) # Release component of the version of cvc5.
 
-# Extraversion component of the version of CVC5.
+# Extraversion component of the version of cvc5.
 set(CVC5_EXTRAVERSION "-prerelease")
 
-# Shared library versioning. Increment SOVERSION for every new CVC5 release.
-set(CVC5_SOVERSION 7)
+# Shared library versioning. Increment SOVERSION for every new cvc5 release.
+set(CVC5_SOVERSION 1)
 
-# Full release string for CVC5.
+# Full release string for cvc5.
 if(CVC5_RELEASE)
   set(CVC5_RELEASE_STRING
       "${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}${CVC5_EXTRAVERSION}")
@@ -616,7 +616,7 @@ get_directory_property(CVC5_DEFINITIONS COMPILE_DEFINITIONS)
 string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 
 message("")
-print_info("CVC5 ${CVC5_RELEASE_STRING}")
+print_info("cvc5 ${CVC5_RELEASE_STRING}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
