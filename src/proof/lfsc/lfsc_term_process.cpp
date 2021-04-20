@@ -108,6 +108,13 @@ Node LfscTermProcessor::runConvert(Node n)
       return nm->mkNode(APPLY_UF, skolemOp, wi);
     }
   }
+  else if (n.isVar())
+  {
+    std::stringstream ss;
+    ss << n;
+    Node nn = mkInternalSymbol(getNameForUserName(ss.str()), tn);
+    return nn;
+  }
   else if (k == APPLY_UF)
   {
     // Assert(d_symbols.find(n.getOperator()) != d_symbols.end());

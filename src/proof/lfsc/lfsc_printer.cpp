@@ -113,21 +113,23 @@ void LfscPrinter::print(std::ostream& out,
           }
           else
           {
-            preamble << "(declare " << dt.getName() << " sort)" << std::endl;
+            preamble << "(declare " << LfscTermProcessor::getNameForUserName(dt.getName()) << " sort)" << std::endl;
           }
           for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
           {
             const DTypeConstructor& cons = dt[i];
             std::stringstream sscons;
-            sscons << cons.getConstructor();
+            sscons << d_tproc.convert(cons.getConstructor());
+            std::string cname = sscons.str();
             // print construct/tester
-            preamble << "(declare " << sscons.str() << " term)" << std::endl;
-            preamble << "(declare is-" << sscons.str() << " term)" << std::endl;
+            preamble << "(declare " << cname << " term)" << std::endl;
+            preamble << "(declare is-" << cname << " term)" << std::endl;
             for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
             {
               const DTypeSelector& arg = cons[j];
               // print selector
-              preamble << "(declare " << arg.getSelector() << " term)"
+              Node si = d_tproc.convert(arg.getSelector());
+              preamble << "(declare " << si << " term)"
                        << std::endl;
             }
           }
@@ -146,7 +148,8 @@ void LfscPrinter::print(std::ostream& out,
       // constructors, selector, testers are defined by the datatype
       continue;
     }
-    preamble << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
+    Node si = d_tproc.convert(s);
+    preamble << "(define " << si << " (var " << d_tproc.getOrAssignIndexForVar(s)
              << " ";
     printType(preamble, st);
     preamble << "))" << std::endl;
