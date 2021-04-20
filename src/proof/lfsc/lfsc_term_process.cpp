@@ -226,7 +226,7 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == STORE_ALL)
   {
-    Node t = typeAsNode(tn);
+    Node t = typeAsNode(convertType(tn));
     TypeNode caRetType = nm->mkFunctionType(tn.getArrayConstituentType(), tn);
     TypeNode catype = nm->mkFunctionType(d_sortType, caRetType, false);
     Node bconstf = getSymbolInternal(k, catype, "array_const");
@@ -260,9 +260,10 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k==EMPTYSET)
   {
+    Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
     Node ef = getSymbolInternal(k, etype, "emptyset");
-    return nm->mkNode(ef, typeAsNode(tn));
+    return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
   {
@@ -428,27 +429,33 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   }
   else if (tn.getNumChildren() == 0)
   {
-    // special case: tuples are builtin datatypes
-    // notice this would not be a special case if tuples were parametric
-    // datatypes
+    // special case: tuples must be distinguished by their arity
     if (tn.isTuple())
     {
       const DType& dt = tn.getDType();
       unsigned int nargs = dt[0].getNumArgs();
       if (nargs > 0)
       {
-        std::vector<Node> targs;
         std::vector<TypeNode> types;
+        std::vector<TypeNode> convTypes;
+        std::vector<Node> targs;
         for (unsigned int i = 0; i < nargs; i++)
         {
           // it is not converted yet, convert here
-          TypeNode tnc = runConvertType(dt[0][i].getRangeType());
+          TypeNode tnc = convertType(dt[0][i].getRangeType());
           types.push_back(d_sortType);
+          convTypes.push_back(tnc);
           targs.push_back(typeAsNode(tnc));
         }
         TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, "Tuple"));
+        // must distinguish by arity
+        std::stringstream ss;
+        ss << "Tuple_" << nargs;
+        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, ss.str()));
         tnn = nm->mkNode(APPLY_UF, targs);
+        // we are changing its name, we must make a sort constructor
+        cur = nm->mkSortConstructor(ss.str(), nargs);
+        cur = nm->mkSort(cur, convTypes);
       }
     }
     if (tnn.isNull())

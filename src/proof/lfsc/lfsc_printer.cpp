@@ -100,15 +100,16 @@ void LfscPrinter::print(std::ostream& out,
             if (tupleArity.find(arity) == tupleArity.end())
             {
               tupleArity.insert(arity);
-              preamble << "(declare Tuple ";
+              preamble << "(declare Tuple_" << arity << " ";
               std::stringstream tcparen;
               for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
               {
-                preamble << "(! a" << j << " type ";
+                preamble << "(! s" << j << " sort ";
                 tcparen << ")";
               }
-              preamble << "type" << tcparen.str() << ")";
+              preamble << "sort" << tcparen.str() << ")";
             }
+            preamble << std::endl;
           }
           else
           {
