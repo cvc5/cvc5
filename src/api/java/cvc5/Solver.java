@@ -2447,11 +2447,11 @@ public class Solver implements IPointer
    */
   public void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post)
   {
-    addSygusConstraint(
+    addSygusInvConstraint(
         pointer, inv.getPointer(), pre.getPointer(), trans.getPointer(), post.getPointer());
   }
 
-  private native void addSygusConstraint(
+  private native void addSygusInvConstraint(
       long pointer, long invPointer, long prePointer, long transPointer, long postPointer);
 
   /**

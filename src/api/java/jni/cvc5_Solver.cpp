@@ -2607,7 +2607,18 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_ensureTermSort(
  * Signature: (JJLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusVar(
-    JNIEnv* env, jobject, jlong pointer, jlong, jstring);
+    JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Term* retPointer = new Term(solver->mkSygusVar(*sort, cSymbol));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2659,8 +2670,42 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_mkSygusGrammar(JNIEnv* env,
  * Method:    synthFun
  * Signature: (JLjava/lang/String;[JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJ(
-    JNIEnv* env, jobject, jlong pointer, jstring, jlongArray, jlong);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJ(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer,
+                                                    jstring jSymbol,
+                                                    jlongArray jVars,
+                                                    jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Sort* sort = (Sort*)sortPointer;
+
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> boundVars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)cVars[i];
+    boundVars.push_back(*term);
+  }
+
+  Term* retPointer = new Term(solver->synthFun(cSymbol, boundVars, *sort));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2672,7 +2717,7 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
                                                      jobject,
                                                      jlong pointer,
                                                      jstring jSymbol,
-                                                     jlongArray jBoundVars,
+                                                     jlongArray jVars,
                                                      jlong sortPointer,
                                                      jlong grammarPointer)
 {
@@ -2685,16 +2730,16 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
   std::string cSymbol(s);
 
   // get the size of pointers
-  jsize size = env->GetArrayLength(jBoundVars);
+  jsize size = env->GetArrayLength(jVars);
   // allocate buffer for the long array
-  jlong* cBoundVars = new jlong[size];
+  jlong* cVars = new jlong[size];
   // copy java array to the buffer
-  env->GetLongArrayRegion(jBoundVars, 0, size, cBoundVars);
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
   // copy into a vector
   std::vector<Term> boundVars;
   for (jsize i = 0; i < size; i++)
   {
-    Term* term = (Term*)cBoundVars[i];
+    Term* term = (Term*)cVars[i];
     boundVars.push_back(*term);
   }
 
@@ -2702,7 +2747,7 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
       new Term(solver->synthFun(cSymbol, boundVars, *sort, *grammar));
   env->ReleaseStringUTFChars(jSymbol, s);
   // free the buffer memory
-  delete[] cBoundVars;
+  delete[] cVars;
   return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2713,33 +2758,116 @@ Java_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(JNIEnv* env,
  * Signature: (JLjava/lang/String;[J)J
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthInv__JLjava_lang_String_2_3J(
-    JNIEnv* env, jobject, jlong pointer, jstring, jlongArray);
+    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlongArray jVars)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> vars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)cVars[i];
+    vars.push_back(*term);
+  }
+
+  Term* retPointer = new Term(solver->synthInv(cSymbol, vars));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    synthInv
  * Signature: (JLjava/lang/String;[JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_synthInv__JLjava_lang_String_2_3JJ(
-    JNIEnv* env, jobject, jlong pointer, jstring, jlongArray, jlong);
+JNIEXPORT jlong JNICALL
+Java_cvc5_Solver_synthInv__JLjava_lang_String_2_3JJ(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer,
+                                                    jstring jSymbol,
+                                                    jlongArray jVars,
+                                                    jlong grammarPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Grammar* grammar = (Grammar*)grammarPointer;
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jVars);
+  // allocate buffer for the long array
+  jlong* cVars = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jVars, 0, size, cVars);
+  // copy into a vector
+  std::vector<Term> vars;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)cVars[i];
+    vars.push_back(*term);
+  }
+
+  Term* retPointer = new Term(solver->synthInv(cSymbol, vars, *grammar));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  // free the buffer memory
+  delete[] cVars;
+  return ((jlong)retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    addSygusConstraint
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJ(JNIEnv* env,
-                                                               jobject,
-                                                               jlong,
-                                                               jlong);
+JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer,
+                                                           jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  solver->addSygusConstraint(*term);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
- * Method:    addSygusConstraint
+ * Method:    addSygusInvConstraint
  * Signature: (JJJJJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJJJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong, jlong, jlong);
+JNIEXPORT void JNICALL
+Java_cvc5_Solver_addSygusInvConstraint(JNIEnv* env,
+                                       jobject,
+                                       jlong pointer,
+                                       jlong invPointer,
+                                       jlong prePointer,
+                                       jlong transPointer,
+                                       jlong postPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* inv = (Term*)invPointer;
+  Term* pre = (Term*)prePointer;
+  Term* trans = (Term*)transPointer;
+  Term* post = (Term*)postPointer;
+  solver->addSygusInvConstraint(*inv, *pre, *trans, *post);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2748,7 +2876,14 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint__JJJJJ(
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSynth(JNIEnv* env,
                                                     jobject,
-                                                    jlong);
+                                                    jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Result* retPointer = new Result(solver->checkSynth());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2757,18 +2892,57 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSynth(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSynthSolution(JNIEnv* env,
                                                           jobject,
-                                                          jlong,
-                                                          jlong);
+                                                          jlong pointer,
+                                                          jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  Term* retPointer = new Term(solver->getSynthSolution(*term));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
  * Method:    getSynthSolutions
  * Signature: (J[J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getSynthSolutions(JNIEnv* env,
-                                                                jobject,
-                                                                jlong,
-                                                                jlongArray);
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getSynthSolutions(
+    JNIEnv* env, jobject, jlong pointer, jlongArray jTerms)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jTerms);
+  // allocate buffer for the long array
+  jlong* cTerms = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jTerms, 0, size, cTerms);
+  // copy into a vector
+  std::vector<Term> terms;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* term = (Term*)cTerms[i];
+    terms.push_back(*term);
+  }
+
+  std::vector<Term> solutions = solver->getSynthSolutions(terms);
+  // free the buffer memory
+  delete[] cTerms;
+
+  std::vector<jlong> pointers;
+  for (size_t i = 0; i < solutions.size(); i++)
+  {
+    pointers.push_back((jlong) new Term(solutions[i]));
+  }
+
+  jlongArray ret = env->NewLongArray(solutions.size());
+  env->SetLongArrayRegion(ret, 0, solutions.size(), pointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Solver

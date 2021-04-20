@@ -2057,8 +2057,8 @@ void checkSimpleSeparationConstraints(Solver solver)
   d_solver.checkSatAssuming(new Term[]{slt, ule});
 }
 
-/*
-@Test void mkSygusVar)
+
+@Test void mkSygusVar()  throws CVC5ApiException
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
@@ -2068,232 +2068,216 @@ void checkSimpleSeparationConstraints(Solver solver)
   assertDoesNotThrow(() -> d_solver.mkSygusVar(funSort));
   assertDoesNotThrow(() -> d_solver.mkSygusVar(boolSort, ("b")));
   assertDoesNotThrow(() -> d_solver.mkSygusVar(funSort, ""));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusVar(d_solver.getNullSort()), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusVar(d_solver.getNullSort(), "a"),
+
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusVar(d_solver.getNullSort()));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusVar(d_solver.getNullSort(), "a"));
                
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.mkSygusVar(boolSort), 
+  assertThrows(CVC5ApiException.class, () -> slv.mkSygusVar(boolSort));
 }
 
-@Test void mkSygusGrammar)
+@Test void mkSygusGrammar()  throws CVC5ApiException
 {
-  Term nullTerm;
+  Term nullTerm = d_solver.getNullTerm();
   Term boolTerm = d_solver.mkBoolean(true);
   Term boolVar = d_solver.mkVar(d_solver.getBooleanSort());
   Term intVar = d_solver.mkVar(d_solver.getIntegerSort());
 
-  assertDoesNotThrow(() -> d_solver.mkSygusGrammar({}, {intVar}));
-  assertDoesNotThrow(() -> d_solver.mkSygusGrammar({boolVar}, {intVar}));
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar({}, {}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar({}, {nullTerm}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar({}, {boolTerm}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar({boolTerm}, {intVar}), 
+  assertDoesNotThrow(() -> d_solver.mkSygusGrammar(new Term[]{}, new Term[]{intVar}));
+  assertDoesNotThrow(() -> d_solver.mkSygusGrammar(new Term[]{boolVar}, new Term[]{intVar}));
+
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar(new Term[]{}, new Term[]{}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar(new Term[]{}, new Term[]{nullTerm}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar(new Term[]{}, new Term[]{boolTerm}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusGrammar(new Term[]{boolTerm}, new Term[]{intVar}));
+
   Solver slv = new Solver();
   Term boolVar2 = slv.mkVar(slv.getBooleanSort());
   Term intVar2 = slv.mkVar(slv.getIntegerSort());
-  assertDoesNotThrow(() -> slv.mkSygusGrammar({boolVar2}, {intVar2}));
-  assertThrows(CVC5ApiException.class, () -> slv.mkSygusGrammar({boolVar}, {intVar2}), 
-  assertThrows(CVC5ApiException.class, () -> slv.mkSygusGrammar({boolVar2}, {intVar}), 
+  assertDoesNotThrow(() -> slv.mkSygusGrammar(new Term[]{boolVar2}, new Term[]{intVar2}));
+
+  assertThrows(CVC5ApiException.class, () -> slv.mkSygusGrammar(new Term[]{boolVar}, new Term[]{intVar2}));
+  assertThrows(CVC5ApiException.class, () -> slv.mkSygusGrammar(new Term[]{boolVar2}, new Term[]{intVar}));
 }
 
-@Test void synthFun)
+@Test void synthFun()  throws CVC5ApiException
 {
-  Sort null = d_solver.getNullSort();
-  Sort boolean = d_solver.getBooleanSort();
+  Sort nullSort = d_solver.getNullSort();
+  Sort bool = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
 
-  Term nullTerm;
-  Term x = d_solver.mkVar(boolean);
+  Term nullTerm = d_solver.getNullTerm();
+  Term x = d_solver.mkVar(bool);
 
-  Term start1 = d_solver.mkVar(boolean);
+  Term start1 = d_solver.mkVar(bool);
   Term start2 = d_solver.mkVar(integer);
 
-  Grammar g1 = d_solver.mkSygusGrammar({x}, {start1});
+  Grammar g1 = d_solver.mkSygusGrammar(new Term[]{x}, new Term[]{start1});
   g1.addRule(start1, d_solver.mkBoolean(false));
 
-  Grammar g2 = d_solver.mkSygusGrammar({x}, {start2});
+  Grammar g2 = d_solver.mkSygusGrammar(new Term[]{x}, new Term[]{start2});
   g2.addRule(start2, d_solver.mkInteger(0));
 
-  assertDoesNotThrow(() -> d_solver.synthFun("", {}, boolean));
-  assertDoesNotThrow(() -> d_solver.synthFun("f1", {x}, boolean));
-  assertDoesNotThrow(() -> d_solver.synthFun("f2", {x}, boolean, g1));
+  assertDoesNotThrow(() -> d_solver.synthFun("", new Term[]{}, bool));
+  assertDoesNotThrow(() -> d_solver.synthFun("f1", new Term[]{x}, bool));
+  assertDoesNotThrow(() -> d_solver.synthFun("f2", new Term[]{x}, bool, g1));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f3", {nullTerm}, boolean), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f4", {}, null), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f6", {x}, boolean, g2), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f3", new Term[]{nullTerm}, bool));
+  assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f4", new Term[]{}, nullSort));
+  assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f6", new Term[]{x}, bool, g2));
+
   Solver slv = new Solver();
   Term x2 = slv.mkVar(slv.getBooleanSort());
-  assertDoesNotThrow(() -> slv.synthFun("f1", {x2}, slv.getBooleanSort()));
-  assertThrows(CVC5ApiException.class, () -> slv.synthFun("", {}, d_solver.getBooleanSort()),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.synthFun("f1", {x}, d_solver.getBooleanSort()),
+  assertDoesNotThrow(() -> slv.synthFun("f1", new Term[]{x2}, slv.getBooleanSort()));
+
+  assertThrows(CVC5ApiException.class, () -> slv.synthFun("", new Term[]{}, d_solver.getBooleanSort()));
+  assertThrows(CVC5ApiException.class, () -> slv.synthFun("f1", new Term[]{x}, d_solver.getBooleanSort()));
                
 }
 
-@Test void synthInv)
+@Test void synthInv()  throws CVC5ApiException
 {
-  Sort boolean = d_solver.getBooleanSort();
+  Sort bool = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
 
-  Term nullTerm;
-  Term x = d_solver.mkVar(boolean);
+  Term nullTerm = d_solver.getNullTerm();
+  Term x = d_solver.mkVar(bool);
 
-  Term start1 = d_solver.mkVar(boolean);
+  Term start1 = d_solver.mkVar(bool);
   Term start2 = d_solver.mkVar(integer);
 
-  Grammar g1 = d_solver.mkSygusGrammar({x}, {start1});
+  Grammar g1 = d_solver.mkSygusGrammar(new Term[]{x}, new Term[]{start1});
   g1.addRule(start1, d_solver.mkBoolean(false));
 
-  Grammar g2 = d_solver.mkSygusGrammar({x}, {start2});
+  Grammar g2 = d_solver.mkSygusGrammar(new Term[]{x}, new Term[]{start2});
   g2.addRule(start2, d_solver.mkInteger(0));
 
-  assertDoesNotThrow(() -> d_solver.synthInv("", {}));
-  assertDoesNotThrow(() -> d_solver.synthInv("i1", {x}));
-  assertDoesNotThrow(() -> d_solver.synthInv("i2", {x}, g1));
+  assertDoesNotThrow(() -> d_solver.synthInv("", new Term[]{}));
+  assertDoesNotThrow(() -> d_solver.synthInv("i1", new Term[]{x}));
+  assertDoesNotThrow(() -> d_solver.synthInv("i2", new Term[]{x}, g1));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i3", {nullTerm}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i4", {x}, g2), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i3", new Term[]{nullTerm}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i4", new Term[]{x}, g2));
 }
 
-@Test void addSygusConstraint)
+@Test void addSygusConstraint()  throws CVC5ApiException
 {
-  Term nullTerm;
+  Term nullTerm = d_solver.getNullTerm();
   Term boolTerm = d_solver.mkBoolean(true);
   Term intTerm = d_solver.mkInteger(1);
 
   assertDoesNotThrow(() -> d_solver.addSygusConstraint(boolTerm));
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusConstraint(nullTerm), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusConstraint(intTerm), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusConstraint(nullTerm));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusConstraint(intTerm));
 
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.addSygusConstraint(boolTerm), 
+  assertThrows(CVC5ApiException.class, () -> slv.addSygusConstraint(boolTerm));
 }
 
-@Test void addSygusInvConstraint)
+@Test void addSygusInvConstraint()  throws CVC5ApiException
 {
-  Sort boolean = d_solver.getBooleanSort();
+  Sort bool = d_solver.getBooleanSort();
   Sort real = d_solver.getRealSort();
 
-  Term nullTerm;
+  Term nullTerm = d_solver.getNullTerm();
   Term intTerm = d_solver.mkInteger(1);
 
-  Term inv = d_solver.declareFun("inv", {real}, boolean);
-  Term pre = d_solver.declareFun("pre", {real}, boolean);
-  Term trans = d_solver.declareFun("trans", {real, real}, boolean);
-  Term post = d_solver.declareFun("post", {real}, boolean);
+  Term inv = d_solver.declareFun("inv", new Sort[]{real}, bool);
+  Term pre = d_solver.declareFun("pre", new Sort[]{real}, bool);
+  Term trans = d_solver.declareFun("trans", new Sort[]{real, real}, bool);
+  Term post = d_solver.declareFun("post", new Sort[]{real}, bool);
 
-  Term inv1 = d_solver.declareFun("inv1", {real}, real);
+  Term inv1 = d_solver.declareFun("inv1", new Sort[]{real}, real);
 
-  Term trans1 = d_solver.declareFun("trans1", {boolean, real}, boolean);
-  Term trans2 = d_solver.declareFun("trans2", {real, boolean}, boolean);
-  Term trans3 = d_solver.declareFun("trans3", {real, real}, real);
+  Term trans1 = d_solver.declareFun("trans1", new Sort[]{bool, real}, bool);
+  Term trans2 = d_solver.declareFun("trans2", new Sort[]{real, bool}, bool);
+  Term trans3 = d_solver.declareFun("trans3", new Sort[]{real, real}, real);
 
   assertDoesNotThrow(() -> d_solver.addSygusInvConstraint(inv, pre, trans, post));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(nullTerm, pre, trans, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, nullTerm, trans, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, nullTerm, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans, nullTerm),
-               
-
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(intTerm, pre, trans, post),
-               
-
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv1, pre, trans, post),
-               
-
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, trans, trans, post),
-               
-
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, intTerm, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, pre, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans1, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans2, post),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans3, post),
-               
-
-  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans, trans),
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(nullTerm, pre, trans, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, nullTerm, trans, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, nullTerm, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans, nullTerm));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(intTerm, pre, trans, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv1, pre, trans, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, trans, trans, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, pre, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans1, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans2, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans3, post));
+  assertThrows(CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans, trans));
                
   Solver slv = new Solver();
   Sort boolean2 = slv.getBooleanSort();
   Sort real2 = slv.getRealSort();
-  Term inv22 = slv.declareFun("inv", {real2}, boolean2);
-  Term pre22 = slv.declareFun("pre", {real2}, boolean2);
-  Term trans22 = slv.declareFun("trans", {real2, real2}, boolean2);
-  Term post22 = slv.declareFun("post", {real2}, boolean2);
+  Term inv22 = slv.declareFun("inv", new Sort[]{real2}, boolean2);
+  Term pre22 = slv.declareFun("pre", new Sort[]{real2}, boolean2);
+  Term trans22 = slv.declareFun("trans", new Sort[]{real2, real2}, boolean2);
+  Term post22 = slv.declareFun("post", new Sort[]{real2}, boolean2);
   assertDoesNotThrow(() -> slv.addSygusInvConstraint(inv22, pre22, trans22, post22));
-  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv, pre22, trans22, post22),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre, trans22, post22),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre22, trans, post22),
-               
-  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre22, trans22, post),
-               
+
+  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv, pre22, trans22, post22));
+  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre, trans22, post22));
+  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre22, trans, post22));
+  assertThrows(CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre22, trans22, post));
 }
 
-@Test void getSynthSolution)
+@Test void getSynthSolution()  throws CVC5ApiException
 {
   d_solver.setOption("lang", "sygus2");
   d_solver.setOption("incremental", "false");
 
-  Term nullTerm;
+  Term nullTerm = d_solver.getNullTerm();
   Term x = d_solver.mkBoolean(false);
-  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+  Term f = d_solver.synthFun("f", new Term[]{}, d_solver.getBooleanSort());
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(f), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(f));
 
   d_solver.checkSynth();
 
   assertDoesNotThrow(() -> d_solver.getSynthSolution(f));
   assertDoesNotThrow(() -> d_solver.getSynthSolution(f));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(nullTerm), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(x), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(nullTerm));
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(x));
 
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.getSynthSolution(f), 
+  assertThrows(CVC5ApiException.class, () -> slv.getSynthSolution(f));
 }
 
-@Test void getSynthSolutions)
+@Test void getSynthSolutions() throws CVC5ApiException
 {
   d_solver.setOption("lang", "sygus2");
   d_solver.setOption("incremental", "false");
 
-  Term nullTerm;
+  Term nullTerm = d_solver.getNullTerm();
   Term x = d_solver.mkBoolean(false);
-  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+  Term f = d_solver.synthFun("f", new Term[]{}, d_solver.getBooleanSort());
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions({}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions({f}), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions(new Term[]{}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions(new Term[]{f}));
 
   d_solver.checkSynth();
 
-  assertDoesNotThrow(() -> d_solver.getSynthSolutions({f}));
-  assertDoesNotThrow(() -> d_solver.getSynthSolutions({f, f}));
+  assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[]{f}));
+  assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[]{f, f}));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions({}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions({nullTerm}), 
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions({x}), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions(new Term[]{}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions(new Term[]{nullTerm}));
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolutions(new Term[]{x}));
 
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.getSynthSolutions({x}), 
+  assertThrows(CVC5ApiException.class, () -> slv.getSynthSolutions(new Term[]{x}));
 }
 
-@Test void tupleProject)
+@Test void tupleProject() throws CVC5ApiException
 {
-  Sort[] sorts = {d_solver.getBooleanSort(),
+  Sort[] sorts = new Sort[]{d_solver.getBooleanSort(),
                              d_solver.getIntegerSort(),
                              d_solver.getStringSort(),
                              d_solver.mkSetSort(d_solver.getStringSort())};
-  Term[] elements = {
+  Term[] elements = new Term[]{
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
@@ -2301,12 +2285,12 @@ void checkSimpleSeparationConstraints(Solver solver)
 
   Term tuple = d_solver.mkTuple(sorts, elements);
 
-  int[] indices1 = {};
-  int[] indices2 = {0};
-  int[] indices3 = {0, 1};
-  int[] indices4 = {0, 0, 2, 2, 3, 3, 0};
-  int[] indices5 = {4};
-  int[] indices6 = {0, 4};
+  int[] indices1 = new int[]{};
+  int[] indices2 = new int[]{0};
+  int[] indices3 = new int[]{0, 1};
+  int[] indices4 = new int[]{0, 0, 2, 2, 3, 3, 0};
+  int[] indices5 = new int[]{4};
+  int[] indices6 = new int[]{0, 4};
 
   assertDoesNotThrow(() -> 
       d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices1), tuple));
@@ -2317,33 +2301,29 @@ void checkSimpleSeparationConstraints(Solver solver)
   assertDoesNotThrow(() -> 
       d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices4), tuple));
 
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices5), tuple),
-               
-  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices6), tuple),
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices5), tuple));
+  assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices6), tuple));
                
 
-  int[] indices = {0, 3, 2, 0, 1, 2};
+  int[] indices = new int[]{0, 3, 2, 0, 1, 2};
 
   Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
   Term projection = d_solver.mkTerm(op, tuple);
 
   Datatype datatype = tuple.getSort().getDatatype();
-  DatatypeConstructor constructor = datatype[0];
+  DatatypeConstructor constructor = datatype.getConstructor(0);
 
-  for (size_t i = 0; i < indices.size(); i++)
+  for (int i = 0; i < indices.length; i++)
   {
-    Term selectorTerm = constructor[indices[i]].getSelectorTerm();
+    Term selectorTerm = constructor.getSelector(indices[i]).getSelectorTerm();
     Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
     assertEquals(elements[indices[i]], simplifiedTerm);
   }
 
   assertEquals(
-      "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
+      "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton " +
       "\"Z\")))",
       projection.toString());
 }
- */
-
-  
 }
