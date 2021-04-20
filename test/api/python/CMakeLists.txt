@@ -40,6 +40,5 @@ endmacro()
 
 cvc4_add_python_api_test(pytest_datatype_api test_datatype_api.py)
 cvc4_add_python_api_test(pytest_grammar test_grammar.py)
-cvc4_add_python_api_test(pytest_sort test_sort.py)
 cvc4_add_python_api_test(pytest_term test_term.py)
 cvc4_add_python_api_test(pytest_to_python_obj test_to_python_obj.py)

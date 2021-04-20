@@ -551,7 +551,6 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
 #include "smt/command.h"
-#include "util/rational.h"
 
 namespace cvc5 {
   class Expr;
@@ -1321,12 +1320,6 @@ restrictedTypePossiblyFunctionLHS[cvc5::api::Sort& t,
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
     }
 
-    /* subrange types */
-  | LBRACKET bound DOTDOT bound RBRACKET
-    {
-      PARSER_STATE->unimplementedFeature("subrange typing not supported in this release");
-    }
-
     /* tuple types / old-style function types */
   | LBRACKET ( type[t,check] { types.push_back(t); }
     ( COMMA type[t,check] { types.push_back(t); } )* )? RBRACKET
@@ -1378,11 +1371,6 @@ parameterization[cvc5::parser::DeclarationCheck check,
   : LBRACKET restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); }
     ( COMMA restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); } )* RBRACKET
   ;
-
-bound
-  : UNDERSCORE
-  | integer
-;
 
 typeLetDecl[cvc5::parser::DeclarationCheck check]
 @init {
@@ -2191,16 +2179,10 @@ simpleTerm[cvc5::api::Term& f]
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
   | DECIMAL_LITERAL {
-      Rational r = AntlrInput::tokenToRational($DECIMAL_LITERAL);
-      std::stringstream strRat;
-      strRat << r;
-      f = SOLVER->mkReal(strRat.str());
+      f = SOLVER->mkReal(AntlrInput::tokenText($DECIMAL_LITERAL));
     }
   | INTEGER_LITERAL {
-      Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
-      std::stringstream strRat;
-      strRat << r;
-      f = SOLVER->mkInteger(strRat.str());
+      f = SOLVER->mkInteger(AntlrInput::tokenText($INTEGER_LITERAL));
     }
     /* bitvector literals */
   | HEX_LITERAL
@@ -2373,16 +2355,6 @@ IDENTIFIER : (ALPHA | '_') (ALPHA | DIGIT | '_' | '\'' | '\\' | '?' | '$' | '~')
 numeral returns [unsigned k = 0]
   : INTEGER_LITERAL
     { $k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL); }
-  ;
-
-/**
- * Similar to numeral but for arbitrary-precision, signed integer.
- */
-integer returns [cvc5::Rational k = 0]
-  : INTEGER_LITERAL
-    { $k = AntlrInput::tokenToInteger($INTEGER_LITERAL); }
-  | MINUS_TOK INTEGER_LITERAL
-    { $k = -AntlrInput::tokenToInteger($INTEGER_LITERAL); }
   ;
 
 /**
