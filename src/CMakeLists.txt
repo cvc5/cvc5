@@ -554,6 +554,7 @@ libcvc4_add_sources(
   theory/bv/theory_bv_rewrite_rules_simplification.h
   theory/bv/theory_bv_rewriter.cpp
   theory/bv/theory_bv_rewriter.h
+  theory/bv/theory_bv_type_rules.cpp
   theory/bv/theory_bv_type_rules.h
   theory/bv/theory_bv_utils.cpp
   theory/bv/theory_bv_utils.h
