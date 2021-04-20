@@ -2310,7 +2310,14 @@ Java_cvc5_Solver_declareSeparationHeap(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_getSeparationHeap(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* retPointer = new Term(solver->getSeparationHeap());
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver

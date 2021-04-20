@@ -1520,50 +1520,45 @@ class SolverTest
                
 }
 
-/*
-
-namespace {
- */
 /**
  * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
  * some simple separation logic constraints.
- *//*
+ */
 
-void checkSimpleSeparationConstraints(Solver* solver)
+void checkSimpleSeparationConstraints(Solver solver)
 {
-  Sort integer = solver->getIntegerSort();
+  Sort integer = solver.getIntegerSort();
   // declare the separation heap
-  solver->declareSeparationHeap(integer, integer);
-  Term x = solver->mkConst(integer, "x");
-  Term p = solver->mkConst(integer, "p");
-  Term heap = solver->mkTerm(Kind::SEP_PTO, p, x);
-  solver->assertFormula(heap);
-  Term nil = solver->mkSepNil(integer);
-  solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
-  solver->checkSat();
+  solver.declareSeparationHeap(integer, integer);
+  Term x = solver.mkConst(integer, "x");
+  Term p = solver.mkConst(integer, "p");
+  Term heap = solver.mkTerm(SEP_PTO, p, x);
+  solver.assertFormula(heap);
+  Term nil = solver.mkSepNil(integer);
+  solver.assertFormula(nil.eqTerm(solver.mkReal(5)));
+  solver.checkSat();
 }
-}  // namespace
 
-@Test void getSeparationHeapTerm1)
+@Test void getSeparationHeapTerm1() throws CVC5ApiException
 {
   d_solver.setLogic("QF_BV");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap()); 
 }
 
-@Test void getSeparationHeapTerm2)
+@Test void getSeparationHeapTerm2() throws CVC5ApiException
 {
   d_solver.setLogic("ALL_SUPPORTED");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
-  checkSimpleSeparationConstraints(&d_solver);
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap(), 
+  checkSimpleSeparationConstraints(d_solver);
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
 }
 
-@Test void getSeparationHeapTerm3)
+@Test void getSeparationHeapTerm3() throws CVC5ApiException
 {
   d_solver.setLogic("ALL_SUPPORTED");
   d_solver.setOption("incremental", "false");
@@ -1571,10 +1566,10 @@ void checkSimpleSeparationConstraints(Solver* solver)
   Term t = d_solver.mkFalse();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
 }
 
-@Test void getSeparationHeapTerm4)
+@Test void getSeparationHeapTerm4() throws CVC5ApiException
 {
   d_solver.setLogic("ALL_SUPPORTED");
   d_solver.setOption("incremental", "false");
@@ -1582,18 +1577,19 @@ void checkSimpleSeparationConstraints(Solver* solver)
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
 }
 
-@Test void getSeparationHeapTerm5)
+@Test void getSeparationHeapTerm5() throws CVC5ApiException
 {
   d_solver.setLogic("ALL_SUPPORTED");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
-  checkSimpleSeparationConstraints(&d_solver);
+  checkSimpleSeparationConstraints(d_solver);
   assertDoesNotThrow(() -> d_solver.getSeparationHeap());
 }
 
+/*
 @Test void getSeparationNilTerm1)
 {
   d_solver.setLogic("QF_BV");
@@ -1609,7 +1605,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   d_solver.setLogic("ALL_SUPPORTED");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
-  checkSimpleSeparationConstraints(&d_solver);
+  checkSimpleSeparationConstraints(d_solver);
   assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNild_solver.getNullTerm(), 
 }
 
@@ -1640,7 +1636,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   d_solver.setLogic("ALL_SUPPORTED");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
-  checkSimpleSeparationConstraints(&d_solver);
+  checkSimpleSeparationConstraints(d_solver);
   assertDoesNotThrow(() -> d_solver.getSeparationNild_solver.getNullTerm());
 }
 
