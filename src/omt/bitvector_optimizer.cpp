@@ -33,7 +33,7 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // computes (a + b) / 2 without overflow
   // rounding towards -infinity: -1.5 --> -2,  1.5 --> 1
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
-  // For unsigned bitvectors, this algorithm should be equivalent to: 
+  // For unsigned bitvectors, this algorithm should be equivalent to:
   // if (!isSigned) {
   //   return BitVector(a.getSize(),
   //     (a.toInteger() + b.toInteger()).floorDivideQuotient(Integer(2)));
@@ -92,11 +92,22 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
   {
     pivot = computeAverage(lowerBound, upperBound, d_isSigned);
     optChecker->push();
-    // lowerBound <= target < pivot
-    optChecker->assertFormula(
-        nm->mkNode(kind::AND,
-                   nm->mkNode(GEOperator, target, nm->mkConst(lowerBound)),
-                   nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
+
+    // boundary condition
+    if (lowerBound == pivot)
+    {
+      optChecker->assertFormula(
+          nm->mkNode(kind::EQUAL, target, nm->mkConst(lowerBound)));
+    }
+    else
+    {
+      // lowerBound <= target < pivot
+      optChecker->assertFormula(
+          nm->mkNode(kind::AND,
+                     nm->mkNode(GEOperator, target, nm->mkConst(lowerBound)),
+                     nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
+    }
+
     intermediateSatResult = optChecker->checkSat();
     switch (intermediateSatResult.isSat())
     {
@@ -110,20 +121,9 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
       case Result::Sat::UNSAT:
         if (lowerBound == pivot)
         {
-          // lowerBound == pivot ==> upperbound = lowerbound + 1
-          // and lowerbound <= target < upperbound is UNSAT
-          // return the upperbound
+          // target == lowerBound is UNSAT
+          // return the upperBound
           optChecker->pop();  // make sure to pop before return
-          // if (!d_isSigned)
-          // {
-          //   uint32_t a = lowerBound.toInteger().toUnsignedInt();
-          //   uint32_t b = upperBound.toInteger().toUnsignedInt();
-          //   uint32_t p = (a + b) / 2;
-          //   std::cerr << p << " " << pivot.toInteger().toUnsignedInt()
-          //                << "\n"
-          //                << a << " " << b << "\n";
-          //   std::cerr.flush();
-          // }
           return std::make_pair(OptResult::OPT_OPTIMAL, value);
         }
         else
@@ -184,6 +184,10 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     pivot = computeAverage(lowerBound, upperBound, d_isSigned);
 
     optChecker->push();
+
+    // notice that we don't have boundary condition here
+    // because lowerBound == pivot / lowerBound == upperBound + 1 is also
+    // covered
     // pivot < target <= upperBound
     optChecker->assertFormula(
         nm->mkNode(kind::AND,
@@ -203,7 +207,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
         if (lowerBound == pivot)
         {
           // upperbound = lowerbound + 1
-          // and lowerbound < target <= upperbound is UNSAT
+          // and lowerBound < target <= upperBound is UNSAT
           // return the lowerbound
           optChecker->pop();  // make sure to pop before return
           return std::make_pair(OptResult::OPT_OPTIMAL, value);

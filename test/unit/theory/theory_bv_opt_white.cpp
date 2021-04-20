@@ -67,6 +67,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
 
 TEST_F(TestTheoryWhiteBVOpt, signed_min)
 {
+  d_smtEngine->resetAssertions();
   Node x = d_nodeManager->mkVar(*d_BV32Type);
 
   Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000));
@@ -151,7 +152,7 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
 
   // y <= x
   // I got wrong answer when changing ULE to SLE, what's happening???!
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, y, x));
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
   // Box optimization
   OptimizationSolver optSolver(d_smtEngine.get(), ObjectiveOrder::OBJORDER_BOX);
@@ -159,7 +160,7 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
   // minimize x
   optSolver.pushObj(x, ObjectiveType::OBJECTIVE_MINIMIZE, false);
   // maximize y
-  optSolver.pushObj(y, ObjectiveType::OBJECTIVE_MAXIMIZE, false);
+  optSolver.pushObj(y, ObjectiveType::OBJECTIVE_MAXIMIZE, true);
   // maximize z
   optSolver.pushObj(z, ObjectiveType::OBJECTIVE_MAXIMIZE, false);
 
@@ -172,9 +173,9 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
   // x == 18
   ASSERT_EQ(results[0].getConst<BitVector>(), BitVector(32u, 18u));
 
-  // y == 0xFFFFFFFF
+  // y == 0x7FFFFFFF
   ASSERT_EQ(results[1].getConst<BitVector>(),
-            BitVector(32u, (unsigned)0xFFFFFFFF));
+            BitVector(32u, (unsigned)0x7FFFFFFF));
 
   // z == 0xFFFFFFFF
   ASSERT_EQ(results[2].getConst<BitVector>(),
@@ -190,7 +191,7 @@ TEST_F(TestTheoryWhiteBVOpt, multigoal)
   // x == 18
   ASSERT_EQ(results[0].getConst<BitVector>(), BitVector(32u, 18u));
 
-  // y == 0xFFFFFFFF
+  // y == 18
   ASSERT_EQ(results[1].getConst<BitVector>(), BitVector(32u, 18u));
 
   // z == 0xFFFFFFFF
