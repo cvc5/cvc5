@@ -70,15 +70,19 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                TheoryInferenceManager& inferMgr,
                                ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_tcpg(
-          pnm ? new TConvProofGenerator(pnm,
-                                        nullptr,
-                                        TConvPolicy::ONCE,
-                                        TConvCachePolicy::NEVER,
-                                        "BVSolverSimple::TConvProofGenerator",
-                                        nullptr,
-                                        false)
-              : nullptr),
+      d_tcpg(pnm ? new TConvProofGenerator(
+                 pnm,
+                 nullptr,
+                 /* ONCE to visit each term only once, post-order.  FIXPOINT
+                  * could lead to infinite loops due to terms being rewritten
+                  * to terms that contain themselves */
+                 TConvPolicy::ONCE,
+                 /* STATIC to get the same ProofNode for a shared subterm. */
+                 TConvCachePolicy::STATIC,
+                 "BVSolverSimple::TConvProofGenerator",
+                 nullptr,
+                 false)
+                 : nullptr),
       d_bitblaster(new BBProof(s, pnm, d_tcpg.get()))
 {
 }
