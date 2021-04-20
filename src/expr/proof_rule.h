@@ -707,8 +707,19 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t bitblast(t))
   BV_BITBLAST,
+  // ======== Bitblast Bit-Vector Constant
+  // Children: none
+  // Arguments: (= t bitblast(t))
   BV_BITBLAST_CONST,
+  // ======== Bitblast Bit-Vector Variable
+  // Children: none
+  // Arguments: (= t bitblast(t))
   BV_BITBLAST_VAR,
+  // ======== Bitblast Bit-Vector Terms
+  // Children: none
+  // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
+  // ---------------------
+  // Conclusion: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
   BV_BITBLAST_EQUAL,
   BV_BITBLAST_ULT,
   BV_BITBLAST_ULE,
