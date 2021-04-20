@@ -15,6 +15,12 @@ public class Datatype extends AbstractPointer
     return pointer;
   }
 
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
+  }
+
   // endregion
 
   /**

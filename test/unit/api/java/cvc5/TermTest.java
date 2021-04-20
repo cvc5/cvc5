@@ -21,11 +21,6 @@ class TermTest
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
-  {
-    // d_solver.deletePointer();
-  }
-
   @Test void eq()
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");

@@ -19,11 +19,6 @@ class SolverTest
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
-  {
-    d_solver.deletePointer();
-  }
-
   @Test void recoverableException() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");

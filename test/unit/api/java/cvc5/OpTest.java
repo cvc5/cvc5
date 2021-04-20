@@ -17,11 +17,6 @@ class GrammarTest
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
-  {
-    //     d_solver.deletePointer();
-  }
-
   @Test void getKind() throws CVC5ApiException
   {
     Op x;

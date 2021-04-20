@@ -17,11 +17,6 @@ class OpTest
     d_solver = new Solver();
   }
 
-  @AfterEach void tearDown()
-  {
-    d_solver.deletePointer();
-  }
-
   @Test void addRule()
   {
     Sort bool = d_solver.getBooleanSort();

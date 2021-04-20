@@ -19,6 +19,12 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
     return pointer;
   }
 
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
+  }
+
   // endregion
 
   /**

@@ -18,6 +18,12 @@ public class Result extends AbstractPointer
     return pointer;
   }
 
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
+  }
+
   // endregion
 
   public enum UnknownExplanation

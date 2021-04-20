@@ -15,6 +15,12 @@ public class Grammar extends AbstractPointer
     return pointer;
   }
 
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
+  }
+
   // endregion
 
   /**

@@ -36,6 +36,12 @@ public class Solver implements IPointer
 
   private static native void deletePointer(long pointer);
 
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
+  }
+
   static
   {
     Utils.loadLibraries();

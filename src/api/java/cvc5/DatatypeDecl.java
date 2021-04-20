@@ -15,6 +15,12 @@ public class DatatypeDecl extends AbstractPointer
     return pointer;
   }
 
+  @Override
+  public void finalize()
+  {
+    deletePointer(pointer);
+  }
+
   // endregion
   /**
    * Add datatype constructor declaration.
