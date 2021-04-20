@@ -48,12 +48,15 @@ class ProofPostproccess;
  * - If we are producing unsat cores using this proof infrastructure, then the
  *   SmtEngine will have proofs using this proof manager, according to the unsat
  *   core mode:
+ *
  *   - assumption mode: proofs only for preprocessing, not in sat solver or
  *   theory engine, and level of granularity set to off (unless otherwise
  *   specified by the user)
- *   - sat-proof mode: proofs for preprocessing + sat solver, not in theory engine
- *   and level of granularity set to off (unless otherwise specified by the
- *   user)
+ *
+ *   - sat-proof mode: proofs for preprocessing + sat solver, not in theory
+ *   engine and level of granularity set to off (unless otherwise specified by
+ *   the user)
+ *
  *   - full-proof mode: proofs for the whole solver as normal
  *
  *   Note that if --produce-proofs/--check-proofs/--dump-proofs are set by the
