@@ -171,6 +171,17 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
                CVC5ApiException);
 }
 
+TEST_F(TestApiBlackOp, getIndicesUintVector)
+{
+  std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
+  Op tuple_project_op = d_solver.mkOp(TUPLE_PROJECT, indices);
+  ASSERT_TRUE(tuple_project_op.isIndexed());
+  std::vector<uint32_t> tuple_project_extract_indices =
+      tuple_project_op.getIndices<std::vector<uint32_t>>();
+  ASSERT_EQ(indices, tuple_project_extract_indices);
+  ASSERT_THROW(tuple_project_op.getIndices<std::string>(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackOp, opScopingToString)
 {
   Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);

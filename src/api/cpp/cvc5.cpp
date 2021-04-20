@@ -550,6 +550,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::RECORD_UPDATE, RECORD_UPDATE},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
+        {cvc5::Kind::TUPLE_PROJECT_OP, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
         {cvc5::Kind::SEP_NIL, SEP_NIL},
         {cvc5::Kind::SEP_EMP, SEP_EMP},
@@ -1973,6 +1974,22 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
                           << " kind " << kindToString(k);
   }
   return indices;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+template <>
+std::vector<uint32_t> Op::getIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(!d_node->isNull())
+      << "Expecting a non-null internal expression. This Op is not indexed.";
+  Kind k = intToExtKind(d_node->getKind());
+  CVC5_API_CHECK(k == TUPLE_PROJECT) << "Can't get a vector of indices from"
+                                     << " kind " << kindToString(k);
+  //////// all checks before this line
+  return d_node->getConst<TupleProjectOp>().getIndices();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
