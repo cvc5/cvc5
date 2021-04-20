@@ -1217,8 +1217,8 @@ class SolverTest
                
 }
 
-/*
-@Test void defineFunsRecGlobal)
+
+@Test void defineFunsRecGlobal() throws CVC5ApiException
 {
   Sort bSort = d_solver.getBooleanSort();
   Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
@@ -1228,7 +1228,7 @@ class SolverTest
   Term b = d_solver.mkVar(bSort, "b");
   Term gSym = d_solver.mkConst(fSort, "g");
   // (define-funs-rec ((g ((b Bool)) Bool)) (b))
-  d_solver.defineFunsRec({gSym}, {{b}}, {b}, true);
+  d_solver.defineFunsRec(new Term[]{gSym}, new Term[][]{{b}}, new Term[]{b}, true);
 
   // (assert (not (g true)))
   d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, gSym, bTrue).notTerm());
@@ -1239,7 +1239,7 @@ class SolverTest
   assertTrue(d_solver.checkSat().isUnsat());
 }
 
-@Test void uFIteration)
+@Test void uFIteration()
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort funSort = d_solver.mkFunctionSort(new Sort[]{intSort, intSort}, intSort);
@@ -1249,23 +1249,22 @@ class SolverTest
   Term fxy = d_solver.mkTerm(APPLY_UF, f, x, y);
 
   // Expecting the uninterpreted function to be one of the children
-  Term expected_children[3] = {f, x, y};
+  Term expected_children[] = new Term[]{f, x, y};
   int idx = 0;
-  for (auto c : fxy)
+  for (Term c : fxy)
   {
-    ASSERT_LT(idx, 3);
     assertEquals(c, expected_children[idx]);
     idx++;
   }
 }
 
-@Test void getInfo)
+@Test void getInfo()
 {
   assertDoesNotThrow(() -> d_solver.getInfo("name"));
-  assertThrows(CVC5ApiException.class, () -> d_solver.getInfo("asdf"), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getInfo("asdf"));
 }
 
-@Test void getInterpolant)
+@Test void getInterpolant() throws CVC5ApiException
 {
   d_solver.setLogic("QF_LIA");
   d_solver.setOption("produce-interpols", "default");
@@ -1286,7 +1285,7 @@ class SolverTest
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
-  Term output;
+  Term output = d_solver.getNullTerm();
   // Call the interpolation api, while the resulting interpolant is the output
   d_solver.getInterpolant(conj, output);
 
@@ -1294,6 +1293,7 @@ class SolverTest
   assertTrue(output.getSort().isBoolean());
 }
 
+/*
 @Test void getOp)
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);

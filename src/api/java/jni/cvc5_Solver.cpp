@@ -2136,8 +2136,17 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getAssertions(JNIEnv* env,
  */
 JNIEXPORT jstring JNICALL Java_cvc5_Solver_getInfo(JNIEnv* env,
                                                    jobject,
-                                                   jlong,
-                                                   jstring);
+                                                   jlong pointer,
+                                                   jstring jFlag)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* s = env->GetStringUTFChars(jFlag, nullptr);
+  std::string cFlag(s);
+  env->ReleaseStringUTFChars(jFlag, s);
+  return env->NewStringUTF(solver->getInfo(cFlag).c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2261,7 +2270,15 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_pop(JNIEnv* env,
  * Signature: (JJJ)Z
  */
 JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getInterpolant__JJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong, jlong);
+    JNIEnv* env, jobject, jlong pointer, jlong conjPointer, jlong outputPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* conj = (Term*)conjPointer;
+  Term* output = (Term*)outputPointer;
+  return (jboolean)solver->getInterpolant(*conj, *output);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
