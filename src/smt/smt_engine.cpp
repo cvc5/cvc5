@@ -238,10 +238,13 @@ void SmtEngine::finishInit()
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  // if proofs and unsat cores, proofs are used solely for unsat core
-  // production, so we don't generate proofs in the theory engine, which is
-  // communicated via the second argument
-  d_smtSolver->finishInit(logic, options::unsatCoresNew());
+  // if proofs and unsat cores, proofs are used solely for unsat core production
+  // unless the unsat cores are in FULL_PROF mode. Thus we don't generate proofs
+  // in the theory engine, which is communicated via the second argument
+  d_smtSolver->finishInit(
+      logic,
+      options::unsatCoresNew()
+          && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF);
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();

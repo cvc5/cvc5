@@ -92,12 +92,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
   if (options::unsatCoresNew()
+      && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
       && ((options::produceProofs() && options::produceProofs.wasSetByUser())
           || (options::checkProofs() && options::checkProofs.wasSetByUser())
           || (options::dumpProofs() && options::dumpProofs.wasSetByUser())))
   {
-    AlwaysAssert(false) << "Can't properly produce proofs and have the new "
-                           "unsat cores simultaneously.\n";
+    AlwaysAssert(false)
+        << "Can't simultaneously produce proofs and not have the new "
+           "unsat cores in full proof mode .\n";
   }
   if (options::checkProofs() || options::unsatCoresNew()
       || options::dumpProofs())
@@ -307,7 +309,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // new unsat core specific restrictions for proofs
-  if (options::unsatCoresNew())
+  if (options::unsatCoresNew()
+      && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
     // no fine-graininess
     if (!options::proofGranularityMode.wasSetByUser())

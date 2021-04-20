@@ -201,6 +201,24 @@ header = "options/smt_options.h"
   help       = "turn on unsat core generation"
 
 [[option]]
+  name       = "unsatCoresMode"
+  smt_name   = "unsat-cores-mode"
+  category   = "regular"
+  long       = "unsat-cores-mode=MODE"
+  type       = "UnsatCoresMode"
+  default    = "SAT_PROOF"
+  help       = "choose unsat core mode, see --unsat-cores-mode=help"
+  help_mode  = "unsat cores modes."
+[[option.mode.SAT_PROOF]]
+  name = "sat-proof"
+  help = "Produce unsat cores from SAT and preprocessing proofs."
+[[option.mode.FULL_PROOF]]
+  name = "full-proof"
+  help = "Produce unsat cores from full proofs."
+[[option.mode.ASSUMPTIONS]]
+  name = "assumptions"
+  help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
