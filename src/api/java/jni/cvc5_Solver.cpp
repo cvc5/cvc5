@@ -1716,8 +1716,16 @@ Java_cvc5_Solver_mkDatatypeDecl__JLjava_lang_String_2_3JZ(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_simplify(JNIEnv* env,
                                                   jobject,
-                                                  jlong,
-                                                  jlong);
+                                                  jlong pointer,
+                                                  jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* term = (Term*)termPointer;
+  Term* retPointer = new Term(solver->simplify(*term));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1773,10 +1781,30 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__JJ(
  * Method:    checkSatAssuming
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__J_3J(JNIEnv* env,
-                                                                jobject,
-                                                                jlong,
-                                                                jlongArray);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__J_3J(
+    JNIEnv* env, jobject, jlong pointer, jlongArray jAssumptions)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jAssumptions);
+  // allocate buffer for the long array
+  jlong* cAssumptions = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jAssumptions, 0, size, cAssumptions);
+  // copy into a vector
+  std::vector<Term> assumptions;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* t = (Term*)cAssumptions[i];
+    assumptions.push_back(*t);
+  }
+  // free the buffer memory
+  delete[] cAssumptions;
+  Result* retPointer = new Result(solver->checkSatAssuming(assumptions));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -1803,8 +1831,31 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__JJ(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkEntailed__J_3J(JNIEnv* env,
                                                              jobject,
-                                                             jlong,
-                                                             jlongArray);
+                                                             jlong pointer,
+                                                             jlongArray jTerms)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+
+  // get the size of pointers
+  jsize termsSize = env->GetArrayLength(jTerms);
+  // allocate buffer for the long array
+  jlong* cTerms = new jlong[termsSize];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jTerms, 0, termsSize, cTerms);
+  // copy into a vector
+  std::vector<Term> terms;
+  for (jsize i = 0; i < termsSize; i++)
+  {
+    Term* t = (Term*)cTerms[i];
+    terms.push_back(*t);
+  }
+  // free the buffer memory
+  delete[] cTerms;
+  Result* retPointer = new Result(solver->checkEntailed(terms));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
