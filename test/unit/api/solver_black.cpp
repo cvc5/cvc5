@@ -1270,6 +1270,38 @@ TEST_F(TestApiBlackSolver, getInfo)
   ASSERT_THROW(d_solver.getInfo("asdf"), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getAbduct)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-abducts", "true");
+  d_solver.setOption("incremental", "false");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+
+  // Assumptions for abduction: x > 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+  // Conjecture for abduction: y > 0
+  Term conj = d_solver.mkTerm(GT, y, zero);
+  Term output;
+  // Call the interpolation api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
+  
+  // try with a grammar, a simple grammar admitting true
+  Term truen = d_solver.mkBoolean(true);
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkSygusGrammar({}, {start});
+  ASSERT_NO_THROW(g.addRule(start, truen));
+  // Call the interpolation api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  // abduct must be true
+  ASSERT_EQ(output, truen);
+}
+
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
