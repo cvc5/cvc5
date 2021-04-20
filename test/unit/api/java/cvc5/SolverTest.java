@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 class SolverTest
 {
@@ -1337,50 +1338,50 @@ class SolverTest
   assertThrows(CVC5ApiException.class, () -> d_solver.getOption("asdf"));
 }
 
-/*
-@Test void getUnsatAssumptions1)
+
+@Test void getUnsatAssumptions1()
 {
   d_solver.setOption("incremental", "false");
   d_solver.checkSatAssuming(d_solver.mkFalse());
-  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatAssumptions(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatAssumptions());
 }
 
-@Test void getUnsatAssumptions2)
+@Test void getUnsatAssumptions2()
 {
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-assumptions", "false");
   d_solver.checkSatAssuming(d_solver.mkFalse());
-  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatAssumptions(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatAssumptions());
 }
 
-@Test void getUnsatAssumptions3)
+@Test void getUnsatAssumptions3()
 {
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-assumptions", "true");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   assertDoesNotThrow(() -> d_solver.getUnsatAssumptions());
   d_solver.checkSatAssuming(d_solver.mkTrue());
-  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatAssumptions(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatAssumptions());
 }
 
-@Test void getUnsatCore1)
+@Test void getUnsatCore1()
 {
   d_solver.setOption("incremental", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
-  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore());
 }
 
-@Test void getUnsatCore2)
+@Test void getUnsatCore2()
 {
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-unsat-cores", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
-  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore(), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore());
 }
 
-@Test void getUnsatCore3)
+@Test void getUnsatCore3()
 {
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-cores", "true");
@@ -1410,36 +1411,38 @@ class SolverTest
   d_solver.assertFormula(p_f_y.notTerm());
   assertTrue(d_solver.checkSat().isUnsat());
 
-  assertDoesNotThrow(() -> unsat_core = d_solver.getUnsatCore());
+  AtomicReference<Term[]> atomic = new AtomicReference<>();
+  assertDoesNotThrow(() -> atomic.set(d_solver.getUnsatCore()));
+  unsat_core = atomic.get();
 
   d_solver.resetAssertions();
-  for (const auto& t : unsat_core)
+  for (Term t : unsat_core)
   {
     d_solver.assertFormula(t);
   }
-  cvc5::api::Result res = d_solver.checkSat();
+  Result res = d_solver.checkSat();
   assertTrue(res.isUnsat());
 }
 
-@Test void getValue1)
+@Test void getValue1()
 {
   d_solver.setOption("produce-models", "false");
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  assertThrows(CVC5ApiException.class, () -> d_solver.getValue(t), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getValue(t));
 }
 
-@Test void getValue2)
+@Test void getValue2()
 {
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkFalse();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  assertThrows(CVC5ApiException.class, () -> d_solver.getValue(t), 
+  assertThrows(CVC5ApiException.class, () -> d_solver.getValue(t));
 }
 
-@Test void getValue3)
+@Test void getValue3()
 {
   d_solver.setOption("produce-models", "true");
   Sort uSort = d_solver.mkUninterpretedSort("u");
@@ -1475,9 +1478,10 @@ class SolverTest
   assertDoesNotThrow(() -> d_solver.getValue(p_f_y));
 
   Solver slv = new Solver();
-  assertThrows(CVC5ApiException.class, () -> slv.getValue(x), 
+  assertThrows(CVC5ApiException.class, () -> slv.getValue(x));
 }
 
+/*
 @Test void getQuantifierElimination)
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
@@ -1530,7 +1534,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   solver->declareSeparationHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
-  Term heap = solver->mkTerm(cvc5::api::Kind::SEP_PTO, p, x);
+  Term heap = solver->mkTerm(Kind::SEP_PTO, p, x);
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
   solver->assertFormula(nil.eqTerm(solver->mkReal(5)));

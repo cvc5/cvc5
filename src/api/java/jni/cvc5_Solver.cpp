@@ -1757,10 +1757,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSat(JNIEnv* env,
  * Method:    checkSatAssuming
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__JJ(JNIEnv* env,
-                                                              jobject,
-                                                              jlong,
-                                                              jlong);
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_checkSatAssuming__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong assumptionPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  Term* assumption = (Term*)assumptionPointer;
+  Result* retPointer = new Result(solver->checkSatAssuming(*assumption));
+  return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2174,7 +2180,23 @@ JNIEXPORT jstring JNICALL Java_cvc5_Solver_getOption(JNIEnv* env,
  */
 JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatAssumptions(JNIEnv* env,
                                                                   jobject,
-                                                                  jlong);
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  std::vector<Term> core = solver->getUnsatAssumptions();
+
+  std::vector<jlong> corePointers;
+  for (size_t i = 0; i < core.size(); i++)
+  {
+    corePointers.push_back((jlong) new Term(core[i]));
+  }
+
+  jlongArray ret = env->NewLongArray(core.size());
+  env->SetLongArrayRegion(ret, 0, core.size(), corePointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2183,7 +2205,23 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatAssumptions(JNIEnv* env,
  */
 JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatCore(JNIEnv* env,
                                                            jobject,
-                                                           jlong);
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  std::vector<Term> core = solver->getUnsatCore();
+
+  std::vector<jlong> corePointers;
+  for (size_t i = 0; i < core.size(); i++)
+  {
+    corePointers.push_back((jlong) new Term(core[i]));
+  }
+
+  jlongArray ret = env->NewLongArray(core.size());
+  env->SetLongArrayRegion(ret, 0, core.size(), corePointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_Solver
