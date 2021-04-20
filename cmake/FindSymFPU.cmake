@@ -17,11 +17,14 @@
 
 find_path(SymFPU_INCLUDE_DIR NAMES symfpu/core/unpackedFloat.h)
 
+set(SymFPU_FOUND_SYSTEM FALSE)
 if(SymFPU_INCLUDE_DIR)
   # Found SymFPU to be installed system-wide
   set(SymFPU_FOUND_SYSTEM TRUE)
-else()
-  set(SymFPU_FOUND_SYSTEM FALSE)
+endif()
+
+if(NOT SymFPU_FOUND_SYSTEM)
+  check_auto_download("SymFPU" "--no-symfpu")
   include(ExternalProject)
   include(deps-helper)
 

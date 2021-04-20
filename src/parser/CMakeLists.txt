@@ -108,12 +108,6 @@ target_compile_definitions(cvc5parser PRIVATE -D__BUILDING_CVC5PARSERLIB)
 target_link_libraries(cvc5parser PUBLIC cvc5)
 target_link_libraries(cvc5parser PRIVATE ANTLR3)
 
-if(USE_CLN)
-  target_link_libraries(cvc5parser PRIVATE ${CLN_LIBRARIES})
-  target_include_directories(cvc5parser PRIVATE $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
-endif()
-target_link_libraries(cvc5parser PRIVATE GMP)
-
 install(TARGETS cvc5parser
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
