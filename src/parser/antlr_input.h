@@ -31,9 +31,6 @@
 #include "parser/input.h"
 #include "parser/line_buffer.h"
 #include "parser/parser_exception.h"
-#include "util/bitvector.h"
-#include "util/integer.h"
-#include "util/rational.h"
 
 namespace cvc5 {
 namespace parser {
@@ -178,15 +175,6 @@ public:
   /** Retrieve an unsigned from the text of a token */
   static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
 
-  /** Retrieve an Integer from the text of a token */
-  static Rational tokenToInteger( pANTLR3_COMMON_TOKEN token );
-
-  /** Retrieve a Rational from the text of a token */
-  static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
-
-  /** Get a bitvector constant from the text of the number and the size token */
-  static BitVector tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size);
-
   /** Get the ANTLR3 lexer for this input. */
   pANTLR3_LEXER getAntlr3Lexer() { return d_lexer; }
 
@@ -268,26 +256,6 @@ inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
   ss << tokenText(token);
   ss >> result;
   return result;
-}
-
-inline Rational AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
-  return Rational( tokenText(token) );
-}
-
-inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
-  return Rational::fromDecimal( tokenText(token) );
-}
-
-inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size) {
-  std::string number_str = tokenTextSubstr(number, 2);
-  unsigned sz = tokenToUnsigned(size);
-  Integer val(number_str);
-  if(val.modByPow2(sz) != val) {
-    std::stringstream ss;
-    ss << "Overflow in bitvector construction (specified bitvector size " << sz << " too small to hold value " << tokenText(number) << ")";
-    throw std::invalid_argument(ss.str());
-  }
-  return BitVector(sz, val);
 }
 
 }  // namespace parser
