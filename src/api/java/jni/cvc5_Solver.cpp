@@ -2410,7 +2410,15 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Solver_getAbduct__JJJJ(
  * Method:    blockModel
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_blockModel(JNIEnv* env, jobject, jlong);
+JNIEXPORT void JNICALL Java_cvc5_Solver_blockModel(JNIEnv* env,
+                                                   jobject,
+                                                   jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  solver->blockModel();
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2419,8 +2427,30 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_blockModel(JNIEnv* env, jobject, jlong);
  */
 JNIEXPORT void JNICALL Java_cvc5_Solver_blockModelValues(JNIEnv* env,
                                                          jobject,
-                                                         jlong,
-                                                         jlongArray);
+                                                         jlong pointer,
+                                                         jlongArray jTerms)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  // get the size of pointers
+  jsize size = env->GetArrayLength(jTerms);
+  // allocate buffer for the long array
+  jlong* cTerms = new jlong[size];
+  // copy java array to the buffer
+  env->GetLongArrayRegion(jTerms, 0, size, cTerms);
+  // copy into a vector
+  std::vector<Term> terms;
+  for (jsize i = 0; i < size; i++)
+  {
+    Term* t = (Term*)cTerms[i];
+    terms.push_back(*t);
+  }
+  solver->blockModelValues(terms);
+  // free the buffer memory
+  delete[] cTerms;
+
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
@@ -2458,8 +2488,20 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_resetAssertions(JNIEnv* env,
  * Method:    setInfo
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL
-Java_cvc5_Solver_setInfo(JNIEnv* env, jobject, jlong pointer, jstring, jstring);
+JNIEXPORT void JNICALL Java_cvc5_Solver_setInfo(
+    JNIEnv* env, jobject, jlong pointer, jstring jKeyword, jstring jValue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = (Solver*)pointer;
+  const char* sKeyword = env->GetStringUTFChars(jKeyword, nullptr);
+  const char* sValue = env->GetStringUTFChars(jValue, nullptr);
+  std::string cKeyword(sKeyword);
+  std::string cValue(sValue);
+  solver->setInfo(cKeyword, cValue);
+  env->ReleaseStringUTFChars(jKeyword, sKeyword);
+  env->ReleaseStringUTFChars(jValue, sValue);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
 
 /*
  * Class:     cvc5_Solver
