@@ -15,6 +15,8 @@
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
 check_python_module(breathe)
+check_python_module(sphinxcontrib.bibtex sphinxcontrib-bibtex)
+check_python_module(sphinx_tabs.tabs sphinx-tabs)
 
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
