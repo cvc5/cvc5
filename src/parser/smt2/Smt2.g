@@ -109,10 +109,8 @@ namespace cvc5 {
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"
-#include "util/floatingpoint.h"
+#include "util/floatingpoint_size.h"
 #include "util/hash.h"
-#include "util/integer.h"
-#include "util/rational.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;

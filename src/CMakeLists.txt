@@ -82,8 +82,6 @@ libcvc4_add_sources(
   preprocessing/passes/non_clausal_simp.h
   preprocessing/passes/pseudo_boolean_processor.cpp
   preprocessing/passes/pseudo_boolean_processor.h
-  preprocessing/passes/quantifier_macros.cpp
-  preprocessing/passes/quantifier_macros.h
   preprocessing/passes/quantifiers_preprocess.cpp
   preprocessing/passes/quantifiers_preprocess.h
   preprocessing/passes/real_to_int.cpp
@@ -755,6 +753,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp
   theory/quantifiers/quantifiers_inference_manager.h
+  theory/quantifiers/quantifiers_macros.cpp
+  theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_registry.cpp
@@ -1092,25 +1092,17 @@ add_subdirectory(theory)
 add_subdirectory(util)
 
 #-----------------------------------------------------------------------------#
-# Build support library from base and context that can be used in the main
-# library as well as the parser library.
-
-add_library(cvc4support INTERFACE)
-target_link_libraries(cvc4support INTERFACE cvc4base)
-target_link_libraries(cvc4support INTERFACE cvc4context)
-
-#-----------------------------------------------------------------------------#
 # All sources for libcvc4 are now collected in LIBCVC4_SRCS and (if generated)
 # LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
 
 set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
+add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS}
+  $<TARGET_OBJECTS:cvc4base> $<TARGET_OBJECTS:cvc4context>)
 target_include_directories(cvc4
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(cvc4 PRIVATE cvc4support)
 
 include(GenerateExportHeader)
 generate_export_header(cvc4)
