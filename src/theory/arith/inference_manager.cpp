@@ -27,7 +27,7 @@ namespace arith {
 InferenceManager::InferenceManager(TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(ta, astate, pnm, "theory::arith")
+    : InferenceManagerBuffered(ta, astate, pnm, "theory::arith::")
 {
 }
 

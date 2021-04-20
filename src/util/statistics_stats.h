@@ -19,7 +19,7 @@
  * change the statistic data, but shield the regular user from the internals.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATISTICS_STATS_H
 #define CVC5__UTIL__STATISTICS_STATS_H

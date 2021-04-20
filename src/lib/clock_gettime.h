@@ -13,7 +13,7 @@
  * Replacement for clock_gettime() for systems without it (Windows).
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__LIB__CLOCK_GETTIME_H
 #define CVC5__LIB__CLOCK_GETTIME_H

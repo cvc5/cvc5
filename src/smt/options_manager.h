@@ -42,7 +42,7 @@ namespace smt {
 class OptionsManager : public OptionsListener
 {
  public:
-  OptionsManager(Options* opts, ResourceManager* rm = nullptr);
+  OptionsManager(Options* opts);
   ~OptionsManager();
   /**
    * Called when a set option call is made on the options object associated
@@ -65,8 +65,6 @@ class OptionsManager : public OptionsListener
  private:
   /** Reference to the options object */
   Options* d_options;
-  /** Pointer to the resource manager */
-  ResourceManager* d_resourceManager;
   /** Manager for the memory of regular-output-channel. */
   ManagedRegularOutputChannel d_managedRegularChannel;
   /** Manager for the memory of diagnostic-output-channel. */

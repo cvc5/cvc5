@@ -13,7 +13,7 @@
  * A class representing an index to a datatype living in NodeManager.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__DATATYPE_INDEX_H
 #define CVC5__DATATYPE_INDEX_H

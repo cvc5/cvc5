@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__THEORY__THEORY_ID_H
 #define CVC5__THEORY__THEORY_ID_H

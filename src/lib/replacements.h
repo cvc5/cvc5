@@ -17,10 +17,10 @@
 #define CVC5__LIB__REPLACEMENTS_H
 
 #if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
-#  include "cvc4_private.h"
+#include "cvc5_private.h"
 #else
 #  if defined(__BUILDING_CVC4PARSERLIB) || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST)
-#    include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 #  else
 #if defined(__BUILDING_CVC4DRIVER) || defined(__BUILDING_CVC5_SYSTEM_TEST) \
     || defined(__BUILDING_STATISTICS_FOR_EXPORT)

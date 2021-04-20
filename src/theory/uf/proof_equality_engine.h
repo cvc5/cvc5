@@ -13,7 +13,7 @@
  * The proof-producing equality engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__UF__PROOF_EQUALITY_ENGINE_H
 #define CVC5__THEORY__UF__PROOF_EQUALITY_ENGINE_H

@@ -239,10 +239,11 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
   AntlrInput* input;
 
   switch(lang) {
-  case LANG_CVC4: {
-    input = new CvcInput(inputStream);
-    break;
-  }
+    case LANG_CVC:
+    {
+      input = new CvcInput(inputStream);
+      break;
+    }
 
   case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
 

@@ -13,7 +13,7 @@
  * Datatypes inference manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__DATATYPES__INFERENCE_MANAGER_H
 #define CVC5__THEORY__DATATYPES__INFERENCE_MANAGER_H

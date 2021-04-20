@@ -13,7 +13,7 @@
  * instantiate
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__INSTANTIATE_H
 #define CVC5__THEORY__QUANTIFIERS__INSTANTIATE_H
@@ -26,7 +26,7 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -290,7 +290,6 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
     Statistics();
-    ~Statistics();
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 

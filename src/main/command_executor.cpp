@@ -48,8 +48,6 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
-
 CommandExecutor::CommandExecutor(Options& options)
     : d_solver(new api::Solver(&options)),
       d_symman(new SymbolManager(d_solver.get())),
@@ -147,11 +145,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
-    std::ostringstream ossCurStats;
-    printStatistics(ossCurStats);
-    std::ostream& err = *d_options.getErr();
-    printStatsIncremental(err, d_lastStatistics, ossCurStats.str());
-    d_lastStatistics = ossCurStats.str();
+    getSmtEngine()->printStatisticsDiff(*d_options.getErr());
   }
 
   bool isResultUnsat = res.isUnsat() || res.isEntailed();
@@ -225,63 +219,6 @@ bool solverInvoke(api::Solver* solver,
     return true;
   }
   return !cmd->fail();
-}
-
-void printStatsIncremental(std::ostream& out,
-                           const std::string& prvsStatsString,
-                           const std::string& curStatsString)
-{
-  if(prvsStatsString == "") {
-    out << curStatsString;
-    return;
-  }
-
-  // read each line
-  // if a number, subtract and add that to parentheses
-  std::istringstream issPrvs(prvsStatsString);
-  std::istringstream issCur(curStatsString);
-
-  std::string prvsStatName, prvsStatValue, curStatName, curStatValue;
-
-  std::getline(issPrvs, prvsStatName, ',');
-  std::getline(issCur, curStatName, ',');
-
-  /**
-   * Stat are assumed to one-per line: "<statName>, <statValue>"
-   *   e.g. "sat::decisions, 100"
-   * Output is of the form: "<statName>, <statValue> (<statDiffFromPrvs>)"
-   *   e.g. "sat::decisions, 100 (20)"
-   * If the value is not numeric, no change is made.
-   */
-  while( !issCur.eof() ) {
-
-    std::getline(issCur, curStatValue, '\n');
-
-    if(curStatName == prvsStatName) {
-      std::getline(issPrvs, prvsStatValue, '\n');
-
-      double prvsFloat, curFloat;
-      bool isFloat =
-        (std::istringstream(prvsStatValue) >> prvsFloat) &&
-        (std::istringstream(curStatValue) >> curFloat);
-
-      if(isFloat) {
-        const std::streamsize old_precision = out.precision();
-        out << curStatName << ", " << curStatValue << " "
-            << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
-            << std::endl;
-        out.precision(old_precision);
-      } else {
-        out << curStatName << ", " << curStatValue << std::endl;
-      }
-
-      std::getline(issPrvs, prvsStatName, ',');
-    } else {
-      out << curStatName << ", " << curStatValue << std::endl;
-    }
-
-    std::getline(issCur, curStatName, ',');
-  }
 }
 
 void CommandExecutor::flushOutputStreams() {

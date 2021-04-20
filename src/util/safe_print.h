@@ -27,13 +27,13 @@
  * IMPORTANT: The `toString(obj)` function *must not* perform any allocations
  * or call other functions that are not async-signal-safe.
  *
- * This header is a "cvc4_private_library.h" header because it is private but
+ * This header is a "cvc5_private_library.h" header because it is private but
  * the safe_print functions are used in the driver. See also the description
  * of "statistics_registry.h" for more information on
- * "cvc4_private_library.h".
+ * "cvc5_private_library.h".
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__SAFE_PRINT_H
 #define CVC5__SAFE_PRINT_H

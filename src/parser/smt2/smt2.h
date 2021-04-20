@@ -13,7 +13,7 @@
  * Definitions of SMT2 constants.
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__SMT2_H
 #define CVC5__PARSER__SMT2_H
@@ -28,7 +28,6 @@
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
-#include "util/abstract_value.h"
 
 namespace cvc5 {
 

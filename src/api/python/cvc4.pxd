@@ -14,7 +14,7 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "CVC4":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
         pass
 

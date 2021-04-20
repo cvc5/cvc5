@@ -33,13 +33,12 @@ BvEagerAtoms::BvEagerAtoms(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BvEagerAtoms::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  theory::TheoryModel* tm = d_preprocContext->getTheoryEngine()->getModel();
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     TNode atom = (*assertionsToPreprocess)[i];
     Node eager_atom = nm->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
-    tm->addSubstitution(eager_atom, atom);
+    d_preprocContext->addModelSubstitution(eager_atom, atom);
     assertionsToPreprocess->replace(i, eager_atom);
   }
   return PreprocessingPassResult::NO_CONFLICT;

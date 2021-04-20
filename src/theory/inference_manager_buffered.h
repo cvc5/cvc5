@@ -13,7 +13,7 @@
  * A buffered inference manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 #define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
@@ -35,7 +35,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
                            ProofNodeManager* pnm,
-                           const std::string& name,
+                           const std::string& statsName,
                            bool cacheLemmas = true);
   virtual ~InferenceManagerBuffered() {}
   /**

@@ -13,7 +13,7 @@
  * Implements a container for CAD constraints.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
 #define CVC5__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
@@ -75,7 +75,7 @@ class Constraints
   ConstraintVector d_constraints;
 
   /**
-   * A mapping from CVC4 variables to poly variables.
+   * A mapping from cvc5 variables to poly variables.
    */
   VariableMapper d_varMapper;
 

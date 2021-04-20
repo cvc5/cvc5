@@ -13,7 +13,7 @@
  * Standardized type for efficient array indexing.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__INDEX_H
 #define CVC5__INDEX_H

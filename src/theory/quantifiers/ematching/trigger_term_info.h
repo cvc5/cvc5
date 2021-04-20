@@ -13,7 +13,7 @@
  * Trigger term info class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__TRIGGER_TERM_INFO_H
 #define CVC5__THEORY__QUANTIFIERS__TRIGGER_TERM_INFO_H

@@ -16,7 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__ICP__INTERSECTION_H
 #define CVC5__THEORY__ARITH__ICP__INTERSECTION_H
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifdef CVC5_POLY_IMP
 

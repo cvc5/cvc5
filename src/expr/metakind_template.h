@@ -13,7 +13,7 @@
  * Template for the metakind header.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__KIND__METAKIND_H
 #define CVC5__KIND__METAKIND_H
@@ -33,7 +33,7 @@ namespace kind {
 namespace metakind {
 
 /**
- * Static, compile-time information about types T representing CVC4
+ * Static, compile-time information about types T representing cvc5
  * constants:
  *
  *   typename ConstantMap<T>::OwningTheory
@@ -51,7 +51,7 @@ struct ConstantMap;
 
 /**
  * Static, compile-time information about kinds k and what type their
- * corresponding CVC4 constants are:
+ * corresponding cvc5 constants are:
  *
  *   typename ConstantMapReverse<k>::T
  *

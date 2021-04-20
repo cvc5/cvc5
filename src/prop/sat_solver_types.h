@@ -23,12 +23,12 @@
 
 #pragma once
 
-#include "cvc4_private.h"
-
 #include <sstream>
 #include <string>
 #include <unordered_set>
 #include <vector>
+
+#include "cvc5_private.h"
 
 namespace cvc5 {
 namespace prop {

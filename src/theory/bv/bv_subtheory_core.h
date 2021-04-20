@@ -13,7 +13,7 @@
  * Algebraic solver.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -58,7 +58,6 @@ class CoreSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
     Statistics();
-    ~Statistics();
   };
 
   // NotifyClass: handles call-back from congruence closure module

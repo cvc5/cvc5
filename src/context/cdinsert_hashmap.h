@@ -31,8 +31,6 @@
  * - Supports insertAtContextLevelZero() if the element is not in the map.
  */
 
-#include "cvc4_private.h"
-
 #include <deque>
 #include <functional>
 #include <unordered_map>
@@ -42,6 +40,7 @@
 #include "base/output.h"
 #include "context/cdinsert_hashmap_forward.h"
 #include "context/context.h"
+#include "cvc5_private.h"
 #include "expr/node.h"
 
 #pragma once

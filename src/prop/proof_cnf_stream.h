@@ -13,7 +13,7 @@
  * The proof-producing CNF stream.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__PROOF_CNF_STREAM_H
 #define CVC5__PROP__PROOF_CNF_STREAM_H
@@ -79,12 +79,11 @@ class ProofCnfStream : public ProofGenerator
                         ProofGenerator* pg);
 
   /**
-   * Clausifies the given propagation lemma *without* registering the
-   * resoluting clause in the SAT solver, as this is handled internally by the
-   * SAT solver. The clausification steps and the generator within the trust
-   * node are saved in d_proof. */
+   * Clausifies the given propagation lemma *without* registering the resoluting
+   * clause in the SAT solver, as this is handled internally by the SAT
+   * solver. The clausification steps and the generator within the trust node
+   * are saved in d_proof if we are producing proofs in the theory engine. */
   void convertPropagation(theory::TrustNode ttn);
-
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -152,6 +151,7 @@ class ProofCnfStream : public ProofGenerator
    * above normalizations on all added clauses.
    */
   void normalizeAndRegister(TNode clauseNode);
+
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
   /** The proof manager of underlying SAT solver associated with this stream. */

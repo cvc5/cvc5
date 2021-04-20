@@ -11,11 +11,11 @@
  * ****************************************************************************
  *
  * An exception that is thrown when an interactive-only feature while
- * CVC4 is being used in a non-interactive setting (for example, the
+ * cvc5 is being used in a non-interactive setting (for example, the
  * "(get-assertions)" command in an SMT-LIBv2 script).
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SMT__MODAL_EXCEPTION_H
 #define CVC5__SMT__MODAL_EXCEPTION_H

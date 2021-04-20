@@ -16,7 +16,7 @@
  * be included in source files.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__NODE_ALGORITHM_H
 #define CVC5__EXPR__NODE_ALGORITHM_H

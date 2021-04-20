@@ -13,7 +13,7 @@
  * The theory engine.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY_ENGINE_H
 #define CVC5__THEORY_ENGINE_H
@@ -37,7 +37,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
@@ -94,7 +94,7 @@ class PropEngine;
  * This is essentially an abstraction for a collection of theories.  A
  * TheoryEngine provides services to a PropEngine, making various
  * T-solvers look like a single unit to the propositional part of
- * CVC4.
+ * cvc5.
  */
 class TheoryEngine {
 
