@@ -914,6 +914,7 @@ libcvc4_add_sources(
   theory/sets/theory_sets_rewriter.h
   theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
+  theory/sets/theory_sets_type_rules.cpp
   theory/sets/theory_sets_type_rules.h
   theory/shared_solver.cpp
   theory/shared_solver.h
