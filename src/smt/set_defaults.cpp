@@ -73,12 +73,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::unsatCores.set(true);
   }
 
-  // sygus core connective requires unsat cores
-  if (options::sygusCoreConnective())
-  {
-    options::unsatCores.set(true);
-  }
-
   if (options::unsatCores()
       && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
   {
@@ -393,7 +387,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
+    if (options::unsatCoresMode() > options::UnsatCoresMode::OLD_PROOF)
     {
       Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
                   "disabled.\n";
@@ -406,6 +400,16 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::produceProofs.set(false);
     options::checkProofs.set(false);
     options::proofEagerChecking.set(false);
+  }
+
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
+    if (options::unsatCoresMode() == options::UnsatCoresMode::OFF)
+    {
+      options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
+    }
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -1503,8 +1507,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
-  Trace("test") << "cores: " << options::unsatCores() << "\n";
-  Trace("test") << "cmode: " << options::unsatCoresMode() << "\n";
 
   if (logic == LogicInfo("QF_UFNRA"))
   {
