@@ -6,7 +6,8 @@ CVC5 prerelease version 1.9
     ./configure.sh
         # use --prefix to specify an install prefix (default: /usr/local)
         # use --name=<PATH> for custom build directory
-        # use --auto-download to download and build missing dependencies
+        # use --auto-download to download and build missing, required or
+        #   enabled, dependencies
     cd <build_dir>   # default is ./build
     make             # use -jN for parallel build with N threads
     make check       # to run default set of tests
