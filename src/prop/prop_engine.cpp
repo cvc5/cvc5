@@ -87,8 +87,8 @@ PropEngine::PropEngine(TheoryEngine* te,
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
 
-  d_decisionEngine.reset(
-      new decision::DecisionEngine(satContext, userContext, d_skdm.get(), rm));
+  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
+  d_decisionEngine->init();  // enable appropriate strategies
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
@@ -113,7 +113,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   // connect SAT solver
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
-  d_decisionEngine->finishInit(d_satSolver, d_cnfStream);
+  d_decisionEngine->setSatSolver(d_satSolver);
+  d_decisionEngine->setCnfStream(d_cnfStream);
   if (pnm)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
@@ -149,6 +150,7 @@ void PropEngine::finishInit()
 
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << std::endl;
+  d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_satSolver;
