@@ -47,7 +47,7 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CCWIN)
     # Roughly following https://stackoverflow.com/a/44383330/2375725
     set(patchcmd
-        PATCH_COMMAND
+        COMMAND
         patch
         <SOURCE_DIR>/src/CMakeLists.txt
         ${CMAKE_CURRENT_LIST_DIR}/deps-utils/Poly-patch-cmake.patch
@@ -76,7 +76,10 @@ if(NOT Poly_FOUND_SYSTEM)
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
     URL_HASH SHA1=7af3bbb7a2bca6ef2a41e79447baac08ff30d2fd
     DOWNLOAD_NAME libpoly.tar.gz
-    ${patchcmd}
+    PATCH_COMMAND
+      sed -i.orig
+      "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
+      <SOURCE_DIR>/CMakeLists.txt ${patchcmd}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
