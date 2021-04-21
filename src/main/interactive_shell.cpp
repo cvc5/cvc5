@@ -27,7 +27,7 @@
 #include <vector>
 
 // This must go before HAVE_LIBEDITLINE.
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 
 #if HAVE_LIBEDITLINE
 #include <editline/readline.h>
@@ -112,13 +112,13 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
     OutputLanguage lang = toOutputLanguage(d_options.getInputLanguage());
     switch(lang) {
       case output::LANG_CVC:
-        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
+        d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
         commandsBegin = cvc_commands;
         commandsEnd =
             cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
         break;
       case output::LANG_TPTP:
-        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
+        d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
         commandsBegin = tptp_commands;
         commandsEnd =
             tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
@@ -126,7 +126,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
       default:
         if (language::isOutputLang_smt2(lang))
         {
-          d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
+          d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
           commandsBegin = smt2_commands;
           commandsEnd =
               smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);

@@ -12,14 +12,14 @@
 ##
 
 import pytest
-import pycvc4
+import pycvc5
 import sys
 
-from pycvc4 import kinds
+from pycvc5 import kinds
 
 @pytest.fixture
 def solver():
-    return pycvc4.Solver()
+    return pycvc5.Solver()
 
 def test_recoverable_exception(solver):
     solver.setOption("produce-models", "true")
@@ -31,9 +31,9 @@ def test_recoverable_exception(solver):
 def test_supports_floating_point(solver):
     if solver.supportsFloatingPoint():
       try:
-          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+          solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
       except RuntimeError:
           pytest.fail()
     else:
         with pytest.raises(RuntimeError):
-          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+          solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
