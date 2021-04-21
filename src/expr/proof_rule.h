@@ -701,6 +701,9 @@ enum class PfRule : uint32_t
   ARRAYS_TRUST,
 
   //================================================= Bit-Vector rules
+  // Note: bitblast() represents the result of the bit-blasted term as a
+  //       bit-vector consisting of the output bits of the bit-blasted circuit
+  //       representation of the term
   // ======== Bitblast
   // Children: none
   // Arguments: (t)
@@ -710,12 +713,17 @@ enum class PfRule : uint32_t
   // ======== Bitblast Bit-Vector Constant
   // Children: none
   // Arguments: (= t bitblast(t))
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
   BV_BITBLAST_CONST,
   // ======== Bitblast Bit-Vector Variable
   // Children: none
   // Arguments: (= t bitblast(t))
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
   BV_BITBLAST_VAR,
   // ======== Bitblast Bit-Vector Terms
+  // TODO cvc4-projects issue #275
   // Children: none
   // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
   // ---------------------
