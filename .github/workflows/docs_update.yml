@@ -68,9 +68,9 @@ jobs:
             NAME="pr$NAME"
             # be careful here, see explanation above!
             git checkout "${GITHUB_REF}" -- \
-              `git ls-tree refs/heads/master --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
-              `git ls-tree refs/heads/master --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
-              `git ls-tree refs/heads/master --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
+              `git ls-tree "${GITHUB_REF}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
+              `git ls-tree "${GITHUB_REF}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
+              `git ls-tree "${GITHUB_REF}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
           fi
           if [ ! -z "$NAME" ]; then
             rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
