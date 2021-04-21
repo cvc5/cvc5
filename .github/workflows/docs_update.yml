@@ -6,13 +6,12 @@ on:
     - 'docs/**'
     - 'examples/**'
     - 'src/api/**'
-#  pull_request:
-#    branches:
-#      - master
-#    paths:
-#      - '.ci/**'
-#      - 'docs/**'
-#      - 'src/api/**'
+  pull_request:
+    paths:
+    - '.ci/**'
+    - 'docs/**'
+    - 'examples/**'
+    - 'src/api/**'
 
 jobs:
   build:
