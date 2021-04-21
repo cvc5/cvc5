@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file assertion_list.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Assertion list for justification strategy
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Assertion list
+ */
 
 #include "cvc5_private.h"
 
@@ -43,25 +44,45 @@ enum class DecisionStatus
 const char* toString(DecisionStatus s);
 std::ostream& operator<<(std::ostream& out, DecisionStatus s);
 
+/**
+ * An assertion list used by the justification heuristic. This tracks a list
+ * of formulas that we must justify.
+ */
 class AssertionList
 {
  public:
+  /**
+   * @param ac The context on which the assertions depends on. This is the
+   * user context for assertions. It is the SAT context for assertions that
+   * are dynamically relevant based on what is asserted, e.g. lemmas
+   * corresponding to skolem definitions.
+   * @param ic The context on which the current index of the assertions
+   * depends on. This is typically the SAT context.
+   * @param dyn Whether to use a dynamic ordering of the assertions. If this
+   * flag is true, then getNextAssertion will return the most important next
+   * assertion to consider based on heuristics in response to notifyStatus.
+   */
   AssertionList(context::Context* ac,
                 context::Context* ic,
                 bool useDyn = false);
   virtual ~AssertionList() {}
   /** Presolve, which clears the dynamic assertion order */
   void presolve();
-  /** Add the assertion */
+  /** Add the assertion n */
   void addAssertion(TNode n);
   /**
    * Get the new assertion, increment d_assertionIndex, sets fromIndex to the
    * index of the assertion.
    */
   TNode getNextAssertion();
-  /** size */
+  /** Get the number of assertions */
   size_t size() const;
-  /** Notify status */
+  /**
+   * Notify status, which indicates the status of the assertion n, where n
+   * is the assertion last returned by getNextAssertion above (independent of
+   * the context). The status s indicates what happened when we were trying to
+   * justify n. This impacts its order if useDyn is true.
+   */
   void notifyStatus(TNode n, DecisionStatus s);
 
  private:
