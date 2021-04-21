@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --solve-real-as-int
+; COMMAND-LINE: --incremental --solve-real-as-int -q
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
