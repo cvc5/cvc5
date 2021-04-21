@@ -151,7 +151,7 @@ class TheoryRewriter
    * that are syntax sugar that cannot otherwise be eliminated during rewriting.
    * For example, division relies on the introduction of an uninterpreted
    * function for the divide-by-zero case, which we do not introduce with
-   * the rewriter, since this function may be cached in a non-global fashion.
+   * the standard rewrite methods.
    *
    * Some theories have kinds that are effectively definitions and should be
    * expanded before they are handled.  Definitions allow a much wider range of
@@ -160,11 +160,6 @@ class TheoryRewriter
    * Where possible rewrite rules should be used, definitions should only be
    * used when rewrites are not possible, for example in handling
    * under-specified operations using partially defined functions.
-   *
-   * Some theories like sets use expandDefinition as a "context
-   * independent preRegisterTerm".  This is required for cases where
-   * a theory wants to be notified about a term before preprocessing
-   * and simplification but doesn't necessarily want to rewrite it.
    */
   virtual TrustNode expandDefinition(Node node);
 };
