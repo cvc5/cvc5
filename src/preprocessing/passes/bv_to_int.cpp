@@ -840,7 +840,9 @@ void BVToInt::defineBVUFAsIntUF(Node bvUF, Node intUF)
   }
   // If the result is BV, it needs to be casted back.
   result = castToType(result, resultType);
-  // add the function definition to the smt engine.
+  // add the substitution to the preprocessing context, which ensures the
+  // model for bvUF is correct, as well as substituting it in the input
+  // assertions when necessary.
   if (!args.empty())
   {
     result = d_nm->mkNode(

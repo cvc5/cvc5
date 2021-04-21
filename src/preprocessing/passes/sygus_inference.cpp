@@ -49,7 +49,7 @@ PreprocessingPassResult SygusInference::applyInternal(
   {
     Trace("sygus-infer") << "...Solved:" << std::endl;
     Assert(funs.size() == sols.size());
-    // if so, sygus gives us function definitions
+    // if so, sygus gives us function definitions, which we add as substitutions
     for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
       Trace("sygus-infer") << funs[i] << " -> " << sols[i] << std::endl;

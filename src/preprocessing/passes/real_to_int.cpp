@@ -186,8 +186,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               nm->integerType(),
               "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
-          // ensure that the original variable is defined to be the returned
-          // one, which is important for models and for incremental solving.
+          // add the substitution to the preprocessing context, which ensures
+          // the model for n is correct, as well as substituting it in the input
+          // assertions when necessary.
           d_preprocContext->addSubstitution(n, ret);
         }
       }
