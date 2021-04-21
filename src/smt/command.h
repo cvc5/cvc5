@@ -425,6 +425,32 @@ class CVC5_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
 
+class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
+{
+ protected:
+  api::Term d_func;
+  api::Sort d_sort;
+  std::vector<api::Term> d_initValue;
+
+ public:
+  DeclarePoolCommand(const std::string& id,
+                     api::Term func,
+                     api::Sort sort,
+                     const std::vector<api::Term>& initValue);
+  api::Term getFunction() const;
+  api::Sort getSort() const;
+  const std::vector<api::Term>& getInitialValue() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
+}; /* class DeclarePoolCommand */
+
 class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:

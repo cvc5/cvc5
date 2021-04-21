@@ -191,13 +191,17 @@ function(check_python_module module)
       RET_MODULE_TEST
     ERROR_QUIET
   )
+  set(module_name ${ARGN})
+  if(NOT module_name)
+    set(module_name ${module})
+  endif()
 
   if(RET_MODULE_TEST)
     message(FATAL_ERROR
-        "Could not find module ${module} for Python "
+        "Could not find module ${module_name} for Python "
         "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
-        "Make sure to install ${module} for this Python version "
-        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module}'.\n"
+        "Make sure to install ${module_name} for this Python version "
+        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()

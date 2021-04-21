@@ -66,8 +66,8 @@ std::string parse(std::string instr,
                   std::string input_language,
                   std::string output_language)
 {
-  assert(input_language == "smt2" || input_language == "cvc4");
-  assert(output_language == "smt2" || output_language == "cvc4");
+  assert(input_language == "smt2" || input_language == "cvc");
+  assert(output_language == "smt2" || output_language == "cvc");
 
   std::string declarations;
 
@@ -125,8 +125,8 @@ std::string translate(std::string instr,
                       std::string input_language,
                       std::string output_language)
 {
-  assert(input_language == "smt2" || input_language == "cvc4");
-  assert(output_language == "smt2" || output_language == "cvc4");
+  assert(input_language == "smt2" || input_language == "cvc");
+  assert(output_language == "smt2" || output_language == "cvc");
 
   std::cout << "==============================================" << std::endl
             << "translating from "
@@ -159,9 +159,9 @@ void runTestString(std::string instr, std::string instr_language)
             << "   in language " << input::LANG_SMTLIB_V2 << std::endl;
   std::string smt2str = translate(instr, instr_language, "smt2");
   std::cout << "in SMT2      : " << smt2str << std::endl;
-  std::string cvcstr = translate(smt2str, "smt2", "cvc4");
+  std::string cvcstr = translate(smt2str, "smt2", "cvc");
   std::cout << "in CVC       : " << cvcstr << std::endl;
-  std::string outstr = translate(cvcstr, "cvc4", "smt2");
+  std::string outstr = translate(cvcstr, "cvc", "smt2");
   std::cout << "back to SMT2 : " << outstr << std::endl << std::endl;
 
   assert(outstr == smt2str);  // differences in output
@@ -170,8 +170,8 @@ void runTestString(std::string instr, std::string instr_language)
 int32_t runTest()
 {
   runTestString("(= (f (f y)) x)", "smt2");
-  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", "cvc4");
-  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]", "cvc4");
-  runTestString("a[x][y] = a[y][x]", "cvc4");
+  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", "cvc");
+  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]", "cvc");
+  runTestString("a[x][y] = a[y][x]", "cvc");
   return 0;
 }
