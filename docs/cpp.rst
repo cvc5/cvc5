@@ -8,9 +8,9 @@ Class Hierarchy
 
   * namespace ``api``
 
-    * class :cpp:class:`cvc5::api::CVC4ApiException`
+    * class :cpp:class:`cvc5::api::CVC5ApiException`
 
-    * class :cpp:class:`cvc5::api::CVC4ApiRecoverableException`
+    * class :cpp:class:`cvc5::api::CVC5ApiRecoverableException`
 
     * class :doc:`cpp/datatype`
 

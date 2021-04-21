@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-libcvc4_add_sources(GENERATED
+libcvc5_add_sources(GENERATED
   rewriter_tables.h
   theory_traits.h
   type_enumerator.cpp

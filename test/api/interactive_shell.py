@@ -24,7 +24,7 @@ def check_iteractive_shell():
     """
 
     # Open cvc5
-    child = pexpect.spawnu("bin/cvc4", timeout=1)
+    child = pexpect.spawnu("bin/cvc5", timeout=1)
 
     # We expect to see the cvc5 prompt
     child.expect("cvc5>")

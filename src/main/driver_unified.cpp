@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Driver for cvc5 executable (cvc4).
+ * Driver for cvc5 executable (cvc5).
  */
 
 #include <stdio.h>
@@ -26,8 +26,8 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/configuration.h"
+#include "base/cvc5config.h"
 #include "base/output.h"
-#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
@@ -91,7 +91,8 @@ void printUsage(Options& opts, bool full) {
   }
 }
 
-int runCvc4(int argc, char* argv[], Options& opts) {
+int runCvc5(int argc, char* argv[], Options& opts)
+{
   main::totalTime = std::make_unique<TotalTimer>();
   // For the signal handlers' benefit
   pOptions = &opts;

@@ -41,7 +41,7 @@
 
 #include "time_limit.h"
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 
 #if HAVE_SETITIMER
 #include <signal.h>

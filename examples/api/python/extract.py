@@ -16,8 +16,8 @@
 # extract-new.cpp.
 ##
 
-from pycvc4 import Solver
-from pycvc4.kinds import BVExtract, Equal
+from pycvc5 import Solver
+from pycvc5.kinds import BVExtract, Equal
 
 if __name__ == "__main__":
     slv = Solver()
@@ -49,4 +49,4 @@ if __name__ == "__main__":
     eq2 = slv.mkTerm(Equal, x_31_31, x_0_0)
     print("Check entailment assuming:", eq2)
     print("Expect ENTAILED")
-    print("CVC4:", slv.checkEntailed(eq2))
+    print("cvc5:", slv.checkEntailed(eq2))

@@ -49,25 +49,25 @@ mkdir -p $BASE_DIR/share/lfsc
 cp -r $SIG_DIR/lfsc/new/signatures $BASE_DIR/share/lfsc
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen_and_check.sh
-cat << EOF > $BASE_DIR/bin/cvc4-lfsc-check.sh
+cat << EOF > $BASE_DIR/bin/cvc5-lfsc-check.sh
 #!/bin/bash
 
 echo "=== Generate proof: \$@" 
-$BASE_DIR/bin/cvc4-proof.sh \$@ > proof.plf
+$BASE_DIR/bin/cvc5-proof.sh \$@ > proof.plf
 
 echo "=== Check proof with LFSC" 
 $BASE_DIR/bin/lfsc-check.sh proof.plf
 EOF
-chmod +x $BASE_DIR/bin/cvc4-lfsc-check.sh
+chmod +x $BASE_DIR/bin/cvc5-lfsc-check.sh
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen.sh
-cat << EOF > $BASE_DIR/bin/cvc4-proof.sh
+cat << EOF > $BASE_DIR/bin/cvc5-proof.sh
 #!/bin/bash
 
-# call cvc4 and remove the first line of the output (should be "unsat")
+# call cvc5 and remove the first line of the output (should be "unsat")
 \$@ --dump-proofs --proof-format=lfsc | tail -n +2
 EOF
-chmod +x $BASE_DIR/bin/cvc4-proof.sh
+chmod +x $BASE_DIR/bin/cvc5-proof.sh
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/lfsc_check.sh
 cat << EOF > $BASE_DIR/bin/lfsc-check.sh
@@ -107,9 +107,9 @@ popd
 
 echo ""
 echo "========== How to use LFSC =========="
-echo "Generate a LFSC proof with CVC4:"
-echo "  $CVC_DIR/deps/bin/cvc4-proof.sh cvc4 <options> <input file>"
+echo "Generate a LFSC proof with cvc5:"
+echo "  $CVC_DIR/deps/bin/cvc5-proof.sh cvc5 <options> <input file>"
 echo "Check a generated proof:"
 echo "  $CVC_DIR/deps/bin/lfsc-check.sh <proof file>"
-echo "Run CVC4 and check the generated proof:"
-echo "  $CVC_DIR/deps/bin/cvc4-lfsc-check.sh cvc4 <options> <input file>"
+echo "Run cvc5 and check the generated proof:"
+echo "  $CVC_DIR/deps/bin/cvc5-lfsc-check.sh cvc5 <options> <input file>"
