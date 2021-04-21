@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file justify_info.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification info
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification info.
+ */
 
 #include "decision/justify_info.h"
 
@@ -40,12 +41,20 @@ void JustifyInfo::revertChildIndex()
   Assert(d_childIndex.get() > 0);
   d_childIndex = d_childIndex - 1;
 }
+<<<<<<< HEAD
 void JustifyInfo::set(const TNode n, prop::SatValue desiredVal)
+=======
+void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
+>>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 {
   d_node = n;
   d_desiredVal = desiredVal;
   d_childIndex = 0;
 }
 
+<<<<<<< HEAD
 }  // namespace decision
+=======
+}
+>>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5

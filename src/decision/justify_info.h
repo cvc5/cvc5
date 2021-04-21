@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file justify_info.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification info
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification info.
+ */
 
 #include "cvc5_private.h"
 
@@ -36,7 +37,11 @@ class JustifyInfo
   JustifyInfo(context::Context* c);
   ~JustifyInfo();
   /** set */
+<<<<<<< HEAD
   void set(const TNode n, prop::SatValue desiredVal);
+=======
+  void set(TNode n, prop::SatValue desiredVal);
+>>>>>>> fafde0249bec12df91370119f35fc020ec81c935
   /** get node */
   JustifyNode getNode() const;
   /** get next child index, and increment */
@@ -53,7 +58,11 @@ class JustifyInfo
   context::CDO<size_t> d_childIndex;
 };
 
+<<<<<<< HEAD
 }  // namespace decision
+=======
+}
+>>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFY_INFO_H */

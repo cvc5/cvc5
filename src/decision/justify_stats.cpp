@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file justify_stats.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifiers statistics class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Justification stats.
+ */
 
 #include "decision/justify_stats.h"
 
@@ -37,5 +38,9 @@ JustifyStatistics::JustifyStatistics()
 
 JustifyStatistics::~JustifyStatistics() {}
 
+<<<<<<< HEAD
 }  // namespace decision
+=======
+}
+>>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5

@@ -620,6 +620,8 @@ libcvc4_add_sources(
   theory/ext_theory.h
   theory/fp/fp_converter.cpp
   theory/fp/fp_converter.h
+  theory/fp/fp_expand_defs.cpp
+  theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
   theory/fp/theory_fp.h
   theory/fp/theory_fp_rewriter.cpp
