@@ -38,7 +38,11 @@ if(Poly_INCLUDE_DIR
 endif()
 
 if(NOT Poly_FOUND_SYSTEM)
-  check_auto_download("Poly" "--no-poly")
+  check_ep_downloaded("Poly-EP")
+  if(NOT Poly-EP_DOWNLOADED)
+    check_auto_download("Poly" "--no-poly")
+  endif()
+
   include(ExternalProject)
 
   set(Poly_VERSION "0.1.9")

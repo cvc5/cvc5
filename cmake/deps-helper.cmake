@@ -19,8 +19,6 @@
 set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")
 # base path to installed dependencies
 set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
-# Look for already installed dependencies in the build directory
-list(APPEND CMAKE_PREFIX_PATH "${DEPS_BASE}")
 # CMake wants directories specified via INTERFACE_INCLUDE_DIRECTORIES
 # (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")
@@ -60,6 +58,16 @@ download and build it for you.")
         endif()
     endif()
 endmacro(check_auto_download)
+
+# Check if the given external project was already set up in a previous
+# configure call.
+macro(check_ep_downloaded name)
+  if(EXISTS "${DEPS_PREFIX}/src/${name}")
+    set(${name}_DOWNLOADED TRUE)
+  else()
+    set(${name}_DOWNLOADED FALSE)
+  endif()
+endmacro()
 
 macro(check_system_version name)
     # find_package sets this variable when called with a version

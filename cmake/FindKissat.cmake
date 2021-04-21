@@ -39,7 +39,11 @@ if(Kissat_INCLUDE_DIR AND Kissat_LIBRARIES)
 endif()
 
 if(NOT Kissat_FOUND_SYSTEM)
-  check_auto_download("Kissat" "--no-kissat")
+  check_ep_downloaded("Kissat-EP")
+  if(NOT Kissat-EP_DOWNLOADED)
+    check_auto_download("Kissat" "--no-kissat")
+  endif()
+
   include(ExternalProject)
 
   fail_if_include_missing("sys/resource.h" "Kissat")
