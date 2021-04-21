@@ -25,6 +25,12 @@ libcvc4_add_sources(
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  decision/justify_info.cpp
+  decision/justify_info.h
+  decision/justify_stack.cpp
+  decision/justify_stack.h
+  decision/justify_stats.cpp
+  decision/justify_stats.h
   lib/clock_gettime.c
   lib/clock_gettime.h
   lib/ffs.c
@@ -82,8 +88,6 @@ libcvc4_add_sources(
   preprocessing/passes/non_clausal_simp.h
   preprocessing/passes/pseudo_boolean_processor.cpp
   preprocessing/passes/pseudo_boolean_processor.h
-  preprocessing/passes/quantifier_macros.cpp
-  preprocessing/passes/quantifier_macros.h
   preprocessing/passes/quantifiers_preprocess.cpp
   preprocessing/passes/quantifiers_preprocess.h
   preprocessing/passes/real_to_int.cpp
@@ -446,6 +450,7 @@ libcvc4_add_sources(
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
   theory/arrays/theory_arrays_rewriter.h
+  theory/arrays/theory_arrays_type_rules.cpp
   theory/arrays/theory_arrays_type_rules.h
   theory/arrays/type_enumerator.h
   theory/arrays/union_find.cpp
@@ -556,6 +561,7 @@ libcvc4_add_sources(
   theory/bv/theory_bv_rewrite_rules_simplification.h
   theory/bv/theory_bv_rewriter.cpp
   theory/bv/theory_bv_rewriter.h
+  theory/bv/theory_bv_type_rules.cpp
   theory/bv/theory_bv_type_rules.h
   theory/bv/theory_bv_utils.cpp
   theory/bv/theory_bv_utils.h
@@ -609,6 +615,8 @@ libcvc4_add_sources(
   theory/ext_theory.h
   theory/fp/fp_converter.cpp
   theory/fp/fp_converter.h
+  theory/fp/fp_expand_defs.cpp
+  theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
   theory/fp/theory_fp.h
   theory/fp/theory_fp_rewriter.cpp
@@ -755,6 +763,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp
   theory/quantifiers/quantifiers_inference_manager.h
+  theory/quantifiers/quantifiers_macros.cpp
+  theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_registry.cpp
@@ -869,12 +879,15 @@ libcvc4_add_sources(
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp
   theory/quantifiers/term_enumeration.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_registry.cpp
   theory/quantifiers/term_registry.h
   theory/quantifiers/term_util.cpp
   theory/quantifiers/term_util.h
   theory/quantifiers/theory_quantifiers.cpp
   theory/quantifiers/theory_quantifiers.h
+  theory/quantifiers/theory_quantifiers_type_rules.cpp
   theory/quantifiers/theory_quantifiers_type_rules.h
   theory/quantifiers_engine.cpp
   theory/quantifiers_engine.h
@@ -889,6 +902,7 @@ libcvc4_add_sources(
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
+  theory/sep/theory_sep_type_rules.cpp
   theory/sep/theory_sep_type_rules.h
   theory/sets/cardinality_extension.cpp
   theory/sets/cardinality_extension.h
@@ -914,6 +928,7 @@ libcvc4_add_sources(
   theory/sets/theory_sets_rewriter.h
   theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
+  theory/sets/theory_sets_type_rules.cpp
   theory/sets/theory_sets_type_rules.h
   theory/shared_solver.cpp
   theory/shared_solver.h
