@@ -93,7 +93,9 @@ class PreprocessingPassContext
    * @param lhs The node replaced by node 'rhs'
    * @param rhs The node to substitute node 'lhs'
    */
-  void addSubstitution(const Node& lhs, const Node& rhs, ProofGenerator* pg = nullptr);
+  void addSubstitution(const Node& lhs,
+                       const Node& rhs,
+                       ProofGenerator* pg = nullptr);
 
   /** The the proof node manager associated with this context, if it exists */
   ProofNodeManager* getProofNodeManager();

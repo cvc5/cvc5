@@ -63,7 +63,9 @@ void PreprocessingPassContext::addModelSubstitution(const Node& lhs,
       lhs, d_smt->expandDefinitions(rhs, false));
 }
 
-void PreprocessingPassContext::addSubstitution(const Node& lhs, const Node& rhs, ProofGenerator* pg)
+void PreprocessingPassContext::addSubstitution(const Node& lhs,
+                                               const Node& rhs,
+                                               ProofGenerator* pg)
 {
   d_topLevelSubstitutions->addSubstitution(lhs, rhs, pg);
   // also add as a model substitution
