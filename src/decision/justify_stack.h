@@ -75,11 +75,7 @@ class JustifyStack
   context::CDO<size_t> d_stackSizeValid;
 };
 
-<<<<<<< HEAD
-}  // namespace decision
-=======
 }
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFY_INFO_H */

@@ -41,20 +41,12 @@ void JustifyInfo::revertChildIndex()
   Assert(d_childIndex.get() > 0);
   d_childIndex = d_childIndex - 1;
 }
-<<<<<<< HEAD
-void JustifyInfo::set(const TNode n, prop::SatValue desiredVal)
-=======
 void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 {
   d_node = n;
   d_desiredVal = desiredVal;
   d_childIndex = 0;
 }
 
-<<<<<<< HEAD
-}  // namespace decision
-=======
 }
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5

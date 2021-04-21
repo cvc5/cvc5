@@ -97,6 +97,7 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
   }
   if (s == DecisionStatus::NO_DECISION)
   {
+    // no decision does not impact the decision order
     return;
   }
   std::vector<TNode>::iterator it =
@@ -120,23 +121,11 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
   }
   if (s == DecisionStatus::BACKTRACK)
   {
+    // backtrack inserts at the current position
     if (it == d_dlist.end())
     {
       d_dlist.insert(d_dlist.begin(), n);
     }
-    return;
-  }
-  // otherwise, remove if already there
-  if (it != d_dlist.end())
-  {
-    size_t index = static_cast<size_t>(std::distance(d_dlist.begin(), it));
-    if (index < d_dindex.get())
-    {
-      // shift the current index
-      d_dindex = d_dindex.get() - 1;
-    }
-    Trace("jh-status") << "...remove due to " << s << std::endl;
-    d_dlist.erase(it);
   }
 }
 

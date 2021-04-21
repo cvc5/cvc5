@@ -42,11 +42,7 @@ class JustifyStatistics
   IntStat d_maxSkolemDefsSize;
 };
 
-<<<<<<< HEAD
-}  // namespace decision
-=======
 }
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFY_STATS_H */

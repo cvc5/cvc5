@@ -37,11 +37,7 @@ class JustifyInfo
   JustifyInfo(context::Context* c);
   ~JustifyInfo();
   /** set */
-<<<<<<< HEAD
-  void set(const TNode n, prop::SatValue desiredVal);
-=======
   void set(TNode n, prop::SatValue desiredVal);
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
   /** get node */
   JustifyNode getNode() const;
   /** get next child index, and increment */
@@ -58,11 +54,7 @@ class JustifyInfo
   context::CDO<size_t> d_childIndex;
 };
 
-<<<<<<< HEAD
-}  // namespace decision
-=======
 }
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__JUSTIFY_INFO_H */

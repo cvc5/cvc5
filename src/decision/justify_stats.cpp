@@ -38,9 +38,5 @@ JustifyStatistics::JustifyStatistics()
 
 JustifyStatistics::~JustifyStatistics() {}
 
-<<<<<<< HEAD
-}  // namespace decision
-=======
 }
->>>>>>> fafde0249bec12df91370119f35fc020ec81c935
 }  // namespace cvc5
