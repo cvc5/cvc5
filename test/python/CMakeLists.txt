@@ -28,3 +28,4 @@ endmacro()
 
 # add specific test files
 cvc4_add_python_api_test(pytest_solver unit/api/test_solver.py)
+cvc4_add_python_api_test(pytest_sort unit/api/test_sort.py)

@@ -350,6 +350,9 @@ const static std::unordered_map<Kind, cvc5::Kind, KindHashFunction> s_kinds{
     {BOUND_VAR_LIST, cvc5::Kind::BOUND_VAR_LIST},
     {INST_PATTERN, cvc5::Kind::INST_PATTERN},
     {INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN},
+    {INST_POOL, cvc5::Kind::INST_POOL},
+    {INST_ADD_TO_POOL, cvc5::Kind::INST_ADD_TO_POOL},
+    {SKOLEM_ADD_TO_POOL, cvc5::Kind::SKOLEM_ADD_TO_POOL},
     {INST_ATTRIBUTE, cvc5::Kind::INST_ATTRIBUTE},
     {INST_PATTERN_LIST, cvc5::Kind::INST_PATTERN_LIST},
     {LAST_KIND, cvc5::Kind::LAST_KIND},
@@ -645,6 +648,9 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
         {cvc5::Kind::INST_PATTERN, INST_PATTERN},
         {cvc5::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
+        {cvc5::Kind::INST_POOL, INST_POOL},
+        {cvc5::Kind::INST_ADD_TO_POOL, INST_ADD_TO_POOL},
+        {cvc5::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
         {cvc5::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
         {cvc5::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
@@ -6639,6 +6645,24 @@ Term Solver::getSeparationNilTerm() const
       << "Can only get separtion nil term after sat or unknown response.";
   //////// all checks before this line
   return Term(this, d_smtEngine->getSepNilExpr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::declarePool(const std::string& symbol,
+                         const Sort& sort,
+                         const std::vector<Term>& initValue) const
+{
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_SOLVER_CHECK_TERMS(initValue);
+  //////// all checks before this line
+  TypeNode setType = getNodeManager()->mkSetType(*sort.d_type);
+  Node pool = getNodeManager()->mkBoundVar(symbol, setType);
+  std::vector<Node> initv = Term::termVectorToNodes(initValue);
+  d_smtEngine->declarePool(pool, initv);
+  return Term(this, pool);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

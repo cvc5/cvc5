@@ -3572,6 +3572,19 @@ class CVC4_EXPORT Solver
   Term getSeparationNilTerm() const;
 
   /**
+   * Declare a symbolic pool of terms with the given initial value.
+   * SMT-LIB:
+   * \verbatim
+   * ( declare-pool <symbol> <sort> ( <term>* ) )
+   * \endverbatim
+   * @param symbol The name of the pool
+   * @param sort The sort of the elements of the pool.
+   * @param initValue The initial value of the pool
+   */
+  Term declarePool(const std::string& symbol,
+                   const Sort& sort,
+                   const std::vector<Term>& initValue) const;
+  /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB:
    * \verbatim
