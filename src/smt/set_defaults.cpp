@@ -110,6 +110,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
   }
 
+  if (options::produceProofs() && !options::unsatCoresNew())
+  {
+    if (options::unsatCoresNew.wasSetByUser())
+    {
+      Notice() << "Since proofs are produced, we necessarily also produce "
+                  "unsat cores (in full-proof mode)."
+               << std::endl;
+    }
+    options::unsatCores.set(true);
+    options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
+  }
+
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
