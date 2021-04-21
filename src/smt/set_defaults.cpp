@@ -98,16 +98,16 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::produceProofs.set(true);
   }
 
-  if (options::unsatCoresNew() && options::produceProofs())
+  if (options::unsatCoresNew() && options::produceProofs()
+      && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
-    if (options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
-        && options::unsatCoresMode.wasSetByUser())
+    if (options::unsatCoresMode.wasSetByUser())
     {
       Notice() << "Forcing full-proof mode unsat cores mode since proofs are "
                   "being produced."
                << std::endl;
-      options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
     }
+    options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
   }
 
   if (options::bitvectorAigSimplifications.wasSetByUser())
