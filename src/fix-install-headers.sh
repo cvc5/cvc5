@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# foo
+
 set -e -o pipefail
 
 dir="$DESTDIR$1"
