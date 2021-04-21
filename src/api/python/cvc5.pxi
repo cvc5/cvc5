@@ -9,27 +9,27 @@ from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-from cvc4 cimport cout
-from cvc4 cimport Datatype as c_Datatype
-from cvc4 cimport DatatypeConstructor as c_DatatypeConstructor
-from cvc4 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
-from cvc4 cimport DatatypeDecl as c_DatatypeDecl
-from cvc4 cimport DatatypeSelector as c_DatatypeSelector
-from cvc4 cimport Result as c_Result
-from cvc4 cimport RoundingMode as c_RoundingMode
-from cvc4 cimport Op as c_Op
-from cvc4 cimport OpHashFunction as c_OpHashFunction
-from cvc4 cimport Solver as c_Solver
-from cvc4 cimport Grammar as c_Grammar
-from cvc4 cimport Sort as c_Sort
-from cvc4 cimport SortHashFunction as c_SortHashFunction
-from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
-from cvc4 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
-from cvc4 cimport ROUND_NEAREST_TIES_TO_AWAY
-from cvc4 cimport Term as c_Term
-from cvc4 cimport TermHashFunction as c_TermHashFunction
+from cvc5 cimport cout
+from cvc5 cimport Datatype as c_Datatype
+from cvc5 cimport DatatypeConstructor as c_DatatypeConstructor
+from cvc5 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
+from cvc5 cimport DatatypeDecl as c_DatatypeDecl
+from cvc5 cimport DatatypeSelector as c_DatatypeSelector
+from cvc5 cimport Result as c_Result
+from cvc5 cimport RoundingMode as c_RoundingMode
+from cvc5 cimport Op as c_Op
+from cvc5 cimport OpHashFunction as c_OpHashFunction
+from cvc5 cimport Solver as c_Solver
+from cvc5 cimport Grammar as c_Grammar
+from cvc5 cimport Sort as c_Sort
+from cvc5 cimport SortHashFunction as c_SortHashFunction
+from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
+from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
+from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
+from cvc5 cimport Term as c_Term
+from cvc5 cimport TermHashFunction as c_TermHashFunction
 
-from cvc4kinds cimport Kind as c_Kind
+from cvc5kinds cimport Kind as c_Kind
 
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):
