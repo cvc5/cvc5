@@ -24,6 +24,7 @@
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "prop/skolem_def_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -34,7 +35,8 @@ namespace prop {
 
 TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
-                         DecisionEngine* decisionEngine,
+                         decision::DecisionEngine* decisionEngine,
+                         SkolemDefManager* skdm,
                          context::Context* context,
                          context::UserContext* userContext,
                          ProofNodeManager* pnm)
@@ -44,7 +46,8 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_theoryEngine(theoryEngine),
       d_queue(context),
       d_tpp(*theoryEngine, userContext, pnm),
-      d_skdm(new SkolemDefManager(context, userContext))
+      d_skdm(skdm),
+      d_trackAsserts(options::jhNew())
 {
 }
 
@@ -76,6 +79,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
+    if (d_trackAsserts)
+    {
+      d_decisionEngine->notifyAsserted(assertion);
+    }
   }
   d_theoryEngine->check(effort);
 }
