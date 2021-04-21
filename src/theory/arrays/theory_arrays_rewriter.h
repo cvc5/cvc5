@@ -43,7 +43,7 @@ static inline Node mkEqNode(Node a, Node b) {
 
 class TheoryArraysRewriter : public TheoryRewriter
 {
-  /** 
+  /**
    * Puts array constant node into normal form. This is so that array constants
    * that are distinct nodes are semantically disequal.
    */
