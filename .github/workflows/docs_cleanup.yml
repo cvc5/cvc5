@@ -11,7 +11,7 @@ jobs:
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
-          git clone https://${{ secrets.TOKEN }}@github.com/cvc5/cvc5-docs.github.io.git target/
+          git clone https://${{ secrets.DOCS_TOKEN }}@github.com/cvc5/cvc5-docs.github.io.git target/
       
       - name: Remove stale docs
         run: |
