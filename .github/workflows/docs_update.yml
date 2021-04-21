@@ -1,13 +1,12 @@
 name: documentation update
-on: [push, pull_request]
-#on:
-#  push:
-#    branches:
-#      - master
-#    paths:
-#      - '.ci/**'
-#      - 'docs/**'
-#      - 'src/api/**'
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.ci/**'
+      - 'docs/**'
+      - 'src/api/**'
 #  pull_request:
 #    branches:
 #      - master
