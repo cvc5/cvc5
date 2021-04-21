@@ -59,7 +59,8 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
       imap[assertions->size()] = newSkolems[j];
       assertions->pushBackTrusted(newAsserts[j]);
       // new assertions have a dependence on the node (old pf architecture)
-      if (options::unsatCores()&& options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
+      if (options::unsatCores()
+          && options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
       {
         ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
                                                  assertion);

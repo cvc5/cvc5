@@ -469,7 +469,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::simplificationMode.wasSetByUser())
       {
-        throw OptionException("simplification not supported with old unsat cores");
+        throw OptionException(
+            "simplification not supported with old unsat cores");
       }
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores"
@@ -493,7 +494,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::sortInference.wasSetByUser())
       {
-        throw OptionException("sort inference not supported with old unsat cores");
+        throw OptionException(
+            "sort inference not supported with old unsat cores");
       }
       Notice() << "SmtEngine: turning off sort inference to support old unsat "
                   "cores\n";
@@ -539,7 +541,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::bvIntroducePow2.wasSetByUser())
       {
-        throw OptionException("bv-intro-pow2 not supported with old unsat cores");
+        throw OptionException(
+            "bv-intro-pow2 not supported with old unsat cores");
       }
       Notice()
           << "SmtEngine: turning off bv-intro-pow2 to support old unsat cores";
@@ -561,7 +564,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::globalNegate.wasSetByUser())
       {
-        throw OptionException("global-negate not supported with old unsat cores");
+        throw OptionException(
+            "global-negate not supported with old unsat cores");
       }
       Notice() << "SmtEngine: turning off global-negate to support old unsat "
                   "cores\n";
