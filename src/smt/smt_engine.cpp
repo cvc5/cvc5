@@ -962,7 +962,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate an unsat core correctly.
-    if (options::checkUnsatCores() || options::checkUnsatCoresNew())
+    if (options::checkUnsatCores())
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
@@ -1401,11 +1401,11 @@ StatisticsRegistry& SmtEngine::getStatisticsRegistry()
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
-  if (!options::unsatCores() && !options::unsatCoresNew())
+  if (!options::unsatCores())
   {
     throw ModalException(
-        "Cannot get an unsat core when produce-unsat-cores[-new] option is "
-        "off.");
+        "Cannot get an unsat core when produce-unsat-cores[-new] or "
+        "produce-proofs option is off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
@@ -1431,7 +1431,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
 }
 
 void SmtEngine::checkUnsatCore() {
-  Assert(options::unsatCores() || options::unsatCoresNew())
+  Assert(options::unsatCores())
       << "cannot check unsat core if unsat cores are turned off";
 
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
@@ -1441,11 +1441,6 @@ void SmtEngine::checkUnsatCore() {
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
-  // disable all proof options
-  coreChecker->getOptions().set(options::produceProofs, false);
-  coreChecker->getOptions().set(options::checkProofs, false);
-  coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
-  coreChecker->getOptions().set(options::proofEagerChecking, false);
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1630,7 +1625,9 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::produceProofs() && !options::unsatCoresNew()
+  if (options::produceProofs()
+      && (!options::unsatCores()
+          || options::unsatCoresMode() == options::UnsatCoresMode::FULL_PROOF)
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager

@@ -62,7 +62,7 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
       // Other than whether d_pm is set, theory engine proofs are conditioned on
       // the relationshup between proofs and unsat cores: the unsat cores are in
       // FULL_PROOF mode, no proofs are generated on theory engine.
-      (options::unsatCoresNew()
+      (options::unsatCores()
        && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
           ? nullptr
           : d_pnm));

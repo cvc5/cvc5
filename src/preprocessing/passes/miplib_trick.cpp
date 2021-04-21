@@ -188,7 +188,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
   Assert(!options::incrementalSolving());
-  Assert(!options::unsatCores());
+  Assert(!options::unsatCores()
+         || options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF);
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();

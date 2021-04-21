@@ -249,7 +249,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
   Assert(
       !isProofEnabled() || trn.getGenerator() != nullptr
       || options::unsatCores()
-      || (options::unsatCoresNew()
+      || (options::unsatCores()
           && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF));
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }

@@ -204,7 +204,8 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
   }
-  if (options::unsatCores())
+  if (options::unsatCores()
+      && options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
   }
