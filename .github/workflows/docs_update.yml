@@ -6,6 +6,7 @@ on:
     paths:
       - '.ci/**'
       - 'docs/**'
+      - 'examples/**'
       - 'src/api/**'
 #  pull_request:
 #    branches:
