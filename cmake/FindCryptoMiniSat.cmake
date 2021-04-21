@@ -18,20 +18,16 @@
 
 include(deps-helper)
 
-find_package(cryptominisat5 ${CryptoMiniSat_FIND_VERSION} QUIET)
+set(CryptoMiniSat_VERSION "5.8.0")
+
+find_package(cryptominisat5 ${CryptoMiniSat_VERSION} QUIET)
+set(CryptoMiniSat_FIND_VERSION ${CryptoMiniSat_VERSION})
 
 set(CryptoMiniSat_FOUND_SYSTEM FALSE)
 if(cryptominisat5_FOUND)
   set(CryptoMiniSat_FOUND_SYSTEM TRUE)
   add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
   target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
-  # TODO(gereon): remove this when
-  # https://github.com/msoos/cryptominisat/pull/645 is merged
-  set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-                             "${CRYPTOMINISAT5_INCLUDE_DIRS}"
-  )
-
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
@@ -41,8 +37,6 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   endif()
 
   include(ExternalProject)
-
-  set(CryptoMiniSat_VERSION "5.8.0")
 
   ExternalProject_Add(
     CryptoMiniSat-EP
