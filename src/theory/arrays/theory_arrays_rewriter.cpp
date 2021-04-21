@@ -66,8 +66,8 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   // Go through nested stores looking for where to insert index
   // Also check whether we are replacing an existing store
   TNode replacedValue;
-  unsigned depth = 1;
-  unsigned valCount = 1;
+  uint32_t depth = 1;
+  uint32_t valCount = 1;
   while (store.getKind() == kind::STORE)
   {
     if (index == store[1])
@@ -147,7 +147,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   // the new default value
 
   TNode mostFrequentValue;
-  unsigned mostFrequentValueCount = 0;
+  uint32_t mostFrequentValueCount = 0;
   store = node[0];
   if (store.getKind() == kind::STORE)
   {
@@ -178,10 +178,10 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   // default value
   store = n;
   std::unordered_set<TNode, TNodeHashFunction> indexSet;
-  std::unordered_map<TNode, unsigned, TNodeHashFunction> elementsMap;
-  std::unordered_map<TNode, unsigned, TNodeHashFunction>::iterator it;
-  unsigned count;
-  unsigned max = 0;
+  std::unordered_map<TNode, uint32_t, TNodeHashFunction> elementsMap;
+  std::unordered_map<TNode, uint32_t, TNodeHashFunction>::iterator it;
+  uint32_t count;
+  uint32_t max = 0;
   TNode maxValue;
   while (store.getKind() == kind::STORE)
   {
@@ -223,7 +223,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   std::vector<Node> newIndices;
   TypeEnumerator te(index.getType());
   bool needToSort = false;
-  unsigned numTe = 0;
+  uint32_t numTe = 0;
   while (!te.isFinished()
          && (!indexCard.isFinite()
              || numTe < indexCard.getFiniteCardinality().toUnsignedInt()))
