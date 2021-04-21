@@ -3,7 +3,7 @@
 ## run_regression.py
 ## Top contributors (to current version):
 ##   Andres Noetzli, Yoni Zohar, Mathias Preiner
-## This file is part of the CVC4 project.
+## This file is part of the CVC5 project.
 ## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
@@ -82,10 +82,10 @@ def run_process(args, cwd, timeout, s_input=None):
     return out, err, exit_status
 
 
-def get_cvc4_features(cvc4_binary):
-    """Returns a list of features supported by the CVC4 binary `cvc4_binary`."""
+def get_cvc5_features(cvc5_binary):
+    """Returns a list of features supported by the CVC5 binary `cvc5_binary`."""
 
-    output, _, _ = run_process([cvc4_binary, '--show-config'], None, None)
+    output, _, _ = run_process([cvc5_binary, '--show-config'], None, None)
     if isinstance(output, bytes):
         output = output.decode()
 
@@ -103,7 +103,7 @@ def get_cvc4_features(cvc4_binary):
     return features, disabled_features
 
 
-def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
+def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc5_binary,
                   command_line, benchmark_dir, benchmark_filename, timeout):
 
     str1 = "CALL: "
@@ -122,22 +122,22 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
 
 
 def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
-                   skip_timeout, wrapper, cvc4_binary, benchmark_path,
+                   skip_timeout, wrapper, cvc5_binary, benchmark_path,
                    timeout):
-    """Determines the expected output for a benchmark, runs CVC4 on it and then
+    """Determines the expected output for a benchmark, runs CVC5 on it and then
     checks whether the output corresponds to the expected output. Optionally
     uses a wrapper `wrapper`, tests unsat cores (if check_unsat_cores is true),
     checks proofs (if check_proofs is true), or dumps a benchmark and uses that as
     the input (if dump is true). `use_skip_return_code` enables/disables
     returning 77 when a test is skipped."""
 
-    if not os.access(cvc4_binary, os.X_OK):
+    if not os.access(cvc5_binary, os.X_OK):
         sys.exit(
-            '"{}" does not exist or is not executable'.format(cvc4_binary))
+            '"{}" does not exist or is not executable'.format(cvc5_binary))
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
-    cvc4_features, cvc4_disabled_features = get_cvc4_features(cvc4_binary)
+    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary)
 
     basic_command_line_args = []
 
@@ -220,9 +220,9 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
     if expected_exit_status is None:
         expected_exit_status = 0
 
-    if 'CVC4_REGRESSION_ARGS' in os.environ:
+    if 'CVC5_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
-            os.environ['CVC4_REGRESSION_ARGS'])
+            os.environ['CVC5_REGRESSION_ARGS'])
 
     if not check_unsat_cores and ('(get-unsat-core)' in benchmark_content
                             or '(get-unsat-assumptions)' in benchmark_content):
@@ -236,18 +236,18 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         if req_feature.startswith("no-"):
             req_feature = req_feature[len("no-"):]
             is_negative = True
-        if req_feature not in (cvc4_features + cvc4_disabled_features):
+        if req_feature not in (cvc5_features + cvc5_disabled_features):
             print(
                 'Illegal requirement in regression: {}\nAllowed requirements: {}'
                 .format(req_feature,
-                        ' '.join(cvc4_features + cvc4_disabled_features)))
+                        ' '.join(cvc5_features + cvc5_disabled_features)))
             return EXIT_FAILURE
         if is_negative:
-            if req_feature in cvc4_features:
+            if req_feature in cvc5_features:
                 print('1..0 # Skipped regression: not valid with {}'.format(
                     req_feature))
                 return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
-        elif req_feature not in cvc4_features:
+        elif req_feature not in cvc5_features:
             print('1..0 # Skipped regression: {} not supported'.format(
                 req_feature))
             return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
@@ -296,12 +296,12 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         for extra_arg in extra_command_line_args:
             command_line_args_configs.append(all_args + [extra_arg])
 
-    # Run CVC4 on the benchmark with the different option sets and check
+    # Run CVC5 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
     exit_code = EXIT_OK
     for command_line_args in command_line_args_configs:
         output, error, exit_status = run_benchmark(dump, wrapper, scrubber,
-                                                   error_scrubber, cvc4_binary,
+                                                   error_scrubber, cvc5_binary,
                                                    command_line_args,
                                                    benchmark_dir,
                                                    benchmark_basename, timeout)
@@ -332,7 +332,7 @@ def main():
     parser.add_argument('--no-check-proofs', dest='check_proofs',
                         action='store_false')
     parser.add_argument('wrapper', nargs='*')
-    parser.add_argument('cvc4_binary')
+    parser.add_argument('cvc5_binary')
     parser.add_argument('benchmark')
 
     argv = sys.argv[1:]
@@ -342,7 +342,7 @@ def main():
 
     args = parser.parse_args(argv)
 
-    cvc4_binary = os.path.abspath(args.cvc4_binary)
+    cvc5_binary = os.path.abspath(args.cvc5_binary)
 
     wrapper = args.wrapper
     if os.environ.get('VALGRIND') == '1' and not wrapper:
@@ -352,7 +352,7 @@ def main():
 
     return run_regression(args.check_unsat_cores, args.check_proofs, args.dump,
                           args.use_skip_return_code, args.skip_timeout,
-                          wrapper, cvc4_binary, args.benchmark, timeout)
+                          wrapper, cvc5_binary, args.benchmark, timeout)
 
 
 if __name__ == "__main__":

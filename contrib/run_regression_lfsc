@@ -1,17 +1,18 @@
 #!/bin/bash
 
-CVC4_CHECK_DIR=/space/ajreynol/cvc4/deps/bin/
-CVC4_BINARY=cvc4
+CVC5_CHECK_DIR=/space/ajreynol/cvc4/deps/bin/
+CVC5_BINARY=cvc5
 TIMEOUT=30
 
+# usage : run_regression_lfsc [cvc4 command line options + benchmark]
 echo -n "Call run_regression_lfsc $@ "
 
 # call with timeout
-ulimit -t $TIMEOUT; $CVC4_CHECK_DIR/cvc4-proof.sh $CVC4_BINARY $@ >& proof.plf
+ulimit -t $TIMEOUT; $CVC5_CHECK_DIR/cvc5-proof.sh $CVC5_BINARY $@ >& proof.plf
 
 if grep -q "(check" proof.plf; then
   # ensure it checks with LFSC
-  ulimit -t $TIMEOUT; $CVC4_CHECK_DIR/lfsc-check.sh proof.plf >& lfsc-check-res.txt
+  ulimit -t $TIMEOUT; $CVC5_CHECK_DIR/lfsc-check.sh proof.plf >& lfsc-check-res.txt
   if grep -q "successfully" lfsc-check-res.txt; then
     if grep -q "WARNING" proof.plf; then
       # remove allowed rules
@@ -29,7 +30,7 @@ if grep -q "(check" proof.plf; then
     echo "ERROR-LFSC"
   fi
 else
-  echo "ERROR-CVC4"
+  echo "ERROR-CVC5"
 fi
 
 #rm proof.plf
