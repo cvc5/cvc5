@@ -614,8 +614,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                          << std::endl;
           if (ps.size() == 1)
           {
-            if (options::unsatCoresMode()
-                       == options::UnsatCoresMode::OLD_PROOF)
+            if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
             {
               ClauseKind ck =
                   ProofManager::getCnfProof()->getCurrentAssertionKind()
@@ -641,8 +640,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if (options::unsatCoresMode()
-                       == options::UnsatCoresMode::OLD_PROOF)
+            if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
             {
               if (ca[confl].size() == 1)
               {
@@ -670,8 +668,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           return ok;
         } else {
-          if (options::unsatCoresMode()
-                     == options::UnsatCoresMode::OLD_PROOF)
+          if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
           {
             id = ClauseIdUndef;
           }
@@ -1065,7 +1062,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             if (level(var(q)) == 0)
             {
               if (options::unsatCoresMode()
-                         == options::UnsatCoresMode::OLD_PROOF)
+                  == options::UnsatCoresMode::OLD_PROOF)
               {
                 ProofManager::getSatProof()->resolveOutUnit(q);
               }
@@ -2079,35 +2076,33 @@ void Solver::relocAll(ClauseAllocator& to)
         if (hasReasonClause(v)
             && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
         {
-          ca.reloc(vardata[v].d_reason,
-                   to,
-                    options::unsatCoresMode()
-                           == options::UnsatCoresMode::OLD_PROOF
-                       ? ProofManager::getSatProof()
-                       : nullptr);
+          ca.reloc(
+              vardata[v].d_reason,
+              to,
+              options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
+                  ? ProofManager::getSatProof()
+                  : nullptr);
         }
     }
     // All learnt:
     //
     for (int i = 0; i < clauses_removable.size(); i++)
     {
-      ca.reloc(
-          clauses_removable[i],
-          to,
-           options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-              ? ProofManager::getSatProof()
-              : nullptr);
+      ca.reloc(clauses_removable[i],
+               to,
+               options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
+                   ? ProofManager::getSatProof()
+                   : nullptr);
     }
     // All original:
     //
     for (int i = 0; i < clauses_persistent.size(); i++)
     {
-      ca.reloc(
-          clauses_persistent[i],
-          to,
-           options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
-              ? ProofManager::getSatProof()
-              : nullptr);
+      ca.reloc(clauses_persistent[i],
+               to,
+               options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF
+                   ? ProofManager::getSatProof()
+                   : nullptr);
     }
     if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
     {
