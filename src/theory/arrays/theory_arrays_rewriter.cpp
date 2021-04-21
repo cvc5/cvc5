@@ -76,7 +76,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
       store = store[0];
       break;
     }
-    else if (!(index < store[1]))
+    else if (index >= store[1])
     {
       break;
     }

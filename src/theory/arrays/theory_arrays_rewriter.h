@@ -43,13 +43,16 @@ static inline Node mkEqNode(Node a, Node b) {
 
 class TheoryArraysRewriter : public TheoryRewriter
 {
+  /** 
+   * Puts array constant node into normal form. This is so that array constants
+   * that are distinct nodes are semantically disequal.
+   */
   static Node normalizeConstant(TNode node);
 
  public:
-  //this function is called by printers when using the option "--model-u-dt-enum"
+  /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);
 
- public:
   RewriteResponse postRewrite(TNode node) override;
 
   RewriteResponse preRewrite(TNode node) override;
