@@ -590,6 +590,7 @@ libcvc5_add_sources(
   theory/datatypes/sygus_simple_sym.h
   theory/datatypes/theory_datatypes.cpp
   theory/datatypes/theory_datatypes.h
+  theory/datatypes/theory_datatypes_type_rules.cpp
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
@@ -1066,6 +1067,7 @@ libcvc5_add_sources(
   theory/uf/theory_uf_model.cpp
   theory/uf/theory_uf_model.h
   theory/uf/theory_uf_rewriter.h
+  theory/uf/theory_uf_type_rules.cpp
   theory/uf/theory_uf_type_rules.h
   theory/valuation.cpp
   theory/valuation.h
