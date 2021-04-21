@@ -181,10 +181,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         else if (n.isVar())
         {
-          ret = sm->mkDummySkolem(
-              "__realToIntInternal_var",
-              nm->integerType(),
-              "Variable introduced in realToIntInternal pass");
+          Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
+          ret = sm->mkPurifySkolem(toIntN,
+              "__realToIntInternal_var");
           var_eq.push_back(n.eqNode(ret));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
