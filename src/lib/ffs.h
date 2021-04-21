@@ -19,7 +19,7 @@
 #define CVC5__LIB__FFS_H
 
 //We include this for HAVE_FFS
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 
 #ifdef HAVE_FFS
 
