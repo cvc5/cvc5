@@ -85,6 +85,7 @@ void BBProof::bbAtom(TNode node)
 
   bool fine_proofs =
       options::proofGranularityMode() != options::ProofGranularityMode::OFF;
+  bool fine_proofs_enabled = isProofsEnabled() && fine_proofs;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -111,7 +112,7 @@ void BBProof::bbAtom(TNode node)
       {
         Bits bits;
         d_bb->makeVariable(n, bits);
-        if (isProofsEnabled() && fine_proofs)
+        if (fine_proofs_enabled)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
@@ -128,7 +129,7 @@ void BBProof::bbAtom(TNode node)
         Bits bits;
         d_bb->bbTerm(n, bits);
         Kind kind = n.getKind();
-        if (isProofsEnabled() && fine_proofs)
+        if (fine_proofs_enabled)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
@@ -162,7 +163,7 @@ void BBProof::bbAtom(TNode node)
       else
       {
         d_bb->bbAtom(n);
-        if (isProofsEnabled() && fine_proofs)
+        if (fine_proofs_enabled)
         {
           Node n_tobv = getStoredBBAtom(n);
           std::vector<Node> children_tobv;
