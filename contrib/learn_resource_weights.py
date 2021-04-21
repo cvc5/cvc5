@@ -14,7 +14,7 @@ def parse_commandline():
     """Parse commandline arguments"""
     epilog = """
 This script can be used to compute good resource weights based on benchmark
-results. The resource weights are used by cvc4 to approximate the running time
+results. The resource weights are used by cvc5 to approximate the running time
 by the spent resources, multiplied with their weights.
 
 In the first stage ("parse") this script reads the output files of a benchmark

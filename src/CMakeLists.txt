@@ -13,8 +13,8 @@
 # The build system configuration.
 ##
 
-# Collect libcvc4 source files
-libcvc4_add_sources(
+# Collect libcvc5 source files
+libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
@@ -928,6 +928,7 @@ libcvc4_add_sources(
   theory/sets/theory_sets_rewriter.h
   theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
+  theory/sets/theory_sets_type_rules.cpp
   theory/sets/theory_sets_type_rules.h
   theory/shared_solver.cpp
   theory/shared_solver.h
@@ -1106,76 +1107,76 @@ add_subdirectory(theory)
 add_subdirectory(util)
 
 #-----------------------------------------------------------------------------#
-# All sources for libcvc4 are now collected in LIBCVC4_SRCS and (if generated)
-# LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
+# All sources for libcvc5 are now collected in LIBCVC5_SRCS and (if generated)
+# LIBCVC5_GEN_SRCS (via libcvc5_add_sources). We can now build libcvc5.
 
-set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS}
-  $<TARGET_OBJECTS:cvc4base> $<TARGET_OBJECTS:cvc4context>)
-target_include_directories(cvc4
+set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
+add_library(cvc5 ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS}
+  $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
+target_include_directories(cvc5
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 
 include(GenerateExportHeader)
-generate_export_header(cvc4)
+generate_export_header(cvc5)
 
-install(TARGETS cvc4
-  EXPORT cvc4-targets
+install(TARGETS cvc5
+  EXPORT cvc5-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc4 PRIVATE -D__BUILDING_CVC4LIB)
-# Add libcvc4 dependencies for generated sources.
-add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
+# Add libcvc5 dependencies for generated sources.
+add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc4 PRIVATE ${Valgrind_INCLUDE_DIR})
+  target_include_directories(cvc5 PRIVATE ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_link_libraries(cvc4 PRIVATE ${ABC_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${ABC_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE ${ABC_LIBRARIES})
+  target_include_directories(cvc5 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
 if(USE_CADICAL)
-  target_link_libraries(cvc4 PRIVATE CaDiCaL)
+  target_link_libraries(cvc5 PRIVATE CaDiCaL)
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 PRIVATE CLN)
+  target_link_libraries(cvc5 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
-  target_link_libraries(cvc4 PRIVATE CryptoMiniSat)
+  target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
 endif()
 if(USE_KISSAT)
-  target_link_libraries(cvc4 PRIVATE Kissat)
+  target_link_libraries(cvc5 PRIVATE Kissat)
 endif()
 if(USE_GLPK)
-  target_link_libraries(cvc4 PRIVATE ${GLPK_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
+  target_include_directories(cvc5 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc4 PRIVATE Polyxx)
+  target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
 if(USE_SYMFPU)
-  target_link_libraries(cvc4 PRIVATE SymFPU)
+  target_link_libraries(cvc5 PRIVATE SymFPU)
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
-target_link_libraries(cvc4 PRIVATE GMP)
+target_link_libraries(cvc5 PRIVATE GMP)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
-target_link_libraries(cvc4 PRIVATE ${RT_LIBRARIES})
+target_link_libraries(cvc5 PRIVATE ${RT_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
-# Visit main subdirectory after creating target cvc4. For target main, we have
+# Visit main subdirectory after creating target cvc5. For target main, we have
 # to manually add library dependencies since we can't use
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
-# Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
+# Thus, we can only visit main as soon as all dependencies for cvc5 are set up.
 
 if (NOT BUILD_LIB_ONLY)
   add_subdirectory(main)
@@ -1190,7 +1191,7 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
-          ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
+          ${CMAKE_CURRENT_BINARY_DIR}/cvc5_export.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 

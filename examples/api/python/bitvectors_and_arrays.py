@@ -16,13 +16,13 @@
 # translation of bitvectors_and_arrays-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 import math
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
     slv.setOption("produce-models", "true")
     slv.setOption("output-language", "smtlib")
     slv.setLogic("QF_AUFBV")
@@ -82,10 +82,10 @@ if __name__ == "__main__":
 
     query = slv.mkTerm(kinds.Not, slv.mkTerm(kinds.And, assertions))
 
-    print("Asserting {} to CVC4".format(query))
+    print("Asserting {} to cvc5".format(query))
     slv.assertFormula(query)
     print("Expect sat.")
-    print("CVC4:", slv.checkSatAssuming(slv.mkTrue()))
+    print("cvc5:", slv.checkSatAssuming(slv.mkTrue()))
 
     # Getting the model
     print("The satisfying model is: ")
