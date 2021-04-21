@@ -68,6 +68,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
+  get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
 
   ExternalProject_Add(
     Poly-EP
@@ -82,8 +83,8 @@ if(NOT Poly_FOUND_SYSTEM)
                -DLIBPOLY_BUILD_PYTHON_API=OFF
                -DLIBPOLY_BUILD_STATIC=ON
                -DLIBPOLY_BUILD_STATIC_PIC=ON
-               -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
-               -DGMP_LIBRARY=${GMP_LIBRARY}
+               -DCMAKE_INCLUDE_PATH=${GMP_INCLUDE_DIR}
+               -DCMAKE_LIBRARY_PATH=${GMP_LIB_PATH}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
     INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
