@@ -28,6 +28,12 @@ if(cryptominisat5_FOUND)
   set(CryptoMiniSat_FOUND_SYSTEM TRUE)
   add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
   target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
+  # TODO(gereon): remove this when
+  # https://github.com/msoos/cryptominisat/pull/645 is merged
+  set_target_properties(
+    CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                             "${CRYPTOMINISAT5_INCLUDE_DIRS}"
+  )
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
