@@ -81,11 +81,19 @@ class PreprocessingPassContext
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
   /**
-   * Add substitution to theory model.
+   * Add substitution to theory model. This method should only be called if
+   * we have already added the substitution to the top-level substitutions
+   * class. Otherwise, addSubstitution should be called instead.
    * @param lhs The node replaced by node 'rhs'
    * @param rhs The node to substitute node 'lhs'
    */
   void addModelSubstitution(const Node& lhs, const Node& rhs);
+  /**
+   * Add substitution to the top-level substitutions and to the theory model.
+   * @param lhs The node replaced by node 'rhs'
+   * @param rhs The node to substitute node 'lhs'
+   */
+  void addSubstitution(const Node& lhs, const Node& rhs, ProofGenerator* pg = nullptr);
 
   /** The the proof node manager associated with this context, if it exists */
   ProofNodeManager* getProofNodeManager();

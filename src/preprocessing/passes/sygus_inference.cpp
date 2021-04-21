@@ -50,11 +50,10 @@ PreprocessingPassResult SygusInference::applyInternal(
     Trace("sygus-infer") << "...Solved:" << std::endl;
     Assert(funs.size() == sols.size());
     // if so, sygus gives us function definitions
-    SmtEngine* master_smte = d_preprocContext->getSmt();
     for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
       Trace("sygus-infer") << funs[i] << " -> " << sols[i] << std::endl;
-      d_preprocContext->addModelSubstitution(funs[i], sols[i]);
+      d_preprocContext->addSubstitution(funs[i], sols[i]);
     }
 
     // apply substitution to everything, should result in SAT
