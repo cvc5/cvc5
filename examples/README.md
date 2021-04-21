@@ -1,5 +1,7 @@
 # CVC4 API Examples
 
+foo
+
 This directory contains usage examples of CVC4's different language
 bindings, library APIs, and also tutorial examples from the tutorials
 available at http://cvc4.cs.stanford.edu/wiki/Tutorials
