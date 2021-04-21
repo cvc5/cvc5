@@ -22,7 +22,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
-#include "decision/decision_engine_old.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -346,7 +345,6 @@ Result PropEngine::checkSat() {
   d_inCheckSat = true;
 
   // TODO This currently ignores conflicts (a dangerous practice).
-  d_decisionEngine->presolve();
   d_theoryEngine->presolve();
 
   if(options::preprocessOnly()) {

@@ -32,7 +32,7 @@
 namespace cvc5 {
 namespace decision {
 
-JustificationHeuristic::JustificationHeuristic(cvc5::DecisionEngine* de,
+JustificationHeuristic::JustificationHeuristic(DecisionEngine* de,
                                                context::UserContext* uc,
                                                context::Context* c)
     : ITEDecisionStrategy(de, c),
