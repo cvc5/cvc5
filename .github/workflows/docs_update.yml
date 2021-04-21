@@ -1,13 +1,11 @@
 name: documentation update
 on:
   push:
-    branches:
-      - master
     paths:
-      - '.ci/**'
-      - 'docs/**'
-      - 'examples/**'
-      - 'src/api/**'
+    - '.ci/**'
+    - 'docs/**'
+    - 'examples/**'
+    - 'src/api/**'
 #  pull_request:
 #    branches:
 #      - master
