@@ -6,20 +6,20 @@
   https://img.shields.io/endpoint?url=https://cvc4.cs.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
     https://cvc4.cs.stanford.edu/downloads/builds/coverage)
 
-CVC4
+cvc5
 ===============================================================================
 
-CVC4 is a tool for determining the satisfiability of a first order formula
+cvc5 is a tool for determining the satisfiability of a first order formula
 modulo a first order theory (or a combination of such theories).  It is the
 fourth in the Cooperating Validity Checker family of tools (CVC, CVC Lite,
 CVC3) but does not directly incorporate code from any previous version.
 
-If you are using CVC4 in your work, or incorporating it into software of your
+If you are using cvc5 in your work, or incorporating it into software of your
 own, we invite you to send us a description and link to your
 project/software, so that we can link it on our [Third Party
 Applications](https://cvc4.github.io/third-party-applications.html) page.
 
-CVC4 is intended to be an open and extensible SMT engine.  It can be used as a
+cvc5 is intended to be an open and extensible SMT engine.  It can be used as a
 stand-alone tool or as a library.  It has been designed to increase the
 performance and reduce the memory overhead of its predecessors.  It is written
 entirely in C++ and is released under an open-source software license (see file
@@ -53,7 +53,7 @@ found [here](http://cvc4.cs.stanford.edu/downloads).
 Build and Dependencies
 -------------------------------------------------------------------------------
 
-CVC4 can be built on Linux and macOS.  For Windows, CVC4 can be cross-compiled
+cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be cross-compiled
 using Mingw-w64.
 
 For detailed build and installation instructions on these platforms,
@@ -63,9 +63,9 @@ see file [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md).
 Bug Reports
 -------------------------------------------------------------------------------
 
-If you need to report a bug with CVC4, or make a feature request, please visit
+If you need to report a bug with cvc5, or make a feature request, please visit
 our bugtracker at our [GitHub issues](https://github.com/CVC4/CVC4/issues)
-page. We are very grateful for bug reports,  as they help us improve CVC4.
+page. We are very grateful for bug reports,  as they help us improve cvc5.
 
 
 Contributing

@@ -12,7 +12,7 @@
  *
  * SAT Solver.
  *
- * Implementation of the minisat for cvc4 (bit-vectors).
+ * Implementation of the minisat for cvc5 (bit-vectors).
  */
 
 #include "prop/bvminisat/bvminisat.h"

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple start-up/tear-down test for CVC4.
+ * A simple start-up/tear-down test for cvc5.
  *
  * This simple test just makes sure that the public interface is
  * minimally functional.  It is useful as a template to use for other
