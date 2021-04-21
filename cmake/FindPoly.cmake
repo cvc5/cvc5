@@ -66,6 +66,9 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(patchcmd)
   endif()
 
+  get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
+
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
@@ -79,6 +82,8 @@ if(NOT Poly_FOUND_SYSTEM)
                -DLIBPOLY_BUILD_PYTHON_API=OFF
                -DLIBPOLY_BUILD_STATIC=ON
                -DLIBPOLY_BUILD_STATIC_PIC=ON
+               -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
+               -DGMP_LIBRARY=${GMP_LIBRARY}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
     INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
@@ -93,6 +98,7 @@ if(NOT Poly_FOUND_SYSTEM)
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
+  add_dependencies(Poly-EP GMP)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
