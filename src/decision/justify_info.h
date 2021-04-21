@@ -36,7 +36,7 @@ class JustifyInfo
   JustifyInfo(context::Context* c);
   ~JustifyInfo();
   /** set */
-  void set(TNode n, prop::SatValue desiredVal);
+  void set(const TNode n, prop::SatValue desiredVal);
   /** get node */
   JustifyNode getNode() const;
   /** get next child index, and increment */

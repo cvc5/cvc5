@@ -40,7 +40,7 @@ void JustifyInfo::revertChildIndex()
   Assert(d_childIndex.get() > 0);
   d_childIndex = d_childIndex - 1;
 }
-void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
+void JustifyInfo::set(const TNode n, prop::SatValue desiredVal)
 {
   d_node = n;
   d_desiredVal = desiredVal;
