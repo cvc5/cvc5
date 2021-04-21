@@ -18,7 +18,8 @@ All binaries are built into `<build_dir>/bin`, the CVC5 library is built into
 
 ## Supported Operating Systems
 
-CVC5 can be built on Linux and macOS.  Cross-compilation is possible for Arm64 systems and Windows using Mingw-w64.  We recommend a 64-bit operating system.
+CVC5 can be built on Linux and macOS.  Cross-compilation is possible for Arm64
+systems and Windows using Mingw-w64.  We recommend a 64-bit operating system.
 
 On macOS, we recommend using Homebrew (https://brew.sh/) to install the
 dependencies.  We also have a Homebrew Tap available at
@@ -42,10 +43,11 @@ can be found in `<build_dir>/lib`.
 
 ## Build dependencies
 
-CVC5 makes uses of a number of tools and libraries. Some of these are required while others are only used with certain configuration options.
-If `--auto-download` is given, CVC5 can automatically download and build most libraries that are not already installed on your system.
-Versions given are minimum versions; more recent versions should be
-compatible.
+CVC5 makes uses of a number of tools and libraries. Some of these are required
+while others are only used with certain configuration options. If
+`--auto-download` is given, CVC5 can automatically download and build most
+libraries that are not already installed on your system. Versions given are
+minimum versions; more recent versions should be compatible.
 
 - [GNU C and C++ (gcc and g++)](https://gcc.gnu.org)
   or [Clang](https://clang.llvm.org) (reasonably recent versions)
@@ -59,14 +61,18 @@ compatible.
 
 ### ANTLR 3.4 parser generator
 
-For most systems, the package manager no longer contains pre-packaged versions of ANTLR 3.4. With `--auto-download`, CVC5 will automatically download and build ANTLR 3.4.
+For most systems, the package manager no longer contains pre-packaged versions
+of ANTLR 3.4. With `--auto-download`, CVC5 will automatically download and build
+ANTLR 3.4.
 
 
 ### GMP (GNU Multi-Precision arithmetic library)
 
-GMP is usually available on you distribution and should be used from there.
-It can be downloaded and built automatically.
-If it does not, or you want to cross-compile, or you want to build CVC5 statically but the distribution does not ship static libraries, CVC5 builds GMP automatically when `--auto-download` is given.
+GMP is usually available on you distribution and should be used from there. It
+can be downloaded and built automatically. If it does not, or you want to
+cross-compile, or you want to build CVC5 statically but the distribution does
+not ship static libraries, CVC5 builds GMP automatically when `--auto-download`
+is given.
 
 ## Optional Dependencies
 
@@ -107,9 +113,9 @@ dependency.
 
 ### LibPoly (Optional polynomial library)
 
-[LibPoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based nonlinear reasoning.
-It can be downloaded and built automatically.
-Configure CVC5 with `configure.sh --poly` to build with this dependency.
+[LibPoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based
+nonlinear reasoning. It can be downloaded and built automatically. Configure
+CVC5 with `configure.sh --poly` to build with this dependency.
 
 ### CLN >= v1.3 (Class Library for Numbers)
 
@@ -118,11 +124,11 @@ is an alternative multiprecision arithmetic package that may offer better
 performance and memory footprint than GMP.
 Configure CVC5 with `configure.sh --cln` to build with this dependency.
 
-Note that CLN is covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-If you choose to use CVC5 with CLN support, you are licensing CVC5 under that
-same license.
-(Usually CVC5's license is more permissive than GPL, see the file `COPYING` in
-the CVC5 source distribution for details.)
+Note that CLN is covered by the [GNU General Public License, version
+3](https://www.gnu.org/licenses/gpl-3.0.en.html). If you choose to use CVC5 with
+CLN support, you are licensing CVC5 under that same license. (Usually CVC5's
+license is more permissive than GPL, see the file `COPYING` in the CVC5 source
+distribution for details.)
 
 ### glpk-cut-log (A fork of the GNU Linear Programming Kit)
 
@@ -136,10 +142,10 @@ Note that the only installation option is manual installation via this script.
 CVC5 is no longer compatible with the main GLPK library.
 Configure CVC5 with `configure.sh --glpk` to build with this dependency.
 
-Note that GLPK and glpk-cut-log are covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-If you choose to use CVC5 with GLPK support, you are licensing CVC5 under that
-same license.
-(Usually CVC5's license is more permissive; see above discussion.)
+Note that GLPK and glpk-cut-log are covered by the [GNU General Public License,
+version 3](https://www.gnu.org/licenses/gpl-3.0.en.html). If you choose to use
+CVC5 with GLPK support, you are licensing CVC5 under that same license. (Usually
+CVC5's license is more permissive; see above discussion.)
 
 ### ABC library (Improved Bit-Vector Support)
 
