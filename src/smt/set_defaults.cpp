@@ -73,6 +73,23 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::unsatCores.set(true);
   }
 
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
+  }
+
+  if (options::unsatCores()
+      && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
+  {
+    if (options::unsatCoresMode.wasSetByUser())
+    {
+      Notice()
+          << "Overriding OFF unsat-core mode since cores were requested..\n";
+    }
+    options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
+  }
+
   if (options::checkProofs() || options::dumpProofs())
   {
     options::produceProofs.set(true);
@@ -100,6 +117,22 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     options::produceProofs.set(true);
   }
+
+  // guarantee that if unsat cores mode is not OFF, then they are activated
+  if (!options::unsatCores())
+  {
+    if (options::unsatCoresMode.wasSetByUser())
+    {
+      Notice() << "Overriding unsat-core mode for OFF since cores were not "
+                  "requested.\n";
+    }
+    options::unsatCoresMode.set(options::UnsatCoresMode::OFF);
+  }
+
+  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
+  // unsat core mode, since new ones are experimental
+  bool safeUnsatCores =
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
 
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -360,8 +393,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (options::unsatCores()
-        && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
+    if (options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
     {
       Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
                   "disabled.\n";
@@ -374,12 +406,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::produceProofs.set(false);
     options::checkProofs.set(false);
     options::proofEagerChecking.set(false);
-  }
-
-  // sygus core connective requires unsat cores
-  if (options::sygusCoreConnective())
-  {
-    options::unsatCores.set(true);
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -398,9 +424,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
-  if (options::incrementalSolving()
-      || (options::unsatCores()
-          && options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF))
+  if (options::incrementalSolving() || safeUnsatCores)
   {
     if (options::unconstrainedSimp())
     {
@@ -462,8 +486,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (options::unsatCores()
-      && options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
+  if (safeUnsatCores)
   {
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
@@ -736,10 +759,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!options::ufSymmetryBreaker.wasSetByUser())
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !options::incrementalSolving()
-                       && !(options::unsatCores()
-                            && options::unsatCoresMode()
-                                   == options::UnsatCoresMode::OLD_PROOF);
+                       && !options::incrementalSolving() && !safeUnsatCores;
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
@@ -788,9 +808,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
-                      && !(options::unsatCores()
-                           && options::unsatCoresMode()
-                                  == options::UnsatCoresMode::OLD_PROOF);
+                      && !safeUnsatCores;
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
@@ -1485,6 +1503,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
+  Trace("test") << "cores: " << options::unsatCores() << "\n";
+  Trace("test") << "cmode: " << options::unsatCoresMode() << "\n";
 
   if (logic == LogicInfo("QF_UFNRA"))
   {

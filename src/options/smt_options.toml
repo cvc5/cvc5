@@ -206,9 +206,12 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "unsat-cores-mode=MODE"
   type       = "UnsatCoresMode"
-  default    = "OLD_PROOF"
+  default    = "OFF"
   help       = "choose unsat core mode, see --unsat-cores-mode=help"
   help_mode  = "unsat cores modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not produce unsat cores."
 [[option.mode.OLD_PROOF]]
   name = "old-proof"
   help = "Produce unsat cores from old proof infrastructure."
