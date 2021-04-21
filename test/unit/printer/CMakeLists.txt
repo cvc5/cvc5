@@ -14,4 +14,4 @@
 ##
 
 # Add unit tests.
-cvc4_add_unit_test_black(smt2_printer_black printer)
+cvc5_add_unit_test_black(smt2_printer_black printer)

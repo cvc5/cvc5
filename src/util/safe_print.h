@@ -43,7 +43,7 @@
 #include <cstring>
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
@@ -52,7 +52,7 @@ namespace cvc5 {
  * signal handler.
  */
 template <size_t N>
-void CVC4_EXPORT safe_print(int fd, const char (&msg)[N])
+void CVC5_EXPORT safe_print(int fd, const char (&msg)[N])
 {
   ssize_t nb = N - 1;
   if (write(fd, msg, nb) != nb) {
@@ -96,7 +96,7 @@ auto toStringImpl(const T& obj, int) -> decltype(toString(obj))
  * @param obj The object to print
  */
 template <typename T>
-void CVC4_EXPORT safe_print(int fd, const T& obj)
+void CVC5_EXPORT safe_print(int fd, const T& obj)
 {
   const char* s =
       toStringImpl(obj, /* prefer the method that uses `toString()` */ 0);
@@ -108,25 +108,25 @@ void CVC4_EXPORT safe_print(int fd, const T& obj)
 }
 
 template <>
-void CVC4_EXPORT safe_print(int fd, const std::string& msg);
+void CVC5_EXPORT safe_print(int fd, const std::string& msg);
 template <>
-void CVC4_EXPORT safe_print(int fd, const int64_t& _i);
+void CVC5_EXPORT safe_print(int fd, const int64_t& _i);
 template <>
-void CVC4_EXPORT safe_print(int fd, const int32_t& i);
+void CVC5_EXPORT safe_print(int fd, const int32_t& i);
 template <>
-void CVC4_EXPORT safe_print(int fd, const uint64_t& _i);
+void CVC5_EXPORT safe_print(int fd, const uint64_t& _i);
 template <>
-void CVC4_EXPORT safe_print(int fd, const uint32_t& i);
+void CVC5_EXPORT safe_print(int fd, const uint32_t& i);
 template <>
-void CVC4_EXPORT safe_print(int fd, const double& _d);
+void CVC5_EXPORT safe_print(int fd, const double& _d);
 template <>
-void CVC4_EXPORT safe_print(int fd, const float& f);
+void CVC5_EXPORT safe_print(int fd, const float& f);
 template <>
-void CVC4_EXPORT safe_print(int fd, const bool& b);
+void CVC5_EXPORT safe_print(int fd, const bool& b);
 template <>
-void CVC4_EXPORT safe_print(int fd, void* const& addr);
+void CVC5_EXPORT safe_print(int fd, void* const& addr);
 template <>
-void CVC4_EXPORT safe_print(int fd, const timespec& t);
+void CVC5_EXPORT safe_print(int fd, const timespec& t);
 
 /** Prints an integer in hexadecimal. Safe to use in a signal handler. */
 void safe_print_hex(int fd, uint64_t i);

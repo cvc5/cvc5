@@ -21,14 +21,14 @@
 
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
 /**
  * Represents the (static) configuration of cvc5.
  */
-class CVC4_EXPORT Configuration
+class CVC5_EXPORT Configuration
 {
  private:
   /** Private default ctor: Disallow construction of this class */

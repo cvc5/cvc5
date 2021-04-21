@@ -110,7 +110,7 @@ if($#ARGV >= 0 && $ARGV[0] eq '-m') {
 
 my @searchdirs = ();
 if($#ARGV == -1) {
-  (chdir($dir."/..") && -f "src/include/cvc4_public.h") || die "can't find top-level source directory for cvc5";
+  (chdir($dir."/..") && -f "src/include/cvc5_public.h") || die "can't find top-level source directory for cvc5";
   my $pwd = `pwd`; chomp $pwd;
 
   print <<EOF;

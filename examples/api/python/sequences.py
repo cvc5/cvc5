@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of sequences.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # Check satisfiability
     result = slv.checkSatAssuming(q)
-    print("CVC4 reports:", q, "is", result)
+    print("cvc5 reports:", q, "is", result)
 
     if result:
         print("x = {}".format(slv.getValue(x)))
