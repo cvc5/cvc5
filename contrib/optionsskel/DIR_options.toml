@@ -1,8 +1,0 @@
-#
-# Option specification file for CVC4
-# See src/options/README for a description of this file format
-#
-
-id     = "$id"
-name   = "$camel"
-header = "options/$dir_options.h"
