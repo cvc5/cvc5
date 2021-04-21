@@ -338,20 +338,6 @@ class NodeManager
     expr::NodeValue* child[N];
   };/* struct NodeManager::NVStorage<N> */
 
-  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
-   *
-   * It has been decided for now to hold off on implementations of
-   * these functions, as they may only be needed in CNF conversion,
-   * where it's pointless to do a lazy isAtomic determination by
-   * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 cvc5
-   * developer's meeting notes at:
-   *
-   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
-   */
-  // bool containsDecision(TNode); // is "atomic"
-  // bool properlyContainsDecision(TNode); // all children are atomic
-
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) = delete;
 
@@ -1079,7 +1065,7 @@ class NodeManager
 
   /**
    * This function gives developers a hook into the NodeManager.
-   * This can be changed in node_manager.cpp without recompiling most of cvc4.
+   * This can be changed in node_manager.cpp without recompiling most of cvc5.
    *
    * debugHook is a debugging only function, and should not be present in
    * any published code!

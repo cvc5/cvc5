@@ -708,7 +708,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
   if( index==types.size() ){
     if( d_data.isNull() ){
       std::stringstream sst;
-      sst << "__cvc4_tuple";
+      sst << "__cvc5_tuple";
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
@@ -738,7 +738,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
   {
     if( d_data.isNull() ){
       std::stringstream sst;
-      sst << "__cvc4_record";
+      sst << "__cvc5_record";
       for (const std::pair<std::string, TypeNode>& i : rec)
       {
         sst << "_" << i.first << "_" << i.second;

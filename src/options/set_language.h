@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 
 namespace cvc5 {
@@ -29,7 +29,7 @@ namespace language {
 /**
  * IOStream manipulator to set the output language for Exprs.
  */
-class CVC4_EXPORT SetLanguage
+class CVC5_EXPORT SetLanguage
 {
  public:
   /**
@@ -87,7 +87,7 @@ private:
  *
  * The setting stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC5_EXPORT;
 
 }  // namespace language
 }  // namespace cvc5
