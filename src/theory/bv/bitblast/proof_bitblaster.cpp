@@ -17,6 +17,7 @@
 #include <unordered_set>
 
 #include "expr/term_conversion_proof_generator.h"
+#include "options/proof_options.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
@@ -81,7 +82,12 @@ void BBProof::bbAtom(TNode node)
   std::vector<TNode> visit;
   visit.push_back(node);
   std::unordered_set<TNode, TNodeHashFunction> visited;
+
+  bool fine_proofs =
+      options::proofGranularityMode() != options::ProofGranularityMode::OFF;
+
   NodeManager* nm = NodeManager::currentNM();
+
   while (!visit.empty())
   {
     TNode n = visit.back();
@@ -105,7 +111,7 @@ void BBProof::bbAtom(TNode node)
       {
         Bits bits;
         d_bb->makeVariable(n, bits);
-        if (isProofsEnabled())
+        if (isProofsEnabled() && fine_proofs)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
@@ -122,7 +128,7 @@ void BBProof::bbAtom(TNode node)
         Bits bits;
         d_bb->bbTerm(n, bits);
         Kind kind = n.getKind();
-        if (isProofsEnabled())
+        if (isProofsEnabled() && fine_proofs)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
@@ -156,7 +162,7 @@ void BBProof::bbAtom(TNode node)
       else
       {
         d_bb->bbAtom(n);
-        if (isProofsEnabled())
+        if (isProofsEnabled() && fine_proofs)
         {
           Node n_tobv = getStoredBBAtom(n);
           std::vector<Node> children_tobv;
@@ -175,6 +181,16 @@ void BBProof::bbAtom(TNode node)
       }
       visit.pop_back();
     }
+  }
+  if (isProofsEnabled() && !fine_proofs)
+  {
+    Node node_tobv = getStoredBBAtom(node);
+    d_tcpg->addRewriteStep(node,
+                           node_tobv,
+                           PfRule::BV_BITBLAST,
+                           {},
+                           {node.eqNode(node_tobv)},
+                           false);
   }
 }
 
