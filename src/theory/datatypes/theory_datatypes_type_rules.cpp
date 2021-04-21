@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Theory of datatypes.
+ * Typing and cardinality rules for the theory of datatypes.
  */
 
 #include "theory/datatypes/theory_datatypes_type_rules.h"
