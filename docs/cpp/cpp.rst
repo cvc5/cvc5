@@ -12,35 +12,35 @@ Class Hierarchy
 
     * class :cpp:class:`cvc5::api::CVC4ApiRecoverableException`
 
-    * class :doc:`cpp/datatype`
+    * class :doc:`datatype`
 
       * class :ref:`Datatype::const_iterator<datatype>`
 
-    * class :doc:`cpp/datatypeconstructor`
+    * class :doc:`datatypeconstructor`
 
       * class :ref:`DatatypeConstructor::const_iterator<datatypeconstructor>`
 
-    * class :doc:`cpp/datatypeconstructordecl`
+    * class :doc:`datatypeconstructordecl`
 
-    * class :doc:`cpp/datatypedecl`
+    * class :doc:`datatypedecl`
 
-    * class :doc:`cpp/datatypeselector`
+    * class :doc:`datatypeselector`
 
-    * class :doc:`cpp/grammar`
+    * class :doc:`grammar`
 
-    * class :doc:`cpp/op`
+    * class :doc:`op`
 
-    * class :doc:`cpp/result`
+    * class :doc:`result`
 
-    * class :doc:`cpp/solver`
+    * class :doc:`solver`
 
-    * class :doc:`cpp/term`
+    * class :doc:`term`
 
       * class :ref:`Term::const_iterator<term>`
 
-    * enum :doc:`cpp/kind`
+    * enum :doc:`kind`
 
-    * enum :doc:`cpp/roundingmode`
+    * enum :doc:`roundingmode`
 
     * struct :ref:`KindHashFunction<kind>`
 
@@ -57,20 +57,20 @@ Full API Documentation
 ----------------------
 
 .. toctree::
-   :maxdepth: 2
+  :maxdepth: 2
 
-   cpp/datatype
-   cpp/datatypeconstructor
-   cpp/datatypeconstructordecl
-   cpp/datatypedecl
-   cpp/datatypeselector
-   cpp/exceptions
-   cpp/grammar
-   cpp/kind
-   cpp/op
-   cpp/result
-   cpp/roundingmode
-   cpp/solver
-   cpp/sort
-   cpp/statistics
-   cpp/term
+  datatype
+  datatypeconstructor
+  datatypeconstructordecl
+  datatypedecl
+  datatypeselector
+  exceptions
+  grammar
+  kind
+  op
+  result
+  roundingmode
+  solver
+  sort
+  statistics
+  term

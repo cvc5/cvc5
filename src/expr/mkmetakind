@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # mkmetakind
-# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010-2013  The CVC4 Project
+# Morgan Deters <mdeters@cs.nyu.edu> for cvc5
+# Copyright (c) 2010-2013  The cvc5 Project
 #
 # The purpose of this script is to create metakind.h from a template
 # and a list of theory kinds.

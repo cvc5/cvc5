@@ -43,6 +43,7 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
 endif()
 
 if(NOT GMP_FOUND_SYSTEM)
+  check_auto_download("GMP" "")
   include(ExternalProject)
 
   set(GMP_VERSION "6.2.1")

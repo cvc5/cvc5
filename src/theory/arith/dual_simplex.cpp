@@ -104,15 +104,15 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
     {
       if (result == Result::UNSAT)
       {
-        CVC4Message() << "diff order found unsat" << endl;
+        CVC5Message() << "diff order found unsat" << endl;
       }
       else if (d_errorSet.errorEmpty())
       {
-        CVC4Message() << "diff order found model" << endl;
+        CVC5Message() << "diff order found model" << endl;
       }
       else
       {
-        CVC4Message() << "diff order missed" << endl;
+        CVC5Message() << "diff order missed" << endl;
       }
     }
   }
@@ -136,15 +136,15 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       {
         if (result == Result::UNSAT)
         {
-          CVC4Message() << "restricted var order found unsat" << endl;
+          CVC5Message() << "restricted var order found unsat" << endl;
         }
         else if (d_errorSet.errorEmpty())
         {
-          CVC4Message() << "restricted var order found model" << endl;
+          CVC5Message() << "restricted var order found model" << endl;
         }
         else
         {
-          CVC4Message() << "restricted var order missed" << endl;
+          CVC5Message() << "restricted var order missed" << endl;
         }
       }
     }

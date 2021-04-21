@@ -28,8 +28,8 @@ ostream null_os(&null_sb);
 
 NullC nullCvc4Stream;
 
-const std::string CVC4ostream::s_tab = "  ";
-const int CVC4ostream::s_indentIosIndex = ios_base::xalloc();
+const std::string CVC5ostream::s_tab = "  ";
+const int CVC5ostream::s_indentIosIndex = ios_base::xalloc();
 
 DebugC DebugChannel(&cout);
 WarningC WarningChannel(&cerr);

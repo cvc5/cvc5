@@ -69,7 +69,7 @@ std::pair<std::size_t, std::size_t> getRootIDs(
  * @param zero A node representing Rational(0)
  * @param k The index of the root (starting with 1)
  * @param poly The polynomial whose root shall be considered
- * @param vm A variable mapper from CVC4 to libpoly variables
+ * @param vm A variable mapper from cvc5 to libpoly variables
  */
 Node mkIRP(const Node& var,
            Kind rel,

@@ -19,30 +19,18 @@ libcvc4_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
-  context/backtrackable.h
-  context/cddense_set.h
-  context/cdhashmap.h
-  context/cdhashmap_forward.h
-  context/cdhashset.h
-  context/cdhashset_forward.h
-  context/cdinsert_hashmap.h
-  context/cdinsert_hashmap_forward.h
-  context/cdlist.h
-  context/cdlist_forward.h
-  context/cdmaybe.h
-  context/cdo.h
-  context/cdqueue.h
-  context/cdtrail_queue.h
-  context/context.cpp
-  context/context.h
-  context/context_mm.cpp
-  context/context_mm.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  decision/justify_info.cpp
+  decision/justify_info.h
+  decision/justify_stack.cpp
+  decision/justify_stack.h
+  decision/justify_stats.cpp
+  decision/justify_stats.h
   lib/clock_gettime.c
   lib/clock_gettime.h
   lib/ffs.c
@@ -100,8 +88,6 @@ libcvc4_add_sources(
   preprocessing/passes/non_clausal_simp.h
   preprocessing/passes/pseudo_boolean_processor.cpp
   preprocessing/passes/pseudo_boolean_processor.h
-  preprocessing/passes/quantifier_macros.cpp
-  preprocessing/passes/quantifier_macros.h
   preprocessing/passes/quantifiers_preprocess.cpp
   preprocessing/passes/quantifiers_preprocess.h
   preprocessing/passes/real_to_int.cpp
@@ -464,6 +450,7 @@ libcvc4_add_sources(
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
   theory/arrays/theory_arrays_rewriter.h
+  theory/arrays/theory_arrays_type_rules.cpp
   theory/arrays/theory_arrays_type_rules.h
   theory/arrays/type_enumerator.h
   theory/arrays/union_find.cpp
@@ -574,6 +561,7 @@ libcvc4_add_sources(
   theory/bv/theory_bv_rewrite_rules_simplification.h
   theory/bv/theory_bv_rewriter.cpp
   theory/bv/theory_bv_rewriter.h
+  theory/bv/theory_bv_type_rules.cpp
   theory/bv/theory_bv_type_rules.h
   theory/bv/theory_bv_utils.cpp
   theory/bv/theory_bv_utils.h
@@ -627,6 +615,8 @@ libcvc4_add_sources(
   theory/ext_theory.h
   theory/fp/fp_converter.cpp
   theory/fp/fp_converter.h
+  theory/fp/fp_expand_defs.cpp
+  theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
   theory/fp/theory_fp.h
   theory/fp/theory_fp_rewriter.cpp
@@ -773,6 +763,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp
   theory/quantifiers/quantifiers_inference_manager.h
+  theory/quantifiers/quantifiers_macros.cpp
+  theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_registry.cpp
@@ -887,12 +879,15 @@ libcvc4_add_sources(
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp
   theory/quantifiers/term_enumeration.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_registry.cpp
   theory/quantifiers/term_registry.h
   theory/quantifiers/term_util.cpp
   theory/quantifiers/term_util.h
   theory/quantifiers/theory_quantifiers.cpp
   theory/quantifiers/theory_quantifiers.h
+  theory/quantifiers/theory_quantifiers_type_rules.cpp
   theory/quantifiers/theory_quantifiers_type_rules.h
   theory/quantifiers_engine.cpp
   theory/quantifiers_engine.h
@@ -907,6 +902,7 @@ libcvc4_add_sources(
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
+  theory/sep/theory_sep_type_rules.cpp
   theory/sep/theory_sep_type_rules.h
   theory/sets/cardinality_extension.cpp
   theory/sets/cardinality_extension.h
@@ -1100,6 +1096,7 @@ set(KINDS_FILES
 # Add subdirectories
 
 add_subdirectory(base)
+add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
@@ -1113,7 +1110,8 @@ add_subdirectory(util)
 # LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
 
 set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
+add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS}
+  $<TARGET_OBJECTS:cvc4base> $<TARGET_OBJECTS:cvc4context>)
 target_include_directories(cvc4
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -1129,12 +1127,7 @@ install(TARGETS cvc4
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc4
-  PRIVATE
-    -D__BUILDING_CVC4LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
+target_compile_definitions(cvc4 PRIVATE -D__BUILDING_CVC4LIB)
 # Add libcvc4 dependencies for generated sources.
 add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 

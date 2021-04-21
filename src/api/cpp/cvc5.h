@@ -63,19 +63,19 @@ struct APIStatistics;
  * Base class for all API exceptions.
  * If thrown, all API objects may be in an unsafe state.
  */
-class CVC4_EXPORT CVC4ApiException : public std::exception
+class CVC4_EXPORT CVC5ApiException : public std::exception
 {
  public:
   /**
    * Construct with message from a string.
    * @param str The error message.
    */
-  CVC4ApiException(const std::string& str) : d_msg(str) {}
+  CVC5ApiException(const std::string& str) : d_msg(str) {}
   /**
    * Construct with message from a string stream.
    * @param stream The error message.
    */
-  CVC4ApiException(const std::stringstream& stream) : d_msg(stream.str()) {}
+  CVC5ApiException(const std::stringstream& stream) : d_msg(stream.str()) {}
   /**
    * Retrieve the message from this exception.
    * @return The error message.
@@ -96,20 +96,20 @@ class CVC4_EXPORT CVC4ApiException : public std::exception
  * A recoverable API exception.
  * If thrown, API objects can still be used.
  */
-class CVC4_EXPORT CVC4ApiRecoverableException : public CVC4ApiException
+class CVC4_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 {
  public:
   /**
    * Construct with message from a string.
    * @param str The error message.
    */
-  CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
+  CVC5ApiRecoverableException(const std::string& str) : CVC5ApiException(str) {}
   /**
    * Construct with message from a string stream.
    * @param stream The error message.
    */
-  CVC4ApiRecoverableException(const std::stringstream& stream)
-      : CVC4ApiException(stream.str())
+  CVC5ApiRecoverableException(const std::stringstream& stream)
+      : CVC5ApiException(stream.str())
   {
   }
 };
@@ -163,7 +163,7 @@ class CVC4_EXPORT Result
 
   /**
    * Return true if query was a checkSat() or checkSatAssuming() query and
-   * CVC4 was not able to determine (un)satisfiability.
+   * cvc5 was not able to determine (un)satisfiability.
    */
   bool isSatUnknown() const;
 
@@ -179,7 +179,7 @@ class CVC4_EXPORT Result
   bool isNotEntailed() const;
 
   /**
-   * Return true if query was a checkEntailed() () query and CVC4 was not able
+   * Return true if query was a checkEntailed() () query and cvc5 was not able
    * to determine if it is entailed.
    */
   bool isEntailmentUnknown() const;
@@ -248,7 +248,7 @@ std::ostream& operator<<(std::ostream& out,
 class Datatype;
 
 /**
- * The sort of a CVC4 term.
+ * The sort of a cvc5 term.
  */
 class CVC4_EXPORT Sort
 {
@@ -764,7 +764,7 @@ struct CVC4_EXPORT SortHashFunction
 /* -------------------------------------------------------------------------- */
 
 /**
- * A CVC4 operator.
+ * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
  * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
  */
@@ -817,6 +817,11 @@ class CVC4_EXPORT Op
    * @return true iff this operator is indexed
    */
   bool isIndexed() const;
+
+  /**
+   * @return the number of indices of this op
+   */
+  size_t getNumIndices() const;
 
   /**
    * Get the indices used to create this Op.
@@ -889,7 +894,7 @@ class CVC4_EXPORT Op
 /* -------------------------------------------------------------------------- */
 
 /**
- * A CVC4 Term.
+ * A cvc5 Term.
  */
 class CVC4_EXPORT Term
 {
@@ -1369,7 +1374,7 @@ class DatatypeConstructorIterator;
 class DatatypeIterator;
 
 /**
- * A CVC4 datatype constructor declaration.
+ * A cvc5 datatype constructor declaration.
  */
 class CVC4_EXPORT DatatypeConstructorDecl
 {
@@ -1439,7 +1444,7 @@ class CVC4_EXPORT DatatypeConstructorDecl
 class Solver;
 
 /**
- * A CVC4 datatype declaration.
+ * A cvc5 datatype declaration.
  */
 class CVC4_EXPORT DatatypeDecl
 {
@@ -1543,7 +1548,7 @@ class CVC4_EXPORT DatatypeDecl
 };
 
 /**
- * A CVC4 datatype selector.
+ * A cvc5 datatype selector.
  */
 class CVC4_EXPORT DatatypeSelector
 {
@@ -1612,7 +1617,7 @@ class CVC4_EXPORT DatatypeSelector
 };
 
 /**
- * A CVC4 datatype constructor.
+ * A cvc5 datatype constructor.
  */
 class CVC4_EXPORT DatatypeConstructor
 {
@@ -1839,7 +1844,7 @@ class CVC4_EXPORT DatatypeConstructor
 };
 
 /**
- * A CVC4 datatype.
+ * A cvc5 datatype.
  */
 class CVC4_EXPORT Datatype
 {
@@ -2277,8 +2282,8 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
  * Rounding modes for floating-point numbers.
  *
  * For many floating-point operations, infinitely precise results may not be
- * representable with the number of available bits. Thus, the results are rounded in
- * a certain way to one of the representable floating-point numbers.
+ * representable with the number of available bits. Thus, the results are
+ * rounded in a certain way to one of the representable floating-point numbers.
  *
  * \verbatim embed:rst:leading-asterisk
  * These rounding modes directly follow the SMT-LIB theory for floating-point
@@ -2503,7 +2508,7 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats) CVC4_EXPORT
 /* -------------------------------------------------------------------------- */
 
 /**
- * A CVC4 solver.
+ * A cvc5 solver.
  */
 class CVC4_EXPORT Solver
 {
@@ -2562,7 +2567,7 @@ class CVC4_EXPORT Solver
   Sort getBooleanSort() const;
 
   /**
-   * @return sort Integer (in CVC4, Integer is a subtype of Real)
+   * @return sort Integer (in cvc5, Integer is a subtype of Real)
    */
   Sort getIntegerSort() const;
 
@@ -3095,7 +3100,7 @@ class CVC4_EXPORT Solver
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant. Requires CVC4 to be
+   * Create a positive infinity floating-point constant. Requires cvc5 to be
    * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
@@ -3104,7 +3109,7 @@ class CVC4_EXPORT Solver
   Term mkPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant. Requires CVC4 to be
+   * Create a negative infinity floating-point constant. Requires cvc5 to be
    * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
@@ -3113,7 +3118,7 @@ class CVC4_EXPORT Solver
   Term mkNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to be
+   * Create a not-a-number (NaN) floating-point constant. Requires cvc5 to be
    * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
@@ -3122,7 +3127,7 @@ class CVC4_EXPORT Solver
   Term mkNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to be
+   * Create a positive zero (+0.0) floating-point constant. Requires cvc5 to be
    * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
@@ -3131,7 +3136,7 @@ class CVC4_EXPORT Solver
   Term mkPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to be
+   * Create a negative zero (-0.0) floating-point constant. Requires cvc5 to be
    * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
@@ -3165,7 +3170,7 @@ class CVC4_EXPORT Solver
   Term mkAbstractValue(uint64_t index) const;
 
   /**
-   * Create a floating-point constant (requires CVC4 to be compiled with symFPU
+   * Create a floating-point constant (requires cvc5 to be compiled with symFPU
    * support).
    * @param exp Size of the exponent
    * @param sig Size of the significand
@@ -3609,6 +3614,19 @@ class CVC4_EXPORT Solver
    */
   Term getSeparationNilTerm() const;
 
+  /**
+   * Declare a symbolic pool of terms with the given initial value.
+   * SMT-LIB:
+   * \verbatim
+   * ( declare-pool <symbol> <sort> ( <term>* ) )
+   * \endverbatim
+   * @param symbol The name of the pool
+   * @param sort The sort of the elements of the pool.
+   * @param initValue The initial value of the pool
+   */
+  Term declarePool(const std::string& symbol,
+                   const Sort& sort,
+                   const std::vector<Term>& initValue) const;
   /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB:

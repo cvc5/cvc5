@@ -27,7 +27,7 @@ namespace cvc5 {
 
 #if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
 
-CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
+CVC5dumpstream& CVC5dumpstream::operator<<(const Command& c)
 {
   if (d_os != nullptr)
   {
@@ -36,7 +36,7 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c)
   return *this;
 }
 
-CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
+CVC5dumpstream& CVC5dumpstream::operator<<(const NodeCommand& nc)
 {
   if (d_os != nullptr)
   {
@@ -47,8 +47,8 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 
 #else
 
-CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c) { return *this; }
-CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
+CVC5dumpstream& CVC5dumpstream::operator<<(const Command& c) { return *this; }
+CVC5dumpstream& CVC5dumpstream::operator<<(const NodeCommand& nc)
 {
   return *this;
 }
@@ -175,7 +175,7 @@ void DumpC::setDumpFromString(const std::string& optarg) {
   else
   {
     throw OptionException(
-        "The dumping feature was disabled in this build of CVC4.");
+        "The dumping feature was disabled in this build of cvc5.");
   }
 }
 
@@ -238,7 +238,7 @@ other modes for checking correctness and completeness of decision procedure\n\
 implementations.\n\
 \n\
 The --output-language option controls the language used for dumping, and\n\
-this allows you to connect CVC4 to another solver implementation via a UNIX\n\
+this allows you to connect cvc5 to another solver implementation via a UNIX\n\
 pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
 to a file.\n\
 ";
