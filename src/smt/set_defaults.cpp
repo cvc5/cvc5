@@ -363,8 +363,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
-    // must enable higher-order
-    options::ufHo.set(true);
     if (isSygus)
     {
       // When sygus answers "unsat", it is not due to showing a set of
