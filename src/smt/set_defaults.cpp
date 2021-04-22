@@ -70,7 +70,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::checkUnsatCores() || options::dumpUnsatCores()
       || options::unsatAssumptions())
   {
-    options::unsatCores.set(true);
+    Options::current().set(options::unsatCores, true);
   }
 
   if (options::unsatCores()
@@ -92,35 +92,35 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::produceProofs()
       && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
-    if (options::unsatCoresMode.wasSetByUser())
+    if (Options::current().wasSetByUser(options::unsatCoresMode))
     {
       Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                   "were requested.\n";
     }
-    options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
+    Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::FULL_PROOF);
   }
 
   // set proofs on if not yet set
   if (options::unsatCores() && !options::produceProofs()
       && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
   {
-    if (options::produceProofs.wasSetByUser())
+    if (Options::current().wasSetByUser(options::produceProofs))
     {
       Notice()
           << "Forcing proof production since new unsat cores were requested.\n";
     }
-    options::produceProofs.set(true);
+    Options::current().set(options::produceProofs, true);
   }
 
   // guarantee that if unsat cores mode is not OFF, then they are activated
   if (!options::unsatCores())
   {
-    if (options::unsatCoresMode.wasSetByUser())
+    if (Options::current().wasSetByUser(options::unsatCoresMode))
     {
       Notice() << "Overriding unsat-core mode for OFF since cores were not "
                   "requested.\n";
     }
-    options::unsatCoresMode.set(options::UnsatCoresMode::OFF);
+    Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
   }
 
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
@@ -128,7 +128,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   bool safeUnsatCores =
       options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
 
-  if (options::bitvectorAigSimplifications.wasSetByUser())
+  if (Options::current().wasSetByUser(options::bitvectorAigSimplifications))
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
     Options::current().set(options::bitvectorAig, true);
@@ -392,7 +392,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
                   "disabled.\n";
-      options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
+      Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
     }
     if (options::produceProofs())
     {
@@ -406,10 +406,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // sygus core connective requires unsat cores
   if (options::sygusCoreConnective())
   {
-    options::unsatCores.set(true);
+    Options::current().set(options::unsatCores, true);
     if (options::unsatCoresMode() == options::UnsatCoresMode::OFF)
     {
-      options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
+      Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
     }
   }
 
@@ -515,7 +515,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
                   "old unsat cores\n";
-      options::pbRewrites.set(false);
+      Options::current().set(options::pbRewrites, false);
     }
 
     if (options::sortInference())
@@ -527,7 +527,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off sort inference to support old unsat "
                   "cores\n";
-      options::sortInference.set(false);
+      Options::current().set(options::sortInference, false);
     }
 
     if (options::preSkolemQuant())
@@ -539,7 +539,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off pre-skolemization to support old "
                   "unsat cores\n";
-      options::preSkolemQuant.set(false);
+      Options::current().set(options::preSkolemQuant, false);
     }
 
     if (options::bitvectorToBool())
@@ -550,7 +550,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off bitvector-to-bool to support old "
                   "unsat cores\n";
-      options::bitvectorToBool.set(false);
+      Options::current().set(options::bitvectorToBool, false);
     }
 
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
@@ -562,7 +562,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice()
           << "SmtEngine: turning off bool-to-bv to support old unsat cores\n";
-      options::boolToBitvector.set(options::BoolToBVMode::OFF);
+      Options::current().set(options::boolToBitvector, options::BoolToBVMode::OFF);
     }
 
     if (options::bvIntroducePow2())
@@ -574,7 +574,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice()
           << "SmtEngine: turning off bv-intro-pow2 to support old unsat cores";
-      options::bvIntroducePow2.set(false);
+      Options::current().set(options::bvIntroducePow2, false);
     }
 
     if (options::repeatSimp())
@@ -585,7 +585,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice()
           << "SmtEngine: turning off repeat-simp to support old unsat cores\n";
-      options::repeatSimp.set(false);
+      Options::current().set(options::repeatSimp, false);
     }
 
     if (options::globalNegate())
@@ -597,7 +597,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       }
       Notice() << "SmtEngine: turning off global-negate to support old unsat "
                   "cores\n";
-      options::globalNegate.set(false);
+      Options::current().set(options::globalNegate, false);
     }
 
     if (options::bitvectorAig())
