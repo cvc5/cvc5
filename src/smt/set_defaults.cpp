@@ -68,11 +68,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::dumpUnsatCores.set(true);
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions())
+      || options::unsatAssumptions()
+      || options::unsatCoresMode() != options::UnsatCoresMode::OFF)
   {
     options::unsatCores.set(true);
   }
-
   if (options::unsatCores()
       && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
   {
@@ -97,6 +97,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                   "were requested.\n";
     }
+    // enable unsat cores, because they are available as a consequence of proofs
+    options::unsatCores.set(true);
     options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
   }
 
@@ -112,21 +114,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::produceProofs.set(true);
   }
 
-  // guarantee that if unsat cores mode is not OFF, then they are activated
-  if (!options::unsatCores())
-  {
-    if (options::unsatCoresMode.wasSetByUser())
-    {
-      Notice() << "Overriding unsat-core mode for OFF since cores were not "
-                  "requested.\n";
-    }
-    options::unsatCoresMode.set(options::UnsatCoresMode::OFF);
-  }
-
-  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode, since new ones are experimental
-  bool safeUnsatCores =
-      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
+  // if unsat cores are disabled, then unsat cores mode should be OFF
+  Assert(options::unsatCores()
+         == (options::unsatCoresMode() != options::UnsatCoresMode::OFF));
 
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -387,13 +377,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (options::unsatCoresMode() != options::UnsatCoresMode::OFF
-        && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
-    {
-      Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
-                  "disabled.\n";
-      options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
-    }
+    options::unsatCores.set(false);
+    options::unsatCoresMode.set(options::UnsatCoresMode::OFF);
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
@@ -425,6 +410,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
              << "option requiring assertions." << std::endl;
     options::produceAssertions.set(true);
   }
+
+  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
+  // unsat core mode, since new ones are experimental
+  bool safeUnsatCores =
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
