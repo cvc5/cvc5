@@ -1,4 +1,4 @@
-cvc5 prerelease version 1.9
+cvc5 prerelease version 1.0
 ===========================
 
 ## Building cvc5
@@ -188,7 +188,9 @@ binding, please contact one of the project leaders.
 
 Building the API documentation of cvc5 requires the following dependencies:
 * [Doxygen](https://www.doxygen.nl)
-* [Sphinx](https://www.sphinx-doc.org), [sphinx-tabs](https://sphinx-tabs.readthedocs.io/), [sphinxcontrib-bibtex](https://sphinxcontrib-bibtex.readthedocs.io)
+* [Sphinx](https://www.sphinx-doc.org),
+  [sphinx-tabs](https://sphinx-tabs.readthedocs.io/),
+  [sphinxcontrib-bibtex](https://sphinxcontrib-bibtex.readthedocs.io)
 * [Breathe](https://breathe.readthedocs.io)
 
 To build the documentation, configure cvc5 with `./configure.sh --docs`.
