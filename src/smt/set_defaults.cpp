@@ -271,6 +271,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
+  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
+  {
+    // If the user explicitly set a logic that includes strings, but is not
+    // the generic "ALL" logic, then enable stringsExp.
+    options::stringExp.set(true);
+  }
   if (options::stringExp() || !options::stringLazyPreproc())
   {
     // We require quantifiers since extended functions reduce using them.
