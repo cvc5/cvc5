@@ -81,43 +81,22 @@ g_getopt_long_start = 256
 
 TPL_HOLDER_MACRO_NAME = 'CVC5_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
-TPL_RUN_HANDLER = \
-"""template <> options::{name}__option_t::type runHandlerAndPredicates(
-    options::{name}__option_t,
-    std::string option,
-    std::string optionarg,
-    options::OptionsHandler* handler)
-{{
-  options::{name}__option_t::type retval = {handler};
-  {predicates}
-  return retval;
-}}"""
-
 TPL_DECL_ASSIGN = \
 """template <> void Options::assign(
     options::{name}__option_t,
     std::string option,
-    std::string value);"""
+    std::string optionarg);"""
 
 TPL_IMPL_ASSIGN = TPL_DECL_ASSIGN[:-1] + \
 """
 {{
-  d_holder->{name} =
-    runHandlerAndPredicates(options::{name}, option, value, d_handler);
+  auto parsedval = {handler};
+  {predicates}
+  d_holder->{name} = parsedval;
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
-
-TPL_RUN_HANDLER_BOOL = \
-"""template <> void runBoolPredicates(
-    options::{name}__option_t,
-    std::string option,
-    bool b,
-    options::OptionsHandler* handler)
-{{
-  {predicates}
-}}"""
 
 TPL_DECL_ASSIGN_BOOL = \
 """template <> void Options::assignBool(
@@ -128,7 +107,7 @@ TPL_DECL_ASSIGN_BOOL = \
 TPL_IMPL_ASSIGN_BOOL = TPL_DECL_ASSIGN_BOOL[:-1] + \
 """
 {{
-  runBoolPredicates(options::{name}, option, value, d_handler);
+  {predicates}
   d_holder->{name} = value;
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
@@ -671,10 +650,10 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             handler = None
             if option.handler:
                 if option.type == 'void':
-                    handler = 'handler->{}(option)'.format(option.handler)
+                    handler = 'd_handler->{}(option)'.format(option.handler)
                 else:
                     handler = \
-                        'handler->{}(option, optionarg)'.format(option.handler)
+                        'd_handler->{}(option, optionarg)'.format(option.handler)
             elif option.mode:
                 handler = 'stringTo{}(option, optionarg)'.format(option.type)
             elif option.type != 'bool':
@@ -686,12 +665,12 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             if option.predicates:
                 if option.type == 'bool':
                     predicates = \
-                        ['handler->{}(option, b);'.format(x) \
+                        ['d_handler->{}(option, value);'.format(x) \
                             for x in option.predicates]
                 else:
                     assert option.type != 'void'
                     predicates = \
-                        ['handler->{}(option, retval);'.format(x) \
+                        ['d_handler->{}(option, parsedval);'.format(x) \
                             for x in option.predicates]
 
             # Generate options_handler and getopt_long
@@ -834,24 +813,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     options_getoptions.append(s)
 
 
-                # Define runBoolPredicates/runHandlerAndPredicates
-                tpl = None
-                if option.type == 'bool':
-                    if predicates:
-                        assert handler is None
-                        tpl = TPL_RUN_HANDLER_BOOL
-                elif option.short or option.long:
-                    assert option.type != 'void'
-                    assert handler
-                    tpl = TPL_RUN_HANDLER
-                if tpl:
-                    custom_handlers.append(
-                        tpl.format(
-                            name=option.name,
-                            handler=handler,
-                            predicates='\n'.join(predicates)
-                        ))
-
                 # Define handler assign/assignBool
                 tpl = None
                 if option.type == 'bool':
@@ -860,7 +821,9 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     tpl = TPL_IMPL_ASSIGN
                 if tpl:
                     custom_handlers.append(tpl.format(
-                        name=option.name
+                        name=option.name,
+                        handler=handler,
+                        predicates='\n'.join(predicates)
                     ))
 
                 # Default option values
