@@ -56,7 +56,6 @@ class BagsRewriter : public TheoryRewriter
    * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
-
  private:
   /**
    * rewrites for n include:

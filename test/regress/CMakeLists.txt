@@ -1805,6 +1805,7 @@ set(regress_1_tests
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
+  regress1/quantifiers/pool-example.smt2
   regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
@@ -2612,10 +2613,10 @@ set(regression_disabled_tests
 # Add target 'regress', builds and runs
 # > regression tests of levels 0 and 1
 
-get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
+get_target_property(path_to_cvc5 cvc5-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
-add_custom_target(build-regress DEPENDS cvc4-bin)
+add_custom_target(build-regress DEPENDS cvc5-bin)
 add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
@@ -2623,11 +2624,11 @@ add_custom_target(regress
     ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
-macro(cvc4_add_regression_test level file)
+macro(cvc5_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
+    ${path_to_cvc5}/cvc5 ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
 
   # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
@@ -2642,26 +2643,26 @@ endmacro()
 if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
   # For CMake 3.9.0 and newer, we want the regression script to return 77 for
   # skipped tests, such that we can mark them as skipped. See the
-  # `cvc4_add_regression_test` macro for more details.
+  # `cvc5_add_regression_test` macro for more details.
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
 endif()
 
 foreach(file ${regress_0_tests})
-  cvc4_add_regression_test(0 ${file})
+  cvc5_add_regression_test(0 ${file})
 endforeach()
 
 foreach(file ${regress_1_tests})
-  cvc4_add_regression_test(1 ${file})
+  cvc5_add_regression_test(1 ${file})
 endforeach()
 
 foreach(file ${regress_2_tests})
-  cvc4_add_regression_test(2 ${file})
+  cvc5_add_regression_test(2 ${file})
 endforeach()
 
 foreach(file ${regress_3_tests})
-  cvc4_add_regression_test(3 ${file})
+  cvc5_add_regression_test(3 ${file})
 endforeach()
 
 foreach(file ${regress_4_tests})
-  cvc4_add_regression_test(4 ${file})
+  cvc5_add_regression_test(4 ${file})
 endforeach()

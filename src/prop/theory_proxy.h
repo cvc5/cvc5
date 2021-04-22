@@ -28,7 +28,6 @@
 #include "expr/node.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
-#include "prop/skolem_def_manager.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
@@ -36,13 +35,16 @@
 
 namespace cvc5 {
 
+namespace decision {
 class DecisionEngine;
+}
 class TheoryEngine;
 
 namespace prop {
 
 class PropEngine;
 class CnfStream;
+class SkolemDefManager;
 
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
@@ -52,7 +54,8 @@ class TheoryProxy : public Registrar
  public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              DecisionEngine* decisionEngine,
+              decision::DecisionEngine* decisionEngine,
+              SkolemDefManager* skdm,
               context::Context* context,
               context::UserContext* userContext,
               ProofNodeManager* pnm);
@@ -140,7 +143,7 @@ class TheoryProxy : public Registrar
   CnfStream* d_cnfStream;
 
   /** The decision engine we are using. */
-  DecisionEngine* d_decisionEngine;
+  decision::DecisionEngine* d_decisionEngine;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
@@ -158,7 +161,7 @@ class TheoryProxy : public Registrar
   theory::TheoryPreprocessor d_tpp;
 
   /** The skolem definition manager */
-  std::unique_ptr<SkolemDefManager> d_skdm;
+  SkolemDefManager* d_skdm;
 }; /* class TheoryProxy */
 
 }  // namespace prop

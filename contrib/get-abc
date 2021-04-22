@@ -38,5 +38,5 @@ else
 fi
 
 echo
-echo ===================== Now configure CVC4 with =====================
+echo ===================== Now configure cvc5 with =====================
 echo ./configure.sh --abc
