@@ -1059,6 +1059,19 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     sortSymbol[s, CHECK_DECLARED]
     { cmd->reset(new DeclareHeapCommand(t, s)); }
     RPAREN_TOK
+  | DECLARE_POOL { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_NONE,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    LPAREN_TOK
+    ( term[e, e2]
+      { terms.push_back( e ); }
+    )* RPAREN_TOK
+    { Debug("parser") << "declare pool: '" << name << "'" << std::endl;
+      api::Term pool = SOLVER->declarePool(name, t, terms);
+      PARSER_STATE->defineVar(name, pool);
+      cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
+    }
   | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new BlockModelCommand()); }
 
@@ -1468,7 +1481,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
-    ( attribute[expr, attexpr, attr]
+    ( attribute[expr, attexpr]
       { if( ! attexpr.isNull()) {
           patexprs.push_back( attexpr );
         }
@@ -1478,14 +1491,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
       if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==api::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
-            if( f2[i].getKind()==api::INST_PATTERN ){
-              patexprs.push_back( f2[i] );
-            }else{
-              std::stringstream ss;
-              ss << "warning: rewrite rules do not support " << f2[i]
-                 << " within instantiation pattern list";
-              PARSER_STATE->warning(ss.str());
-            }
+            patexprs.push_back( f2[i] );
           }
         }
         expr2 = MK_TERM(api::INST_PATTERN_LIST, patexprs);
@@ -1745,7 +1751,7 @@ termAtomic[cvc5::api::Term& atomTerm]
 /**
  * Read attribute
  */
-attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr, std::string& attr]
+attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
 @init {
   api::Term sexpr;
   std::string s;
@@ -1753,23 +1759,26 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr, std::string& attr]
   std::vector<cvc5::api::Term> patexprs;
   cvc5::api::Term e2;
   bool hasValue = false;
+  api::Kind k;
 }
   : KEYWORD ( simpleSymbolicExprNoKeyword[s] { hasValue = true; } )?
   {
-    attr = AntlrInput::tokenText($KEYWORD);
-    PARSER_STATE->attributeNotSupported(attr);
+    PARSER_STATE->attributeNotSupported(AntlrInput::tokenText($KEYWORD));
   }
-  | ATTRIBUTE_PATTERN_TOK LPAREN_TOK
+  | ( ATTRIBUTE_PATTERN_TOK { k = api::INST_PATTERN; } |
+      ATTRIBUTE_POOL_TOK { k = api::INST_POOL; }  |
+      ATTRIBUTE_INST_ADD_TO_POOL_TOK { k = api::INST_ADD_TO_POOL; }  |
+      ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK{ k = api::SKOLEM_ADD_TO_POOL; } 
+    )
+    LPAREN_TOK
     ( term[patexpr, e2]
       { patexprs.push_back( patexpr ); }
     )+ RPAREN_TOK
     {
-      attr = std::string(":pattern");
-      retExpr = MK_TERM(api::INST_PATTERN, patexprs);
+      retExpr = MK_TERM(k, patexprs);
     }
   | ATTRIBUTE_NO_PATTERN_TOK term[patexpr, e2]
     {
-      attr = std::string(":no-pattern");
       retExpr = MK_TERM(api::INST_NO_PATTERN, patexpr);
     }
   | tok=( ATTRIBUTE_INST_LEVEL ) INTEGER_LITERAL
@@ -1792,7 +1801,6 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr, std::string& attr]
     {
       api::Sort boolType = SOLVER->getBooleanSort();
       api::Term avar = SOLVER->mkConst(boolType, sexprToString(sexpr));
-      attr = std::string(":qid");
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand("qid", avar);
       c->setMuted(true);
@@ -1800,7 +1808,6 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr, std::string& attr]
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
-      attr = std::string(":named");
       // notify that expression was given a name
       PARSER_STATE->notifyNamedExpression(expr, sexprToString(sexpr));
     }
@@ -2237,6 +2244,7 @@ GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
 GET_INTERPOL_TOK : 'get-interpol';
 DECLARE_HEAP : 'declare-heap';
+DECLARE_POOL : 'declare-pool';
 
 // SyGuS commands
 SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';
@@ -2252,6 +2260,9 @@ SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
+ATTRIBUTE_POOL_TOK : ':pool';
+ATTRIBUTE_INST_ADD_TO_POOL_TOK : ':inst-add-to-pool';
+ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK : ':skolem-add-to-pool';
 ATTRIBUTE_NAMED_TOK : ':named';
 ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';

@@ -16,11 +16,11 @@
 # linear_arith-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
     slv.setLogic("QF_LIRA")
 
     # Prove that if given x (Integer) and y (Real) and some constraints
@@ -55,9 +55,9 @@ if __name__ == "__main__":
 
     slv.push()
     diff_leq_two_thirds = slv.mkTerm(kinds.Leq, diff, two_thirds)
-    print("Prove that", diff_leq_two_thirds, "with CVC4")
-    print("CVC4 should report ENTAILED")
-    print("Result from CVC4 is:",
+    print("Prove that", diff_leq_two_thirds, "with cvc5")
+    print("cvc5 should report ENTAILED")
+    print("Result from cvc5 is:",
           slv.checkEntailed(diff_leq_two_thirds))
     slv.pop()
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     slv.push()
     diff_is_two_thirds = slv.mkTerm(kinds.Equal, diff, two_thirds)
     slv.assertFormula(diff_is_two_thirds)
-    print("Show that the assertions are consistent with\n", diff_is_two_thirds, "with CVC4")
-    print("CVC4 should report SAT")
-    print("Result from CVC4 is:", slv.checkSat())
+    print("Show that the assertions are consistent with\n", diff_is_two_thirds, "with cvc5")
+    print("cvc5 should report SAT")
+    print("Result from cvc5 is:", slv.checkSat())
     slv.pop()

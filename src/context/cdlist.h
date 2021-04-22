@@ -22,6 +22,7 @@
 
 #include <cstring>
 #include <iterator>
+#include <memory>
 #include <string>
 
 #include "base/check.h"
@@ -114,12 +115,23 @@ protected:
   }
   CDList& operator=(const CDList& l) = delete;
 
-private:
+ private:
   /**
-   * Reallocate the array with more space.
-   * Throws bad_alloc if memory allocation fails.
+   * Reallocate the array with more space. Throws bad_alloc if memory
+   * allocation fails. Does not perform any action if there is still unused
+   * allocated space.
    */
   void grow() {
+    Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
+                    << ": grow? " << d_size << " " << d_sizeAlloc << std::endl;
+    if (d_size != d_sizeAlloc)
+    {
+      // If there is still unused allocated space
+      return;
+    }
+    Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
+                    << ": grow!" << std::endl;
+
     if(d_list == NULL) {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = INITIAL_SIZE;
@@ -217,9 +229,7 @@ protected:
     }
   }
 
-
-public:
-
+ public:
   /**
    * Main constructor: d_list starts as NULL, size is 0
    */
@@ -265,7 +275,11 @@ public:
   }
 
   /**
-   * Add an item to the end of the list.
+   * Add an item to the end of the list. This method uses the copy constructor
+   * of T, so the type has to support it. As a result, this method cannot be
+   * used with types that do not have a copy constructor such as
+   * std::unique_ptr. Use CDList::emplace_back() instead of CDList::push_back()
+   * to avoid this issue.
    */
   void push_back(const T& data) {
     Debug("cdlist") << "push_back " << this
@@ -273,17 +287,7 @@ public:
                     << ": make-current, "
                     << "d_list == " << d_list << std::endl;
     makeCurrent();
-
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": grow? " << d_size
-                    << " " << d_sizeAlloc << std::endl;
-    if(d_size == d_sizeAlloc) {
-      Debug("cdlist") << "push_back " << this
-                      << " " << getContext()->getLevel()
-                      << ": grow!" << std::endl;
-      grow();
-    }
+    grow();
     Assert(d_size < d_sizeAlloc);
 
     Debug("cdlist") << "push_back " << this
@@ -299,6 +303,34 @@ public:
     Debug("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": size now " << d_size << std::endl;
+  }
+
+  /**
+   * Construct an item to the end of the list. This method constructs the item
+   * in-place (similar to std::vector::emplace_back()), so it can be used for
+   * types that do not have a copy constructor such as std::unique_ptr.
+   */
+  template <typename... Args>
+  void emplace_back(Args&&... args)
+  {
+    Debug("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": make-current, "
+                    << "d_list == " << d_list << std::endl;
+    makeCurrent();
+    grow();
+    Assert(d_size < d_sizeAlloc);
+
+    Debug("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": construct! at " << d_list
+                    << "[" << d_size << "] == " << &d_list[d_size] << std::endl;
+    std::allocator_traits<AllocatorT>::construct(
+        d_allocator, &d_list[d_size], std::forward<Args>(args)...);
+    Debug("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": done..." << std::endl;
+    ++d_size;
+    Debug("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": size now " << d_size
+                    << std::endl;
   }
 
   /**

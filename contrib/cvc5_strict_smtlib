@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cvc5="${CVC5_HOME}/cvc5"
+
+# This is the set of command line arguments that is required to be strictly
+# complaint with the input and output requirements of the current SMT-LIB
+# standard.
+"$cvc5" --lang=smt2 --output-lang=smt2 --strict-parsing --expr-depth=-1 --print-success --incremental --abstract-values $@

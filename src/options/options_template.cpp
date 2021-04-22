@@ -15,7 +15,7 @@
 
 #if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
 // force use of optreset; mingw32 croaks on argv-switching otherwise
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #define _BSD_SOURCE
 #undef HAVE_DECL_OPTRESET
 #define HAVE_DECL_OPTRESET 1
@@ -58,13 +58,14 @@ extern int optreset;
 ${headers_module}$
 
 #include "options/options_holder.h"
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 #include "options/base_handlers.h"
 
 ${headers_handler}$
 
 using namespace cvc5;
 using namespace cvc5::options;
+// clang-format on
 
 namespace cvc5 {
 
@@ -249,7 +250,9 @@ std::string Options::formatThreadOptionException(const std::string& option) {
 
 void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
+// clang-format off
 ${custom_handlers}$
+// clang-format on
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
@@ -257,22 +260,26 @@ ${custom_handlers}$
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
 #endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
 
+// clang-format off
 options::OptionsHolder::OptionsHolder() :
   ${module_defaults}$
 {
 }
+// clang-format on
 
-
-static const std::string mostCommonOptionsDescription = "\
+static const std::string mostCommonOptionsDescription =
+    "\
 Most commonly-used cvc5 options:\n"
-${help_common}$;
+    // clang-format off
+${help_common}$
+    // clang-format on
+    ;
 
-
-static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
-\n\
-Additional cvc5 options:\n"
+// clang-format off
+static const std::string optionsDescription =
+    mostCommonOptionsDescription + "\n\nAdditional cvc5 options:\n"
 ${help_others}$;
-
+// clang-format on
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -283,7 +290,7 @@ static const std::string languageDescription =
     "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
-  cvc4 | presentation | pl       cvc5 presentation language\n\
+  cvc | presentation | pl        CVC presentation language\n\
   smt | smtlib | smt2 |\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
@@ -291,8 +298,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
-  cvc4 | presentation | pl       cvc5 presentation language\n\
-  cvc3                           CVC3 presentation language\n\
+  cvc | presentation | pl        CVC presentation language\n\
   smt | smtlib | smt2 |\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
@@ -343,10 +349,11 @@ void Options::printLanguageHelp(std::ostream& out) {
  * If you add something that has a short option equivalent, you should
  * add it to the getopt_long() call in parseOptions().
  */
+// clang-format off
 static struct option cmdlineOptions[] = {
   ${cmdline_options}$
-  { NULL, no_argument, NULL, '\0' }
-};/* cmdlineOptions */
+  {nullptr, no_argument, nullptr, '\0'}};
+// clang-format on
 
 namespace options {
 
@@ -469,9 +476,11 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("options") << "[ before, optind == " << optind << " ]" << std::endl;
     Debug("options") << "[ argc == " << argc << ", argv == " << argv << " ]"
                      << std::endl;
+    // clang-format off
     int c = getopt_long(argc, argv,
                         "+:${options_short}$",
                         cmdlineOptions, NULL);
+    // clang-format on
 
     main_optind = optind;
 
@@ -503,23 +512,24 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("preemptGetopt") << "processing option " << c
                            << " (`" << char(c) << "'), " << option << std::endl;
 
+    // clang-format off
     switch(c)
     {
 ${options_handler}$
 
-
-    case ':':
+      case ':' :
       // This can be a long or short option, and the way to get at the
       // name of it is different.
-      throw OptionException(std::string("option `") + option +
-                            "' missing its required argument");
+      throw OptionException(std::string("option `") + option
+                            + "' missing its required argument");
 
-    case '?':
-    default:
-      throw OptionException(std::string("can't understand option `") + option +
-                            "'" + suggestCommandLineOptions(option));
+      case '?':
+      default:
+        throw OptionException(std::string("can't understand option `") + option
+                              + "'" + suggestCommandLineOptions(option));
     }
   }
+  // clang-format on
 
   Debug("options") << "got " << nonoptions->size()
                    << " non-option arguments." << std::endl;
@@ -537,10 +547,11 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName)
   return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
 }
 
+// clang-format off
 static const char* smtOptions[] = {
   ${options_smt}$
-  NULL
-};/* smtOptions[] */
+  nullptr};
+// clang-format on
 
 std::vector<std::string> Options::suggestSmtOptions(
     const std::string& optionName)
@@ -557,15 +568,16 @@ std::vector<std::string> Options::suggestSmtOptions(
   return suggestions;
 }
 
+// clang-format off
 std::vector<std::vector<std::string> > Options::getOptions() const
 {
   std::vector< std::vector<std::string> > opts;
 
   ${options_getoptions}$
 
-
   return opts;
 }
+// clang-format on
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
@@ -580,6 +592,7 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   }
 }
 
+// clang-format off
 void Options::setOptionInternal(const std::string& key,
                                 const std::string& optionarg)
 {
@@ -588,7 +601,9 @@ void Options::setOptionInternal(const std::string& key,
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }
+// clang-format on
 
+// clang-format off
 std::string Options::getOption(const std::string& key) const
 {
   Trace("options") << "Options::getOption(" << key << ")" << std::endl;
@@ -596,6 +611,7 @@ std::string Options::getOption(const std::string& key) const
 
   throw UnrecognizedOptionException(key);
 }
+// clang-format on
 
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
