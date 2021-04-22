@@ -703,7 +703,9 @@ enum class PfRule : uint32_t
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a
   //       bit-vector consisting of the output bits of the bit-blasted circuit
-  //       representation of the term
+  //       representation of the term. Terms are bit-blasted according to the
+  //       strategies defined in
+  //       theory/bv/bitblast/bitblast_strategies_template.h.
   // ======== Bitblast
   // Children: none
   // Arguments: (t)

@@ -83,9 +83,9 @@ void BBProof::bbAtom(TNode node)
   visit.push_back(node);
   std::unordered_set<TNode, TNodeHashFunction> visited;
 
-  bool fine_proofs =
+  bool fproofs =
       options::proofGranularityMode() != options::ProofGranularityMode::OFF;
-  bool fine_proofs_enabled = isProofsEnabled() && fine_proofs;
+  bool fpenabled = isProofsEnabled() && fproofs;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -112,7 +112,7 @@ void BBProof::bbAtom(TNode node)
       {
         Bits bits;
         d_bb->makeVariable(n, bits);
-        if (fine_proofs_enabled)
+        if (fpenabled)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
@@ -129,7 +129,7 @@ void BBProof::bbAtom(TNode node)
         Bits bits;
         d_bb->bbTerm(n, bits);
         Kind kind = n.getKind();
-        if (fine_proofs_enabled)
+        if (fpenabled)
         {
           Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, n_tobv);
@@ -163,7 +163,7 @@ void BBProof::bbAtom(TNode node)
       else
       {
         d_bb->bbAtom(n);
-        if (fine_proofs_enabled)
+        if (fpenabled)
         {
           Node n_tobv = getStoredBBAtom(n);
           std::vector<Node> children_tobv;
@@ -183,7 +183,7 @@ void BBProof::bbAtom(TNode node)
       visit.pop_back();
     }
   }
-  if (isProofsEnabled() && !fine_proofs)
+  if (isProofsEnabled() && !fproofs)
   {
     Node node_tobv = getStoredBBAtom(node);
     d_tcpg->addRewriteStep(node,
