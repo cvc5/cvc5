@@ -50,9 +50,8 @@ class DotPrinter
    * @param pn the proof node to print
    * @param ruleID the id of the rule to print
    */
-  static void printInternal(std::ostream& out,
-                            const ProofNode* pn,
-                            uint64_t& ruleID);
+  static void printInternal(
+      std::ostream& out, const ProofNode* pn, uint64_t& ruleID, int, bool);
 
   /**
    * Return the arguments of a ProofNode
@@ -66,7 +65,7 @@ class DotPrinter
   /** Replace all quotes but escaped quotes in given string
    * @param s The string to have the quotes processed.
    */
-  static void cleanQuotes(std::string& s);
+  static std::string sanitizeString(const std::string&);
 };
 
 }  // namespace proof
