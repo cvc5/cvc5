@@ -49,20 +49,17 @@ import sys
 import textwrap
 import toml
 
-### Allowed attributes for module/option/alias
+### Allowed attributes for module/option
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'alias']
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'help', 'help_mode', 'smt_name', 'short', 'long', 'default',
-    'includes', 'handler', 'predicates', 'notifies', 'links', 'read_only',
+    'includes', 'handler', 'predicates', 'notifies', 'read_only',
     'alternate', 'mode'
 ]
-
-ALIAS_ATTR_REQ = ['category', 'long', 'links']
-ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help']
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
@@ -302,12 +299,11 @@ class Module(object):
     """Options module.
 
     An options module represents a MODULE_options.toml option configuration
-    file and contains lists of options and aliases.
+    file and contains lists of options.
     """
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
         self.options = []
-        self.aliases = []
         for (attr, val) in d.items():
             assert attr in self.__dict__
             if val:
@@ -325,7 +321,6 @@ class Option(object):
         self.includes = []
         self.predicates = []
         self.notifies = []
-        self.links = []
         self.read_only = False
         self.alternate = True    # add --no- alternative long option for bool
         self.filename = None
@@ -335,39 +330,16 @@ class Option(object):
                 self.__dict__[attr] = val
 
 
-class Alias(object):
-    """Module alias.
-
-    An instance of this class corresponds to an alias defined in a
-    MODULE_options.toml configuration file specified via [[alias]].
-    """
-    def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in ALIAS_ATTR_ALL)
-        self.links = []
-        self.filename = None
-        self.alternate_for = None  # replaces a --no- alternative for an option
-        for (attr, val) in d.items():
-            assert attr in self.__dict__
-            if val:
-                self.__dict__[attr] = val
-
-
 def die(msg):
     sys.exit('[error] {}'.format(msg))
 
 
-def perr(filename, msg, option_or_alias = None):
-    msg_suffix = ''
-    if option_or_alias:
-        if isinstance(option_or_alias, Option):
-            msg_suffix = 'option '
-            if option_or_alias.name:
-                msg_suffix = "{} '{}' ".format(msg_suffix, option_or_alias.name)
-            else:
-                msg_suffix = "{} '{}' ".format(msg_suffix, option_or_alias.long)
+def perr(filename, msg, option = None):
+    if option:
+        if option.name:
+            msg_suffix = "option '{}' ".format(option.name)
         else:
-            assert isinstance(option_or_alias, Alias)
-            msg_suffix = "alias '{}' ".format(option_or_alias.long)
+            msg_suffix = "option '{}' ".format(option.long)
     die('parse error in {}: {}{}'.format(filename, msg, msg_suffix))
 
 
@@ -711,17 +683,6 @@ def docgen_option(option, help_common, help_others):
            help_others)
 
 
-def docgen_alias(alias, help_common, help_others):
-    """
-    Generate documentation for aliases.
-    """
-    docgen(alias.category, None, None,
-           None, alias.long, None, None,
-           alias.help, None,
-           help_common,
-           help_others)
-
-
 def add_getopt_long(long_name, argument_req, getopt_long):
     """
     For each long option we need to add an instance of the option struct in
@@ -760,7 +721,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
         headers_module.append(format_include(module.header))
         macros_module.append(TPL_HOLDER_MACRO_NAME.format(id=module.id))
 
-        if module.options or module.aliases:
+        if module.options:
             help_others.append(
                 '"\\nFrom the {} module:\\n"'.format(module.name))
 
@@ -836,9 +797,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                 elif handler:
                     cases.append('{};'.format(handler))
 
-                cases.extend(
-                    [TPL_PUSHBACK_PREEMPT.format('"{}"'.format(x)) \
-                        for x in option.links])
                 cases.append('  break;\n')
 
                 options_handler.extend(cases)
@@ -846,18 +804,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
 
             # Generate handlers for setOption/getOption
             if option.smt_name or option.long:
-                smtlinks = []
-                for link in option.links:
-                    m = match_option(link)
-                    assert m
-                    smtname = get_smt_name(m[0])
-                    assert smtname
-                    smtlinks.append(
-                        TPL_CALL_SET_OPTION.format(
-                            smtname=smtname,
-                            value='true' if m[1] else 'false'
-                        ))
-
                 # Make smt_name and long name available via set/get-option
                 keys = set()
                 if option.smt_name:
@@ -891,8 +837,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     setoption_handlers.append(
                         h.format(handler=option.handler, smtname=smtname))
 
-                if smtlinks:
-                    setoption_handlers.append('\n'.join(smtlinks))
                 setoption_handlers.append('return;')
                 setoption_handlers.append('}')
 
@@ -999,45 +943,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                 defaults.append('{}({})'.format(option.name, default))
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
-
-        for alias in sorted(module.aliases, key=lambda x: x.long):
-            argument_req = '=' in alias.long
-
-            options_handler.append(
-                'case {}:// --{}'.format(
-                    g_getopt_long_start + len(getopt_long), alias.long))
-
-            # If an alias replaces and alternate --no- option, we have to set
-            # the corresponding option to false
-            if alias.alternate_for:
-                assert alias.alternate_for.name
-                options_handler.append(
-                    TPL_CALL_ASSIGN_BOOL.format(
-                        name=alias.alternate_for.name,
-                        option='option', value='false'))
-
-            assert alias.links
-            arg = long_get_arg(alias.long)
-            for link in alias.links:
-                arg_link = long_get_arg(link)
-                if arg == arg_link:
-                    options_handler.append(
-                        TPL_PUSHBACK_PREEMPT.format(
-                            '"{}"'.format(long_get_option(link))))
-                    if argument_req:
-                        options_handler.append(
-                            TPL_PUSHBACK_PREEMPT.format('optionarg.c_str()'))
-                else:
-                    options_handler.append(
-                        TPL_PUSHBACK_PREEMPT.format('"{}"'.format(link)))
-
-            options_handler.append('  break;\n')
-
-            add_getopt_long(alias.long, argument_req, getopt_long)
-
-            docgen_alias(alias, help_common, help_others)
-
-
     write_file(dst_dir, 'options_holder.h', tpl_options_holder.format(
         headers_module='\n'.join(headers_module),
         macros_module='\n  '.join(macros_module)
@@ -1078,7 +983,7 @@ def rstrip(suffix, s):
 
 def check_attribs(filename, req_attribs, valid_attribs, attribs, ctype):
     """
-    Check if for a given module/option/alias the defined attributes are valid and
+    Check if for a given module/option the defined attributes are valid and
     if all required attributes are defined.
     """
     msg_for = ""
@@ -1109,7 +1014,7 @@ def check_unique(filename, value, cache):
         cache[value] = filename
 
 
-def check_long(filename, option_or_alias, long_name, ctype=None):
+def check_long(filename, option, long_name, ctype=None):
     """
     Check if given long option name is valid.
     """
@@ -1117,34 +1022,17 @@ def check_long(filename, option_or_alias, long_name, ctype=None):
     if long_name is None:
         return
     if long_name.startswith('--'):
-        perr(filename, 'remove -- prefix from long', option_or_alias)
+        perr(filename, 'remove -- prefix from long', option)
     r = r'^[0-9a-zA-Z\-=]+$'
     if not re.match(r, long_name):
         perr(filename,
              "long '{}' does not match regex criteria '{}'".format(
-                 long_name, r), option_or_alias)
+                 long_name, r), option)
     name = long_get_option(long_name)
     check_unique(filename, name, g_long_cache)
 
     if ctype == 'bool':
         check_unique(filename, 'no-{}'.format(name), g_long_cache)
-
-def check_links(filename, option_or_alias):
-    """
-    Check if long options defined in links are valid and correctly used.
-    """
-    global g_long_cache, g_long_arguments
-    for link in option_or_alias.links:
-        long_name = lstrip('no-', lstrip('--', long_get_option(link)))
-        if long_name not in g_long_cache:
-            perr(filename,
-                 "invalid long option '{}' in links list".format(link),
-                 option_or_alias)
-        # check if long option requires an argument
-        if long_name in g_long_arguments and '=' not in link:
-            perr(filename,
-                 "linked option '{}' requires an argument".format(link),
-                 option_or_alias)
 
 
 def parse_module(filename, module):
@@ -1192,15 +1080,6 @@ def parse_module(filename, module):
                      option)
             option.filename = filename
             res.options.append(option)
-
-    if 'alias' in module:
-        for attribs in module['alias']:
-            lineno = 0
-            check_attribs(filename,
-                          ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
-            alias = Alias(attribs)
-            alias.filename = filename
-            res.aliases.append(alias)
 
     return res
 
@@ -1256,32 +1135,6 @@ def mkoptions_main():
                 if option.type not in ['bool', 'void']:
                     g_long_arguments.add(long_get_option(option.long))
         modules.append(module)
-
-    # Check if alias.long is unique and check if alias.long defines an alias
-    # for an alternate (--no-<long>) option for existing option <long>.
-    for module in modules:
-        for alias in module.aliases:
-            # If an alias defines a --no- alternative for an existing boolean
-            # option, we do not create the alternative for the option, but use
-            # the alias instead.
-            if alias.long.startswith('no-'):
-                m = match_option(alias.long)
-                if m[0] and m[0].type == 'bool':
-                    m[0].alternate = False
-                    alias.alternate_for = m[0]
-                    del g_long_cache[alias.long]
-            check_long(alias.filename, alias, alias.long)
-            # Add long option that requires an argument
-            if '=' in alias.long:
-                g_long_arguments.add(long_get_option(alias.long))
-
-    # Check if long options in links are valid (that needs to be done after all
-    # long options are available).
-    for module in modules:
-        for option in module.options:
-            check_links(option.filename, option)
-        for alias in module.aliases:
-            check_links(alias.filename, alias)
 
     # Create *_options.{h,cpp} in destination directory
     for module in modules:

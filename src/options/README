@@ -7,7 +7,7 @@ Modules
     name   ... (string) name of the module (e.g., "Arithmetic Theory")
     header ... (string) name of the options header to generated (e.g., "options/arith_options.h")
 
-  A module defines 0 or more options and/or aliases.
+  A module defines 0 or more options.
 
   In general, each attribute/value pair is required to be in one line.
   Comments start with # and are not allowed in attribute/value lines.
@@ -43,7 +43,6 @@ Options
     includes   ... (list)   header files required by
                             handler/predicates/notifies
     notifies   ... (list)   notifications to call when option is set
-    links      ... (list)   additional options to set after this option is set
     read_only  ... (bool)   true: option should not provide a ::set method,
                             false (default): option should provide a ::set
                             method to set the option value
@@ -75,71 +74,8 @@ Options
       predicates = []
       includes   = ["options/language.h"]
       notifies   = []
-      links      = []
       read_only  = false
       help       = "force output language (default is \"auto\"; see --output-lang help)"
-
-
-  If an alternate option is generated, the linked options defined via attribute
-  links are not considered. If you want to define links for an alternate option
-  --no-<long> for an existing option <long>, you can define an alias with long
-  option no-<long>. This overwrites the default --no-<long> behaviour and
-  creates the linked options.
-
-
-Aliases
-=======
-
-  Aliases can be defined with the [[alias]] tag, which creates a new long
-  option and binds it to the list of long options specified via the 'links'
-  attributes.
-
-
-  The required attributes are:
-
-    category ... (string) common | expert | regular | undocumented
-    long     ... (string) long option name
-    links    ... (list)   list of long options to set
-
-  Optional attributes are:
-
-    help     ... (string) documentation (only option for category undocumented)
-
-
-  Example:
-
-    [[alias]]
-      category   = "regular"
-      long       = "smtlib-strict"
-      links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
-      help       = "SMT-LIBv2 compliance mode (implies other options)"
-
-
-  This example creates a regular option with the long option name
-  'smtlib-strict', which links to the long options given as a list 'links'.
-  Calling
-
-    --smtlib-strict
-
-  is equivalent to specifying the options
-
-    --lang=smt2 --output-lang=smt2 --strict-parsing --expr-depth=-1 --print-success --incremental --abstract-values
-
-
-  It's also possible to pass an argument through to another option.
-
-  Example:
-
-    [[alias]]
-      category   = "undocumented"
-      long       = "output-language=L"
-      links      = ["--output-lang=L"]
-
-  This alias makes --output-language synonymous with --output-lang and passes
-  argument L through to --output-lang. The placeholer name (in this example
-  'L') of the argument can be arbitrarily chosen and can be referenced multiple
-  times in 'links'.
-
 
 
 Further information (the old option package)
