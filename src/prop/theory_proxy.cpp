@@ -100,10 +100,11 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Node theoryExplanation = tte.getNode();
   if (options::produceProofs())
   {
-    Assert(options::unsatCoresNew() || tte.getGenerator());
+    Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
+           || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  else if (options::unsatCores())
+  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }

@@ -5,7 +5,7 @@ from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
-from cvc4kinds cimport Kind
+from cvc5kinds cimport Kind
 
 
 cdef extern from "<iostream>" namespace "std":

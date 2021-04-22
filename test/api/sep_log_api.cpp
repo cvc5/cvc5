@@ -37,7 +37,7 @@ int validate_exception(void)
   Solver slv;
 
   /*
-   * Setup some options for CVC4 -- we explictly want to use a simplistic
+   * Setup some options for cvc5 -- we explictly want to use a simplistic
    * theory (e.g., QF_IDL)
    */
   slv.setLogic("QF_IDL");
@@ -129,7 +129,7 @@ int validate_getters(void)
 {
   Solver slv;
 
-  /* Setup some options for CVC4 */
+  /* Setup some options for cvc5 */
   slv.setLogic("QF_ALL_SUPPORTED");
   slv.setOption("produce-models", "true");
   slv.setOption("incremental", "false");

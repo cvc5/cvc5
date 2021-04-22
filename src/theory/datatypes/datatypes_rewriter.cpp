@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -791,6 +792,111 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
     }
   }
   return n;
+}
+
+TrustNode DatatypesRewriter::expandDefinition(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode tn = n.getType();
+  Node ret;
+  switch (n.getKind())
+  {
+    case kind::APPLY_SELECTOR:
+    {
+      Node selector = n.getOperator();
+      // APPLY_SELECTOR always applies to an external selector, cindexOf is
+      // legal here
+      size_t cindex = utils::cindexOf(selector);
+      const DType& dt = utils::datatypeOf(selector);
+      const DTypeConstructor& c = dt[cindex];
+      Node selector_use;
+      TypeNode ndt = n[0].getType();
+      if (options::dtSharedSelectors())
+      {
+        size_t selectorIndex = utils::indexOf(selector);
+        Trace("dt-expand") << "...selector index = " << selectorIndex
+                           << std::endl;
+        Assert(selectorIndex < c.getNumArgs());
+        selector_use = c.getSelectorInternal(ndt, selectorIndex);
+      }
+      else
+      {
+        selector_use = selector;
+      }
+      Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
+      if (options::dtRewriteErrorSel())
+      {
+        ret = sel;
+      }
+      else
+      {
+        Node tester = c.getTester();
+        Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
+        SkolemManager* sm = nm->getSkolemManager();
+        TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
+        Node f =
+            sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
+        Node sk = nm->mkNode(kind::APPLY_UF, f, n[0]);
+        ret = nm->mkNode(kind::ITE, tst, sel, sk);
+        Trace("dt-expand") << "Expand def : " << n << " to " << ret
+                           << std::endl;
+      }
+    }
+    break;
+    case TUPLE_UPDATE:
+    case RECORD_UPDATE:
+    {
+      Assert(tn.isDatatype());
+      const DType& dt = tn.getDType();
+      NodeBuilder b(APPLY_CONSTRUCTOR);
+      b << dt[0].getConstructor();
+      size_t size, updateIndex;
+      if (n.getKind() == TUPLE_UPDATE)
+      {
+        Assert(tn.isTuple());
+        size = tn.getTupleLength();
+        updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
+      }
+      else
+      {
+        Assert(tn.isRecord());
+        const DTypeConstructor& recCons = dt[0];
+        size = recCons.getNumArgs();
+        // get the index for the name
+        updateIndex = recCons.getSelectorIndexForName(
+            n.getOperator().getConst<RecordUpdate>().getField());
+      }
+      Debug("tuprec") << "expr is " << n << std::endl;
+      Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
+      Debug("tuprec") << "t is " << tn << std::endl;
+      Debug("tuprec") << "t has arity " << size << std::endl;
+      for (size_t i = 0; i < size; ++i)
+      {
+        if (i == updateIndex)
+        {
+          b << n[1];
+          Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
+                          << std::endl;
+        }
+        else
+        {
+          b << nm->mkNode(
+              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
+          Debug("tuprec") << "arg " << i << " copies "
+                          << b[b.getNumChildren() - 1] << std::endl;
+        }
+      }
+      ret = b;
+      Debug("tuprec") << "return " << ret << std::endl;
+    }
+    break;
+    default: break;
+  }
+  if (!ret.isNull() && n != ret)
+  {
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 }  // namespace datatypes

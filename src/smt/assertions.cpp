@@ -178,7 +178,7 @@ void Assertions::addFormula(
   }
 
   // Give it to the old proof manager
-  if (options::unsatCores())
+  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     if (inInput)
     {  // n is an input assertion
