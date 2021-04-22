@@ -34,7 +34,11 @@ if(ANTLR3_JAR AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
 endif()
 
 if(NOT ANTLR3_FOUND_SYSTEM)
-    check_auto_download("ANTLR3" "")
+    check_ep_downloaded("ANTLR3-EP-jar")
+    if(NOT ANTLR3-EP-jar_DOWNLOADED)
+      check_auto_download("ANTLR3" "")
+    endif()
+
     include(ExternalProject)
 
     set(ANTLR3_VERSION "3.4")

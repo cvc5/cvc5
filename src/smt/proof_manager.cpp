@@ -134,7 +134,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
   // Now make the final scope, which ensures that the only open leaves of the
   // proof are the assertions, unless we are doing proofs to generate unsat
   // cores, in which case we do not care.
-  d_finalProof = d_pnm->mkScope(pfn, assertions, !options::unsatCoresNew());
+  d_finalProof = d_pnm->mkScope(pfn, assertions, !options::unsatCores());
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
