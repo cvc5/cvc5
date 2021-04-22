@@ -72,7 +72,6 @@ class TheoryBags : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
-  TrustNode expandDefinition(Node n) override;
   void presolve() override;
 
  private:
