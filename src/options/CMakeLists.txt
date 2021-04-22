@@ -78,7 +78,6 @@ add_custom_command(
       ${PYTHON_EXECUTABLE}
       ${CMAKE_CURRENT_LIST_DIR}/mkoptions.py
       ${CMAKE_CURRENT_LIST_DIR}
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc
       ${CMAKE_CURRENT_BINARY_DIR}
       ${abs_toml_files}
     DEPENDS
@@ -88,9 +87,6 @@ add_custom_command(
       module_template.cpp
       options_holder_template.h
       options_template.cpp
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/cvc5.1_template
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/SmtEngine.3cvc_template
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/options.3cvc_template
 )
 
 add_custom_target(gen-options

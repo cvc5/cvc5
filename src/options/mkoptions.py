@@ -18,10 +18,9 @@
     has changed (in order to avoid global re-compilation if only single option
     files changed).
 
-    mkoptions.py <tpl-src> <tpl-doc> <dst> <toml>+
+    mkoptions.py <tpl-src> <dst> <toml>+
 
       <tpl-src> location of all *_template.{cpp,h} files
-      <tpl-doc> location of all *_template documentation files
       <dst>     destination directory for the generated source code files
       <toml>+   one or more *_options.toml files
 
@@ -32,14 +31,6 @@
         - options_holder_template.h
         - module_template.h
 
-    Directory <tpl-doc> must contain:
-        - cvc5.1_template
-        - options.3cvc_template
-        - SmtEngine.3cvc_template
-    These files get generated during autogen.sh from the corresponding *.in
-    files in doc/. Note that for the generated documentation files tpl-doc is
-    also the destination directory.
-
     <toml>+ must be the list of all *.toml option configuration files from
     the src/options directory.
 
@@ -49,9 +40,6 @@
         - <dst>/MODULE_options.cpp
         - <dst>/options_holder.h
         - <dst>/options.cpp
-        - <tpl-doc>/cvc5.1
-        - <tpl-doc>/options.3
-        - <tpl-doc>/SmtEngine.3
 """
 
 import ast
@@ -687,24 +675,16 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
 
 def docgen(category, name, smt_name, short_name, long_name, ctype, default,
-           help_msg, alternate,
-           help_common, man_common, man_common_smt, man_common_int,
-           help_others, man_others, man_others_smt, man_others_int):
+           help_msg, alternate, help_common, help_others):
     """
-    Generate the documentation for --help and all man pages.
+    Generate the documentation for --help.
     """
 
     ### Generate documentation
     if category == 'common':
         doc_cmd = help_common
-        doc_man = man_common
-        doc_smt = man_common_smt
-        doc_int = man_common_int
     else:
         doc_cmd = help_others
-        doc_man = man_others
-        doc_smt = man_others_smt
-        doc_int = man_others_int
 
     help_msg = help_msg if help_msg else '[undocumented]'
     if category == 'expert':
@@ -719,60 +699,27 @@ def docgen(category, name, smt_name, short_name, long_name, ctype, default,
             help_cmd += ' [*]'
         doc_cmd.extend(help_format(help_cmd, opts))
 
-        # Generate man page documentation for cmdline options
-        doc_man.append('.IP "{}"'.format(opts.replace('-', '\\-')))
-        doc_man.append(help_cmd.replace('-', '\\-'))
 
-    # Escape - with \- for man page documentation
-    help_msg = help_msg.replace('-', '\\-')
-
-    # Generate man page documentation for smt options
-    if smt_name or long_name:
-        smtname = smt_name if smt_name else long_get_option(long_name)
-        doc_smt.append('.TP\n.B "{}"'.format(smtname))
-        if ctype:
-            doc_smt.append('({}) {}'.format(ctype, help_msg))
-        else:
-            doc_smt.append(help_msg)
-
-    # Generate man page documentation for internal options
-    if name:
-        doc_int.append('.TP\n.B "{}"'.format(name))
-        if default:
-            assert ctype
-            doc_int.append('({}, default = {})'.format(
-                ctype,
-                default.replace('-', '\\-')))
-        elif ctype:
-            doc_int.append('({})'.format(ctype))
-        doc_int.append('.br\n{}'.format(help_msg))
-
-
-
-def docgen_option(option,
-                  help_common, man_common, man_common_smt, man_common_int,
-                  help_others, man_others, man_others_smt, man_others_int):
+def docgen_option(option, help_common, help_others):
     """
     Generate documentation for options.
     """
     docgen(option.category, option.name, option.smt_name,
            option.short, option.long, option.type, option.default,
            option.help, option.alternate,
-           help_common, man_common, man_common_smt, man_common_int,
-           help_others, man_others, man_others_smt, man_others_int)
+           help_common,
+           help_others)
 
 
-def docgen_alias(alias,
-                 help_common, man_common, man_common_smt, man_common_int,
-                 help_others, man_others, man_others_smt, man_others_int):
+def docgen_alias(alias, help_common, help_others):
     """
     Generate documentation for aliases.
     """
     docgen(alias.category, None, None,
            None, alias.long, None, None,
            alias.help, None,
-           help_common, man_common, man_common_smt, man_common_int,
-           help_others, man_others, man_others_smt, man_others_int)
+           help_common,
+           help_others)
 
 
 def add_getopt_long(long_name, argument_req, getopt_long):
@@ -789,8 +736,7 @@ def add_getopt_long(long_name, argument_req, getopt_long):
             'required' if argument_req else 'no', value))
 
 
-def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
-                        doc_dir, tpl_man_cvc, tpl_man_smt, tpl_man_int):
+def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
     """
     Generate code for all option modules (options.cpp, options_holder.h).
     """
@@ -810,14 +756,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
     setoption_handlers = []  # handlers for set-option command
     getoption_handlers = []  # handlers for get-option command
 
-    # other documentation
-    man_common = []
-    man_others = []
-    man_common_smt = []
-    man_others_smt = []
-    man_common_int = []
-    man_others_int = []
-
     for module in modules:
         headers_module.append(format_include(module.header))
         macros_module.append(TPL_HOLDER_MACRO_NAME.format(id=module.id))
@@ -825,10 +763,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
         if module.options or module.aliases:
             help_others.append(
                 '"\\nFrom the {} module:\\n"'.format(module.name))
-            man_others.append('.SH {} OPTIONS'.format(module.name.upper()))
-            man_others_smt.append(
-                '.TP\n.I "{} OPTIONS"'.format(module.name.upper()))
-            man_others_int.append(man_others_smt[-1])
 
         for option in \
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
@@ -836,10 +770,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
             assert option.name or option.smt_name or option.short or option.long
             argument_req = option.type not in ['bool', 'void']
 
-            docgen_option(option,
-                          help_common, man_common, man_common_smt,
-                          man_common_int, help_others, man_others,
-                          man_others_smt, man_others_int)
+            docgen_option(option, help_common, help_others)
 
             # Generate handler call
             handler = None
@@ -1104,10 +1035,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
             add_getopt_long(alias.long, argument_req, getopt_long)
 
-            docgen_alias(alias,
-                         help_common, man_common, man_common_smt,
-                         man_common_int, help_others, man_others,
-                         man_others_smt, man_others_int)
+            docgen_alias(alias, help_common, help_others)
 
 
     write_file(dst_dir, 'options_holder.h', tpl_options_holder.format(
@@ -1131,21 +1059,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
         options_getoptions='\n  '.join(options_getoptions),
         setoption_handlers='\n'.join(setoption_handlers),
         getoption_handlers='\n'.join(getoption_handlers)
-    ))
-
-    write_file(doc_dir, 'cvc5.1', tpl_man_cvc.format(
-        man_common='\n'.join(man_common),
-        man_others='\n'.join(man_others)
-    ))
-
-    write_file(doc_dir, 'SmtEngine.3cvc', tpl_man_smt.format(
-        man_common_smt='\n'.join(man_common_smt),
-        man_others_smt='\n'.join(man_others_smt)
-    ))
-
-    write_file(doc_dir, 'options.3cvc', tpl_man_int.format(
-        man_common_internals='\n'.join(man_common_int),
-        man_others_internals='\n'.join(man_others_int)
     ))
 
 
@@ -1308,12 +1221,11 @@ def mkoptions_main():
         die('missing arguments')
 
     src_dir = sys.argv[1]
-    doc_dir = sys.argv[2]
-    dst_dir = sys.argv[3]
-    filenames = sys.argv[4:]
+    dst_dir = sys.argv[2]
+    filenames = sys.argv[3:]
 
     # Check if given directories exist.
-    for d in [src_dir, doc_dir, dst_dir]:
+    for d in [src_dir, dst_dir]:
         if not os.path.isdir(d):
             usage()
             die("'{}' is not a directory".format(d))
@@ -1328,11 +1240,6 @@ def mkoptions_main():
     tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
     tpl_options = read_tpl(src_dir, 'options_template.cpp')
     tpl_options_holder = read_tpl(src_dir, 'options_holder_template.h')
-
-    # Read documentation template files from documentation directory.
-    tpl_man_cvc = read_tpl(doc_dir, 'cvc5.1_template')
-    tpl_man_smt = read_tpl(doc_dir, 'SmtEngine.3cvc_template')
-    tpl_man_int = read_tpl(doc_dir, 'options.3cvc_template')
 
     # Parse files, check attributes and create module/option objects
     modules = []
@@ -1382,9 +1289,7 @@ def mkoptions_main():
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
     # Create options.cpp and options_holder.h in destination directory
-    codegen_all_modules(modules,
-                        dst_dir, tpl_options, tpl_options_holder,
-                        doc_dir, tpl_man_cvc, tpl_man_smt, tpl_man_int)
+    codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder)
 
 
 
