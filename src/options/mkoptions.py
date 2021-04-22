@@ -382,35 +382,6 @@ def read_tpl(directory, name):
         die("Could not find '{}'. Aborting.".format(fname))
 
 
-def match_option(long_name):
-    """
-    Lookup option by long_name option name. The function returns a tuple of (option,
-    bool), where the bool indicates the option value (true if not alternate,
-    false if alternate option).
-    """
-    global g_long_to_opt
-    val = True
-    opt = None
-    long_name = lstrip('--', long_get_option(long_name))
-    if long_name.startswith('no-'):
-        opt = g_long_to_opt.get(lstrip('no-', long_name))
-        # Check if we generated an alternative option
-        if opt and opt.type == 'bool' and opt.alternate:
-            val = False
-    else:
-        opt = g_long_to_opt.get(long_name)
-    return (opt, val)
-
-
-def long_get_arg(name):
-    """
-    Extract the argument part ARG of a long_name option long_name=ARG.
-    """
-    long_name = name.split('=')
-    assert len(long_name) <= 2
-    return long_name[1] if len(long_name) == 2 else None
-
-
 def long_get_option(name):
     """
     Extract the name of a given long option long=ARG
@@ -971,13 +942,6 @@ def lstrip(prefix, s):
     Remove prefix from the beginning of string s.
     """
     return s[len(prefix):] if s.startswith(prefix) else s
-
-
-def rstrip(suffix, s):
-    """
-    Remove suffix from the end of string s.
-    """
-    return s[:-len(suffix)] if s.endswith(suffix) else s
 
 
 def check_attribs(filename, req_attribs, valid_attribs, attribs, ctype):
