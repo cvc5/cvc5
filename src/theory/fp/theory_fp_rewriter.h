@@ -46,8 +46,8 @@ class TheoryFpRewriter : public TheoryRewriter
     // often this will suffice
     return postRewrite(equality).d_node;
   }
-  /** Expand definitions in node. */
-  TrustNode expandDefinition(Node node);
+  /** Expand definitions in node */
+  TrustNode expandDefinition(Node node) override;
 
  protected:
   /** TODO: document (projects issue #265) */

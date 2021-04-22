@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic ALL)
 (set-option :conjecture-filter-model true)
 (set-option :conjecture-gen true)

@@ -131,12 +131,6 @@ void TheorySets::preRegisterTerm(TNode node)
   d_internal->preRegisterTerm(node);
 }
 
-TrustNode TheorySets::expandDefinition(Node n)
-{
-  // we currently do not expand any set operators
-  return TrustNode::null();
-}
-
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
