@@ -1,0 +1,6 @@
+code {
+    border: 0px !important;
+}
+.rst-content code {
+    padding: 1px !important;
+}
