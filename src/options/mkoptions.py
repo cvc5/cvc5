@@ -142,14 +142,13 @@ TPL_OPTION_STRUCT_RO = \
 
 
 TPL_DECL_SET = \
-"""template <> void Options::set(
-    options::{name}__option_t,
-    const options::{name}__option_t::type& x);"""
+"""template <> options::{name}__option_t::type& Options::ref(
+    options::{name}__option_t);"""
 
 TPL_IMPL_SET = TPL_DECL_SET[:-1] + \
 """
 {{
-  d_holder->{name} = x;
+    return d_holder->{name};
 }}"""
 
 
@@ -178,7 +177,7 @@ TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
 TPL_IMPL_OP_PAR = \
 """inline {name}__option_t::type {name}__option_t::operator()() const
 {{
-  return (*Options::current())[*this];
+  return Options::current()[*this];
 }}"""
 
 # Mode templates

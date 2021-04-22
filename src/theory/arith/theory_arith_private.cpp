@@ -2906,10 +2906,10 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   if(d_qflraStatus != Result::UNSAT){
     static const int32_t pass2Limit = 20;
     int16_t oldCap = options::arithStandardCheckVarOrderPivots();
-    Options::current()->set(options::arithStandardCheckVarOrderPivots, pass2Limit);
+    Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
     SimplexDecisionProcedure& simplex = selectSimplex(false);
     d_qflraStatus = simplex.findModel(false);
-    Options::current()->set(options::arithStandardCheckVarOrderPivots, oldCap);
+    Options::current().set(options::arithStandardCheckVarOrderPivots, oldCap);
   }
 
   if(Debug.isOn("arith::importSolution")){
@@ -3118,7 +3118,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //               d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
 //             }
 //           }
-//           Options::current()->set(options::arithStandardCheckVarOrderPivots, pass2Limit);
+//           Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
 //           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus =
 //           simplex.findModel(false); }
 //           //CVC5Message() << "done" << endl;
@@ -3130,7 +3130,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //           approxSolver->extractRelaxation();
 
 //           d_qflraStatus = d_attemptSolSimplex.attempt(sol);
-//           Options::current()->set(options::arithStandardCheckVarOrderPivots, pass2Limit);
+//           Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
 
 //           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
 //         }
@@ -3158,7 +3158,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //         d_qflraStatus = simplex.findModel(noPivotLimit);
 //       }
 //     }
-//     Options::current()->set(options::arithStandardCheckVarOrderPivots, oldCap);
+//     Options::current().set(options::arithStandardCheckVarOrderPivots, oldCap);
 //   }
 
 //   // TODO Save zeroes with no conflicts

@@ -468,7 +468,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   {
     d_state->setFilename(value);
   }
-  else if (key == "smt-lib-version" && !Options::current()->wasSetByUser(options::inputLanguage))
+  else if (key == "smt-lib-version" && !Options::current().wasSetByUser(options::inputLanguage))
   {
     language::input::Language ilang = language::input::LANG_SMTLIB_V2_6;
 
@@ -478,14 +478,14 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    Options::current()->set(options::inputLanguage, ilang);
+    Options::current().set(options::inputLanguage, ilang);
     // also update the output language
-    if (!Options::current()->wasSetByUser(options::outputLanguage))
+    if (!Options::current().wasSetByUser(options::outputLanguage))
     {
       language::output::Language olang = language::toOutputLanguage(ilang);
       if (options::outputLanguage() != olang)
       {
-        Options::current()->set(options::outputLanguage, olang);
+        Options::current().set(options::outputLanguage, olang);
         *options::out() << language::SetLanguage(olang);
       }
     }
@@ -574,7 +574,7 @@ std::string SmtEngine::getInfo(const std::string& key) const
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
-  return toSExpr(Options::current()->getOptions());
+  return toSExpr(Options::current().getOptions());
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
