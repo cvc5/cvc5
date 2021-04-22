@@ -271,7 +271,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
-  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS) && !isSygus)
+  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS)
+      && !isSygus)
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
@@ -525,7 +526,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                << std::endl;
       options::preSkolemQuant.set(false);
     }
-
 
     if (options::bitvectorToBool())
     {
