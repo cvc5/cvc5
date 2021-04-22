@@ -982,7 +982,7 @@ namespace constantFold {
   /**
    * Initialize the rewriter.
    */
-TheoryFpRewriter::TheoryFpRewriter()
+TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
 {
   /* Set up the pre-rewrite dispatch table */
   for (unsigned i = 0; i < kind::LAST_KIND; ++i)
@@ -1417,6 +1417,10 @@ TheoryFpRewriter::TheoryFpRewriter()
     }
 
     return res;
+  }
+  TrustNode TheoryFpRewriter::expandDefinition(Node node)
+  {
+    return d_fpExpDef.expandDefinition(node);
   }
 
   }  // namespace fp

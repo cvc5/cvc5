@@ -17,8 +17,10 @@
 
 #include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_macros.h"
 #include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
 using namespace cvc5::kind;
@@ -68,6 +70,11 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
   d_quantEngine = d_qengine.get();
+
+  if (options::macrosQuant())
+  {
+    d_qmacros.reset(new QuantifiersMacros(d_qreg));
+  }
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
@@ -116,6 +123,26 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
+Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
+    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+{
+  if (d_qmacros != nullptr)
+  {
+    bool reqGround =
+        options::macrosQuantMode() != options::MacrosQuantMode::ALL;
+    Node eq = d_qmacros->solve(tin.getProven(), reqGround);
+    if (!eq.isNull())
+    {
+      // must be legal
+      if (isLegalElimination(eq[0], eq[1]))
+      {
+        outSubstitutions.addSubstitution(eq[0], eq[1]);
+        return Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }
+  }
+  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+}
 void TheoryQuantifiers::ppNotifyAssertions(
     const std::vector<Node>& assertions) {
   Trace("quantifiers-presolve")

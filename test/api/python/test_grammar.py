@@ -15,15 +15,15 @@
 
 import pytest
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 def test_add_rule():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -50,11 +50,11 @@ def test_add_rule():
     g.addRule(start, solver.mkBoolean(false))
 
 def test_add_rules():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -79,10 +79,10 @@ def test_add_rules():
     g.addRules(start, solver.mkBoolean(False))
 
 def testAddAnyConstant():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -103,10 +103,10 @@ def testAddAnyConstant():
 
 
 def testAddAnyVariable():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   x = solver.mkVar(boolean)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)

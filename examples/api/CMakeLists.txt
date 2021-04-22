@@ -30,5 +30,5 @@ set(CVC5_EXAMPLES_API
 )
 
 foreach(example ${CVC5_EXAMPLES_API})
-  cvc4_add_example(${example} "" "api")
+  cvc5_add_example(${example} "" "api")
 endforeach()
