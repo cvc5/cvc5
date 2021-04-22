@@ -18,13 +18,11 @@
 
 include(deps-helper)
 
-set(CryptoMiniSat_VERSION "5.8.0")
-
-find_package(cryptominisat5 ${CryptoMiniSat_VERSION} QUIET)
-set(CryptoMiniSat_FIND_VERSION ${CryptoMiniSat_VERSION})
+find_package(cryptominisat5 ${CryptoMiniSat_FIND_VERSION} QUIET)
 
 set(CryptoMiniSat_FOUND_SYSTEM FALSE)
 if(cryptominisat5_FOUND)
+  set(CryptoMiniSat_VERSION ${cryptominisat5_VERSION})
   set(CryptoMiniSat_FOUND_SYSTEM TRUE)
   add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
   target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
@@ -37,6 +35,8 @@ if(cryptominisat5_FOUND)
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
+  set(CryptoMiniSat_VERSION ${CryptoMiniSat_FIND_VERSION})
+
   check_ep_downloaded("CryptoMiniSat-EP")
   if(NOT CryptoMiniSat-EP_DOWNLOADED)
     check_auto_download("CryptoMiniSat" "--no-cryptominisat")
