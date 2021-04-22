@@ -42,7 +42,6 @@
         - <dst>/options.cpp
 """
 
-import ast
 import os
 import re
 import sys
@@ -1052,7 +1051,6 @@ def parse_module(filename, module):
 
     if 'option' in module:
         for attribs in module['option']:
-            lineno = 0
             check_attribs(filename,
                           OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
             option = Option(attribs)
