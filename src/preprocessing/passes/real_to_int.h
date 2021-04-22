@@ -22,8 +22,8 @@
 
 #include <vector>
 
-#include "expr/node.h"
 #include "context/cdhashmap.h"
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5 {
@@ -33,6 +33,7 @@ namespace passes {
 class RealToInt : public PreprocessingPass
 {
   using NodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+
  public:
   RealToInt(PreprocessingPassContext* preprocContext);
 

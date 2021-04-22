@@ -33,7 +33,10 @@ namespace preprocessing {
 namespace passes {
 
 RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "real-to-int"), d_cache(preprocContext->getUserContext()){}
+    : PreprocessingPass(preprocContext, "real-to-int"),
+      d_cache(preprocContext->getUserContext())
+{
+}
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
 {
