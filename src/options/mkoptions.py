@@ -56,7 +56,7 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'help', 'help_mode', 'smt_name', 'short', 'long', 'default',
-    'includes', 'handler', 'predicates', 'notifies', 'read_only',
+    'includes', 'handler', 'predicates', 'read_only',
     'alternate', 'mode'
 ]
 
@@ -106,7 +106,6 @@ TPL_IMPL_ASSIGN = TPL_DECL_ASSIGN[:-1] + \
     runHandlerAndPredicates(options::{name}, option, value, d_handler);
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
-  {notifications}
 }}"""
 
 
@@ -133,7 +132,6 @@ TPL_IMPL_ASSIGN_BOOL = TPL_DECL_ASSIGN_BOOL[:-1] + \
   d_holder->{name} = value;
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
-  {notifications}
 }}"""
 
 TPL_CALL_ASSIGN_BOOL = \
@@ -319,7 +317,6 @@ class Option(object):
         self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
         self.includes = []
         self.predicates = []
-        self.notifies = []
         self.read_only = False
         self.alternate = True    # add --no- alternative long option for bool
         self.filename = None
@@ -730,11 +727,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                         ['handler->{}(option, retval);'.format(x) \
                             for x in option.predicates]
 
-            # Generate notification calls
-            notifications = \
-                ['d_handler->{}(option);'.format(x) for x in option.notifies]
-
-
             # Generate options_handler and getopt_long
             cases = []
             if option.short:
@@ -901,8 +893,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     tpl = TPL_IMPL_ASSIGN
                 if tpl:
                     custom_handlers.append(tpl.format(
-                        name=option.name,
-                        notifications='\n'.join(notifications)
+                        name=option.name
                     ))
 
                 # Default option values
