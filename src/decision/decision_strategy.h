@@ -26,13 +26,13 @@
 
 namespace cvc5 {
 
-class DecisionEngine;
-
 namespace context {
   class Context;
   }  // namespace context
 
 namespace decision {
+  
+class DecisionEngine;
 
 class DecisionStrategy {
 protected:
