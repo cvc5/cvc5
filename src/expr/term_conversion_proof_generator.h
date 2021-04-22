@@ -190,6 +190,10 @@ class TConvProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+  /**
+   * Get the proof for how term t would rewrite.
+   */
+  std::shared_ptr<ProofNode> getProofForRewriting(Node n);
 
  protected:
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
