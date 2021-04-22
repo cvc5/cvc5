@@ -157,7 +157,6 @@ TPL_OPTION_STRUCT_RW = \
 {{
   typedef {type} type;
   type operator()() const;
-  bool wasSetByUser() const;
   static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
 
@@ -166,7 +165,6 @@ TPL_OPTION_STRUCT_RO = \
 {{
   typedef {type} type;
   type operator()() const;
-  bool wasSetByUser() const;
   static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
 
@@ -215,10 +213,7 @@ TPL_IMPL_OP_PAR = \
 }}"""
 
 TPL_IMPL_OPTION_WAS_SET_BY_USER = \
-"""inline bool {name}__option_t::wasSetByUser() const
-{{
-  return Options::current()->wasSetByUser(*this);
-}}"""
+""""""
 
 # Mode templates
 TPL_DECL_MODE_ENUM = \
