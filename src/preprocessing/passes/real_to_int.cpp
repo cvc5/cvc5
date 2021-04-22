@@ -26,12 +26,14 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace std;
-using namespace cvc5::theory;
+RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "real-to-int"), d_cache(preprocContext->getUserContext()){}
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
 {
@@ -196,18 +198,14 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
 }
 
-RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "real-to-int"){};
-
 PreprocessingPassResult RealToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  unordered_map<Node, Node, NodeHashFunction> cache;
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, realToIntInternal((*assertionsToPreprocess)[i], cache, var_eq));
+        i, realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
