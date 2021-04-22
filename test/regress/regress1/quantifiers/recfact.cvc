@@ -1,5 +1,5 @@
 % EXPECT: unsat
-OPTION "fmf-fun" "no-check-unsat-cores-new";
+OPTION "fmf-fun" "no-check-unsat-cores";
 x : INT;
 REC-FUN fact : (INT) -> INT = LAMBDA (x : INT) : IF (x > 0) THEN x * fact (x - 1) ELSE 1 ENDIF;
 ASSERT fact(0) = 2;
