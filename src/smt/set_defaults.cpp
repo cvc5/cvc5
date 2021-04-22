@@ -387,7 +387,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (options::unsatCoresMode() > options::UnsatCoresMode::OLD_PROOF)
+    if (options::unsatCoresMode() != options::UnsatCoresMode::OFF
+        && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
     {
       Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
                   "disabled.\n";
