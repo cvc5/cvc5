@@ -81,14 +81,11 @@ g_getopt_long_start = 256
 
 TPL_HOLDER_MACRO_NAME = 'CVC5_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
-TPL_DECL_ASSIGN = \
+TPL_IMPL_ASSIGN = \
 """template <> void Options::assign(
     options::{name}__option_t,
     std::string option,
-    std::string optionarg);"""
-
-TPL_IMPL_ASSIGN = TPL_DECL_ASSIGN[:-1] + \
-"""
+    std::string optionarg)
 {{
   auto parsedval = {handler};
   {predicates}
@@ -97,15 +94,11 @@ TPL_IMPL_ASSIGN = TPL_DECL_ASSIGN[:-1] + \
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
-
-TPL_DECL_ASSIGN_BOOL = \
+TPL_IMPL_ASSIGN_BOOL = \
 """template <> void Options::assignBool(
     options::{name}__option_t,
     std::string option,
-    bool value);"""
-
-TPL_IMPL_ASSIGN_BOOL = TPL_DECL_ASSIGN_BOOL[:-1] + \
-"""
+    bool value)
 {{
   {predicates}
   d_holder->{name} = value;
