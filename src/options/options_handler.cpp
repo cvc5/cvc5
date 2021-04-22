@@ -214,7 +214,7 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
     } else {
-      options::BitblastMode mode = stringToBitblastMode("", "eager");
+      options::BitblastMode mode = stringToBitblastMode("eager");
       Options::current()->set(options::bitblastMode, mode);
     }
     if(!Options::current()->wasSetByUser(options::bitvectorAigSimplifications)) {

@@ -191,16 +191,14 @@ enum class {type}
 
 TPL_DECL_MODE_FUNC = \
 """
-std::ostream&
-operator<<(std::ostream& os, {type} mode);"""
+std::ostream& operator<<(std::ostream& os, {type} mode);"""
 
 TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 """
 {{
-  os << "{type}::";
   switch(mode) {{{cases}
     default:
-        Unreachable();
+      Unreachable();
   }}
   return os;
 }}
@@ -209,13 +207,11 @@ TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 TPL_IMPL_MODE_CASE = \
 """
     case {type}::{enum}:
-      os << "{enum}";
-      break;"""
+      return os << "{type}::{enum}";"""
 
 TPL_DECL_MODE_HANDLER = \
 """
-{type}
-stringTo{type}(const std::string& option, const std::string& optarg);"""
+{type} stringTo{type}(const std::string& optarg);"""
 
 TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
 """
@@ -223,14 +219,11 @@ TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
   {cases}
   else if (optarg == "help")
   {{
-    puts({help});
-    exit(1);
+    std::cerr << {help};
+    std::exit(1);
   }}
-  else
-  {{
-    throw OptionException(std::string("unknown option for --{long}: `") +
-                          optarg + "'.  Try --{long}=help.");
-  }}
+  throw OptionException(std::string("unknown option for --{long}: `") +
+                        optarg + "'.  Try --{long}=help.");
 }}
 """
 
@@ -648,7 +641,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     handler = \
                         'd_handler->{}(option, optionarg)'.format(option.handler)
             elif option.mode:
-                handler = 'stringTo{}(option, optionarg)'.format(option.type)
+                handler = 'stringTo{}(optionarg)'.format(option.type)
             elif option.type != 'bool':
                 handler = \
                     'handleOption<{}>(option, optionarg)'.format(option.type)
