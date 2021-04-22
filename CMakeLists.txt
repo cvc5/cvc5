@@ -439,7 +439,7 @@ if(USE_CRYPTOMINISAT)
   if(THREADS_HAVE_PTHREAD_ARG)
     add_c_cxx_flag(-pthread)
   endif()
-  find_package(CryptoMiniSat 5.8.0 REQUIRED)
+  find_package(CryptoMiniSat 5.8 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
 

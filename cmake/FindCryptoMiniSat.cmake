@@ -35,7 +35,7 @@ if(cryptominisat5_FOUND)
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
-  set(CryptoMiniSat_VERSION ${CryptoMiniSat_FIND_VERSION})
+  set(CryptoMiniSat_VERSION "5.8.0")
 
   check_ep_downloaded("CryptoMiniSat-EP")
   if(NOT CryptoMiniSat-EP_DOWNLOADED)
