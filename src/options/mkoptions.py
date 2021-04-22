@@ -502,11 +502,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
         specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
 
-        if option.type == 'bool':
-            specs.append(TPL_DECL_ASSIGN_BOOL.format(name=option.name))
-        else:
-            specs.append(TPL_DECL_ASSIGN.format(name=option.name))
-
         if option.long and option.type not in ['bool', 'void'] and \
            '=' not in option.long:
             die("module '{}': option '{}' with type '{}' needs an argument " \
