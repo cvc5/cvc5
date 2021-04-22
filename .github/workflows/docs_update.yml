@@ -55,6 +55,7 @@ jobs:
         working-directory: build
 
       - name: Update docs
+        continue-on-error: true
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
