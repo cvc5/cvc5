@@ -47,6 +47,8 @@ class TheoryBVRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
 
+  TrustNode expandDefinition(Node node) override;
+
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
   static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false);
