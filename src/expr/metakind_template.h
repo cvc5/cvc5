@@ -129,14 +129,18 @@ struct NodeValuePoolEq {
 
 #endif /* CVC5__KIND__METAKIND_H */
 
+// clang-format off
 ${metakind_includes}
+// clang-format on
 
 #ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace cvc5 {
 
 namespace expr {
+// clang-format off
 ${metakind_getConst_decls}
+// clang-format on
 }  // namespace expr
 
 namespace kind {
@@ -170,9 +174,12 @@ inline size_t NodeValueConstCompare<k, pool>::constHash(
   return nv->getConst<T>().hash();
 }
 
+// clang-format off
 ${metakind_constantMaps_decls}
+// clang-format on
 
-struct NodeValueConstPrinter {
+struct NodeValueConstPrinter
+{
   static void toStream(std::ostream& out, const ::cvc5::expr::NodeValue* nv);
   static void toStream(std::ostream& out, TNode n);
 };

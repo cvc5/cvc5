@@ -979,5 +979,5 @@ Node mergeExplanations(TNode expl1, TNode expl2) {
 }
 
 }  // namespace bv
-} /* namespace CVc4::theory */
+}  // namespace theory
 }  // namespace cvc5

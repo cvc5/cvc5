@@ -1,10 +1,10 @@
-The authors, designers, and main contributors to CVC4 are listed below.
-CVC4's copyright is held by these individuals and the affiliated
+The authors, designers, and main contributors to cvc5 are listed below.
+cvc5's copyright is held by these individuals and the affiliated
 institutions at the time of their contributions (note that some authors have
 had more than one affiliated institution).  See the file COPYING for details on
-the copyright and licensing of CVC4.
+the copyright and licensing of cvc5.
 
-The developers and authors of CVC4 are:
+The developers and authors of cvc5 are:
 
 Current:
   Haniel Barbosa, The University of Iowa, Universidade Federal de Minas Gerais
@@ -36,13 +36,14 @@ Alumni:
   Tianyi Liang, The University of Iowa
   Paul Meng, The University of Iowa
 
-Other contributors to the CVC4 codebase are listed in the THANKS file.
+Other contributors to the cvc5 codebase are listed in the THANKS file.
 
-CVC4 is the fourth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
-not directly incorporate code from any previous version.  Information about
-authors of previous CVC tools is included with their distributions.
+cvc5 is the fifth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
+not directly incorporate code from any previous version prior to CVC4.
+Information about authors of previous CVC tools is included with their
+distributions.
 
-CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson.
+cvc5 contains MiniSAT code by Niklas Een and Niklas Sorensson.
 
-The CVC4 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
+The cvc5 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
 Wave LLC.

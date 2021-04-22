@@ -16,8 +16,8 @@
 # combination-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 def prefixPrintGetValue(slv, t, level=0):
     print("slv.getValue({}): {}".format(t, slv.getValue(t)))
@@ -25,9 +25,9 @@ def prefixPrintGetValue(slv, t, level=0):
         prefixPrintGetValue(slv, c, level + 1)
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
-    slv.setOption("output-language", "cvc4") # Set the output-language to CVC's
+    slv.setOption("output-language", "cvc") # Set the output-language to CVC's
     slv.setOption("dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language
     slv.setLogic("QF_UFLIRA")
@@ -71,11 +71,11 @@ if __name__ == "__main__":
     slv.assertFormula(assertions)
 
     print("Given the following assertions:", assertions, "\n")
-    print("Prove x /= y is entailed.\nCVC4: ",
+    print("Prove x /= y is entailed.\ncvc5: ",
           slv.checkEntailed(slv.mkTerm(kinds.Distinct, x, y)), "\n")
 
     print("Call checkSat to show that the assertions are satisfiable")
-    print("CVC4:", slv.checkSat(), "\n")
+    print("cvc5:", slv.checkSat(), "\n")
 
     print("Call slv.getValue(...) on terms of interest")
     print("slv.getValue({}): {}".format(f_x, slv.getValue(f_x)))

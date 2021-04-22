@@ -1270,6 +1270,41 @@ TEST_F(TestApiBlackSolver, getInfo)
   ASSERT_THROW(d_solver.getInfo("asdf"), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getAbduct)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-abducts", "true");
+  d_solver.setOption("incremental", "false");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+
+  // Assumptions for abduction: x > 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+  // Conjecture for abduction: y > 0
+  Term conj = d_solver.mkTerm(GT, y, zero);
+  Term output;
+  // Call the abduction api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
+
+  // try with a grammar, a simple grammar admitting true
+  Sort boolean = d_solver.getBooleanSort();
+  Term truen = d_solver.mkBoolean(true);
+  Term start = d_solver.mkVar(boolean);
+  Term output2;
+  Grammar g = d_solver.mkSygusGrammar({}, {start});
+  Term conj2 = d_solver.mkTerm(GT, x, zero);
+  ASSERT_NO_THROW(g.addRule(start, truen));
+  // Call the abduction api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj2, g, output2));
+  // abduct must be true
+  ASSERT_EQ(output2, truen);
+}
+
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
@@ -1297,6 +1332,22 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
+}
+
+TEST_F(TestApiBlackSolver, declarePool)
+{
+  Sort intSort = d_solver.getIntegerSort();
+  Sort setSort = d_solver.mkSetSort(intSort);
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  // declare a pool with initial value { 0, x, y }
+  Term p = d_solver.declarePool("p", intSort, {zero, x, y});
+  // pool should have the same sort
+  ASSERT_TRUE(p.getSort() == setSort);
+  // cannot pass null sort
+  Sort nullSort;
+  ASSERT_THROW(d_solver.declarePool("i", nullSort, {}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getOp)
@@ -1763,9 +1814,9 @@ TEST_F(TestApiBlackSolver, blockModelValues5)
 
 TEST_F(TestApiBlackSolver, setInfo)
 {
-  ASSERT_THROW(d_solver.setInfo("cvc4-lagic", "QF_BV"), CVC5ApiException);
+  ASSERT_THROW(d_solver.setInfo("cvc5-lagic", "QF_BV"), CVC5ApiException);
   ASSERT_THROW(d_solver.setInfo("cvc2-logic", "QF_BV"), CVC5ApiException);
-  ASSERT_THROW(d_solver.setInfo("cvc4-logic", "asdf"), CVC5ApiException);
+  ASSERT_THROW(d_solver.setInfo("cvc5-logic", "asdf"), CVC5ApiException);
 
   ASSERT_NO_THROW(d_solver.setInfo("source", "asdf"));
   ASSERT_NO_THROW(d_solver.setInfo("category", "asdf"));
