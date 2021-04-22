@@ -52,60 +52,83 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // implied options
   if (options::debugCheckModels())
   {
-    Notice() << "SmtEngine: setting checkModel" << std::endl;
     Options::current().set(options::checkModels, true);
   }
   if (options::checkModels() || options::dumpModels())
   {
-    Notice() << "SmtEngine: setting produceModels" << std::endl;
     Options::current().set(options::produceModels, true);
   }
   if (options::checkModels())
   {
-    Notice() << "SmtEngine: setting produceAssignments" << std::endl;
     Options::current().set(options::produceAssignments, true);
   }
+  // unsat cores and proofs shenanigans
   if (options::dumpUnsatCoresFull())
   {
-    Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     Options::current().set(options::dumpUnsatCores, true);
   }
-  if ((options::unsatCores() && options::unsatCoresNew())
-      || (options::checkUnsatCores() && options::checkUnsatCoresNew()))
+  if (options::checkUnsatCores() || options::dumpUnsatCores()
+      || options::unsatAssumptions())
   {
-    AlwaysAssert(false) << "Can't have both unsat cores modes, pick one.\n";
+    options::unsatCores.set(true);
   }
-  if (options::checkUnsatCores())
+
+  if (options::unsatCores()
+      && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
   {
-    Options::current().set(options::unsatCores, true);
-  }
-  if (options::checkUnsatCoresNew())
-  {
-    Options::current().set(options::unsatCoresNew, true);
-  }
-  if (options::dumpUnsatCores() || options::unsatAssumptions())
-  {
-    if (!options::unsatCoresNew())
+    if (Options::current().wasSetByUser(options::unsatCoresMode))
     {
-      Notice() << "SmtEngine: setting unsatCores" << std::endl;
-      Options::current().set(options::unsatCores, true);
+      Notice()
+          << "Overriding OFF unsat-core mode since cores were requested..\n";
     }
+    Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
   }
-  if (options::unsatCoresNew()
-      && ((options::produceProofs() && Options::current().wasSetByUser(options::produceProofs))
-          || (options::checkProofs() && Options::current().wasSetByUser(options::checkProofs))
-          || (options::dumpProofs() && Options::current().wasSetByUser(options::dumpProofs))))
+
+  if (options::checkProofs() || options::dumpProofs())
   {
-    AlwaysAssert(false) << "Can't properly produce proofs and have the new "
-                           "unsat cores simultaneously.\n";
-  }
-  if (options::checkProofs() || options::unsatCoresNew()
-      || options::dumpProofs())
-  {
-    Notice() << "SmtEngine: setting proof" << std::endl;
     Options::current().set(options::produceProofs, true);
   }
-  if (Options::current().wasSetByUser(options::bitvectorAigSimplifications))
+
+  if (options::produceProofs()
+      && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
+  {
+    if (options::unsatCoresMode.wasSetByUser())
+    {
+      Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
+                  "were requested.\n";
+    }
+    options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
+  }
+
+  // set proofs on if not yet set
+  if (options::unsatCores() && !options::produceProofs()
+      && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
+  {
+    if (options::produceProofs.wasSetByUser())
+    {
+      Notice()
+          << "Forcing proof production since new unsat cores were requested.\n";
+    }
+    options::produceProofs.set(true);
+  }
+
+  // guarantee that if unsat cores mode is not OFF, then they are activated
+  if (!options::unsatCores())
+  {
+    if (options::unsatCoresMode.wasSetByUser())
+    {
+      Notice() << "Overriding unsat-core mode for OFF since cores were not "
+                  "requested.\n";
+    }
+    options::unsatCoresMode.set(options::UnsatCoresMode::OFF);
+  }
+
+  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
+  // unsat core mode, since new ones are experimental
+  bool safeUnsatCores =
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
+
+  if (options::bitvectorAigSimplifications.wasSetByUser())
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
     Options::current().set(options::bitvectorAig, true);
@@ -299,15 +322,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // formulas is unsat. Thus, proofs do not apply.
     disableProofs = true;
   }
-  // !!! must disable proofs if using the old unsat core infrastructure
-  // TODO (#project 37) remove this
-  if (options::unsatCores())
-  {
-    disableProofs = true;
-  }
 
   // new unsat core specific restrictions for proofs
-  if (options::unsatCoresNew())
+  if (options::unsatCores()
+      && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
+      && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
     // no fine-graininess
     if (!Options::current().wasSetByUser(options::proofGranularityMode))
@@ -368,12 +387,13 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (options::unsatCoresNew())
+    if (options::unsatCoresMode() != options::UnsatCoresMode::OFF
+        && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
     {
-      Notice() << "SmtEngine: turning off new unsat cores." << std::endl;
+      Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
+                  "disabled.\n";
+      options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
     }
-    Options::current().set(options::unsatCoresNew, false);
-    Options::current().set(options::checkUnsatCoresNew, false);
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
@@ -386,7 +406,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // sygus core connective requires unsat cores
   if (options::sygusCoreConnective())
   {
-    Options::current().set(options::unsatCores, true);
+    options::unsatCores.set(true);
+    if (options::unsatCoresMode() == options::UnsatCoresMode::OFF)
+    {
+      options::unsatCoresMode.set(options::UnsatCoresMode::OLD_PROOF);
+    }
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -405,19 +429,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
-  if (options::incrementalSolving() || options::unsatCores()
-      || options::unsatCoresNew())
+  if (options::incrementalSolving() || safeUnsatCores)
   {
     if (options::unconstrainedSimp())
     {
       if (Options::current().wasSetByUser(options::unconstrainedSimp))
       {
         throw OptionException(
-            "unconstrained simplification not supported with unsat "
+            "unconstrained simplification not supported with old unsat "
             "cores/incremental solving");
       }
       Notice() << "SmtEngine: turning off unconstrained simplification to "
-                  "support unsat cores/incremental solving"
+                  "support old unsat cores/incremental solving"
                << std::endl;
       Options::current().set(options::unconstrainedSimp, false);
     }
@@ -468,13 +491,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (options::unsatCores() || options::unsatCoresNew())
+  if (safeUnsatCores)
   {
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (Options::current().wasSetByUser(options::simplificationMode))
       {
-        throw OptionException("simplification not supported with unsat cores");
+        throw OptionException(
+            "simplification not supported with old unsat cores");
       }
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores"
@@ -487,24 +511,23 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       if (Options::current().wasSetByUser(options::pbRewrites))
       {
         throw OptionException(
-            "pseudoboolean rewrites not supported with unsat cores");
+            "pseudoboolean rewrites not supported with old unsat cores");
       }
       Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
-                  "unsat cores"
-               << std::endl;
-      Options::current().set(options::pbRewrites, false);
+                  "old unsat cores\n";
+      options::pbRewrites.set(false);
     }
 
     if (options::sortInference())
     {
       if (Options::current().wasSetByUser(options::sortInference))
       {
-        throw OptionException("sort inference not supported with unsat cores");
+        throw OptionException(
+            "sort inference not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off sort inference to support unsat "
-                  "cores"
-               << std::endl;
-      Options::current().set(options::sortInference, false);
+      Notice() << "SmtEngine: turning off sort inference to support old unsat "
+                  "cores\n";
+      options::sortInference.set(false);
     }
 
     if (options::preSkolemQuant())
@@ -512,25 +535,22 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       if (Options::current().wasSetByUser(options::preSkolemQuant))
       {
         throw OptionException(
-            "pre-skolemization not supported with unsat cores");
+            "pre-skolemization not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off pre-skolemization to support unsat "
-                  "cores"
-               << std::endl;
-      Options::current().set(options::preSkolemQuant, false);
+      Notice() << "SmtEngine: turning off pre-skolemization to support old "
+                  "unsat cores\n";
+      options::preSkolemQuant.set(false);
     }
-
 
     if (options::bitvectorToBool())
     {
       if (Options::current().wasSetByUser(options::bitvectorToBool))
       {
-        throw OptionException("bv-to-bool not supported with unsat cores");
+        throw OptionException("bv-to-bool not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off bitvector-to-bool to support unsat "
-                  "cores"
-               << std::endl;
-      Options::current().set(options::bitvectorToBool, false);
+      Notice() << "SmtEngine: turning off bitvector-to-bool to support old "
+                  "unsat cores\n";
+      options::bitvectorToBool.set(false);
     }
 
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
@@ -538,58 +558,56 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       if (Options::current().wasSetByUser(options::boolToBitvector))
       {
         throw OptionException(
-            "bool-to-bv != off not supported with unsat cores");
+            "bool-to-bv != off not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
-                  "cores"
-               << std::endl;
-      Options::current().set(options::boolToBitvector, options::BoolToBVMode::OFF);
+      Notice()
+          << "SmtEngine: turning off bool-to-bv to support old unsat cores\n";
+      options::boolToBitvector.set(options::BoolToBVMode::OFF);
     }
 
     if (options::bvIntroducePow2())
     {
       if (Options::current().wasSetByUser(options::bvIntroducePow2))
       {
-        throw OptionException("bv-intro-pow2 not supported with unsat cores");
+        throw OptionException(
+            "bv-intro-pow2 not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off bv-intro-pow2 to support "
-                  "unsat-cores"
-               << std::endl;
-      Options::current().set(options::bvIntroducePow2, false);
+      Notice()
+          << "SmtEngine: turning off bv-intro-pow2 to support old unsat cores";
+      options::bvIntroducePow2.set(false);
     }
 
     if (options::repeatSimp())
     {
       if (Options::current().wasSetByUser(options::repeatSimp))
       {
-        throw OptionException("repeat-simp not supported with unsat cores");
+        throw OptionException("repeat-simp not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off repeat-simp to support unsat "
-                  "cores"
-               << std::endl;
-      Options::current().set(options::repeatSimp, false);
+      Notice()
+          << "SmtEngine: turning off repeat-simp to support old unsat cores\n";
+      options::repeatSimp.set(false);
     }
 
     if (options::globalNegate())
     {
       if (Options::current().wasSetByUser(options::globalNegate))
       {
-        throw OptionException("global-negate not supported with unsat cores");
+        throw OptionException(
+            "global-negate not supported with old unsat cores");
       }
-      Notice() << "SmtEngine: turning off global-negate to support unsat "
-                  "cores"
-               << std::endl;
-      Options::current().set(options::globalNegate, false);
+      Notice() << "SmtEngine: turning off global-negate to support old unsat "
+                  "cores\n";
+      options::globalNegate.set(false);
     }
 
     if (options::bitvectorAig())
     {
-      throw OptionException("bitblast-aig not supported with unsat cores");
+      throw OptionException("bitblast-aig not supported with old unsat cores");
     }
 
     if (options::doITESimp())
     {
-      throw OptionException("ITE simp not supported with unsat cores");
+      throw OptionException("ITE simp not supported with old unsat cores");
     }
   }
   else
@@ -746,8 +764,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!Options::current().wasSetByUser(options::ufSymmetryBreaker))
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !options::incrementalSolving()
-                       && !options::unsatCores() && !options::unsatCoresNew();
+                       && !options::incrementalSolving() && !safeUnsatCores;
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     Options::current().set(options::ufSymmetryBreaker, qf_uf_noinc);
@@ -796,7 +813,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
-                      && !options::unsatCores() && !options::unsatCoresNew();
+                      && !safeUnsatCores;
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     Options::current().set(options::repeatSimp, repeatSimp);

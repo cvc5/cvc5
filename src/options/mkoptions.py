@@ -806,9 +806,13 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     tpl = TPL_IMPL_ASSIGN
                 if tpl:
                     custom_handlers.append(tpl.format(
+<<<<<<< HEAD
                         name=option.name,
                         handler=handler,
                         predicates='\n'.join(predicates)
+=======
+                        name=option.name
+>>>>>>> upstream/master
                     ))
 
                 # Default option values
