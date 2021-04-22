@@ -1206,10 +1206,9 @@ def parse_module(filename, module):
 
 
 def usage():
-    print('mkoptions.py <tpl-src> <tpl-doc> <dst> <toml>+')
+    print('mkoptions.py <tpl-src> <dst> <toml>+')
     print('')
     print('  <tpl-src> location of all *_template.{cpp,h} files')
-    print('  <tpl-doc> location of all *_template documentation files')
     print('  <dst>     destination directory for the generated files')
     print('  <toml>+   one or more *_optios.toml files')
     print('')
