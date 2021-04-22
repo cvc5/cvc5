@@ -73,7 +73,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     options::unsatCores.set(true);
   }
-
   if (options::unsatCores()
       && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
   {
@@ -98,6 +97,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                   "were requested.\n";
     }
+    // enable unsat cores, because they are available as a consequence of proofs
+    options::unsatCores.set(true);
     options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
   }
 
@@ -114,8 +115,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF
-  Assert(options::unsatCores()
-         || options::unsatCoresMode() == options::UnsatCoresMode::OFF);
+  AlwaysAssert(options::unsatCores()
+         == (options::unsatCoresMode() != options::UnsatCoresMode::OFF));
 
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
   // unsat core mode, since new ones are experimental
