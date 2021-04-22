@@ -165,7 +165,7 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     }
     if (!options::bitvectorToBool.wasSetByUser())
     {
-      options::bitvectorToBool.set(true);
+      Options::current()->set(options::bitvectorToBool, true);
     }
   }
 }
@@ -176,20 +176,20 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   {
     if (!options::bitvectorPropagate.wasSetByUser())
     {
-      options::bitvectorPropagate.set(true);
+      Options::current()->set(options::bitvectorPropagate, true);
     }
     if (!options::bitvectorEqualitySolver.wasSetByUser())
     {
-      options::bitvectorEqualitySolver.set(true);
+      Options::current()->set(options::bitvectorEqualitySolver, true);
     }
 
     if (!options::bitvectorInequalitySolver.wasSetByUser())
     {
-      options::bitvectorInequalitySolver.set(true);
+      Options::current()->set(options::bitvectorInequalitySolver, true);
     }
     if (!options::bitvectorAlgebraicSolver.wasSetByUser())
     {
-      options::bitvectorAlgebraicSolver.set(true);
+      Options::current()->set(options::bitvectorAlgebraicSolver, true);
     }
     if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
     {
@@ -200,7 +200,7 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   {
     if (!options::bitvectorToBool.wasSetByUser())
     {
-      options::bitvectorToBool.set(true);
+      Options::current()->set(options::bitvectorToBool, true);
     }
   }
 }
@@ -215,10 +215,10 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
       }
     } else {
       options::BitblastMode mode = stringToBitblastMode("", "eager");
-      options::bitblastMode.set(mode);
+      Options::current()->set(options::bitblastMode, mode);
     }
     if(!options::bitvectorAigSimplifications.wasSetByUser()) {
-      options::bitvectorAigSimplifications.set("balance;drw");
+      Options::current()->set(options::bitvectorAigSimplifications, "balance;drw");
     }
   }
 }
@@ -253,13 +253,13 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
 // decision/options_handlers.h
 void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
 {
-  options::decisionStopOnly.set(m == DecisionMode::RELEVANCY);
+  Options::current()->set(options::decisionStopOnly, m == DecisionMode::RELEVANCY);
 }
 
 void OptionsHandler::setProduceAssertions(std::string option, bool value)
 {
-  options::produceAssertions.set(value);
-  options::interactiveMode.set(value);
+  Options::current()->set(options::produceAssertions, value);
+  Options::current()->set(options::interactiveMode, value);
 }
 
 void OptionsHandler::setStats(const std::string& option, bool value)
@@ -278,22 +278,22 @@ void OptionsHandler::setStats(const std::string& option, bool value)
   std::string opt = option.substr(2);
   if (value)
   {
-    if (opt == options::statisticsAll.getName())
+    if (opt == options::statisticsAll.name)
     {
       d_options->d_holder->statistics = true;
     }
-    else if (opt == options::statisticsEveryQuery.getName())
+    else if (opt == options::statisticsEveryQuery.name)
     {
       d_options->d_holder->statistics = true;
     }
-    else if (opt == options::statisticsExpert.getName())
+    else if (opt == options::statisticsExpert.name)
     {
       d_options->d_holder->statistics = true;
     }
   }
   else
   {
-    if (opt == options::statistics.getName())
+    if (opt == options::statistics.name)
     {
       d_options->d_holder->statisticsAll = false;
       d_options->d_holder->statisticsEveryQuery = false;
@@ -508,7 +508,7 @@ OutputLanguage OptionsHandler::stringToOutputLanguage(std::string option,
                                                       std::string optarg)
 {
   if(optarg == "help") {
-    options::languageHelp.set(true);
+    Options::current()->set(options::languageHelp, true);
     return language::output::LANG_AUTO;
   }
 
@@ -526,7 +526,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
                                                     std::string optarg)
 {
   if(optarg == "help") {
-    options::languageHelp.set(true);
+    Options::current()->set(options::languageHelp, true);
     return language::input::LANG_AUTO;
   }
 
@@ -571,12 +571,12 @@ void OptionsHandler::setVerbosity(std::string option, int value)
 }
 
 void OptionsHandler::increaseVerbosity(std::string option) {
-  options::verbosity.set(options::verbosity() + 1);
+  Options::current()->set(options::verbosity, options::verbosity() + 1);
   setVerbosity(option, options::verbosity());
 }
 
 void OptionsHandler::decreaseVerbosity(std::string option) {
-  options::verbosity.set(options::verbosity() - 1);
+  Options::current()->set(options::verbosity, options::verbosity() - 1);
   setVerbosity(option, options::verbosity());
 }
 

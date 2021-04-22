@@ -478,14 +478,14 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    options::inputLanguage.set(ilang);
+    Options::current()->set(options::inputLanguage, ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
     {
       language::output::Language olang = language::toOutputLanguage(ilang);
       if (options::outputLanguage() != olang)
       {
-        options::outputLanguage.set(olang);
+        Options::current()->set(options::outputLanguage, olang);
         *options::out() << language::SetLanguage(olang);
       }
     }
