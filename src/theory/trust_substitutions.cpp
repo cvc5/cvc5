@@ -248,7 +248,7 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
   {
     csubsChildren.push_back(d_tsubs[i].getProven());
   }
-  std::reverse(csubsChildren.begin(),csubsChildren.end());
+  std::reverse(csubsChildren.begin(), csubsChildren.end());
   Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
   if (cs.getKind() == kind::AND)
   {
