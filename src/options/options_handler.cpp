@@ -159,11 +159,11 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
           || m == SatSolverMode::KISSAT))
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
-        && options::bitblastMode.wasSetByUser())
+        && Options::current()->wasSetByUser(options::bitblastMode))
     {
       throwLazyBBUnsupported(m);
     }
-    if (!options::bitvectorToBool.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::bitvectorToBool))
     {
       Options::current()->set(options::bitvectorToBool, true);
     }
@@ -174,20 +174,20 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 {
   if (m == options::BitblastMode::LAZY)
   {
-    if (!options::bitvectorPropagate.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::bitvectorPropagate))
     {
       Options::current()->set(options::bitvectorPropagate, true);
     }
-    if (!options::bitvectorEqualitySolver.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::bitvectorEqualitySolver))
     {
       Options::current()->set(options::bitvectorEqualitySolver, true);
     }
 
-    if (!options::bitvectorInequalitySolver.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::bitvectorInequalitySolver))
     {
       Options::current()->set(options::bitvectorInequalitySolver, true);
     }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::bitvectorAlgebraicSolver))
     {
       Options::current()->set(options::bitvectorAlgebraicSolver, true);
     }
@@ -198,7 +198,7 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
   }
   else if (m == BitblastMode::EAGER)
   {
-    if (!options::bitvectorToBool.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::bitvectorToBool))
     {
       Options::current()->set(options::bitvectorToBool, true);
     }
@@ -208,7 +208,7 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 void OptionsHandler::setBitblastAig(std::string option, bool arg)
 {
   if(arg) {
-    if(options::bitblastMode.wasSetByUser()) {
+    if(Options::current()->wasSetByUser(options::bitblastMode)) {
       if (options::bitblastMode() != options::BitblastMode::EAGER)
       {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
@@ -217,7 +217,7 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
       options::BitblastMode mode = stringToBitblastMode("", "eager");
       Options::current()->set(options::bitblastMode, mode);
     }
-    if(!options::bitvectorAigSimplifications.wasSetByUser()) {
+    if(!Options::current()->wasSetByUser(options::bitvectorAigSimplifications)) {
       Options::current()->set(options::bitvectorAigSimplifications, "balance;drw");
     }
   }

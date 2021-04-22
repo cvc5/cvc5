@@ -92,9 +92,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
   if (options::unsatCoresNew()
-      && ((options::produceProofs() && options::produceProofs.wasSetByUser())
-          || (options::checkProofs() && options::checkProofs.wasSetByUser())
-          || (options::dumpProofs() && options::dumpProofs.wasSetByUser())))
+      && ((options::produceProofs() && Options::current()->wasSetByUser(options::produceProofs))
+          || (options::checkProofs() && Options::current()->wasSetByUser(options::checkProofs))
+          || (options::dumpProofs() && Options::current()->wasSetByUser(options::dumpProofs))))
   {
     AlwaysAssert(false) << "Can't properly produce proofs and have the new "
                            "unsat cores simultaneously.\n";
@@ -105,12 +105,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting proof" << std::endl;
     Options::current()->set(options::produceProofs, true);
   }
-  if (options::bitvectorAigSimplifications.wasSetByUser())
+  if (Options::current()->wasSetByUser(options::bitvectorAigSimplifications))
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
     Options::current()->set(options::bitvectorAig, true);
   }
-  if (options::bitvectorAlgebraicBudget.wasSetByUser())
+  if (Options::current()->wasSetByUser(options::bitvectorAlgebraicBudget))
   {
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
     Options::current()->set(options::bitvectorAlgebraicSolver, true);
@@ -125,8 +125,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         && (logic.isTheoryEnabled(THEORY_ARRAYS)
             || logic.isTheoryEnabled(THEORY_UF)))
     {
-      if (options::bitblastMode.wasSetByUser()
-          || options::produceModels.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::bitblastMode)
+          || Options::current()->wasSetByUser(options::produceModels))
       {
         throw OptionException(std::string(
             "Eager bit-blasting currently does not support model generation "
@@ -219,7 +219,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       && (logic.isTheoryEnabled(THEORY_ARRAYS)
           || logic.isTheoryEnabled(THEORY_UF)))
   {
-    if (options::produceModels.wasSetByUser())
+    if (Options::current()->wasSetByUser(options::produceModels))
     {
       throw OptionException(std::string(
           "Ackermannization currently does not support model generation."));
@@ -262,7 +262,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // this by default.
   if (options::doITESimp())
   {
-    if (!options::earlyIteRemoval.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::earlyIteRemoval))
     {
       Options::current()->set(options::earlyIteRemoval, true);
     }
@@ -283,7 +283,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                    << std::endl;
     }
     // We require bounded quantifier handling.
-    if (!options::fmfBound.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::fmfBound))
     {
       Options::current()->set(options::fmfBound, true);
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
@@ -310,7 +310,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::unsatCoresNew())
   {
     // no fine-graininess
-    if (!options::proofGranularityMode.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::proofGranularityMode))
     {
       Options::current()->set(options::proofGranularityMode, options::ProofGranularityMode::OFF);
     }
@@ -325,7 +325,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       logic.lock();
     }
     // Allows to answer sat more often by default.
-    if (!options::fmfBound.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::fmfBound))
     {
       Options::current()->set(options::fmfBound, true);
       Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
@@ -410,7 +410,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::unconstrainedSimp())
     {
-      if (options::unconstrainedSimp.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::unconstrainedSimp))
       {
         throw OptionException(
             "unconstrained simplification not supported with unsat "
@@ -425,7 +425,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   else
   {
     // Turn on unconstrained simplification for QF_AUFBV
-    if (!options::unconstrainedSimp.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::unconstrainedSimp))
     {
       bool uncSimp = !logic.isQuantified() && !options::produceModels()
                      && !options::produceAssignments()
@@ -443,7 +443,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::sygusInference())
     {
-      if (options::sygusInference.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::sygusInference))
       {
         throw OptionException(
             "sygus inference not supported with incremental solving");
@@ -472,7 +472,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
-      if (options::simplificationMode.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::simplificationMode))
       {
         throw OptionException("simplification not supported with unsat cores");
       }
@@ -484,7 +484,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::pbRewrites())
     {
-      if (options::pbRewrites.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::pbRewrites))
       {
         throw OptionException(
             "pseudoboolean rewrites not supported with unsat cores");
@@ -497,7 +497,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::sortInference())
     {
-      if (options::sortInference.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::sortInference))
       {
         throw OptionException("sort inference not supported with unsat cores");
       }
@@ -509,7 +509,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::preSkolemQuant())
     {
-      if (options::preSkolemQuant.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::preSkolemQuant))
       {
         throw OptionException(
             "pre-skolemization not supported with unsat cores");
@@ -523,7 +523,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::bitvectorToBool())
     {
-      if (options::bitvectorToBool.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::bitvectorToBool))
       {
         throw OptionException("bv-to-bool not supported with unsat cores");
       }
@@ -535,7 +535,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
-      if (options::boolToBitvector.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::boolToBitvector))
       {
         throw OptionException(
             "bool-to-bv != off not supported with unsat cores");
@@ -548,7 +548,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::bvIntroducePow2())
     {
-      if (options::bvIntroducePow2.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::bvIntroducePow2))
       {
         throw OptionException("bv-intro-pow2 not supported with unsat cores");
       }
@@ -560,7 +560,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::repeatSimp())
     {
-      if (options::repeatSimp.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::repeatSimp))
       {
         throw OptionException("repeat-simp not supported with unsat cores");
       }
@@ -572,7 +572,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::globalNegate())
     {
-      if (options::globalNegate.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::globalNegate))
       {
         throw OptionException("global-negate not supported with unsat cores");
       }
@@ -595,7 +595,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   else
   {
     // by default, nonclausal simplification is off for QF_SAT
-    if (!options::simplificationMode.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::simplificationMode))
     {
       bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
       Trace("smt") << "setting simplification mode to <"
@@ -614,7 +614,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
-      if (options::boolToBitvector.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::boolToBitvector))
       {
         throw OptionException(
             "bool-to-bv != off not supported with CBQI BV for quantified "
@@ -673,7 +673,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     needsUf = true;
   }
   else if (options::preSkolemQuantNested()
-           && options::preSkolemQuantNested.wasSetByUser())
+           && Options::current()->wasSetByUser(options::preSkolemQuantNested))
   {
     // if pre-skolem nested is explictly set, then we require UF. If it is
     // not explicitly set, it is disabled below if UF is not present.
@@ -728,7 +728,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   /////////////////////////////////////////////////////////////////////////////
 
   // Set the options for the theoryOf
-  if (!options::theoryOfMode.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::theoryOfMode))
   {
     if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
         && !logic.isTheoryEnabled(THEORY_STRINGS)
@@ -743,7 +743,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
-  if (!options::ufSymmetryBreaker.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::ufSymmetryBreaker))
   {
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !options::incrementalSolving()
@@ -766,7 +766,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
 
-  if (!options::simplifyWithCareEnabled.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::simplifyWithCareEnabled))
   {
     bool qf_aufbv =
         !logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -778,7 +778,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Options::current()->set(options::simplifyWithCareEnabled, withCare);
   }
   // Turn off array eager index splitting for QF_AUFLIA
-  if (!options::arraysEagerIndexSplitting.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::arraysEagerIndexSplitting))
   {
     if (not logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
         && logic.isTheoryEnabled(THEORY_UF)
@@ -790,7 +790,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
-  if (!options::repeatSimp.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::repeatSimp))
   {
     bool repeatSimp = !logic.isQuantified()
                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -805,7 +805,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::boolToBitvector() == options::BoolToBVMode::ALL
       && !logic.isTheoryEnabled(THEORY_BV))
   {
-    if (options::boolToBitvector.wasSetByUser())
+    if (Options::current()->wasSetByUser(options::boolToBitvector))
     {
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
@@ -815,7 +815,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Options::current()->set(options::boolToBitvector, options::BoolToBVMode::OFF);
   }
 
-  if (!options::bvEagerExplanations.wasSetByUser()
+  if (!Options::current()->wasSetByUser(options::bvEagerExplanations)
       && logic.isTheoryEnabled(THEORY_ARRAYS)
       && logic.isTheoryEnabled(THEORY_BV))
   {
@@ -824,7 +824,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
-  if (!options::arithRewriteEq.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::arithRewriteEq))
   {
     bool arithRewriteEq =
         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
@@ -832,7 +832,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                  << std::endl;
     Options::current()->set(options::arithRewriteEq, arithRewriteEq);
   }
-  if (!options::arithHeuristicPivots.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::arithHeuristicPivots))
   {
     int16_t heuristicPivots = 5;
     if (logic.isPure(THEORY_ARITH) && !logic.isQuantified())
@@ -850,7 +850,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                  << std::endl;
     Options::current()->set(options::arithHeuristicPivots, heuristicPivots);
   }
-  if (!options::arithPivotThreshold.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::arithPivotThreshold))
   {
     uint16_t pivotThreshold = 2;
     if (logic.isPure(THEORY_ARITH) && !logic.isQuantified())
@@ -864,7 +864,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                  << std::endl;
     Options::current()->set(options::arithPivotThreshold, pivotThreshold);
   }
-  if (!options::arithStandardCheckVarOrderPivots.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::arithStandardCheckVarOrderPivots))
   {
     int16_t varOrderPivots = -1;
     if (logic.isPure(THEORY_ARITH) && !logic.isQuantified())
@@ -877,7 +877,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
-    if (!options::nlExtTangentPlanesInterleave.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::nlExtTangentPlanesInterleave))
     {
       Trace("smt") << "setting nlExtTangentPlanesInterleave to true"
                    << std::endl;
@@ -886,7 +886,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // Set decision mode based on logic (if not set by user)
-  if (!options::decisionMode.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::decisionMode))
   {
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
@@ -966,8 +966,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Options::current()->set(options::cegqi, false);
   }
 
-  if ((options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy())
-      || (options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt()))
+  if ((Options::current()->wasSetByUser(options::fmfBoundLazy) && options::fmfBoundLazy())
+      || (Options::current()->wasSetByUser(options::fmfBoundInt) && options::fmfBoundInt()))
   {
     Options::current()->set(options::fmfBound, true);
   }
@@ -975,14 +975,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // apply fmfBoundInt options
   if (options::fmfBound())
   {
-    if (!options::mbqiMode.wasSetByUser()
+    if (!Options::current()->wasSetByUser(options::mbqiMode)
         || (options::mbqiMode() != options::MbqiMode::NONE
             && options::mbqiMode() != options::MbqiMode::FMC))
     {
       // if bounded integers are set, use no MBQI by default
       Options::current()->set(options::mbqiMode, options::MbqiMode::NONE);
     }
-    if (!options::prenexQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::prenexQuant))
     {
       Options::current()->set(options::prenexQuant, options::PrenexQuantMode::NONE);
     }
@@ -995,7 +995,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       Options::current()->set(options::mbqiMode, options::MbqiMode::NONE);
     }
-    if (!options::hoElimStoreAx.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::hoElimStoreAx))
     {
       // by default, use store axioms only if --ho-elim is set
       Options::current()->set(options::hoElimStoreAx, options::hoElim());
@@ -1014,14 +1014,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::fmfFunWellDefinedRelevant())
   {
-    if (!options::fmfFunWellDefined.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::fmfFunWellDefined))
     {
       Options::current()->set(options::fmfFunWellDefined, true);
     }
   }
   if (options::fmfFunWellDefined())
   {
-    if (!options::finiteModelFind.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::finiteModelFind))
     {
       Options::current()->set(options::finiteModelFind, true);
     }
@@ -1032,15 +1032,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::finiteModelFind())
   {
     // apply conservative quantifiers splitting
-    if (!options::quantDynamicSplit.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::quantDynamicSplit))
     {
       Options::current()->set(options::quantDynamicSplit, options::QuantDSplitMode::DEFAULT);
     }
-    if (!options::eMatching.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::eMatching))
     {
       Options::current()->set(options::eMatching, options::fmfInstEngine());
     }
-    if (!options::instWhenMode.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::instWhenMode))
     {
       // instantiate only on last call
       if (options::eMatching())
@@ -1060,19 +1060,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     Options::current()->set(options::sygus, true);
     // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cegqiMidpoint.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::cegqiMidpoint))
     {
       Options::current()->set(options::cegqiMidpoint, true);
     }
     // must disable cegqi-bv since it may introduce witness terms, which
     // cannot appear in synthesis solutions
-    if (!options::cegqiBv.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::cegqiBv))
     {
       Options::current()->set(options::cegqiBv, false);
     }
     if (options::sygusRepairConst())
     {
-      if (!options::cegqi.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::cegqi))
       {
         Options::current()->set(options::cegqi, true);
       }
@@ -1080,29 +1080,29 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::sygusInference())
     {
       // optimization: apply preskolemization, makes it succeed more often
-      if (!options::preSkolemQuant.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::preSkolemQuant))
       {
         Options::current()->set(options::preSkolemQuant, true);
       }
-      if (!options::preSkolemQuantNested.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::preSkolemQuantNested))
       {
         Options::current()->set(options::preSkolemQuantNested, true);
       }
     }
     // counterexample-guided instantiation for sygus
-    if (!options::cegqiSingleInvMode.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::cegqiSingleInvMode))
     {
       Options::current()->set(options::cegqiSingleInvMode, options::CegqiSingleInvMode::USE);
     }
-    if (!options::quantConflictFind.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::quantConflictFind))
     {
       Options::current()->set(options::quantConflictFind, false);
     }
-    if (!options::instNoEntail.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::instNoEntail))
     {
       Options::current()->set(options::instNoEntail, false);
     }
-    if (!options::cegqiFullEffort.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::cegqiFullEffort))
     {
       // should use full effort cbqi for single invocation and repair const
       Options::current()->set(options::cegqiFullEffort, true);
@@ -1120,7 +1120,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Options::current()->set(options::sygusRewSynth, true);
       // we should not use the extended rewriter, since we are interested
       // in rewrites that are not in the main rewriter
-      if (!options::sygusExtRew.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::sygusExtRew))
       {
         Options::current()->set(options::sygusExtRew, false);
       }
@@ -1134,7 +1134,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::produceAbducts())
     {
       // if doing abduction, we should filter strong solutions
-      if (!options::sygusFilterSolMode.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::sygusFilterSolMode))
       {
         Options::current()->set(options::sygusFilterSolMode, options::SygusFilterSolMode::STRONG);
       }
@@ -1157,48 +1157,48 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Now, disable options for non-basic sygus algorithms, if necessary.
     if (reqBasicSygus)
     {
-      if (!options::sygusUnifPbe.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::sygusUnifPbe))
       {
         Options::current()->set(options::sygusUnifPbe, false);
       }
-      if (options::sygusUnifPi.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::sygusUnifPi))
       {
         Options::current()->set(options::sygusUnifPi, options::SygusUnifPiMode::NONE);
       }
-      if (!options::sygusInvTemplMode.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::sygusInvTemplMode))
       {
         Options::current()->set(options::sygusInvTemplMode, options::SygusInvTemplMode::NONE);
       }
-      if (!options::cegqiSingleInvMode.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::cegqiSingleInvMode))
       {
         Options::current()->set(options::cegqiSingleInvMode, options::CegqiSingleInvMode::NONE);
       }
     }
-    if (!options::dtRewriteErrorSel.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::dtRewriteErrorSel))
     {
       Options::current()->set(options::dtRewriteErrorSel, true);
     }
     // do not miniscope
-    if (!options::miniscopeQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::miniscopeQuant))
     {
       Options::current()->set(options::miniscopeQuant, false);
     }
-    if (!options::miniscopeQuantFreeVar.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::miniscopeQuantFreeVar))
     {
       Options::current()->set(options::miniscopeQuantFreeVar, false);
     }
-    if (!options::quantSplit.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::quantSplit))
     {
       Options::current()->set(options::quantSplit, false);
     }
     // do not do macros
-    if (!options::macrosQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::macrosQuant))
     {
       Options::current()->set(options::macrosQuant, false);
     }
     // use tangent planes by default, since we want to put effort into
     // the verification step for sygus queries with non-linear arithmetic
-    if (!options::nlExtTangentPlanes.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::nlExtTangentPlanes))
     {
       Options::current()->set(options::nlExtTangentPlanes, true);
     }
@@ -1212,14 +1212,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
            || logic.isTheoryEnabled(THEORY_FP)))
       || options::cegqiAll())
   {
-    if (!options::cegqi.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::cegqi))
     {
       Options::current()->set(options::cegqi, true);
     }
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
     {
-      if (!options::cegqiFullEffort.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::cegqiFullEffort))
       {
         Options::current()->set(options::cegqiFullEffort, true);
       }
@@ -1234,15 +1234,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
-      if (!options::quantConflictFind.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::quantConflictFind))
       {
         Options::current()->set(options::quantConflictFind, false);
       }
-      if (!options::instNoEntail.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::instNoEntail))
       {
         Options::current()->set(options::instNoEntail, false);
       }
-      if (!options::instWhenMode.wasSetByUser() && options::cegqiModel())
+      if (!Options::current()->wasSetByUser(options::instWhenMode) && options::cegqiModel())
       {
         // only instantiation should happen at last call when model is avaiable
         Options::current()->set(options::instWhenMode, options::InstWhenMode::LAST_CALL);
@@ -1255,7 +1255,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     if (options::globalNegate())
     {
-      if (!options::prenexQuant.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::prenexQuant))
       {
         Options::current()->set(options::prenexQuant, options::PrenexQuantMode::NONE);
       }
@@ -1264,19 +1264,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // implied options...
   if (options::strictTriggers())
   {
-    if (!options::userPatternsQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::userPatternsQuant))
     {
       Options::current()->set(options::userPatternsQuant, options::UserPatMode::TRUST);
     }
   }
-  if (options::qcfMode.wasSetByUser() || options::qcfTConstraint())
+  if (Options::current()->wasSetByUser(options::qcfMode) || options::qcfTConstraint())
   {
     Options::current()->set(options::quantConflictFind, true);
   }
   if (options::cegqiNestedQE())
   {
     Options::current()->set(options::prenexQuantUser, true);
-    if (!options::preSkolemQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::preSkolemQuant))
     {
       Options::current()->set(options::preSkolemQuant, true);
     }
@@ -1284,11 +1284,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // for induction techniques
   if (options::quantInduction())
   {
-    if (!options::dtStcInduction.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::dtStcInduction))
     {
       Options::current()->set(options::dtStcInduction, true);
     }
-    if (!options::intWfInduction.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::intWfInduction))
     {
       Options::current()->set(options::intWfInduction, true);
     }
@@ -1296,38 +1296,38 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::dtStcInduction())
   {
     // try to remove ITEs from quantified formulas
-    if (!options::iteDtTesterSplitQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::iteDtTesterSplitQuant))
     {
       Options::current()->set(options::iteDtTesterSplitQuant, true);
     }
-    if (!options::iteLiftQuant.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::iteLiftQuant))
     {
       Options::current()->set(options::iteLiftQuant, options::IteLiftQuantMode::ALL);
     }
   }
   if (options::intWfInduction())
   {
-    if (!options::purifyTriggers.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::purifyTriggers))
     {
       Options::current()->set(options::purifyTriggers, true);
     }
   }
   if (options::conjectureNoFilter())
   {
-    if (!options::conjectureFilterActiveTerms.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::conjectureFilterActiveTerms))
     {
       Options::current()->set(options::conjectureFilterActiveTerms, false);
     }
-    if (!options::conjectureFilterCanonical.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::conjectureFilterCanonical))
     {
       Options::current()->set(options::conjectureFilterCanonical, false);
     }
-    if (!options::conjectureFilterModel.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::conjectureFilterModel))
     {
       Options::current()->set(options::conjectureFilterModel, false);
     }
   }
-  if (options::conjectureGenPerRound.wasSetByUser())
+  if (Options::current()->wasSetByUser(options::conjectureGenPerRound))
   {
     if (options::conjectureGenPerRound() > 0)
     {
@@ -1341,7 +1341,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // can't pre-skolemize nested quantifiers without UF theory
   if (!logic.isTheoryEnabled(THEORY_UF) && options::preSkolemQuant())
   {
-    if (!options::preSkolemQuantNested.wasSetByUser())
+    if (!Options::current()->wasSetByUser(options::preSkolemQuantNested))
     {
       Options::current()->set(options::preSkolemQuantNested, false);
     }
@@ -1352,7 +1352,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   // until bugs 371,431 are fixed
-  if (!options::minisatUseElim.wasSetByUser())
+  if (!Options::current()->wasSetByUser(options::minisatUseElim))
   {
     // cannot use minisat elimination for logics where a theory solver
     // introduces new literals into the search. This includes quantifiers
@@ -1374,7 +1374,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (!options::relevanceFilter())
     {
-      if (options::relevanceFilter.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::relevanceFilter))
       {
         Warning() << "SmtEngine: turning on relevance filtering to support "
                      "--nl-ext-rlv="
@@ -1396,7 +1396,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::bvLazyRewriteExtf())
     {
-      if (options::bvLazyRewriteExtf.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::bvLazyRewriteExtf))
       {
         throw OptionException(
             "--bv-lazy-rewrite-extf requires --bv-eq-solver to be set");
@@ -1408,7 +1408,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Options::current()->set(options::bvLazyRewriteExtf, false);
   }
 
-  if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
+  if (options::stringFMF() && !Options::current()->wasSetByUser(options::stringProcessLoopMode))
   {
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
                     "--strings-fmf enabled"
@@ -1419,7 +1419,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // !!! All options that require disabling models go here
   bool disableModels = false;
   std::string sOptNoModel;
-  if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp())
+  if (Options::current()->wasSetByUser(options::unconstrainedSimp) && options::unconstrainedSimp())
   {
     disableModels = true;
     sOptNoModel = "unconstrained-simp";
@@ -1443,7 +1443,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::produceModels())
     {
-      if (options::produceModels.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::produceModels))
       {
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel << " with model generation.";
@@ -1455,7 +1455,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     if (options::produceAssignments())
     {
-      if (options::produceAssignments.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::produceAssignments))
       {
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel
@@ -1468,7 +1468,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
     if (options::checkModels())
     {
-      if (options::checkModels.wasSetByUser())
+      if (Options::current()->wasSetByUser(options::checkModels))
       {
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel
@@ -1495,14 +1495,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (logic == LogicInfo("QF_UFNRA"))
   {
 #ifdef CVC5_USE_POLY
-    if (!options::nlCad() && !options::nlCad.wasSetByUser())
+    if (!options::nlCad() && !Options::current()->wasSetByUser(options::nlCad))
     {
       Options::current()->set(options::nlCad, true);
-      if (!options::nlExt.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::nlExt))
       {
         Options::current()->set(options::nlExt, false);
       }
-      if (!options::nlRlvMode.wasSetByUser())
+      if (!Options::current()->wasSetByUser(options::nlRlvMode))
       {
         Options::current()->set(options::nlRlvMode, options::NlRlvMode::INTERLEAVE);
       }
@@ -1512,7 +1512,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 #ifndef CVC5_USE_POLY
   if (options::nlCad())
   {
-    if (options::nlCad.wasSetByUser())
+    if (Options::current()->wasSetByUser(options::nlCad))
     {
       std::stringstream ss;
       ss << "Cannot use " << options::nlCad.name << " without configuring with --poly.";
