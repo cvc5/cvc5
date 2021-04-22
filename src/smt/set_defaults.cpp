@@ -420,7 +420,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // unsat core mode, since new ones are experimental
   bool safeUnsatCores =
       options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
-      
+
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
   // with arithmetic, force the option off.
