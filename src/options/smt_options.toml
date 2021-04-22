@@ -201,27 +201,36 @@ header = "options/smt_options.h"
   help       = "turn on unsat core generation"
 
 [[option]]
+  name       = "unsatCoresMode"
+  smt_name   = "unsat-cores-mode"
+  category   = "regular"
+  long       = "unsat-cores-mode=MODE"
+  type       = "UnsatCoresMode"
+  default    = "OFF"
+  help       = "choose unsat core mode, see --unsat-cores-mode=help"
+  help_mode  = "unsat cores modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not produce unsat cores."
+[[option.mode.OLD_PROOF]]
+  name = "old-proof"
+  help = "Produce unsat cores from old proof infrastructure."
+[[option.mode.SAT_PROOF]]
+  name = "sat-proof"
+  help = "Produce unsat cores from SAT and preprocessing proofs."
+[[option.mode.FULL_PROOF]]
+  name = "full-proof"
+  help = "Produce unsat cores from full proofs."
+[[option.mode.ASSUMPTIONS]]
+  name = "assumptions"
+  help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
   type       = "bool"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
-
-# Temporary option until old unsat cores are removed and this becomes the standard
-[[option]]
-  name       = "unsatCoresNew"
-  category   = "regular"
-  long       = "produce-unsat-cores-new"
-  type       = "bool"
-  help       = "turn on unsat core generation using the new proof infrastructure. Note this option is incompatible with the regular unsat cores and with producing proofs."
-
-# Temporary option until old unsat cores are removed and this becomes the standard
-[[option]]
-  name       = "checkUnsatCoresNew"
-  category   = "regular"
-  long       = "check-unsat-cores-new"
-  type       = "bool"
-  help       = "after UNSAT/VALID, produce and check an unsat core (expensive) using the new proof infrastructure. Note this option is incompatible with the regular unsat cores and with producing proofs."
 
 [[option]]
   name       = "dumpUnsatCores"
