@@ -271,8 +271,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
-  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS)
-      && !isSygus)
+  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
@@ -364,6 +363,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
+    // must enable higher-order
+    options::ufHo.set(true);
     if (isSygus)
     {
       // When sygus answers "unsat", it is not due to showing a set of
