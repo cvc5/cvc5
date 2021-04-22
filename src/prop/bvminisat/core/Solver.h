@@ -79,7 +79,7 @@ private:
     /** To notify */
     Notify* d_notify;
 
-    /** Cvc4 context */
+    /** cvc5 context */
     cvc5::context::Context* c;
 
     /** True constant */

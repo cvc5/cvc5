@@ -33,7 +33,7 @@
         - module_template.h
 
     Directory <tpl-doc> must contain:
-        - cvc4.1_template
+        - cvc5.1_template
         - options.3cvc_template
         - SmtEngine.3cvc_template
     These files get generated during autogen.sh from the corresponding *.in
@@ -49,7 +49,7 @@
         - <dst>/MODULE_options.cpp
         - <dst>/options_holder.h
         - <dst>/options.cpp
-        - <tpl-doc>/cvc4.1
+        - <tpl-doc>/cvc5.1
         - <tpl-doc>/options.3
         - <tpl-doc>/SmtEngine.3
 """
@@ -1133,7 +1133,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
         getoption_handlers='\n'.join(getoption_handlers)
     ))
 
-    write_file(doc_dir, 'cvc4.1', tpl_man_cvc.format(
+    write_file(doc_dir, 'cvc5.1', tpl_man_cvc.format(
         man_common='\n'.join(man_common),
         man_others='\n'.join(man_others)
     ))
@@ -1330,7 +1330,7 @@ def mkoptions_main():
     tpl_options_holder = read_tpl(src_dir, 'options_holder_template.h')
 
     # Read documentation template files from documentation directory.
-    tpl_man_cvc = read_tpl(doc_dir, 'cvc4.1_template')
+    tpl_man_cvc = read_tpl(doc_dir, 'cvc5.1_template')
     tpl_man_smt = read_tpl(doc_dir, 'SmtEngine.3cvc_template')
     tpl_man_int = read_tpl(doc_dir, 'options.3cvc_template')
 

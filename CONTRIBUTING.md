@@ -1,12 +1,12 @@
 # Contributing
 
-External contributions to CVC4 may be proposed using git's standard pull request
+External contributions to cvc5 may be proposed using git's standard pull request
 mechanism.  The following terms apply to all such contributions:
 
 - We require all pull requests to be squashed into a single commit before
   being submitted and to be signed using `git commit -s`.
 
-- CVC4 is distributed under the terms of the modified BSD license (see
+- cvc5 is distributed under the terms of the modified BSD license (see
   [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING) file).  By
   submitting a signed contribution, you automatically agree to accept the conditions
   described in [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING).
@@ -55,7 +55,7 @@ By making a contribution to this project, I certify that:
     this project or the open source license(s) involved.
 ```
 
-If you are interested in becoming a long-term contributor to the CVC4 project,
+If you are interested in becoming a long-term contributor to the cvc5 project,
 please contact one of the
-[project leaders](https://cvc4.github.io/people.html#project-leaders).  
+[project leaders](https://cvc4.github.io/people.html#project-leaders).
 We'd be happy to point you to some internal documentation to help you out.

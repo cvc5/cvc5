@@ -44,7 +44,8 @@
  */
 
 /** A "System" object, just like in Java! */
-static struct __Cvc4System {
+static struct __Cvc5System
+{
   /**
    * Helper class just to handle arbitrary string concatenation
    * with Java syntax.  In C++ you cannot do "char*" + "char*",
@@ -76,7 +77,11 @@ static struct __Cvc4System {
 // These are highly dependent on the bugs in a particular ANTLR release.
 // These seem to work with ANTLR 3.3 as of 4/23/2011.  A different trick
 // works with ANTLR 3.2.  EXPECT LOTS OF COMPILER WARNINGS.
-#define println(x) println(({int failed=0;__Cvc4System::JavaPrinter()+x;}))
+#define println(x)                   \
+  println(({                         \
+    int failed = 0;                  \
+    __Cvc5System::JavaPrinter() + x; \
+  }))
 #undef ANTLR3_FPRINTF
 #define ANTLR3_FPRINTF(args...) {int failed=0;fprintf(args);}
 #undef ANTLR3_PRINTF

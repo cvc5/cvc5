@@ -428,6 +428,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::TO_INTEGER, TO_INTEGER},
         {cvc5::Kind::TO_REAL, TO_REAL},
         {cvc5::Kind::PI, PI},
+        {cvc5::Kind::IAND_OP, IAND},
         /* BV -------------------------------------------------------------- */
         {cvc5::Kind::CONST_BITVECTOR, CONST_BITVECTOR},
         {cvc5::Kind::BITVECTOR_CONCAT, BITVECTOR_CONCAT},
@@ -1838,6 +1839,52 @@ bool Op::isIndexed() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return isIndexedHelper();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+size_t Op::getNumIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  if (!isIndexedHelper())
+  {
+    return 0;
+  }
+
+  Kind k = intToExtKind(d_node->getKind());
+  size_t size = 0;
+  switch (k)
+  {
+    case DIVISIBLE: size = 1; break;
+    case RECORD_UPDATE: size = 1; break;
+    case BITVECTOR_REPEAT: size = 1; break;
+    case BITVECTOR_ZERO_EXTEND: size = 1; break;
+    case BITVECTOR_SIGN_EXTEND: size = 1; break;
+    case BITVECTOR_ROTATE_LEFT: size = 1; break;
+    case BITVECTOR_ROTATE_RIGHT: size = 1; break;
+    case INT_TO_BITVECTOR: size = 1; break;
+    case IAND: size = 1; break;
+    case FLOATINGPOINT_TO_UBV: size = 1; break;
+    case FLOATINGPOINT_TO_SBV: size = 1; break;
+    case TUPLE_UPDATE: size = 1; break;
+    case REGEXP_REPEAT: size = 1; break;
+    case BITVECTOR_EXTRACT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_REAL: size = 2; break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
+    case REGEXP_LOOP: size = 2; break;
+    case TUPLE_PROJECT:
+      size = d_node->getConst<TupleProjectOp>().getIndices().size();
+      break;
+    default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+  }
+
+  //////// all checks before this line
+  return size;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6470,8 +6517,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores]
-                 || d_smtEngine->getOptions()[options::unsatCoresNew])
+  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)

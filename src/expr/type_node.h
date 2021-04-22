@@ -695,8 +695,6 @@ public:
    * Returns the leastUpperBound in the extended type lattice of the two types.
    * If this is \top, i.e. there is no inhabited type that contains both,
    * a TypeNode such that isNull() is true is returned.
-   *
-   * For more information see: http://cvc4.cs.nyu.edu/wiki/Cvc4_Type_Lattice
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
   static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);

@@ -25,7 +25,7 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
@@ -42,7 +42,7 @@ namespace options {
 
 class OptionsListener;
 
-class CVC4_EXPORT Options
+class CVC5_EXPORT Options
 {
   friend api::Solver;
   /** The struct that holds all option values. */
