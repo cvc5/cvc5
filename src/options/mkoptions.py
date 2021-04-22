@@ -203,17 +203,11 @@ TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
 
 # Option specific methods
 
-TPL_IMPL_OPTION_SET = \
-""""""
-
 TPL_IMPL_OP_PAR = \
 """inline {name}__option_t::type {name}__option_t::operator()() const
 {{
   return (*Options::current())[*this];
 }}"""
-
-TPL_IMPL_OPTION_WAS_SET_BY_USER = \
-""""""
 
 # Mode templates
 TPL_DECL_MODE_ENUM = \
@@ -526,9 +520,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
         # Generate module inlines
         inls.append(TPL_IMPL_OP_PAR.format(name=option.name))
-        inls.append(TPL_IMPL_OPTION_WAS_SET_BY_USER.format(name=option.name))
-        if not option.read_only:
-            inls.append(TPL_IMPL_OPTION_SET.format(name=option.name))
 
 
         ### Generate code for {module.name}_options.cpp
