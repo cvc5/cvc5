@@ -62,7 +62,6 @@ class TheoryFp : public Theory
   //--------------------------------- end initialization
 
   void preRegisterTerm(TNode node) override;
-  TrustNode expandDefinition(Node node) override;
   TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
 
   //--------------------------------- standard check

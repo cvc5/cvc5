@@ -16,7 +16,7 @@
 # Check if the toml Python module is installed.
 check_python_module("toml")
 
-libcvc4_add_sources(
+libcvc5_add_sources(
   base_handlers.h
   decision_weight.h
   didyoumean.cpp
@@ -66,7 +66,7 @@ set(options_toml_files
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
 
-libcvc4_add_sources(GENERATED options.cpp ${options_gen_cpp_files})
+libcvc5_add_sources(GENERATED options.cpp ${options_gen_cpp_files})
 
 list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
 
@@ -88,7 +88,7 @@ add_custom_command(
       module_template.cpp
       options_holder_template.h
       options_template.cpp
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/cvc4.1_template
+      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/cvc5.1_template
       ${CMAKE_CURRENT_BINARY_DIR}/../../doc/SmtEngine.3cvc_template
       ${CMAKE_CURRENT_BINARY_DIR}/../../doc/options.3cvc_template
 )
