@@ -24,7 +24,11 @@ if(SymFPU_INCLUDE_DIR)
 endif()
 
 if(NOT SymFPU_FOUND_SYSTEM)
-  check_auto_download("SymFPU" "--no-symfpu")
+  check_ep_downloaded("SymFPU-EP")
+  if(NOT SymFPU-EP_DOWNLOADED)
+    check_auto_download("SymFPU" "--no-symfpu")
+  endif()
+
   include(ExternalProject)
   include(deps-helper)
 
