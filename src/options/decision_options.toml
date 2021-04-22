@@ -17,6 +17,9 @@ header = "options/decision_options.h"
   help = "Use the internal decision heuristics of the SAT solver."
 [[option.mode.JUSTIFICATION]]
   name = "justification"
+  help = "Justification heuristic."
+[[option.mode.JUSTIFICATION_OLD]]
+  name = "justification-old"
   help = "An ATGP-inspired justification heuristic."
 [[option.mode.RELEVANCY]]
   name = "justification-stoponly"
@@ -75,15 +78,7 @@ header = "options/decision_options.h"
   name = "usr1"
 
 [[option]]
-  name       = "jhNew"
-  category   = "regular"
-  long       = "jh-new"
-  type       = "bool"
-  default    = "true"
-  help       = "(temporary) new implementation of decision justification heuristic"
-
-[[option]]
-  name       = "jhNewSkolemMode"
+  name       = "jhSkolemMode"
   category   = "expert"
   long       = "jh-skolem=MODE"
   type       = "JutificationSkolemMode"
@@ -98,15 +93,15 @@ header = "options/decision_options.h"
   name = "first-agg"
 
 [[option]]
-  name       = "jhNewRlvOrder"
+  name       = "jhRlvOrder"
   category   = "regular"
-  long       = "jh-new-rlv-order"
+  long       = "jh-rlv-order"
   type       = "bool"
   default    = "false"
   help       = "maintain relevancy ordering for decision justification heuristic"
 
 [[option]]
-  name       = "jhNewSkolemRlvMode"
+  name       = "jhSkolemRlvMode"
   category   = "expert"
   long       = "jh-skolem-rlv=MODE"
   type       = "JutificationSkolemRlvMode"

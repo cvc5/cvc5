@@ -162,9 +162,6 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
-
-  /** Whether we are tracking assertions */
-  bool d_trackAsserts;
 }; /* class TheoryProxy */
 
 }  // namespace prop

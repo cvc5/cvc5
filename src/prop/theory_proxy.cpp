@@ -46,8 +46,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_theoryEngine(theoryEngine),
       d_queue(context),
       d_tpp(*theoryEngine, userContext, pnm),
-      d_skdm(skdm),
-      d_trackAsserts(options::jhNew())
+      d_skdm(skdm)
 {
 }
 
@@ -79,10 +78,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
-    if (d_trackAsserts)
-    {
-      d_decisionEngine->notifyAsserted(assertion);
-    }
+    d_decisionEngine->notifyAsserted(assertion);
   }
   d_theoryEngine->check(effort);
 }

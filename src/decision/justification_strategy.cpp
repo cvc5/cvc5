@@ -32,15 +32,15 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_assertions(
           u,
           c,
-          options::jhNewRlvOrder()),  // assertions are user-context dependent
+          options::jhRlvOrder()),  // assertions are user-context dependent
       d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
       d_justified(c),
       d_stack(c),
       d_lastDecisionLit(c),
       d_currStatusDec(false),
-      d_useRlvOrder(options::jhNewRlvOrder()),
-      d_jhSkMode(options::jhNewSkolemMode()),
-      d_jhSkRlvMode(options::jhNewSkolemRlvMode())
+      d_useRlvOrder(options::jhRlvOrder()),
+      d_jhSkMode(options::jhSkolemMode()),
+      d_jhSkRlvMode(options::jhSkolemRlvMode())
 {
 }
 
