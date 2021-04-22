@@ -261,8 +261,7 @@ void PropEngine::assertInternal(
   // Assert as (possibly) removable
   if (isProofEnabled())
   {
-    if (options::unsatCoresNew()
-        && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
+    if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
         && input)
     {
       Assert(!negated);
@@ -655,7 +654,7 @@ bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
-  Assert(options::unsatCoresNew());
+  Assert(options::unsatCores());
   Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<SatLiteral> unsat_assumptions;
   d_satSolver->getUnsatAssumptions(unsat_assumptions);
@@ -667,7 +666,7 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 
 std::shared_ptr<ProofNode> PropEngine::getRefutation()
 {
-  Assert(options::unsatCoresNew());
+  Assert(options::unsatCores());
   Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<Node> core;
   getUnsatCore(core);
