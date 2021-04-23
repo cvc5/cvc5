@@ -458,6 +458,7 @@ Theory::PPAssertStatus BVSolverLazy::ppAssert(
         {
           Node c = node[0].isConst() ? node[0] : node[1];
 
+          Trace("ajr-temp") << "Decompose " << extract << std::endl;
           unsigned high = utils::getExtractHigh(extract);
           unsigned low = utils::getExtractLow(extract);
           unsigned var_bitwidth = utils::getSize(extract[0]);

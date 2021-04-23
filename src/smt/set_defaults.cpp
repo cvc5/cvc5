@@ -99,14 +99,17 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::produceProofs()
       && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
-    if (options::unsatCoresMode.wasSetByUser())
+    if (options::unsatCores() || !options::unsatCores.wasSetByUser())
     {
-      Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
-                  "were requested.\n";
+      if (options::unsatCoresMode.wasSetByUser())
+      {
+        Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
+                    "were requested.\n";
+      }
+      // enable unsat cores, because they are available as a consequence of proofs
+      options::unsatCores.set(true);
+      options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
     }
-    // enable unsat cores, because they are available as a consequence of proofs
-    options::unsatCores.set(true);
-    options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
   }
 
   // set proofs on if not yet set
@@ -422,7 +425,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // whether we want to force safe unsat cores, current all on proof-new are
   // safe
   bool safeUnsatCores =
-      options::unsatCoresMode() != options::UnsatCoresMode::OFF;
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
