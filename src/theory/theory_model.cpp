@@ -33,7 +33,7 @@ TheoryModel::TheoryModel(context::Context* c,
                          std::string name,
                          bool enableFuncModels)
     : d_name(name),
-      d_substitutions(c, false),
+      d_substitutions(c),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)

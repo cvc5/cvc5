@@ -22,6 +22,7 @@
 
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
@@ -29,10 +30,10 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-
 class RealToInt : public PreprocessingPass
 {
+  using NodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+
  public:
   RealToInt(PreprocessingPassContext* preprocContext);
 
@@ -42,6 +43,8 @@ class RealToInt : public PreprocessingPass
 
  private:
   Node realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq);
+  /** Cache for the above method */
+  NodeMap d_cache;
 };
 
 }  // namespace passes

@@ -13,7 +13,7 @@
  * A real algebraic number constant.
  */
 
-// these gestures are used to avoid a public header dependence on cvc4autoconfig.h
+// these gestures are used to avoid a public header dependence on base/cvc5config.h
 
 #if /* use libpoly */ @CVC5_USE_POLY_IMP@
 #  define CVC5_POLY_IMP

@@ -1,27 +1,29 @@
-#####################
-## test_sort.py
-## Top contributors (to current version):
-##   Yoni Zohar
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar, Makai Mann
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Unit tests for sort API.
+#
+# Obtained by translating test/unit/api/sort_black.cpp
 ##
-## ########################################################
-##
-## Unit tests for sort API.
-## Obtained by translating test/unit/api/sort_black.cpp
 
 import pytest
-import pycvc4
-from pycvc4 import kinds
-from pycvc4 import Sort
+import pycvc5
+from pycvc5 import kinds
+from pycvc5 import Sort
 
 
 @pytest.fixture
 def solver():
-    return pycvc4.Solver()
+    return pycvc5.Solver()
 
 
 def create_datatype_sort(solver):
@@ -561,6 +563,6 @@ def test_sort_scoped_tostring(solver):
     uninterp_sort = solver.mkUninterpretedSort(name)
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
-    solver2 = pycvc4.Solver()
+    solver2 = pycvc5.Solver()
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name

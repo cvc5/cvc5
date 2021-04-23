@@ -48,6 +48,9 @@ Class Hierarchy
 
     * struct :ref:`SortHashFunction<sort>`
 
+    * class :cpp:class:`cvc5::api::Statistics`
+    * class :cpp:class:`cvc5::api::Stat`
+
 
 
 Full API Documentation
@@ -69,4 +72,5 @@ Full API Documentation
   roundingmode
   solver
   sort
+  statistics
   term

@@ -117,7 +117,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   };
 
 public:
- JustificationHeuristic(cvc5::DecisionEngine* de,
+ JustificationHeuristic(DecisionEngine* de,
                         context::UserContext* uc,
                         context::Context* c);
 
