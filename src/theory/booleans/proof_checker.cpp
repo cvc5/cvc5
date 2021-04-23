@@ -74,7 +74,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::CNF_ITE_NEG1, this);
   pc->registerChecker(PfRule::CNF_ITE_NEG2, this);
   pc->registerChecker(PfRule::CNF_ITE_NEG3, this);
-  pc->registerChecker(PfRule::SAT_REFUTATION, this);
+  pc->registerTrustedChecker(PfRule::SAT_REFUTATION, this, 1);
 }
 
 Node BoolProofRuleChecker::checkInternal(PfRule id,
