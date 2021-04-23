@@ -31,7 +31,6 @@
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "smt/assertions.h"
-#include "smt/defined_function.h"
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
 #include "smt/smt_engine.h"

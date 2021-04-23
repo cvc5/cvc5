@@ -216,8 +216,9 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   }
   else
   {
-    bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-    addFormula(n, false, true, false, maybeHasFv);
+    // we don't check for free variables here, since even if we are sygus,
+    // we could contain functions-to-synthesize within definitions.
+    addFormula(n, false, true, false, false);
   }
 }
 

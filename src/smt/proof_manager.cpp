@@ -23,7 +23,6 @@
 #include "options/smt_options.h"
 #include "proof/dot/dot_printer.h"
 #include "smt/assertions.h"
-#include "smt/defined_function.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 
