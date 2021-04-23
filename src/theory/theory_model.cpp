@@ -201,9 +201,7 @@ Node TheoryModel::getModelValue(TNode n) const
   NodeManager* nm = NodeManager::currentNM();
 
   // if it is an evaluated kind, compute model values for children and evaluate
-  if (n.getNumChildren() > 0
-      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
-      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
+  if (n.getNumChildren() > 0)
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
@@ -219,9 +217,17 @@ Node TheoryModel::getModelValue(TNode n) const
       children.push_back(n.getOperator());
     }
     // evaluate the children
-    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i]);
+      if (n.isClosure() && i==0)
+      {
+        // do not evaluate bound variable lists
+        ret = n[0];
+      }
+      else
+      {
+        ret = getModelValue(n[i]);
+      }
       Debug("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
@@ -245,8 +251,11 @@ Node TheoryModel::getModelValue(TNode n) const
       ret = nm->mkConst(
           Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
-    d_modelCache[n] = ret;
-    return ret;
+    if (ret.isConst())
+    {
+      d_modelCache[n] = ret;
+      return ret;
+    }
   }
   // it might be approximate
   std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
