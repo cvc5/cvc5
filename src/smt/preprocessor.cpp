@@ -111,7 +111,7 @@ void Preprocessor::cleanup() { d_processor.cleanup(); }
 Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return d_exDefs.expandDefinitions(n, cache, expandOnly);
+  return expandDefinitions(n, cache, expandOnly);
 }
 
 Node Preprocessor::expandDefinitions(
@@ -127,8 +127,14 @@ Node Preprocessor::expandDefinitions(
     // Ensure node is type-checked at this point.
     n.getType(true);
   }
-  // expand only = true
-  return d_exDefs.expandDefinitions(n, cache, expandOnly);
+  theory::SubstitutionMap& sm = d_ppContext->getTopLevelSubstitutions().get();
+  n = sm.apply(n);
+  if (!expandOnly)
+  {
+    // expand only = true
+    n = d_exDefs.expandDefinitions(n, cache, expandOnly);
+  }
+  return n;
 }
 
 void Preprocessor::defineFunction(Node func,
@@ -137,10 +143,11 @@ void Preprocessor::defineFunction(Node func,
                     bool global)
 {
   Node lambda = d_absValues.substituteAbstractValues(formula);
+  Trace("smt") << "defineFunction " << func << " : " << formals << " " << formula << std::endl;
   if (!formals.empty())
   {
     NodeManager * nm = NodeManager::currentNM();
-    lambda = nm->mkNode(nm->mkNode(kind::BOUND_VAR_LIST, formals), lambda);
+    lambda = nm->mkNode(kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), lambda);
   }
   d_ppContext->addSubstitution(func, lambda);
 }

@@ -641,15 +641,8 @@ void SmtEngine::defineFunction(Node func,
   ss << language::SetLanguage(
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-  std::vector<Node> nFormals;
-  nFormals.reserve(formals.size());
 
-  for (const Node& formal : formals)
-  {
-    nFormals.push_back(formal);
-  }
-
-  DefineFunctionNodeCommand nc(ss.str(), func, nFormals, formula);
+  DefineFunctionNodeCommand nc(ss.str(), func, formals, formula);
   getDumpManager()->addToDump(nc, "declarations");
 
   // type check body

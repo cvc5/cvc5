@@ -331,29 +331,6 @@ TrustNode ExpandDefs::expandDefinitions(
   return TrustNode::mkTrustRewrite(orig, res, tpg);
 }
 
-void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
-                                  bool expandOnly)
-{
-  Chat() << "expanding definitions in assertions..." << std::endl;
-  Trace("exp-defs") << "ExpandDefs::simplify(): expanding definitions"
-                    << std::endl;
-  TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
-  {
-    Node assert = assertions[i];
-    // notice we call this method with only one value of expandOnly currently,
-    // hence we maintain only a single set of proof steps in d_tpg.
-    TrustNode expd = expandDefinitions(assert, cache, expandOnly, d_tpg.get());
-    if (!expd.isNull())
-    {
-      Trace("exp-defs") << "ExpandDefs::expandAssertions: " << assert << " -> "
-                        << expd.getNode() << std::endl;
-      assertions.replaceTrusted(i, expd);
-    }
-  }
-}
-
 void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
 {
   if (d_tpg == nullptr)

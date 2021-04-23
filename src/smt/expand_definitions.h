@@ -62,12 +62,6 @@ class ExpandDefs
       TNode n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly = false);
-  /**
-   * Expand defintitions in assertions. This applies this above method to each
-   * assertion in the given pipeline.
-   */
-  void expandAssertions(preprocessing::AssertionPipeline& assertions,
-                        bool expandOnly = false);
 
   /**
    * Set proof node manager, which signals this class to enable proofs using the

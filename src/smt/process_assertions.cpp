@@ -140,7 +140,7 @@ bool ProcessAssertions::apply(Assertions& as)
   // and does beta reduction. Notice we pass true as the second argument since
   // we do not want to call theories to expand definitions here, since we want
   // to give the opportunity to rewrite/preprocess terms before expansion.
-  d_exDefs.expandAssertions(assertions, true);
+  d_passes["apply-substs"]->apply(&assertions);
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
