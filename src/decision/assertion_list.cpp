@@ -107,7 +107,7 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
   {
     if (it == d_dlist.end())
     {
-      // if we just had status on an assertion and it didnt occur id dlist,
+      // if we just had a status on an assertion and it didn't occur in dlist,
       // then our index should have exhausted dlist
       Assert(d_dindex.get() == d_dlist.size());
       if (d_dindex.get() == d_dlist.size())
