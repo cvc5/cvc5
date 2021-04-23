@@ -127,6 +127,7 @@ Node Preprocessor::expandDefinitions(
     // Ensure node is type-checked at this point.
     n.getType(true);
   }
+  // we apply substitutions here, before expanding definitions
   theory::SubstitutionMap& sm = d_ppContext->getTopLevelSubstitutions().get();
   n = sm.apply(n);
   if (!expandOnly)
