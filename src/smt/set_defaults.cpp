@@ -769,8 +769,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!options::ufSymmetryBreaker.wasSetByUser())
   {
+    // we disable this technique for *any* unsat core production, since it
+    // uses a non-standard implementation that sends (unsound) lemmas during
+    // presolve.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !options::incrementalSolving() && !safeUnsatCores;
+                       && !options::incrementalSolving() && !options::unsatCores();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
