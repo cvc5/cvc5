@@ -28,8 +28,8 @@ namespace cvc5 {
 
 class SymbolManager::Implementation
 {
-  using TermStringMap = CDHashMap<api::Term, std::string, api::TermHashFunction>;
-  using TermSet = CDHashSet<api::Term, api::TermHashFunction>;
+  using TermStringMap = CDHashMap<api::Term, std::string, std::hash<api::Term>>;
+  using TermSet = CDHashSet<api::Term, std::hash<api::Term>>;
   using SortList = CDList<api::Sort>;
   using TermList = CDList<api::Term>;
 
