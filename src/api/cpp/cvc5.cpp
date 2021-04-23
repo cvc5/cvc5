@@ -84,7 +84,7 @@ struct APIStatistics
 /* -------------------------------------------------------------------------- */
 
 /* Mapping from external (API) kind to internal kind. */
-const static std::unordered_map<Kind, cvc5::Kind, KindHashFunction> s_kinds{
+const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND},
     {UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND},
     {NULL_EXPR, cvc5::Kind::NULL_EXPR},
@@ -658,7 +658,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
     };
 
 /* Set of kinds for indexed operators */
-const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
+const static std::unordered_set<Kind> s_indexed_kinds(
     {RECORD_UPDATE,
      DIVISIBLE,
      IAND,
@@ -784,8 +784,6 @@ std::ostream& operator<<(std::ostream& out, Kind k)
   }
   return out;
 }
-
-size_t KindHashFunction::operator()(Kind k) const { return k; }
 
 /* -------------------------------------------------------------------------- */
 /* API guard helpers                                                          */
@@ -1751,11 +1749,6 @@ std::ostream& operator<<(std::ostream& out, const Sort& s)
   return out;
 }
 
-size_t SortHashFunction::operator()(const Sort& s) const
-{
-  return TypeNodeHashFunction()(*s.d_type);
-}
-
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -2057,18 +2050,6 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 {
   out << t.toString();
   return out;
-}
-
-size_t OpHashFunction::operator()(const Op& t) const
-{
-  if (t.isIndexedHelper())
-  {
-    return NodeHashFunction()(*t.d_node);
-  }
-  else
-  {
-    return KindHashFunction()(t.d_kind);
-  }
 }
 
 /* Helpers                                                                    */
@@ -2758,7 +2739,7 @@ std::ostream& operator<<(std::ostream& out, const std::set<Term>& set)
 
 std::ostream& operator<<(
     std::ostream& out,
-    const std::unordered_set<Term, TermHashFunction>& unordered_set)
+    const std::unordered_set<Term>& unordered_set)
 {
   container_to_stream(out, unordered_set);
   return out;
@@ -2774,15 +2755,10 @@ std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map)
 template <typename V>
 std::ostream& operator<<(
     std::ostream& out,
-    const std::unordered_map<Term, V, TermHashFunction>& unordered_map)
+    const std::unordered_map<Term, V>& unordered_map)
 {
   container_to_stream(out, unordered_map);
   return out;
-}
-
-size_t TermHashFunction::operator()(const Term& t) const
-{
-  return NodeHashFunction()(*t.d_node);
 }
 
 /* Helpers                                                                    */
@@ -3874,7 +3850,7 @@ Sort Grammar::resolve()
             cvc5::kind::BOUND_VAR_LIST, Term::termVectorToNodes(d_sygusVars)));
   }
 
-  std::unordered_map<Term, Sort, TermHashFunction> ntsToUnres(d_ntSyms.size());
+  std::unordered_map<Term, Sort> ntsToUnres(d_ntSyms.size());
 
   for (Term ntsymbol : d_ntSyms)
   {
@@ -3933,7 +3909,7 @@ Sort Grammar::resolve()
 void Grammar::addSygusConstructorTerm(
     DatatypeDecl& dt,
     const Term& term,
-    const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
+    const std::unordered_map<Term, Sort>& ntsToUnres) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_DTDECL(dt);
@@ -3975,7 +3951,7 @@ Term Grammar::purifySygusGTerm(
     const Term& term,
     std::vector<Term>& args,
     std::vector<Sort>& cargs,
-    const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
+    const std::unordered_map<Term, Sort>& ntsToUnres) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_TERM(term);
@@ -3984,7 +3960,7 @@ Term Grammar::purifySygusGTerm(
   CVC5_API_CHECK_TERMS_MAP(ntsToUnres);
   //////// all checks before this line
 
-  std::unordered_map<Term, Sort, TermHashFunction>::const_iterator itn =
+  std::unordered_map<Term, Sort>::const_iterator itn =
       ntsToUnres.find(term);
   if (itn != ntsToUnres.cend())
   {
@@ -4082,7 +4058,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 /* -------------------------------------------------------------------------- */
 
 const static std::
-    unordered_map<RoundingMode, cvc5::RoundingMode, RoundingModeHashFunction>
+    unordered_map<RoundingMode, cvc5::RoundingMode>
         s_rmodes{
             {ROUND_NEAREST_TIES_TO_EVEN,
              cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
@@ -4105,11 +4081,6 @@ const static std::unordered_map<cvc5::RoundingMode,
         {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          ROUND_NEAREST_TIES_TO_AWAY},
     };
-
-size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
-{
-  return size_t(rm);
-}
 
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
@@ -7108,3 +7079,39 @@ Statistics Solver::getStatistics() const
 }  // namespace api
 
 }  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::api::Kind>::operator()(cvc5::api::Kind k) const
+{
+  return static_cast<size_t>(k);
+}
+
+size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
+{
+  if (t.isIndexedHelper())
+  {
+    return cvc5::NodeHashFunction()(*t.d_node);
+  }
+  else
+  {
+    return std::hash<cvc5::api::Kind>()(t.d_kind);
+  }
+}
+
+size_t std::hash<cvc5::api::RoundingMode>::operator()(cvc5::api::RoundingMode rm) const
+{
+  return static_cast<size_t>(rm);
+}
+
+size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const
+{
+  return cvc5::TypeNodeHashFunction()(*s.d_type);
+}
+
+size_t std::hash<cvc5::api::Term>::operator()(const cvc5::api::Term& t) const
+{
+  return cvc5::NodeHashFunction()(*t.d_node);
+}
+
+}
