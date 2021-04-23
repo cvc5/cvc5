@@ -251,7 +251,9 @@ Node TheoryModel::getModelValue(TNode n) const
       ret = nm->mkConst(
           Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
-    if (ret.isConst())
+    if (ret.isConst() || (
+     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
     {
       d_modelCache[n] = ret;
       return ret;
