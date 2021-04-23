@@ -25,7 +25,6 @@
 namespace cvc5 {
 namespace proof {
 
-// guarantee that string does not have unescaped quotes
 std::string DotPrinter::sanitizeString(const std::string& s)
 {
   std::string newS;
@@ -51,6 +50,9 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
 
+  // The dot attribute rankdir="BT" sets the direction of graph layout, to place
+  // the root node at the top. The "node [shape..." sets the shape of all nodes
+  // to record.
   out << "digraph proof {\n\trankdir=\"BT\";\n\tnode [shape=record];\n";
   DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
@@ -59,7 +61,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 void DotPrinter::printInternal(std::ostream& out,
                                const ProofNode* pn,
                                uint64_t& ruleID,
-                               int scopeNumber,
+                               uint64_t scopeCounter,
                                bool inPropositionalVision)
 {
   uint64_t currentRuleID = ruleID;
@@ -82,16 +84,16 @@ void DotPrinter::printInternal(std::ostream& out,
   switch (r)
   {
     case PfRule::SCOPE:
-      if (scopeNumber < 1)
+      if (scopeCounter < 1)
       {
         classes << " basic";
         colors << ", color = blue ";
         inPropositionalVision = true;
       }
-      scopeNumber++;
+      scopeCounter++;
       break;
     case PfRule::ASSUME:
-      if (scopeNumber < 2)
+      if (scopeCounter < 2)
       {
         classes << " basic";
         colors << ", color = blue ";
@@ -99,7 +101,7 @@ void DotPrinter::printInternal(std::ostream& out,
       if (inPropositionalVision)
       {
         classes << " propositional";
-        colors << ", fillcolor=aquamarine4, style=filled ";
+        colors << ", fillcolor = aquamarine4, style = filled ";
       }
       break;
     case PfRule::CHAIN_RESOLUTION:
@@ -108,7 +110,7 @@ void DotPrinter::printInternal(std::ostream& out,
       if (inPropositionalVision)
       {
         classes << " propositional";
-        colors << ", fillcolor=aquamarine4, style=filled ";
+        colors << ", fillcolor = aquamarine4, style = filled ";
       }
       break;
     default: inPropositionalVision = false;
@@ -121,7 +123,7 @@ void DotPrinter::printInternal(std::ostream& out,
   {
     ++ruleID;
     out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(out, c.get(), ruleID, scopeNumber, inPropositionalVision);
+    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalVision);
   }
 }
 

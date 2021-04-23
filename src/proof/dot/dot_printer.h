@@ -40,18 +40,24 @@ class DotPrinter
 
  private:
   /**
-   * Print the rule in the format:
-   * "$RULE_ID $RULE_NAME($RULE_ARGUMENTS)" [ shape = "box"];
-   * "$RULE_ID $RULE_NAME($RULE_ARGUMENTS)" -> "$RULE_ID $RULE_CONCLUSION";
-   * and then for each child of the rule print
-   * "$CHILD_ID $CHILD_CONCLUSION" -> "$RULE_ID $RULE_NAME($RULE_ARGUMENTS)";
-   * and then recursively call the function with the child as argument.
+   * Print the nodes of the proof in the format:
+   * $NODE_ID [ label = "{$CONCLUSION|$RULE_NAME($RULE_ARGUMENTS)}",
+   * $COLORS_AND_CLASSES_RELATED_TO_THE_RULE ]; and then for each child of the
+   * node $CHILD_ID -> $NODE_ID; and then recursively call the function with the
+   * child as argument.
    * @param out the output stream
    * @param pn the proof node to print
    * @param ruleID the id of the rule to print
+   * @param scopeCounter counter to check how many SCOPE was already sawed in
+   * the proof
+   * @param inPropositionalVision flag used to mark the nodes that belong to the
+   * propositional vision proof
    */
-  static void printInternal(
-      std::ostream& out, const ProofNode* pn, uint64_t& ruleID, int, bool);
+  static void printInternal(std::ostream& out,
+                            const ProofNode* pn,
+                            uint64_t& ruleID,
+                            uint64_t scopeCounter,
+                            bool inPropositionalVision);
 
   /**
    * Return the arguments of a ProofNode
@@ -62,10 +68,11 @@ class DotPrinter
   static void ruleArguments(std::ostringstream& currentArguments,
                             const ProofNode* pn);
 
-  /** Replace all quotes but escaped quotes in given string
-   * @param s The string to have the quotes processed.
+  /** Add an escape character before special characters of the given string.
+   * @param s The string to have the characters processed.
+   * @return The string with the special characters escaped.
    */
-  static std::string sanitizeString(const std::string&);
+  static std::string sanitizeString(const std::string& s);
 };
 
 }  // namespace proof
