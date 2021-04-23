@@ -209,8 +209,6 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 MethodId ids,
                                                 MethodId ida)
 {
-  // Build a simultaneous subsitution, built in reverse order. This is done
-  // for performance reasons, so that only one Node::substitute call is made.
   std::vector<TNode> vars;
   std::vector<TNode> subs;
   std::vector<TNode> from;
@@ -227,6 +225,7 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
   }
   if (ida == MethodId::SBA_SIMUL)
   {
+    // simply apply the simultaneous substitution now
     return n.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
   }
   else if (ida == MethodId::SBA_FIXPOINT)

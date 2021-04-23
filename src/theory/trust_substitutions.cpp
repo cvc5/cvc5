@@ -206,8 +206,11 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
   // We use fixpoint as the substitution-apply identifier. Notice that it
   // suffices to use SBA_SEQUENTIAL here, but SBA_FIXPOINT is typically
-  // more efficient, since it does not require linear traversals of the term
-  // or quadratic traversals of the range of substitutions.
+  // more efficient. This is because for substitution of size n, sequential
+  // substitution can either be implemented as n traversals of the term to
+  // apply the substitution to, or a single traversal of the term, but n^2/2
+  // traversals of the range of the substitution to prepare a simultaneous
+  // substitution. Both of these options are inefficient.
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT))
   {
     // if we fail for any reason, we must use a trusted step instead
