@@ -1421,6 +1421,8 @@ TEST_F(TestApiBlackSolver, getUnsatAssumptions3)
 TEST_F(TestApiBlackSolver, getUnsatCore1)
 {
   d_solver.setOption("incremental", "false");
+  // !!! temporary on proof-new
+  d_solver.setOption("produce-proofs", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC5ApiException);
