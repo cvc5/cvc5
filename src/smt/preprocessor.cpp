@@ -150,17 +150,8 @@ Node Preprocessor::simplify(const Node& node)
     d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
         d_smt.getOutputManager().getDumpOut(), node);
   }
-  Node nas = d_absValues.substituteAbstractValues(node);
-  if (options::typeChecking())
-  {
-    // ensure node is type-checked at this point
-    nas.getType(true);
-  }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_exDefs.expandDefinitions(nas, cache);
-  TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
-  Node ns = ts.isNull() ? n : ts.getNode();
-  return ns;
+  return expandDefinitions(node, cache, false);
 }
 
 void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
