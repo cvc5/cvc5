@@ -46,6 +46,56 @@ TEST_F(TestApiBlackOp, opFromKind)
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackOp, getNumIndices)
+{
+  Op plus = d_solver.mkOp(PLUS);
+  Op divisible = d_solver.mkOp(DIVISIBLE, 4);
+  Op record_update = d_solver.mkOp(RECORD_UPDATE, "test");
+  Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
+  Op bitvector_zero_extend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
+  Op bitvector_sign_extend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
+  Op bitvector_rotate_left = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
+  Op bitvector_rotate_right = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
+  Op int_to_bitvector = d_solver.mkOp(INT_TO_BITVECTOR, 10);
+  Op iand = d_solver.mkOp(IAND, 3);
+  Op floatingpoint_to_ubv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 11);
+  Op floatingopint_to_sbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
+  Op tuple_update = d_solver.mkOp(TUPLE_UPDATE, 5);
+  Op floatingpoint_to_fp_ieee_bitvector =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
+  Op floatingpoint_to_fp_floatingpoint =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25);
+  Op floatingpoint_to_fp_real = d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25);
+  Op floatingpoint_to_fp_signed_bitvector =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25);
+  Op floatingpoint_to_fp_unsigned_bitvector =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25);
+  Op floatingpoint_to_fp_generic =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
+  Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 2, 3);
+
+  ASSERT_EQ(0, plus.getNumIndices());
+  ASSERT_EQ(1, divisible.getNumIndices());
+  ASSERT_EQ(1, record_update.getNumIndices());
+  ASSERT_EQ(1, bitvector_repeat.getNumIndices());
+  ASSERT_EQ(1, bitvector_zero_extend.getNumIndices());
+  ASSERT_EQ(1, bitvector_sign_extend.getNumIndices());
+  ASSERT_EQ(1, bitvector_rotate_left.getNumIndices());
+  ASSERT_EQ(1, bitvector_rotate_right.getNumIndices());
+  ASSERT_EQ(1, int_to_bitvector.getNumIndices());
+  ASSERT_EQ(1, iand.getNumIndices());
+  ASSERT_EQ(1, floatingpoint_to_ubv.getNumIndices());
+  ASSERT_EQ(1, floatingopint_to_sbv.getNumIndices());
+  ASSERT_EQ(1, tuple_update.getNumIndices());
+  ASSERT_EQ(2, floatingpoint_to_fp_ieee_bitvector.getNumIndices());
+  ASSERT_EQ(2, floatingpoint_to_fp_floatingpoint.getNumIndices());
+  ASSERT_EQ(2, floatingpoint_to_fp_real.getNumIndices());
+  ASSERT_EQ(2, floatingpoint_to_fp_signed_bitvector.getNumIndices());
+  ASSERT_EQ(2, floatingpoint_to_fp_unsigned_bitvector.getNumIndices());
+  ASSERT_EQ(2, floatingpoint_to_fp_generic.getNumIndices());
+  ASSERT_EQ(2, regexp_loop.getNumIndices());
+}
+
 TEST_F(TestApiBlackOp, getIndicesString)
 {
   Op x;

@@ -1412,9 +1412,9 @@ bool Solver::withinBudget(Resource r) const
   d_notify->safePoint(r);
 
   return !asynch_interrupt &&
-         (conflict_budget < 0 || conflicts < (uint64_t)conflict_budget) &&
+         (conflict_budget < 0 || conflicts < conflict_budget) &&
          (propagation_budget < 0 ||
-          propagations < (uint64_t)propagation_budget);
+          propagations < propagation_budget);
 }
 
 }  // namespace BVMinisat

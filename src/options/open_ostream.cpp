@@ -60,15 +60,16 @@ std::pair< bool, std::ostream* > OstreamOpener::open(const std::string& optarg) 
                                     std::ofstream::out | std::ofstream::trunc);
     if(outStream == NULL || !*outStream) {
       std::stringstream ss;
-      ss << "Cannot open " << d_channelName << " file: `"
-         << optarg << "': " << cvc4_errno_failreason();
+      ss << "Cannot open " << d_channelName << " file: `" << optarg
+         << "': " << cvc5_errno_failreason();
       throw OptionException(ss.str());
     }
     return make_pair(true, outStream);
   }
 }
 
-std::string cvc4_errno_failreason() {
+std::string cvc5_errno_failreason()
+{
 #if HAVE_STRERROR_R
 #if STRERROR_R_CHAR_P
   if(errno != 0) {

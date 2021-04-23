@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
@@ -221,9 +222,9 @@ bool TypeNode::isClosedEnumerable()
       setAttribute(IsClosedEnumerableComputedAttr(), true);
       TypeNode tn = *this;
       const DType& dt = getDType();
-      for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+      for (uint32_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
-        for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+        for (uint32_t j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
         {
           TypeNode ctn = dt[i][j].getRangeType();
           if (tn != ctn && !ctn.isClosedEnumerable())

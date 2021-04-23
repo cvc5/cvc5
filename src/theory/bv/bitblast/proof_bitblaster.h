@@ -20,6 +20,9 @@
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
 namespace cvc5 {
+
+class TConvProofGenerator;
+
 namespace theory {
 namespace bv {
 
@@ -28,8 +31,8 @@ class BBProof
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(TheoryState* state);
-  ~BBProof() = default;
+  BBProof(TheoryState* state, ProofNodeManager* pnm, TConvProofGenerator* tcpg);
+  ~BBProof();
 
   /** Bit-blast atom 'node'. */
   void bbAtom(TNode node);
@@ -43,7 +46,21 @@ class BBProof
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 
  private:
+  /** Map node kinds to proof rules. */
+  static std::unordered_map<Kind, PfRule, kind::KindHashFunction>
+      s_kindToPfRule;
+
+  /** Return true if proofs are enabled. */
+  bool isProofsEnabled() const;
+
+  /** The associated simple bit-blaster. */
   std::unique_ptr<BBSimple> d_bb;
+  /** The associated proof node manager. */
+  ProofNodeManager* d_pnm;
+  /** The associated term conversion proof generator. */
+  TConvProofGenerator* d_tcpg;
+  /** Map bit-vector nodes to bit-blasted nodes. */
+  std::unordered_map<Node, Node, NodeHashFunction> d_bbMap;
 };
 
 }  // namespace bv

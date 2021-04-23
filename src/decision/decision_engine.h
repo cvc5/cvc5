@@ -31,6 +31,7 @@ using namespace cvc5::prop;
 using namespace cvc5::decision;
 
 namespace cvc5 {
+namespace decision {
 
 class DecisionEngine {
 
@@ -159,6 +160,7 @@ class DecisionEngine {
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
 };/* DecisionEngine class */
 
+}
 }  // namespace cvc5
 
 #endif /* CVC5__DECISION__DECISION_ENGINE_H */
