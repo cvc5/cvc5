@@ -13,7 +13,7 @@
  * Sets theory implementation.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
 #define CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
@@ -136,7 +136,8 @@ class TheorySetsPrivate {
   TheorySetsPrivate(TheorySets& external,
                     SolverState& state,
                     InferenceManager& im,
-                    SkolemCache& skc);
+                    SkolemCache& skc,
+                    ProofNodeManager* pnm);
 
   ~TheorySetsPrivate();
 

@@ -15,7 +15,7 @@
  * time limits.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__RESOURCE_MANAGER_H
 #define CVC5__RESOURCE_MANAGER_H
@@ -26,6 +26,8 @@
 #include <chrono>
 #include <memory>
 #include <vector>
+
+#include "theory/inference_id.h"
 
 namespace cvc5 {
 
@@ -93,8 +95,13 @@ enum class Resource
 };
 
 const char* toString(Resource r);
+std::ostream& operator<<(std::ostream& os, Resource r);
 
 namespace resman_detail {
+/** The upper bound of values from the theory::InferenceId enum */
+constexpr std::size_t InferenceIdMax =
+    static_cast<std::size_t>(theory::InferenceId::UNKNOWN);
+/** The upper bound of values from the Resource enum */
 constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
 };  // namespace resman_detail
 
@@ -141,11 +148,11 @@ class ResourceManager
    * no remaining resources.
    */
   void spendResource(Resource r);
-
-  /** Sets the resource limit. */
-  void setResourceLimit(uint64_t units, bool cumulative = false);
-  /** Sets the time limit. */
-  void setTimeLimit(uint64_t millis);
+  /**
+   * Spends a given resource. Throws an UnsafeInterruptException if there are
+   * no remaining resources.
+   */
+  void spendResource(theory::InferenceId iid);
 
   /**
    * Resets perCall limits to mark the start of a new call,
@@ -169,13 +176,6 @@ class ResourceManager
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
 
-  /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
-  uint64_t d_timeBudgetPerCall;
-  /** A user-imposed cumulative resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetCumulative;
-  /** A user-imposed per-call resource budget. 0 = no limit. */
-  uint64_t d_resourceBudgetPerCall;
-
   /** The total number of milliseconds used. */
   uint64_t d_cumulativeTimeUsed;
   /** The total amount of resources used. */
@@ -195,9 +195,13 @@ class ResourceManager
 
   void spendResource(uint64_t amount);
 
+  /** Weights for InferenceId resources */
+  std::array<uint64_t, resman_detail::InferenceIdMax + 1> d_infidWeights;
+  /** Weights for Resource resources */
   std::array<uint64_t, resman_detail::ResourceMax + 1> d_resourceWeights;
 
   struct Statistics;
+  /** The statistics object */
   std::unique_ptr<Statistics> d_statistics;
 }; /* class ResourceManager */
 

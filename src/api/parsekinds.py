@@ -14,7 +14,7 @@
 
 """
 This script implements KindsParser which
-parses the header file CVC4/src/api/cpp/cvc5_kind.h
+parses the header file cvc5/src/api/cpp/cvc5_kind.h
 
 The script is aware of the '#if 0' pattern and will ignore
 kinds declared between '#if 0' and '#endif'. It can also
@@ -34,7 +34,7 @@ US = '_'
 NL = '\n'
 
 # Enum Declarations
-ENUM_START = 'enum CVC4_EXPORT Kind'
+ENUM_START = 'enum CVC5_EXPORT Kind'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens

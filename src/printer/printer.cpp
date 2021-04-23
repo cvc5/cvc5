@@ -45,8 +45,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_TPTP:
     return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
-  case LANG_CVC4:
-    return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
+  case LANG_CVC: return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
   case LANG_SYGUS_V2:
     // sygus version 2.0 does not have discrepancies with smt2, hence we use
@@ -56,10 +55,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 
   case LANG_AST:
     return unique_ptr<Printer>(new printer::ast::AstPrinter());
-
-  case LANG_CVC3:
-    return unique_ptr<Printer>(
-        new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
 
   default: Unhandled() << lang;
   }
@@ -193,6 +188,14 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                          TypeNode type) const
 {
   printUnknownCommand(out, "declare-fun");
+}
+
+void Printer::toStreamCmdDeclarePool(std::ostream& out,
+                                     const std::string& id,
+                                     TypeNode type,
+                                     const std::vector<Node>& initValue) const
+{
+  printUnknownCommand(out, "declare-pool");
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,

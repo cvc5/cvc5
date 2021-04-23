@@ -84,7 +84,7 @@ Node LfscTermProcessor::runConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  else if (k == SKOLEM)
+  else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -107,6 +107,13 @@ Node LfscTermProcessor::runConvert(Node n)
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return nm->mkNode(APPLY_UF, skolemOp, wi);
     }
+  }
+  else if (n.isVar())
+  {
+    std::stringstream ss;
+    ss << n;
+    Node nn = mkInternalSymbol(getNameForUserName(ss.str()), tn);
+    return nn;
   }
   else if (k == APPLY_UF)
   {
@@ -136,16 +143,24 @@ Node LfscTermProcessor::runConvert(Node n)
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
-  else if (k == CONST_RATIONAL)
+  else if (k == CONST_RATIONAL || k == CAST_TO_REAL)
   {
+    if (k == CAST_TO_REAL)
+    {
+      // already converted
+      do
+      {
+        Assert(n[0].getKind() == APPLY_UF);
+        n = n[0];
+      } while (n.getKind() != CONST_RATIONAL);
+    }
     TypeNode tnv = nm->mkFunctionType(tn, tn);
-    // FIXME: subtyping makes this incorrect, also handle CAST_TO_REAL here
     Node rconstf;
     Node arg;
+    Rational r = n.getConst<Rational>();
     if (tn.isInteger())
     {
       rconstf = getSymbolInternal(k, tnv, "int");
-      Rational r = n.getConst<Rational>();
       if (r.sgn() == -1)
       {
         // use LFSC syntax for mpz negation
@@ -160,10 +175,39 @@ Node LfscTermProcessor::runConvert(Node n)
     else
     {
       rconstf = getSymbolInternal(k, tnv, "real");
-      // FIXME: ensure rationals are printed properly here using mpq syntax
-      arg = n;
+      // ensure rationals are printed properly here using mpq syntax
+      // Note that inconvieniently, LFSC uses (non-sexpr) syntax n/m for
+      // constant rationals, hence we must use a string
+      std::stringstream ss;
+      ss << "__LFSC_TMP" << r.getNumerator().abs() << "/" << r.getDenominator();
+      arg = mkInternalSymbol(ss.str(), tn);
+      // negative (~ n/m)
+      if (r.sgn() == -1)
+      {
+        Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
+        arg = nm->mkNode(APPLY_UF, mpzn, arg);
+      }
     }
     return nm->mkNode(APPLY_UF, rconstf, arg);
+  }
+  else if (k == CONST_BITVECTOR)
+  {
+    TypeNode btn = nm->booleanType();
+    TypeNode tnv = nm->mkFunctionType(btn, tn);
+    TypeNode btnv = nm->mkFunctionType(btn, btn);
+    BitVector bv = n.getConst<BitVector>();
+    size_t w = bv.getSize();
+    Node ret = getSymbolInternal(k, btn, "bvn");
+    Node b0 = getSymbolInternal(k, btn, "b0");
+    Node b1 = getSymbolInternal(k, btn, "b1");
+    Node bvc = getSymbolInternal(k, btnv, "bvc");
+    for (size_t i = 0; i < w; i++)
+    {
+      Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
+      ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
+    }
+    Node bconstf = getSymbolInternal(k, tnv, "bv");
+    return nm->mkNode(APPLY_UF, bconstf, ret);
   }
   else if (k == CONST_STRING)
   {
@@ -186,15 +230,25 @@ Node LfscTermProcessor::runConvert(Node n)
     }
     return ret;
   }
+  else if (k == STORE_ALL)
+  {
+    Node t = typeAsNode(convertType(tn));
+    TypeNode caRetType = nm->mkFunctionType(tn.getArrayConstituentType(), tn);
+    TypeNode catype = nm->mkFunctionType(d_sortType, caRetType, false);
+    Node bconstf = getSymbolInternal(k, catype, "array_const");
+    Node f = nm->mkNode(APPLY_UF, bconstf, t);
+    return nm->mkNode(APPLY_UF, f, n[0]);
+  }
   else if (k == ITE)
   {
     // (ite C A B) is ((ite T) C A B) where T is the return type.
     Node iteOp = getOperatorOfTerm(n, true);
     return nm->mkNode(APPLY_UF, iteOp, n[0], n[1], n[2]);
   }
-  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS || k == DIVISION
-      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS)
+  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
+           || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
+           || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
+           || k == INTS_MODULUS_TOTAL || k == UMINUS)
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that MINUS is not n-ary
@@ -204,6 +258,18 @@ Node LfscTermProcessor::runConvert(Node n)
     children.push_back(opc);
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
+  }
+  else if (k == BITVECTOR_EXTRACT)
+  {
+    // indexed operators?
+  }
+  else if (k == EMPTYSET || k == UNIVERSE_SET)
+  {
+    Node t = typeAsNode(convertType(tn));
+    TypeNode etype = nm->mkFunctionType(d_sortType, tn);
+    Node ef =
+        getSymbolInternal(k, etype, k == EMPTYSET ? "emptyset" : "univset");
+    return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
   {
@@ -369,27 +435,33 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   }
   else if (tn.getNumChildren() == 0)
   {
-    // special case: tuples are builtin datatypes
-    // notice this would not be a special case if tuples were parametric
-    // datatypes
+    // special case: tuples must be distinguished by their arity
     if (tn.isTuple())
     {
       const DType& dt = tn.getDType();
       unsigned int nargs = dt[0].getNumArgs();
       if (nargs > 0)
       {
-        std::vector<Node> targs;
         std::vector<TypeNode> types;
+        std::vector<TypeNode> convTypes;
+        std::vector<Node> targs;
         for (unsigned int i = 0; i < nargs; i++)
         {
           // it is not converted yet, convert here
-          TypeNode tnc = runConvertType(dt[0][i].getRangeType());
+          TypeNode tnc = convertType(dt[0][i].getRangeType());
           types.push_back(d_sortType);
+          convTypes.push_back(tnc);
           targs.push_back(typeAsNode(tnc));
         }
         TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, "Tuple"));
+        // must distinguish by arity
+        std::stringstream ss;
+        ss << "Tuple_" << nargs;
+        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, ss.str()));
         tnn = nm->mkNode(APPLY_UF, targs);
+        // we are changing its name, we must make a sort constructor
+        cur = nm->mkSortConstructor(ss.str(), nargs);
+        cur = nm->mkSort(cur, convTypes);
       }
     }
     if (tnn.isNull())
@@ -444,6 +516,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   Trace("lfsc-term-process-debug") << "...type as node: " << tnn << std::endl;
   d_typeAsNode[cur] = tnn;
   return cur;
+}
+
+std::string LfscTermProcessor::getNameForUserName(const std::string& name)
+{
+  std::stringstream ss;
+  ss << "cvc." << name;
+  return ss.str();
 }
 
 bool LfscTermProcessor::shouldTraverse(Node n)

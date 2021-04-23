@@ -37,7 +37,7 @@
  * </pre>
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__UF__SYMMETRY_BREAKER_H
 #define CVC5__THEORY__UF__SYMMETRY_BREAKER_H
@@ -52,8 +52,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "smt/smt_statistics_registry.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -147,8 +146,7 @@ private:
     /** time spent in initial round of normalization */
     TimerStat d_initNormalizationTimer;
 
-    Statistics(std::string name);
-    ~Statistics();
+    Statistics(const std::string& name);
   };
 
   Statistics d_stats;

@@ -13,7 +13,7 @@
  * The parser class for the CVC language.
  */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
 #ifndef CVC5__PARSER__CVC_H
 #define CVC5__PARSER__CVC_H

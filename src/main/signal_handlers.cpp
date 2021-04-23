@@ -32,8 +32,8 @@
 
 #endif /* __WIN32__ */
 
+#include "base/cvc5config.h"
 #include "base/exception.h"
-#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
@@ -65,7 +65,7 @@ void print_statistics()
 
 void timeout_handler()
 {
-  safe_print(STDERR_FILENO, "CVC4 interrupted by timeout.\n");
+  safe_print(STDERR_FILENO, "cvc5 interrupted by timeout.\n");
   print_statistics();
   abort();
 }
@@ -73,8 +73,8 @@ void timeout_handler()
 #ifndef __WIN32__
 
 #ifdef HAVE_SIGALTSTACK
-size_t cvc4StackSize;
-void* cvc4StackBase;
+size_t stackSize;
+void* stackBase;
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGXCPU and SIGALRM, i.e., timeout. */
@@ -83,7 +83,7 @@ void timeout_handler(int sig, siginfo_t* info, void*) { timeout_handler(); }
 /** Handler for SIGTERM. */
 void sigterm_handler(int sig, siginfo_t* info, void*)
 {
-  safe_print(STDERR_FILENO, "CVC4 interrupted by SIGTERM.\n");
+  safe_print(STDERR_FILENO, "cvc5 interrupted by SIGTERM.\n");
   print_statistics();
   abort();
 }
@@ -91,7 +91,7 @@ void sigterm_handler(int sig, siginfo_t* info, void*)
 /** Handler for SIGINT, i.e., when the user hits control C. */
 void sigint_handler(int sig, siginfo_t* info, void*)
 {
-  safe_print(STDERR_FILENO, "CVC4 interrupted by user.\n");
+  safe_print(STDERR_FILENO, "cvc5 interrupted by user.\n");
   print_statistics();
   abort();
 }
@@ -100,15 +100,15 @@ void sigint_handler(int sig, siginfo_t* info, void*)
 /** Handler for SIGSEGV (segfault). */
 void segv_handler(int sig, siginfo_t* info, void* c)
 {
-  uintptr_t extent = reinterpret_cast<uintptr_t>(cvc4StackBase) - cvc4StackSize;
+  uintptr_t extent = reinterpret_cast<uintptr_t>(stackBase) - stackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
 #ifdef CVC5_DEBUG
-  safe_print(STDERR_FILENO, "CVC4 suffered a segfault in DEBUG mode.\n");
+  safe_print(STDERR_FILENO, "cvc5 suffered a segfault in DEBUG mode.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
   safe_print(STDERR_FILENO, "\n");
-  // cerr << "base is " << (void*)cvc4StackBase << endl;
-  // cerr << "size is " << cvc4StackSize << endl;
+  // cerr << "base is " << (void*)stackBase << endl;
+  // cerr << "size is " << stackSize << endl;
   // cerr << "extent is " << (void*)extent << endl;
   if (addr >= extent && addr <= extent + 10 * 1024)
   {
@@ -148,7 +148,7 @@ void segv_handler(int sig, siginfo_t* info, void* c)
     }
   }
 #else  /* CVC5_DEBUG */
-  safe_print(STDERR_FILENO, "CVC4 suffered a segfault.\n");
+  safe_print(STDERR_FILENO, "cvc5 suffered a segfault.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
   safe_print(STDERR_FILENO, "\n");
@@ -175,7 +175,7 @@ void ill_handler(int sig, siginfo_t* info, void*)
 {
 #ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO,
-             "CVC4 executed an illegal instruction in DEBUG mode.\n");
+             "cvc5 executed an illegal instruction in DEBUG mode.\n");
   if (!segvSpin)
   {
     print_statistics();
@@ -201,7 +201,7 @@ void ill_handler(int sig, siginfo_t* info, void*)
     }
   }
 #else  /* CVC5_DEBUG */
-  safe_print(STDERR_FILENO, "CVC4 executed an illegal instruction.\n");
+  safe_print(STDERR_FILENO, "cvc5 executed an illegal instruction.\n");
   print_statistics();
   abort();
 #endif /* CVC5_DEBUG */
@@ -211,7 +211,7 @@ void ill_handler(int sig, siginfo_t* info, void*)
 
 static terminate_handler default_terminator;
 
-void cvc4terminate()
+void cvc5terminate()
 {
   set_terminate(default_terminator);
 #ifdef CVC5_DEBUG
@@ -221,14 +221,14 @@ void cvc4terminate()
 
   safe_print(STDERR_FILENO,
              "\n"
-             "CVC4 was terminated by the C++ runtime.\n"
+             "cvc5 was terminated by the C++ runtime.\n"
              "Perhaps an exception was thrown during stack unwinding.  "
              "(Don't do that.)\n");
   print_statistics();
   default_terminator();
 #else  /* CVC5_DEBUG */
   safe_print(STDERR_FILENO,
-             "CVC4 was terminated by the C++ runtime.\n"
+             "cvc5 was terminated by the C++ runtime.\n"
              "Perhaps an exception was thrown during stack unwinding.\n");
   print_statistics();
   default_terminator();
@@ -301,8 +301,8 @@ void install()
     throw Exception(string("sigaltstack() failure: ") + strerror(errno));
   }
 
-  cvc4StackSize = limit.rlim_cur;
-  cvc4StackBase = ss.ss_sp;
+  stackSize = limit.rlim_cur;
+  stackBase = ss.ss_sp;
 
   struct sigaction act4;
   act4.sa_sigaction = segv_handler;
@@ -325,16 +325,16 @@ void install()
 
 #endif /* __WIN32__ */
 
-  default_terminator = set_terminate(cvc4terminate);
+  default_terminator = set_terminate(cvc5terminate);
 }
 
 void cleanup() noexcept
 {
 #ifndef __WIN32__
 #ifdef HAVE_SIGALTSTACK
-  free(cvc4StackBase);
-  cvc4StackBase = NULL;
-  cvc4StackSize = 0;
+  free(stackBase);
+  stackBase = nullptr;
+  stackSize = 0;
 #endif /* HAVE_SIGALTSTACK */
 #endif /* __WIN32__ */
 }

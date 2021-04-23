@@ -38,16 +38,16 @@ using namespace cvc5::main;
 using namespace cvc5::language;
 
 /**
- * CVC4's main() routine is just an exception-safe wrapper around CVC4.
+ * cvc5's main() routine is just an exception-safe wrapper around cvc5.
  * Please don't construct anything here.  Even if the constructor is
  * inside the try { }, an exception during destruction can cause
- * problems.  That's why main() wraps runCvc4() in the first place.
- * Put everything in runCvc4().
+ * problems.  That's why main() wraps runCvc5() in the first place.
+ * Put everything in runCvc5().
  */
 int main(int argc, char* argv[]) {
   Options opts;
   try {
-    return runCvc4(argc, argv, opts);
+    return runCvc5(argc, argv, opts);
   } catch(OptionException& e) {
 #ifdef CVC5_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;

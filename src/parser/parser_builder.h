@@ -13,14 +13,14 @@
  * A builder for parsers.
  */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__PARSER_BUILDER_H
 #define CVC5__PARSER__PARSER_BUILDER_H
 
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 
@@ -42,7 +42,7 @@ class Parser;
  * called any number of times on an instance and will generate a fresh
  * parser each time.
  */
-class CVC4_EXPORT ParserBuilder
+class CVC5_EXPORT ParserBuilder
 {
   enum InputType {
     FILE_INPUT,
@@ -152,7 +152,7 @@ class CVC4_EXPORT ParserBuilder
    * parse would otherwise be an incorrect parse tree and the error
    * would go undetected.  This is specifically for circumstances
    * where the parser is ahead of the functionality present elsewhere
-   * in CVC4 (such as quantifiers, subtypes, records, etc. in the CVC
+   * in cvc5 (such as quantifiers, subtypes, records, etc. in the CVC
    * language parser).
    */
   ParserBuilder& withParseOnly(bool flag = true);

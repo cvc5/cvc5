@@ -13,7 +13,7 @@
  * Decision strategy.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__DECISION__DECISION_STRATEGY_H
 #define CVC5__DECISION__DECISION_STRATEGY_H
@@ -26,13 +26,13 @@
 
 namespace cvc5 {
 
-class DecisionEngine;
-
 namespace context {
   class Context;
   }  // namespace context
 
 namespace decision {
+  
+class DecisionEngine;
 
 class DecisionStrategy {
 protected:

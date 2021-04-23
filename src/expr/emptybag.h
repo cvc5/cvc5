@@ -13,7 +13,7 @@
  * A class for empty bags.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__EMPTY_BAG_H
 #define CVC5__EMPTY_BAG_H

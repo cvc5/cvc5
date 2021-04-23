@@ -108,20 +108,14 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
 /* -------------------------------------------------------------------------- */
 
 ITESimp::Statistics::Statistics()
-    : d_arithSubstitutionsAdded(
-          "preprocessing::passes::ITESimp::ArithSubstitutionsAdded", 0)
+    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
 {
-  smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
-}
-
-ITESimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(!options::unsatCores());
+  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF);
   bool result = true;
   bool simpDidALotOfWork = d_iteUtilities.simpIteDidALotOfWorkHeuristic();
   if (simpDidALotOfWork)

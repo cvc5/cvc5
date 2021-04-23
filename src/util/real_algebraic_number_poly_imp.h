@@ -13,7 +13,7 @@
  * Algebraic number constants; wraps a libpoly algebraic number.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__REAL_ALGEBRAIC_NUMBER_H
 #define CVC5__REAL_ALGEBRAIC_NUMBER_H

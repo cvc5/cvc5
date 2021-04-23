@@ -13,7 +13,7 @@
  * Multi-linear inst match generator class.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_LINEAR_H
 #define CVC5__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_MULTI_LINEAR_H
@@ -37,7 +37,7 @@ namespace inst {
  * InstMatchGeneratorMultiLinear at the head and a list of trailing
  * InstMatchGenerators.
  *
- * CVC4 employs techniques that ensure that the number of instantiations
+ * cvc5 employs techniques that ensure that the number of instantiations
  * is worst-case polynomial wrt the number of ground terms, where this class
  * lifts this policy to multi-triggers. In particular consider
  *

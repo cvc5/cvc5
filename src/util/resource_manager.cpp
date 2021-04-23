@@ -93,58 +93,29 @@ const char* toString(Resource r)
     default: return "?Resource?";
   }
 }
+std::ostream& operator<<(std::ostream& os, Resource r)
+{
+  return os << toString(r);
+}
 
 struct ResourceManager::Statistics
 {
-  ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
+  ReferenceStat<uint64_t> d_resourceUnitsUsed;
   IntStat d_spendResourceCalls;
-  std::vector<IntStat> d_resourceSteps;
+  HistogramStat<theory::InferenceId> d_inferenceIdSteps;
+  HistogramStat<Resource> d_resourceSteps;
   Statistics(StatisticsRegistry& stats);
-  ~Statistics();
-
-  void bump(Resource r, uint64_t amount)
-  {
-    bump_impl(static_cast<std::size_t>(r), amount, d_resourceSteps);
-  }
-
- private:
-  void bump_impl(std::size_t id, uint64_t amount, std::vector<IntStat>& stats)
-  {
-    Assert(stats.size() > id);
-    stats[id] += amount;
-  }
-
-  StatisticsRegistry& d_statisticsRegistry;
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
-    : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
-      d_spendResourceCalls("resource::spendResourceCalls", 0),
-      d_statisticsRegistry(stats)
+    : d_resourceUnitsUsed(
+        stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
+      d_inferenceIdSteps(stats.registerHistogram<theory::InferenceId>(
+          "resource::steps::inference-id")),
+      d_resourceSteps(
+          stats.registerHistogram<Resource>("resource::steps::resource"))
 {
-  d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.registerStat(&d_spendResourceCalls);
-
-  // Make sure we don't reallocate the vector
-  d_resourceSteps.reserve(resman_detail::ResourceMax + 1);
-  for (std::size_t id = 0; id <= resman_detail::ResourceMax; ++id)
-  {
-    Resource r = static_cast<Resource>(id);
-    d_resourceSteps.emplace_back("resource::res::" + std::string(toString(r)),
-                                 0);
-    d_statisticsRegistry.registerStat(&d_resourceSteps[id]);
-  }
-}
-
-ResourceManager::Statistics::~Statistics()
-{
-  d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
-
-  for (auto& stat : d_resourceSteps)
-  {
-    d_statisticsRegistry.unregisterStat(&stat);
-  }
 }
 
 bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)
@@ -165,6 +136,7 @@ bool parseOption(const std::string& optarg, std::string& name, uint64_t& weight)
 template <typename T, typename Weights>
 bool setWeight(const std::string& name, uint64_t weight, Weights& weights)
 {
+  using theory::toString;
   for (std::size_t i = 0; i < weights.size(); ++i)
   {
     if (name == toString(static_cast<T>(i)))
@@ -180,17 +152,14 @@ bool setWeight(const std::string& name, uint64_t weight, Weights& weights)
 
 ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     : d_perCallTimer(),
-      d_timeBudgetPerCall(0),
-      d_resourceBudgetCumulative(0),
-      d_resourceBudgetPerCall(0),
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
-      d_thisCallResourceBudget(0),
       d_statistics(new ResourceManager::Statistics(stats))
 {
   d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
 
+  d_infidWeights.fill(1);
   d_resourceWeights.fill(1);
   for (const auto& opt :
        options[cvc5::options::resourceWeightHolder__option_t()])
@@ -199,6 +168,8 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     uint64_t weight;
     if (parseOption(opt, name, weight))
     {
+      if (setWeight<theory::InferenceId>(name, weight, d_infidWeights))
+        continue;
       if (setWeight<Resource>(name, weight, d_resourceWeights)) continue;
       throw OptionException("Did not recognize resource type " + name);
     }
@@ -206,32 +177,6 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
 }
 
 ResourceManager::~ResourceManager() {}
-
-void ResourceManager::setResourceLimit(uint64_t units, bool cumulative)
-{
-  if (cumulative)
-  {
-    Trace("limit") << "ResourceManager: setting cumulative resource limit to "
-                   << units << endl;
-    d_resourceBudgetCumulative =
-        (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
-    d_thisCallResourceBudget = d_resourceBudgetCumulative;
-  }
-  else
-  {
-    Trace("limit") << "ResourceManager: setting per-call resource limit to "
-                   << units << endl;
-    d_resourceBudgetPerCall = units;
-  }
-}
-
-void ResourceManager::setTimeLimit(uint64_t millis)
-{
-  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis
-                 << " ms" << endl;
-  d_timeBudgetPerCall = millis;
-  // perCall timer will be set in beginCall
-}
 
 uint64_t ResourceManager::getResourceUsage() const
 {
@@ -242,8 +187,8 @@ uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
 uint64_t ResourceManager::getResourceRemaining() const
 {
-  if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed) return 0;
-  return d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+  if (options::cumulativeResourceLimit() <= d_cumulativeResourceUsed) return 0;
+  return options::cumulativeResourceLimit() - d_cumulativeResourceUsed;
 }
 
 void ResourceManager::spendResource(uint64_t amount)
@@ -275,27 +220,35 @@ void ResourceManager::spendResource(Resource r)
 {
   std::size_t i = static_cast<std::size_t>(r);
   Assert(d_resourceWeights.size() > i);
-  d_statistics->bump(r, d_resourceWeights[i]);
+  d_statistics->d_resourceSteps << r;
   spendResource(d_resourceWeights[i]);
+}
+
+void ResourceManager::spendResource(theory::InferenceId iid)
+{
+  std::size_t i = static_cast<std::size_t>(iid);
+  Assert(d_infidWeights.size() > i);
+  d_statistics->d_inferenceIdSteps << iid;
+  spendResource(d_infidWeights[i]);
 }
 
 void ResourceManager::beginCall()
 {
-  d_perCallTimer.set(d_timeBudgetPerCall);
+  d_perCallTimer.set(options::perCallMillisecondLimit());
   d_thisCallResourceUsed = 0;
 
-  if (d_resourceBudgetCumulative > 0)
+  if (options::cumulativeResourceLimit() > 0)
   {
     // Compute remaining cumulative resource budget
     d_thisCallResourceBudget =
-        d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+        options::cumulativeResourceLimit() - d_cumulativeResourceUsed;
   }
-  if (d_resourceBudgetPerCall > 0)
+  if (options::perCallResourceLimit() > 0)
   {
     // Check if per-call resource budget is even smaller
-    if (d_resourceBudgetPerCall < d_thisCallResourceBudget)
+    if (options::perCallResourceLimit() < d_thisCallResourceBudget)
     {
-      d_thisCallResourceBudget = d_resourceBudgetPerCall;
+      d_thisCallResourceBudget = options::perCallResourceLimit();
     }
   }
 }
@@ -309,24 +262,25 @@ void ResourceManager::endCall()
 
 bool ResourceManager::limitOn() const
 {
-  return (d_resourceBudgetCumulative > 0) || (d_timeBudgetPerCall > 0)
-         || (d_resourceBudgetPerCall > 0);
+  return (options::cumulativeResourceLimit() > 0)
+         || (options::perCallMillisecondLimit() > 0)
+         || (options::perCallResourceLimit() > 0);
 }
 
 bool ResourceManager::outOfResources() const
 {
-  if (d_resourceBudgetPerCall > 0)
+  if (options::perCallResourceLimit() > 0)
   {
     // Check if per-call resources are exhausted
-    if (d_thisCallResourceUsed >= d_resourceBudgetPerCall)
+    if (d_thisCallResourceUsed >= options::perCallResourceLimit())
     {
       return true;
     }
   }
-  if (d_resourceBudgetCumulative > 0)
+  if (options::cumulativeResourceLimit() > 0)
   {
     // Check if cumulative resources are exhausted
-    if (d_cumulativeResourceUsed >= d_resourceBudgetCumulative)
+    if (d_cumulativeResourceUsed >= options::cumulativeResourceLimit())
     {
       return true;
     }
@@ -336,7 +290,7 @@ bool ResourceManager::outOfResources() const
 
 bool ResourceManager::outOfTime() const
 {
-  if (d_timeBudgetPerCall == 0) return false;
+  if (options::perCallMillisecondLimit() == 0) return false;
   return d_perCallTimer.expired();
 }
 

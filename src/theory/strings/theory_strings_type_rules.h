@@ -13,7 +13,7 @@
  * Typing rules for the theory of strings and regexps.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC5__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H

@@ -14,7 +14,7 @@
  * or unsat cores are enabled.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARITH__PROOF_MACROS_H
 #define CVC5__THEORY__ARITH__PROOF_MACROS_H

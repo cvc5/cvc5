@@ -78,8 +78,8 @@ void DTypeSelector::toStream(std::ostream& out) const
 
 std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
 {
-  // can only output datatypes in the CVC4 native language
-  language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  // can only output datatypes in the cvc5 native language
+  language::SetLanguage::Scope ls(os, language::output::LANG_CVC);
   arg.toStream(os);
   return os;
 }

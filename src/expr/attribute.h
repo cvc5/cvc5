@@ -13,7 +13,7 @@
  * Node attributes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 /* There are strong constraints on ordering of declarations of
  * attributes and nodes due to template use */
@@ -211,7 +211,7 @@ public:
 
   /**
    * debugHook() is an empty function for the purpose of debugging
-   * the AttributeManager without recompiling all of CVC4.
+   * the AttributeManager without recompiling all of cvc5.
    * Formally this is a nop.
    */
   void debugHook(int debugFlag);

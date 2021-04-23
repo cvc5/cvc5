@@ -13,7 +13,7 @@
  * The symbol manager.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__EXPR__SYMBOL_MANAGER_H
 #define CVC5__EXPR__SYMBOL_MANAGER_H
@@ -23,7 +23,7 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "expr/symbol_table.h"
 
 namespace cvc5 {
@@ -36,7 +36,7 @@ namespace cvc5 {
  * Like SymbolTable, this class currently lives in src/expr/ since it uses
  * context-dependent data structures.
  */
-class CVC4_EXPORT SymbolManager
+class CVC5_EXPORT SymbolManager
 {
  public:
   SymbolManager(api::Solver* s);

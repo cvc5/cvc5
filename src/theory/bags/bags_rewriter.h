@@ -13,15 +13,14 @@
  * Bags theory rewriter.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 #define CVC5__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 
 #include "theory/bags/rewrites.h"
 #include "theory/theory_rewriter.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -43,7 +42,7 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(IntegralHistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: MK_BAG, BAG_COUNT, UNION_MAX, UNION_DISJOINT,
@@ -57,7 +56,6 @@ class BagsRewriter : public TheoryRewriter
    * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
-
  private:
   /**
    * rewrites for n include:
@@ -219,7 +217,7 @@ class BagsRewriter : public TheoryRewriter
   Node d_zero;
   Node d_one;
   /** Reference to the rewriter statistics. */
-  IntegralHistogramStat<Rewrite>* d_statistics;
+  HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags

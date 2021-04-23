@@ -12,7 +12,7 @@
  *
  * The class representing a floating-point format.
  */
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__FLOATINGPOINT_SIZE_H
 #define CVC5__FLOATINGPOINT_SIZE_H

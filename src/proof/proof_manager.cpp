@@ -72,7 +72,7 @@ void ProofManager::initSatProof(Minisat::Solver* solver)
   // Destroy old instance before initializing new one to avoid issues with
   // registering stats
   d_satProof.reset();
-  d_satProof.reset(new CoreSatProof(solver, d_context, ""));
+  d_satProof.reset(new CoreSatProof(solver, d_context, "satproof::"));
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
@@ -127,7 +127,7 @@ void ProofManager::traceDeps(TNode n, CDNodeSet* coreAssertions)
 }
 
 void ProofManager::traceUnsatCore() {
-  Assert(options::unsatCores());
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF);
   d_satProof->refreshProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
@@ -174,7 +174,7 @@ void ProofManager::constructSatProof()
 
 void ProofManager::getLemmasInUnsatCore(std::vector<Node>& lemmas)
 {
-  Assert(options::unsatCores())
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
       << "Cannot compute unsat core when proofs are off";
   Assert(unsatCoreAvailable())
       << "Cannot get unsat core at this time. Mabye the input is SAT?";

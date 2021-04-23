@@ -11,7 +11,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple test file to interact with CVC4 with line editing
+# A simple test file to interact with cvc5 with line editing
 ##
 
 import sys
@@ -19,15 +19,15 @@ import pexpect
 
 def check_iteractive_shell():
     """
-    Interacts with CVC4's interactive shell and checks that things such a tab
+    Interacts with cvc5's interactive shell and checks that things such a tab
     completion and "pressing up" works.
     """
 
-    # Open CVC4
-    child = pexpect.spawnu("bin/cvc4", timeout=1)
+    # Open cvc5
+    child = pexpect.spawnu("bin/cvc5", timeout=1)
 
-    # We expect to see the CVC4 prompt
-    child.expect("CVC4>")
+    # We expect to see the cvc5 prompt
+    child.expect("cvc5>")
 
     # If we send a line with just 'BOOLE' ...
     child.sendline("BOOLE")
@@ -56,8 +56,8 @@ def check_iteractive_shell():
     # Send enter
     child.sendcontrol("m")
 
-    # We expect to see the CVC4 prompt
-    child.expect("CVC4>")
+    # We expect to see the cvc5 prompt
+    child.expect("cvc5>")
 
     # Now send an up key
     child.send("\033[A")

@@ -13,7 +13,7 @@
  * The sep-pre-skolem-emp eprocessing pass.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H
 #define CVC5__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H

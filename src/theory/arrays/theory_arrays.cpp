@@ -62,30 +62,34 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            ProofNodeManager* pnm,
                            std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
-      d_numRow(name + "theory::arrays::number of Row lemmas", 0),
-      d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
-      d_numProp(name + "theory::arrays::number of propagations", 0),
-      d_numExplain(name + "theory::arrays::number of explanations", 0),
-      d_numNonLinear(name + "theory::arrays::number of calls to setNonLinear",
-                     0),
-      d_numSharedArrayVarSplits(
-          name + "theory::arrays::number of shared array var splits", 0),
-      d_numGetModelValSplits(
-          name + "theory::arrays::number of getModelVal splits", 0),
-      d_numGetModelValConflicts(
-          name + "theory::arrays::number of getModelVal conflicts", 0),
-      d_numSetModelValSplits(
-          name + "theory::arrays::number of setModelVal splits", 0),
-      d_numSetModelValConflicts(
-          name + "theory::arrays::number of setModelVal conflicts", 0),
-      d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
+      d_numRow(
+          smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(
+          smtStatisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numProp(
+          smtStatisticsRegistry().registerInt(name + "number of propagations")),
+      d_numExplain(
+          smtStatisticsRegistry().registerInt(name + "number of explanations")),
+      d_numNonLinear(smtStatisticsRegistry().registerInt(
+          name + "number of calls to setNonLinear")),
+      d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
+          name + "number of shared array var splits")),
+      d_numGetModelValSplits(smtStatisticsRegistry().registerInt(
+          name + "number of getModelVal splits")),
+      d_numGetModelValConflicts(smtStatisticsRegistry().registerInt(
+          name + "number of getModelVal conflicts")),
+      d_numSetModelValSplits(smtStatisticsRegistry().registerInt(
+          name + "number of setModelVal splits")),
+      d_numSetModelValConflicts(smtStatisticsRegistry().registerInt(
+          name + "number of setModelVal conflicts")),
+      d_ppEqualityEngine(u, name + "pp", true),
       d_ppFacts(u),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
-      d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
+      d_mayEqualEqualityEngine(c, name + "mayEqual", true),
       d_notify(*this),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -112,17 +116,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
 {
-  smtStatisticsRegistry()->registerStat(&d_numRow);
-  smtStatisticsRegistry()->registerStat(&d_numExt);
-  smtStatisticsRegistry()->registerStat(&d_numProp);
-  smtStatisticsRegistry()->registerStat(&d_numExplain);
-  smtStatisticsRegistry()->registerStat(&d_numNonLinear);
-  smtStatisticsRegistry()->registerStat(&d_numSharedArrayVarSplits);
-  smtStatisticsRegistry()->registerStat(&d_numGetModelValSplits);
-  smtStatisticsRegistry()->registerStat(&d_numGetModelValConflicts);
-  smtStatisticsRegistry()->registerStat(&d_numSetModelValSplits);
-  smtStatisticsRegistry()->registerStat(&d_numSetModelValConflicts);
-
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
@@ -147,16 +140,6 @@ TheoryArrays::~TheoryArrays() {
     it2->second->deleteSelf();
   }
   delete d_constReadsContext;
-  smtStatisticsRegistry()->unregisterStat(&d_numRow);
-  smtStatisticsRegistry()->unregisterStat(&d_numExt);
-  smtStatisticsRegistry()->unregisterStat(&d_numProp);
-  smtStatisticsRegistry()->unregisterStat(&d_numExplain);
-  smtStatisticsRegistry()->unregisterStat(&d_numNonLinear);
-  smtStatisticsRegistry()->unregisterStat(&d_numSharedArrayVarSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
 }
 
 TheoryRewriter* TheoryArrays::getTheoryRewriter() { return &d_rewriter; }
@@ -166,7 +149,7 @@ ProofRuleChecker* TheoryArrays::getProofChecker() { return &d_checker; }
 bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
-  esi.d_name = d_instanceName + "theory::arrays::ee";
+  esi.d_name = d_instanceName + "ee";
   return true;
 }
 
@@ -317,7 +300,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
 TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
-  TrustNode texp = expandDefinition(term);
+  TrustNode texp = d_rewriter.expandDefinition(term);
   if (!texp.isNull())
   {
     return texp;
@@ -2083,62 +2066,6 @@ Node TheoryArrays::TheoryArraysDecisionStrategy::getNextDecisionRequest()
 std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
 {
   return std::string("th_arrays_dec");
-}
-
-TrustNode TheoryArrays::expandDefinition(Node node)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Kind kind = node.getKind();
-
-  /* Expand
-   *
-   *   (eqrange a b i j)
-   *
-   * to
-   *
-   *  forall k . i <= k <= j => a[k] = b[k]
-   *
-   */
-  if (kind == kind::EQ_RANGE)
-  {
-    TNode a = node[0];
-    TNode b = node[1];
-    TNode i = node[2];
-    TNode j = node[3];
-    Node k = nm->mkBoundVar(i.getType());
-    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, k);
-    TypeNode type = k.getType();
-
-    Kind kle;
-    Node range;
-    if (type.isBitVector())
-    {
-      kle = kind::BITVECTOR_ULE;
-    }
-    else if (type.isFloatingPoint())
-    {
-      kle = kind::FLOATINGPOINT_LEQ;
-    }
-    else if (type.isInteger() || type.isReal())
-    {
-      kle = kind::LEQ;
-    }
-    else
-    {
-      Unimplemented() << "Type " << type << " is not supported for predicate "
-                      << kind;
-    }
-
-    range = nm->mkNode(kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
-
-    Node eq = nm->mkNode(kind::EQUAL,
-                         nm->mkNode(kind::SELECT, a, k),
-                         nm->mkNode(kind::SELECT, b, k));
-    Node implies = nm->mkNode(kind::IMPLIES, range, eq);
-    Node ret = nm->mkNode(kind::FORALL, bvl, implies);
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
 }
 
 void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)

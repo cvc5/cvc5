@@ -22,7 +22,7 @@
  * The only special case is when we use 3rd party back-ends we have no control
  * over, and which throw (invalid_argument) exceptions anyways. In this case,
  * we do not replicate argument checks but delegate them to the back-end,
- * catch thrown exceptions, and raise a CVC4ApiException.
+ * catch thrown exceptions, and raise a CVC5ApiException.
  *
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
@@ -61,25 +61,22 @@
 #include "util/random.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
+#include "util/statistics_value.h"
 #include "util/utility.h"
 
 namespace cvc5 {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
-/* Statistics                                                                 */
+/* APIStatistics                                                              */
 /* -------------------------------------------------------------------------- */
 
-struct Statistics
+struct APIStatistics
 {
-  Statistics()
-      : d_consts("api::CONSTANT"), d_vars("api::VARIABLE"), d_terms("api::TERM")
-  {
-  }
-  IntegralHistogramStat<TypeConstant> d_consts;
-  IntegralHistogramStat<TypeConstant> d_vars;
-  IntegralHistogramStat<Kind> d_terms;
+  HistogramStat<TypeConstant> d_consts;
+  HistogramStat<TypeConstant> d_vars;
+  HistogramStat<Kind> d_terms;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -353,6 +350,9 @@ const static std::unordered_map<Kind, cvc5::Kind, KindHashFunction> s_kinds{
     {BOUND_VAR_LIST, cvc5::Kind::BOUND_VAR_LIST},
     {INST_PATTERN, cvc5::Kind::INST_PATTERN},
     {INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN},
+    {INST_POOL, cvc5::Kind::INST_POOL},
+    {INST_ADD_TO_POOL, cvc5::Kind::INST_ADD_TO_POOL},
+    {SKOLEM_ADD_TO_POOL, cvc5::Kind::SKOLEM_ADD_TO_POOL},
     {INST_ATTRIBUTE, cvc5::Kind::INST_ATTRIBUTE},
     {INST_PATTERN_LIST, cvc5::Kind::INST_PATTERN_LIST},
     {LAST_KIND, cvc5::Kind::LAST_KIND},
@@ -428,6 +428,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::TO_INTEGER, TO_INTEGER},
         {cvc5::Kind::TO_REAL, TO_REAL},
         {cvc5::Kind::PI, PI},
+        {cvc5::Kind::IAND_OP, IAND},
         /* BV -------------------------------------------------------------- */
         {cvc5::Kind::CONST_BITVECTOR, CONST_BITVECTOR},
         {cvc5::Kind::BITVECTOR_CONCAT, BITVECTOR_CONCAT},
@@ -647,6 +648,9 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
         {cvc5::Kind::INST_PATTERN, INST_PATTERN},
         {cvc5::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
+        {cvc5::Kind::INST_POOL, INST_POOL},
+        {cvc5::Kind::INST_ADD_TO_POOL, INST_ADD_TO_POOL},
+        {cvc5::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
         {cvc5::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
         {cvc5::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
@@ -765,6 +769,12 @@ std::string kindToString(Kind k)
                             : cvc5::kind::kindToString(extToIntKind(k));
 }
 
+const char* toString(Kind k)
+{
+  return k == INTERNAL_KIND ? "INTERNAL_KIND"
+                            : cvc5::kind::toString(extToIntKind(k));
+}
+
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
   switch (k)
@@ -783,18 +793,18 @@ size_t KindHashFunction::operator()(Kind k) const { return k; }
 
 namespace {
 
-class CVC4ApiExceptionStream
+class CVC5ApiExceptionStream
 {
  public:
-  CVC4ApiExceptionStream() {}
+  CVC5ApiExceptionStream() {}
   /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
    * a destructor that throws an exception and in C++11 all destructors
    * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC4ApiExceptionStream() noexcept(false)
+  ~CVC5ApiExceptionStream() noexcept(false)
   {
     if (std::uncaught_exceptions() == 0)
     {
-      throw CVC4ApiException(d_stream.str());
+      throw CVC5ApiException(d_stream.str());
     }
   }
 
@@ -804,18 +814,18 @@ class CVC4ApiExceptionStream
   std::stringstream d_stream;
 };
 
-class CVC4ApiRecoverableExceptionStream
+class CVC5ApiRecoverableExceptionStream
 {
  public:
-  CVC4ApiRecoverableExceptionStream() {}
+  CVC5ApiRecoverableExceptionStream() {}
   /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
    * a destructor that throws an exception and in C++11 all destructors
    * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC4ApiRecoverableExceptionStream() noexcept(false)
+  ~CVC5ApiRecoverableExceptionStream() noexcept(false)
   {
     if (std::uncaught_exceptions() == 0)
     {
-      throw CVC4ApiRecoverableException(d_stream.str());
+      throw CVC5ApiRecoverableException(d_stream.str());
     }
   }
 
@@ -832,14 +842,14 @@ class CVC4ApiRecoverableExceptionStream
   }                                                                            \
   catch (const UnrecognizedOptionException& e)                                 \
   {                                                                            \
-    throw CVC4ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiRecoverableException(e.getMessage());                         \
   }                                                                            \
   catch (const cvc5::RecoverableModalException& e)                             \
   {                                                                            \
-    throw CVC4ApiRecoverableException(e.getMessage());                         \
+    throw CVC5ApiRecoverableException(e.getMessage());                         \
   }                                                                            \
-  catch (const cvc5::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
-  catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
+  catch (const cvc5::Exception& e) { throw CVC5ApiException(e.getMessage()); } \
+  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
 
 }  // namespace
 
@@ -1829,6 +1839,52 @@ bool Op::isIndexed() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return isIndexedHelper();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+size_t Op::getNumIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  if (!isIndexedHelper())
+  {
+    return 0;
+  }
+
+  Kind k = intToExtKind(d_node->getKind());
+  size_t size = 0;
+  switch (k)
+  {
+    case DIVISIBLE: size = 1; break;
+    case RECORD_UPDATE: size = 1; break;
+    case BITVECTOR_REPEAT: size = 1; break;
+    case BITVECTOR_ZERO_EXTEND: size = 1; break;
+    case BITVECTOR_SIGN_EXTEND: size = 1; break;
+    case BITVECTOR_ROTATE_LEFT: size = 1; break;
+    case BITVECTOR_ROTATE_RIGHT: size = 1; break;
+    case INT_TO_BITVECTOR: size = 1; break;
+    case IAND: size = 1; break;
+    case FLOATINGPOINT_TO_UBV: size = 1; break;
+    case FLOATINGPOINT_TO_SBV: size = 1; break;
+    case TUPLE_UPDATE: size = 1; break;
+    case REGEXP_REPEAT: size = 1; break;
+    case BITVECTOR_EXTRACT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_REAL: size = 2; break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
+    case REGEXP_LOOP: size = 2; break;
+    case TUPLE_PROJECT:
+      size = d_node->getConst<TupleProjectOp>().getIndices().size();
+      break;
+    default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+  }
+
+  //////// all checks before this line
+  return size;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4056,6 +4112,200 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* Statistics                                                                 */
+/* -------------------------------------------------------------------------- */
+
+struct Stat::StatData
+{
+  cvc5::StatExportData data;
+  template <typename T>
+  StatData(T&& t) : data(std::forward<T>(t))
+  {
+  }
+  StatData() : data() {}
+};
+
+Stat::~Stat() {}
+Stat::Stat(const Stat& s)
+    : d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data))
+{
+}
+Stat& Stat::operator=(const Stat& s)
+{
+  d_expert = s.d_expert;
+  d_data = std::make_unique<StatData>(s.d_data->data);
+  return *this;
+}
+
+bool Stat::isExpert() const { return d_expert; }
+bool Stat::isDefault() const { return d_default; }
+
+bool Stat::isInt() const
+{
+  return std::holds_alternative<int64_t>(d_data->data);
+}
+int64_t Stat::getInt() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(isInt()) << "Expected Stat of type int64_t.";
+  return std::get<int64_t>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+bool Stat::isDouble() const
+{
+  return std::holds_alternative<double>(d_data->data);
+}
+double Stat::getDouble() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(isDouble()) << "Expected Stat of type double.";
+  return std::get<double>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+bool Stat::isString() const
+{
+  return std::holds_alternative<std::string>(d_data->data);
+}
+const std::string& Stat::getString() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(isString()) << "Expected Stat of type std::string.";
+  return std::get<std::string>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+bool Stat::isHistogram() const
+{
+  return std::holds_alternative<HistogramData>(d_data->data);
+}
+const Stat::HistogramData& Stat::getHistogram() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(isHistogram()) << "Expected Stat of type histogram.";
+  return std::get<HistogramData>(d_data->data);
+  CVC5_API_TRY_CATCH_END;
+}
+
+Stat::Stat(bool expert, bool defaulted, StatData&& sd)
+    : d_expert(expert),
+      d_default(defaulted),
+      d_data(std::make_unique<StatData>(std::move(sd)))
+{
+}
+
+std::ostream& operator<<(std::ostream& os, const Stat& sv)
+{
+  return cvc5::detail::print(os, sv.d_data->data);
+}
+
+Statistics::BaseType::const_reference Statistics::iterator::operator*() const
+{
+  return d_it.operator*();
+}
+Statistics::BaseType::const_pointer Statistics::iterator::operator->() const
+{
+  return d_it.operator->();
+}
+Statistics::iterator& Statistics::iterator::operator++()
+{
+  do
+  {
+    ++d_it;
+  } while (!isVisible());
+  return *this;
+}
+Statistics::iterator Statistics::iterator::operator++(int)
+{
+  iterator tmp = *this;
+  do
+  {
+    ++d_it;
+  } while (!isVisible());
+  return tmp;
+}
+Statistics::iterator& Statistics::iterator::operator--()
+{
+  do
+  {
+    --d_it;
+  } while (!isVisible());
+  return *this;
+}
+Statistics::iterator Statistics::iterator::operator--(int)
+{
+  iterator tmp = *this;
+  do
+  {
+    --d_it;
+  } while (!isVisible());
+  return tmp;
+}
+bool Statistics::iterator::operator==(const Statistics::iterator& rhs) const
+{
+  return d_it == rhs.d_it;
+}
+bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
+{
+  return d_it != rhs.d_it;
+}
+Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
+                               const Statistics::BaseType& base,
+                               bool expert,
+                               bool defaulted)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(defaulted)
+{
+  while (!isVisible())
+  {
+    ++d_it;
+  }
+}
+bool Statistics::iterator::isVisible() const
+{
+  if (d_it == d_base->end()) return true;
+  if (!d_showExpert && d_it->second.isExpert()) return false;
+  if (!d_showDefault && d_it->second.isDefault()) return false;
+  return true;
+}
+
+const Stat& Statistics::get(const std::string& name)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  auto it = d_stats.find(name);
+  CVC5_API_RECOVERABLE_CHECK(it != d_stats.end())
+      << "No stat with name \"" << name << "\" exists.";
+  return it->second;
+  CVC5_API_TRY_CATCH_END;
+}
+
+Statistics::iterator Statistics::begin(bool expert, bool defaulted) const
+{
+  return iterator(d_stats.begin(), d_stats, expert, defaulted);
+}
+Statistics::iterator Statistics::end() const
+{
+  return iterator(d_stats.end(), d_stats, false, false);
+}
+
+Statistics::Statistics(const StatisticsRegistry& reg)
+{
+  for (const auto& svp : reg)
+  {
+    d_stats.emplace(svp.first,
+                    Stat(svp.second->d_expert,
+                         svp.second->isDefault(),
+                         svp.second->getViewer()));
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, const Statistics& stats)
+{
+  for (const auto& stat : stats)
+  {
+    out << stat.first << " = " << stat.second << std::endl;
+  }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -4070,12 +4320,7 @@ Solver::Solver(Options* opts)
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
-#if CVC5_STATISTICS_ON
-  d_stats.reset(new Statistics());
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_consts);
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_vars);
-  d_smtEngine->getStatisticsRegistry().registerStat(&d_stats->d_terms);
-#endif
+  resetStatistics();
 }
 
 Solver::~Solver() {}
@@ -4087,27 +4332,29 @@ NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
 
 void Solver::increment_term_stats(Kind kind) const
 {
-#ifdef CVC5_STATISTICS_ON
-  d_stats->d_terms << kind;
-#endif
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_stats->d_terms << kind;
+  }
 }
 
 void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
 {
-#ifdef CVC5_STATISTICS_ON
-  const TypeNode tn = sort.getTypeNode();
-  TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
-                        ? tn.getConst<TypeConstant>()
-                        : LAST_TYPE;
-  if (is_var)
+  if constexpr (Configuration::isStatisticsBuild())
   {
-    d_stats->d_vars << tc;
+    const TypeNode tn = sort.getTypeNode();
+    TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
+                          ? tn.getConst<TypeConstant>()
+                          : LAST_TYPE;
+    if (is_var)
+    {
+      d_stats->d_vars << tc;
+    }
+    else
+    {
+      d_stats->d_consts << tc;
+    }
   }
-  else
-  {
-    d_stats->d_consts << tc;
-  }
-#endif
 }
 
 /* Split out to avoid nested API calls (problematic with API tracing).        */
@@ -4135,7 +4382,7 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
   catch (const std::invalid_argument& e)
   {
     /* Catch to throw with a more meaningful error message. To be caught in
-     * enclosing CVC5_API_TRY_CATCH_* block to throw CVC4ApiException. */
+     * enclosing CVC5_API_TRY_CATCH_* block to throw CVC5ApiException. */
     std::stringstream message;
     message << "Cannot construct Real or Int from string argument '" << s << "'"
             << std::endl;
@@ -4260,18 +4507,18 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
     if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
         || kind == DIVISION || kind == HO_APPLY || kind == REGEXP_DIFF)
     {
-      // left-associative, but CVC4 internally only supports 2 args
+      // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);
     }
     else if (kind == IMPLIES)
     {
-      // right-associative, but CVC4 internally only supports 2 args
+      // right-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkRightAssociative(k, echildren);
     }
     else if (kind == EQUAL || kind == LT || kind == GT || kind == LEQ
              || kind == GEQ)
     {
-      // "chainable", but CVC4 internally only supports 2 args
+      // "chainable", but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkChain(k, echildren);
     }
     else if (kind::isAssociative(k))
@@ -4503,6 +4750,20 @@ bool Solver::isValidInteger(const std::string& s) const
   return true;
 }
 
+void Solver::resetStatistics()
+{
+  if constexpr (Configuration::isStatisticsBuild())
+  {
+    d_stats.reset(new APIStatistics{
+        d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+            "api::CONSTANT"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
+            "api::VARIABLE"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+    });
+  }
+}
+
 /* Helpers for mkTerm checks.                                                 */
 /* .......................................................................... */
 
@@ -4605,7 +4866,7 @@ Sort Solver::getRoundingModeSort(void) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return Sort(this, getNodeManager()->roundingModeType());
   ////////
@@ -4643,7 +4904,7 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
   //////// all checks before this line
@@ -5143,7 +5404,7 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
@@ -5156,7 +5417,7 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
@@ -5169,7 +5430,7 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
@@ -5182,7 +5443,7 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
@@ -5195,7 +5456,7 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
@@ -5208,7 +5469,7 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
   ////////
@@ -5263,7 +5524,7 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(Configuration::isBuiltWithSymFPU())
-      << "Expected CVC4 to be compiled with SymFPU support";
+      << "Expected cvc5 to be compiled with SymFPU support";
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
@@ -6210,7 +6471,7 @@ std::string Solver::getInfo(const std::string& flag) const
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
       << "Unrecognized flag for getInfo.";
   //////// all checks before this line
-  return d_smtEngine->getInfo(flag).toString();
+  return d_smtEngine->getInfo(flag);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6256,8 +6517,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores]
-                 || d_smtEngine->getOptions()[options::unsatCoresNew])
+  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
@@ -6402,6 +6662,24 @@ Term Solver::getSeparationNilTerm() const
       << "Can only get separtion nil term after sat or unknown response.";
   //////// all checks before this line
   return Term(this, d_smtEngine->getSepNilExpr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::declarePool(const std::string& symbol,
+                         const Sort& sort,
+                         const std::vector<Term>& initValue) const
+{
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_SOLVER_CHECK_TERMS(initValue);
+  //////// all checks before this line
+  TypeNode setType = getNodeManager()->mkSetType(*sort.d_type);
+  Node pool = getNodeManager()->mkBoundVar(symbol, setType);
+  std::vector<Node> initv = Term::termVectorToNodes(initValue);
+  d_smtEngine->declarePool(pool, initv);
+  return Term(this, pool);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6839,6 +7117,11 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
  * the new API. !!!
  */
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
+
+Statistics Solver::getStatistics() const
+{
+  return Statistics(d_smtEngine->getStatisticsRegistry());
+}
 
 }  // namespace api
 

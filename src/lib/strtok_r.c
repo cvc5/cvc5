@@ -13,12 +13,12 @@
  * Replacement for strtok_r() for systems without it (like Win32).
  */
 
-#include "cvc4_private.h"
-
 #include "lib/strtok_r.h"
+
 #include <stdio.h>
 #include <string.h>
 
+#include "cvc5_private.h"
 
 #ifdef __cplusplus
 extern "C" {

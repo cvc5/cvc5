@@ -20,7 +20,7 @@ configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
 
-libcvc4_add_sources(
+libcvc5_add_sources(
   abstract_value.cpp
   abstract_value.h
   bin_heap.h
@@ -67,23 +67,14 @@ libcvc4_add_sources(
   sexpr.h
   smt2_quote_string.cpp
   smt2_quote_string.h
-  statistics.cpp
-  statistics.h
   statistics_public.cpp
   statistics_public.h
-  statistics_reg.cpp
-  statistics_reg.h
   statistics_registry.cpp
   statistics_registry.h
+  statistics_stats.cpp
+  statistics_stats.h
   statistics_value.cpp
   statistics_value.h
-  stats_base.cpp
-  stats_base.h
-  stats_histogram.h
-  stats_timer.cpp
-  stats_timer.h
-  stats_utils.cpp
-  stats_utils.h
   string.cpp
   string.h
   tuple.h
@@ -93,13 +84,13 @@ libcvc4_add_sources(
 )
 
 if(CVC5_USE_CLN_IMP)
-  libcvc4_add_sources(rational_cln_imp.cpp integer_cln_imp.cpp)
+  libcvc5_add_sources(rational_cln_imp.cpp integer_cln_imp.cpp)
 endif()
 
 if(CVC5_USE_GMP_IMP)
-  libcvc4_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
+  libcvc5_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
 endif()
 
 if(CVC5_USE_POLY_IMP)
-  libcvc4_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
+  libcvc5_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
 endif()

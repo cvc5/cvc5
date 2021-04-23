@@ -13,7 +13,7 @@
  * Theory proof step buffer utility.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__THEORY_PROOF_STEP_BUFFER_H
 #define CVC5__THEORY__THEORY_PROOF_STEP_BUFFER_H

@@ -13,7 +13,7 @@
  * Rewriter for the theory of (co)inductive datatypes.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H
 #define CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H
@@ -48,6 +48,8 @@ class DatatypesRewriter : public TheoryRewriter
    * on all top-level codatatype subterms of n.
    */
   static Node normalizeConstant(Node n);
+  /** expand defintions */
+  TrustNode expandDefinition(Node n) override;
 
  private:
   /** rewrite constructor term in */
@@ -74,7 +76,7 @@ class DatatypesRewriter : public TheoryRewriter
    *   Stream := cons( head : Int, tail : Stream )
    * The stream 1,0,1,0,1,0... when written in mu-notation is the term:
    *   mu x. cons( 1, mu y. cons( 0, x ) )
-   * This is represented in CVC4 by the Node:
+   * This is represented in cvc5 by the Node:
    *   cons( 1, cons( 0, c[1] ) )
    * where c[1] is a uninterpreted constant datatype with Debruijn index 1,
    * indicating that c[1] is nested underneath 1 level on the path to the

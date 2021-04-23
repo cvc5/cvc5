@@ -13,7 +13,7 @@
  * The pretty-printer interface for the SMT2 output language.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PRINTER__SMT2_PRINTER_H
 #define CVC5__PRINTER__SMT2_PRINTER_H
@@ -235,6 +235,8 @@ class Smt2Printer : public cvc5::Printer
                 TNode n,
                 int toDepth,
                 LetBinding* lbind = nullptr) const;
+  /** To stream type node */
+  void toStreamType(std::ostream& out, TypeNode tn) const;
   /**
    * To stream, with a forced type. This method is used in some corner cases
    * to force a node n to be printed as if it had type tn. This is used e.g.

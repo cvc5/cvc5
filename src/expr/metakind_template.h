@@ -13,7 +13,7 @@
  * Template for the metakind header.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__KIND__METAKIND_H
 #define CVC5__KIND__METAKIND_H
@@ -33,7 +33,7 @@ namespace kind {
 namespace metakind {
 
 /**
- * Static, compile-time information about types T representing CVC4
+ * Static, compile-time information about types T representing cvc5
  * constants:
  *
  *   typename ConstantMap<T>::OwningTheory
@@ -51,7 +51,7 @@ struct ConstantMap;
 
 /**
  * Static, compile-time information about kinds k and what type their
- * corresponding CVC4 constants are:
+ * corresponding cvc5 constants are:
  *
  *   typename ConstantMapReverse<k>::T
  *
@@ -129,14 +129,18 @@ struct NodeValuePoolEq {
 
 #endif /* CVC5__KIND__METAKIND_H */
 
+// clang-format off
 ${metakind_includes}
+// clang-format on
 
 #ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace cvc5 {
 
 namespace expr {
+// clang-format off
 ${metakind_getConst_decls}
+// clang-format on
 }  // namespace expr
 
 namespace kind {
@@ -170,9 +174,12 @@ inline size_t NodeValueConstCompare<k, pool>::constHash(
   return nv->getConst<T>().hash();
 }
 
+// clang-format off
 ${metakind_constantMaps_decls}
+// clang-format on
 
-struct NodeValueConstPrinter {
+struct NodeValueConstPrinter
+{
   static void toStream(std::ostream& out, const ::cvc5::expr::NodeValue* nv);
   static void toStream(std::ostream& out, TNode n);
 };

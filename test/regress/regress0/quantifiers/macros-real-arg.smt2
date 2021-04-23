@@ -1,4 +1,4 @@
-; COMMAND-LINE: --macros-quant --no-check-unsat-cores-new
+; COMMAND-LINE: --macros-quant --no-check-unsat-cores
 ; EXPECT: unsat
 ; this will fail if type rule for APPLY_UF is made strict
 (set-logic UFLIRA)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --global-negate --no-check-unsat-cores --no-check-unsat-cores-new
+; COMMAND-LINE: --global-negate --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic LRA)
 (set-info :status unsat)

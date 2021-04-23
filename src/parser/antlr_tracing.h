@@ -44,7 +44,8 @@
  */
 
 /** A "System" object, just like in Java! */
-static struct __Cvc4System {
+static struct __Cvc5System
+{
   /**
    * Helper class just to handle arbitrary string concatenation
    * with Java syntax.  In C++ you cannot do "char*" + "char*",
@@ -54,7 +55,7 @@ static struct __Cvc4System {
   struct JavaPrinter {
     template <class T>
     JavaPrinter operator+(const T& t) const {
-      CVC4Message() << t;
+      CVC5Message() << t;
       return JavaPrinter();
     }
   };/* struct JavaPrinter */
@@ -67,7 +68,7 @@ static struct __Cvc4System {
      * to the call-by-value semantics of C.  All that's left to
      * do is print the newline.
      */
-    void println(JavaPrinter) { CVC4Message() << std::endl; }
+    void println(JavaPrinter) { CVC5Message() << std::endl; }
   } out;
 } System;
 
@@ -76,7 +77,11 @@ static struct __Cvc4System {
 // These are highly dependent on the bugs in a particular ANTLR release.
 // These seem to work with ANTLR 3.3 as of 4/23/2011.  A different trick
 // works with ANTLR 3.2.  EXPECT LOTS OF COMPILER WARNINGS.
-#define println(x) println(({int failed=0;__Cvc4System::JavaPrinter()+x;}))
+#define println(x)                   \
+  println(({                         \
+    int failed = 0;                  \
+    __Cvc5System::JavaPrinter() + x; \
+  }))
 #undef ANTLR3_FPRINTF
 #define ANTLR3_FPRINTF(args...) {int failed=0;fprintf(args);}
 #undef ANTLR3_PRINTF

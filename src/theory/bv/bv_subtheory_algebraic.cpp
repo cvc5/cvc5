@@ -750,34 +750,23 @@ Node AlgebraicSolver::getModelValue(TNode node) {
 }
 
 AlgebraicSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::algebraic::NumCallsToCheck", 0)
-  , d_numSimplifiesToTrue("theory::bv::algebraic::NumSimplifiesToTrue", 0)
-  , d_numSimplifiesToFalse("theory::bv::algebraic::NumSimplifiesToFalse", 0)
-  , d_numUnsat("theory::bv::algebraic::NumUnsat", 0)
-  , d_numSat("theory::bv::algebraic::NumSat", 0)
-  , d_numUnknown("theory::bv::algebraic::NumUnknown", 0)
-  , d_solveTime("theory::bv::algebraic::SolveTime")
-  , d_useHeuristic("theory::bv::algebraic::UseHeuristic", 0.2)
+    : d_numCallstoCheck(smtStatisticsRegistry().registerInt(
+        "theory::bv::algebraic::NumCallsToCheck")),
+      d_numSimplifiesToTrue(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumSimplifiesToTrue")),
+      d_numSimplifiesToFalse(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumSimplifiesToFalse")),
+      d_numUnsat(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumUnsat")),
+      d_numSat(
+          smtStatisticsRegistry().registerInt("theory::bv::algebraic::NumSat")),
+      d_numUnknown(smtStatisticsRegistry().registerInt(
+          "theory::bv::algebraic::NumUnknown")),
+      d_solveTime(smtStatisticsRegistry().registerTimer(
+          "theory::bv::algebraic::SolveTime")),
+      d_useHeuristic(smtStatisticsRegistry().registerValue<double>(
+          "theory::bv::algebraic::UseHeuristic", 0.2))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->registerStat(&d_numSimplifiesToTrue);
-  smtStatisticsRegistry()->registerStat(&d_numSimplifiesToFalse);
-  smtStatisticsRegistry()->registerStat(&d_numUnsat);
-  smtStatisticsRegistry()->registerStat(&d_numSat);
-  smtStatisticsRegistry()->registerStat(&d_numUnknown);
-  smtStatisticsRegistry()->registerStat(&d_solveTime);
-  smtStatisticsRegistry()->registerStat(&d_useHeuristic);
-}
-
-AlgebraicSolver::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->unregisterStat(&d_numSimplifiesToTrue);
-  smtStatisticsRegistry()->unregisterStat(&d_numSimplifiesToFalse);
-  smtStatisticsRegistry()->unregisterStat(&d_numUnsat);
-  smtStatisticsRegistry()->unregisterStat(&d_numSat);
-  smtStatisticsRegistry()->unregisterStat(&d_numUnknown);
-  smtStatisticsRegistry()->unregisterStat(&d_solveTime);
-  smtStatisticsRegistry()->unregisterStat(&d_useHeuristic);
 }
 
 bool hasExpensiveBVOperatorsRec(TNode fact, TNodeSet& seen) {
@@ -990,5 +979,5 @@ Node mergeExplanations(TNode expl1, TNode expl2) {
 }
 
 }  // namespace bv
-} /* namespace CVc4::theory */
+}  // namespace theory
 }  // namespace cvc5

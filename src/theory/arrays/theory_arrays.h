@@ -13,7 +13,7 @@
  * Theory of arrays.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define CVC5__THEORY__ARRAYS__THEORY_ARRAYS_H
@@ -32,7 +32,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace theory {
@@ -138,7 +138,7 @@ class TheoryArrays : public Theory {
                Valuation valuation,
                const LogicInfo& logicInfo,
                ProofNodeManager* pnm = nullptr,
-               std::string name = "");
+               std::string name = "theory::arrays::");
   ~TheoryArrays();
 
   //--------------------------------- initialization
@@ -157,8 +157,6 @@ class TheoryArrays : public Theory {
   //--------------------------------- end initialization
 
   std::string identify() const override { return std::string("TheoryArrays"); }
-
-  TrustNode expandDefinition(Node node) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING

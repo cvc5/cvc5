@@ -12,7 +12,7 @@
  ** \brief The module for printing Lfsc proof nodes
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__LFSC__LFSC_PRINT_CHANNEL_H
 #define CVC4__PROOF__LFSC__LFSC_PRINT_CHANNEL_H
@@ -78,8 +78,11 @@ class LfscPrintChannelOut : public LfscPrintChannel
   static void printAssumeId(std::ostream& out, size_t id);
   //------------------- end helper methods
  private:
-  /** Replaces "(_ " with "(" to eliminate indexed symbols */
-  static void cleanIndexedSymbols(std::string& s);
+  /**
+   * Replaces "(_ " with "(" to eliminate indexed symbols
+   * Replaces "__LFSC_TMP" with ""
+   */
+  static void cleanSymbols(std::string& s);
   /** The output stream */
   std::ostream& d_out;
 };

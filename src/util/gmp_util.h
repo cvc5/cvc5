@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__GMP_UTIL_H
 #define CVC5__GMP_UTIL_H

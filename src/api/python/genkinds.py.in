@@ -13,8 +13,8 @@
 ##
 
 """
-This script reads CVC4/src/api/cpp/cvc5_kind.h and generates
-.pxd and .pxi files which declare all the CVC4 kinds and
+This script reads cvc5/src/api/cpp/cvc5_kind.h and generates
+.pxd and .pxi files which declare all the cvc5 kinds and
 implement a Python wrapper for kinds, respectively. The
 default names are kinds.pxd / kinds.pxi, but the name is
 configurable from the command line with --kinds-file-prefix.
@@ -28,7 +28,7 @@ import argparse
 import os
 import sys
 
-# get access to CVC4/src/api/parsekinds.py
+# get access to cvc5/src/api/parsekinds.py
 sys.path.insert(0, os.path.abspath('${CMAKE_SOURCE_DIR}/src/api'))
 
 from parsekinds import *
@@ -56,7 +56,7 @@ KINDS_PXI_TOP = \
 r"""# distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
-from cvc4kinds cimport *
+from cvc5kinds cimport *
 import sys
 from types import ModuleType
 

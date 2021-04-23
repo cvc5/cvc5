@@ -52,11 +52,11 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "BVSolverBitblast"));
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(), "BVSolverBitblast"));
+          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast"));
   }
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
                                         d_nullRegistrar.get(),

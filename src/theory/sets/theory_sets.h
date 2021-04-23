@@ -13,7 +13,7 @@
  * Sets theory.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__THEORY_SETS_H
 #define CVC5__THEORY__SETS__THEORY_SETS_H
@@ -78,8 +78,6 @@ class TheorySets : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
-  /**  Expand partial operators (choose) from n. */
-  TrustNode expandDefinition(Node n) override;
   /**
    * If the sets-ext option is not set and we have an extended operator,
    * we throw an exception. Additionally, we expand operators like choose

@@ -13,7 +13,7 @@
  * Trust substitutions.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 #define CVC5__THEORY__TRUST_SUBSTITUTIONS_H
@@ -57,6 +57,7 @@ class TrustSubstitutionMap
   void addSubstitution(TNode x,
                        TNode t,
                        PfRule id,
+                       const std::vector<Node>& children,
                        const std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of

@@ -13,7 +13,7 @@
  * Theory of floating-point arithmetic.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__FP__THEORY_FP_H
 #define CVC5__THEORY__FP__THEORY_FP_H
@@ -61,10 +61,7 @@ class TheoryFp : public Theory
   void finishInit() override;
   //--------------------------------- end initialization
 
-  TrustNode expandDefinition(Node node) override;
-
   void preRegisterTerm(TNode node) override;
-
   TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
 
   //--------------------------------- standard check
@@ -95,17 +92,8 @@ class TheoryFp : public Theory
   TrustNode explain(TNode n) override;
 
  protected:
-  using PairTypeNodeHashFunction = PairHashFunction<TypeNode,
-                                                    TypeNode,
-                                                    TypeNodeHashFunction,
-                                                    TypeNodeHashFunction>;
-  /** Uninterpreted functions for undefined cases of non-total operators. */
-  using ComparisonUFMap =
+  using ConversionAbstractionMap =
       context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>;
-  /** Uninterpreted functions for lazy handling of conversions. */
-  using ConversionUFMap = context::
-      CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
-  using ConversionAbstractionMap = ComparisonUFMap;
   using AbstractionMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 
   /** Equality engine. */
@@ -157,24 +145,11 @@ class TheoryFp : public Theory
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
-  Node minUF(Node);
-  Node maxUF(Node);
-
-  Node toUBVUF(Node);
-  Node toSBVUF(Node);
-
-  Node toRealUF(Node);
-
   Node abstractRealToFloat(Node);
   Node abstractFloatToReal(Node);
 
  private:
 
-  ComparisonUFMap d_minMap;
-  ComparisonUFMap d_maxMap;
-  ConversionUFMap d_toUBVMap;
-  ConversionUFMap d_toSBVMap;
-  ComparisonUFMap d_toRealMap;
   ConversionAbstractionMap d_realToFloatMap;
   ConversionAbstractionMap d_floatToRealMap;
   AbstractionMap d_abstractionMap;  // abstract -> original

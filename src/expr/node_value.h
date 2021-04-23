@@ -18,7 +18,7 @@
  * NodeValue instances.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/metakind.h"
@@ -330,7 +330,7 @@ class NodeValue
   /** The ID (0 is reserved for the null value) */
   uint64_t d_id : NBITS_ID;
 
-  /** The expression's reference count.  @see cvc4::Node. */
+  /** The expression's reference count. */
   uint32_t d_rc : NBITS_REFCOUNT;
 
   /** Kind of the expression */
@@ -426,7 +426,7 @@ inline void NodeValue::inc() {
     ++d_rc;
     Assert(NodeManager::currentNM() != NULL)
         << "No current NodeManager on incrementing of NodeValue: "
-           "maybe a public CVC4 interface function is missing a "
+           "maybe a public cvc5 interface function is missing a "
            "NodeManagerScope ?";
     NodeManager::currentNM()->markRefCountMaxedOut(this);
   }
@@ -439,7 +439,7 @@ inline void NodeValue::dec() {
     if(__builtin_expect( ( d_rc == 0 ), false )) {
       Assert(NodeManager::currentNM() != NULL)
           << "No current NodeManager on destruction of NodeValue: "
-             "maybe a public CVC4 interface function is missing a "
+             "maybe a public cvc5 interface function is missing a "
              "NodeManagerScope ?";
       NodeManager::currentNM()->markForDeletion(this);
     }

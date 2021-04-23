@@ -16,13 +16,14 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
-#include <unordered_map>
 #include <map>
+#include <memory>
 #include <set>
+#include <unordered_map>
 
 #include "expr/kind.h"
 #include "theory/arith/arithvar.h"

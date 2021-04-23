@@ -16,11 +16,12 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__FP__THEORY_FP_REWRITER_H
 #define CVC5__THEORY__FP__THEORY_FP_REWRITER_H
 
+#include "theory/fp/fp_expand_defs.h"
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
@@ -32,7 +33,7 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryFpRewriter : public TheoryRewriter
 {
  public:
-  TheoryFpRewriter();
+  TheoryFpRewriter(context::UserContext* u);
 
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
@@ -45,11 +46,16 @@ class TheoryFpRewriter : public TheoryRewriter
     // often this will suffice
     return postRewrite(equality).d_node;
   }
+  /** Expand definitions in node */
+  TrustNode expandDefinition(Node node) override;
 
  protected:
+  /** TODO: document (projects issue #265) */
   RewriteFunction d_preRewriteTable[kind::LAST_KIND];
   RewriteFunction d_postRewriteTable[kind::LAST_KIND];
   RewriteFunction d_constantFoldTable[kind::LAST_KIND];
+  /** The expand definitions module. */
+  FpExpandDefs d_fpExpDef;
 }; /* class TheoryFpRewriter */
 
 }  // namespace fp

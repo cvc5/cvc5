@@ -47,23 +47,13 @@ PreprocessingPassResult SygusInference::applyInternal(
   // see if we can succesfully solve the input as a sygus problem
   if (solveSygus(assertionsToPreprocess->ref(), funs, sols))
   {
+    Trace("sygus-infer") << "...Solved:" << std::endl;
     Assert(funs.size() == sols.size());
-    // if so, sygus gives us function definitions
-    SmtEngine* master_smte = d_preprocContext->getSmt();
+    // if so, sygus gives us function definitions, which we add as substitutions
     for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
-      std::vector<Node> args;
-      Node sol = sols[i];
-      // if it is a non-constant function
-      if (sol.getKind() == LAMBDA)
-      {
-        for (const Node& v : sol[0])
-        {
-          args.push_back(v);
-        }
-        sol = sol[1];
-      }
-      master_smte->defineFunction(funs[i], args, sol);
+      Trace("sygus-infer") << funs[i] << " -> " << sols[i] << std::endl;
+      d_preprocContext->addSubstitution(funs[i], sols[i]);
     }
 
     // apply substitution to everything, should result in SAT

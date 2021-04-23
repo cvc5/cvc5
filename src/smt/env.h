@@ -14,7 +14,7 @@
  * internal code
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SMT__ENV_H
 #define CVC5__SMT__ENV_H
@@ -23,7 +23,6 @@
 
 #include "options/options.h"
 #include "theory/logic_info.h"
-#include "util/statistics.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
@@ -61,7 +60,7 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm);
+  Env(NodeManager* nm, Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -117,8 +116,6 @@ class Env
  private:
   /* Private initialization ------------------------------------------------- */
 
-  /** Set options, which makes a deep copy of optr if non-null */
-  void setOptions(Options* optr = nullptr);
   /** Set the statistics registry */
   void setStatisticsRegistry(StatisticsRegistry* statReg);
   /** Set proof node manager if it exists */

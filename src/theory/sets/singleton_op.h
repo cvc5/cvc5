@@ -13,7 +13,7 @@
  * A class for singleton operator for sets.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SINGLETON_OP_H
 #define CVC5__SINGLETON_OP_H

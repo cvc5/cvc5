@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__OPEN_OSTREAM_H
 #define CVC5__OPEN_OSTREAM_H
@@ -54,7 +54,7 @@ class OstreamOpener {
 
 }; /* class OstreamOpener */
 
-std::string cvc4_errno_failreason();
+std::string cvc5_errno_failreason();
 
 }  // namespace cvc5
 

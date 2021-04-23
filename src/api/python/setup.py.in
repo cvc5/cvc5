@@ -11,7 +11,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# This script is automatically configured with cmake when CVC4
+# This script is automatically configured with cmake when cvc5
 # is built with --python-bindings. It is called during make
 # install to automatically install the python bindings using
 # distutils.
@@ -24,7 +24,7 @@ from distutils.core import setup
 from distutils.command.clean import clean
 from distutils.command.install import install
 
-class PyCVC4Install(install):
+class PyCVC5Install(install):
 
     # Calls the default run command, then deletes the build area
     # (equivalent to "setup clean --all").
@@ -35,9 +35,9 @@ class PyCVC4Install(install):
         c.finalize_options()
         c.run()
 
-setup(name='pycvc4',
-      version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC4_RELEASE}',
-      packages=['pycvc4'],
-      package_dir={'pycvc4': '${CMAKE_CURRENT_BINARY_DIR}/pycvc4'},
-      package_data={'pycvc4': ['pycvc4.so']},
-      cmdclass={'install': PyCVC4Install})
+setup(name='pycvc5',
+      version='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}',
+      packages=['pycvc5'],
+      package_dir={'pycvc5': '${CMAKE_CURRENT_BINARY_DIR}/pycvc5'},
+      package_data={'pycvc5': ['pycvc5.so']},
+      cmdclass={'install': PyCVC5Install})

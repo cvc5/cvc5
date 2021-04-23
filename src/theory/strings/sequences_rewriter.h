@@ -13,7 +13,7 @@
  * Rewriter for the theory of strings and sequences.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H
 #define CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H
@@ -33,7 +33,7 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics);
+  SequencesRewriter(HistogramStat<Rewrite>* statistics);
 
  protected:
   /** rewrite regular expression concatenation
@@ -127,6 +127,8 @@ class SequencesRewriter : public TheoryRewriter
  public:
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
+  /** Expand definition */
+  TrustNode expandDefinition(Node n) override;
 
   /** rewrite equality
    *
@@ -288,7 +290,7 @@ class SequencesRewriter : public TheoryRewriter
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
   /** Reference to the rewriter statistics. */
-  IntegralHistogramStat<Rewrite>* d_statistics;
+  HistogramStat<Rewrite>* d_statistics;
 
   /** Instance of the entailment checker for strings. */
   StringsEntail d_stringsEntail;

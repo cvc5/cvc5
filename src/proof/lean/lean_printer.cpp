@@ -15,6 +15,7 @@
 #include "proof/lean/lean_printer.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_checker.h"

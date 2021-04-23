@@ -26,10 +26,10 @@ namespace cvc5 {
 null_streambuf null_sb;
 ostream null_os(&null_sb);
 
-NullC nullCvc4Stream;
+NullC nullStream;
 
-const std::string CVC4ostream::s_tab = "  ";
-const int CVC4ostream::s_indentIosIndex = ios_base::xalloc();
+const std::string Cvc5ostream::s_tab = "  ";
+const int Cvc5ostream::s_indentIosIndex = ios_base::xalloc();
 
 DebugC DebugChannel(&cout);
 WarningC WarningChannel(&cerr);

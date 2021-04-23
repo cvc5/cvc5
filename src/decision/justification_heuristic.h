@@ -19,7 +19,7 @@
  * It needs access to the simplified but non-clausal formula.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__DECISION__JUSTIFICATION_HEURISTIC
 #define CVC5__DECISION__JUSTIFICATION_HEURISTIC
@@ -35,8 +35,7 @@
 #include "expr/node.h"
 #include "options/decision_weight.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace decision {
@@ -118,7 +117,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   };
 
 public:
- JustificationHeuristic(cvc5::DecisionEngine* de,
+ JustificationHeuristic(DecisionEngine* de,
                         context::UserContext* uc,
                         context::Context* c);
 

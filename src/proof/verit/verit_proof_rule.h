@@ -13,7 +13,7 @@
  * Enumeration of veriT proof rules
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__VERIT_PROOF_RULE_H
 #define CVC4__PROOF__VERIT_PROOF_RULE_H

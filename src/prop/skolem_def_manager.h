@@ -13,7 +13,7 @@
  * Skolem definition manager.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PROP__SKOLEM_DEF_MANAGER_H
 #define CVC5__PROP__SKOLEM_DEF_MANAGER_H
@@ -64,8 +64,15 @@ class SkolemDefManager
    * Notify that the given literal has been asserted. This method adds skolems
    * that become "active" as a result of asserting this literal. A skolem
    * is active in the SAT context if it appears in an asserted literal.
+   *
+   * @param literal The literal that became asserted
+   * @param activatedSkolems The list to add skolems to
+   * @param useDefs If this flag is true, we add the skolem definition for
+   * skolems to activatedSkolems instead of the skolem itself.
    */
-  void notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems);
+  void notifyAsserted(TNode literal,
+                      std::vector<TNode>& activatedSkolems,
+                      bool useDefs = false);
 
   /**
    * Get the set of skolems maintained by this class that occur in node n,

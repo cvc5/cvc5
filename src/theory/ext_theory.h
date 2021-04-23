@@ -29,7 +29,7 @@
  *   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__EXT_THEORY_H
 #define CVC5__THEORY__EXT_THEORY_H

@@ -188,7 +188,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
   Assert(!options::incrementalSolving());
-  Assert(!options::unsatCores());
+  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF);
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -550,7 +550,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
-              te->getModel()->addSubstitution(*ii, newVar.eqNode(one));
+              d_preprocContext->addModelSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;
             }
@@ -656,15 +656,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 }
 
 MipLibTrick::Statistics::Statistics()
-    : d_numMiplibAssertionsRemoved(
-          "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved", 0)
+    : d_numMiplibAssertionsRemoved(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
-}
-
-MipLibTrick::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
 }
 
 

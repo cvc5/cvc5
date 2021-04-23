@@ -12,7 +12,7 @@
  ** \brief The module for printing Lfsc proof nodes
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__LFSC__LFSC_TERM_PROCESS_H
 #define CVC4__PROOF__LFSC__LFSC_TERM_PROCESS_H
@@ -59,6 +59,9 @@ class LfscTermProcessor : public TermProcessor
    * returned variable is always fresh.
    */
   Node mkInternalSymbol(const std::string& name, TypeNode tn);
+
+  /** get name for user name */
+  static std::string getNameForUserName(const std::string& name);
 
  private:
   /** Should we traverse n? */

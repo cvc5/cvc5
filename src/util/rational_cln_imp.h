@@ -13,7 +13,7 @@
  * Multiprecision rational constants; wraps a CLN multiprecision rational.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__RATIONAL_H
 #define CVC5__RATIONAL_H
@@ -31,7 +31,7 @@
 #include <string>
 
 #include "base/exception.h"
-#include "cvc4_export.h"  // remove when Cvc language support is removed
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 #include "util/integer.h"
 #include "util/maybe.h"
 
@@ -52,7 +52,7 @@ namespace cvc5 {
  * in danger of invoking the char* constructor, from whence you will segfault.
  */
 
-class CVC4_EXPORT Rational
+class CVC5_EXPORT Rational
 {
  public:
   /**
@@ -337,7 +337,7 @@ struct RationalHashFunction
   inline size_t operator()(const cvc5::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
-std::ostream& operator<<(std::ostream& os, const Rational& n) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
 
 }  // namespace cvc5
 

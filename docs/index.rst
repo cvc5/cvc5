@@ -15,4 +15,6 @@ cvc5 API Documentation
 .. toctree::
    :maxdepth: 2
 
-   cpp
+   cpp/cpp
+   references
+   examples/examples

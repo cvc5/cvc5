@@ -13,7 +13,7 @@
  * Representation of unsat cores.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__UNSAT_CORE_H
 #define CVC5__UNSAT_CORE_H

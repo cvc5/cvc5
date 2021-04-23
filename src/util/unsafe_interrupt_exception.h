@@ -14,17 +14,17 @@
  * and is interrupted in an unsafe state.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__UNSAFE_INTERRUPT_EXCEPTION_H
 #define CVC5__UNSAFE_INTERRUPT_EXCEPTION_H
 
 #include "base/exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
-class CVC4_EXPORT UnsafeInterruptException : public cvc5::Exception
+class CVC5_EXPORT UnsafeInterruptException : public cvc5::Exception
 {
  public:
   UnsafeInterruptException() :

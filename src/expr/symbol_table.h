@@ -13,7 +13,7 @@
  * Convenience class for scoping variable and type declarations.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H
@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "base/exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
@@ -33,7 +33,7 @@ class Sort;
 class Term;
 }  // namespace api
 
-class CVC4_EXPORT ScopeException : public Exception
+class CVC5_EXPORT ScopeException : public Exception
 {
 };
 
@@ -42,7 +42,7 @@ class CVC4_EXPORT ScopeException : public Exception
  * nested scoping rules for declarations, with separate bindings for expressions
  * and types.
  */
-class CVC4_EXPORT SymbolTable
+class CVC5_EXPORT SymbolTable
 {
  public:
   /** Create a symbol table. */

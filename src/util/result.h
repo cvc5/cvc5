@@ -13,7 +13,7 @@
  * Encapsulation of the result of a query.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__RESULT_H
 #define CVC5__RESULT_H

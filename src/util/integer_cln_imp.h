@@ -13,7 +13,7 @@
  * A multiprecision integer constant; wraps a CLN multiprecision integer.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__INTEGER_H
 #define CVC5__INTEGER_H
@@ -29,13 +29,13 @@
 #include <string>
 
 #include "base/exception.h"
-#include "cvc4_export.h"  // remove when Cvc language support is removed
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 
 namespace cvc5 {
 
 class Rational;
 
-class CVC4_EXPORT Integer
+class CVC5_EXPORT Integer
 {
   friend class cvc5::Rational;
 

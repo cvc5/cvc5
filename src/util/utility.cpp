@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Some standard STL-related utility functions for CVC4.
+ * Some standard STL-related utility functions for cvc5.
  */
 
 #include "util/utility.h"

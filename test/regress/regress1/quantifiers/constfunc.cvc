@@ -1,5 +1,5 @@
 % EXPECT: unsat
-OPTION "fmf-fun" "no-check-unsat-cores-new";
+OPTION "fmf-fun" "no-check-unsat-cores";
 REC-FUN f : INT -> INT = LAMBDA (x : INT) : 1;
 x : INT;
 ASSERT NOT (f(7) = x);

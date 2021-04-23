@@ -12,7 +12,7 @@
  ** \brief Term processor utility
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__TERM_PROCESSOR_H
 #define CVC4__PROOF__TERM_PROCESSOR_H

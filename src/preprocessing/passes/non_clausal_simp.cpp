@@ -41,16 +41,11 @@ namespace passes {
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::Statistics::Statistics()
-    : d_numConstantProps(
-          "preprocessing::passes::NonClausalSimp::NumConstantProps", 0)
+    : d_numConstantProps(smtStatisticsRegistry().registerInt(
+        "preprocessing::passes::NonClausalSimp::NumConstantProps"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numConstantProps);
 }
 
-NonClausalSimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -74,8 +69,11 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(!options::unsatCores() || isProofEnabled())
-      << "Unsat cores with non-clausal simp only supported with new proofs";
+  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
+         || isProofEnabled())
+      << "Unsat cores with non-clausal simp only supported with new proofs. "
+         "Cores mode is "
+      << options::unsatCoresMode() << "\n";
 
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
@@ -330,8 +328,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   // add substitutions to model, or as assertions if needed (when incremental)
-  TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
-  Assert(m != nullptr);
   NodeManager* nm = NodeManager::currentNM();
   for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
   {
@@ -346,7 +342,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "substitute: " << lhs << " " << rhs << std::endl;
-      m->addSubstitution(lhs, rhs);
+      d_preprocContext->addModelSubstitution(lhs, rhs);
     }
     else
     {

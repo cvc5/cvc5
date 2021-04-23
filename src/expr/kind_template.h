@@ -13,7 +13,7 @@
  * Template for the Node kind header.
  */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__KIND_H
 #define CVC5__KIND_H
@@ -28,15 +28,17 @@ namespace kind {
 
 enum Kind_t
 {
-  UNDEFINED_KIND = -1,    /**< undefined */
-  NULL_EXPR,              /**< Null kind */
+  UNDEFINED_KIND = -1, /**< undefined */
+  NULL_EXPR,           /**< Null kind */
+  // clang-format off
   ${kind_decls} LAST_KIND /**< marks the upper-bound of this enumeration */
+  // clang-format on
 
 }; /* enum Kind_t */
 
 }  // namespace kind
 
-// import Kind into the "CVC4" namespace but keep the individual kind
+// import Kind into the "cvc5" namespace but keep the individual kind
 // constants under kind::
 typedef ::cvc5::kind::Kind_t Kind;
 
@@ -69,9 +71,10 @@ std::ostream& operator<<(std::ostream&, cvc5::Kind);
 bool isAssociative(::cvc5::Kind k);
 std::string kindToString(::cvc5::Kind k);
 
-struct KindHashFunction {
+struct KindHashFunction
+{
   inline size_t operator()(::cvc5::Kind k) const { return k; }
-};/* struct KindHashFunction */
+}; /* struct KindHashFunction */
 
 }  // namespace kind
 
@@ -80,18 +83,20 @@ struct KindHashFunction {
  */
 enum TypeConstant
 {
+  // clang-format off
   ${type_constant_list} LAST_TYPE
+  // clang-format on
 }; /* enum TypeConstant */
 
 /**
  * We hash the constants with their values.
  */
-struct TypeConstantHashFunction {
-  inline size_t operator()(TypeConstant tc) const {
-    return tc;
-  }
-};/* struct TypeConstantHashFunction */
+struct TypeConstantHashFunction
+{
+  inline size_t operator()(TypeConstant tc) const { return tc; }
+}; /* struct TypeConstantHashFunction */
 
+const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {

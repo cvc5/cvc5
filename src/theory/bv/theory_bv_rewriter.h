@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__THEORY_BV_REWRITER_H
 #define CVC5__THEORY__BV__THEORY_BV_REWRITER_H
@@ -46,6 +46,8 @@ class TheoryBVRewriter : public TheoryRewriter
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
+
+  TrustNode expandDefinition(Node node) override;
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);

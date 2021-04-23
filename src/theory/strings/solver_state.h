@@ -13,7 +13,7 @@
  * The solver state of the theory of strings.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__STRINGS__SOLVER_STATE_H
 #define CVC5__THEORY__STRINGS__SOLVER_STATE_H

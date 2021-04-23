@@ -15,6 +15,7 @@
 
 #include "theory/theory_inference_manager.h"
 
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
@@ -31,7 +32,7 @@ namespace theory {
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
                                                TheoryState& state,
                                                ProofNodeManager* pnm,
-                                               const std::string& name,
+                                               const std::string& statsName,
                                                bool cacheLemmas)
     : d_theory(t),
       d_theoryState(state),
@@ -45,23 +46,20 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
-      d_conflictIdStats(name + "::inferencesConflict"),
-      d_factIdStats(name + "::inferencesFact"),
-      d_lemmaIdStats(name + "::inferencesLemma")
+      d_conflictIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          statsName + "inferencesConflict")),
+      d_factIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          statsName + "inferencesFact")),
+      d_lemmaIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+          statsName + "inferencesLemma"))
 {
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
-  smtStatisticsRegistry()->registerStat(&d_conflictIdStats);
-  smtStatisticsRegistry()->registerStat(&d_factIdStats);
-  smtStatisticsRegistry()->registerStat(&d_lemmaIdStats);
 }
 
 TheoryInferenceManager::~TheoryInferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_conflictIdStats);
-  smtStatisticsRegistry()->unregisterStat(&d_factIdStats);
-  smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
@@ -121,6 +119,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   d_conflictIdStats << id;
+  smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
   d_theoryState.notifyInConflict();
@@ -253,6 +252,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
     }
   }
   d_lemmaIdStats << id;
+  smt::currentResourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
@@ -373,6 +373,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  ProofGenerator* pg)
 {
   d_factIdStats << iid;
+  smt::currentResourceManager()->spendResource(iid);
   Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
               << ")" << std::endl;
   // make the node corresponding to the explanation

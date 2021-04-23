@@ -19,6 +19,7 @@
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::context;

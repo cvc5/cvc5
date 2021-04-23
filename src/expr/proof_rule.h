@@ -13,7 +13,7 @@
  * Proof rule enumeration.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__PROOF_RULE_H
 #define CVC5__EXPR__PROOF_RULE_H
@@ -267,6 +267,14 @@ enum class PfRule : uint32_t
   // where F is an equality (= t t') that holds by a form of substitution that
   // could not be determined by the TrustSubstitutionMap.
   TRUST_SUBS_MAP,
+  // ========= SAT Refutation for assumption-based unsat cores
+  // Children: (P1, ..., Pn)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: false
+  // Note: P1, ..., Pn corresponds to the unsat core determined by the SAT
+  // solver.
+  SAT_REFUTATION,
 
   //================================================= Boolean rules
   // ======== Resolution

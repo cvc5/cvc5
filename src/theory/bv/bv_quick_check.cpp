@@ -351,31 +351,21 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
 }
 
 QuickXPlain::Statistics::Statistics(const std::string& name)
-  : d_xplainTime(name + "::QuickXplain::Time")
-  , d_numSolved(name + "::QuickXplain::NumSolved", 0)
-  , d_numUnknown(name + "::QuickXplain::NumUnknown", 0)
-  , d_numUnknownWasUnsat(name + "::QuickXplain::NumUnknownWasUnsat", 0)
-  , d_numConflictsMinimized(name + "::QuickXplain::NumConflictsMinimized", 0)
-  , d_finalPeriod(name + "::QuickXplain::FinalPeriod", 0)
-  , d_avgMinimizationRatio(name + "::QuickXplain::AvgMinRatio")
+    : d_xplainTime(
+        smtStatisticsRegistry().registerTimer(name + "QuickXplain::Time")),
+      d_numSolved(
+          smtStatisticsRegistry().registerInt(name + "QuickXplain::NumSolved")),
+      d_numUnknown(smtStatisticsRegistry().registerInt(
+          name + "QuickXplain::NumUnknown")),
+      d_numUnknownWasUnsat(smtStatisticsRegistry().registerInt(
+          name + "QuickXplain::NumUnknownWasUnsat")),
+      d_numConflictsMinimized(smtStatisticsRegistry().registerInt(
+          name + "QuickXplain::NumConflictsMinimized")),
+      d_finalPeriod(smtStatisticsRegistry().registerInt(
+          name + "QuickXplain::FinalPeriod")),
+      d_avgMinimizationRatio(smtStatisticsRegistry().registerAverage(
+          name + "QuickXplain::AvgMinRatio"))
 {
-  smtStatisticsRegistry()->registerStat(&d_xplainTime);
-  smtStatisticsRegistry()->registerStat(&d_numSolved);
-  smtStatisticsRegistry()->registerStat(&d_numUnknown);
-  smtStatisticsRegistry()->registerStat(&d_numUnknownWasUnsat);
-  smtStatisticsRegistry()->registerStat(&d_numConflictsMinimized);
-  smtStatisticsRegistry()->registerStat(&d_finalPeriod);
-  smtStatisticsRegistry()->registerStat(&d_avgMinimizationRatio);
-}
-
-QuickXPlain::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_xplainTime);
-  smtStatisticsRegistry()->unregisterStat(&d_numSolved);
-  smtStatisticsRegistry()->unregisterStat(&d_numUnknown);
-  smtStatisticsRegistry()->unregisterStat(&d_numUnknownWasUnsat);
-  smtStatisticsRegistry()->unregisterStat(&d_numConflictsMinimized);
-  smtStatisticsRegistry()->unregisterStat(&d_finalPeriod);
-  smtStatisticsRegistry()->unregisterStat(&d_avgMinimizationRatio);  
 }
 
 }  // namespace bv

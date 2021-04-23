@@ -13,13 +13,13 @@
  * Replacement for ffs() for systems without it (like Win32).
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__LIB__FFS_H
 #define CVC5__LIB__FFS_H
 
 //We include this for HAVE_FFS
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
 
 #ifdef HAVE_FFS
 

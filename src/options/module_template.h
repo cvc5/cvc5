@@ -16,7 +16,7 @@
  * expands this template and generates a <module>_options.h file.
  */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__OPTIONS__${id}$_H
 #define CVC5__OPTIONS__${id}$_H

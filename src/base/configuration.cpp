@@ -11,7 +11,7 @@
  * ****************************************************************************
  *
  * Implementation of Configuration class, which provides compile-time
- * configuration information about the CVC4 library.
+ * configuration information about the cvc5 library.
  */
 #include "base/configuration.h"
 
@@ -21,8 +21,8 @@
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
 #include "base/configuration_private.h"
+#include "base/cvc5config.h"
 
 #if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
 #  include "base/Debug_tags.h"
@@ -103,20 +103,20 @@ std::string Configuration::copyright() {
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
-    ss << "This build of CVC4 uses GPLed libraries, and is thus covered by\n"
-       << "the GNU General Public License (GPL) version 3.  Versions of CVC4\n"
+    ss << "This build of cvc5 uses GPLed libraries, and is thus covered by\n"
+       << "the GNU General Public License (GPL) version 3.  Versions of cvc5\n"
        << "are available that are covered by the (modified) BSD license. If\n"
-       << "you want to license CVC4 under this license, please configure CVC4\n"
+       << "you want to license cvc5 under this license, please configure cvc5\n"
        << "with the \"--no-gpl\" option before building from sources.\n\n";
   } else {
-    ss << "CVC4 is open-source and is covered by the BSD license (modified)."
+    ss << "cvc5 is open-source and is covered by the BSD license (modified)."
        << "\n\n";
   }
 
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
 
-  ss << "CVC4 incorporates code from ANTLR3 (http://www.antlr.org).\n"
+  ss << "cvc5 incorporates code from ANTLR3 (http://www.antlr.org).\n"
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
@@ -126,7 +126,7 @@ std::string Configuration::copyright() {
       || Configuration::isBuiltWithSymFPU()
       || Configuration::isBuiltWithEditline())
   {
-    ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
+    ss << "This version of cvc5 is linked against the following non-(L)GPL'ed\n"
        << "third party libraries.\n\n";
     if (Configuration::isBuiltWithAbc()) {
       ss << "  ABC - A System for Sequential Synthesis and Verification\n"
@@ -154,7 +154,7 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithSymFPU())
     {
       ss << "  SymFPU - The Symbolic Floating Point Unit\n"
-         << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
+         << "  See https://github.com/martin-cs/symfpu/tree/cvc5 for copyright "
          << "information.\n\n";
     }
     if (Configuration::isBuiltWithEditline())
@@ -167,7 +167,7 @@ std::string Configuration::copyright() {
 
   if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
   {
-    ss << "This version of CVC4 is linked against the following third party\n"
+    ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
        << "See licenses/lgpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithGmp()) {
@@ -182,8 +182,8 @@ std::string Configuration::copyright() {
     }
     if (Configuration::isStaticBuild())
     {
-      ss << "CVC4 is statically linked against these libraries. To recompile\n"
-            "this version of CVC4 with different versions of these libraries\n"
+      ss << "cvc5 is statically linked against these libraries. To recompile\n"
+            "this version of cvc5 with different versions of these libraries\n"
             "follow the instructions on "
             "https://github.com/CVC4/CVC4/blob/master/INSTALL.md\n\n";
     }
@@ -191,7 +191,7 @@ std::string Configuration::copyright() {
 
   if (Configuration::isBuiltWithCln()
       || Configuration::isBuiltWithGlpk ()) {
-    ss << "This version of CVC4 is linked against the following third party\n"
+    ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithCln()) {
@@ -207,14 +207,14 @@ std::string Configuration::copyright() {
   }
 
   ss << "See the file COPYING (distributed with the source code, and with\n"
-     << "all binaries) for the full CVC4 copyright, licensing, and (lack of)\n"
+     << "all binaries) for the full cvc5 copyright, licensing, and (lack of)\n"
      << "warranty information.\n";
   return ss.str();
 }
 
 std::string Configuration::about() {
   std::stringstream ss;
-  ss << "This is CVC4 version " << CVC5_RELEASE_STRING;
+  ss << "This is cvc5 version " << CVC5_RELEASE_STRING;
   if (Configuration::isGitBuild()) {
     ss << " [" << Configuration::getGitId() << "]";
   }

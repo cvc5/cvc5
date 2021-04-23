@@ -16,6 +16,8 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
+#include "theory/theory_engine.h"
+#include "theory/theory_model.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -52,6 +54,22 @@ void PreprocessingPassContext::recordSymbolsInAssertions(
   {
     d_symsInAssertions.insert(s);
   }
+}
+
+void PreprocessingPassContext::addModelSubstitution(const Node& lhs,
+                                                    const Node& rhs)
+{
+  getTheoryEngine()->getModel()->addSubstitution(
+      lhs, d_smt->expandDefinitions(rhs, false));
+}
+
+void PreprocessingPassContext::addSubstitution(const Node& lhs,
+                                               const Node& rhs,
+                                               ProofGenerator* pg)
+{
+  d_topLevelSubstitutions.addSubstitution(lhs, rhs, pg);
+  // also add as a model substitution
+  addModelSubstitution(lhs, rhs);
 }
 
 ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
