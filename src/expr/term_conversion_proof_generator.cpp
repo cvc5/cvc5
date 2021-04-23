@@ -134,6 +134,9 @@ Node TConvProofGenerator::registerRewriteStep(Node t,
                                               uint32_t tctx,
                                               bool isPre)
 {
+  Assert(!t.isNull());
+  Assert(!s.isNull());
+
   if (t == s)
   {
     return Node::null();

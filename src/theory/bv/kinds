@@ -38,6 +38,9 @@ well-founded BITVECTOR_TYPE \
 
 ### non-parameterized operator kinds ------------------------------------------
 
+## conversion to bit-vector from vector of Booleans kind
+operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
+
 ## concatentation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
 
@@ -61,7 +64,6 @@ operator BITVECTOR_UREM 2 "unsigned remainder from truncating division of two bi
 operator BITVECTOR_SDIV 2 "2's complement signed division"
 operator BITVECTOR_SMOD 2 "2's complement signed remainder (sign follows divisor)"
 operator BITVECTOR_SREM 2 "2's complement signed remainder (sign follows dividend)"
-# total division kinds
 
 ## shift kinds
 operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right (the two bit-vector parameters must have same width)"
@@ -157,6 +159,9 @@ parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-
 ### type rules for non-parameterized operator kinds ---------------------------
 
 typerule CONST_BITVECTOR ::cvc5::theory::bv::BitVectorConstantTypeRule
+
+## conversion to bit-vector from vector of Booleans kind
+typerule BITVECTOR_BB_TERM ::cvc5::theory::bv::BitVectorToBVTypeRule
 
 ## concatentation kind
 typerule BITVECTOR_CONCAT ::cvc5::theory::bv::BitVectorConcatTypeRule

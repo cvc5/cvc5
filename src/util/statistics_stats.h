@@ -122,8 +122,10 @@ class ReferenceStat
   /** Value stored for this statistic */
   using stat_type = StatisticReferenceValue<T>;
   /** Reset the reference to point to `t`. */
-  void set(const T& t)
+  template <typename TT>
+  void set(const TT& t)
   {
+    static_assert(std::is_same_v<T, TT>, "Incorrect type for ReferenceStat");
     if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
