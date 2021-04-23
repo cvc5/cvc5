@@ -1782,13 +1782,16 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE || stype.isSequence())
+  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE
+           || stype.isSequence())
   {
-    // note we cannot convert looping word equations into regular expressions if we are handling sequences, since there is no analog for regular expressions over sequences currently
+    // note we cannot convert looping word equations into regular expressions if
+    // we are handling sequences, since there is no analog for regular
+    // expressions over sequences currently
     d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
     return ProcessLoopResult::SKIPPED;
   }
-  
+
   Trace("strings-loop") << "Detected possible loop for " << veci[loop_index]
                         << std::endl;
   Trace("strings-loop") << " ... (X)= " << vecoi[index] << std::endl;
