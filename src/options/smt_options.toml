@@ -144,7 +144,6 @@ header = "options/smt_options.h"
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]

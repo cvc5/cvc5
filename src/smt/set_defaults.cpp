@@ -388,14 +388,17 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (disableProofs && options::produceProofs())
   {
     options::unsatCores.set(false);
+    options::checkUnsatCores.set(false);
+    options::dumpUnsatCores.set(false);
     options::unsatCoresMode.set(options::UnsatCoresMode::OFF);
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
     }
     options::produceProofs.set(false);
-    options::proofReq.set(false);
     options::checkProofs.set(false);
+    options::dumpProofs.set(false);
+    options::proofReq.set(false);
     options::proofEagerChecking.set(false);
   }
 
