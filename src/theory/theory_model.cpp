@@ -200,7 +200,8 @@ Node TheoryModel::getModelValue(TNode n) const
   Node ret = n;
   NodeManager* nm = NodeManager::currentNM();
 
-  // If it has children, evaluate them. Notice this includes quantified
+  // If it has children, evaluate them. We do this even if n is an unevaluatable
+  // or semi-unevaluatable operator. Notice this includes quantified
   // formulas. It may not be possible in general to evaluate bodies of
   // quantified formulas, because they have free variables. Regardless, we
   // may often be able to evaluate the body of a quantified formula to true,
