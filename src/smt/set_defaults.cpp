@@ -106,7 +106,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                     "were requested.\n";
       }
-      // enable unsat cores, because they are available as a consequence of proofs
+      // enable unsat cores, because they are available as a consequence of
+      // proofs
       options::unsatCores.set(true);
       options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
     }
@@ -779,7 +780,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // uses a non-standard implementation that sends (unsound) lemmas during
     // presolve.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !options::incrementalSolving() && !options::unsatCores();
+                       && !options::incrementalSolving()
+                       && !options::unsatCores();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     options::ufSymmetryBreaker.set(qf_uf_noinc);
