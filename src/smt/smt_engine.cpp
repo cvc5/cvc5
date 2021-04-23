@@ -642,6 +642,7 @@ void SmtEngine::defineFunction(Node func,
   // type check body
   debugCheckFunctionBody(formula, formals, func);
 
+  // Substitute out any abstract values in formula
   Node def = d_absValues->substituteAbstractValues(formula);
   if (!formals.empty())
   {
@@ -649,12 +650,19 @@ void SmtEngine::defineFunction(Node func,
     def = nm->mkNode(
         kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
   }
-  // Substitute out any abstract values in formula
-  d_smtSolver->getPreprocessor()->defineFunction(func, def);
   if (global)
   {
+    // if it is a global definition, we must notify the assertions so that
+    // the definition is persistent. The definition is of the form
+    // func = lambda formals. formula.
     Node feq = func.eqNode(def);
     d_asserts->addDefineFunDefinition(feq, global);
+  }
+  else
+  {
+    // otherwise, we notify the preprocessor, which will treat it as a
+    // substitution
+    d_smtSolver->getPreprocessor()->defineFunction(func, def);
   }
 }
 

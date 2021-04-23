@@ -81,7 +81,8 @@ class Assertions
    */
   void assertFormula(const Node& n, bool inUnsatCore = true);
   /**
-   * Assert that n corresponds to an assertion from a define-fun-rec command.
+   * Assert that n corresponds to an assertion from a define-fun or
+   * define-fun-rec command.
    * This assertion is added to the set of assertions maintained by this class.
    * If this has a global definition, this assertion is persistent for any
    * subsequent check-sat calls.
