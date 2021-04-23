@@ -1,12 +1,12 @@
 Sort
 ====
 
-.. doxygenstruct:: cvc5::api::SortHashFunction
+.. doxygenclass:: cvc5::api::Sort
     :project: cvc5
     :members:
     :undoc-members:
 
-.. doxygenclass:: cvc5::api::Sort
-    :project: cvc5
+.. doxygenstruct:: std::hash< cvc5::api::Sort >
+    :project: std
     :members:
     :undoc-members:
