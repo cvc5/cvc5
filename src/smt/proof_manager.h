@@ -88,8 +88,7 @@ class PfManager
   /**
    * Check proof, same as above, without printing.
    */
-  void checkProof(std::shared_ptr<ProofNode> pfn,
-                  Assertions& as);
+  void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
 
   /**
    * Get final proof.
@@ -111,8 +110,7 @@ class PfManager
    * Set final proof, which initializes d_finalProof to the given proof node of
    * false, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(std::shared_ptr<ProofNode> pfn,
-                     Assertions& as);
+  void setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
   /**
    * Get assertions from the assertions
    */

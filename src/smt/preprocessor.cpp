@@ -137,8 +137,7 @@ Node Preprocessor::expandDefinitions(
   return n;
 }
 
-void Preprocessor::defineFunction(Node func,
-                    Node def)
+void Preprocessor::defineFunction(Node func, Node def)
 {
   d_ppContext->addSubstitution(func, def);
 }

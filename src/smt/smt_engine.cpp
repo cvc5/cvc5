@@ -641,13 +641,14 @@ void SmtEngine::defineFunction(Node func,
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
-  
+
   Node def = d_absValues->substituteAbstractValues(formula);
   if (!formals.empty())
   {
-    NodeManager * nm = NodeManager::currentNM();
-    def = nm->mkNode(kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
-  } 
+    NodeManager* nm = NodeManager::currentNM();
+    def = nm->mkNode(
+        kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
+  }
   // Substitute out any abstract values in formula
   d_smtSolver->getPreprocessor()->defineFunction(func, def);
   if (global)
@@ -1399,8 +1400,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
-      pe->getProof(), *d_asserts);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->getFinalProof(pe->getProof(), *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   return UnsatCore(core);
@@ -1493,8 +1494,8 @@ void SmtEngine::getRelevantInstantiationTermVectors(
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
-      pe->getProof(), *d_asserts);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->getFinalProof(pe->getProof(), *d_asserts);
   d_ucManager->getRelevantInstantiations(pfn, insts);
 }
 

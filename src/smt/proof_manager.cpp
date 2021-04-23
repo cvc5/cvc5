@@ -84,8 +84,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
-                              Assertions& as)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
@@ -163,8 +162,7 @@ void PfManager::printProof(std::ostream& out,
     out << "\n)\n";
   }
 }
-void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
-                           Assertions& as)
+void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);

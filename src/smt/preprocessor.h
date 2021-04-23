@@ -100,8 +100,7 @@ class Preprocessor
    * @param func a variable of function type
    * @param def the definition of the function
    */
-  void defineFunction(Node func,
-                    Node def);
+  void defineFunction(Node func, Node def);
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */
