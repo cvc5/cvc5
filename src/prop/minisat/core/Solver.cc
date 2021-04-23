@@ -2383,10 +2383,8 @@ inline bool Solver::withinBudget(Resource r) const
   d_proxy->spendResource(r);
 
   bool within_budget =
-      !asynch_interrupt
-      && (conflict_budget < 0 || conflicts < (uint64_t)conflict_budget)
-      && (propagation_budget < 0
-          || propagations < (uint64_t)propagation_budget);
+      !asynch_interrupt && (conflict_budget < 0 || conflicts < conflict_budget)
+      && (propagation_budget < 0 || propagations < propagation_budget);
   return within_budget;
 }
 
