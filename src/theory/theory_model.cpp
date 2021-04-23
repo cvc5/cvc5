@@ -200,7 +200,11 @@ Node TheoryModel::getModelValue(TNode n) const
   Node ret = n;
   NodeManager* nm = NodeManager::currentNM();
 
-  // if it is an evaluated kind, compute model values for children and evaluate
+  // If it has children, evaluate them. Notice this includes quantified
+  // formulas. It may not be possible in general to evaluate bodies of
+  // quantified formulas, because they have free variables. Regardless, we
+  // may often be able to evaluate the body of a quantified formula to true,
+  // e.g. forall x. P(x) where P = lambda x. true.
   if (n.getNumChildren() > 0)
   {
     Debug("model-getvalue-debug")
@@ -251,6 +255,9 @@ Node TheoryModel::getModelValue(TNode n) const
       ret = nm->mkConst(
           Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
+    // if the value was constant, we return it. If it was non-constant,
+    // we only return it if we an evaluated kind. This can occur if the
+    // children of n failed to evaluate.
     if (ret.isConst() || (
      d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
       && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
