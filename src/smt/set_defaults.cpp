@@ -68,11 +68,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Options::current().set(options::dumpUnsatCores, true);
   }
   if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions())
+      || options::unsatAssumptions()
+      || options::unsatCoresMode() != options::UnsatCoresMode::OFF)
   {
     Options::current().set(options::unsatCores, true);
   }
-
   if (options::unsatCores()
       && options::unsatCoresMode() == options::UnsatCoresMode::OFF)
   {
@@ -97,6 +97,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                   "were requested.\n";
     }
+    // enable unsat cores, because they are available as a consequence of proofs
+    Options::current().set(options::unsatCores, true);
     Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::FULL_PROOF);
   }
 
@@ -112,21 +114,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Options::current().set(options::produceProofs, true);
   }
 
-  // guarantee that if unsat cores mode is not OFF, then they are activated
-  if (!options::unsatCores())
-  {
-    if (Options::current().wasSetByUser(options::unsatCoresMode))
-    {
-      Notice() << "Overriding unsat-core mode for OFF since cores were not "
-                  "requested.\n";
-    }
-    Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
-  }
-
-  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
-  // unsat core mode, since new ones are experimental
-  bool safeUnsatCores =
-      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
+  // if unsat cores are disabled, then unsat cores mode should be OFF
+  Assert(options::unsatCores()
+         == (options::unsatCoresMode() != options::UnsatCoresMode::OFF));
 
   if (Options::current().wasSetByUser(options::bitvectorAigSimplifications))
   {
@@ -294,6 +284,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
+  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
+  {
+    // If the user explicitly set a logic that includes strings, but is not
+    // the generic "ALL" logic, then enable stringsExp.
+    Options::current().set(options::stringExp, true);
+  }
   if (options::stringExp() || !options::stringLazyPreproc())
   {
     // We require quantifiers since extended functions reduce using them.
@@ -387,13 +383,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // if we requiring disabling proofs, disable them now
   if (disableProofs && options::produceProofs())
   {
-    if (options::unsatCoresMode() != options::UnsatCoresMode::OFF
-        && options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF)
-    {
-      Notice() << "SmtEngine: reverting to old unsat cores since proofs are "
-                  "disabled.\n";
-      Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OLD_PROOF);
-    }
+    Options::current().set(options::unsatCores, false);
+    Options::current().set(options::unsatCoresMode, options::UnsatCoresMode::OFF);
     if (options::produceProofs())
     {
       Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
@@ -425,6 +416,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
              << "option requiring assertions." << std::endl;
     Options::current().set(options::produceAssertions, true);
   }
+
+  // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
+  // unsat core mode, since new ones are experimental
+  bool safeUnsatCores =
+      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible

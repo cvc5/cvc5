@@ -22,6 +22,15 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 
+SubstitutionMap::SubstitutionMap(context::Context* context)
+    : d_context(),
+      d_substitutions(context ? context : &d_context),
+      d_substitutionCache(),
+      d_cacheInvalidated(false),
+      d_cacheInvalidator(context ? context : &d_context, d_cacheInvalidated)
+{
+}
+
 struct substitution_stack_element {
   TNode d_node;
   bool d_children_added;
@@ -53,14 +62,6 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     // If node already in the cache we're done, pop from the stack
     NodeCache::iterator find = cache.find(current);
     if (find != cache.end()) {
-      toVisit.pop_back();
-      continue;
-    }
-
-    if (!d_substituteUnderQuantifiers && current.isClosure())
-    {
-      Debug("substitution::internal") << "--not substituting under quantifier" << endl;
-      cache[current] = current;
       toVisit.pop_back();
       continue;
     }
