@@ -650,9 +650,11 @@ void SmtEngine::defineFunction(Node func,
   } 
   // Substitute out any abstract values in formula
   d_smtSolver->getPreprocessor()->defineFunction(func, def);
-  // TODO
-  //Node feq = func.eqNode(def);
-  //d_asserts->addDefineFunDefinition(feq, global);
+  if (global)
+  {
+    Node feq = func.eqNode(def);
+    d_asserts->addDefineFunDefinition(feq, global);
+  }
 }
 
 void SmtEngine::defineFunctionsRec(
@@ -1256,6 +1258,7 @@ Result SmtEngine::blockModel()
   std::vector<Node> eassertsProc = getExpandedAssertions();
   Node eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m->getTheoryModel(), options::blockModelsMode());
+  Trace("smt") << "Block formula: " << eblocker << std::endl;
   return assertFormula(eblocker);
 }
 
