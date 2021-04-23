@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-check-unsat-cores
+; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic NIA)
 (set-info :status unsat)
