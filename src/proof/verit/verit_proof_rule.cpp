@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file verit_proof_rule.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Hanna Lachnitt
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of veriT proof rules
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Hanna Lachnitt
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of veriT proof rules
+ */
 
 #include "proof/verit/verit_proof_rule.h"
 
@@ -99,7 +100,7 @@ const char* veritRuleToString(VeritRule id)
     case VeritRule::IMPLIES_SIMPLIFY: return "implies_simplify";
     case VeritRule::EQUIV_SIMPLIFY: return "equiv_simplify";
     case VeritRule::BOOL_SIMPLIFY: return "bool_simplify";
-    case VeritRule::QUANTIFIER_SIMPLIFY: return "quantifier_simplify";
+    case VeritRule::QUANTIFIER_SIMPLIFY: return "qnt_simplify";
     case VeritRule::DIV_SIMPLIFY: return "div_simplify";
     case VeritRule::PROD_SIMPLIFY: return "prod_simplify";
     case VeritRule::UNARY_MINUS_SIMPLIFY: return "unary_minus_simplify";
