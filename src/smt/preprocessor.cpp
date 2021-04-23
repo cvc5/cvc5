@@ -138,18 +138,9 @@ Node Preprocessor::expandDefinitions(
 }
 
 void Preprocessor::defineFunction(Node func,
-                    const std::vector<Node>& formals,
-                    Node formula,
-                    bool global)
+                    Node def)
 {
-  Node lambda = d_absValues.substituteAbstractValues(formula);
-  Trace("smt") << "defineFunction " << func << " : " << formals << " " << formula << std::endl;
-  if (!formals.empty())
-  {
-    NodeManager * nm = NodeManager::currentNM();
-    lambda = nm->mkNode(kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), lambda);
-  }
-  d_ppContext->addSubstitution(func, lambda);
+  d_ppContext->addSubstitution(func, def);
 }
 
 Node Preprocessor::simplify(const Node& node)

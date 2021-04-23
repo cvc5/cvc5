@@ -200,7 +200,7 @@ void Assertions::addFormula(
   d_assertions.push_back(n, isAssumption, true);
 }
 
-void Assertions::addDefineFunRecDefinition(Node n, bool global)
+void Assertions::addDefineFunDefinition(Node n, bool global)
 {
   n = d_absValues.substituteAbstractValues(n);
   if (d_assertionList != nullptr)

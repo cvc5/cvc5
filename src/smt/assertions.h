@@ -86,7 +86,7 @@ class Assertions
    * If this has a global definition, this assertion is persistent for any
    * subsequent check-sat calls.
    */
-  void addDefineFunRecDefinition(Node n, bool global);
+  void addDefineFunDefinition(Node n, bool global);
   /**
    * Get the assertions pipeline, which contains the set of assertions we are
    * currently processing.
