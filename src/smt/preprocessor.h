@@ -94,7 +94,23 @@ class Preprocessor
       const Node& n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly = false);
-
+  /**
+   * Define function func in the current context to be:
+   *   (lambda (formals) formula)
+   * This adds func to the list of defined functions, which indicates that
+   * all occurrences of func should be expanded during expandDefinitions.
+   *
+   * @param func a variable of function type that expects the arguments in
+   *             formal
+   * @param formals a list of BOUND_VARIABLE expressions
+   * @param formula The body of the function, must not contain func
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
+   */
+  void defineFunction(Node func,
+                      const std::vector<Node>& formals,
+                      Node formula,
+                      bool global = false);
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */

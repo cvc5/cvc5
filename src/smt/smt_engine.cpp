@@ -656,21 +656,7 @@ void SmtEngine::defineFunction(Node func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Node formNode = d_absValues->substituteAbstractValues(formula);
-  DefinedFunction def(func, formals, formNode);
-  // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
-  // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
-  // d_haveAdditions = true;
-  Debug("smt") << "definedFunctions insert " << func << " " << formNode << endl;
-
-  if (global)
-  {
-    d_definedFunctions->insertAtContextLevelZero(func, def);
-  }
-  else
-  {
-    d_definedFunctions->insert(func, def);
-  }
+  d_smtSolver->getPreprocessor()->defineFunction(func, formals, formula, global);
 }
 
 void SmtEngine::defineFunctionsRec(
