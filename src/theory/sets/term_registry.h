@@ -77,7 +77,7 @@ class TermRegistry
 
  private:
   /** Send simple lemma internal */
-  void sendSimpleLemmaInternal(Node eq, InferenceId id);
+  void sendSimpleLemmaInternal(Node n, InferenceId id);
   /** The inference manager */
   InferenceManager& d_im;
   /** Reference to the skolem cache */
