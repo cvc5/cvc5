@@ -200,7 +200,7 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 MethodId ids,
                                                 MethodId ida)
 {
-  std::vector<Node> expv(exp);
+  std::vector<Node> expv{exp};
   return applySubstitution(n, expv, ids, ida);
 }
 
