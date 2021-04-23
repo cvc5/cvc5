@@ -650,8 +650,9 @@ void SmtEngine::defineFunction(Node func,
   } 
   // Substitute out any abstract values in formula
   d_smtSolver->getPreprocessor()->defineFunction(func, def);
-  Node feq = func.eqNode(def);
-  d_asserts->addDefineFunDefinition(feq, global);
+  // TODO
+  //Node feq = func.eqNode(def);
+  //d_asserts->addDefineFunDefinition(feq, global);
 }
 
 void SmtEngine::defineFunctionsRec(
