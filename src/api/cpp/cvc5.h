@@ -751,20 +751,21 @@ class CVC5_EXPORT Sort
  */
 std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
 
-}}
+}  // namespace api
+}  // namespace cvc5
 
 namespace std {
 
 /**
  * Hash function for Sorts.
  */
-template<>
+template <>
 struct CVC5_EXPORT hash<cvc5::api::Sort>
 {
   size_t operator()(const cvc5::api::Sort& s) const;
 };
 
-}
+}  // namespace std
 
 namespace cvc5::api {
 
@@ -906,18 +907,18 @@ class CVC5_EXPORT Op
  */
 std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
 
-}
+}  // namespace cvc5::api
 
 namespace std {
 /**
  * Hash function for Ops.
  */
-template<>
+template <>
 struct CVC5_EXPORT hash<cvc5::api::Op>
 {
   size_t operator()(const cvc5::api::Op& t) const;
 };
-}
+}  // namespace std
 
 namespace cvc5::api {
 /* -------------------------------------------------------------------------- */
@@ -1347,8 +1348,8 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_set<Term>&
-                             unordered_set) CVC5_EXPORT;
+                         const std::unordered_set<Term>& unordered_set)
+    CVC5_EXPORT;
 
 /**
  * Serialize a map of terms to the given stream.
@@ -1370,21 +1371,21 @@ std::ostream& operator<<(std::ostream& out,
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_map<Term, V>&
-                             unordered_map) CVC5_EXPORT;
+                         const std::unordered_map<Term, V>& unordered_map)
+    CVC5_EXPORT;
 
-}
+}  // namespace cvc5::api
 
 namespace std {
 /**
  * Hash function for Terms.
  */
-template<>
+template <>
 struct CVC5_EXPORT hash<cvc5::api::Term>
 {
   size_t operator()(const cvc5::api::Term& t) const;
 };
-}
+}  // namespace std
 
 namespace cvc5::api {
 
@@ -2248,11 +2249,10 @@ class CVC5_EXPORT Grammar
    * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    * @return the purfied term
    */
-  Term purifySygusGTerm(
-      const Term& term,
-      std::vector<Term>& args,
-      std::vector<Sort>& cargs,
-      const std::unordered_map<Term, Sort>& ntsToUnres) const;
+  Term purifySygusGTerm(const Term& term,
+                        std::vector<Term>& args,
+                        std::vector<Sort>& cargs,
+                        const std::unordered_map<Term, Sort>& ntsToUnres) const;
 
   /**
    * This adds constructors to \p dt for sygus variables in \p d_sygusVars
@@ -2350,20 +2350,19 @@ enum CVC5_EXPORT RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
-}
+}  // namespace cvc5::api
 
-namespace std
-{
+namespace std {
 
 /**
  * Hash function for RoundingModes.
  */
-template<>
+template <>
 struct CVC5_EXPORT hash<cvc5::api::RoundingMode>
 {
   size_t operator()(cvc5::api::RoundingMode rm) const;
 };
-}
+}  // namespace std
 namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
@@ -4085,6 +4084,5 @@ class CVC5_EXPORT Solver
 };
 
 }  // namespace cvc5::api
-
 
 #endif

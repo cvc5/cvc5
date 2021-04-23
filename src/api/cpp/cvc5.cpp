@@ -2737,9 +2737,8 @@ std::ostream& operator<<(std::ostream& out, const std::set<Term>& set)
   return out;
 }
 
-std::ostream& operator<<(
-    std::ostream& out,
-    const std::unordered_set<Term>& unordered_set)
+std::ostream& operator<<(std::ostream& out,
+                         const std::unordered_set<Term>& unordered_set)
 {
   container_to_stream(out, unordered_set);
   return out;
@@ -2753,9 +2752,8 @@ std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map)
 }
 
 template <typename V>
-std::ostream& operator<<(
-    std::ostream& out,
-    const std::unordered_map<Term, V>& unordered_map)
+std::ostream& operator<<(std::ostream& out,
+                         const std::unordered_map<Term, V>& unordered_map)
 {
   container_to_stream(out, unordered_map);
   return out;
@@ -3960,8 +3958,7 @@ Term Grammar::purifySygusGTerm(
   CVC5_API_CHECK_TERMS_MAP(ntsToUnres);
   //////// all checks before this line
 
-  std::unordered_map<Term, Sort>::const_iterator itn =
-      ntsToUnres.find(term);
+  std::unordered_map<Term, Sort>::const_iterator itn = ntsToUnres.find(term);
   if (itn != ntsToUnres.cend())
   {
     Term ret =
@@ -4057,17 +4054,15 @@ std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
-const static std::
-    unordered_map<RoundingMode, cvc5::RoundingMode>
-        s_rmodes{
-            {ROUND_NEAREST_TIES_TO_EVEN,
-             cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-            {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
-            {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
-            {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
-            {ROUND_NEAREST_TIES_TO_AWAY,
-             cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
-        };
+const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
+    {ROUND_NEAREST_TIES_TO_EVEN,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
+    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
+    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
+    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
+    {ROUND_NEAREST_TIES_TO_AWAY,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
+};
 
 const static std::unordered_map<cvc5::RoundingMode,
                                 RoundingMode,
@@ -4140,7 +4135,8 @@ bool Stat::isString() const
 const std::string& Stat::getString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(isString()) << "Expected Stat of type std::string.";
+  CVC5_API_RECOVERABLE_CHECK(isString())
+      << "Expected Stat of type std::string.";
   return std::get<std::string>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4151,7 +4147,8 @@ bool Stat::isHistogram() const
 const Stat::HistogramData& Stat::getHistogram() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(isHistogram()) << "Expected Stat of type histogram.";
+  CVC5_API_RECOVERABLE_CHECK(isHistogram())
+      << "Expected Stat of type histogram.";
   return std::get<HistogramData>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4730,7 +4727,8 @@ void Solver::resetStatistics()
             "api::CONSTANT"),
         d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
             "api::VARIABLE"),
-        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>(
+            "api::TERM"),
     });
   }
 }
@@ -7099,7 +7097,8 @@ size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
   }
 }
 
-size_t std::hash<cvc5::api::RoundingMode>::operator()(cvc5::api::RoundingMode rm) const
+size_t std::hash<cvc5::api::RoundingMode>::operator()(
+    cvc5::api::RoundingMode rm) const
 {
   return static_cast<size_t>(rm);
 }
@@ -7114,4 +7113,4 @@ size_t std::hash<cvc5::api::Term>::operator()(const cvc5::api::Term& t) const
   return cvc5::NodeHashFunction()(*t.d_node);
 }
 
-}
+}  // namespace std
