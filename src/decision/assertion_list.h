@@ -71,8 +71,7 @@ class AssertionList
   /** Add the assertion n */
   void addAssertion(TNode n);
   /**
-   * Get the new assertion, increment d_assertionIndex, sets fromIndex to the
-   * index of the assertion.
+   * Get the next assertion and increment d_assertionIndex.
    */
   TNode getNextAssertion();
   /** Get the number of assertions */
