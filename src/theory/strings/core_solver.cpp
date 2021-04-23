@@ -1771,16 +1771,6 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
                                                       int index,
                                                       CoreInferInfo& info)
 {
-  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
-  {
-    throw LogicException("Looping word equation encountered.");
-  }
-  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
-  {
-    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
-    return ProcessLoopResult::SKIPPED;
-  }
-
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
   const std::vector<Node>& veci = nfi.d_nf;
@@ -1788,6 +1778,17 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   TypeNode stype = veci[loop_index].getType();
 
+  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
+  {
+    throw LogicException("Looping word equation encountered.");
+  }
+  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE || stype.isSequence())
+  {
+    // note we cannot convert looping word equations into regular expressions if we are handling sequences, since there is no analog for regular expressions over sequences currently
+    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
+    return ProcessLoopResult::SKIPPED;
+  }
+  
   Trace("strings-loop") << "Detected possible loop for " << veci[loop_index]
                         << std::endl;
   Trace("strings-loop") << " ... (X)= " << vecoi[index] << std::endl;
