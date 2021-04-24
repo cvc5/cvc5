@@ -154,18 +154,18 @@ void TermRegistry::debugPrintSet(Node s, const char* c) const
   }
 }
 
-void TermRegistry::sendSimpleLemmaInternal(Node eq, InferenceId id)
+void TermRegistry::sendSimpleLemmaInternal(Node n, InferenceId id)
 {
-  Trace("sets-lemma") << "Sets::Lemma : " << eq << " by " << id << std::endl;
+  Trace("sets-lemma") << "Sets::Lemma : " << n << " by " << id << std::endl;
   if (d_epg.get() != nullptr)
   {
     TrustNode teq =
-        d_epg->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
+        d_epg->mkTrustNode(n, PfRule::MACRO_SR_PRED_INTRO, {}, {n});
     d_im.trustedLemma(teq, id);
   }
   else
   {
-    d_im.lemma(eq, id);
+    d_im.lemma(n, id);
   }
 }
 

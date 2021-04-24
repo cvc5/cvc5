@@ -272,7 +272,7 @@ enum class PfRule : uint32_t
   // Arguments: none
   // ---------------------
   // Conclusion: false
-  // Note: P1, ..., Pn corresponds to the unsat core determined by the SAT
+  // Note: P1, ..., Pn correspond to the unsat core determined by the SAT
   // solver.
   SAT_REFUTATION,
 

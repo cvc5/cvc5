@@ -216,7 +216,7 @@ SatValue MinisatSatSolver::solve(const std::vector<SatLiteral>& assumptions)
 void MinisatSatSolver::getUnsatAssumptions(
     std::vector<SatLiteral>& unsat_assumptions)
 {
-  for (size_t i = 0; i < (size_t)d_minisat->d_conflict.size(); ++i)
+  for (size_t i = 0, size = d_minisat->d_conflict.size(); i < size; ++i)
   {
     Minisat::Lit mlit = d_minisat->d_conflict[i];
     SatLiteral lit = ~toSatLiteral(mlit);
