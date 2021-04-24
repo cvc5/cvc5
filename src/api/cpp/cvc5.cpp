@@ -3443,12 +3443,12 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Datatype::getConstructorTerm(const std::string& name) const
+DatatypeSelector Datatype::getSelector(const std::string& name) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return getConstructor(name).getConstructorTerm();
+  return getSelectorForName(name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
