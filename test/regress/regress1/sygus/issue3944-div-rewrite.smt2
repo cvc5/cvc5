@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference -q
+; COMMAND-LINE: --sygus-inference
 (set-logic ALL)
 (declare-fun a () Int)
 (declare-fun b () Int)
