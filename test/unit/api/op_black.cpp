@@ -15,6 +15,8 @@
 
 #include "test_api.h"
 
+#include <variant>
+
 namespace cvc5 {
 
 using namespace api;
@@ -221,15 +223,23 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
                CVC5ApiException);
 }
 
-TEST_F(TestApiBlackOp, getIndicesUintVector)
+TEST_F(TestApiBlackOp, getIndicesVariants)
 {
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
   Op tuple_project_op = d_solver.mkOp(TUPLE_PROJECT, indices);
+  std::vector<std::variant<uint32_t, std::string>> expected = {
+      0, 3, 2, 0, 1, 2};
   ASSERT_TRUE(tuple_project_op.isIndexed());
-  std::vector<uint32_t> tuple_project_extract_indices =
-      tuple_project_op.getIndices<std::vector<uint32_t>>();
-  ASSERT_EQ(indices, tuple_project_extract_indices);
+  std::vector<std::variant<uint32_t, std::string>>
+      tuple_project_extract_indices =
+          tuple_project_op
+              .getIndices<std::vector<std::variant<uint32_t, std::string>>>();
+  ASSERT_EQ(expected, tuple_project_extract_indices);
   ASSERT_THROW(tuple_project_op.getIndices<std::string>(), CVC5ApiException);
+  for (size_t i = 0; i < indices.size(); i++)
+  {
+    ASSERT_EQ(indices[i], std::get<uint32_t>(tuple_project_extract_indices[i]));
+  }
 }
 
 TEST_F(TestApiBlackOp, opScopingToString)
