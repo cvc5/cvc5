@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic LRA)
 (declare-fun y1 () Real)
