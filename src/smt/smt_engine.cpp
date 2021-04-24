@@ -1421,8 +1421,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   Assert(pe != nullptr);
 
   std::shared_ptr<ProofNode> pepf;
-  if (options::unsatCores()
-      && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
   {
     pepf = pe->getRefutation();
   }
