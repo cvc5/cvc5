@@ -198,8 +198,6 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
       options::BitblastMode mode = stringToBitblastMode("eager");
       Options::current().set(options::bitblastMode, mode);
     }
-    Options::current().setDefault(options::bitvectorAigSimplifications,
-                                  "balance;drw");
   }
 }
 
