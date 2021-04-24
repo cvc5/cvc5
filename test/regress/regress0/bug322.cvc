@@ -1,4 +1,8 @@
+% COMMAND-LINE: --no-check-models
 % EXPECT: sat
+
+% this benchmark can be shown sat trivially since there is only a definition for is_faulty.
+% However, if models are enabled, we answer unknown since its definition contains a quantifier and hence we cannot eliminate the definition.
 % Preamble  --------------
 DATATYPE UNIT = Unit END;
 DATATYPE BOOL = Truth | Falsity END;
