@@ -16,7 +16,7 @@ header = "options/decision_options.h"
   name = "internal"
   help = "Use the internal decision heuristics of the SAT solver."
 [[option.mode.JUSTIFICATION]]
-  name = "justification"
+  name = "justification-old"
   help = "An ATGP-inspired justification heuristic."
 [[option.mode.RELEVANCY]]
   name = "justification-stoponly"
@@ -73,3 +73,41 @@ header = "options/decision_options.h"
   name = "sum"
 [[option.mode.USR1]]
   name = "usr1"
+
+[[option]]
+  name       = "jhSkolemMode"
+  category   = "expert"
+  long       = "jh-skolem=MODE"
+  type       = "JutificationSkolemMode"
+  default    = "FIRST"
+  help       = "policy for when to satisfy skolem definitions in justification heuristic"
+  help_mode  = "Policy for when to satisfy skolem definitions in justification heuristic"
+[[option.mode.FIRST]]
+  name = "first"
+[[option.mode.LAST]]
+  name = "last"
+[[option.mode.FIRST_AGG]]
+  name = "first-agg"
+
+[[option]]
+  name       = "jhRlvOrder"
+  category   = "expert"
+  long       = "jh-rlv-order"
+  type       = "bool"
+  default    = "false"
+  help       = "maintain activity-based ordering for decision justification heuristic"
+
+[[option]]
+  name       = "jhSkolemRlvMode"
+  category   = "expert"
+  long       = "jh-skolem-rlv=MODE"
+  type       = "JutificationSkolemRlvMode"
+  default    = "ASSERT"
+  help       = "policy for when to consider skolem definitions relevant in justification heuristic"
+  help_mode  = "Policy for when to consider skolem definitions relevant in justification heuristic"
+[[option.mode.ASSERT]]
+  name = "assert"
+[[option.mode.JUSTIFY]]
+  name = "justify"
+[[option.mode.ALWAYS]]
+  name = "always"
