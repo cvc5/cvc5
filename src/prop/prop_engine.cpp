@@ -654,7 +654,6 @@ bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
-  Assert(options::unsatCores());
   Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<SatLiteral> unsat_assumptions;
   d_satSolver->getUnsatAssumptions(unsat_assumptions);
