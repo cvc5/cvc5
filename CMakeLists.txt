@@ -247,7 +247,7 @@ endif()
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
 if(NOT ENABLE_ASSERTIONS)
-  message(WARNING "Disabling unit tests since assertions are disabled.")
+  message(STATUS "Disabling unit tests since assertions are disabled.")
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
@@ -261,7 +261,7 @@ if(ENABLE_SHARED)
   set(BUILD_SHARED_LIBS ON)
   if(ENABLE_STATIC_BINARY)
     set(ENABLE_STATIC_BINARY OFF)
-    message(WARNING "Disabling static binary since shared build is enabled.")
+    message(STATUS "Disabling static binary since shared build is enabled.")
   endif()
 
   # Set visibility to default if unit tests are enabled
@@ -300,7 +300,7 @@ else()
   # Never build unit tests as static binaries, otherwise we'll end up with
   # ~300MB per unit test.
   if(ENABLE_UNIT_TESTING)
-    message(WARNING "Disabling unit tests since static build is enabled.")
+    message(STATUS "Disabling unit tests since static build is enabled.")
     set(ENABLE_UNIT_TESTING OFF)
   endif()
 
@@ -439,7 +439,7 @@ if(USE_CRYPTOMINISAT)
   if(THREADS_HAVE_PTHREAD_ARG)
     add_c_cxx_flag(-pthread)
   endif()
-  find_package(CryptoMiniSat REQUIRED)
+  find_package(CryptoMiniSat 5.8 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
 
@@ -502,7 +502,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
-add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(test)
 

@@ -1,11 +1,13 @@
-CVC4 prerelease version 1.9
+cvc5 prerelease version 1.0
 ===========================
 
 ## Building cvc5
 
-    ./contrib/get-antlr-3.4  # download and build ANTLR
-    ./configure.sh   # use --prefix to specify a prefix (default: /usr/local)
-                     # use --name=<PATH> for custom build directory
+    ./configure.sh
+        # use --prefix to specify an install prefix (default: /usr/local)
+        # use --name=<PATH> for custom build directory
+        # use --auto-download to download and build missing, required or
+        #   enabled, dependencies
     cd <build_dir>   # default is ./build
     make             # use -jN for parallel build with N threads
     make check       # to run default set of tests
@@ -16,8 +18,8 @@ All binaries are built into `<build_dir>/bin`, the cvc5 library is built into
 
 ## Supported Operating Systems
 
-cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be cross-compiled
-using Mingw-w64.  We recommend a 64-bit operating system.
+cvc5 can be built on Linux and macOS.  Cross-compilation is possible for Arm64
+systems and Windows using Mingw-w64.  We recommend a 64-bit operating system.
 
 On macOS, we recommend using Homebrew (https://brew.sh/) to install the
 dependencies.  We also have a Homebrew Tap available at
@@ -41,51 +43,36 @@ can be found in `<build_dir>/lib`.
 
 ## Build dependencies
 
-The following tools and libraries are required to build and run cvc5.
-Versions given are minimum versions; more recent versions should be
-compatible.
+cvc5 makes uses of a number of tools and libraries. Some of these are required
+while others are only used with certain configuration options. If
+`--auto-download` is given, cvc5 can automatically download and build most
+libraries that are not already installed on your system. Versions given are
+minimum versions; more recent versions should be compatible.
 
 - [GNU C and C++ (gcc and g++)](https://gcc.gnu.org)
   or [Clang](https://clang.llvm.org) (reasonably recent versions)
 - [CMake >= 3.9](https://cmake.org)
-- [GNU Bash](https://www.gnu.org/software/bash/)
 - [Python 3.x](https://www.python.org)
   + module [toml](https://pypi.org/project/toml/)
-- [GMP v4.2 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
-- [libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)](http://www.antlr3.org/)
+- [GMP v6.1 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
+- [ANTLR 3.4](http://www.antlr3.org/)
 - [Java >= 1.6](https://www.java.com)
 
-Some features, such as the theory of floating-point numbers, require
-[optional dependencies](optional-dependencies) (see below).
 
-### Installing libantlr3c: ANTLR parser generator C support library
+### ANTLR 3.4 parser generator
 
-For libantlr3c, you can use the script `contrib/get-antlr-3.4`.
-This will download, patch, and install libantlr3c.
+For most systems, the package manager no longer contains pre-packaged versions
+of ANTLR 3.4. With `--auto-download`, cvc5 will automatically download and build
+ANTLR 3.4.
 
-If you're on a 32-bit machine, or if you have difficulty building
-libantlr3c (or difficulty getting cvc5 to link against it), you
-may need to remove the configure option `--enable-64bit` in the script.
 
-### Warning: GCC 4.5.1
+### GMP (GNU Multi-Precision arithmetic library)
 
-GCC version 4.5.1 seems to have a bug in the optimizer that may result in
-incorrect behavior (and wrong results) in many builds. This is a known problem
-for MiniSat, and since MiniSat is at the core of cvc5, a problem for cvc5.
-We recommend using a GCC version > 4.5.1.
-
-### Warning: Installing GMP via `contrib/get-gmp-dev`
-
-Do **not** install GMP via the provided script `contrib/get-gmp-dev` unless
-your distribution
-* does not ship with the GMP configuration you need, e.g.,
-  `contrib/get-gmp-dev` is used in `configure.sh` when cross-compiling GMP for
-  Windows.
-* does not ship with static GMP libraries (e.g., Arch Linux)
-  and you want to build cvc5 statically.
-
-In most of the cases the GMP version installed on your system is the one you
-want and should use.
+GMP is usually available on you distribution and should be used from there. It
+can be downloaded and built automatically. If it does not, or you want to
+cross-compile, or you want to build cvc5 statically but the distribution does
+not ship static libraries, cvc5 builds GMP automatically when `--auto-download`
+is given.
 
 ## Optional Dependencies
 
@@ -95,7 +82,7 @@ want and should use.
 is an implementation of SMT-LIB/IEEE-754 floating-point operations in terms
 of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and
-can be installed using the `contrib/get-symfpu` script.
+can be downloaded and built automatically.
 Configure cvc5 with `configure.sh --symfpu` to build with this dependency.
 
 ### CaDiCaL (Optional SAT solver)
@@ -103,7 +90,7 @@ Configure cvc5 with `configure.sh --symfpu` to build with this dependency.
 [CaDiCaL](https://github.com/arminbiere/cadical)
 is a SAT solver that can be used for solving non-incremental bit-vector
 problems with eager bit-blasting. This dependency may improve performance.
-It can be installed using the `contrib/get-cadical script`.
+It can be downloaded and built automatically.
 Configure cvc5 with `configure.sh --cadical` to build with this dependency.
 
 ### CryptoMiniSat (Optional SAT solver)
@@ -111,7 +98,7 @@ Configure cvc5 with `configure.sh --cadical` to build with this dependency.
 [CryptoMinisat](https://github.com/msoos/cryptominisat)
 is a SAT solver that can be used for solving bit-vector problems with eager
 bit-blasting. This dependency may improve performance.
-It can be installed using the `contrib/get-cryptominisat` script.
+It can be downloaded and built automatically.
 Configure cvc5 with `configure.sh --cryptominisat` to build with this
 dependency.
 
@@ -120,15 +107,15 @@ dependency.
 [Kissat](https://github.com/arminbiere/kissat)
 is a SAT solver that can be used for solving bit-vector problems with eager
 bit-blasting. This dependency may improve performance.
-It can be installed using the `contrib/get-kissat` script.
+It can be downloaded and built automatically.
 Configure cvc5 with `configure.sh --kissat` to build with this
 dependency.
 
 ### LibPoly (Optional polynomial library)
 
-[LibPoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based nonlinear reasoning.
-It can be installed using the `contrib/get-poly` script.
-Configure cvc5 with `configure.sh --poly` to build with this dependency.
+[LibPoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based
+nonlinear reasoning. It can be downloaded and built automatically. Configure
+cvc5 with `configure.sh --poly` to build with this dependency.
 
 ### CLN >= v1.3 (Class Library for Numbers)
 
@@ -137,11 +124,11 @@ is an alternative multiprecision arithmetic package that may offer better
 performance and memory footprint than GMP.
 Configure cvc5 with `configure.sh --cln` to build with this dependency.
 
-Note that CLN is covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-If you choose to use cvc5 with CLN support, you are licensing cvc5 under that
-same license.
-(Usually cvc5's license is more permissive than GPL, see the file `COPYING` in
-the cvc5 source distribution for details.)
+Note that CLN is covered by the [GNU General Public License, version
+3](https://www.gnu.org/licenses/gpl-3.0.en.html). If you choose to use cvc5 with
+CLN support, you are licensing cvc5 under that same license. (Usually cvc5's
+license is more permissive than GPL, see the file `COPYING` in the cvc5 source
+distribution for details.)
 
 ### glpk-cut-log (A fork of the GNU Linear Programming Kit)
 
@@ -155,10 +142,10 @@ Note that the only installation option is manual installation via this script.
 cvc5 is no longer compatible with the main GLPK library.
 Configure cvc5 with `configure.sh --glpk` to build with this dependency.
 
-Note that GLPK and glpk-cut-log are covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-If you choose to use cvc5 with GLPK support, you are licensing cvc5 under that
-same license.
-(Usually cvc5's license is more permissive; see above discussion.)
+Note that GLPK and glpk-cut-log are covered by the [GNU General Public License,
+version 3](https://www.gnu.org/licenses/gpl-3.0.en.html). If you choose to use
+cvc5 with GLPK support, you are licensing cvc5 under that same license. (Usually
+cvc5's license is more permissive; see above discussion.)
 
 ### ABC library (Improved Bit-Vector Support)
 
@@ -177,11 +164,6 @@ The [Editline Library](https://thrysoee.dk/editline/) library is optionally
 used to provide command editing, tab completion, and history functionality at
 the cvc5 prompt (when running in interactive mode).  Check your distribution
 for a package named "libedit-dev" or "libedit-devel" or similar.
-
-### Boost C++ base libraries (Examples)
-
-The [Boost](http://www.boost.org) C++ base library is needed for some examples
-provided with cvc5.
 
 ### Google Test Unit Testing Framework (Unit Tests)
 
@@ -206,7 +188,9 @@ binding, please contact one of the project leaders.
 
 Building the API documentation of cvc5 requires the following dependencies:
 * [Doxygen](https://www.doxygen.nl)
-* [Sphinx](https://www.sphinx-doc.org)
+* [Sphinx](https://www.sphinx-doc.org),
+  [sphinx-tabs](https://sphinx-tabs.readthedocs.io/),
+  [sphinxcontrib-bibtex](https://sphinxcontrib-bibtex.readthedocs.io)
 * [Breathe](https://breathe.readthedocs.io)
 
 To build the documentation, configure cvc5 with `./configure.sh --docs`.
@@ -360,7 +344,7 @@ tar xf <commit-sha>.tar.gz
 ```
 5. Change into source code directory
 ```
-cd CVC4-<commit-sha>
+cd cvc5-<commit-sha>
 ```
 6. Configure cvc5 with options listed by `cvc5 --show-config`
 ```
