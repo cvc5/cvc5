@@ -25,6 +25,7 @@
 #include "prop/sat_solver_types.h"
 
 namespace cvc5 {
+namespace decision {
 
 namespace prop {
 class SkolemDefManager;

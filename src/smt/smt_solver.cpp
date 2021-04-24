@@ -49,18 +49,23 @@ SmtSolver::SmtSolver(SmtEngine& smt,
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit(const LogicInfo& logicInfo,
-                           bool proofForUnsatCoreMode)
+void SmtSolver::finishInit(const LogicInfo& logicInfo)
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine.reset(
-      new TheoryEngine(d_smt.getContext(),
-                       d_smt.getUserContext(),
-                       d_rm,
-                       logicInfo,
-                       d_smt.getOutputManager(),
-                       proofForUnsatCoreMode ? nullptr : d_pnm));
+  d_theoryEngine.reset(new TheoryEngine(
+      d_smt.getContext(),
+      d_smt.getUserContext(),
+      d_rm,
+      logicInfo,
+      d_smt.getOutputManager(),
+      // Other than whether d_pm is set, theory engine proofs are conditioned on
+      // the relationshup between proofs and unsat cores: the unsat cores are in
+      // FULL_PROOF mode, no proofs are generated on theory engine.
+      (options::unsatCores()
+       && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
+          ? nullptr
+          : d_pnm));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;

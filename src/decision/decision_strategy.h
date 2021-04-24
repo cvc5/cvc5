@@ -33,6 +33,8 @@ namespace context {
   }  // namespace context
 
 namespace decision {
+  
+class DecisionEngine;
 
 class DecisionStrategy {
 protected:

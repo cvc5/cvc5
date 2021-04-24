@@ -34,7 +34,11 @@ using namespace cvc5::prop;
 namespace cvc5 {
 namespace decision {
 
+<<<<<<< HEAD
 JustificationHeuristic::JustificationHeuristic(cvc5::DecisionEngineOld* de,
+=======
+JustificationHeuristic::JustificationHeuristic(DecisionEngine* de,
+>>>>>>> 47c9c2f42696a1e04577c1a79ac78f4186657818
                                                context::UserContext* uc,
                                                context::Context* c)
     : ITEDecisionStrategy(de, c),

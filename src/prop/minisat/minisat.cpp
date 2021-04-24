@@ -32,7 +32,7 @@ namespace prop {
 //// DPllMinisatSatSolver
 
 MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry)
-    : d_minisat(NULL), d_context(NULL), d_statistics(registry)
+    : d_minisat(NULL), d_context(NULL), d_assumptions(), d_statistics(registry)
 {}
 
 MinisatSatSolver::~MinisatSatSolver()
@@ -191,6 +191,40 @@ SatValue MinisatSatSolver::solve() {
   SatValue result = toSatLiteralValue(d_minisat->solve());
   d_minisat->clearInterrupt();
   return result;
+}
+
+SatValue MinisatSatSolver::solve(const std::vector<SatLiteral>& assumptions)
+{
+  setupOptions();
+  d_minisat->budgetOff();
+
+  d_assumptions.clear();
+  Minisat::vec<Minisat::Lit> assumps;
+
+  for (const SatLiteral& lit : assumptions)
+  {
+    Minisat::Lit mlit = toMinisatLit(lit);
+    assumps.push(mlit);
+    d_assumptions.emplace(lit);
+  }
+
+  SatValue result = toSatLiteralValue(d_minisat->solve(assumps));
+  d_minisat->clearInterrupt();
+  return result;
+}
+
+void MinisatSatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& unsat_assumptions)
+{
+  for (size_t i = 0, size = d_minisat->d_conflict.size(); i < size; ++i)
+  {
+    Minisat::Lit mlit = d_minisat->d_conflict[i];
+    SatLiteral lit = ~toSatLiteral(mlit);
+    if (d_assumptions.find(lit) != d_assumptions.end())
+    {
+      unsat_assumptions.push_back(lit);
+    }
+  }
 }
 
 bool MinisatSatSolver::ok() const {

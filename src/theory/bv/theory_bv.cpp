@@ -134,29 +134,6 @@ void TheoryBV::finishInit()
   }
 }
 
-TrustNode TheoryBV::expandDefinition(Node node)
-{
-  Debug("bitvector-expandDefinition")
-      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
-
-  Node ret;
-  switch (node.getKind())
-  {
-    case kind::BITVECTOR_SDIV:
-    case kind::BITVECTOR_SREM:
-    case kind::BITVECTOR_SMOD:
-      ret = TheoryBVRewriter::eliminateBVSDiv(node);
-      break;
-
-    default: break;
-  }
-  if (!ret.isNull() && node != ret)
-  {
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 void TheoryBV::preRegisterTerm(TNode node)
 {
   d_internal->preRegisterTerm(node);
@@ -211,7 +188,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
-  TrustNode texp = expandDefinition(t);
+  TrustNode texp = d_rewriter.expandDefinition(t);
   if (!texp.isNull())
   {
     return texp;

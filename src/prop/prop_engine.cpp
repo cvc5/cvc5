@@ -83,7 +83,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_ppm(nullptr),
       d_interrupted(false),
       d_resourceManager(rm),
-      d_outMgr(outMgr)
+      d_outMgr(outMgr),
+      d_assumptions(userContext)
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
 
@@ -124,7 +125,7 @@ PropEngine::PropEngine(TheoryEngine* te,
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
-  else if (options::unsatCores())
+  else if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
   }
@@ -247,8 +248,11 @@ void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options::unsatCores() || options::unsatCoresNew());
+  Assert(
+      !isProofEnabled() || trn.getGenerator() != nullptr
+      || options::unsatCores()
+      || (options::unsatCores()
+          && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF));
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -258,7 +262,18 @@ void PropEngine::assertInternal(
   // Assert as (possibly) removable
   if (isProofEnabled())
   {
-    d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
+    if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
+        && input)
+    {
+      Assert(!negated);
+      d_pfCnfStream->ensureLiteral(node);
+      d_assumptions.push_back(node);
+    }
+    else
+    {
+      d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
+    }
+
     // if input, register the assertion
     if (input)
     {
@@ -270,6 +285,7 @@ void PropEngine::assertInternal(
     d_cnfStream->convertAndAssert(node, removable, negated, input);
   }
 }
+
 void PropEngine::assertLemmasInternal(
     theory::TrustNode trn,
     const std::vector<theory::TrustNode>& ppLemmas,
@@ -355,7 +371,20 @@ Result PropEngine::checkSat() {
   d_interrupted = false;
 
   // Check the problem
-  SatValue result = d_satSolver->solve();
+  SatValue result;
+  if (d_assumptions.size() == 0)
+  {
+    result = d_satSolver->solve();
+  }
+  else
+  {
+    std::vector<SatLiteral> assumptions;
+    for (const Node& node : d_assumptions)
+    {
+      assumptions.push_back(d_cnfStream->getLiteral(node));
+    }
+    result = d_satSolver->solve(assumptions);
+  }
 
   if( result == SAT_VALUE_UNKNOWN ) {
 
@@ -624,6 +653,28 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
 }
 
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
+
+void PropEngine::getUnsatCore(std::vector<Node>& core)
+{
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  std::vector<SatLiteral> unsat_assumptions;
+  d_satSolver->getUnsatAssumptions(unsat_assumptions);
+  for (const SatLiteral& lit : unsat_assumptions)
+  {
+    core.push_back(d_cnfStream->getNode(lit));
+  }
+}
+
+std::shared_ptr<ProofNode> PropEngine::getRefutation()
+{
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  std::vector<Node> core;
+  getUnsatCore(core);
+  CDProof cdp(d_pnm);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
+  return cdp.getProofFor(fnode);
+}
 
 }  // namespace prop
 }  // namespace cvc5

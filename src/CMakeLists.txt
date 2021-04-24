@@ -442,6 +442,7 @@ libcvc5_add_sources(
   theory/arith/theory_arith.h
   theory/arith/theory_arith_private.cpp
   theory/arith/theory_arith_private.h
+  theory/arith/theory_arith_type_rules.cpp
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
@@ -595,6 +596,7 @@ libcvc5_add_sources(
   theory/datatypes/sygus_simple_sym.h
   theory/datatypes/theory_datatypes.cpp
   theory/datatypes/theory_datatypes.h
+  theory/datatypes/theory_datatypes_type_rules.cpp
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
@@ -1070,7 +1072,9 @@ libcvc5_add_sources(
   theory/uf/theory_uf.h
   theory/uf/theory_uf_model.cpp
   theory/uf/theory_uf_model.h
+  theory/uf/theory_uf_rewriter.cpp
   theory/uf/theory_uf_rewriter.h
+  theory/uf/theory_uf_type_rules.cpp
   theory/uf/theory_uf_type_rules.h
   theory/valuation.cpp
   theory/valuation.h
