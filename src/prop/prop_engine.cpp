@@ -261,8 +261,7 @@ void PropEngine::assertInternal(
   // Assert as (possibly) removable
   if (isProofEnabled())
   {
-    if (options::unsatCores()
-        && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
+    if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
         && input)
     {
       Assert(!negated);
