@@ -493,7 +493,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       toStreamNode(out, n[1], depth, true, lbind);
       return;
       break;
-    case kind::RECORD_UPDATE:
+    case kind::DT_UPDATE:
       toStreamNode(out, n[0], depth, true, lbind);
       out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
       toStreamNode(out, n[1], depth, true, lbind);

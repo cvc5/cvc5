@@ -242,7 +242,7 @@ const static std::unordered_map<Kind, cvc5::Kind, KindHashFunction> s_kinds{
     {APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR},
     {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
     {TUPLE_UPDATE, cvc5::Kind::TUPLE_UPDATE},
-    {RECORD_UPDATE, cvc5::Kind::RECORD_UPDATE},
+    {DT_UPDATE, cvc5::Kind::DT_UPDATE},
     {DT_SIZE, cvc5::Kind::DT_SIZE},
     {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
@@ -550,8 +550,8 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
         {cvc5::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE},
         {cvc5::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
-        {cvc5::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
-        {cvc5::Kind::RECORD_UPDATE, RECORD_UPDATE},
+        {cvc5::Kind::DT_UPDATE_OP, DT_UPDATE},
+        {cvc5::Kind::DT_UPDATE, DT_UPDATE},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
@@ -659,7 +659,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
-    {RECORD_UPDATE,
+    {DT_UPDATE,
      DIVISIBLE,
      IAND,
      BITVECTOR_REPEAT,
@@ -1857,7 +1857,7 @@ size_t Op::getNumIndices() const
   switch (k)
   {
     case DIVISIBLE: size = 1; break;
-    case RECORD_UPDATE: size = 1; break;
+    case DT_UPDATE: size = 1; break;
     case BITVECTOR_REPEAT: size = 1; break;
     case BITVECTOR_ZERO_EXTEND: size = 1; break;
     case BITVECTOR_SIGN_EXTEND: size = 1; break;
@@ -1897,7 +1897,7 @@ std::string Op::getIndices() const
   CVC5_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
   Kind k = intToExtKind(d_node->getKind());
-  CVC5_API_CHECK(k == DIVISIBLE || k == RECORD_UPDATE)
+  CVC5_API_CHECK(k == DIVISIBLE || k == DT_UPDATE)
       << "Can't get string index from"
       << " kind " << kindToString(k);
   //////// all checks before this line
@@ -5835,12 +5835,12 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_KIND_CHECK_EXPECTED((kind == RECORD_UPDATE) || (kind == DIVISIBLE),
+  CVC5_API_KIND_CHECK_EXPECTED((kind == DT_UPDATE) || (kind == DIVISIBLE),
                                kind)
-      << "RECORD_UPDATE or DIVISIBLE";
+      << "DT_UPDATE or DIVISIBLE";
   //////// all checks before this line
   Op res;
-  if (kind == RECORD_UPDATE)
+  if (kind == DT_UPDATE)
   {
     res = Op(this,
              kind,

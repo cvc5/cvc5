@@ -287,7 +287,7 @@ TypeNode RecordUpdateTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check)
 {
-  Assert(n.getKind() == kind::RECORD_UPDATE);
+  Assert(n.getKind() == kind::DT_UPDATE);
   NodeManagerScope nms(nodeManager);
   const RecordUpdate& ru = n.getOperator().getConst<RecordUpdate>();
   TypeNode recordType = n[0].getType(check);
@@ -316,7 +316,7 @@ TypeNode RecordUpdateOpTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check)
 {
-  Assert(n.getKind() == kind::RECORD_UPDATE_OP);
+  Assert(n.getKind() == kind::DT_UPDATE_OP);
   return nodeManager->builtinOperatorType();
 }
 

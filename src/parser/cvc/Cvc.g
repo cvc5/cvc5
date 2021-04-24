@@ -1665,7 +1665,7 @@ recordStore[cvc5::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = SOLVER->mkTerm(SOLVER->mkOp(api::RECORD_UPDATE,id), f, f2); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::DT_UPDATE,id), f, f2); }
   ;
 
 /** Parses a unary minus term. */

@@ -844,7 +844,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
     }
     break;
     case TUPLE_UPDATE:
-    case RECORD_UPDATE:
+    case DT_UPDATE:
     {
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();

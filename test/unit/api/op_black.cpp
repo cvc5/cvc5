@@ -50,7 +50,7 @@ TEST_F(TestApiBlackOp, getNumIndices)
 {
   Op plus = d_solver.mkOp(PLUS);
   Op divisible = d_solver.mkOp(DIVISIBLE, 4);
-  Op record_update = d_solver.mkOp(RECORD_UPDATE, "test");
+  Op record_update = d_solver.mkOp(DT_UPDATE, "test");
   Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
   Op bitvector_zero_extend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
   Op bitvector_sign_extend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
@@ -106,7 +106,7 @@ TEST_F(TestApiBlackOp, getIndicesString)
   std::string divisible_idx = divisible_ot.getIndices<std::string>();
   ASSERT_EQ(divisible_idx, "4");
 
-  Op record_update_ot = d_solver.mkOp(RECORD_UPDATE, "test");
+  Op record_update_ot = d_solver.mkOp(DT_UPDATE, "test");
   std::string record_update_idx = record_update_ot.getIndices<std::string>();
   ASSERT_EQ(record_update_idx, "test");
   ASSERT_THROW(record_update_ot.getIndices<uint32_t>(), CVC5ApiException);

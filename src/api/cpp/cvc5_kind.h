@@ -1981,7 +1981,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Record update.
    *
    * Parameters:
-   *   - 1: Op of kind RECORD_UPDATE (which references a field)
+   *   - 1: Op of kind DT_UPDATE (which references a field)
    *   - 2: Record term to update
    *   - 3: Element to store in the record in the given field
    *
@@ -1989,7 +1989,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op,, const std::vector<Term>& children) const`
    */
-  RECORD_UPDATE,
+  DT_UPDATE,
   /**
    * Match expressions.
    * For example, the smt2 syntax match term
