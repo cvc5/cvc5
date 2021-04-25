@@ -148,6 +148,7 @@ class Assertions
                   bool inUnsatCore,
                   bool inInput,
                   bool isAssumption,
+                  bool isFunDef,
                   bool maybeHasFv);
   /** reference to the environment */
   Env& d_env;

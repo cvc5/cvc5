@@ -650,20 +650,11 @@ void SmtEngine::defineFunction(Node func,
     def = nm->mkNode(
         kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
   }
-  if (global)
-  {
-    // if it is a global definition, we must notify the assertions so that
-    // the definition is persistent. The definition is of the form
-    // func = lambda formals. formula.
-    Node feq = func.eqNode(def);
-    d_asserts->addDefineFunDefinition(feq, global);
-  }
-  else
-  {
-    // otherwise, we notify the preprocessor, which will treat it as a
-    // substitution
-    d_smtSolver->getPreprocessor()->defineFunction(func, def);
-  }
+  // A define-fun is treated as a (higher-order) assertion. It is provided
+  // to the assertions object. It will be added as a top-level substitution
+  // within this class, possibly multiple times if global is true.
+  Node feq = func.eqNode(def);
+  d_asserts->addDefineFunDefinition(feq, global);
 }
 
 void SmtEngine::defineFunctionsRec(

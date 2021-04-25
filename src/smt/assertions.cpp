@@ -26,6 +26,7 @@
 #include "smt/abstract_values.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
@@ -107,7 +108,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-    addFormula(n, inUnsatCore, true, true, false);
+    addFormula(n, inUnsatCore, true, true, false, false);
   }
   if (d_globalDefineFunLemmas != nullptr)
   {
@@ -116,7 +117,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     // zero assertions)
     for (const Node& lemma : *d_globalDefineFunLemmas)
     {
-      addFormula(lemma, false, true, false, false);
+      addFormula(lemma, false, true, false, true, false);
     }
   }
 }
@@ -125,7 +126,7 @@ void Assertions::assertFormula(const Node& n, bool inUnsatCore)
 {
   ensureBoolean(n);
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  addFormula(n, inUnsatCore, true, false, maybeHasFv);
+  addFormula(n, inUnsatCore, true, false, false, maybeHasFv);
 }
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
@@ -143,7 +144,8 @@ context::CDList<Node>* Assertions::getAssertionList()
 }
 
 void Assertions::addFormula(
-    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
+    TNode n, bool inUnsatCore, bool inInput, bool isAssumption,
+                  bool isFunDef, bool maybeHasFv)
 {
   // add to assertion list if it exists
   if (d_assertionList != nullptr)
@@ -155,11 +157,20 @@ void Assertions::addFormula(
     // true, nothing to do
     return;
   }
-
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n
                << "), inUnsatCore = " << inUnsatCore
                << ", inInput = " << inInput
-               << ", isAssumption = " << isAssumption << std::endl;
+               << ", isAssumption = " << isAssumption
+               << ", isFunDef = " << isFunDef << std::endl;
+  if (isFunDef)
+  {
+    // if a non-recursive define-fun, just add as a top-level substitution
+    if (n.getKind()==EQUAL && n[0].isVar())
+    {
+      d_env.getTopLevelSubstitutions().addSubstitution(n[0], n[1], PfRule::ASSUME, {n});
+      return;
+    }
+  }
 
   // Ensure that it does not contain free variables
   if (maybeHasFv)
@@ -204,10 +215,6 @@ void Assertions::addFormula(
 void Assertions::addDefineFunDefinition(Node n, bool global)
 {
   n = d_absValues.substituteAbstractValues(n);
-  if (d_assertionList != nullptr)
-  {
-    d_assertionList->push_back(n);
-  }
   if (global && d_globalDefineFunLemmas != nullptr)
   {
     // Global definitions are asserted at check-sat-time because we have to
@@ -219,7 +226,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     // we don't check for free variables here, since even if we are sygus,
     // we could contain functions-to-synthesize within definitions.
-    addFormula(n, false, true, false, false);
+    addFormula(n, false, true, false, true, false);
   }
 }
 

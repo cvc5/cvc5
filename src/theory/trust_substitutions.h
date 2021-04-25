@@ -117,7 +117,7 @@ class TrustSubstitutionMap : public ProofGenerator
   /**
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
-  CDProofSet<LazyCDProof> d_helperPf;
+  std::unique_ptr<CDProofSet<LazyCDProof>> d_helperPf;
   /** Name for debugging */
   std::string d_name;
   /**
