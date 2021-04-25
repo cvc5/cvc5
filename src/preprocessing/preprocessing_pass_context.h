@@ -44,14 +44,13 @@ class PreprocessingPassContext
   PreprocessingPassContext(
       SmtEngine* smt,
       Env& env,
-      theory::booleans::CircuitPropagator* circuitPropagator,
-      ProofNodeManager* pnm);
+      theory::booleans::CircuitPropagator* circuitPropagator);
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }
   prop::PropEngine* getPropEngine() { return d_smt->getPropEngine(); }
-  context::Context* getUserContext() { return d_smt->getUserContext(); }
-  context::Context* getDecisionContext() { return d_smt->getContext(); }
+  context::Context* getUserContext() ;
+  context::Context* getDecisionContext();
 
   theory::booleans::CircuitPropagator* getCircuitPropagator()
   {
@@ -63,10 +62,7 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(Resource r)
-  {
-    d_resourceManager->spendResource(r);
-  }
+  void spendResource(Resource r);
 
   /** Get the current logic info of the SmtEngine */
   const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
@@ -112,15 +108,8 @@ class PreprocessingPassContext
   SmtEngine* d_smt;
   /** Reference to the env */
   Env& d_env;
-
-  /** Pointer to the ResourceManager for this context. */
-  ResourceManager* d_resourceManager;
-
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
-  /** Pointer to the proof node manager, if it exists */
-  ProofNodeManager* d_pnm;
-
   /**
    * The (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.

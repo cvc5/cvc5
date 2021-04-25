@@ -26,14 +26,11 @@ namespace preprocessing {
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
     Env& env,
-    theory::booleans::CircuitPropagator* circuitPropagator,
-    ProofNodeManager* pnm)
+    theory::booleans::CircuitPropagator* circuitPropagator)
     : d_smt(smt),
       d_env(env),
-      d_resourceManager(smt->getResourceManager()),
       d_circuitPropagator(circuitPropagator),
-      d_pnm(pnm),
-      d_symsInAssertions(smt->getUserContext())
+      d_symsInAssertions(env.getUserContext())
 {
 }
 
@@ -43,6 +40,12 @@ PreprocessingPassContext::getTopLevelSubstitutions()
   return d_env.getTopLevelSubstitutions();
 }
 
+context::Context* PreprocessingPassContext::getUserContext() { return d_env.getUserContext(); }
+context::Context* PreprocessingPassContext::getDecisionContext() { return d_env.getContext(); }
+void PreprocessingPassContext::spendResource(Resource r)
+{
+  d_env.getResourceManager()->spendResource(r);
+}
 void PreprocessingPassContext::recordSymbolsInAssertions(
     const std::vector<Node>& assertions)
 {
@@ -86,7 +89,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
 
 ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
 {
-  return d_pnm;
+  return d_env.getProofNodeManager();
 }
 
 }  // namespace preprocessing

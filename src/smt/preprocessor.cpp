@@ -60,7 +60,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, d_env, &d_propagator, d_pnm));
+      &d_smt, d_env, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -129,7 +129,7 @@ Node Preprocessor::expandDefinitions(
     n.getType(true);
   }
   // we apply substitutions here, before expanding definitions
-  theory::SubstitutionMap& sm = d_ppContext->getTopLevelSubstitutions().get();
+  theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   n = sm.apply(n);
   if (!expandOnly)
   {
