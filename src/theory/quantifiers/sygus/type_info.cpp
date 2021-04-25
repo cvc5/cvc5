@@ -185,7 +185,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         d_hasBoolConnective = true;
       }
     }
-    else if (gk == AND || gk == OR || gk==IMPLIES || gk == XOR || (gk==EQUAL && g[0].getType().isBoolean()))
+    else if (gk == AND || gk == OR || gk == IMPLIES || gk == XOR
+             || (gk == EQUAL && g[0].getType().isBoolean()))
     {
       d_hasBoolConnective = true;
     }
