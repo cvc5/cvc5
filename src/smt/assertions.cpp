@@ -143,9 +143,12 @@ context::CDList<Node>* Assertions::getAssertionList()
   return d_assertionList;
 }
 
-void Assertions::addFormula(
-    TNode n, bool inUnsatCore, bool inInput, bool isAssumption,
-                  bool isFunDef, bool maybeHasFv)
+void Assertions::addFormula(TNode n,
+                            bool inUnsatCore,
+                            bool inInput,
+                            bool isAssumption,
+                            bool isFunDef,
+                            bool maybeHasFv)
 {
   // add to assertion list if it exists
   if (d_assertionList != nullptr)
@@ -165,9 +168,10 @@ void Assertions::addFormula(
   if (isFunDef)
   {
     // if a non-recursive define-fun, just add as a top-level substitution
-    if (n.getKind()==EQUAL && n[0].isVar())
+    if (n.getKind() == EQUAL && n[0].isVar())
     {
-      d_env.getTopLevelSubstitutions().addSubstitution(n[0], n[1], PfRule::ASSUME, {n});
+      d_env.getTopLevelSubstitutions().addSubstitution(
+          n[0], n[1], PfRule::ASSUME, {n});
       return;
     }
   }
