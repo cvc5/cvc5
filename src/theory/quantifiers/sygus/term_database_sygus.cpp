@@ -517,7 +517,7 @@ void TermDbSygus::registerEnumerator(Node e,
         // solution" clauses.
         const DType& dt = et.getDType();
         if (options::sygusStream()
-            || (!eti.hasIte() && !dt.getSygusType().isBoolean()))
+            || (!eti.hasIte() && !eti.hasBoolConnective()))
         {
           isActiveGen = true;
         }
