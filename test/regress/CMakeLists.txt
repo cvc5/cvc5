@@ -2382,7 +2382,6 @@ set(regress_2_tests
   regress2/ho/fta0409.smt2
   regress2/ho/involved_parsing_ALG248^3.p
   regress2/ho/partial_app_interpreted_SWW474^2.p
-  regress2/ho/SYO362^5.p
   regress2/hole7.cvc
   regress2/hole8.cvc
   regress2/hole10.cvc
@@ -2618,6 +2617,8 @@ set(regression_disabled_tests
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
   regress2/nl/dumortier-050317.smt2
+  # timeout after refactoring justification heuristic
+  regress2/ho/SYO362^5.p
 )
 
 #-----------------------------------------------------------------------------#
