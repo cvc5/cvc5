@@ -202,7 +202,7 @@ class SygusTypeInfo
    */
   bool d_hasIte;
   /**
-   * Whether this sygus type has a constructors whose sygus operator is a
+   * Whether this sygus type has a constructor whose sygus operator is a
    * Boolean connective.
    */
   bool d_hasBoolConnective;
