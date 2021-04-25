@@ -25,6 +25,9 @@
 #include "preprocessing/assertion_pipeline.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace smt {
 
 class AbstractValues;
@@ -42,7 +45,7 @@ class Assertions
   typedef context::CDList<Node> AssertionList;
 
  public:
-  Assertions(context::UserContext* u, AbstractValues& absv);
+  Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
   /**
    * Finish initialization, called once after options are finalized. Sets up
@@ -146,8 +149,8 @@ class Assertions
                   bool inInput,
                   bool isAssumption,
                   bool maybeHasFv);
-  /** pointer to the user context */
-  context::UserContext* d_userContext;
+  /** reference to the environment */
+  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**
@@ -156,10 +159,10 @@ class Assertions
    */
   AssertionList* d_assertionList;
   /**
-   * List of lemmas generated for global recursive function definitions. We
+   * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.
    */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
+  std::unique_ptr<std::vector<Node>> d_globalDefineFunLemmas;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
    * Note that if the last call to checkSatisfiability was an entailment check,

@@ -43,6 +43,7 @@ class PreprocessingPassContext
  public:
   PreprocessingPassContext(
       SmtEngine* smt,
+      Env& env,
       theory::booleans::CircuitPropagator* circuitPropagator,
       ProofNodeManager* pnm);
 
@@ -97,6 +98,11 @@ class PreprocessingPassContext
   void addSubstitution(const Node& lhs,
                        const Node& rhs,
                        ProofGenerator* pg = nullptr);
+  /** Same as above, with proof id */
+  void addSubstitution(const Node& lhs,
+                       const Node& rhs,
+                       PfRule id,
+                       const std::vector<Node>& args);
 
   /** The the proof node manager associated with this context, if it exists */
   ProofNodeManager* getProofNodeManager();
@@ -104,12 +110,11 @@ class PreprocessingPassContext
  private:
   /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
+  /** Reference to the env */
+  Env& d_env;
 
   /** Pointer to the ResourceManager for this context. */
   ResourceManager* d_resourceManager;
-
-  /* The top level substitutions */
-  theory::TrustSubstitutionMap d_topLevelSubstitutions;
 
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;

@@ -26,6 +26,7 @@
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::smt;
 
@@ -37,6 +38,7 @@ Env::Env(NodeManager* nm, Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
@@ -54,8 +56,12 @@ Env::~Env() {}
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)
 {
-  d_proofNodeManager = pnm;
-  d_rewriter->setProofNodeManager(pnm);
+  if (pnm!=nullptr)
+  {
+    d_proofNodeManager = pnm;
+    d_rewriter->setProofNodeManager(pnm);
+    d_topLevelSubs->setProofNodeManager(pnm);
+  }
 }
 
 void Env::shutdown()
@@ -75,6 +81,8 @@ NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
+
+theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions() { return *d_topLevelSubs.get(); }
 
 DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 

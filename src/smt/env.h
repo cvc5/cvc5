@@ -44,6 +44,7 @@ class DumpManager;
 
 namespace theory {
 class Rewriter;
+class TrustSubstitutionMap;
 }
 
 /**
@@ -84,6 +85,9 @@ class Env
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 
+  /** Gets a reference to the top-level substitution map */
+  theory::TrustSubstitutionMap& getTopLevelSubstitutions();
+  
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
@@ -116,8 +120,6 @@ class Env
  private:
   /* Private initialization ------------------------------------------------- */
 
-  /** Set the statistics registry */
-  void setStatisticsRegistry(StatisticsRegistry* statReg);
   /** Set proof node manager if it exists */
   void setProofNodeManager(ProofNodeManager* pnm);
 
@@ -151,6 +153,8 @@ class Env
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  /** The top level substitutions */
+  std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpManager;
   /**

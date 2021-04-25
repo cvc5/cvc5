@@ -24,6 +24,7 @@
 #include "smt/dump.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
+#include "smt/env.h"
 
 using namespace std;
 using namespace cvc5::theory;
@@ -33,16 +34,16 @@ namespace cvc5 {
 namespace smt {
 
 Preprocessor::Preprocessor(SmtEngine& smt,
-                           context::UserContext* u,
+                           Env& env,
                            AbstractValues& abs,
                            SmtEngineStatistics& stats)
-    : d_context(u),
-      d_smt(smt),
+    : d_smt(smt),
+      d_env(env),
       d_absValues(abs),
       d_propagator(true, true),
-      d_assertionsProcessed(u, false),
-      d_exDefs(smt, *smt.getResourceManager(), stats),
-      d_processor(smt, d_exDefs, *smt.getResourceManager(), stats),
+      d_assertionsProcessed(env.getUserContext(), false),
+      d_exDefs(smt, d_env, stats),
+      d_processor(smt, *smt.getResourceManager(), stats),
       d_pnm(nullptr)
 {
 }
@@ -59,7 +60,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_propagator, d_pnm));
+      &d_smt, d_env, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -160,7 +161,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
   d_exDefs.setProofNodeManager(d_pnm);
-  d_propagator.setProof(d_pnm, d_context, pppg);
+  d_propagator.setProof(d_pnm, d_env.getUserContext(), pppg);
 }
 
 }  // namespace smt

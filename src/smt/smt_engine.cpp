@@ -85,7 +85,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SmtEngineState(getContext(), getUserContext(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
-      d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
+      d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
@@ -128,7 +128,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
   d_pp.reset(new smt::Preprocessor(
-      *this, getUserContext(), *d_absValues.get(), *d_stats));
+      *this, *d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, getResourceManager(), *d_pp, *d_stats));

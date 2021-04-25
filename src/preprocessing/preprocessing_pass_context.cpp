@@ -18,17 +18,19 @@
 #include "expr/node_algorithm.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
+    Env& env,
     theory::booleans::CircuitPropagator* circuitPropagator,
     ProofNodeManager* pnm)
     : d_smt(smt),
+    d_env(env),
       d_resourceManager(smt->getResourceManager()),
-      d_topLevelSubstitutions(smt->getUserContext(), pnm),
       d_circuitPropagator(circuitPropagator),
       d_pnm(pnm),
       d_symsInAssertions(smt->getUserContext())
@@ -38,7 +40,7 @@ PreprocessingPassContext::PreprocessingPassContext(
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
-  return d_topLevelSubstitutions;
+  return d_env.getTopLevelSubstitutions();
 }
 
 void PreprocessingPassContext::recordSymbolsInAssertions(
@@ -67,7 +69,17 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
-  d_topLevelSubstitutions.addSubstitution(lhs, rhs, pg);
+  getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
+  // also add as a model substitution
+  addModelSubstitution(lhs, rhs);
+}
+
+void PreprocessingPassContext::addSubstitution(const Node& lhs,
+                      const Node& rhs,
+                      PfRule id,
+                      const std::vector<Node>& args)
+{
+  getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, args);
   // also add as a model substitution
   addModelSubstitution(lhs, rhs);
 }

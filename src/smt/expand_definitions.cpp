@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
+#include "smt/env.h"
 
 using namespace cvc5::preprocessing;
 using namespace cvc5::theory;
@@ -32,9 +33,9 @@ namespace cvc5 {
 namespace smt {
 
 ExpandDefs::ExpandDefs(SmtEngine& smt,
-                       ResourceManager& rm,
+                       Env& env, 
                        SmtEngineStatistics& stats)
-    : d_smt(smt), d_resourceManager(rm), d_smtStats(stats), d_tpg(nullptr)
+    : d_smt(smt), d_env(env), d_smtStats(stats), d_tpg(nullptr)
 {
 }
 
@@ -65,7 +66,7 @@ TrustNode ExpandDefs::expandDefinitions(
 
   do
   {
-    d_resourceManager.spendResource(Resource::PreprocessStep);
+    d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
     // n is the input / original
     // node is the output / result
@@ -80,6 +81,7 @@ TrustNode ExpandDefs::expandDefinitions(
       // we can short circuit (variable) leaves
       if (n.isVar())
       {
+        // FIXME: use top-level substitutions
         // don't bother putting in the cache
         result.push(n);
         continue;
@@ -180,7 +182,7 @@ void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
   if (d_tpg == nullptr)
   {
     d_tpg.reset(new TConvProofGenerator(pnm,
-                                        d_smt.getUserContext(),
+                                        d_env.getUserContext(),
                                         TConvPolicy::FIXPOINT,
                                         TConvCachePolicy::NEVER,
                                         "ExpandDefs::TConvProofGenerator",

@@ -58,11 +58,9 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt,
-                                     ExpandDefs& exDefs,
                                      ResourceManager& rm,
                                      SmtEngineStatistics& stats)
     : d_smt(smt),
-      d_exDefs(exDefs),
       d_resourceManager(rm),
       d_smtStats(stats),
       d_preprocessingPassContext(nullptr)

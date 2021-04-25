@@ -25,6 +25,7 @@
 #include "proof/proof_manager.h"
 #include "smt/abstract_values.h"
 #include "smt/smt_engine.h"
+#include "smt/env.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
@@ -32,8 +33,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-Assertions::Assertions(context::UserContext* u, AbstractValues& absv)
-    : d_userContext(u),
+Assertions::Assertions(Env& env, AbstractValues& absv)
+    : d_env(env),
       d_absValues(absv),
       d_assertionList(nullptr),
       d_globalNegation(false),
@@ -59,8 +60,8 @@ void Assertions::finishInit()
   {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
-    d_assertionList = new (true) AssertionList(d_userContext);
-    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
+    d_assertionList = new (true) AssertionList(d_env.getUserContext());
+    d_globalDefineFunLemmas.reset(new std::vector<Node>());
   }
 }
 
@@ -108,12 +109,12 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     ensureBoolean(n);
     addFormula(n, inUnsatCore, true, true, false);
   }
-  if (d_globalDefineFunRecLemmas != nullptr)
+  if (d_globalDefineFunLemmas != nullptr)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present (they are essentially level
     // zero assertions)
-    for (const Node& lemma : *d_globalDefineFunRecLemmas)
+    for (const Node& lemma : *d_globalDefineFunLemmas)
     {
       addFormula(lemma, false, true, false, false);
     }
@@ -207,12 +208,12 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     d_assertionList->push_back(n);
   }
-  if (global && d_globalDefineFunRecLemmas != nullptr)
+  if (global && d_globalDefineFunLemmas != nullptr)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
     Assert(!language::isInputLangSygus(options::inputLanguage()));
-    d_globalDefineFunRecLemmas->emplace_back(n);
+    d_globalDefineFunLemmas->emplace_back(n);
   }
   else
   {

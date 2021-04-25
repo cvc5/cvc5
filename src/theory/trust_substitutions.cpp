@@ -21,27 +21,35 @@ namespace cvc5 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                                           ProofNodeManager* pnm,
+                       ProofNodeManager * pnm,
                                            std::string name,
                                            PfRule trustId,
                                            MethodId ids)
     : d_ctx(c),
       d_subs(c),
-      d_pnm(pnm),
       d_tsubs(c),
-      d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
-      d_subsPg(
-          pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
-              : nullptr),
-      d_applyPg(pnm ? new LazyCDProof(
-                          pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
-                    : nullptr),
+      d_tspb(nullptr),
+      d_subsPg(nullptr),
+      d_applyPg(nullptr),
       d_helperPf(pnm, c),
       d_name(name),
       d_trustId(trustId),
       d_ids(ids),
       d_eqtIndex(c)
 {
+  setProofNodeManager(pnm);
+}
+void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager * pnm)
+{
+  if (pnm!=nullptr)
+  {
+    // should not set the proof node manager more than once
+    Assert (d_tspb==nullptr);
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
+    d_subsPg.reset(new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_applyPg.reset(new LazyCDProof(
+                        pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+  }
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
