@@ -79,7 +79,6 @@ TrustNode ExpandDefs::expandDefinitions(
       // we can short circuit (variable) leaves
       if (n.isVar())
       {
-        // FIXME: use top-level substitutions
         // don't bother putting in the cache
         result.push(n);
         continue;
