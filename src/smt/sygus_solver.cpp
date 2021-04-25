@@ -30,6 +30,7 @@
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/rewriter.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
@@ -382,7 +383,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     // definitions that were added as assertions to the sygus problem.
     for (Node a : auxAssertions)
     {
-      solChecker->assertFormula(a);
+      // We require rewriting here, e.g. so that define-fun from the original
+      // problem are rewritten to true. If this is not the case, then the
+      // assertions module of the subsolver will complain about assertions
+      // with free variables.
+      Node ar = theory::Rewriter::rewrite(a);
+      solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
     Notice() << "SygusSolver::checkSynthSolution(): result is " << r

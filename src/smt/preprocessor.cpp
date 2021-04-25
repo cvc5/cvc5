@@ -139,11 +139,6 @@ Node Preprocessor::expandDefinitions(
   return n;
 }
 
-void Preprocessor::defineFunction(Node func, Node def)
-{
-  d_ppContext->addSubstitution(func, def);
-}
-
 Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
