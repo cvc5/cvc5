@@ -29,8 +29,8 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
