@@ -56,12 +56,11 @@ Env::~Env() {}
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)
 {
-  if (pnm != nullptr)
-  {
-    d_proofNodeManager = pnm;
-    d_rewriter->setProofNodeManager(pnm);
-    d_topLevelSubs->setProofNodeManager(pnm);
-  }
+  Assert(pnm != nullptr);
+  Assert(d_proofNodeManager==nullptr);
+  d_proofNodeManager = pnm;
+  d_rewriter->setProofNodeManager(pnm);
+  d_topLevelSubs->setProofNodeManager(pnm);
 }
 
 void Env::shutdown()
