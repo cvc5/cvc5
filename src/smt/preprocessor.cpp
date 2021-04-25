@@ -130,7 +130,7 @@ Node Preprocessor::expandDefinitions(
   }
   // we apply substitutions here, before expanding definitions
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-  n = sm.apply(n);
+  n = sm.apply(n, true);
   if (!expandOnly)
   {
     // expand only = true
