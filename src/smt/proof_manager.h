@@ -78,9 +78,9 @@ class PfManager
    * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in as and df. For the latter, entries in the defined
-   * function map correspond to equalities of the form (= f (lambda (...) t)),
-   * which are considered assertions in the final proof.
+   * respect to assertions in as. Note that as includes equalities of the form 
+   * (= f (lambda (...) t)) which originate from define-fun commands for f.
+   * These are considered assertions in the final proof.
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> pfn,
