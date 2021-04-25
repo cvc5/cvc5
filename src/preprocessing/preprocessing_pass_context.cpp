@@ -40,8 +40,14 @@ PreprocessingPassContext::getTopLevelSubstitutions()
   return d_env.getTopLevelSubstitutions();
 }
 
-context::Context* PreprocessingPassContext::getUserContext() { return d_env.getUserContext(); }
-context::Context* PreprocessingPassContext::getDecisionContext() { return d_env.getContext(); }
+context::Context* PreprocessingPassContext::getUserContext()
+{
+  return d_env.getUserContext();
+}
+context::Context* PreprocessingPassContext::getDecisionContext()
+{
+  return d_env.getContext();
+}
 void PreprocessingPassContext::spendResource(Resource r)
 {
   d_env.getResourceManager()->spendResource(r);

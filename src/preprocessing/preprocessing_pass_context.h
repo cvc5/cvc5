@@ -49,7 +49,7 @@ class PreprocessingPassContext
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }
   prop::PropEngine* getPropEngine() { return d_smt->getPropEngine(); }
-  context::Context* getUserContext() ;
+  context::Context* getUserContext();
   context::Context* getDecisionContext();
 
   theory::booleans::CircuitPropagator* getCircuitPropagator()
