@@ -87,7 +87,7 @@ class Env
 
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
-  
+
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 

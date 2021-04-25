@@ -20,10 +20,10 @@
 
 #include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
-#include "smt/env.h"
 
 using namespace cvc5::preprocessing;
 using namespace cvc5::theory;
@@ -32,9 +32,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(SmtEngine& smt,
-                       Env& env, 
-                       SmtEngineStatistics& stats)
+ExpandDefs::ExpandDefs(SmtEngine& smt, Env& env, SmtEngineStatistics& stats)
     : d_smt(smt), d_env(env), d_smtStats(stats), d_tpg(nullptr)
 {
 }

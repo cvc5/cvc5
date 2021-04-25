@@ -42,12 +42,12 @@ class TrustSubstitutionMap : public ProofGenerator
 
  public:
   TrustSubstitutionMap(context::Context* c,
-                       ProofNodeManager * pnm = nullptr,
+                       ProofNodeManager* pnm = nullptr,
                        std::string name = "TrustSubstitutionMap",
                        PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager * pnm);
+  void setProofNodeManager(ProofNodeManager* pnm);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
   /**

@@ -16,9 +16,9 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
+#include "smt/env.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -29,7 +29,7 @@ PreprocessingPassContext::PreprocessingPassContext(
     theory::booleans::CircuitPropagator* circuitPropagator,
     ProofNodeManager* pnm)
     : d_smt(smt),
-    d_env(env),
+      d_env(env),
       d_resourceManager(smt->getResourceManager()),
       d_circuitPropagator(circuitPropagator),
       d_pnm(pnm),
@@ -75,9 +75,9 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
-                      const Node& rhs,
-                      PfRule id,
-                      const std::vector<Node>& args)
+                                               const Node& rhs,
+                                               PfRule id,
+                                               const std::vector<Node>& args)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, args);
   // also add as a model substitution

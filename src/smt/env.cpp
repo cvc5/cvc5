@@ -24,9 +24,9 @@
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
+#include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "theory/trust_substitutions.h"
 
 using namespace cvc5::smt;
 
@@ -56,7 +56,7 @@ Env::~Env() {}
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)
 {
-  if (pnm!=nullptr)
+  if (pnm != nullptr)
   {
     d_proofNodeManager = pnm;
     d_rewriter->setProofNodeManager(pnm);
@@ -82,7 +82,10 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
-theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions() { return *d_topLevelSubs.get(); }
+theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
+{
+  return *d_topLevelSubs.get();
+}
 
 DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 

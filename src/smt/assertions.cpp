@@ -24,8 +24,8 @@
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/abstract_values.h"
-#include "smt/smt_engine.h"
 #include "smt/env.h"
+#include "smt/smt_engine.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;

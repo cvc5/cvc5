@@ -21,7 +21,7 @@ namespace cvc5 {
 namespace theory {
 
 TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                       ProofNodeManager * pnm,
+                                           ProofNodeManager* pnm,
                                            std::string name,
                                            PfRule trustId,
                                            MethodId ids)
@@ -39,16 +39,17 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
 {
   setProofNodeManager(pnm);
 }
-void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager * pnm)
+void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
 {
-  if (pnm!=nullptr)
+  if (pnm != nullptr)
   {
     // should not set the proof node manager more than once
-    Assert (d_tspb==nullptr);
+    Assert(d_tspb == nullptr);
     d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
-    d_subsPg.reset(new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
-    d_applyPg.reset(new LazyCDProof(
-                        pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+        d_subsPg.reset(new LazyCDProof(
+            pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_applyPg.reset(
+        new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
   }
 }
 
