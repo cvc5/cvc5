@@ -60,6 +60,7 @@ class TrustSubstitutionMap : public ProofGenerator
   void addSubstitution(TNode x,
                        TNode t,
                        PfRule id,
+                       const std::vector<Node>& children,
                        const std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of
