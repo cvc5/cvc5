@@ -76,9 +76,6 @@ class CVC5_EXPORT Options
 
   static std::string formatThreadOptionException(const std::string& option);
 
-  static const size_t s_maxoptlen = 128;
-  static const unsigned s_preemptAdditional = 6;
-
 public:
  class OptionsScope
  {
