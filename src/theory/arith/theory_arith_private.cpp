@@ -2906,10 +2906,10 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   if(d_qflraStatus != Result::UNSAT){
     static const int32_t pass2Limit = 20;
     int16_t oldCap = options::arithStandardCheckVarOrderPivots();
-    options::arithStandardCheckVarOrderPivots.set(pass2Limit);
+    Options::current().set(options::arithStandardCheckVarOrderPivots, pass2Limit);
     SimplexDecisionProcedure& simplex = selectSimplex(false);
     d_qflraStatus = simplex.findModel(false);
-    options::arithStandardCheckVarOrderPivots.set(oldCap);
+    Options::current().set(options::arithStandardCheckVarOrderPivots, oldCap);
   }
 
   if(Debug.isOn("arith::importSolution")){
@@ -3047,126 +3047,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 
   return emmittedConflictOrSplit;
 }
-
-//   LinUnknown,  /* Unknown error */
-//   LinFeasible, /* Relaxation is feasible */
-//   LinInfeasible,   /* Relaxation is infeasible/all integer branches closed */
-//   LinExhausted
-//     // Fancy final tries the following strategy
-//     // At final check, try the preferred simplex solver with a pivot cap
-//     // If that failed, swap the the other simplex solver
-//     // If that failed, check if there are integer variables to cut
-//     // If that failed, do a simplex without a pivot limit
-
-//     int16_t oldCap = options::arithStandardCheckVarOrderPivots();
-
-//     static const int32_t pass2Limit = 10;
-//     static const int32_t relaxationLimit = 10000;
-//     static const int32_t mipLimit = 200000;
-
-//     //cout << "start" << endl;
-//     d_qflraStatus = simplex.findModel(false);
-//     //cout << "end" << endl;
-//     if(d_qflraStatus == Result::SAT_UNKNOWN ||
-//        (d_qflraStatus == Result::SAT && !hasIntegerModel() && !d_likelyIntegerInfeasible)){
-
-//       ApproximateSimplex* approxSolver = ApproximateSimplex::mkApproximateSimplexSolver(d_partialModel, *(getTreeLog()), *(getApproxStats()));
-//       approxSolver->setPivotLimit(relaxationLimit);
-
-//       if(!d_guessedCoeffSet){
-//         d_guessedCoeffs = approxSolver->heuristicOptCoeffs();
-//         d_guessedCoeffSet = true;
-//       }
-//       if(!d_guessedCoeffs.empty()){
-//         approxSolver->setOptCoeffs(d_guessedCoeffs);
-//       }
-
-//       MipResult mipRes;
-//       ApproximateSimplex::Solution relaxSolution, mipSolution;
-//       LinResult relaxRes = approxSolver->solveRelaxation();
-//       switch(relaxRes){
-//       case LinFeasible:
-//         {
-//           relaxSolution = approxSolver->extractRelaxation();
-
-//           /* If the approximate solver  known to be integer infeasible
-//            * only redo*/
-//           int maxDepth =
-//             d_likelyIntegerInfeasible ? 1 : options::arithMaxBranchDepth();
-
-//           if(d_likelyIntegerInfeasible){
-//             d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
-//           }else{
-//             approxSolver->setPivotLimit(mipLimit);
-//             mipRes = approxSolver->solveMIP(false);
-//             if(mipRes == ApproximateSimplex::ApproxUnsat){
-//               mipRes = approxSolver->solveMIP(true);
-//             }
-//             d_errorSet.reduceToSignals();
-//             //CVC5Message() << "here" << endl;
-//             if(mipRes == ApproximateSimplex::ApproxSat){
-//               mipSolution = approxSolver->extractMIP();
-//               d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
-//             }else{
-//               if(mipRes == ApproximateSimplex::ApproxUnsat){
-//                 d_likelyIntegerInfeasible = true;
-//               }
-//               vector<Node> lemmas = approxSolver->getValidCuts();
-//               for(size_t i = 0; i < lemmas.size(); ++i){
-//                 d_approxCuts.pushback(lemmas[i]);
-//               }
-//               d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
-//             }
-//           }
-//           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
-//           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus =
-//           simplex.findModel(false); }
-//           //CVC5Message() << "done" << endl;
-//         }
-//         break;
-//       case ApproximateSimplex::ApproxUnsat:
-//         {
-//           ApproximateSimplex::Solution sol =
-//           approxSolver->extractRelaxation();
-
-//           d_qflraStatus = d_attemptSolSimplex.attempt(sol);
-//           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
-
-//           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
-//         }
-//         break;
-//       default:
-//         break;
-//       }
-//       delete approxSolver;
-//     }
-//   }
-
-//   if(!useFancyFinal){
-//     d_qflraStatus = simplex.findModel(noPivotLimit);
-//   }else{
-
-//     if(d_qflraStatus == Result::SAT_UNKNOWN){
-//       //CVC5Message() << "got sat unknown" << endl;
-//       vector<ArithVar> toCut = cutAllBounded();
-//       if(toCut.size() > 0){
-//         //branchVector(toCut);
-//         emmittedConflictOrSplit = true;
-//       }else{
-//         //CVC5Message() << "splitting" << endl;
-
-//         d_qflraStatus = simplex.findModel(noPivotLimit);
-//       }
-//     }
-//     options::arithStandardCheckVarOrderPivots.set(oldCap);
-//   }
-
-//   // TODO Save zeroes with no conflicts
-//   d_linEq.stopTrackingBoundCounts();
-//   d_partialModel.startQueueingBoundCounts();
-
-//   return emmittedConflictOrSplit;
-// }
 
 bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   switch(n.getKind()){
