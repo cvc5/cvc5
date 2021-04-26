@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bv-abstraction --bitblast=eager --no-check-models
+; COMMAND-LINE: --bv-abstraction --bitblast=eager
 ;
 ; BV-abstraction should not be applied
 (set-logic QF_BV)
