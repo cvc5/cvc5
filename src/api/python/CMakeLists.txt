@@ -22,6 +22,8 @@ endif()
 find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
+set(CYTHON_FLAGS "-X embedsignature=True")
+
 # Generate cvc5kinds.{pxd,pyx}
 configure_file(genkinds.py.in genkinds.py)
 set(GENERATED_FILES
