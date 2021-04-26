@@ -320,8 +320,7 @@ public:
    *
    * Preconditions: options, extender and nonoptions are non-null.
    */
-  static void parseOptionsRecursive(Options* options,
-                                    int argc,
+  void parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions);
 }; /* class Options */

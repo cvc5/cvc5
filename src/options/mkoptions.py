@@ -107,9 +107,9 @@ TPL_IMPL_ASSIGN_BOOL = \
 }}"""
 
 TPL_CALL_ASSIGN_BOOL = \
-    '  options->assignBool(options::{name}, {option}, {value});'
+    '  assignBool(options::{name}, {option}, {value});'
 
-TPL_CALL_ASSIGN = '  options->assign(options::{name}, {option}, optionarg);'
+TPL_CALL_ASSIGN = '  assign(options::{name}, {option}, optionarg);'
 
 TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 
