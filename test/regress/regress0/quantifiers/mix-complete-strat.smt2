@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi --finite-model-find --no-check-models
+; COMMAND-LINE: --cegqi --finite-model-find
 ; EXPECT: sat
 (set-logic UFLIA)
 (set-info :status sat)

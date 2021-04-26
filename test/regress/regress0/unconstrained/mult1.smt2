@@ -1,4 +1,4 @@
-; COMMAND-LINE: --unconstrained-simp --no-check-models
+; COMMAND-LINE: --unconstrained-simp
 (set-logic QF_LIA)
 (set-info :status sat)
 
