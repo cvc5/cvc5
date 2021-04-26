@@ -30,7 +30,6 @@ author = 'The Authors of cvc5'
 # ones.
 extensions = [
         'breathe',
-        'sphinx.ext.autodoc',
         'sphinx.ext.autosectionlabel',
         'sphinxcontrib.bibtex',
         'sphinx_tabs.tabs',
