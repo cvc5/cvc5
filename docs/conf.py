@@ -12,7 +12,11 @@
 #
 import os
 import sys
+# add path to enable extensions
 sys.path.insert(0, os.path.abspath('ext/'))
+
+# path to python api
+sys.path.insert(0, os.path.abspath('../build_debug/src/api/python'))
 
 
 # -- Project information -----------------------------------------------------
@@ -29,6 +33,7 @@ author = 'The Authors of cvc5'
 # ones.
 extensions = [
         'breathe',
+        'sphinx.ext.autodoc',
         'sphinx.ext.autosectionlabel',
         'sphinxcontrib.bibtex',
         'sphinx_tabs.tabs',
