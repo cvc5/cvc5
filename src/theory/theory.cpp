@@ -214,6 +214,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           TNode r = node[1];
           TypeNode ltype = l.getType();
           TypeNode rtype = r.getType();
+          // If the types are different, we must assign based on type due
+          // to handling subtypes (limited to arithmetic). Also, if we are
+          // a Boolean equality, we must assign THEORY_BOOL.
           if (ltype != rtype || ltype.isBoolean())
           {
             tid = Theory::theoryOf(ltype);
