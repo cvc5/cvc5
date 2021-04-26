@@ -50,9 +50,9 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
 
-  // The dot attribute rankdir="BT" sets the direction of graph layout, to place
-  // the root node at the top. The "node [shape..." sets the shape of all nodes
-  // to record.
+  // The dot attribute rankdir="BT" sets the direction of the graph layout,
+  // placing the root node at the top. The "node [shape..." attribute sets the
+  // shape of all nodes to record.
   out << "digraph proof {\n\trankdir=\"BT\";\n\tnode [shape=record];\n";
   DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
