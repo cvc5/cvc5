@@ -87,6 +87,12 @@ class Env
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
+  template <typename Opt>
+  const auto& getOption(Opt opt) const
+  {
+    return d_options[opt];
+  }
+
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
 

@@ -20,6 +20,7 @@
 
 
 #include <cerrno>
+#include <fstream>
 #include <iostream>
 #include <ostream>
 #include <sstream>
