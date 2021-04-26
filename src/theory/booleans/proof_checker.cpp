@@ -74,6 +74,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::CNF_ITE_NEG1, this);
   pc->registerChecker(PfRule::CNF_ITE_NEG2, this);
   pc->registerChecker(PfRule::CNF_ITE_NEG3, this);
+  pc->registerTrustedChecker(PfRule::SAT_REFUTATION, this, 1);
 }
 
 Node BoolProofRuleChecker::checkInternal(PfRule id,
@@ -949,6 +950,11 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> disjuncts{
         args[0], args[0][1].notNode(), args[0][2].notNode()};
     return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+  }
+  if (id == PfRule::SAT_REFUTATION)
+  {
+    Assert(args.empty());
+    return NodeManager::currentNM()->mkConst(false);
   }
   // no rule
   return Node::null();

@@ -247,6 +247,14 @@ enum class PfRule : uint32_t
   // where F is an equality (= t t') that holds by a form of substitution that
   // could not be determined by the TrustSubstitutionMap.
   TRUST_SUBS_MAP,
+  // ========= SAT Refutation for assumption-based unsat cores
+  // Children: (P1, ..., Pn)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: false
+  // Note: P1, ..., Pn correspond to the unsat core determined by the SAT
+  // solver.
+  SAT_REFUTATION,
 
   //================================================= Boolean rules
   // ======== Resolution

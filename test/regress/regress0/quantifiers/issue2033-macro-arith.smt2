@@ -1,4 +1,4 @@
-; COMMAND-LINE: --macros-quant -q
+; COMMAND-LINE: --macros-quant
 ; EXPECT: sat
 (set-logic AUFNIRA)
 (set-info :status sat)
