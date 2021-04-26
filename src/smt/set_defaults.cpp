@@ -54,7 +54,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::proofReq() && !options::produceProofs())
   {
     AlwaysAssert(false) << "Fail due to --proof-req "
-                        << options::produceProofs.wasSetByUser();
+                        << opts.wasSetByUser(options::produceProofs);
   }
   // implied options
   if (options::debugCheckModels())
@@ -99,17 +99,17 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::produceProofs()
       && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF)
   {
-    if (options::unsatCores() || !options::unsatCores.wasSetByUser())
+    if (options::unsatCores() || !opts.wasSetByUser(options::unsatCores))
     {
-      if (options::unsatCoresMode.wasSetByUser())
+      if (opts.wasSetByUser(options::unsatCoresMode))
       {
         Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                     "were requested.\n";
       }
       // enable unsat cores, because they are available as a consequence of
       // proofs
-      options::unsatCores.set(true);
-      options::unsatCoresMode.set(options::UnsatCoresMode::FULL_PROOF);
+      opts.set(options::unsatCores, true);
+      opts.set(options::unsatCoresMode, options::UnsatCoresMode::FULL_PROOF);
     }
   }
 
