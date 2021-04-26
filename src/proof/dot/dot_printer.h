@@ -50,14 +50,14 @@ class DotPrinter
    * @param ruleID the id of the rule to print
    * @param scopeCounter counter to check how many SCOPE was already sawed in
    * the proof
-   * @param inPropositionalVision flag used to mark the nodes that belong to the
-   * propositional vision proof
+   * @param inPropositionalView flag used to mark the nodes that belong to the
+   * propositional view proof
    */
   static void printInternal(std::ostream& out,
                             const ProofNode* pn,
                             uint64_t& ruleID,
                             uint64_t scopeCounter,
-                            bool inPropositionalVision);
+                            bool inPropositionalView);
 
   /**
    * Return the arguments of a ProofNode

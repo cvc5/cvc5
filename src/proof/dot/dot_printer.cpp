@@ -62,7 +62,7 @@ void DotPrinter::printInternal(std::ostream& out,
                                const ProofNode* pn,
                                uint64_t& ruleID,
                                uint64_t scopeCounter,
-                               bool inPropositionalVision)
+                               bool inPropositionalView)
 {
   uint64_t currentRuleID = ruleID;
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
@@ -81,6 +81,7 @@ void DotPrinter::printInternal(std::ostream& out,
   classes << ", class = \"";
   colors << "";
 
+  // set classes and colors, based on the view that the rule belongs
   switch (r)
   {
     case PfRule::SCOPE:
@@ -88,17 +89,19 @@ void DotPrinter::printInternal(std::ostream& out,
       {
         classes << " basic";
         colors << ", color = blue ";
-        inPropositionalVision = true;
+        inPropositionalView = true;
       }
       scopeCounter++;
       break;
     case PfRule::ASSUME:
+      // a node can belong to more than one view, so these if's must not be
+      // exclusive
       if (scopeCounter < 2)
       {
         classes << " basic";
         colors << ", color = blue ";
       }
-      if (inPropositionalVision)
+      if (inPropositionalView)
       {
         classes << " propositional";
         colors << ", fillcolor = aquamarine4, style = filled ";
@@ -107,13 +110,13 @@ void DotPrinter::printInternal(std::ostream& out,
     case PfRule::CHAIN_RESOLUTION:
     case PfRule::FACTORING:
     case PfRule::REORDERING:
-      if (inPropositionalVision)
+      if (inPropositionalView)
       {
         classes << " propositional";
         colors << ", fillcolor = aquamarine4, style = filled ";
       }
       break;
-    default: inPropositionalVision = false;
+    default: inPropositionalView = false;
   }
   classes << " \"";
   out << classes.str() << colors.str();
@@ -123,7 +126,7 @@ void DotPrinter::printInternal(std::ostream& out,
   {
     ++ruleID;
     out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalVision);
+    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
   }
 }
 
