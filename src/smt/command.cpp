@@ -1168,6 +1168,60 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
+/* class DeclareFunctionCommand                                               */
+/* -------------------------------------------------------------------------- */
+
+DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
+                                       api::Term func,
+                                       api::Sort sort,
+                                       const std::vector<api::Term>& initValue)
+    : DeclarationDefinitionCommand(id),
+      d_func(func),
+      d_sort(sort),
+      d_initValue(initValue)
+{
+}
+
+api::Term DeclarePoolCommand::getFunction() const { return d_func; }
+api::Sort DeclarePoolCommand::getSort() const { return d_sort; }
+const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const
+{
+  return d_initValue;
+}
+
+void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  // Notice that the pool is already declared by the parser so that it the
+  // symbol is bound eagerly. This is analogous to DeclareSygusVarCommand.
+  // Hence, we do nothing here.
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Command* DeclarePoolCommand::clone() const
+{
+  DeclarePoolCommand* dfc =
+      new DeclarePoolCommand(d_symbol, d_func, d_sort, d_initValue);
+  return dfc;
+}
+
+std::string DeclarePoolCommand::getCommandName() const
+{
+  return "declare-pool";
+}
+
+void DeclarePoolCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclarePool(
+      out,
+      d_func.toString(),
+      sortToTypeNode(d_sort),
+      termVectorToNodes(d_initValue));
+}
+
+/* -------------------------------------------------------------------------- */
 /* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */
 

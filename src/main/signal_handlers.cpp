@@ -32,8 +32,8 @@
 
 #endif /* __WIN32__ */
 
+#include "base/cvc5config.h"
 #include "base/exception.h"
-#include "cvc4autoconfig.h"
 #include "main/command_executor.h"
 #include "main/main.h"
 #include "options/options.h"
@@ -73,8 +73,8 @@ void timeout_handler()
 #ifndef __WIN32__
 
 #ifdef HAVE_SIGALTSTACK
-size_t cvc4StackSize;
-void* cvc4StackBase;
+size_t stackSize;
+void* stackBase;
 #endif /* HAVE_SIGALTSTACK */
 
 /** Handler for SIGXCPU and SIGALRM, i.e., timeout. */
@@ -100,15 +100,15 @@ void sigint_handler(int sig, siginfo_t* info, void*)
 /** Handler for SIGSEGV (segfault). */
 void segv_handler(int sig, siginfo_t* info, void* c)
 {
-  uintptr_t extent = reinterpret_cast<uintptr_t>(cvc4StackBase) - cvc4StackSize;
+  uintptr_t extent = reinterpret_cast<uintptr_t>(stackBase) - stackSize;
   uintptr_t addr = reinterpret_cast<uintptr_t>(info->si_addr);
 #ifdef CVC5_DEBUG
   safe_print(STDERR_FILENO, "cvc5 suffered a segfault in DEBUG mode.\n");
   safe_print(STDERR_FILENO, "Offending address is ");
   safe_print(STDERR_FILENO, info->si_addr);
   safe_print(STDERR_FILENO, "\n");
-  // cerr << "base is " << (void*)cvc4StackBase << endl;
-  // cerr << "size is " << cvc4StackSize << endl;
+  // cerr << "base is " << (void*)stackBase << endl;
+  // cerr << "size is " << stackSize << endl;
   // cerr << "extent is " << (void*)extent << endl;
   if (addr >= extent && addr <= extent + 10 * 1024)
   {
@@ -211,7 +211,7 @@ void ill_handler(int sig, siginfo_t* info, void*)
 
 static terminate_handler default_terminator;
 
-void cvc4terminate()
+void cvc5terminate()
 {
   set_terminate(default_terminator);
 #ifdef CVC5_DEBUG
@@ -301,8 +301,8 @@ void install()
     throw Exception(string("sigaltstack() failure: ") + strerror(errno));
   }
 
-  cvc4StackSize = limit.rlim_cur;
-  cvc4StackBase = ss.ss_sp;
+  stackSize = limit.rlim_cur;
+  stackBase = ss.ss_sp;
 
   struct sigaction act4;
   act4.sa_sigaction = segv_handler;
@@ -325,16 +325,16 @@ void install()
 
 #endif /* __WIN32__ */
 
-  default_terminator = set_terminate(cvc4terminate);
+  default_terminator = set_terminate(cvc5terminate);
 }
 
 void cleanup() noexcept
 {
 #ifndef __WIN32__
 #ifdef HAVE_SIGALTSTACK
-  free(cvc4StackBase);
-  cvc4StackBase = NULL;
-  cvc4StackSize = 0;
+  free(stackBase);
+  stackBase = nullptr;
+  stackSize = 0;
 #endif /* HAVE_SIGALTSTACK */
 #endif /* __WIN32__ */
 }

@@ -22,7 +22,7 @@
 #include <iosfwd>
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
@@ -70,7 +70,7 @@ class Exception : public std::exception
 
 }; /* class Exception */
 
-class CVC4_EXPORT IllegalArgumentException : public Exception
+class CVC5_EXPORT IllegalArgumentException : public Exception
 {
  protected:
   IllegalArgumentException() : Exception() {}
@@ -137,7 +137,7 @@ inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
   }
 }
 
-class CVC4_EXPORT LastExceptionBuffer
+class CVC5_EXPORT LastExceptionBuffer
 {
  public:
   LastExceptionBuffer();

@@ -26,8 +26,8 @@ namespace arith {
 ArithPreprocess::ArithPreprocess(ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
-                                 const LogicInfo& info)
-    : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
+                                 OperatorElim& oe)
+    : d_im(im), d_opElim(oe), d_reduced(state.getUserContext())
 {
 }
 TrustNode ArithPreprocess::eliminate(TNode n,

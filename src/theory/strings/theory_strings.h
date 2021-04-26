@@ -94,8 +94,6 @@ class TheoryStrings : public Theory {
   void shutdown() override {}
   /** preregister term */
   void preRegisterTerm(TNode n) override;
-  /** Expand definition */
-  TrustNode expandDefinition(Node n) override;
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;

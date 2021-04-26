@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 #define CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 
+#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
@@ -35,8 +36,10 @@ namespace theory {
 /**
  * A layer on top of SubstitutionMap that tracks proofs.
  */
-class TrustSubstitutionMap
+class TrustSubstitutionMap : public ProofGenerator
 {
+  using NodeUIntMap = context::CDHashMap<Node, size_t, NodeHashFunction>;
+
  public:
   TrustSubstitutionMap(context::Context* c,
                        ProofNodeManager* pnm,
@@ -57,6 +60,7 @@ class TrustSubstitutionMap
   void addSubstitution(TNode x,
                        TNode t,
                        PfRule id,
+                       const std::vector<Node>& children,
                        const std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of
@@ -85,16 +89,18 @@ class TrustSubstitutionMap
    */
   TrustNode apply(Node n, bool doRewrite = true);
 
+  /** Get the proof for formula f */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Identify */
+  std::string identify() const override;
+
  private:
   /** Are proofs enabled? */
   bool isProofEnabled() const;
   /**
-   * Get current substitution. This returns a node of the form:
-   *   (and (= x1 t1) ... (= xn tn))
-   * where (x1, t1) ... (xn, tn) have been registered via addSubstitution above.
-   * Moreover, it ensures that d_subsPg has a proof of the returned value.
+   * Get the substitution up to index
    */
-  Node getCurrentSubstitution();
+  Node getSubstitution(size_t index);
   /** The context used here */
   context::Context* d_ctx;
   /** The substitution map */
@@ -113,15 +119,6 @@ class TrustSubstitutionMap
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
   CDProofSet<LazyCDProof> d_helperPf;
-  /**
-   * The formula corresponding to the current substitution. This is of the form
-   *   (and (= x1 t1) ... (= xn tn))
-   * when the substitution map contains { x1 -> t1, ... xn -> tn }. This field
-   * is updated on demand. When this class applies a substitution to a node,
-   * this formula is computed and recorded as the premise of a
-   * MACRO_SR_EQ_INTRO step.
-   */
-  context::CDO<Node> d_currentSubs;
   /** Name for debugging */
   std::string d_name;
   /**
@@ -131,6 +128,19 @@ class TrustSubstitutionMap
   PfRule d_trustId;
   /** The method id for which form of substitution to apply */
   MethodId d_ids;
+  /**
+   * Map from solved equalities to the size of d_tsubs at the time they
+   * were concluded. Notice this is required so that we can reconstruct
+   * proofs for substitutions after they have become invalidated by later
+   * calls to addSubstitution. For example, if we call:
+   *   addSubstitution x -> y
+   *   addSubstitution z -> w
+   *   apply f(x), returns f(y)
+   *   addSubstitution y -> w
+   * We map (= (f x) (f y)) to index 2, since we only should apply the first
+   * two substitutions but not the third when asked to prove this equality.
+   */
+  NodeUIntMap d_eqtIndex;
 };
 
 }  // namespace theory

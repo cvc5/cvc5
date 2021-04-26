@@ -23,7 +23,7 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "expr/kind.h"
 #include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
@@ -101,7 +101,7 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  * name of the file, line number and column information, and in-scope
  * declarations.
  */
-class CVC4_EXPORT Parser
+class CVC5_EXPORT Parser
 {
   friend class ParserBuilder;
 private:
