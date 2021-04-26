@@ -101,7 +101,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::unsatCores() || !opts.wasSetByUser(options::unsatCores))
     {
-      if (opts.wasSetByUser(options::unsatCores))
+      if (opts.wasSetByUser(options::unsatCoresMode))
       {
         Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
                     "were requested.\n";
