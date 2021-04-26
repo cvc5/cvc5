@@ -61,6 +61,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
                                            PfRule id,
+                                           const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
   if (!isProofEnabled())
@@ -70,7 +71,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
   }
   LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
-  stepPg->addStep(eq, id, {}, args);
+  stepPg->addStep(eq, id, children, args);
   addSubstitution(x, t, stepPg);
 }
 
@@ -103,8 +104,9 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
-    // failed to rewrite
-    addSubstitution(x, t, nullptr);
+    // failed to rewrite, it is critical for unsat cores that proven is a
+    // premise here, since the conclusion depends on it
+    addSubstitution(x, t, PfRule::TRUST_SUBS_MAP, {proven}, {eq});
     Trace("trust-subs") << "...failed to rewrite" << std::endl;
     return nullptr;
   }
