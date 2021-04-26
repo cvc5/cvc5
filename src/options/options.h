@@ -123,7 +123,7 @@ public:
 
   /**
    * Set the default value of the given option. Is equivalent to calling `set()`
-   * if `wasSetByUser()` return false. Uses `ref()`, which causes a compile-time
+   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
    * error if the given option is read-only.
    */
   template <class T>
