@@ -25,6 +25,7 @@
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::theory;
@@ -130,7 +131,7 @@ Node Preprocessor::expandDefinitions(
   }
   // we apply substitutions here, before expanding definitions
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-  n = sm.apply(n, true);
+  n = sm.apply(n);
   if (!expandOnly)
   {
     // expand only = true
@@ -148,7 +149,9 @@ Node Preprocessor::simplify(const Node& node)
         d_smt.getOutputManager().getDumpOut(), node);
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return expandDefinitions(node, cache, false);
+  Node ret = expandDefinitions(node, cache, false);
+  ret = theory::Rewriter::rewrite(ret);
+  return ret;
 }
 
 void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
