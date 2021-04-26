@@ -214,9 +214,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           TNode r = node[1];
           TypeNode ltype = l.getType();
           TypeNode rtype = r.getType();
-          if (ltype != rtype)
+          if (ltype != rtype || ltype.isBoolean())
           {
-            tid = Theory::theoryOf(l.getType());
+            tid = Theory::theoryOf(ltype);
           }
           else
           {
