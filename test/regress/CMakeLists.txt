@@ -1534,7 +1534,6 @@ set(regress_1_tests
   regress1/fmf/issue5738-dt-interp-finite.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
-  regress1/fmf/ko-bound-set.cvc
   regress1/fmf/loopy_coda.smt2
   regress1/fmf/lst-no-self-rev-exp.smt2
   regress1/fmf/memory_model-R_cpp-dd.cvc
@@ -2551,6 +2550,8 @@ set(regression_disabled_tests
   ###
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
+  # TODO: fix models (projects #276)
+  regress1/fmf/ko-bound-set.cvc
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
   # slow on some builds after changes to tangent planes

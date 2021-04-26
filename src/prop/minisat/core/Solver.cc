@@ -2249,8 +2249,7 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OFF
-         || options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
+  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
          || lemmas.size() == static_cast<int>(lemmas_cnf_assertion.size()));
 
   // Attach all the clauses and enqueue all the propagations
@@ -2335,8 +2334,7 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OFF
-         || options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
+  Assert(options::unsatCoresMode() != options::UnsatCoresMode::OLD_PROOF
          || lemmas.size() == static_cast<int>(lemmas_cnf_assertion.size()));
   // Clear the lemmas
   lemmas.clear();
