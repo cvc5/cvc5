@@ -49,7 +49,9 @@ TheoryArith::TheoryArith(context::Context* c,
       d_astate(*d_internal, c, u, valuation),
       d_im(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
-      d_arithPreproc(d_astate, d_im, pnm, logicInfo)
+      d_opElim(pnm, logicInfo),
+      d_arithPreproc(d_astate, d_im, pnm, d_opElim),
+      d_rewriter(d_opElim)
 {
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
@@ -101,15 +103,6 @@ void TheoryArith::preRegisterTerm(TNode n)
     d_nonlinearExtension->preRegisterTerm(n);
   }
   d_internal->preRegisterTerm(n);
-}
-
-TrustNode TheoryArith::expandDefinition(Node node)
-{
-  // call eliminate operators, to eliminate partial operators only
-  std::vector<SkolemLemma> lems;
-  TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
-  Assert(lems.empty());
-  return ret;
 }
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }

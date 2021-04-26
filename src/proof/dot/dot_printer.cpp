@@ -25,55 +25,108 @@
 namespace cvc5 {
 namespace proof {
 
-void DotPrinter::cleanQuotes(std::string& s)
+std::string DotPrinter::sanitizeString(const std::string& s)
 {
-  std::string rep("\\\"");
-  for (size_t pos = 0; (pos = s.find("\"", pos)) != std::string::npos;
-       pos += rep.length())
+  std::string newS;
+  newS.reserve(s.size());
+  for (const char c : s)
   {
-    s.replace(pos, rep.length() - 1, rep);
+    switch (c)
+    {
+      case '\"': newS += "\\\""; break;
+      case '>': newS += "\\>"; break;
+      case '<': newS += "\\<"; break;
+      case '{': newS += "\\{"; break;
+      case '}': newS += "\\}"; break;
+      case '|': newS += "\\|"; break;
+      default: newS += c; break;
+    }
   }
+
+  return newS;
 }
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
 
-  out << "digraph proof {\n";
-  DotPrinter::printInternal(out, pn, ruleID);
+  // The dot attribute rankdir="BT" sets the direction of the graph layout,
+  // placing the root node at the top. The "node [shape..." attribute sets the
+  // shape of all nodes to record.
+  out << "digraph proof {\n\trankdir=\"BT\";\n\tnode [shape=record];\n";
+  DotPrinter::printInternal(out, pn, ruleID, 0, false);
   out << "}\n";
 }
 
 void DotPrinter::printInternal(std::ostream& out,
                                const ProofNode* pn,
-                               uint64_t& ruleID)
+                               uint64_t& ruleID,
+                               uint64_t scopeCounter,
+                               bool inPropositionalView)
 {
   uint64_t currentRuleID = ruleID;
-  PfRule r = pn->getRule();
-
-  out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \"" << r;
-
-  std::ostringstream currentArguments, resultStr;
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
-  DotPrinter::ruleArguments(currentArguments, pn);
-  // guarantee that arguments do not have unescaped quotes
-  std::string astring = currentArguments.str();
-  cleanQuotes(astring);
-  out << astring << "\"];\n\t\"" << currentRuleID
-      << "c\" [ shape = \"ellipse\", label = \"";
-  // guarantee that conclusion does not have unescaped quotes
-  resultStr << pn->getResult();
-  astring = resultStr.str();
-  cleanQuotes(astring);
+  std::ostringstream currentArguments, resultStr, classes, colors;
 
-  out << astring << "\" ];\n\t\"" << currentRuleID << "\" -> \""
-      << currentRuleID << "c\";\n";
+  out << "\t" << currentRuleID << " [ label = \"{";
+
+  resultStr << pn->getResult();
+  std::string astring = resultStr.str();
+  out << sanitizeString(astring);
+
+  PfRule r = pn->getRule();
+  DotPrinter::ruleArguments(currentArguments, pn);
+  astring = currentArguments.str();
+  out << "|" << r << sanitizeString(astring) << "}\"";
+  classes << ", class = \"";
+  colors << "";
+
+  // set classes and colors, based on the view that the rule belongs
+  switch (r)
+  {
+    case PfRule::SCOPE:
+      if (scopeCounter < 1)
+      {
+        classes << " basic";
+        colors << ", color = blue ";
+        inPropositionalView = true;
+      }
+      scopeCounter++;
+      break;
+    case PfRule::ASSUME:
+      // a node can belong to more than one view, so these if's must not be
+      // exclusive
+      if (scopeCounter < 2)
+      {
+        classes << " basic";
+        colors << ", color = blue ";
+      }
+      if (inPropositionalView)
+      {
+        classes << " propositional";
+        colors << ", fillcolor = aquamarine4, style = filled ";
+      }
+      break;
+    case PfRule::CHAIN_RESOLUTION:
+    case PfRule::FACTORING:
+    case PfRule::REORDERING:
+      if (inPropositionalView)
+      {
+        classes << " propositional";
+        colors << ", fillcolor = aquamarine4, style = filled ";
+      }
+      break;
+    default: inPropositionalView = false;
+  }
+  classes << " \"";
+  out << classes.str() << colors.str();
+  out << " ];\n";
 
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     ++ruleID;
-    out << "\t\"" << ruleID << "c\" -> \"" << currentRuleID << "\";\n";
-    printInternal(out, c.get(), ruleID);
+    out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
+    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
   }
 }
 

@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -39,7 +40,10 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc);
+  TermRegistry(SolverState& state,
+               InferenceManager& im,
+               SkolemCache& skc,
+               ProofNodeManager* pnm);
   /** Get type constraint skolem
    *
    * The sets theory solver outputs equality lemmas of the form:
@@ -72,6 +76,8 @@ class TermRegistry
   void debugPrintSet(Node s, const char* c) const;
 
  private:
+  /** Send simple lemma internal */
+  void sendSimpleLemmaInternal(Node n, InferenceId id);
   /** The inference manager */
   InferenceManager& d_im;
   /** Reference to the skolem cache */
@@ -86,6 +92,8 @@ class TermRegistry
   std::map<TypeNode, Node> d_emptyset;
   /** Map from types to universe set of that type */
   std::map<TypeNode, Node> d_univset;
+  /** Eager proof generator for purification lemmas */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

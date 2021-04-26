@@ -81,6 +81,25 @@ class BitVectorConcatTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class BitVectorToBVTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    for (const auto& child : n)
+    {
+      TypeNode t = child.getType(check);
+      if (!t.isBoolean())
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting Boolean terms");
+      }
+    }
+    return nodeManager->mkBitVectorType(n.getNumChildren());
+  }
+};
+
 class BitVectorITETypeRule
 {
  public:

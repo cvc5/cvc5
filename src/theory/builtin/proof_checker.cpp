@@ -19,6 +19,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "theory/substitutions.h"
 #include "theory/theory.h"
 
 using namespace cvc5::kind;
@@ -40,6 +41,9 @@ const char* toString(MethodId id)
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
     case MethodId::SB_FORMULA: return "SB_FORMULA";
+    case MethodId::SBA_SEQUENTIAL: return "SBA_SEQUENTIAL";
+    case MethodId::SBA_SIMUL: return "SBA_SIMUL";
+    case MethodId::SBA_FIXPOINT: return "SBA_FIXPOINT";
     default: return "MethodId::Unknown";
   };
 }
@@ -84,9 +88,13 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
-    Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
+    Node n,
+    const std::vector<Node>& exp,
+    MethodId ids,
+    MethodId ida,
+    MethodId idr)
 {
-  Node nks = applySubstitution(n, exp, ids);
+  Node nks = applySubstitution(n, exp, ids, ida);
   return applyRewrite(nks, idr);
 }
 
@@ -187,48 +195,59 @@ bool BuiltinProofRuleChecker::getSubstitutionFor(Node exp,
   return ret;
 }
 
-Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
+Node BuiltinProofRuleChecker::applySubstitution(Node n,
+                                                Node exp,
+                                                MethodId ids,
+                                                MethodId ida)
 {
-  std::vector<TNode> vars;
-  std::vector<TNode> subs;
-  std::vector<TNode> from;
-  if (!getSubstitutionFor(exp, vars, subs, from, ids))
-  {
-    return Node::null();
-  }
-  Node ns = n;
-  // apply substitution one at a time, in reverse order
-  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
-  {
-    TNode v = vars[nvars - 1 - i];
-    TNode s = subs[nvars - 1 - i];
-    Trace("builtin-pfcheck-debug")
-        << "applySubstitution (" << ids << "): " << v << " -> " << s
-        << " (from " << exp << ")" << std::endl;
-    ns = ns.substitute(v, s);
-  }
-  return ns;
+  std::vector<Node> expv{exp};
+  return applySubstitution(n, expv, ids, ida);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 const std::vector<Node>& exp,
-                                                MethodId ids)
+                                                MethodId ids,
+                                                MethodId ida)
 {
-  Node curr = n;
-  // apply substitution one at a time, in reverse order
+  std::vector<TNode> vars;
+  std::vector<TNode> subs;
+  std::vector<TNode> from;
   for (size_t i = 0, nexp = exp.size(); i < nexp; i++)
   {
-    if (exp[nexp - 1 - i].isNull())
+    if (exp[i].isNull())
     {
       return Node::null();
     }
-    curr = applySubstitution(curr, exp[nexp - 1 - i], ids);
-    if (curr.isNull())
+    if (!getSubstitutionFor(exp[i], vars, subs, from, ids))
     {
-      break;
+      return Node::null();
     }
   }
-  return curr;
+  if (ida == MethodId::SBA_SIMUL)
+  {
+    // simply apply the simultaneous substitution now
+    return n.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+  }
+  else if (ida == MethodId::SBA_FIXPOINT)
+  {
+    SubstitutionMap sm;
+    for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+    {
+      sm.addSubstitution(vars[i], subs[i]);
+    }
+    Node ns = sm.apply(n);
+    return ns;
+  }
+  Assert(ida == MethodId::SBA_SEQUENTIAL);
+  // we prefer n traversals of the term to n^2/2 traversals of range terms
+  Node ns = n;
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  {
+    TNode v = vars[(nvars - 1) - i];
+    TNode s = subs[(nvars - 1) - i];
+    ns = ns.substitute(v, s);
+  }
+  return ns;
 }
 
 bool BuiltinProofRuleChecker::getMethodId(TNode n, MethodId& i)
@@ -321,13 +340,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
-    Assert(1 <= args.size() && args.size() <= 3);
-    MethodId ids, idr;
-    if (!getMethodIds(args, ids, idr, 1))
+    Assert(1 <= args.size() && args.size() <= 4);
+    MethodId ids, ida, idr;
+    if (!getMethodIds(args, ids, ida, idr, 1))
     {
       return Node::null();
     }
-    Node res = applySubstitutionRewrite(args[0], children, ids, idr);
+    Node res = applySubstitutionRewrite(args[0], children, ids, ida, idr);
     if (res.isNull())
     {
       return Node::null();
@@ -338,13 +357,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args[0] << std::endl;
-    Assert(1 <= args.size() && args.size() <= 3);
-    MethodId ids, idr;
-    if (!getMethodIds(args, ids, idr, 1))
+    Assert(1 <= args.size() && args.size() <= 4);
+    MethodId ids, ida, idr;
+    if (!getMethodIds(args, ids, ida, idr, 1))
     {
       return Node::null();
     }
-    Node res = applySubstitutionRewrite(args[0], children, ids, idr);
+    Node res = applySubstitutionRewrite(args[0], children, ids, ida, idr);
     if (res.isNull())
     {
       return Node::null();
@@ -369,15 +388,15 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
-    Assert(args.size() <= 2);
+    Assert(args.size() <= 3);
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
-    MethodId ids, idr;
-    if (!getMethodIds(args, ids, idr, 0))
+    MethodId ids, ida, idr;
+    if (!getMethodIds(args, ids, ida, idr, 0))
     {
       return Node::null();
     }
-    Node res1 = applySubstitutionRewrite(children[0], exp, ids, idr);
+    Node res1 = applySubstitutionRewrite(children[0], exp, ids, ida, idr);
     Trace("builtin-pfcheck") << "Returned " << res1 << std::endl;
     return res1;
   }
@@ -386,17 +405,17 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
-    Assert(1 <= args.size() && args.size() <= 3);
+    Assert(1 <= args.size() && args.size() <= 4);
     Assert(args[0].getType().isBoolean());
-    MethodId ids, idr;
-    if (!getMethodIds(args, ids, idr, 1))
+    MethodId ids, ida, idr;
+    if (!getMethodIds(args, ids, ida, idr, 1))
     {
       return Node::null();
     }
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
-    Node res1 = applySubstitutionRewrite(children[0], exp, ids, idr);
-    Node res2 = applySubstitutionRewrite(args[0], exp, ids, idr);
+    Node res1 = applySubstitutionRewrite(children[0], exp, ids, ida, idr);
+    Node res2 = applySubstitutionRewrite(args[0], exp, ids, ida, idr);
     // if not already equal, do rewriting
     if (res1 != res2)
     {
@@ -438,27 +457,28 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
 
 bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
                                            MethodId& ids,
+                                           MethodId& ida,
                                            MethodId& idr,
                                            size_t index)
 {
   ids = MethodId::SB_DEFAULT;
+  ida = MethodId::SBA_SEQUENTIAL;
   idr = MethodId::RW_REWRITE;
-  if (args.size() > index)
+  for (size_t offset = 0; offset <= 2; offset++)
   {
-    if (!getMethodId(args[index], ids))
+    if (args.size() > index + offset)
     {
-      Trace("builtin-pfcheck")
-          << "Failed to get id from " << args[index] << std::endl;
-      return false;
+      MethodId& id = offset == 0 ? ids : (offset == 1 ? ida : idr);
+      if (!getMethodId(args[index + offset], id))
+      {
+        Trace("builtin-pfcheck")
+            << "Failed to get id from " << args[index + offset] << std::endl;
+        return false;
+      }
     }
-  }
-  if (args.size() > index + 1)
-  {
-    if (!getMethodId(args[index + 1], idr))
+    else
     {
-      Trace("builtin-pfcheck")
-          << "Failed to get id from " << args[index + 1] << std::endl;
-      return false;
+      break;
     }
   }
   return true;
@@ -466,12 +486,18 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
 
 void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
                                            MethodId ids,
+                                           MethodId ida,
                                            MethodId idr)
 {
   bool ndefRewriter = (idr != MethodId::RW_REWRITE);
-  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  bool ndefApply = (ida != MethodId::SBA_SEQUENTIAL);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter || ndefApply)
   {
     args.push_back(mkMethodId(ids));
+  }
+  if (ndefApply || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ida));
   }
   if (ndefRewriter)
   {
