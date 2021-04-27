@@ -179,7 +179,7 @@ std::string Options::getBinaryName() const{
 }
 
 std::ostream* Options::currentGetOut() {
-  return current()->getOut();
+  return current().getOut();
 }
 
 

@@ -3441,18 +3441,23 @@ std::string kindToString(Kind k) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
 
+}  // namespace api
+}  // namespace cvc5
+
+namespace std {
+
 /**
  * Hash function for Kinds.
  */
-struct CVC5_EXPORT KindHashFunction
+template<>
+struct CVC5_EXPORT hash<cvc5::api::Kind>
 {
   /**
    * Hashes a Kind to a size_t.
    */
-  size_t operator()(Kind k) const;
+  size_t operator()(cvc5::api::Kind k) const;
 };
 
-}  // namespace api
-}  // namespace cvc5
+}
 
 #endif
