@@ -3584,7 +3584,7 @@ DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
   for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
   {
     int si = (*d_dtype)[i].getSelectorIndexForName(name);
-    if (si>=0)
+    if (si >= 0)
     {
       sindex = static_cast<size_t>(si);
       index = i;
