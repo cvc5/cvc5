@@ -247,7 +247,12 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   Node updater = ldt[0][0].getUpdater();
   Node gt = listType.mkGroundTerm();
   Node zero = d_nodeManager->mkConst(Rational(0));
+  Node truen = d_nodeManager->mkConst(true);
+  // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_DT_UPDATER, updater, gt, zero);
+  // construct a non well-formed update term
+  ASSERT_THROW(d_nodeManager->mkNode(kind::APPLY_DT_UPDATER, updater, gt, truen).getType(true),
+               TypeCheckingExceptionPrivate);
 }
 
 TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
