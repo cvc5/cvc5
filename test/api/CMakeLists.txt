@@ -29,18 +29,13 @@ add_custom_target(apitests
   COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-apitests)
 
-set(CVC5_API_TEST_FLAGS
-  -D__BUILDING_CVC5_API_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
+set(CVC5_API_TEST_FLAGS -D__BUILDING_CVC5_API_TEST)
 
-macro(cvc4_add_api_test name)
+macro(cvc5_add_api_test name)
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/)
   add_executable(${name} ${name}.cpp)
   target_link_libraries(${name} PUBLIC main-test)
   target_compile_definitions(${name} PRIVATE ${CVC5_API_TEST_FLAGS})
-  if(USE_CLN)
-    target_link_libraries(${name} PRIVATE CLN)
-  endif()
-  target_link_libraries(${name} PRIVATE GMP)
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
   add_test(api/${name} ${test_bin_dir}/${name})
@@ -48,14 +43,14 @@ macro(cvc4_add_api_test name)
   add_dependencies(build-apitests ${name})
 endmacro()
 
-cvc4_add_api_test(boilerplate)
-cvc4_add_api_test(ouroborous)
-cvc4_add_api_test(reset_assertions)
-cvc4_add_api_test(sep_log_api)
-cvc4_add_api_test(smt2_compliance)
-cvc4_add_api_test(two_solvers)
-cvc4_add_api_test(issue5074)
-cvc4_add_api_test(issue4889)
+cvc5_add_api_test(boilerplate)
+cvc5_add_api_test(ouroborous)
+cvc5_add_api_test(reset_assertions)
+cvc5_add_api_test(sep_log_api)
+cvc5_add_api_test(smt2_compliance)
+cvc5_add_api_test(two_solvers)
+cvc5_add_api_test(issue5074)
+cvc5_add_api_test(issue4889)
 
 # if we've built using libedit, then we want the interactive shell tests
 if (USE_EDITLINE)

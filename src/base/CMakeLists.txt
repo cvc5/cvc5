@@ -21,6 +21,10 @@ add_custom_target(gen-gitinfo
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
   COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake)
 
+
+# Generate cvc5config.h header
+configure_file(cvc5config.h.in cvc5config.h)
+
 #-----------------------------------------------------------------------------#
 
 set(LIBBASE_SOURCES
@@ -79,8 +83,9 @@ set_source_files_properties(
   PROPERTIES GENERATED TRUE
 )
 
-add_library(cvc4base OBJECT ${LIBBASE_SOURCES})
+add_library(cvc5base OBJECT ${LIBBASE_SOURCES})
 if(ENABLE_SHARED)
-  set_target_properties(cvc4base PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(cvc5base PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
-target_compile_definitions(cvc4base PRIVATE -D__BUILDING_CVC4LIB)
+target_compile_definitions(cvc5base PRIVATE -D__BUILDING_CVC5LIB)
+add_dependencies(cvc5base gen-gitinfo gen-tags)

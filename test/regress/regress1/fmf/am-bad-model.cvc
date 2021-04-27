@@ -1,4 +1,4 @@
-% COMMAND-LINE: -q
+% COMMAND-LINE:
 % EXPECT: sat
 OPTION "produce-models";
 OPTION "finite-model-find";

@@ -12,7 +12,7 @@
  *
  * SAT Solver.
  *
- * Implementation of the cryptominisat for cvc4 (bit-vectors).
+ * Implementation of the cryptominisat for cvc5 (bit-vectors).
  */
 
 #include "prop/cryptominisat.h"

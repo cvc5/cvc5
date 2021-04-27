@@ -27,7 +27,7 @@ if(RET_PYTEST)
       "Could not find Python module pytest. Install via `pip install pytest'.")
 endif()
 
-macro(cvc4_add_python_api_test name filename)
+macro(cvc5_add_python_api_test name filename)
 
   #   we create test target 'api/<output_dir>/myapitest'
   #   and run it with 'ctest -R "api/<output_dir>/myapitest"'.
@@ -38,8 +38,7 @@ macro(cvc4_add_python_api_test name filename)
 
 endmacro()
 
-cvc4_add_python_api_test(pytest_datatype_api test_datatype_api.py)
-cvc4_add_python_api_test(pytest_grammar test_grammar.py)
-cvc4_add_python_api_test(pytest_sort test_sort.py)
-cvc4_add_python_api_test(pytest_term test_term.py)
-cvc4_add_python_api_test(pytest_to_python_obj test_to_python_obj.py)
+cvc5_add_python_api_test(pytest_datatype_api test_datatype_api.py)
+cvc5_add_python_api_test(pytest_grammar test_grammar.py)
+cvc5_add_python_api_test(pytest_term test_term.py)
+cvc5_add_python_api_test(pytest_to_python_obj test_to_python_obj.py)

@@ -60,7 +60,7 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm);
+  Env(NodeManager* nm, Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -86,6 +86,12 @@ class Env
 
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
+
+  template <typename Opt>
+  const auto& getOption(Opt opt) const
+  {
+    return d_options[opt];
+  }
 
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
@@ -116,8 +122,6 @@ class Env
  private:
   /* Private initialization ------------------------------------------------- */
 
-  /** Set options, which makes a deep copy of optr if non-null */
-  void setOptions(Options* optr = nullptr);
   /** Set the statistics registry */
   void setStatisticsRegistry(StatisticsRegistry* statReg);
   /** Set proof node manager if it exists */

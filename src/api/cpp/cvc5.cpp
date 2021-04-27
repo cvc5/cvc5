@@ -84,7 +84,7 @@ struct APIStatistics
 /* -------------------------------------------------------------------------- */
 
 /* Mapping from external (API) kind to internal kind. */
-const static std::unordered_map<Kind, cvc5::Kind, KindHashFunction> s_kinds{
+const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND},
     {UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND},
     {NULL_EXPR, cvc5::Kind::NULL_EXPR},
@@ -350,6 +350,9 @@ const static std::unordered_map<Kind, cvc5::Kind, KindHashFunction> s_kinds{
     {BOUND_VAR_LIST, cvc5::Kind::BOUND_VAR_LIST},
     {INST_PATTERN, cvc5::Kind::INST_PATTERN},
     {INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN},
+    {INST_POOL, cvc5::Kind::INST_POOL},
+    {INST_ADD_TO_POOL, cvc5::Kind::INST_ADD_TO_POOL},
+    {SKOLEM_ADD_TO_POOL, cvc5::Kind::SKOLEM_ADD_TO_POOL},
     {INST_ATTRIBUTE, cvc5::Kind::INST_ATTRIBUTE},
     {INST_PATTERN_LIST, cvc5::Kind::INST_PATTERN_LIST},
     {LAST_KIND, cvc5::Kind::LAST_KIND},
@@ -425,6 +428,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::TO_INTEGER, TO_INTEGER},
         {cvc5::Kind::TO_REAL, TO_REAL},
         {cvc5::Kind::PI, PI},
+        {cvc5::Kind::IAND_OP, IAND},
         /* BV -------------------------------------------------------------- */
         {cvc5::Kind::CONST_BITVECTOR, CONST_BITVECTOR},
         {cvc5::Kind::BITVECTOR_CONCAT, BITVECTOR_CONCAT},
@@ -644,6 +648,9 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
         {cvc5::Kind::INST_PATTERN, INST_PATTERN},
         {cvc5::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
+        {cvc5::Kind::INST_POOL, INST_POOL},
+        {cvc5::Kind::INST_ADD_TO_POOL, INST_ADD_TO_POOL},
+        {cvc5::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
         {cvc5::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
         {cvc5::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
@@ -651,7 +658,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
     };
 
 /* Set of kinds for indexed operators */
-const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
+const static std::unordered_set<Kind> s_indexed_kinds(
     {RECORD_UPDATE,
      DIVISIBLE,
      IAND,
@@ -777,8 +784,6 @@ std::ostream& operator<<(std::ostream& out, Kind k)
   }
   return out;
 }
-
-size_t KindHashFunction::operator()(Kind k) const { return k; }
 
 /* -------------------------------------------------------------------------- */
 /* API guard helpers                                                          */
@@ -1744,11 +1749,6 @@ std::ostream& operator<<(std::ostream& out, const Sort& s)
   return out;
 }
 
-size_t SortHashFunction::operator()(const Sort& s) const
-{
-  return TypeNodeHashFunction()(*s.d_type);
-}
-
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -1832,6 +1832,52 @@ bool Op::isIndexed() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return isIndexedHelper();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+size_t Op::getNumIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  if (!isIndexedHelper())
+  {
+    return 0;
+  }
+
+  Kind k = intToExtKind(d_node->getKind());
+  size_t size = 0;
+  switch (k)
+  {
+    case DIVISIBLE: size = 1; break;
+    case RECORD_UPDATE: size = 1; break;
+    case BITVECTOR_REPEAT: size = 1; break;
+    case BITVECTOR_ZERO_EXTEND: size = 1; break;
+    case BITVECTOR_SIGN_EXTEND: size = 1; break;
+    case BITVECTOR_ROTATE_LEFT: size = 1; break;
+    case BITVECTOR_ROTATE_RIGHT: size = 1; break;
+    case INT_TO_BITVECTOR: size = 1; break;
+    case IAND: size = 1; break;
+    case FLOATINGPOINT_TO_UBV: size = 1; break;
+    case FLOATINGPOINT_TO_SBV: size = 1; break;
+    case TUPLE_UPDATE: size = 1; break;
+    case REGEXP_REPEAT: size = 1; break;
+    case BITVECTOR_EXTRACT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT: size = 2; break;
+    case FLOATINGPOINT_TO_FP_REAL: size = 2; break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
+    case REGEXP_LOOP: size = 2; break;
+    case TUPLE_PROJECT:
+      size = d_node->getConst<TupleProjectOp>().getIndices().size();
+      break;
+    default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+  }
+
+  //////// all checks before this line
+  return size;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2004,18 +2050,6 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 {
   out << t.toString();
   return out;
-}
-
-size_t OpHashFunction::operator()(const Op& t) const
-{
-  if (t.isIndexedHelper())
-  {
-    return NodeHashFunction()(*t.d_node);
-  }
-  else
-  {
-    return KindHashFunction()(t.d_kind);
-  }
 }
 
 /* Helpers                                                                    */
@@ -2703,9 +2737,8 @@ std::ostream& operator<<(std::ostream& out, const std::set<Term>& set)
   return out;
 }
 
-std::ostream& operator<<(
-    std::ostream& out,
-    const std::unordered_set<Term, TermHashFunction>& unordered_set)
+std::ostream& operator<<(std::ostream& out,
+                         const std::unordered_set<Term>& unordered_set)
 {
   container_to_stream(out, unordered_set);
   return out;
@@ -2719,17 +2752,11 @@ std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map)
 }
 
 template <typename V>
-std::ostream& operator<<(
-    std::ostream& out,
-    const std::unordered_map<Term, V, TermHashFunction>& unordered_map)
+std::ostream& operator<<(std::ostream& out,
+                         const std::unordered_map<Term, V>& unordered_map)
 {
   container_to_stream(out, unordered_map);
   return out;
-}
-
-size_t TermHashFunction::operator()(const Term& t) const
-{
-  return NodeHashFunction()(*t.d_node);
 }
 
 /* Helpers                                                                    */
@@ -3821,7 +3848,7 @@ Sort Grammar::resolve()
             cvc5::kind::BOUND_VAR_LIST, Term::termVectorToNodes(d_sygusVars)));
   }
 
-  std::unordered_map<Term, Sort, TermHashFunction> ntsToUnres(d_ntSyms.size());
+  std::unordered_map<Term, Sort> ntsToUnres(d_ntSyms.size());
 
   for (Term ntsymbol : d_ntSyms)
   {
@@ -3880,7 +3907,7 @@ Sort Grammar::resolve()
 void Grammar::addSygusConstructorTerm(
     DatatypeDecl& dt,
     const Term& term,
-    const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
+    const std::unordered_map<Term, Sort>& ntsToUnres) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_DTDECL(dt);
@@ -3922,7 +3949,7 @@ Term Grammar::purifySygusGTerm(
     const Term& term,
     std::vector<Term>& args,
     std::vector<Sort>& cargs,
-    const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
+    const std::unordered_map<Term, Sort>& ntsToUnres) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_TERM(term);
@@ -3931,8 +3958,7 @@ Term Grammar::purifySygusGTerm(
   CVC5_API_CHECK_TERMS_MAP(ntsToUnres);
   //////// all checks before this line
 
-  std::unordered_map<Term, Sort, TermHashFunction>::const_iterator itn =
-      ntsToUnres.find(term);
+  std::unordered_map<Term, Sort>::const_iterator itn = ntsToUnres.find(term);
   if (itn != ntsToUnres.cend())
   {
     Term ret =
@@ -4028,17 +4054,15 @@ std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
-const static std::
-    unordered_map<RoundingMode, cvc5::RoundingMode, RoundingModeHashFunction>
-        s_rmodes{
-            {ROUND_NEAREST_TIES_TO_EVEN,
-             cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-            {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
-            {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
-            {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
-            {ROUND_NEAREST_TIES_TO_AWAY,
-             cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
-        };
+const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
+    {ROUND_NEAREST_TIES_TO_EVEN,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
+    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
+    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
+    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
+    {ROUND_NEAREST_TIES_TO_AWAY,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
+};
 
 const static std::unordered_map<cvc5::RoundingMode,
                                 RoundingMode,
@@ -4052,11 +4076,6 @@ const static std::unordered_map<cvc5::RoundingMode,
         {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          ROUND_NEAREST_TIES_TO_AWAY},
     };
-
-size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
-{
-  return size_t(rm);
-}
 
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
@@ -4094,7 +4113,7 @@ bool Stat::isInt() const
 int64_t Stat::getInt() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isInt()) << "Expected Stat of type int64_t.";
+  CVC5_API_RECOVERABLE_CHECK(isInt()) << "Expected Stat of type int64_t.";
   return std::get<int64_t>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4105,7 +4124,7 @@ bool Stat::isDouble() const
 double Stat::getDouble() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isDouble()) << "Expected Stat of type double.";
+  CVC5_API_RECOVERABLE_CHECK(isDouble()) << "Expected Stat of type double.";
   return std::get<double>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4116,7 +4135,8 @@ bool Stat::isString() const
 const std::string& Stat::getString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isString()) << "Expected Stat of type std::string.";
+  CVC5_API_RECOVERABLE_CHECK(isString())
+      << "Expected Stat of type std::string.";
   return std::get<std::string>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4127,14 +4147,15 @@ bool Stat::isHistogram() const
 const Stat::HistogramData& Stat::getHistogram() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isHistogram()) << "Expected Stat of type histogram.";
+  CVC5_API_RECOVERABLE_CHECK(isHistogram())
+      << "Expected Stat of type histogram.";
   return std::get<HistogramData>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert, bool def, StatData&& sd)
+Stat::Stat(bool expert, bool defaulted, StatData&& sd)
     : d_expert(expert),
-      d_default(def),
+      d_default(defaulted),
       d_data(std::make_unique<StatData>(std::move(sd)))
 {
 }
@@ -4197,8 +4218,8 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
                                bool expert,
-                               bool def)
-    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(def)
+                               bool defaulted)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(defaulted)
 {
   while (!isVisible())
   {
@@ -4217,15 +4238,15 @@ const Stat& Statistics::get(const std::string& name)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   auto it = d_stats.find(name);
-  CVC5_API_CHECK(it != d_stats.end())
+  CVC5_API_RECOVERABLE_CHECK(it != d_stats.end())
       << "No stat with name \"" << name << "\" exists.";
   return it->second;
   CVC5_API_TRY_CATCH_END;
 }
 
-Statistics::iterator Statistics::begin(bool expert, bool def) const
+Statistics::iterator Statistics::begin(bool expert, bool defaulted) const
 {
-  return iterator(d_stats.begin(), d_stats, expert, def);
+  return iterator(d_stats.begin(), d_stats, expert, defaulted);
 }
 Statistics::iterator Statistics::end() const
 {
@@ -4706,7 +4727,8 @@ void Solver::resetStatistics()
             "api::CONSTANT"),
         d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>(
             "api::VARIABLE"),
-        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+        d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>(
+            "api::TERM"),
     });
   }
 }
@@ -6464,8 +6486,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores]
-                 || d_smtEngine->getOptions()[options::unsatCoresNew])
+  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
@@ -6592,6 +6613,24 @@ Term Solver::getSeparationNilTerm() const
       << "Can only get separtion nil term after sat or unknown response.";
   //////// all checks before this line
   return Term(this, d_smtEngine->getSepNilExpr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::declarePool(const std::string& symbol,
+                         const Sort& sort,
+                         const std::vector<Term>& initValue) const
+{
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_SOLVER_CHECK_TERMS(initValue);
+  //////// all checks before this line
+  TypeNode setType = getNodeManager()->mkSetType(*sort.d_type);
+  Node pool = getNodeManager()->mkBoundVar(symbol, setType);
+  std::vector<Node> initv = Term::termVectorToNodes(initValue);
+  d_smtEngine->declarePool(pool, initv);
+  return Term(this, pool);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7038,3 +7077,40 @@ Statistics Solver::getStatistics() const
 }  // namespace api
 
 }  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::api::Kind>::operator()(cvc5::api::Kind k) const
+{
+  return static_cast<size_t>(k);
+}
+
+size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
+{
+  if (t.isIndexedHelper())
+  {
+    return cvc5::NodeHashFunction()(*t.d_node);
+  }
+  else
+  {
+    return std::hash<cvc5::api::Kind>()(t.d_kind);
+  }
+}
+
+size_t std::hash<cvc5::api::RoundingMode>::operator()(
+    cvc5::api::RoundingMode rm) const
+{
+  return static_cast<size_t>(rm);
+}
+
+size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const
+{
+  return cvc5::TypeNodeHashFunction()(*s.d_type);
+}
+
+size_t std::hash<cvc5::api::Term>::operator()(const cvc5::api::Term& t) const
+{
+  return cvc5::NodeHashFunction()(*t.d_node);
+}
+
+}  // namespace std
