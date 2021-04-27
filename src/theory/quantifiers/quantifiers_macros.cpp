@@ -54,7 +54,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
       Node n_def = nm->mkConst(pol);
       Node fdef = solveEq(n, n_def);
       Assert(!fdef.isNull());
-      return fdef;
+      return returnMacro(fdef, lit);
     }
   }
   else if (pol && n.getKind() == EQUAL)
@@ -96,7 +96,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
           Node fdef = solveEq(m, n_def);
           if (!fdef.isNull())
           {
-            return fdef;
+            return returnMacro(fdef, lit);
           }
         }
       }
@@ -276,6 +276,12 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   TNode fdeft = fdef;
   Assert(op.getType().isComparableTo(fdef.getType()));
   return op.eqNode(fdef);
+}
+
+Node QuantifiersMacros::returnMacro(Node fdef, Node lit) const
+{
+  Trace("macros") << "* Inferred macro " << fdef << " from " << lit << std::endl;
+  return fdef;
 }
 
 }  // namespace quantifiers
