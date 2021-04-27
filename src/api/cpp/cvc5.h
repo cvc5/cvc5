@@ -1602,7 +1602,7 @@ class CVC5_EXPORT DatatypeSelector
    * Get the upater operator of this datatype selector.
    * @return the updater term
    */
-  Term getUpaterTerm() const;
+  Term getUpdaterTerm() const;
 
   /** @return the range sort of this argument. */
   Sort getRangeSort() const;

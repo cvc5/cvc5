@@ -3050,7 +3050,7 @@ Term DatatypeSelector::getSelectorTerm() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-Term DatatypeSelector::getUpaterTerm() const
+Term DatatypeSelector::getUpdaterTerm() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
