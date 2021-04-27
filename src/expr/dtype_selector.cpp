@@ -21,11 +21,10 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-DTypeSelector::DTypeSelector(std::string name, Node selector)
-    : d_name(name), d_selector(selector), d_resolved(false)
+DTypeSelector::DTypeSelector(std::string name, Node selector, Node updater)
+    : d_name(name), d_selector(selector), d_updater(updater), d_resolved(false)
 {
   Assert(name != "");
-  // TODO: make updater?
 }
 
 const std::string& DTypeSelector::getName() const { return d_name; }

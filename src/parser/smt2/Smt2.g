@@ -1656,7 +1656,7 @@ identifier[cvc5::ParseOp& p]
         api::Datatype d = sf.getDatatype();
         // find the selector
         api::DatatypeSelector ds = d.getSelector(f.toString());
-        p.d_expr = ds.getUpdateTerm();
+        p.d_expr = ds.getUpdaterTerm();
       }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL
       {

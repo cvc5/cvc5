@@ -853,9 +853,10 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       const DTypeConstructor& dc = dt[cindex];
       NodeBuilder b(APPLY_CONSTRUCTOR);
       b << dc.getConstructor();
-      Debug("tuprec") << "expr is " << n << std::endl;
-      Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-      Debug("tuprec") << "t is " << tn << std::endl;
+      Trace("dt-expand") << "Expand updater " << n << std::endl;
+      Trace("dt-expand") << "expr is " << n << std::endl;
+      Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;
+      Trace("dt-expand") << "t is " << tn << std::endl;
       for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
       {
         if (i == updateIndex)
@@ -869,10 +870,13 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
       }
       ret = b;
-      // must be the right constructor to update
-      Node tester = nm->mkNode(APPLY_TESTER, dc.getTester(), n[0]);
-      ret = nm->mkNode(ITE, tester, ret, n[0]);
-      Debug("tuprec") << "return " << ret << std::endl;
+      if (dt.getNumConstructors()>1)
+      {
+        // must be the right constructor to update
+        Node tester = nm->mkNode(APPLY_TESTER, dc.getTester(), n[0]);
+        ret = nm->mkNode(ITE, tester, ret, n[0]);
+      }
+      Trace("dt-expand") << "return " << ret << std::endl;
     }
     break;
     default: break;

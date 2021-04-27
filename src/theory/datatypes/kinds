@@ -34,7 +34,7 @@ cardinality TESTER_TYPE \
 # tester type has a constructor type
 operator DT_UPDATE_TYPE 2 "datatype update"
 # can re-use function cardinality
-cardinality TESTER_TYPE \
+cardinality DT_UPDATE_TYPE \
     "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
