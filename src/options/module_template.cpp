@@ -19,6 +19,8 @@
 #include "options/options_holder.h"
 #include "base/check.h"
 
+#include <iostream>
+
 // clang-format off
 namespace cvc5 {
 

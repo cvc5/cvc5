@@ -18,8 +18,7 @@
 #ifndef CVC5__OPTIONS__OPTIONS_H
 #define CVC5__OPTIONS__OPTIONS_H
 
-#include <fstream>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -77,9 +76,6 @@ class CVC5_EXPORT Options
 
   static std::string formatThreadOptionException(const std::string& option);
 
-  static const size_t s_maxoptlen = 128;
-  static const unsigned s_preemptAdditional = 6;
-
 public:
  class OptionsScope
  {
@@ -102,8 +98,8 @@ public:
   }
 
   /** Get the current Options in effect */
-  static inline Options* current() {
-    return s_current;
+  static inline Options& current() {
+    return *s_current;
   }
 
   Options(OptionsListener* ol = nullptr);
@@ -117,15 +113,39 @@ public:
   void copyValues(const Options& options);
 
   /**
-   * Set the value of the given option.  Use of this default
-   * implementation causes a compile-time error; write-able
-   * options specialize this template with a real implementation.
+   * Set the value of the given option.  Uses `ref()`, which causes a
+   * compile-time error if the given option is read-only.
    */
   template <class T>
-  void set(T, const typename T::type&) {
-    // Flag a compile-time error.  Write-able options specialize
-    // this template to provide an implementation.
-    T::you_are_trying_to_assign_to_a_read_only_option;
+  void set(T t, const typename T::type& val) {
+    ref(t) = val;
+  }
+
+  /**
+   * Set the default value of the given option. Is equivalent to calling `set()`
+   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
+   * error if the given option is read-only.
+   */
+  template <class T>
+  void setDefault(T t, const typename T::type& val)
+  {
+    if (!wasSetByUser(t))
+    {
+      ref(t) = val;
+    }
+  }
+
+  /**
+   * Get a non-const reference to the value of the given option. Causes a
+   * compile-time error if the given option is read-only. Writeable options
+   * specialize this template with a real implementation.
+   */
+  template <class T>
+  typename T::type& ref(T) {
+    // Flag a compile-time error.
+    T::you_are_trying_to_get_nonconst_access_to_a_read_only_option;
+    // Ensure the compiler does not complain about the return value.
+    return *static_cast<typename T::type*>(nullptr);
   }
 
   /**
@@ -297,8 +317,7 @@ public:
    *
    * Preconditions: options, extender and nonoptions are non-null.
    */
-  static void parseOptionsRecursive(Options* options,
-                                    int argc,
+  void parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions);
 }; /* class Options */

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --dt-rewrite-error-sel -q
+; COMMAND-LINE: --finite-model-find --dt-rewrite-error-sel
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (declare-datatypes ((Nat 0) (Lst 0)) (((succ (pred Nat)) (zero)) ((cons (hd Nat) (tl Lst)) (nil))))

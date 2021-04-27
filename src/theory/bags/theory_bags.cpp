@@ -226,12 +226,6 @@ void TheoryBags::preRegisterTerm(TNode n)
   }
 }
 
-TrustNode TheoryBags::expandDefinition(Node n)
-{
-  // TODO(projects#224): add choose and is_singleton here
-  return TrustNode::null();
-}
-
 void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/

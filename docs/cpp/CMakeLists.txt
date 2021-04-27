@@ -16,7 +16,7 @@ find_package(Doxygen REQUIRED)
 
 # basic parameters
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/src/api/cpp)
-set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/cpp-doxygen)
+set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INPUT
     "${DOXYGEN_INPUT_DIR}/cvc5.h ${DOXYGEN_INPUT_DIR}/cvc5_kind.h"
 )
@@ -30,7 +30,7 @@ configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 # make sure the outpur directory exists
 file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
 
-# add the cpp-doxygen target
+# add the doxygen target
 add_custom_command(
   OUTPUT ${DOXYGEN_INDEX_FILE}
   COMMAND Doxygen::doxygen ${DOXYFILE_OUT}

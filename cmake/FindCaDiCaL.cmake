@@ -39,7 +39,11 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 endif()
 
 if(NOT CaDiCaL_FOUND_SYSTEM)
-  check_auto_download("CaDiCaL" "--no-cadical")
+  check_ep_downloaded("CaDiCaL-EP")
+  if(NOT CaDiCaL-EP_DOWNLOADED)
+    check_auto_download("CaDiCaL" "--no-cadical")
+  endif()
+
   include(CheckSymbolExists)
   include(ExternalProject)
 

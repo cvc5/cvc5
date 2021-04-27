@@ -4147,7 +4147,7 @@ bool Stat::isInt() const
 int64_t Stat::getInt() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isInt()) << "Expected Stat of type int64_t.";
+  CVC5_API_RECOVERABLE_CHECK(isInt()) << "Expected Stat of type int64_t.";
   return std::get<int64_t>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4158,7 +4158,7 @@ bool Stat::isDouble() const
 double Stat::getDouble() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isDouble()) << "Expected Stat of type double.";
+  CVC5_API_RECOVERABLE_CHECK(isDouble()) << "Expected Stat of type double.";
   return std::get<double>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4169,7 +4169,7 @@ bool Stat::isString() const
 const std::string& Stat::getString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isString()) << "Expected Stat of type std::string.";
+  CVC5_API_RECOVERABLE_CHECK(isString()) << "Expected Stat of type std::string.";
   return std::get<std::string>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4180,14 +4180,14 @@ bool Stat::isHistogram() const
 const Stat::HistogramData& Stat::getHistogram() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isHistogram()) << "Expected Stat of type histogram.";
+  CVC5_API_RECOVERABLE_CHECK(isHistogram()) << "Expected Stat of type histogram.";
   return std::get<HistogramData>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert, bool def, StatData&& sd)
+Stat::Stat(bool expert, bool defaulted, StatData&& sd)
     : d_expert(expert),
-      d_default(def),
+      d_default(defaulted),
       d_data(std::make_unique<StatData>(std::move(sd)))
 {
 }
@@ -4250,8 +4250,8 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
                                bool expert,
-                               bool def)
-    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(def)
+                               bool defaulted)
+    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(defaulted)
 {
   while (!isVisible())
   {
@@ -4270,15 +4270,15 @@ const Stat& Statistics::get(const std::string& name)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   auto it = d_stats.find(name);
-  CVC5_API_CHECK(it != d_stats.end())
+  CVC5_API_RECOVERABLE_CHECK(it != d_stats.end())
       << "No stat with name \"" << name << "\" exists.";
   return it->second;
   CVC5_API_TRY_CATCH_END;
 }
 
-Statistics::iterator Statistics::begin(bool expert, bool def) const
+Statistics::iterator Statistics::begin(bool expert, bool defaulted) const
 {
-  return iterator(d_stats.begin(), d_stats, expert, def);
+  return iterator(d_stats.begin(), d_stats, expert, defaulted);
 }
 Statistics::iterator Statistics::end() const
 {
@@ -6517,8 +6517,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores]
-                 || d_smtEngine->getOptions()[options::unsatCoresNew])
+  CVC5_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)

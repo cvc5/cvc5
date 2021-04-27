@@ -408,7 +408,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
   options->d_holder->binary_name = std::string(progName);
 
   std::vector<std::string> nonoptions;
-  parseOptionsRecursive(options, argc, argv, &nonoptions);
+  options->parseOptionsRecursive(argc, argv, &nonoptions);
   if(Debug.isOn("options")){
     for(std::vector<std::string>::const_iterator i = nonoptions.begin(),
           iend = nonoptions.end(); i != iend; ++i){
@@ -419,8 +419,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
   return nonoptions;
 }
 
-void Options::parseOptionsRecursive(Options* options,
-                                    int argc,
+void Options::parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions)
 {
@@ -433,9 +432,6 @@ void Options::parseOptionsRecursive(Options* options,
       Debug("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
     }
   }
-
-  // Having this synonym simplifies the generation code in mkoptions.
-  options::OptionsHandler* handler = options->d_handler;
 
   // Reset getopt(), in the case of multiple calls to parseOptions().
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
@@ -597,7 +593,6 @@ void Options::setOptionInternal(const std::string& key,
                                 const std::string& optionarg)
 {
   options::OptionsHandler* handler = d_handler;
-  Options* options = this;
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }
