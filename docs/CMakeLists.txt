@@ -31,6 +31,7 @@ add_custom_target(docs ALL
                     -c ${CMAKE_CURRENT_BINARY_DIR}
                     # Tell Breathe where to find the Doxygen output
                     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_FOLDER}
+                    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_FOLDER}
                     ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMENT "Generating Sphinx Api docs")

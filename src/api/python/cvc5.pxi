@@ -18,16 +18,14 @@ from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport Op as c_Op
-from cvc5 cimport OpHashFunction as c_OpHashFunction
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
-from cvc5 cimport SortHashFunction as c_SortHashFunction
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
 from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc5 cimport Term as c_Term
-from cvc5 cimport TermHashFunction as c_TermHashFunction
+from cvc5 cimport hash as c_hash
 
 from cvc5kinds cimport Kind as c_Kind
 
@@ -76,9 +74,9 @@ def expand_list_arg(num_req_args=0):
 
 
 ## Objects for hashing
-cdef c_OpHashFunction cophash = c_OpHashFunction()
-cdef c_SortHashFunction csorthash = c_SortHashFunction()
-cdef c_TermHashFunction ctermhash = c_TermHashFunction()
+cdef c_hash[c_Op] cophash = c_hash[c_Op]()
+cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
+cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 
 
 cdef class Datatype:
