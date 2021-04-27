@@ -763,44 +763,37 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       nm, rec, index + 1);
 }
 
-TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts,
-                                     bool reqFlat)
+TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 2);
-  CheckArgument(!reqFlat || !sorts[sorts.size() - 1].isFunction(),
-                sorts[sorts.size() - 1],
-                "must flatten function types");
   return mkTypeNode(kind::FUNCTION_TYPE, sorts);
 }
 
-TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts,
-                                      bool reqFlat)
+TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   sortNodes.insert(sortNodes.end(), sorts.begin(), sorts.end());
   sortNodes.push_back(booleanType());
-  return mkFunctionType(sortNodes, reqFlat);
+  return mkFunctionType(sortNodes);
 }
 
 TypeNode NodeManager::mkFunctionType(const TypeNode& domain,
-                                     const TypeNode& range,
-                                     bool reqFlat)
+                                     const TypeNode& range)
 {
   std::vector<TypeNode> sorts;
   sorts.push_back(domain);
   sorts.push_back(range);
-  return mkFunctionType(sorts, reqFlat);
+  return mkFunctionType(sorts);
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
-                                     const TypeNode& range,
-                                     bool reqFlat)
+                                     const TypeNode& range)
 {
   Assert(argTypes.size() >= 1);
   std::vector<TypeNode> sorts(argTypes);
   sorts.push_back(range);
-  return mkFunctionType(sorts, reqFlat);
+  return mkFunctionType(sorts);
 }
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
