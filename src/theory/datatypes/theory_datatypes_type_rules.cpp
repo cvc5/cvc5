@@ -216,7 +216,6 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
     {
       TypeNode childType = n[i].getType(check);
       TypeNode t = updType[i];
-      Assert(t.isDatatype());
       if (t.isParametricDatatype())
       {
         Debug("typecheck-idt")
