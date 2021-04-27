@@ -59,7 +59,6 @@ TEST_F(TestApiBlackOp, getNumIndices)
   Op iand = d_solver.mkOp(IAND, 3);
   Op floatingpoint_to_ubv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 11);
   Op floatingopint_to_sbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
-  Op tuple_update = d_solver.mkOp(TUPLE_UPDATE, 5);
   Op floatingpoint_to_fp_ieee_bitvector =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
   Op floatingpoint_to_fp_floatingpoint =
@@ -84,7 +83,6 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(1, iand.getNumIndices());
   ASSERT_EQ(1, floatingpoint_to_ubv.getNumIndices());
   ASSERT_EQ(1, floatingopint_to_sbv.getNumIndices());
-  ASSERT_EQ(1, tuple_update.getNumIndices());
   ASSERT_EQ(2, floatingpoint_to_fp_ieee_bitvector.getNumIndices());
   ASSERT_EQ(2, floatingpoint_to_fp_floatingpoint.getNumIndices());
   ASSERT_EQ(2, floatingpoint_to_fp_real.getNumIndices());
@@ -148,11 +146,6 @@ TEST_F(TestApiBlackOp, getIndicesUint)
   uint32_t floatingpoint_to_sbv_idx =
       floatingpoint_to_sbv_ot.getIndices<uint32_t>();
   ASSERT_EQ(floatingpoint_to_sbv_idx, 13);
-
-  Op tuple_update_ot = d_solver.mkOp(TUPLE_UPDATE, 5);
-  uint32_t tuple_update_idx = tuple_update_ot.getIndices<uint32_t>();
-  ASSERT_EQ(tuple_update_idx, 5);
-  ASSERT_THROW(tuple_update_ot.getIndices<std::string>(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackOp, getIndicesPairUint)
