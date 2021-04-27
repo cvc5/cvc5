@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
 # path to python api
-sys.path.insert(0, os.path.abspath('../build_debug/src/api/python'))
+sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
 
 
 # -- Project information -----------------------------------------------------
