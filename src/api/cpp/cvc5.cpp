@@ -1883,9 +1883,8 @@ std::string Op::getIndices() const
   CVC5_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
   Kind k = intToExtKind(d_node->getKind());
-  CVC5_API_CHECK(k == DIVISIBLE)
-      << "Can't get string index from"
-      << " kind " << kindToString(k);
+  CVC5_API_CHECK(k == DIVISIBLE) << "Can't get string index from"
+                                 << " kind " << kindToString(k);
   //////// all checks before this line
   return d_node->getConst<Divisible>().k.toString();
   ////////
@@ -5830,18 +5829,17 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_KIND_CHECK_EXPECTED((kind == DIVISIBLE), kind)
-      << "DIVISIBLE";
+  CVC5_API_KIND_CHECK_EXPECTED((kind == DIVISIBLE), kind) << "DIVISIBLE";
   //////// all checks before this line
   Op res;
   /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-    * throws an std::invalid_argument exception. For consistency, we treat it
-    * as invalid. */
+   * throws an std::invalid_argument exception. For consistency, we treat it
+   * as invalid. */
   CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
       << "a string representing an integer, real or rational value.";
   res = Op(this,
-            kind,
-            *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
+           kind,
+           *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
                 .d_node);
   return res;
   ////////
