@@ -31,9 +31,10 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "expr/record.h"
 
 namespace cvc5 {
+
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 namespace api {
 class Solver;
