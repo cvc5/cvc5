@@ -251,7 +251,8 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_DT_UPDATER, updater, gt, zero);
   // construct a non well-formed update term
-  ASSERT_THROW(d_nodeManager->mkNode(kind::APPLY_DT_UPDATER, updater, gt, truen).getType(true),
+  ASSERT_THROW(d_nodeManager->mkNode(kind::APPLY_DT_UPDATER, updater, gt, truen)
+                   .getType(true),
                TypeCheckingExceptionPrivate);
 }
 
