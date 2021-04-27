@@ -214,6 +214,10 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   ASSERT_EQ(dselTail.getName(), std::string("tail"));
   ASSERT_EQ(dselTail.getRangeSort(), dtypeSort);
 
+  // get selector from datatype
+  ASSERT_NO_THROW(dt.getSelector("head"));
+  ASSERT_THROW(dt.getSelector("cons"), CVC5ApiException);
+
   // possible to construct null datatype declarations if not using solver
   ASSERT_THROW(DatatypeDecl().getName(), CVC5ApiException);
 }

@@ -103,11 +103,11 @@ cdef class Datatype:
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
 
-    def getConstructorTerm(self, str name):
-        """:return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`)."""
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cd.getConstructorTerm(name.encode())
-        return term
+    def getSelector(self, str name):
+        """Return a selector by name."""
+        cdef DatatypeSelector ds = DatatypeSelector(self.solver)
+        ds.cds = self.cd.getSelector(name.encode())
+        return ds
 
     def getNumConstructors(self):
         """:return: number of constructors."""
@@ -265,6 +265,11 @@ cdef class DatatypeSelector:
     def getSelectorTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getSelectorTerm()
+        return term
+
+    def getUpdaterTerm(self):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cds.getUpdaterTerm()
         return term
 
     def getRangeSort(self):
