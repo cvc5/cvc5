@@ -203,6 +203,46 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check)
+{
+  Assert(n.getKind() == kind::APPLY_DT_UPDATE);
+  TypeNode updType = n.getOperator().getType(check);
+  Assert(updType.getNumChildren() == 2);
+  if (check)
+  {
+    for (size_t i = 0; i < 2; i++)
+    {
+      TypeNode childType = n[i].getType(check);
+      TypeNode t = updType[i];
+      if (t.isParametricDatatype())
+      {
+        Debug("typecheck-idt")
+            << "typecheck parameterized update: " << n << std::endl;
+        TypeMatcher m(t);
+        if (!m.doMatching(t, childType))
+        {
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "matching failed for update argument of parameterized datatype");
+        }
+      }
+      else
+      {
+        Debug("typecheck-idt") << "typecheck update: " << n << std::endl;
+        Debug("typecheck-idt") << "test type: " << updType << std::endl;
+        if (!t.isComparableTo(childType))
+        {
+          throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
+        }
+      }
+    }
+  }
+  // type is the first argument
+  return updType[0];
+}
+
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
