@@ -95,15 +95,6 @@ typerule APPLY_TYPE_ASCRIPTION ::cvc5::theory::datatypes::DatatypeAscriptionType
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::cvc5::theory::datatypes::DatatypeConstructorTypeRule
 
-constant TUPLE_UPDATE_OP \
-        ::cvc5::TupleUpdate \
-        ::cvc5::TupleUpdateHashFunction \
-        "util/tuple.h" \
-        "operator for a tuple update; payload is an instance of the cvc5::TupleUpdate class"
-parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
-typerule TUPLE_UPDATE_OP ::cvc5::theory::datatypes::TupleUpdateOpTypeRule
-typerule TUPLE_UPDATE ::cvc5::theory::datatypes::TupleUpdateTypeRule
-
 operator DT_SIZE 1 "datatypes size"
 typerule DT_SIZE ::cvc5::theory::datatypes::DtSizeTypeRule
 
