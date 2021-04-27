@@ -39,7 +39,8 @@ struct DatatypeTesterTypeRule {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-struct DatatypeUpdateTypeRule {
+struct DatatypeUpdateTypeRule
+{
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
