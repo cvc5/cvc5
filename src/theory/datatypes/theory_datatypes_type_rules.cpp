@@ -203,17 +203,16 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-
 TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check)
 {
   Assert(n.getKind() == kind::APPLY_DT_UPDATE);
   TypeNode updType = n.getOperator().getType(check);
-  Assert (updType.getNumChildren()==3);
+  Assert(updType.getNumChildren() == 3);
   if (check)
   {
-    for (size_t i=0; i<2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
       TypeNode childType = n[i].getType(check);
       TypeNode t = updType[i];
@@ -226,7 +225,8 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
         if (!m.doMatching(t, childType))
         {
           throw TypeCheckingExceptionPrivate(
-              n, "matching failed for update argument of parameterized datatype");
+              n,
+              "matching failed for update argument of parameterized datatype");
         }
       }
       else
@@ -242,7 +242,6 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
   }
   return updType[2];
 }
-
 
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,

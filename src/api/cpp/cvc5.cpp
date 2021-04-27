@@ -716,7 +716,8 @@ bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 bool isApplyKind(cvc5::Kind k)
 {
   return (k == cvc5::Kind::APPLY_UF || k == cvc5::Kind::APPLY_CONSTRUCTOR
-          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER || k == cvc5::Kind::APPLY_DT_UPDATE);
+          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER
+          || k == cvc5::Kind::APPLY_DT_UPDATE);
 }
 
 #ifdef CVC5_ASSERTIONS
@@ -3359,7 +3360,8 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
   }
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
 }
-bool DatatypeConstructor::getSelectorIndexForName(const std::string& name, size_t& index) const
+bool DatatypeConstructor::getSelectorIndexForName(const std::string& name,
+                                                  size_t& index) const
 {
   for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
   {
@@ -3605,8 +3607,8 @@ DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
   }
   if (!foundSel)
   {
-    CVC5_API_CHECK(foundCons) << "No select " << name << " for datatype "
-                              << getName() << " exists";
+    CVC5_API_CHECK(foundCons)
+        << "No select " << name << " for datatype " << getName() << " exists";
   }
   return DatatypeSelector(d_solver, (*d_dtype)[index][sindex]);
 }
@@ -5838,8 +5840,7 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_KIND_CHECK_EXPECTED((kind == DT_UPDATE) || (kind == DIVISIBLE),
-                               kind)
+  CVC5_API_KIND_CHECK_EXPECTED((kind == DT_UPDATE) || (kind == DIVISIBLE), kind)
       << "DT_UPDATE or DIVISIBLE";
   //////// all checks before this line
   Op res;

@@ -1597,7 +1597,7 @@ class CVC5_EXPORT DatatypeSelector
    * @return the selector term
    */
   Term getSelectorTerm() const;
-  
+
   /**
    * Get the upater operator of this datatype selector.
    * @return the updater term
@@ -2068,7 +2068,7 @@ class CVC5_EXPORT Datatype
    * @return the Datatype
    */
   Datatype(const Solver* slv, const cvc5::DType& dtype);
-  
+
   /**
    * Return constructor for name.
    * @param name The name of constructor to find
