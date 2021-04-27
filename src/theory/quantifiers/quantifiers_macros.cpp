@@ -280,7 +280,8 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
 
 Node QuantifiersMacros::returnMacro(Node fdef, Node lit) const
 {
-  Trace("macros") << "* Inferred macro " << fdef << " from " << lit << std::endl;
+  Trace("macros") << "* Inferred macro " << fdef << " from " << lit
+                  << std::endl;
   return fdef;
 }
 

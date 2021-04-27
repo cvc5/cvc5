@@ -87,7 +87,7 @@ class QuantifiersMacros
    * where n is of the form U(x1...xn).
    */
   Node solveEq(Node n, Node ndef);
-  /** 
+  /**
    * Returns the macro fdef, which originated from lit. This method is for
    * debugging.
    */
