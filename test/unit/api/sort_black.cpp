@@ -153,9 +153,18 @@ TEST_F(TestApiBlackSort, isTester)
 {
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
-  Sort cons_sort = dt[0].getTesterTerm().getSort();
-  ASSERT_TRUE(cons_sort.isTester());
+  Sort testerSort = dt[0].getTesterTerm().getSort();
+  ASSERT_TRUE(testerSort.isTester());
   ASSERT_NO_THROW(Sort().isTester());
+}
+
+TEST_F(TestApiBlackSort, isDatatypeUpdater)
+{
+  Sort dt_sort = create_datatype_sort();
+  Datatype dt = dt_sort.getDatatype();
+  Sort updaterSort = dt[0][0].getUpdaterTerm().getSort();
+  ASSERT_TRUE(updaterSort.isDatatypeUpdater());
+  ASSERT_NO_THROW(Sort().isDatatypeUpdater());
 }
 
 TEST_F(TestApiBlackSort, isFunction)

@@ -154,6 +154,10 @@ api::Kind Parser::getKindForFunction(api::Term fun)
   {
     return api::APPLY_TESTER;
   }
+  else if (t.isDatatypeUpdater())
+  {
+    return api::APPLY_DT_UPDATE;
+  }
   return api::UNDEFINED_KIND;
 }
 

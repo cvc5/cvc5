@@ -1187,6 +1187,15 @@ bool Sort::isTester() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Sort::isDatatypeUpdater() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isDatatypeUpdater();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::isFunction() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
