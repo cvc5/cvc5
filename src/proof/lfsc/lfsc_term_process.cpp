@@ -80,7 +80,7 @@ Node LfscTermProcessor::runConvert(Node n)
     TypeNode intType = nm->integerType();
     Node x = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
     Node tc = typeAsNode(convertType(tn));
-    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn, false);
+    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
@@ -103,7 +103,7 @@ Node LfscTermProcessor::runConvert(Node n)
       wi = convert(wi);
       Trace("lfsc-term-process-debug")
           << "...converted witness for " << wi << std::endl;
-      TypeNode ftype = nm->mkFunctionType(tn, tn, false);
+      TypeNode ftype = nm->mkFunctionType(tn, tn);
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return nm->mkNode(APPLY_UF, skolemOp, wi);
     }
@@ -139,7 +139,7 @@ Node LfscTermProcessor::runConvert(Node n)
     std::vector<TypeNode> argTypes;
     argTypes.push_back(n[0].getType());
     argTypes.push_back(n[1].getType());
-    TypeNode tnh = nm->mkFunctionType(argTypes, tn, false);
+    TypeNode tnh = nm->mkFunctionType(argTypes, tn);
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
@@ -234,7 +234,7 @@ Node LfscTermProcessor::runConvert(Node n)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode caRetType = nm->mkFunctionType(tn.getArrayConstituentType(), tn);
-    TypeNode catype = nm->mkFunctionType(d_sortType, caRetType, false);
+    TypeNode catype = nm->mkFunctionType(d_sortType, caRetType);
     Node bconstf = getSymbolInternal(k, catype, "array_const");
     Node f = nm->mkNode(APPLY_UF, bconstf, t);
     return nm->mkNode(APPLY_UF, f, n[0]);
@@ -293,7 +293,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // ((_ re.loop n1 n2) t) is ((re.loop n1 n2) t)
     TypeNode intType = nm->integerType();
     TypeNode relType = nm->mkFunctionType(
-        {intType, intType}, nm->mkFunctionType(tn, tn), false);
+        {intType, intType}, nm->mkFunctionType(tn, tn));
     Node rop = getSymbolInternal(
         k, relType, printer::smt2::Smt2Printer::smtKindString(k));
     RegExpLoop op = n.getOperator().getConst<RegExpLoop>();
@@ -647,7 +647,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     TypeNode ftype = n.getType();
     if (!argTypes.empty())
     {
-      ftype = nm->mkFunctionType(argTypes, ftype, false);
+      ftype = nm->mkFunctionType(argTypes, ftype);
     }
     if (k == APPLY_TESTER)
     {
@@ -676,7 +676,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     argTypes.resize(2);
   }
   TypeNode tn = n.getType();
-  TypeNode ftype = nm->mkFunctionType(argTypes, tn, false);
+  TypeNode ftype = nm->mkFunctionType(argTypes, tn);
   // most functions are called f_X where X is the SMT-LIB name, if we are
   // getting the macroApply variant, then we don't prefix with `f_`.
   if (!macroApply)
@@ -712,7 +712,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   {
     // ITE is indexed by its type
     TypeNode boolType = nm->booleanType();
-    TypeNode itype = nm->mkFunctionType(d_sortType, ftype, false);
+    TypeNode itype = nm->mkFunctionType(d_sortType, ftype);
     Node iteSym = getSymbolInternal(k, itype, opName.str());
     Node typeNode = typeAsNode(convertType(tn));
     Assert(!typeNode.isNull());
@@ -724,11 +724,11 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
 Node LfscTermProcessor::getOperatorOfClosure(Node q)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType(), false);
+  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType());
   // We permit non-flat function types here
   // intType is used here for variable indices
   TypeNode intType = nm->integerType();
-  TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
+  TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType);
   Kind k = q.getKind();
   return getSymbolInternal(
       k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
