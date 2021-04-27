@@ -209,7 +209,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::APPLY_DT_UPDATE);
   TypeNode updType = n.getOperator().getType(check);
-  Assert(updType.getNumChildren() == 3);
+  Assert(updType.getNumChildren() == 2);
   if (check)
   {
     for (size_t i = 0; i < 2; i++)
@@ -240,7 +240,8 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
       }
     }
   }
-  return updType[2];
+  // type is the first argument
+  return updType[0];
 }
 
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,

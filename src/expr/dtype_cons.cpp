@@ -564,7 +564,7 @@ bool DTypeConstructor::resolve(
         nm->mkSelectorType(self, range),
         "is a selector",
         NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-    std::string updateName("is_" + argName);
+    std::string updateName("update_" + argName);
     arg->d_updater = sm->mkDummySkolem(
         updateName,
         nm->mkDatatypeUpdateType(self, range),

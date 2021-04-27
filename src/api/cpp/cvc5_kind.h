@@ -1918,11 +1918,11 @@ enum CVC5_EXPORT Kind : int32_t
    */
   APPLY_CONSTRUCTOR,
   /**
-   * Datatype selector application.
+   * Datatype selector application, which is undefined if misapplied.
    *
    * Parameters:
    *   - 1: Selector (operator)
-   *   - 2: Datatype term (undefined if mis-applied)
+   *   - 2: Datatype term
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -1941,12 +1941,13 @@ enum CVC5_EXPORT Kind : int32_t
    */
   APPLY_TESTER,
   /**
-   * Datatype update application.
+   * Datatype update application, which does not change the argument if
+   * misapplied.
    *
    * Parameters:
    *   - 1: Updater (operator)
    *   - 2: Datatype term
-   *   - 2: Value to update
+   *   - 3: Value to update a field of the datatype term with
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`

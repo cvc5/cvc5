@@ -2905,7 +2905,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Create operator of kind:
-   *   - DT_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator

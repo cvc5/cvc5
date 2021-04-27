@@ -1656,6 +1656,7 @@ identifier[cvc5::ParseOp& p]
         api::Datatype d = sf.getDatatype();
         // find the selector
         api::DatatypeSelector ds = d.getSelector(f.toString());
+        // get the updater term
         p.d_expr = ds.getUpdaterTerm();
       }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL
@@ -2241,7 +2242,7 @@ DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'dec
 PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
 COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
-UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'update';
+UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'dt.update';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
