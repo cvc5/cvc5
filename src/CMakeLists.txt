@@ -498,6 +498,7 @@ libcvc5_add_sources(
   theory/booleans/theory_bool.h
   theory/booleans/theory_bool_rewriter.cpp
   theory/booleans/theory_bool_rewriter.h
+  theory/booleans/theory_bool_type_rules.cpp
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
   theory/builtin/proof_checker.cpp

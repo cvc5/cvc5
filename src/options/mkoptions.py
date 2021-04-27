@@ -81,63 +81,35 @@ g_getopt_long_start = 256
 
 TPL_HOLDER_MACRO_NAME = 'CVC5_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
-TPL_RUN_HANDLER = \
-"""template <> options::{name}__option_t::type runHandlerAndPredicates(
-    options::{name}__option_t,
-    std::string option,
-    std::string optionarg,
-    options::OptionsHandler* handler)
-{{
-  options::{name}__option_t::type retval = {handler};
-  {predicates}
-  return retval;
-}}"""
-
-TPL_DECL_ASSIGN = \
+TPL_IMPL_ASSIGN = \
 """template <> void Options::assign(
     options::{name}__option_t,
     std::string option,
-    std::string value);"""
-
-TPL_IMPL_ASSIGN = TPL_DECL_ASSIGN[:-1] + \
-"""
+    std::string optionarg)
 {{
-  d_holder->{name} =
-    runHandlerAndPredicates(options::{name}, option, value, d_handler);
+  auto parsedval = {handler};
+  {predicates}
+  d_holder->{name} = parsedval;
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
-
-TPL_RUN_HANDLER_BOOL = \
-"""template <> void runBoolPredicates(
-    options::{name}__option_t,
-    std::string option,
-    bool b,
-    options::OptionsHandler* handler)
-{{
-  {predicates}
-}}"""
-
-TPL_DECL_ASSIGN_BOOL = \
+TPL_IMPL_ASSIGN_BOOL = \
 """template <> void Options::assignBool(
     options::{name}__option_t,
     std::string option,
-    bool value);"""
-
-TPL_IMPL_ASSIGN_BOOL = TPL_DECL_ASSIGN_BOOL[:-1] + \
-"""
+    bool value)
 {{
-  runBoolPredicates(options::{name}, option, value, d_handler);
+  {predicates}
   d_holder->{name} = value;
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
 }}"""
 
 TPL_CALL_ASSIGN_BOOL = \
-    '  options->assignBool(options::{name}, {option}, {value});'
+    '  assignBool(options::{name}, {option}, {value});'
 
-TPL_CALL_ASSIGN = '  options->assign(options::{name}, {option}, optionarg);'
+TPL_CALL_ASSIGN = '  assign(options::{name}, {option}, optionarg);'
 
 TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
 
@@ -157,9 +129,7 @@ TPL_OPTION_STRUCT_RW = \
 {{
   typedef {type} type;
   type operator()() const;
-  bool wasSetByUser() const;
-  void set(const type& v);
-  const char* getName() const;
+  static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
 
 TPL_OPTION_STRUCT_RO = \
@@ -167,20 +137,18 @@ TPL_OPTION_STRUCT_RO = \
 {{
   typedef {type} type;
   type operator()() const;
-  bool wasSetByUser() const;
-  const char* getName() const;
+  static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
 
 
 TPL_DECL_SET = \
-"""template <> void Options::set(
-    options::{name}__option_t,
-    const options::{name}__option_t::type& x);"""
+"""template <> options::{name}__option_t::type& Options::ref(
+    options::{name}__option_t);"""
 
 TPL_IMPL_SET = TPL_DECL_SET[:-1] + \
 """
 {{
-  d_holder->{name} = x;
+    return d_holder->{name};
 }}"""
 
 
@@ -206,31 +174,11 @@ TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
 
 # Option specific methods
 
-TPL_IMPL_OPTION_SET = \
-"""inline void {name}__option_t::set(const {name}__option_t::type& v)
-{{
-  Options::current()->set(*this, v);
-}}"""
-
 TPL_IMPL_OP_PAR = \
 """inline {name}__option_t::type {name}__option_t::operator()() const
 {{
-  return (*Options::current())[*this];
+  return Options::current()[*this];
 }}"""
-
-TPL_IMPL_OPTION_WAS_SET_BY_USER = \
-"""inline bool {name}__option_t::wasSetByUser() const
-{{
-  return Options::current()->wasSetByUser(*this);
-}}"""
-
-TPL_IMPL_GET_NAME = \
-"""inline const char* {name}__option_t::getName() const
-{{
-  return "{long_name}";
-}}"""
-
-
 
 # Mode templates
 TPL_DECL_MODE_ENUM = \
@@ -242,16 +190,14 @@ enum class {type}
 
 TPL_DECL_MODE_FUNC = \
 """
-std::ostream&
-operator<<(std::ostream& os, {type} mode);"""
+std::ostream& operator<<(std::ostream& os, {type} mode);"""
 
 TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 """
 {{
-  os << "{type}::";
   switch(mode) {{{cases}
     default:
-        Unreachable();
+      Unreachable();
   }}
   return os;
 }}
@@ -260,13 +206,11 @@ TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 TPL_IMPL_MODE_CASE = \
 """
     case {type}::{enum}:
-      os << "{enum}";
-      break;"""
+      return os << "{type}::{enum}";"""
 
 TPL_DECL_MODE_HANDLER = \
 """
-{type}
-stringTo{type}(const std::string& option, const std::string& optarg);"""
+{type} stringTo{type}(const std::string& optarg);"""
 
 TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
 """
@@ -274,14 +218,11 @@ TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
   {cases}
   else if (optarg == "help")
   {{
-    puts({help});
-    exit(1);
+    std::cerr << {help};
+    std::exit(1);
   }}
-  else
-  {{
-    throw OptionException(std::string("unknown option for --{long}: `") +
-                          optarg + "'.  Try --{long}=help.");
-  }}
+  throw OptionException(std::string("unknown option for --{long}: `") +
+                        optarg + "'.  Try --{long}=help.");
 }}
 """
 
@@ -513,18 +454,17 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
         # Generate module declaration
         tpl_decl = TPL_OPTION_STRUCT_RO if option.read_only else TPL_OPTION_STRUCT_RW
-        decls.append(tpl_decl.format(name=option.name, type=option.type))
+        if option.long:
+            long_name = option.long.split('=')[0]
+        else:
+            long_name = ""
+        decls.append(tpl_decl.format(name=option.name, type=option.type, long_name = long_name))
 
         # Generate module specialization
         if not option.read_only:
             specs.append(TPL_DECL_SET.format(name=option.name))
         specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
         specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
-
-        if option.type == 'bool':
-            specs.append(TPL_DECL_ASSIGN_BOOL.format(name=option.name))
-        else:
-            specs.append(TPL_DECL_ASSIGN.format(name=option.name))
 
         if option.long and option.type not in ['bool', 'void'] and \
            '=' not in option.long:
@@ -539,15 +479,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
         # Generate module inlines
         inls.append(TPL_IMPL_OP_PAR.format(name=option.name))
-        inls.append(TPL_IMPL_OPTION_WAS_SET_BY_USER.format(name=option.name))
-        if not option.read_only:
-            inls.append(TPL_IMPL_OPTION_SET.format(name=option.name))
-        if option.long:
-            long_name = option.long.split('=')[0]
-        else:
-            long_name = ""
-        inls.append(TPL_IMPL_GET_NAME.format(
-                        name=option.name, long_name=long_name))
 
 
         ### Generate code for {module.name}_options.cpp
@@ -704,12 +635,12 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             handler = None
             if option.handler:
                 if option.type == 'void':
-                    handler = 'handler->{}(option)'.format(option.handler)
+                    handler = 'd_handler->{}(option)'.format(option.handler)
                 else:
                     handler = \
-                        'handler->{}(option, optionarg)'.format(option.handler)
+                        'd_handler->{}(option, optionarg)'.format(option.handler)
             elif option.mode:
-                handler = 'stringTo{}(option, optionarg)'.format(option.type)
+                handler = 'stringTo{}(optionarg)'.format(option.type)
             elif option.type != 'bool':
                 handler = \
                     'handleOption<{}>(option, optionarg)'.format(option.type)
@@ -719,12 +650,12 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             if option.predicates:
                 if option.type == 'bool':
                     predicates = \
-                        ['handler->{}(option, b);'.format(x) \
+                        ['d_handler->{}(option, value);'.format(x) \
                             for x in option.predicates]
                 else:
                     assert option.type != 'void'
                     predicates = \
-                        ['handler->{}(option, retval);'.format(x) \
+                        ['d_handler->{}(option, parsedval);'.format(x) \
                             for x in option.predicates]
 
             # Generate options_handler and getopt_long
@@ -867,24 +798,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     options_getoptions.append(s)
 
 
-                # Define runBoolPredicates/runHandlerAndPredicates
-                tpl = None
-                if option.type == 'bool':
-                    if predicates:
-                        assert handler is None
-                        tpl = TPL_RUN_HANDLER_BOOL
-                elif option.short or option.long:
-                    assert option.type != 'void'
-                    assert handler
-                    tpl = TPL_RUN_HANDLER
-                if tpl:
-                    custom_handlers.append(
-                        tpl.format(
-                            name=option.name,
-                            handler=handler,
-                            predicates='\n'.join(predicates)
-                        ))
-
                 # Define handler assign/assignBool
                 tpl = None
                 if option.type == 'bool':
@@ -893,7 +806,9 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     tpl = TPL_IMPL_ASSIGN
                 if tpl:
                     custom_handlers.append(tpl.format(
-                        name=option.name
+                        name=option.name,
+                        handler=handler,
+                        predicates='\n'.join(predicates)
                     ))
 
                 # Default option values

@@ -90,7 +90,7 @@ ManagedRegularOutputChannel::~ManagedRegularOutputChannel() {
   // to null_os. Consult RegularOutputChannelListener for the list of
   // channels.
   if(options::err() == getManagedOstream()){
-    options::err.set(&null_os);
+    Options::current().set(options::err, &null_os);
   }
 }
 
@@ -114,7 +114,7 @@ ManagedDiagnosticOutputChannel::~ManagedDiagnosticOutputChannel() {
   // to null_os. Consult DiagnosticOutputChannelListener for the list of
   // channels.
   if(options::err() == getManagedOstream()){
-    options::err.set(&null_os);
+    Options::current().set(options::err, &null_os);
   }
 
   if(Debug.getStreamPointer() == getManagedOstream()) {

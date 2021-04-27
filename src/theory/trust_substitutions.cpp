@@ -61,6 +61,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
                                            PfRule id,
+                                           const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
   if (!isProofEnabled())
@@ -70,7 +71,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
   }
   LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
-  stepPg->addStep(eq, id, {}, args);
+  stepPg->addStep(eq, id, children, args);
   addSubstitution(x, t, stepPg);
 }
 
@@ -103,8 +104,9 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
-    // failed to rewrite
-    addSubstitution(x, t, nullptr);
+    // failed to rewrite, it is critical for unsat cores that proven is a
+    // premise here, since the conclusion depends on it
+    addSubstitution(x, t, PfRule::TRUST_SUBS_MAP, {proven}, {eq});
     Trace("trust-subs") << "...failed to rewrite" << std::endl;
     return nullptr;
   }
@@ -204,7 +206,14 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
     }
   }
   Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
-  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
+  // We use fixpoint as the substitution-apply identifier. Notice that it
+  // suffices to use SBA_SEQUENTIAL here, but SBA_FIXPOINT is typically
+  // more efficient. This is because for substitution of size n, sequential
+  // substitution can either be implemented as n traversals of the term to
+  // apply the substitution to, or a single traversal of the term, but n^2/2
+  // traversals of the range of the substitution to prepare a simultaneous
+  // substitution. Both of these options are inefficient.
+  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT))
   {
     // if we fail for any reason, we must use a trusted step instead
     d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
