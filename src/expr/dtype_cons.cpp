@@ -559,6 +559,8 @@ bool DTypeConstructor::resolve(
       Trace("datatypes-init")
           << "  ...range after parametric substitution " << range << std::endl;
     }
+    // Internally, selectors (and updaters) are fresh internal skolems which
+    // we constructor via mkDummySkolem.
     arg->d_selector = sm->mkDummySkolem(
         argName,
         nm->mkSelectorType(self, range),
