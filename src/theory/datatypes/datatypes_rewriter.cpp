@@ -870,7 +870,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
       }
       ret = b;
-      if (dt.getNumConstructors()>1)
+      if (dt.getNumConstructors() > 1)
       {
         // must be the right constructor to update
         Node tester = nm->mkNode(APPLY_TESTER, dc.getTester(), n[0]);

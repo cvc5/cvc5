@@ -650,7 +650,7 @@ public:
 
   /** Is this a tester type */
   bool isTester() const;
-  
+
   /** Is this a datatype updater type */
   bool isDatatypeUpdater() const;
 

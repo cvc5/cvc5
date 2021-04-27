@@ -1001,7 +1001,7 @@ class NodeManager
 
   /** Make a type representing a tester with given parameterization */
   TypeNode mkTesterType(TypeNode domain);
-  
+
   /** Make a type representing an updater with the given parameterization */
   TypeNode mkDatatypeUpdateType(TypeNode domain, TypeNode range);
 

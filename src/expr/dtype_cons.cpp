@@ -575,7 +575,7 @@ bool DTypeConstructor::resolve(
     arg->d_selector.setAttribute(DTypeIndexAttr(), index);
     arg->d_updater.setAttribute(DTypeConsIndexAttr(), cindex);
     arg->d_updater.setAttribute(DTypeIndexAttr(), index);
-    index = index+1;
+    index = index + 1;
     arg->d_resolved = true;
     argTypes.push_back(range);
     // We use \0 as a distinguished marker for unresolved selectors for doing
