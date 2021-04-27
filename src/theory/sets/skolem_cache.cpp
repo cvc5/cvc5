@@ -35,8 +35,19 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    Node sk = mkTypedSkolem(tn, c);
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    Node sk;
+    if (id == SkolemId::SK_PURIFY)
+    {
+      Assert(a.getType() == tn);
+      sk = sm->mkPurifySkolem(a, c);
+    }
+    else
+    {
+      sk = sm->mkDummySkolem(c, tn, "sets skolem");
+    }
     d_skolemCache[a][b][id] = sk;
+    d_allSkolems.insert(sk);
     return sk;
   }
   return it->second;

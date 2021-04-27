@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-int-as-bv=4 --no-check-models 
+; COMMAND-LINE: --solve-int-as-bv=4 
 ; EXPECT: sat
 (set-logic ALL)
 (declare-sort S 0)
