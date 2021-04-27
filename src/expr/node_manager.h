@@ -846,15 +846,10 @@ class NodeManager
    *
    * @param domain the domain type
    * @param range the range type
-   * @param reqFlat If true, we require flat function types, e.g. the
-   * range type cannot be a function. User-generated function types and those
-   * used in solving must be flat, although some use cases (e.g. LFSC proof
-   * conversion) require non-flat function types.
    * @returns the functional type domain -> range
    */
   TypeNode mkFunctionType(const TypeNode& domain,
-                          const TypeNode& range,
-                          bool reqFlat = true);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -862,12 +857,10 @@ class NodeManager
    *
    * @param argTypes the domain is a tuple (argTypes[0], ..., argTypes[n])
    * @param range the range type
-   * @param reqFlat Same as above
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                          const TypeNode& range,
-                          bool reqFlat = true);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -877,10 +870,9 @@ class NodeManager
    *
    * @param sorts The argument and range sort of the function type, where the
    * range type is the last in this vector.
-   * @param reqFlat Same as above
+   * @return the function type
    */
-  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts,
-                          bool reqFlat = true);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -888,8 +880,7 @@ class NodeManager
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts,
-                           bool reqFlat = true);
+  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a tuple type with types from
