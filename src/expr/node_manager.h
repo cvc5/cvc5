@@ -31,6 +31,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
+#include "expr/record.h"
 
 namespace cvc5 {
 

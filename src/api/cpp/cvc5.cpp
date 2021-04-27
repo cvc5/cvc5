@@ -3333,8 +3333,17 @@ bool DatatypeConstructor::isNullHelper() const { return d_ctor == nullptr; }
 DatatypeSelector DatatypeConstructor::getSelectorForName(
     const std::string& name) const
 {
+  bool foundSel = false;
   size_t index = 0;
-  bool foundSel = getSelectorIndexForName(name, index);
+  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
+  {
+    if ((*d_ctor)[i].getName() == name)
+    {
+      index = i;
+      foundSel = true;
+      break;
+    }
+  }
   if (!foundSel)
   {
     std::stringstream snames;
@@ -3348,19 +3357,6 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
                              << getName() << " exists among " << snames.str();
   }
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
-}
-bool DatatypeConstructor::getSelectorIndexForName(const std::string& name,
-                                                  size_t& index) const
-{
-  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
-  {
-    if ((*d_ctor)[i].getName() == name)
-    {
-      index = i;
-      return true;
-    }
-  }
-  return false;
 }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
@@ -3587,8 +3583,10 @@ DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
   size_t sindex = 0;
   for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
   {
-    if ((*d_dtype)[i].getSelectorIndexForName(name, sindex))
+    int si = (*d_dtype)[i].getSelectorIndexForName(name);
+    if (si>=0)
     {
+      sindex = static_cast<size_t>(si);
       index = i;
       foundSel = true;
       break;
@@ -3596,7 +3594,7 @@ DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
   }
   if (!foundSel)
   {
-    CVC5_API_CHECK(foundCons)
+    CVC5_API_CHECK(foundSel)
         << "No select " << name << " for datatype " << getName() << " exists";
   }
   return DatatypeSelector(d_solver, (*d_dtype)[index][sindex]);

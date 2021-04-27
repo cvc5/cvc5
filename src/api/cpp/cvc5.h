@@ -1575,6 +1575,7 @@ class CVC5_EXPORT DatatypeDecl
  */
 class CVC5_EXPORT DatatypeSelector
 {
+  friend class Datatype;
   friend class DatatypeConstructor;
   friend class Solver;
 
@@ -2082,14 +2083,6 @@ class CVC5_EXPORT Datatype
    * @return the selector object for the name
    */
   DatatypeSelector getSelectorForName(const std::string& name) const;
-  /**
-   * Get the selector index for the given name.
-   * @param name The name of selector to find
-   * @param index If the selector was found, this is updated to the index of
-   * the selector.
-   * @return true if the selector with the given name was found.
-   */
-  bool getSelectorIndexForName(const std::string& name, size_t& index) const;
 
   /**
    * Helper for isNull checks. This prevents calling an API function with

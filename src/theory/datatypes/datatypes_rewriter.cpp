@@ -843,50 +843,35 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       }
     }
     break;
-    case TUPLE_UPDATE:
-    case DT_UPDATE:
+    case APPLY_DT_UPDATE:
     {
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
+      Node op = n.getOperator();
+      size_t updateIndex = utils::indexOf(op);
+      size_t cindex = utils::cindexOf(op);
+      const DTypeConstructor& dc = dt[cindex];
       NodeBuilder b(APPLY_CONSTRUCTOR);
-      b << dt[0].getConstructor();
-      size_t size, updateIndex;
-      if (n.getKind() == TUPLE_UPDATE)
-      {
-        Assert(tn.isTuple());
-        size = tn.getTupleLength();
-        updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
-      }
-      else
-      {
-        Assert(tn.isRecord());
-        const DTypeConstructor& recCons = dt[0];
-        size = recCons.getNumArgs();
-        // get the index for the name
-        updateIndex = recCons.getSelectorIndexForName(
-            n.getOperator().getConst<RecordUpdate>().getField());
-      }
+      b << dc.getConstructor();
       Debug("tuprec") << "expr is " << n << std::endl;
       Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
       Debug("tuprec") << "t is " << tn << std::endl;
-      Debug("tuprec") << "t has arity " << size << std::endl;
-      for (size_t i = 0; i < size; ++i)
+      for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
       {
         if (i == updateIndex)
         {
           b << n[1];
-          Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
-                          << std::endl;
         }
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
-          Debug("tuprec") << "arg " << i << " copies "
-                          << b[b.getNumChildren() - 1] << std::endl;
+              APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(tn, i), n[0]);
         }
       }
       ret = b;
+      // must be the right constructor to update
+      Node tester = nm->mkNode(APPLY_TESTER, dc.getTester(), n[0]);
+      ret = nm->mkNode(ITE, tester, ret, n[0]);
       Debug("tuprec") << "return " << ret << std::endl;
     }
     break;
