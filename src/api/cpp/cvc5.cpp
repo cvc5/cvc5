@@ -241,8 +241,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {APPLY_SELECTOR, cvc5::Kind::APPLY_SELECTOR},
     {APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR},
     {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
-    {TUPLE_UPDATE, cvc5::Kind::TUPLE_UPDATE},
-    {DT_UPDATE, cvc5::Kind::DT_UPDATE},
+    {APPLY_DT_UPDATE, cvc5::Kind::APPLY_DT_UPDATE},
     {DT_SIZE, cvc5::Kind::DT_SIZE},
     {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
@@ -548,10 +547,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {cvc5::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
-        {cvc5::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE},
-        {cvc5::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
-        {cvc5::Kind::DT_UPDATE_OP, DT_UPDATE},
-        {cvc5::Kind::DT_UPDATE, DT_UPDATE},
+        {cvc5::Kind::APPLY_DT_UPDATE, APPLY_DT_UPDATE},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
@@ -659,8 +655,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind> s_indexed_kinds(
-    {DT_UPDATE,
-     DIVISIBLE,
+    {DIVISIBLE,
      IAND,
      BITVECTOR_REPEAT,
      BITVECTOR_ZERO_EXTEND,
@@ -670,7 +665,6 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      INT_TO_BITVECTOR,
      FLOATINGPOINT_TO_UBV,
      FLOATINGPOINT_TO_SBV,
-     TUPLE_UPDATE,
      BITVECTOR_EXTRACT,
      FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
      FLOATINGPOINT_TO_FP_FLOATINGPOINT,
@@ -1851,7 +1845,6 @@ size_t Op::getNumIndices() const
   switch (k)
   {
     case DIVISIBLE: size = 1; break;
-    case DT_UPDATE: size = 1; break;
     case BITVECTOR_REPEAT: size = 1; break;
     case BITVECTOR_ZERO_EXTEND: size = 1; break;
     case BITVECTOR_SIGN_EXTEND: size = 1; break;
@@ -1861,7 +1854,6 @@ size_t Op::getNumIndices() const
     case IAND: size = 1; break;
     case FLOATINGPOINT_TO_UBV: size = 1; break;
     case FLOATINGPOINT_TO_SBV: size = 1; break;
-    case TUPLE_UPDATE: size = 1; break;
     case REGEXP_REPEAT: size = 1; break;
     case BITVECTOR_EXTRACT: size = 2; break;
     case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
@@ -1891,7 +1883,7 @@ std::string Op::getIndices() const
   CVC5_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
   Kind k = intToExtKind(d_node->getKind());
-  CVC5_API_CHECK(k == DIVISIBLE || k == DT_UPDATE)
+  CVC5_API_CHECK(k == DIVISIBLE)
       << "Can't get string index from"
       << " kind " << kindToString(k);
   //////// all checks before this line
@@ -1937,7 +1929,6 @@ uint32_t Op::getIndices() const
     case FLOATINGPOINT_TO_SBV:
       i = d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size;
       break;
-    case TUPLE_UPDATE: i = d_node->getConst<TupleUpdate>().getIndex(); break;
     case REGEXP_REPEAT:
       i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
       break;
@@ -5840,28 +5831,19 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_KIND_CHECK_EXPECTED((kind == DT_UPDATE) || (kind == DIVISIBLE), kind)
-      << "DT_UPDATE or DIVISIBLE";
+  CVC5_API_KIND_CHECK_EXPECTED((kind == DIVISIBLE), kind)
+      << "DIVISIBLE";
   //////// all checks before this line
   Op res;
-  if (kind == DT_UPDATE)
-  {
-    res = Op(this,
-             kind,
-             *mkValHelper<cvc5::RecordUpdate>(cvc5::RecordUpdate(arg)).d_node);
-  }
-  else
-  {
-    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-     * throws an std::invalid_argument exception. For consistency, we treat it
-     * as invalid. */
-    CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
-        << "a string representing an integer, real or rational value.";
-    res = Op(this,
-             kind,
-             *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
-                  .d_node);
-  }
+  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+    * throws an std::invalid_argument exception. For consistency, we treat it
+    * as invalid. */
+  CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
+      << "a string representing an integer, real or rational value.";
+  res = Op(this,
+            kind,
+            *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
+                .d_node);
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5937,11 +5919,6 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
           kind,
           *mkValHelper<cvc5::FloatingPointToSBV>(cvc5::FloatingPointToSBV(arg))
                .d_node);
-      break;
-    case TUPLE_UPDATE:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::TupleUpdate>(cvc5::TupleUpdate(arg)).d_node);
       break;
     case REGEXP_REPEAT:
       res =

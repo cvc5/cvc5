@@ -2044,59 +2044,20 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   APPLY_TESTER,
-#if 0
-  /* Parametric datatype term.  */
-  PARAMETRIC_DATATYPE,
-  /* type ascription, for datatype constructor applications;
-   * first parameter is an ASCRIPTION_TYPE, second is the datatype constructor
-   * application being ascribed */
-  APPLY_TYPE_ASCRIPTION,
-#endif
   /**
-   * Operator for a tuple update.
+   * Datatype update application.
    *
    * Parameters:
-   *   - 1: Index of the tuple to be updated
+   *   - 1: Updater (operator)
+   *   - 2: Datatype term
+   *   - 2: Value to update
    *
    * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param) const`
-   *
-   * Apply tuple update.
-   *
-   * Parameters:
-   *   - 1: Op of kind TUPLE_UPDATE (which references an index)
-   *   - 2: Tuple
-   *   - 3: Element to store in the tuple at the given index
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
    * const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  TUPLE_UPDATE,
-  /**
-   * Operator for a datatype update.
-   *
-   * Parameters:
-   *   - 1: Name of the field to be updated
-   *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, const std::string& param) const`
-   *
-   * Record update.
-   *
-   * Parameters:
-   *   - 1: Op of kind DT_UPDATE (which references a field)
-   *   - 2: Datatype term to update
-   *   - 3: Element to store in the record in the given field
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2)
-   * const`
-   *   - `Solver::mkTerm(const Op& op,, const std::vector<Term>& children)
-   * const`
-   */
-  DT_UPDATE,
+  APPLY_DT_UPDATE,
   /**
    * Match expressions.
    * For example, the smt2 syntax match term
