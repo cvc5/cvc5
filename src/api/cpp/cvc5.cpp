@@ -1887,8 +1887,7 @@ std::string Op::getIndices() const
       << "Can't get string index from"
       << " kind " << kindToString(k);
   //////// all checks before this line
-  return k == DIVISIBLE ? d_node->getConst<Divisible>().k.toString()
-                        : d_node->getConst<RecordUpdate>().getField();
+  return d_node->getConst<Divisible>().k.toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
