@@ -14,6 +14,12 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
+cdef extern from "<functional>" namespace "std" nogil:
+    cdef cppclass hash[T]:
+        hash()
+        size_t operator()(T t)
+
+
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
         pass
