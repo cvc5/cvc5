@@ -16,7 +16,7 @@ to its corresponding internal kinds.
 .. doxygenenum:: cvc5::api::Kind
     :project: cvc5
 
-.. doxygenstruct:: cvc5::api::KindHashFunction
-    :project: cvc5
+.. doxygenstruct:: std::hash< cvc5::api::Kind >
+    :project: std
     :members:
     :undoc-members:
