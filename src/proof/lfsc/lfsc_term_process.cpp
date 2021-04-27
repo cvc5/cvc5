@@ -107,6 +107,16 @@ Node LfscTermProcessor::runConvert(Node n)
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return nm->mkNode(APPLY_UF, skolemOp, wi);
     }
+    else
+    {
+      // use a fresh variable
+      TypeNode intType = nm->integerType();
+      TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
+      Node var = mkInternalSymbol("var", varType);
+      Node index = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
+      Node tc = typeAsNode(convertType(tn));
+      return nm->mkNode(APPLY_UF, var, index, tc);
+    }
   }
   else if (n.isVar())
   {
@@ -457,7 +467,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
         // must distinguish by arity
         std::stringstream ss;
         ss << "Tuple_" << nargs;
-        targs.insert(targs.begin(), getSymbolInternal(k, d_sortType, ss.str()));
+        targs.insert(targs.begin(), getSymbolInternal(k, ftype, ss.str()));
         tnn = nm->mkNode(APPLY_UF, targs);
         // we are changing its name, we must make a sort constructor
         cur = nm->mkSortConstructor(ss.str(), nargs);

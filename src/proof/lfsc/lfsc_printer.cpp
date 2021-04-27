@@ -539,8 +539,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     // arithmetic
-    case PfRule::ARITH_MULT_POS: pf << h << as[0] << as[1]; break;
-    case PfRule::ARITH_MULT_NEG: pf << h << as[0] << as[1]; break;
+    case PfRule::ARITH_MULT_POS:
+    case PfRule::ARITH_MULT_NEG:
+    {
+      pf << h << as[0] << as[1] << as[0].getType();
+    }
+      break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
@@ -585,7 +589,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
         case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
-        case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
+        case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0]->getResult()[0].getType() << cs[0] << cs[1]; break;
         default: return false; break;
       }
       break;
