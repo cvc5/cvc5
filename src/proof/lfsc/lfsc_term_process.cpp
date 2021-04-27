@@ -258,7 +258,7 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
-           || k == INTS_MODULUS_TOTAL || k == UMINUS)
+           || k == INTS_MODULUS_TOTAL || k == UMINUS || isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that MINUS is not n-ary
@@ -268,11 +268,7 @@ Node LfscTermProcessor::runConvert(Node n)
     children.push_back(opc);
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
-  }
-  else if (k == BITVECTOR_EXTRACT)
-  {
-    // indexed operators?
-  }
+  }\
   else if (k == EMPTYSET || k == UNIVERSE_SET)
   {
     Node t = typeAsNode(convertType(tn));
@@ -319,7 +315,7 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
     size_t nchild = n.getNumChildren();
-    Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+    Assert(n.getMetaKind() != metakind::PARAMETERIZED);
     // convert all n-ary applications to binary
     std::vector<Node> children(n.begin(), n.end());
     // distinct is special case
@@ -334,7 +330,7 @@ Node LfscTermProcessor::runConvert(Node n)
           if (i != 0 && j != 1)
           {
             ret = nm->mkNode(
-                kind::AND, ret, nm->mkNode(k, children[i], children[j]));
+                AND, ret, nm->mkNode(k, children[i], children[j]));
           }
         }
       Trace("lfsc-term-process-debug") << "n: " << n << std::endl
@@ -611,6 +607,58 @@ void LfscTermProcessor::getCharVectorInternal(Node c, std::vector<Node>& chars)
   }
 }
 
+bool LfscTermProcessor::isIndexedOperatorKind(Kind k)
+{
+  // TODO: this can be moved to a more central place
+  return k==BITVECTOR_EXTRACT
+  || k== BITVECTOR_REPEAT
+  || k== BITVECTOR_ZERO_EXTEND
+  || k== BITVECTOR_SIGN_EXTEND
+  || k== BITVECTOR_ROTATE_LEFT
+  || k== BITVECTOR_ROTATE_RIGHT
+  || k== INT_TO_BITVECTOR;
+}
+
+std::vector<Node> LfscTermProcessor::getOperatorIndices(Node n)
+{
+  // TODO: this can be moved to a more central place
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> indices;
+  Kind k = n.getKind();
+  switch(k)
+  {
+    case kind::BITVECTOR_EXTRACT_OP:
+    {
+      BitVectorExtract p = n.getConst<BitVectorExtract>();
+      indices.push_back(nm->mkConst(Rational(p.d_high)));
+      indices.push_back(nm->mkConst(Rational(p.d_low)));
+      break;
+    }
+    case kind::BITVECTOR_REPEAT_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
+      break;
+    case kind::BITVECTOR_ZERO_EXTEND_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
+      break;
+    case kind::BITVECTOR_SIGN_EXTEND_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
+      break;
+    case kind::BITVECTOR_ROTATE_LEFT_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
+      break;
+    case kind::BITVECTOR_ROTATE_RIGHT_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
+      break;
+    case kind::INT_TO_BITVECTOR_OP:
+      indices.push_back(nm->mkConst(Rational(n.getConst<IntToBitVector>().d_size)));
+      break;
+    default:
+      Assert(false);
+      break;
+  }
+  return indices;
+}
+
 Node LfscTermProcessor::getNullTerminator(Kind k)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -644,7 +692,12 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
     Node op = n.getOperator();
-    if (op.getType().isFunction())
+    std::vector<Node> indices;
+    if (isIndexedOperatorKind(k))
+    {
+      indices = getOperatorIndices(n.getOperator());
+    }
+    else if (op.getType().isFunction())
     {
       return op;
     }
@@ -659,7 +712,20 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     {
       ftype = nm->mkFunctionType(argTypes, ftype);
     }
-    if (k == APPLY_TESTER)
+    if (isIndexedOperatorKind(k))
+    {
+      std::vector<TypeNode> itypes;
+      for (const Node& i : indices)
+      {
+        itypes.push_back(i.getType());
+      }
+      if (!itypes.empty())
+      {
+        ftype = nm->mkFunctionType(itypes, ftype);
+      }
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
+    }
+    else if (k == APPLY_TESTER)
     {
       // use is-C instead of (_ is C) syntax for testers
       unsigned cindex = DType::indexOf(op);
@@ -672,7 +738,15 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     }
     Node ret = getSymbolInternal(k, ftype, opName.str());
     // TODO: if parametric, instantiate the parameters?
-
+    
+    // if indexed, apply to index
+    if (!indices.empty())
+    {
+      std::vector<Node> ichildren;
+      ichildren.push_back(ret);
+      ichildren.insert(ichildren.end(), indices.begin(), indices.end());
+      ret = nm->mkNode(APPLY_UF, ichildren);
+    }
     return ret;
   }
   std::vector<TypeNode> argTypes;

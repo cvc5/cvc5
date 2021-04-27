@@ -76,6 +76,10 @@ class LfscTermProcessor : public TermProcessor
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
+  /** is indexed operator kind */
+  static bool isIndexedOperatorKind(Kind k);
+  /** get indices */
+  static std::vector<Node> getOperatorIndices(Node n);
   /** terms with different syntax than smt2 */
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
