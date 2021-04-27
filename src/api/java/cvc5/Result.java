@@ -174,7 +174,12 @@ public class Result extends AbstractPointer
       return true;
     if (r == null || getClass() != r.getClass())
       return false;
-    return equals(pointer, ((Result) r).getPointer());
+    Result result = (Result) r;
+    if (this.pointer == result.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, result.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
