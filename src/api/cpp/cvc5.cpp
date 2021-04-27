@@ -3086,6 +3086,15 @@ Term DatatypeSelector::getSelectorTerm() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+Term DatatypeSelector::getUpaterTerm() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_stor->getUpdater());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 
 Sort DatatypeSelector::getRangeSort() const
 {
@@ -3360,17 +3369,8 @@ bool DatatypeConstructor::isNullHelper() const { return d_ctor == nullptr; }
 DatatypeSelector DatatypeConstructor::getSelectorForName(
     const std::string& name) const
 {
-  bool foundSel = false;
   size_t index = 0;
-  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
-  {
-    if ((*d_ctor)[i].getName() == name)
-    {
-      index = i;
-      foundSel = true;
-      break;
-    }
-  }
+  bool foundSel = getSelectorIndexForName(name, index);
   if (!foundSel)
   {
     std::stringstream snames;
@@ -3384,6 +3384,18 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
                              << getName() << " exists among " << snames.str();
   }
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
+}
+bool DatatypeConstructor::getSelectorIndexForName(const std::string& name, size_t& index) const
+{
+  for (size_t i = 0, nsels = getNumSelectors(); i < nsels; i++)
+  {
+    if ((*d_ctor)[i].getName() == name)
+    {
+      index = i;
+      return true;
+    }
+  }
+  return false;
 }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
@@ -3601,6 +3613,28 @@ DatatypeConstructor Datatype::getConstructorForName(
                               << getName() << " exists, among " << snames.str();
   }
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
+}
+
+DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
+{
+  bool foundSel = false;
+  size_t index = 0;
+  size_t sindex = 0;
+  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+  {
+    if ((*d_dtype)[i].getSelectorIndexForName(name, sindex))
+    {
+      index = i;
+      foundSel = true;
+      break;
+    }
+  }
+  if (!foundSel)
+  {
+    CVC5_API_CHECK(foundCons) << "No select " << name << " for datatype "
+                              << getName() << " exists";
+  }
+  return DatatypeSelector(d_solver, (*d_dtype)[index][sindex]);
 }
 
 Datatype::const_iterator::const_iterator(const Solver* slv,

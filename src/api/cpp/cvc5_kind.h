@@ -1970,7 +1970,7 @@ enum CVC5_EXPORT Kind : int32_t
    */
   TUPLE_UPDATE,
   /**
-   * Operator for a record update.
+   * Operator for a datatype update.
    *
    * Parameters:
    *   - 1: Name of the field to be updated
@@ -1982,7 +1982,7 @@ enum CVC5_EXPORT Kind : int32_t
    *
    * Parameters:
    *   - 1: Op of kind DT_UPDATE (which references a field)
-   *   - 2: Record term to update
+   *   - 2: Datatype term to update
    *   - 3: Element to store in the record in the given field
    *
    * Create with:
