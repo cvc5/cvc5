@@ -1637,6 +1637,7 @@ tupleStore[cvc5::api::Term& f]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
     {
+      const api::Datatype& dt = f.getSort().getDatatype();
       f = SOLVER->mkTerm(
          api::APPLY_DT_UPDATE, dt[0][k].getUpdaterTerm(), f, f2);
     }
@@ -1669,6 +1670,7 @@ recordStore[cvc5::api::Term& f]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
     {
+      const api::Datatype& dt = f.getSort().getDatatype();
       f = SOLVER->mkTerm(
          api::APPLY_DT_UPDATE, dt[0][id].getUpdaterTerm(), f, f2);
     }

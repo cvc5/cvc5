@@ -1652,7 +1652,7 @@ identifier[cvc5::ParseOp& p]
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
-        api::Sort sf = f.getSort().getCSelectorDomainSort();
+        api::Sort sf = f.getSort().getSelectorDomainSort();
         api::Datatype d = sf.getDatatype();
         // find the selector
         api::DatatypeSelector ds = d.getSelector(f.toString());

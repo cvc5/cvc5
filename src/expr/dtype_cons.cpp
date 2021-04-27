@@ -55,7 +55,7 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   // can use null updater for now
   Node nullNode;
-  Trace("datatypes") << "DTypeConstructor::addArg: " << type << std::endl;
+  Trace("datatypes") << "DTypeConstructor::addArg: " << sel << std::endl;
   std::shared_ptr<DTypeSelector> a =
       std::make_shared<DTypeSelector>(selectorName, sel, nullNode);
   addArg(a);
