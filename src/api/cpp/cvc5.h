@@ -260,7 +260,7 @@ class CVC5_EXPORT Sort
   friend class Op;
   friend class Solver;
   friend class Grammar;
-  friend struct SortHashFunction;
+  friend struct std::hash<Sort>;
   friend class Term;
 
  public:
@@ -751,13 +751,23 @@ class CVC5_EXPORT Sort
  */
 std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
 
+}  // namespace api
+}  // namespace cvc5
+
+namespace std {
+
 /**
  * Hash function for Sorts.
  */
-struct CVC5_EXPORT SortHashFunction
+template <>
+struct CVC5_EXPORT hash<cvc5::api::Sort>
 {
-  size_t operator()(const Sort& s) const;
+  size_t operator()(const cvc5::api::Sort& s) const;
 };
+
+}  // namespace std
+
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Op                                                                     */
@@ -772,7 +782,7 @@ class CVC5_EXPORT Op
 {
   friend class Solver;
   friend class Term;
-  friend struct OpHashFunction;
+  friend struct std::hash<Op>;
 
  public:
   /**
@@ -889,6 +899,28 @@ class CVC5_EXPORT Op
   std::shared_ptr<cvc5::Node> d_node;
 };
 
+/**
+ * Serialize an operator to given stream.
+ * @param out the output stream
+ * @param t the operator to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
+
+}  // namespace cvc5::api
+
+namespace std {
+/**
+ * Hash function for Ops.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::api::Op>
+{
+  size_t operator()(const cvc5::api::Op& t) const;
+};
+}  // namespace std
+
+namespace cvc5::api {
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -904,7 +936,7 @@ class CVC5_EXPORT Term
   friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
-  friend struct TermHashFunction;
+  friend struct std::hash<Term>;
 
  public:
   /**
@@ -1283,14 +1315,6 @@ class CVC5_EXPORT Term
 };
 
 /**
- * Hash function for Terms.
- */
-struct CVC5_EXPORT TermHashFunction
-{
-  size_t operator()(const Term& t) const;
-};
-
-/**
  * Serialize a term to given stream.
  * @param out the output stream
  * @param t the term to be serialized to the given output stream
@@ -1324,8 +1348,8 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_set<Term, TermHashFunction>&
-                             unordered_set) CVC5_EXPORT;
+                         const std::unordered_set<Term>& unordered_set)
+    CVC5_EXPORT;
 
 /**
  * Serialize a map of terms to the given stream.
@@ -1347,24 +1371,23 @@ std::ostream& operator<<(std::ostream& out,
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_map<Term, V, TermHashFunction>&
-                             unordered_map) CVC5_EXPORT;
+                         const std::unordered_map<Term, V>& unordered_map)
+    CVC5_EXPORT;
 
-/**
- * Serialize an operator to given stream.
- * @param out the output stream
- * @param t the operator to be serialized to the given output stream
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
+}  // namespace cvc5::api
 
+namespace std {
 /**
- * Hash function for Ops.
+ * Hash function for Terms.
  */
-struct CVC5_EXPORT OpHashFunction
+template <>
+struct CVC5_EXPORT hash<cvc5::api::Term>
 {
-  size_t operator()(const Op& t) const;
+  size_t operator()(const cvc5::api::Term& t) const;
 };
+}  // namespace std
+
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
@@ -2206,7 +2229,7 @@ class CVC5_EXPORT Grammar
   void addSygusConstructorTerm(
       DatatypeDecl& dt,
       const Term& term,
-      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
+      const std::unordered_map<Term, Sort>& ntsToUnres) const;
 
   /**
    * Purify SyGuS grammar term.
@@ -2226,11 +2249,10 @@ class CVC5_EXPORT Grammar
    * @param ntsToUnres mapping from non-terminals to their unresolved sorts
    * @return the purfied term
    */
-  Term purifySygusGTerm(
-      const Term& term,
-      std::vector<Term>& args,
-      std::vector<Sort>& cargs,
-      const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
+  Term purifySygusGTerm(const Term& term,
+                        std::vector<Term>& args,
+                        std::vector<Sort>& cargs,
+                        const std::unordered_map<Term, Sort>& ntsToUnres) const;
 
   /**
    * This adds constructors to \p dt for sygus variables in \p d_sygusVars
@@ -2257,11 +2279,11 @@ class CVC5_EXPORT Grammar
   /** The non-terminal symbols of this grammar. */
   std::vector<Term> d_ntSyms;
   /** The mapping from non-terminal symbols to their production terms. */
-  std::unordered_map<Term, std::vector<Term>, TermHashFunction> d_ntsToTerms;
+  std::unordered_map<Term, std::vector<Term>> d_ntsToTerms;
   /** The set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Term, TermHashFunction> d_allowConst;
+  std::unordered_set<Term> d_allowConst;
   /** The set of non-terminals that can be sygus variables. */
-  std::unordered_set<Term, TermHashFunction> d_allowVars;
+  std::unordered_set<Term> d_allowVars;
   /** Did we call resolve() before? */
   bool d_isResolved;
 };
@@ -2328,13 +2350,20 @@ enum CVC5_EXPORT RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
+}  // namespace cvc5::api
+
+namespace std {
+
 /**
  * Hash function for RoundingModes.
  */
-struct CVC5_EXPORT RoundingModeHashFunction
+template <>
+struct CVC5_EXPORT hash<cvc5::api::RoundingMode>
 {
-  inline size_t operator()(const RoundingMode& rm) const;
+  size_t operator()(cvc5::api::RoundingMode rm) const;
 };
+}  // namespace std
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
@@ -4054,6 +4083,6 @@ class CVC5_EXPORT Solver
   std::unique_ptr<Random> d_rng;
 };
 
-}  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::api
+
 #endif
