@@ -292,8 +292,8 @@ Node LfscTermProcessor::runConvert(Node n)
   {
     // ((_ re.loop n1 n2) t) is ((re.loop n1 n2) t)
     TypeNode intType = nm->integerType();
-    TypeNode relType = nm->mkFunctionType(
-        {intType, intType}, nm->mkFunctionType(tn, tn));
+    TypeNode relType =
+        nm->mkFunctionType({intType, intType}, nm->mkFunctionType(tn, tn));
     Node rop = getSymbolInternal(
         k, relType, printer::smt2::Smt2Printer::smtKindString(k));
     RegExpLoop op = n.getOperator().getConst<RegExpLoop>();

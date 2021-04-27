@@ -848,8 +848,7 @@ class NodeManager
    * @param range the range type
    * @returns the functional type domain -> range
    */
-  TypeNode mkFunctionType(const TypeNode& domain,
-                          const TypeNode& range);
+  TypeNode mkFunctionType(const TypeNode& domain, const TypeNode& range);
 
   /**
    * Make a function type with input types from
