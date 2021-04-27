@@ -247,7 +247,8 @@ Node LfscTermProcessor::runConvert(Node n)
     TypeNode catype = nm->mkFunctionType(d_sortType, caRetType);
     Node bconstf = getSymbolInternal(k, catype, "array_const");
     Node f = nm->mkNode(APPLY_UF, bconstf, t);
-    return nm->mkNode(APPLY_UF, f, n[0]);
+    ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
+    return nm->mkNode(APPLY_UF, f, convert(storeAll.getValue()));
   }
   else if (k == ITE)
   {
@@ -722,6 +723,10 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
       if (!itypes.empty())
       {
         ftype = nm->mkFunctionType(itypes, ftype);
+      }
+      if (!macroApply)
+      {
+        opName << "f_";
       }
       opName << printer::smt2::Smt2Printer::smtKindString(k);
     }
