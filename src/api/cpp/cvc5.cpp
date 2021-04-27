@@ -716,7 +716,7 @@ bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 bool isApplyKind(cvc5::Kind k)
 {
   return (k == cvc5::Kind::APPLY_UF || k == cvc5::Kind::APPLY_CONSTRUCTOR
-          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER);
+          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER || k == cvc5::Kind::APPLY_DT_UPDATE);
 }
 
 #ifdef CVC5_ASSERTIONS
