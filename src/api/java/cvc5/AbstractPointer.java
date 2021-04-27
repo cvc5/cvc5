@@ -15,7 +15,7 @@
 
 package cvc5;
 
-abstract public class AbstractPointer implements IPointer
+abstract class AbstractPointer implements IPointer
 {
   protected final Solver solver;
   protected final long pointer;
