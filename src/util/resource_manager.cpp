@@ -22,6 +22,7 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "base/output.h"
+#include "options/option_exception.h"
 #include "options/options.h"
 #include "options/resource_manager_options.h"
 #include "util/statistics_registry.h"

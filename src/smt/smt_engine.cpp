@@ -26,6 +26,7 @@
 #include "options/expr_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
+#include "options/option_exception.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/resource_manager_options.h"
