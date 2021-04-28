@@ -474,7 +474,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
     if (tnn.isNull())
     {
       std::stringstream ss;
-      ss << tn;
+      tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
       tnn = getSymbolInternal(k, d_sortType, ss.str());
     }
   }
