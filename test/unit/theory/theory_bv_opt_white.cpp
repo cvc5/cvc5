@@ -170,7 +170,7 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
 
   ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
 
-  // expect the maxmum x =
+  // expect the maximum x = 18
   ASSERT_EQ(d_optslv->objectiveGetValue(),
             d_nodeManager->mkConst(BitVector(32u, 18u)));
   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
