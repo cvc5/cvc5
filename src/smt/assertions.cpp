@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
