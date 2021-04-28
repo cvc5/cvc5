@@ -15,6 +15,7 @@
 
 #include "smt/check_models.h"
 
+#include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/model.h"
 #include "smt/node_command.h"
