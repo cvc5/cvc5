@@ -154,7 +154,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
 TEST_F(TestTheoryWhiteBVOpt, min_boundary)
 {
   Node x = d_nodeManager->mkVar(*d_BV32Type);
-  // do not remove
+  // this variable is important on triggering the bug
   Node y = d_nodeManager->mkVar(*d_BV32Type);
 
   // x <= 18
