@@ -141,6 +141,7 @@ public:
    bool d_registerStats;
    Statistics(StatisticsRegistry& registry, const std::string& prefix);
    void init(BVMinisat::SimpSolver* minisat);
+   void deinit();
   };
 
   Statistics d_statistics;

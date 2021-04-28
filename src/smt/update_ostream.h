@@ -72,7 +72,7 @@ public:
 class OptionsErrOstreamUpdate : public OstreamUpdate {
  public:
   std::ostream& get() override { return *(options::err()); }
-  void set(std::ostream* setTo) override { return options::err.set(setTo); }
+  void set(std::ostream* setTo) override { return Options::current().set(options::err, setTo); }
 };  /* class OptionsErrOstreamUpdate */
 
 class DumpOstreamUpdate : public OstreamUpdate {

@@ -249,7 +249,7 @@ bool TypeNode::isClosedEnumerable()
 bool TypeNode::isFirstClass() const
 {
   return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE
+         && getKind() != kind::TESTER_TYPE && getKind() != kind::DT_UPDATE_TYPE
          && (getKind() != kind::TYPE_CONSTANT
              || (getConst<TypeConstant>() != REGEXP_TYPE
                  && getConst<TypeConstant>() != SEXPR_TYPE));
@@ -632,6 +632,11 @@ bool TypeNode::isConstructor() const
 bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
 
 bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
+
+bool TypeNode::isDatatypeUpdater() const
+{
+  return getKind() == kind::DT_UPDATE_TYPE;
+}
 
 bool TypeNode::isCodatatype() const
 {
