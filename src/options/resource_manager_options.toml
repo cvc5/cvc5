@@ -43,7 +43,6 @@ header = "options/resource_manager_options.h"
 # this data in a way so that the resource manager can access it in its
 # constructor.
 [[option]]
-  smt_name   = "resourceWeight"
   category   = "expert"
   long       = "rweight=VAL=N"
   type       = "std::string"
