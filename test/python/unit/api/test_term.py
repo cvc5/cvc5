@@ -935,6 +935,7 @@ def test_getInteger(solver):
   assert_eq(int11.getInteger(), "18446744073709551616")
 
 def test_getString(solver):
+  assert(false)
   s1 = solver.mkString("abcde")
   assert s1.isString()
   assert_eq(s1.getString(), "abcde")
@@ -1004,7 +1005,7 @@ def test_constArray(solver):
   one = solver.mkInteger(1)
   constarr = solver.mkConstArray(arrsort, one)
 
-  assert_eq(constarr.getKind(), CONST_ARRAY)
+  assert_eq(constarr.getKind(), kinds.ConstArray)
   assert_eq(constarr.getConstArrayBase(), one)
   with pytest.raises(RuntimeError):
       a.getConstArrayBase()
@@ -1012,23 +1013,23 @@ def test_constArray(solver):
   arrsort =       solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
   zero_array = solver.mkConstArray(arrsort, solver.mkReal(0))
   stores = solver.mkTerm(
-      STORE, zero_array, solver.mkReal(1), solver.mkReal(2))
-  stores =       solver.mkTerm(STORE, stores, solver.mkReal(2), solver.mkReal(3))
-  stores =       solver.mkTerm(STORE, stores, solver.mkReal(4), solver.mkReal(5))
+      kinds.Store, zero_array, solver.mkReal(1), solver.mkReal(2))
+  stores =       solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
+  stores =       solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
 
 def test_constSequenceElements(solver):
   realsort = solver.getRealSort()
   seqsort = solver.mkSequenceSort(realsort)
   s = solver.mkEmptySequence(seqsort)
 
-  assert_eq(s.getKind(), CONST_SEQUENCE)
+  assert_eq(s.getKind(), kinds.ConstSequence)
   # empty sequence has zero elements
   cs = s.getConstSequenceElements()
-  assert cs.empty()
+  assert len(cs) == 0
 
   # A seq.unit app is not a constant sequence (regardless of whether it is
   # applied to a constant).
-  su = solver.mkTerm(SEQ_UNIT, solver.mkReal(1))
+  su = solver.mkTerm(kinds.SeqUnit, solver.mkReal(1))
   with pytest.raises(RuntimeError):
       su.getConstSequenceElements()
 
@@ -1036,7 +1037,7 @@ def test_termScopedToString(solver):
   intsort = solver.getIntegerSort()
   x = solver.mkConst(intsort, "x")
   assert_eq(str(x), "x")
-  solver2 = pycvc4.Solver()
+  solver2 = pycvc5.Solver()
   assert_eq(str(x), "x")
 
 
