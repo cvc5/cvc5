@@ -1,22 +1,25 @@
-#####################
-## test_solver.py
-## Top contributors (to current version):
-##   Yoni Zohar
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 import pytest
-import pycvc4
+import pycvc5
 import sys
 
-from pycvc4 import kinds
+from pycvc5 import kinds
 
 @pytest.fixture
 def solver():
-    return pycvc4.Solver()
+    return pycvc5.Solver()
 
 def test_recoverable_exception(solver):
     solver.setOption("produce-models", "true")
@@ -28,9 +31,9 @@ def test_recoverable_exception(solver):
 def test_supports_floating_point(solver):
     if solver.supportsFloatingPoint():
       try:
-          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+          solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
       except RuntimeError:
           pytest.fail()
     else:
         with pytest.raises(RuntimeError):
-          solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+          solver.mkRoundingMode(pycvc5.RoundNearestTiesToEven)

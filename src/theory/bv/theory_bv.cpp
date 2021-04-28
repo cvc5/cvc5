@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file theory_bv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of bit-vectors.
+ */
 
 #include "theory/bv/theory_bv.h"
 
@@ -39,7 +39,7 @@ TheoryBV::TheoryBV(context::Context* c,
       d_internal(nullptr),
       d_rewriter(),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::bv"),
+      d_im(*this, d_state, nullptr, "theory::bv::"),
       d_notify(d_im)
 {
   switch (options::bvSolver())
@@ -134,29 +134,6 @@ void TheoryBV::finishInit()
   }
 }
 
-TrustNode TheoryBV::expandDefinition(Node node)
-{
-  Debug("bitvector-expandDefinition")
-      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
-
-  Node ret;
-  switch (node.getKind())
-  {
-    case kind::BITVECTOR_SDIV:
-    case kind::BITVECTOR_SREM:
-    case kind::BITVECTOR_SMOD:
-      ret = TheoryBVRewriter::eliminateBVSDiv(node);
-      break;
-
-    default: break;
-  }
-  if (!ret.isNull() && node != ret)
-  {
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 void TheoryBV::preRegisterTerm(TNode node)
 {
   d_internal->preRegisterTerm(node);
@@ -211,7 +188,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
-  TrustNode texp = expandDefinition(t);
+  TrustNode texp = d_rewriter.expandDefinition(t);
   if (!texp.isNull())
   {
     return texp;

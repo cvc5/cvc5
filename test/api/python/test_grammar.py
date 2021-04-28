@@ -1,27 +1,29 @@
-#####################
-## test_grammar.py
-## Top contributors (to current version):
-##   Yoni Zohar, Makai Mann, Mudathir Mohamed
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## Translated from test/unit/api/grammar_black.h
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar, Makai Mann, Mudathir Mohamed
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Translated from test/unit/api/grammar_black.h
 ##
 
 import pytest
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 def test_add_rule():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -48,11 +50,11 @@ def test_add_rule():
     g.addRule(start, solver.mkBoolean(false))
 
 def test_add_rules():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -77,10 +79,10 @@ def test_add_rules():
     g.addRules(start, solver.mkBoolean(False))
 
 def testAddAnyConstant():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -101,10 +103,10 @@ def testAddAnyConstant():
 
 
 def testAddAnyVariable():
-  solver = pycvc4.Solver()
+  solver = pycvc5.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = pycvc4.Term(solver)
+  nullTerm = pycvc5.Term(solver)
   x = solver.mkVar(boolean)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)

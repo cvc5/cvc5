@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file theory_inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An inference manager for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An inference manager for Theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
-#define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
+#define CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
 
 #include <memory>
 
@@ -25,8 +26,7 @@
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "theory/trust_node.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -78,8 +78,8 @@ class TheoryInferenceManager
    * @param state The state of the theory
    * @param pnm The proof node manager, which if non-null, enables proofs for
    * this inference manager
-   * @param name The name of the inference manager, which is used for giving
-   * unique names for statistics,
+   * @param statsName The name of the inference manager, which is used for
+   * giving unique names for statistics,
    * @param cacheLemmas Whether all lemmas sent using this theory inference
    * manager are added to a user-context dependent cache. This means that
    * only lemmas that are unique after rewriting are sent to the theory engine
@@ -88,7 +88,7 @@ class TheoryInferenceManager
   TheoryInferenceManager(Theory& t,
                          TheoryState& state,
                          ProofNodeManager* pnm,
-                         const std::string& name,
+                         const std::string& statsName,
                          bool cacheLemmas = true);
   virtual ~TheoryInferenceManager();
   //--------------------------------------- initialization
@@ -360,17 +360,17 @@ class TheoryInferenceManager
   /**
    * Forward to OutputChannel::spendResource() to spend resources.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Forward to OutputChannel::safePoint() to spend resources.
    */
-  void safePoint(ResourceManager::Resource r);
+  void safePoint(Resource r);
   /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.
    */
-  void setIncomplete();
+  void setIncomplete(IncompleteId id);
 
  protected:
   /**
@@ -453,14 +453,14 @@ class TheoryInferenceManager
   /** The number of internal facts added since the last call to reset. */
   uint32_t d_numCurrentFacts;
   /** Statistics for conflicts sent via this inference manager. */
-  IntegralHistogramStat<InferenceId> d_conflictIdStats;
+  HistogramStat<InferenceId> d_conflictIdStats;
   /** Statistics for facts sent via this inference manager. */
-  IntegralHistogramStat<InferenceId> d_factIdStats;
+  HistogramStat<InferenceId> d_factIdStats;
   /** Statistics for lemmas sent via this inference manager. */
-  IntegralHistogramStat<InferenceId> d_lemmaIdStats;
+  HistogramStat<InferenceId> d_lemmaIdStats;
 };
 
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__THEORY_INFERENCE_MANAGER_H */

@@ -1,21 +1,23 @@
-/*********************                                                        */
-/*! \file assertions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for storing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for storing assertions for an SMT engine.
+ */
 
 #include "smt/assertions.h"
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
@@ -177,7 +179,7 @@ void Assertions::addFormula(
   }
 
   // Give it to the old proof manager
-  if (options::unsatCores() && !isProofEnabled())
+  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     if (inInput)
     {  // n is an input assertion

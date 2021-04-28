@@ -59,8 +59,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource(ResourceManager::Resource r) = 0;
-  virtual void safePoint(ResourceManager::Resource r) = 0;
+  virtual void spendResource(Resource r) = 0;
+  virtual void safePoint(Resource r) = 0;
 };
 
 //=================================================================================================
@@ -79,7 +79,7 @@ private:
     /** To notify */
     Notify* d_notify;
 
-    /** Cvc4 context */
+    /** cvc5 context */
     cvc5::context::Context* c;
 
     /** True constant */
@@ -235,8 +235,8 @@ public:
 
  // Statistics: (read-only member variable)
  //
- uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
- uint64_t dec_vars, clauses_literals, learnts_literals, max_literals,
+ int64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
+ int64_t dec_vars, clauses_literals, learnts_literals, max_literals,
      tot_literals;
 
  // Bitvector Propagations
@@ -379,7 +379,7 @@ protected:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool withinBudget(ResourceManager::Resource r) const;
+    bool withinBudget(Resource r) const;
 
     // Static helpers:
     //

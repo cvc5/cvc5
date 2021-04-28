@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --quant-epr --no-check-models
+; COMMAND-LINE: --finite-model-find --quant-epr
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 

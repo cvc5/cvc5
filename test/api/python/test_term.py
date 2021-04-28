@@ -1,21 +1,24 @@
-#####################
-## test_term.py
-## Top contributors (to current version):
-##   Makai Mann, Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 import pytest
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 
 def test_getitem():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, 'x')
     y = solver.mkConst(intsort, 'y')
@@ -26,7 +29,7 @@ def test_getitem():
 
 
 def test_get_kind():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, 'x')
     y = solver.mkConst(intsort, 'y')
@@ -49,7 +52,7 @@ def test_get_kind():
 
 
 def test_eq():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     usort = solver.mkUninterpretedSort('u')
     x = solver.mkConst(usort, 'x')
     y = solver.mkConst(usort, 'y')
@@ -63,7 +66,7 @@ def test_eq():
 
 
 def test_get_sort():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     intsort = solver.getIntegerSort()
     bvsort8 = solver.mkBitVectorSort(8)
 
@@ -80,7 +83,7 @@ def test_get_sort():
     assert solver.mkTerm(kinds.BVConcat, a, b).getSort() == solver.mkBitVectorSort(16)
 
 def test_get_op():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     intsort = solver.getIntegerSort()
     funsort = solver.mkFunctionSort(intsort, intsort)
 
@@ -104,7 +107,7 @@ def test_get_op():
 
 
 def test_const_sequence_elements():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     realsort = solver.getRealSort()
     seqsort = solver.mkSequenceSort(realsort)
     s = solver.mkEmptySequence(seqsort)

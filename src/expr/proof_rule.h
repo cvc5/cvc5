@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file proof_rule.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof rule enumeration
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof rule enumeration.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__PROOF_RULE_H
-#define CVC4__EXPR__PROOF_RULE_H
+#ifndef CVC5__EXPR__PROOF_RULE_H
+#define CVC5__EXPR__PROOF_RULE_H
 
 #include <iosfwd>
 
@@ -246,6 +247,14 @@ enum class PfRule : uint32_t
   // where F is an equality (= t t') that holds by a form of substitution that
   // could not be determined by the TrustSubstitutionMap.
   TRUST_SUBS_MAP,
+  // ========= SAT Refutation for assumption-based unsat cores
+  // Children: (P1, ..., Pn)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: false
+  // Note: P1, ..., Pn correspond to the unsat core determined by the SAT
+  // solver.
+  SAT_REFUTATION,
 
   //================================================= Boolean rules
   // ======== Resolution
@@ -320,6 +329,8 @@ enum class PfRule : uint32_t
   //   The result of the chain resolution is C, which is equal, in its set
   //   representation, to C_n'
   MACRO_RESOLUTION,
+  // As above but not checked
+  MACRO_RESOLUTION_TRUST,
 
   // ======== Split
   // Children: none
@@ -698,12 +709,74 @@ enum class PfRule : uint32_t
   ARRAYS_TRUST,
 
   //================================================= Bit-Vector rules
+  // Note: bitblast() represents the result of the bit-blasted term as a
+  //       bit-vector consisting of the output bits of the bit-blasted circuit
+  //       representation of the term. Terms are bit-blasted according to the
+  //       strategies defined in
+  //       theory/bv/bitblast/bitblast_strategies_template.h.
   // ======== Bitblast
   // Children: none
   // Arguments: (t)
   // ---------------------
   // Conclusion: (= t bitblast(t))
   BV_BITBLAST,
+  // ======== Bitblast Bit-Vector Constant
+  // Children: none
+  // Arguments: (= t bitblast(t))
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST_CONST,
+  // ======== Bitblast Bit-Vector Variable
+  // Children: none
+  // Arguments: (= t bitblast(t))
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST_VAR,
+  // ======== Bitblast Bit-Vector Terms
+  // TODO cvc4-projects issue #275
+  // Children: none
+  // Arguments: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
+  // ---------------------
+  // Conclusion: (= (KIND bitblast(child_1) ... bitblast(child_n)) bitblast(t))
+  BV_BITBLAST_EQUAL,
+  BV_BITBLAST_ULT,
+  BV_BITBLAST_ULE,
+  BV_BITBLAST_UGT,
+  BV_BITBLAST_UGE,
+  BV_BITBLAST_SLT,
+  BV_BITBLAST_SLE,
+  BV_BITBLAST_SGT,
+  BV_BITBLAST_SGE,
+  BV_BITBLAST_NOT,
+  BV_BITBLAST_CONCAT,
+  BV_BITBLAST_AND,
+  BV_BITBLAST_OR,
+  BV_BITBLAST_XOR,
+  BV_BITBLAST_XNOR,
+  BV_BITBLAST_NAND,
+  BV_BITBLAST_NOR,
+  BV_BITBLAST_COMP,
+  BV_BITBLAST_MULT,
+  BV_BITBLAST_PLUS,
+  BV_BITBLAST_SUB,
+  BV_BITBLAST_NEG,
+  BV_BITBLAST_UDIV,
+  BV_BITBLAST_UREM,
+  BV_BITBLAST_SDIV,
+  BV_BITBLAST_SREM,
+  BV_BITBLAST_SMOD,
+  BV_BITBLAST_SHL,
+  BV_BITBLAST_LSHR,
+  BV_BITBLAST_ASHR,
+  BV_BITBLAST_ULTBV,
+  BV_BITBLAST_SLTBV,
+  BV_BITBLAST_ITE,
+  BV_BITBLAST_EXTRACT,
+  BV_BITBLAST_REPEAT,
+  BV_BITBLAST_ZERO_EXTEND,
+  BV_BITBLAST_SIGN_EXTEND,
+  BV_BITBLAST_ROTATE_RIGHT,
+  BV_BITBLAST_ROTATE_LEFT,
   // ======== Eager Atom
   // Children: none
   // Arguments: (F)
@@ -1048,8 +1121,9 @@ enum class PfRule : uint32_t
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n * poly_n)
-  //    t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n * const_n)
+  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
+  //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
+  //    * const_n)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
   // ======== Sum Upper Bounds
@@ -1134,8 +1208,9 @@ enum class PfRule : uint32_t
   // Arguments: (t, x, y, a, b, sgn)
   // ---------------------
   // Conclusion:
-  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y b)))
-  //   sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a) (>= y b)))
+  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
+  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
+  //   (>= y b)))
   // Where x,y are real terms (variables or extended terms), t = (* x y)
   // (possibly under rewriting), a,b are real constants, and sgn is either -1
   // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
@@ -1381,4 +1456,4 @@ struct PfRuleHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_RULE_H */
+#endif /* CVC5__EXPR__PROOF_RULE_H */

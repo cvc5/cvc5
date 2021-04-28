@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file skolem_cache.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a cache of skolems for theory of sets.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a cache of skolems for theory of sets.
+ */
 
 #include "theory/sets/skolem_cache.h"
 
@@ -34,8 +35,19 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    Node sk = mkTypedSkolem(tn, c);
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    Node sk;
+    if (id == SkolemId::SK_PURIFY)
+    {
+      Assert(a.getType() == tn);
+      sk = sm->mkPurifySkolem(a, c);
+    }
+    else
+    {
+      sk = sm->mkDummySkolem(c, tn, "sets skolem");
+    }
     d_skolemCache[a][b][id] = sk;
+    d_allSkolems.insert(sk);
     return sk;
   }
   return it->second;

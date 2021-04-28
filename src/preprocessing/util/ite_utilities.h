@@ -1,35 +1,35 @@
-/*********************                                                        */
-/*! \file ite_utilities.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simplifications for ITE expressions
- **
- ** This module implements preprocessing phases designed to simplify ITE
- ** expressions.  Based on:
- ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
- ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simplifications for ITE expressions.
+ *
+ * This module implements preprocessing phases designed to simplify ITE
+ * expressions.  Based on:
+ * Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
+ * Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
  *'96
- **/
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__ITE_UTILITIES_H
-#define CVC4__ITE_UTILITIES_H
+#ifndef CVC5__ITE_UTILITIES_H
+#define CVC5__ITE_UTILITIES_H
 
 #include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -198,7 +198,6 @@ class ITECompressor
     IntStat d_compressCalls;
     IntStat d_skolemsAdded;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
 }; /* class ITECompressor */
@@ -306,10 +305,9 @@ class ITESimplifier
     IntStat d_specialEqualityFolds;
     IntStat d_simpITEVisits;
 
-    IntegralHistogramStat<uint32_t> d_inSmaller;
+    HistogramStat<uint32_t> d_inSmaller;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

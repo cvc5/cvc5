@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file node_manager_white.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief White box testing of cvc5::NodeManager.
- **
- ** White box testing of cvc5::NodeManager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * White box testing of cvc5::NodeManager.
+ */
 
 #include <string>
 
@@ -46,9 +45,9 @@ TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
   ASSERT_NO_THROW(nb.realloc(15));
   ASSERT_NO_THROW(nb.realloc(25));
   ASSERT_NO_THROW(nb.realloc(256));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.realloc(100), "toSize > d_nvMaxChildren");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
   ASSERT_NO_THROW(nb.realloc(257));
   ASSERT_NO_THROW(nb.realloc(4000));
   ASSERT_NO_THROW(nb.realloc(20000));
@@ -56,9 +55,9 @@ TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
   ASSERT_NO_THROW(nb.realloc(65535));
   ASSERT_NO_THROW(nb.realloc(65536));
   ASSERT_NO_THROW(nb.realloc(67108863));
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(nb.realloc(67108863), "toSize > d_nvMaxChildren");
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 }
 
 TEST_F(TestNodeWhiteNodeManager, topological_sort)

@@ -1,29 +1,30 @@
-/*********************                                                        */
-/*! \file proof_post_processor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing proof nodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__PROOF_POST_PROCESSOR_H
-#define CVC4__SMT__PROOF_POST_PROCESSOR_H
+#ifndef CVC5__SMT__PROOF_POST_PROCESSOR_H
+#define CVC5__SMT__PROOF_POST_PROCESSOR_H
 
 #include <map>
+#include <sstream>
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
 #include "smt/witness_form.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -240,7 +241,6 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
   ProofPostprocessFinalCallback(ProofNodeManager* pnm);
-  ~ProofPostprocessFinalCallback();
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -255,7 +255,7 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  IntegralHistogramStat<PfRule> d_ruleCount;
+  HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

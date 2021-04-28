@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file bound_var_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bound variable manager utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bound variable manager.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__BOUND_VAR_MANAGER_H
-#define CVC4__EXPR__BOUND_VAR_MANAGER_H
+#ifndef CVC5__EXPR__BOUND_VAR_MANAGER_H
+#define CVC5__EXPR__BOUND_VAR_MANAGER_H
 
 #include <string>
 #include <unordered_set>
@@ -82,6 +83,8 @@ class BoundVarManager
   //---------------------------------- utilities for computing Node hash
   /** get cache value from two nodes, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2);
+  /** get cache value from three nodes, returns SEXPR */
+  static Node getCacheValue(TNode cv1, TNode cv2, TNode cv3);
   /** get cache value from two nodes and a size_t, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2, size_t i);
   /** get cache value, returns a constant rational node */
@@ -100,4 +103,4 @@ class BoundVarManager
 
 }  // namespace cvc5
 
-#endif /* CVC4__EXPR__BOUND_VAR_MANAGER_H */
+#endif /* CVC5__EXPR__BOUND_VAR_MANAGER_H */

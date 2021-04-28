@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_quantifiers.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of quantifiers.
- **
- ** Theory of quantifiers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of quantifiers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
-#define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#define CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/proof_checker.h"
@@ -33,6 +32,8 @@
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+
+class QuantifiersMacros;
 
 class TheoryQuantifiers : public Theory {
  public:
@@ -57,6 +58,11 @@ class TheoryQuantifiers : public Theory {
 
   void preRegisterTerm(TNode n) override;
   void presolve() override;
+  /**
+   * Preprocess assert, which solves for quantifier macros when enabled.
+   */
+  PPAssertStatus ppAssert(TrustNode tin,
+                          TrustSubstitutionMap& outSubstitutions) override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
@@ -96,10 +102,12 @@ class TheoryQuantifiers : public Theory {
   QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
   std::unique_ptr<QuantifiersEngine> d_qengine;
+  /** The quantifiers macro module, used for ppAssert. */
+  std::unique_ptr<QuantifiersMacros> d_qmacros;
 };/* class TheoryQuantifiers */
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */

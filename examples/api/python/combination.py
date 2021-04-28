@@ -1,21 +1,23 @@
 #!/usr/bin/env python
-#####################
-## combination.py
-## Top contributors (to current version):
-##   Makai Mann, Mudathir Mohamed, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## combination solver through the Python API. This is a direct translation
-## of combination-new.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 combination
+# solver through the Python API. This is a direct translation of
+# combination-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 def prefixPrintGetValue(slv, t, level=0):
     print("slv.getValue({}): {}".format(t, slv.getValue(t)))
@@ -23,9 +25,9 @@ def prefixPrintGetValue(slv, t, level=0):
         prefixPrintGetValue(slv, c, level + 1)
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
-    slv.setOption("output-language", "cvc4") # Set the output-language to CVC's
+    slv.setOption("output-language", "cvc") # Set the output-language to CVC's
     slv.setOption("dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language
     slv.setLogic("QF_UFLIRA")
@@ -69,11 +71,11 @@ if __name__ == "__main__":
     slv.assertFormula(assertions)
 
     print("Given the following assertions:", assertions, "\n")
-    print("Prove x /= y is entailed.\nCVC4: ",
+    print("Prove x /= y is entailed.\ncvc5: ",
           slv.checkEntailed(slv.mkTerm(kinds.Distinct, x, y)), "\n")
 
     print("Call checkSat to show that the assertions are satisfiable")
-    print("CVC4:", slv.checkSat(), "\n")
+    print("cvc5:", slv.checkSat(), "\n")
 
     print("Call slv.getValue(...) on terms of interest")
     print("slv.getValue({}): {}".format(f_x, slv.getValue(f_x)))

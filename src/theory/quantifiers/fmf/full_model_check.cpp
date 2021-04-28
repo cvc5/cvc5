@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file full_model_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of full model check class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of full model check class.
+ */
 
 #include "theory/quantifiers/fmf/full_model_check.h"
 
@@ -331,6 +332,11 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
        i++)
   {
     Node q = fm->getAssertedQuantifier(i);
+    registerQuantifiedFormula(q);
+    if (!isHandled(q))
+    {
+      continue;
+    }
     // make sure all types are set
     for (const Node& v : q[0])
     {
@@ -674,7 +680,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
           if (ev == d_true)
           {
-            CVC4Message() << "WARNING: instantiation was true! " << f << " "
+            CVC5Message() << "WARNING: instantiation was true! " << f << " "
                           << mcond[i] << std::endl;
             AlwaysAssert(false);
           }

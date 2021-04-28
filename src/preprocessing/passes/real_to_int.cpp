@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file real_to_int.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The RealToInt preprocessing pass
- **
- ** Converts real operations into integer operations
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The RealToInt preprocessing pass.
+ *
+ * Converts real operations into integer operations.
+ */
 
 #include "preprocessing/passes/real_to_int.h"
 
@@ -25,12 +26,17 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace std;
-using namespace cvc5::theory;
+RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "real-to-int"),
+      d_cache(preprocContext->getUserContext())
+{
+}
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
 {
@@ -180,15 +186,13 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         else if (n.isVar())
         {
-          ret = sm->mkDummySkolem(
-              "__realToIntInternal_var",
-              nm->integerType(),
-              "Variable introduced in realToIntInternal pass");
+          Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
+          ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
           var_eq.push_back(n.eqNode(ret));
-          // ensure that the original variable is defined to be the returned
-          // one, which is important for models and for incremental solving.
-          std::vector<Node> args;
-          d_preprocContext->getSmt()->defineFunction(n, args, ret);
+          // add the substitution to the preprocessing context, which ensures
+          // the model for n is correct, as well as substituting it in the input
+          // assertions when necessary.
+          d_preprocContext->addSubstitution(n, ret);
         }
       }
     }
@@ -197,18 +201,14 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
 }
 
-RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "real-to-int"){};
-
 PreprocessingPassResult RealToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  unordered_map<Node, Node, NodeHashFunction> cache;
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, realToIntInternal((*assertionsToPreprocess)[i], cache, var_eq));
+        i, realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

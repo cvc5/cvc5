@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file instantiate.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief instantiate
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * instantiate
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
-#define CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INSTANTIATE_H
+#define CVC5__THEORY__QUANTIFIERS__INSTANTIATE_H
 
 #include <map>
 
@@ -25,7 +26,7 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 
@@ -117,7 +118,7 @@ class Instantiate : public QuantifiersUtil
   /** identify */
   std::string identify() const override { return "Instantiate"; }
   /** check incomplete */
-  bool checkComplete() override;
+  bool checkComplete(IncompleteId& incId) override;
 
   //--------------------------------------rewrite objects
   /** add instantiation rewriter */
@@ -289,7 +290,6 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
     Statistics();
-    ~Statistics();
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 
@@ -363,4 +363,4 @@ class Instantiate : public QuantifiersUtil
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__INSTANTIATE_H */

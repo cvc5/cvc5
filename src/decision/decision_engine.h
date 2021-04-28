@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file decision_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Decision engine
- **
- ** Decision engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Decision engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__DECISION__DECISION_ENGINE_H
-#define CVC4__DECISION__DECISION_ENGINE_H
+#ifndef CVC5__DECISION__DECISION_ENGINE_H
+#define CVC5__DECISION__DECISION_ENGINE_H
 
 #include "base/output.h"
 #include "context/cdo.h"
@@ -32,6 +31,7 @@ using namespace cvc5::prop;
 using namespace cvc5::decision;
 
 namespace cvc5 {
+namespace decision {
 
 class DecisionEngine {
 
@@ -160,6 +160,7 @@ class DecisionEngine {
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
 };/* DecisionEngine class */
 
+}
 }  // namespace cvc5
 
-#endif /* CVC4__DECISION__DECISION_ENGINE_H */
+#endif /* CVC5__DECISION__DECISION_ENGINE_H */

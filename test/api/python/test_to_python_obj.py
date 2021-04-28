@@ -1,22 +1,25 @@
-#####################
-## test_to_python_obj.py
-## Top contributors (to current version):
-##   Makai Mann, Andres Noetzli, Mudathir Mohamed
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Andres Noetzli, Mudathir Mohamed
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 from fractions import Fraction
 import pytest
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 
 def testGetBool():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     t = solver.mkTrue()
     f = solver.mkFalse()
     assert t.toPythonObj() == True
@@ -24,13 +27,13 @@ def testGetBool():
 
 
 def testGetInt():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     two = solver.mkInteger(2)
     assert two.toPythonObj() == 2
 
 
 def testGetReal():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     half = solver.mkReal("1/2")
     assert half.toPythonObj() == Fraction(1, 2)
 
@@ -42,13 +45,13 @@ def testGetReal():
 
 
 def testGetBV():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     three = solver.mkBitVector(8, 3)
     assert three.toPythonObj() == 3
 
 
 def testGetArray():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
     zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
     stores = solver.mkTerm(kinds.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
@@ -65,17 +68,17 @@ def testGetArray():
 
 
 def testGetSymbol():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
     solver.mkConst(solver.getBooleanSort(), "x")
 
 
 def testGetString():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
 
     s1 = '"test\n"😃\\u{a}'
     t1 = solver.mkString(s1)
     assert s1 == t1.toPythonObj()
 
-    s2 = '❤️CVC4❤️'
+    s2 = '❤️cvc5❤️'
     t2 = solver.mkString(s2)
     assert s2 == t2.toPythonObj()

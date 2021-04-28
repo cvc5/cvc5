@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file theory_sets_private.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory implementation.
+ */
 
 #include "theory/sets/theory_sets_private.h"
 
 #include <algorithm>
+#include <climits>
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
@@ -38,15 +38,17 @@ namespace sets {
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
-                                     SkolemCache& skc)
+                                     SkolemCache& skc,
+                                     ProofNodeManager* pnm)
     : d_deq(state.getSatContext()),
       d_termProcessed(state.getUserContext()),
-      d_full_check_incomplete(false),
+      d_fullCheckIncomplete(false),
+      d_fullCheckIncompleteId(IncompleteId::UNKNOWN),
       d_external(external),
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(state, im, skc),
+      d_treg(state, im, skc, pnm),
       d_rels(new TheorySetsRels(state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(state, im, d_treg)),
       d_rels_enabled(false),
@@ -208,7 +210,8 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
-  d_full_check_incomplete = false;
+  d_fullCheckIncomplete = false;
+  d_fullCheckIncompleteId = IncompleteId::UNKNOWN;
   d_most_common_type.clear();
   d_most_common_type_term.clear();
   d_card_enabled = false;
@@ -295,7 +298,8 @@ void TheorySetsPrivate::fullEffortCheck()
           // some kinds of cardinality we cannot handle
           if (d_rels->isRelationKind(nk0))
           {
-            d_full_check_incomplete = true;
+            d_fullCheckIncomplete = true;
+            d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
             Trace("sets-incomplete")
                 << "Sets : incomplete because of " << n << "." << std::endl;
             // TODO (#1124):  The issue can be divided into 4 parts
@@ -789,9 +793,9 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
       {
         fullEffortCheck();
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
-            && d_full_check_incomplete)
+            && d_fullCheckIncomplete)
         {
-          d_im.setIncomplete();
+          d_im.setIncomplete(d_fullCheckIncompleteId);
         }
       }
     }
@@ -1275,6 +1279,27 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     {
       // add trigger predicate for equality and membership
       d_equalityEngine->addTriggerPredicate(node);
+    }
+    break;
+    case kind::JOIN_IMAGE:
+    {
+      // these are logic exceptions, not type checking exceptions
+      if (node[1].getKind() != kind::CONST_RATIONAL)
+      {
+        throw LogicException(
+            "JoinImage cardinality constraint must be a constant");
+      }
+      cvc5::Rational r(INT_MAX);
+      if (node[1].getConst<Rational>() > r)
+      {
+        throw LogicException(
+            "JoinImage Exceeded INT_MAX in cardinality constraint");
+      }
+      if (node[1].getConst<Rational>().getNumerator().getSignedInt() < 0)
+      {
+        throw LogicException(
+            "JoinImage cardinality constraint must be non-negative");
+      }
     }
     break;
     default: d_equalityEngine->addTerm(node); break;

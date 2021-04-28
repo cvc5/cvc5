@@ -13,12 +13,12 @@ INSTALL_BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$DEPS_DIR"
 
 if ! [ -e src/parser/cvc/Cvc.g ]; then
-  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
+  echo "$(basename $0): I expect to be in the contrib/ of a cvc5 source tree," >&2
   echo "but apparently:" >&2
   echo >&2
   echo "  $(pwd)" >&2
   echo >&2
-  echo "is not a CVC4 source tree ?!" >&2
+  echo "is not a cvc5 source tree ?!" >&2
   exit 1
 fi
 

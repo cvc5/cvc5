@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_bags.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bags theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Haniel Barbosa, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bags theory.
+ */
 
 #include "theory/bags/theory_bags.h"
 
@@ -223,12 +224,6 @@ void TheoryBags::preRegisterTerm(TNode n)
     }
     default: break;
   }
-}
-
-TrustNode TheoryBags::expandDefinition(Node n)
-{
-  // TODO(projects#224): add choose and is_singleton here
-  return TrustNode::null();
 }
 
 void TheoryBags::presolve() {}

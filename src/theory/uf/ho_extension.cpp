@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file ho_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the higher-order extension of TheoryUF.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the higher-order extension of TheoryUF.
+ */
 
 #include "theory/uf/ho_extension.h"
 
@@ -212,7 +212,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (tn.isInterpretedFinite() != isCollectModel)
+      if (d_state.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -227,7 +227,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     // are present
     if (hasFunctions)
     {
-      d_im.setIncomplete();
+      d_im.setIncomplete(IncompleteId::UF_HO_EXT_DISABLED);
     }
     return 0;
   }
