@@ -100,6 +100,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Kind getKind() except +
         Sort getSort() except +
         bint isNull() except +
+        bint isIndexed() except +
+        size_t getNumIndices() except +
         T getIndices[T]() except +
         string toString() except +
 
@@ -337,7 +339,13 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term()
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
+        bint operator<(const Term&) except +
+        bint operator>(const Term&) except +
+        bint operator<=(const Term&) except +
+        bint operator>=(const Term&) except +
+        size_t getNumChildren() except +
         Term operator[](size_t idx) except +
+        uint64_t getId() except +
         Kind getKind() except +
         Sort getSort() except +
         Term substitute(const vector[Term] es, const vector[Term] & reps) except +
@@ -362,6 +370,19 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+        bint isInt32() except +
+        int32_t getInt32() except +
+        bint isUInt32() except +
+        uint32_t getUInt32() except +
+        bint isInt64() except +
+        int64_t getInt64() except +
+        bint isUInt64() except +
+        uint64_t getUInt64() except +
+        bint isInteger() except +
+        string getInteger() except +
+        bint isString() except +
+    #TODO handle!    
+    #    wstring getString() except +
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
