@@ -19,6 +19,8 @@
 #define CVC5__DECISION__ASSERTION_LIST_H
 
 #include <iosfwd>
+#include <unordered_set>
+#include <vector>
 
 #include "context/cdlist.h"
 #include "context/cdo.h"
@@ -94,6 +96,8 @@ class AssertionList
   bool d_usingDynamic;
   /** The list of assertions */
   std::vector<TNode> d_dlist;
+  /** The set of assertions for fast membership testing in the above vector */
+  std::unordered_set<TNode, TNodeHashFunction> d_dlistSet;
   /** The index of the next assertion to satify */
   context::CDO<size_t> d_dindex;
 };
