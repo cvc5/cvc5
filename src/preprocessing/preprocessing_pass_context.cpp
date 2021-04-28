@@ -88,7 +88,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                PfRule id,
                                                const std::vector<Node>& args)
 {
-  getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, args);
+  getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
   // also add as a model substitution
   addModelSubstitution(lhs, rhs);
 }
