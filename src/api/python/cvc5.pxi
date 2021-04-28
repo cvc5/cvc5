@@ -80,12 +80,14 @@ cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 
 
 cdef class Datatype:
+    """Wrapper class for :cpp:class:`cvc5::api::Datatype`."""
     cdef c_Datatype cd
     cdef Solver solver
     def __cinit__(self, Solver solver):
         self.solver = solver
 
     def __getitem__(self, index):
+        """Return a constructor by index or by name."""
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
@@ -96,37 +98,47 @@ cdef class Datatype:
         return dc
 
     def getConstructor(self, str name):
+        """Return a constructor by name."""
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
 
     def getConstructorTerm(self, str name):
+        """:return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`)."""
         cdef Term term = Term(self.solver)
         term.cterm = self.cd.getConstructorTerm(name.encode())
         return term
 
     def getNumConstructors(self):
+        """:return: number of constructors."""
         return self.cd.getNumConstructors()
 
     def isParametric(self):
+        """:return: whether this datatype is parametric."""
         return self.cd.isParametric()
 
     def isCodatatype(self):
+        """:return: whether this datatype corresponds to a co-datatype."""
         return self.cd.isCodatatype()
 
     def isTuple(self):
+        """:return: whether this datatype corresponds to a tuple."""
         return self.cd.isTuple()
 
     def isRecord(self):
+        """:return: whether this datatype corresponds to a record."""
         return self.cd.isRecord()
 
     def isFinite(self):
+        """:return: whether this datatype is finite."""
         return self.cd.isFinite()
 
     def isWellFounded(self):
+        """:return: whether this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
 
     def hasNestedRecursion(self):
+        """:return: whether this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
         return self.cd.hasNestedRecursion()
 
     def __str__(self):

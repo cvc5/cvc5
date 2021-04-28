@@ -227,6 +227,35 @@ TEST_F(TestUtilBlackDatatype, list_boolean)
   ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
 }
 
+TEST_F(TestUtilBlackDatatype, listIntUpdate)
+{
+  DType list("list");
+  TypeNode integerType = d_nodeManager->integerType();
+
+  std::shared_ptr<DTypeConstructor> cons =
+      std::make_shared<DTypeConstructor>("cons");
+  cons->addArg("car", integerType);
+  cons->addArgSelf("cdr");
+  list.addConstructor(cons);
+
+  std::shared_ptr<DTypeConstructor> nil =
+      std::make_shared<DTypeConstructor>("nil");
+  list.addConstructor(nil);
+
+  TypeNode listType = d_nodeManager->mkDatatypeType(list);
+  const DType& ldt = listType.getDType();
+  Node updater = ldt[0][0].getUpdater();
+  Node gt = listType.mkGroundTerm();
+  Node zero = d_nodeManager->mkConst(Rational(0));
+  Node truen = d_nodeManager->mkConst(true);
+  // construct an update term
+  Node uterm = d_nodeManager->mkNode(kind::APPLY_DT_UPDATE, updater, gt, zero);
+  // construct a non well-formed update term
+  ASSERT_THROW(d_nodeManager->mkNode(kind::APPLY_DT_UPDATE, updater, gt, truen)
+                   .getType(true),
+               TypeCheckingExceptionPrivate);
+}
+
 TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
 {
   /* Create two mutual datatypes corresponding to this definition
