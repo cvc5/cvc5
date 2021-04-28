@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers_engine.h"
 
+#include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -429,7 +430,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if (options::debugInst() || debugInstTrace)
       {
         Options& sopts = smt::currentSmtEngine()->getOptions();
-        std::ostream& out = *sopts.getOut();
+        std::ostream& out = *sopts[options::out];
         d_qim.getInstantiate()->debugPrint(out);
       }
     }
