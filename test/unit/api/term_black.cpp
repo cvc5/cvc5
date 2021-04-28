@@ -190,8 +190,8 @@ TEST_F(TestApiBlackTerm, getOp)
   Term c = d_solver.mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
   // list datatype constructor and selector operator terms
-  Term consOpTerm = list["cons"].getConstructorTerm();
-  Term nilOpTerm = list["nil"].getConstructorTerm();
+  Term consOpTerm = list.getConstructorTerm("cons");
+  Term nilOpTerm = list.getConstructorTerm("nil");
   Term headOpTerm = list["cons"].getSelectorTerm("head");
   Term tailOpTerm = list["cons"].getSelectorTerm("tail");
 

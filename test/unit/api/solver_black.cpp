@@ -1372,8 +1372,8 @@ TEST_F(TestApiBlackSolver, getOp)
   Sort consListSort = d_solver.mkDatatypeSort(consListSpec);
   Datatype consList = consListSort.getDatatype();
 
-  Term consTerm = consList["cons"].getConstructorTerm();
-  Term nilTerm = consList["nil"].getConstructorTerm();
+  Term consTerm = consList.getConstructorTerm("cons");
+  Term nilTerm = consList.getConstructorTerm("nil");
   Term headTerm = consList["cons"].getSelectorTerm("head");
 
   Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm);
