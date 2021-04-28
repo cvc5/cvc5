@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "options/options.h"
+#include "options/options_public.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
@@ -315,7 +316,7 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 
 bool Smt2::isHoEnabled() const
 {
-  return getLogic().isHigherOrder() && d_solver->getOptions().getUfHo();
+  return getLogic().isHigherOrder() && options::getUfHo(d_solver->getOptions());
 }
 
 bool Smt2::logicIsSet() {
@@ -841,7 +842,7 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
 
 InputLanguage Smt2::getLanguage() const
 {
-  return d_solver->getOptions().getInputLanguage();
+  return options::getInputLanguage(d_solver->getOptions());
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -1093,7 +1094,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!opts.getUfHo() && (kind == api::EQUAL || kind == api::DISTINCT))
+    if (!options::getUfHo(opts)
+        && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
@@ -1145,7 +1147,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
-        if (!opts.getUfHo())
+        if (!options::getUfHo(opts))
         {
           parseError("Cannot partially apply functions unless --uf-ho is set.");
         }
