@@ -73,11 +73,11 @@ int DidYouMean::editDistance(const std::string& a, const std::string& b) {
   // input string: a
   // desired string: b
 
-  const uint64_t swapCost = 0;
-  const uint64_t substituteCost = 2;
-  const uint64_t addCost = 1;
-  const uint64_t deleteCost = 3;
-  const uint64_t switchCaseCost = 0;
+  const size_t swapCost = 0;
+  const size_t substituteCost = 2;
+  const size_t addCost = 1;
+  const size_t deleteCost = 3;
+  const size_t switchCaseCost = 0;
 
   size_t len1 = a.size();
   size_t len2 = b.size();
