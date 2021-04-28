@@ -160,8 +160,8 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
   // x <= 18
   d_smtEngine->assertFormula(d_nodeManager->mkNode(
       kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
-  // do not remove, this perturbs the solver the trigger some boundary bug
-  // exists previously
+  // this perturbs the solver to trigger some boundary bug
+  // that existed previously
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
   d_optslv->activateObj(x, ObjectiveType::OBJECTIVE_MINIMIZE, false);
