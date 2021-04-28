@@ -131,6 +131,15 @@ class ReferenceStat
       d_data->d_value = &t;
     }
   }
+  /** Commit the value currently pointed to and release it. */
+  void reset()
+  {
+    if constexpr (Configuration::isStatisticsBuild())
+    {
+      d_data->commit();
+      d_data->d_value = nullptr;
+    }
+  }
   /** Copy the current value of the referenced object. */
   ~ReferenceStat()
   {
