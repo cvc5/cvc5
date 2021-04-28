@@ -90,6 +90,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // symbols
     if (tn.isConstructor() || tn.isSelector() || tn.isTester())
     {
+      // TODO: should be given user names
       return n;
     }
     // skolems v print as their witness forms
@@ -368,6 +369,9 @@ Node LfscTermProcessor::runConvert(Node n)
     if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
     {
       std::stringstream opName;
+      // currently allow subtyping
+      opName << "a.";
+      /*
       if (n.getType().isInteger())
       {
         opName << "int.";
@@ -376,6 +380,7 @@ Node LfscTermProcessor::runConvert(Node n)
       {
         opName << "real.";
       }
+      */
       opName << printer::smt2::Smt2Printer::smtKindString(k);
       TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
       opc = getSymbolInternal(k, ftype, opName.str());
@@ -475,7 +480,17 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
     {
       std::stringstream ss;
       tn.toStream(ss, language::output::LANG_SMTLIB_V2_6);
-      tnn = getSymbolInternal(k, d_sortType, ss.str());
+      if (false && (tn.isSort() || tn.isDatatype()))
+      {
+        std::stringstream sss;
+        sss << LfscTermProcessor::getNameForUserName(ss.str());
+        tnn = getSymbolInternal(k, d_sortType, sss.str());
+        cur = nm->mkSort(sss.str());
+      }
+      else
+      {
+        tnn = getSymbolInternal(k, d_sortType, ss.str());
+      }
     }
   }
   else
@@ -778,6 +793,9 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
       || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS)
   {
+    // currently allow subtyping
+    opName << "a.";
+    /*
     if (n[0].getType().isInteger())
     {
       opName << "int.";
@@ -786,6 +804,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     {
       opName << "real.";
     }
+    */
   }
   if (k == UMINUS)
   {
