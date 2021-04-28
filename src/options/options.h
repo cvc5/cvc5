@@ -192,7 +192,7 @@ public:
   bool getStatsEveryQuery() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
-  unsigned long getCumulativeTimeLimit() const;
+  uint64_t getCumulativeTimeLimit() const;
   bool getVersion() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
