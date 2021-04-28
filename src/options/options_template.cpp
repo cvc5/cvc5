@@ -254,19 +254,6 @@ void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 ${custom_handlers}$
 // clang-format on
 
-#if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
-#else /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
-#endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
-
-// clang-format off
-options::OptionsHolder::OptionsHolder() :
-  ${module_defaults}$
-{
-}
-// clang-format on
-
 static const std::string mostCommonOptionsDescription =
     "\
 Most commonly-used cvc5 options:\n"
@@ -608,8 +595,5 @@ std::string Options::getOption(const std::string& key) const
 }
 // clang-format on
 
-#undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
-#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
-
 }  // namespace cvc5
-// clang-format on
+
