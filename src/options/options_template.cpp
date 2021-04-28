@@ -230,13 +230,11 @@ Options::Options(OptionsListener* ol)
 
 Options::~Options() {
   delete d_handler;
-  delete d_holder;
 }
 
 void Options::copyValues(const Options& options){
   if(this != &options) {
-    delete d_holder;
-    d_holder = new options::OptionsHolder(*options.d_holder);
+    *d_holder = *options.d_holder;
   }
 }
 
@@ -252,19 +250,6 @@ void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 // clang-format off
 ${custom_handlers}$
-// clang-format on
-
-#if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
-#else /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
-#endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
-
-// clang-format off
-options::OptionsHolder::OptionsHolder() :
-  ${module_defaults}$
-{
-}
 // clang-format on
 
 static const std::string mostCommonOptionsDescription =
@@ -419,6 +404,18 @@ std::vector<std::string> Options::parseOptions(Options* options,
   return nonoptions;
 }
 
+std::string suggestCommandLineOptions(const std::string& optionName)
+{
+  DidYouMean didYouMean;
+
+  const char* opt;
+  for(size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i) {
+    didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
+  }
+
+  return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
+}
+
 void Options::parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions)
@@ -531,39 +528,6 @@ ${options_handler}$
                    << " non-option arguments." << std::endl;
 }
 
-std::string Options::suggestCommandLineOptions(const std::string& optionName)
-{
-  DidYouMean didYouMean;
-
-  const char* opt;
-  for(size_t i = 0; (opt = cmdlineOptions[i].name) != NULL; ++i) {
-    didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
-  }
-
-  return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
-}
-
-// clang-format off
-static const char* smtOptions[] = {
-  ${options_smt}$
-  nullptr};
-// clang-format on
-
-std::vector<std::string> Options::suggestSmtOptions(
-    const std::string& optionName)
-{
-  std::vector<std::string> suggestions;
-
-  const char* opt;
-  for(size_t i = 0; (opt = smtOptions[i]) != NULL; ++i) {
-    if(std::strstr(opt, optionName.c_str()) != NULL) {
-      suggestions.push_back(opt);
-    }
-  }
-
-  return suggestions;
-}
-
 // clang-format off
 std::vector<std::vector<std::string> > Options::getOptions() const
 {
@@ -608,8 +572,5 @@ std::string Options::getOption(const std::string& key) const
 }
 // clang-format on
 
-#undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
-#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
-
 }  // namespace cvc5
-// clang-format on
+

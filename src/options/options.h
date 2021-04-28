@@ -19,6 +19,7 @@
 #define CVC5__OPTIONS__OPTIONS_H
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -45,7 +46,7 @@ class CVC5_EXPORT Options
 {
   friend api::Solver;
   /** The struct that holds all option values. */
-  options::OptionsHolder* d_holder;
+  std::unique_ptr<options::OptionsHolder> d_holder;
 
   /** The handler for the options of the theory. */
   options::OptionsHandler* d_handler;
@@ -250,22 +251,6 @@ public:
 
   /** Print help for the --lang command line option */
   static void printLanguageHelp(std::ostream& out);
-
-  /**
-   * Look up long command-line option names that bear some similarity
-   * to the given name.  Returns an empty string if there are no
-   * suggestions.
-   */
-  static std::string suggestCommandLineOptions(const std::string& optionName);
-
-  /**
-   * Look up SMT option names that bear some similarity to
-   * the given name.  Don't include the initial ":".  This might be
-   * useful in case of typos.  Can return an empty vector if there are
-   * no suggestions.
-   */
-  static std::vector<std::string> suggestSmtOptions(
-      const std::string& optionName);
 
   /**
    * Initialize the Options object options based on the given
