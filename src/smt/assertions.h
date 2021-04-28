@@ -154,11 +154,13 @@ class Assertions
   Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
+  /** Whether we are producing assertions */
+  bool d_produceAssertions;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
    */
-  AssertionList* d_assertionList;
+  AssertionList d_assertionList;
   /**
    * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.

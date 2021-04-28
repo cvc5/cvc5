@@ -37,7 +37,8 @@ namespace smt {
 Assertions::Assertions(Env& env, AbstractValues& absv)
     : d_env(env),
       d_absValues(absv),
-      d_assertionList(nullptr),
+      d_produceAssertions(false),
+      d_assertionList(env.getUserContext()),
       d_globalNegation(false),
       d_assertions()
 {
@@ -45,10 +46,6 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
 
 Assertions::~Assertions()
 {
-  if (d_assertionList != nullptr)
-  {
-    d_assertionList->deleteSelf();
-  }
 }
 
 void Assertions::finishInit()
@@ -61,7 +58,7 @@ void Assertions::finishInit()
   {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
-    d_assertionList = new (true) AssertionList(d_env.getUserContext());
+    d_produceAssertions = true;
     d_globalDefineFunLemmas.reset(new std::vector<Node>());
   }
 }
@@ -140,7 +137,7 @@ preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
 
 context::CDList<Node>* Assertions::getAssertionList()
 {
-  return d_assertionList;
+  return d_produceAssertions ? &d_assertionList : nullptr;
 }
 
 void Assertions::addFormula(TNode n,
@@ -151,9 +148,9 @@ void Assertions::addFormula(TNode n,
                             bool maybeHasFv)
 {
   // add to assertion list if it exists
-  if (d_assertionList != nullptr)
+  if (d_produceAssertions)
   {
-    d_assertionList->push_back(n);
+    d_assertionList.push_back(n);
   }
   if (n.isConst() && n.getConst<bool>())
   {
