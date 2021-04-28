@@ -121,8 +121,10 @@ TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 TPL_HOLDER_MACRO = '#define ' + TPL_HOLDER_MACRO_NAME
 
 TPL_HOLDER_MACRO_ATTR = "  {name}__option_t::type {name};\\\n"
-TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
+TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__ = false;"
 
+TPL_HOLDER_MACRO_ATTR_DEF = "  {name}__option_t::type {name} = {default};\\\n"
+TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser__ = false;"
 
 TPL_OPTION_STRUCT_RW = \
 """extern struct {name}__option_t
@@ -450,7 +452,13 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         includes.update([format_include(x) for x in option.includes])
 
         # Generate option holder macro
-        holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(name=option.name))
+        if option.default:
+            default = option.default
+            if option.mode and option.type not in default:
+                default = '{}::{}'.format(option.type, default)
+            holder_specs.append(TPL_HOLDER_MACRO_ATTR_DEF.format(name=option.name, default=default))
+        else:
+            holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(name=option.name))
 
         # Generate module declaration
         tpl_decl = TPL_OPTION_STRUCT_RO if option.read_only else TPL_OPTION_STRUCT_RW
