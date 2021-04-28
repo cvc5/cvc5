@@ -109,7 +109,7 @@ const DType& DType::datatypeOf(Node item)
 size_t DType::indexOf(Node item)
 {
   Assert(item.getType().isConstructor() || item.getType().isTester()
-         || item.getType().isSelector());
+         || item.getType().isSelector() || item.getType().isDatatypeUpdater());
   return indexOfInternal(item);
 }
 
