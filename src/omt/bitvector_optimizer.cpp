@@ -33,11 +33,6 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // computes (a + b) / 2 without overflow
   // rounding towards -infinity: -1.5 --> -2,  1.5 --> 1
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
-  // For unsigned bitvectors, this algorithm should be equivalent to:
-  // if (!isSigned) {
-  //   return BitVector(a.getSize(),
-  //     (a.toInteger() + b.toInteger()).floorDivideQuotient(Integer(2)));
-  // }
   uint32_t aMod2 = static_cast<uint32_t>(a.isBitSet(0));
   uint32_t bMod2 = static_cast<uint32_t>(b.isBitSet(0));
   BitVector aMod2PlusbMod2Div2(a.getSize(), (aMod2 + bMod2) / 2);
