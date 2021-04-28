@@ -101,7 +101,8 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
     // no decision does not impact the decision order
     return;
   }
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it = d_dlistSet.find(n);
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it =
+      d_dlistSet.find(n);
   if (s == DecisionStatus::DECISION)
   {
     if (it == d_dlistSet.end())
