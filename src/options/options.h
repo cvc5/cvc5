@@ -253,22 +253,6 @@ public:
   static void printLanguageHelp(std::ostream& out);
 
   /**
-   * Look up long command-line option names that bear some similarity
-   * to the given name.  Returns an empty string if there are no
-   * suggestions.
-   */
-  static std::string suggestCommandLineOptions(const std::string& optionName);
-
-  /**
-   * Look up SMT option names that bear some similarity to
-   * the given name.  Don't include the initial ":".  This might be
-   * useful in case of typos.  Can return an empty vector if there are
-   * no suggestions.
-   */
-  static std::vector<std::string> suggestSmtOptions(
-      const std::string& optionName);
-
-  /**
    * Initialize the Options object options based on the given
    * command-line arguments given in argc and argv.  The return value
    * is what's left of the command line (that is, the non-option
