@@ -19,7 +19,7 @@
  *
  * The WithLimitedMemory destructor will re-establish the previous limit.
  *
- * This class does not exist in CVC4_MEMORY_LIMITING_DISABLED is defined.
+ * This class does not exist in CVC5_MEMORY_LIMITING_DISABLED is defined.
  * This can be disabled for a variety of reasons.
  */
 

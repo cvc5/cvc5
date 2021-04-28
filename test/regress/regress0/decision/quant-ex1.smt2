@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=justification -q
+; COMMAND-LINE: --decision=justification
 ; EXPECT: sat
 
 (set-logic AUFLIRA)

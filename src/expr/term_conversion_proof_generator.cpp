@@ -19,6 +19,7 @@
 
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
+#include "expr/proof_node_algorithm.h"
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 
@@ -133,6 +134,9 @@ Node TConvProofGenerator::registerRewriteStep(Node t,
                                               uint32_t tctx,
                                               bool isPre)
 {
+  Assert(!t.isNull());
+  Assert(!s.isNull());
+
   if (t == s)
   {
     return Node::null();
@@ -229,6 +233,24 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(f);
   Trace("tconv-pf-gen") << "... success" << std::endl;
   Assert (pfn!=nullptr);
+  Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
+  return pfn;
+}
+
+std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
+{
+  LazyCDProof lpf(
+      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProofRew");
+  Node conc = getProofForRewriting(n, lpf, d_tcontext);
+  if (conc[1] == n)
+  {
+    // assertion failure in debug
+    Assert(false) << "TConvProofGenerator::getProofForRewriting: " << identify()
+                  << ": don't ask for trivial proofs";
+    lpf.addStep(conc, PfRule::REFL, {}, {n});
+  }
+  std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);
+  Assert(pfn != nullptr);
   Trace("tconv-pf-gen-debug") << "... proof is " << *pfn << std::endl;
   return pfn;
 }

@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
@@ -178,7 +179,7 @@ void Assertions::addFormula(
   }
 
   // Give it to the old proof manager
-  if (options::unsatCores())
+  if (options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
   {
     if (inInput)
     {  // n is an input assertion

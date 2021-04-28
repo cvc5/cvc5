@@ -160,6 +160,13 @@ public:
  /** Is proof enabled? */
  bool isProofEnabled() const;
 
+ /**
+  * Checks whether we need a proof.
+  *
+  * SAT proofs are not required for assumption-based unsat cores.
+  */
+ bool needProof() const;
+
  // Less than for literals in a lemma
  struct lemma_lt
  {
@@ -351,9 +358,9 @@ public:
 
  // Statistics: (read-only member variable)
  //
- uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts,
+ int64_t solves, starts, decisions, rnd_decisions, propagations, conflicts,
      resources_consumed;
- uint64_t dec_vars, clauses_literals, learnts_literals, max_literals,
+ int64_t dec_vars, clauses_literals, learnts_literals, max_literals,
      tot_literals;
 
 protected:

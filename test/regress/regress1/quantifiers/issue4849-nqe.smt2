@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-nested-qe -q
+; COMMAND-LINE: --cegqi-nested-qe
 ; EXPECT: sat
 (set-logic LIA)
 (set-option :cegqi-nested-qe true)

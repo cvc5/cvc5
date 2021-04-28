@@ -31,11 +31,12 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
                                          Node tgt,
                                          const std::vector<Node>& exp,
                                          MethodId ids,
+                                         MethodId ida,
                                          MethodId idr)
 {
   std::vector<Node> args;
   args.push_back(src);
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);
+  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
   Node res = tryStep(PfRule::MACRO_SR_EQ_INTRO, exp, args);
   if (res.isNull())
   {
@@ -58,6 +59,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
                                                Node tgt,
                                                const std::vector<Node>& exp,
                                                MethodId ids,
+                                               MethodId ida,
                                                MethodId idr)
 {
   // symmetric equalities
@@ -71,7 +73,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);
+  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
   Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
   if (res.isNull())
   {
@@ -86,11 +88,12 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
 bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
                                            const std::vector<Node>& exp,
                                            MethodId ids,
+                                           MethodId ida,
                                            MethodId idr)
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);
+  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
   Node res = tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
   if (res.isNull())
   {
@@ -103,13 +106,14 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
 Node TheoryProofStepBuffer::applyPredElim(Node src,
                                           const std::vector<Node>& exp,
                                           MethodId ids,
+                                          MethodId ida,
                                           MethodId idr)
 {
   std::vector<Node> children;
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, idr);
+  builtin::BuiltinProofRuleChecker::addMethodIds(args, ids, ida, idr);
   Node srcRew = tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
   if (CDProof::isSame(src, srcRew))
   {

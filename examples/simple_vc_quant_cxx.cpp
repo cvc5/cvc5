@@ -48,10 +48,10 @@ int main() {
 
   slv.assertFormula(formula);
 
-  std::cout << "Checking SAT after asserting " << formula << " to CVC4."
+  std::cout << "Checking SAT after asserting " << formula << " to cvc5."
             << std::endl;
-  std::cout << "CVC4 should report unsat." << std::endl;
-  std::cout << "Result from CVC4 is: " << slv.checkSat() << std::endl;
+  std::cout << "cvc5 should report unsat." << std::endl;
+  std::cout << "Result from cvc5 is: " << slv.checkSat() << std::endl;
 
   slv.resetAssertions();
 
@@ -66,10 +66,10 @@ int main() {
 
   slv.assertFormula(formula_pattern);
 
-  std::cout << "Checking SAT after asserting " << formula_pattern << " to CVC4."
+  std::cout << "Checking SAT after asserting " << formula_pattern << " to cvc5."
             << std::endl;
-  std::cout << "CVC4 should report unsat." << std::endl;
-  std::cout << "Result from CVC4 is: " << slv.checkSat() << std::endl;
+  std::cout << "cvc5 should report unsat." << std::endl;
+  std::cout << "Result from cvc5 is: " << slv.checkSat() << std::endl;
 
   return 0;
 }
