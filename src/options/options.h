@@ -19,6 +19,7 @@
 #define CVC5__OPTIONS__OPTIONS_H
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -45,7 +46,7 @@ class CVC5_EXPORT Options
 {
   friend api::Solver;
   /** The struct that holds all option values. */
-  options::OptionsHolder* d_holder;
+  std::unique_ptr<options::OptionsHolder> d_holder;
 
   /** The handler for the options of the theory. */
   options::OptionsHandler* d_handler;
