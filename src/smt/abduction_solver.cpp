@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"

@@ -24,10 +24,8 @@
 #include <vector>
 
 #include "base/listener.h"
-#include "base/modal_exception.h"
 #include "cvc5_export.h"
 #include "options/language.h"
-#include "options/option_exception.h"
 #include "options/printer_modes.h"
 
 namespace cvc5 {
