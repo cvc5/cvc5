@@ -103,6 +103,12 @@ cdef class Datatype:
         dc.cdc = self.cd.getConstructor(name.encode())
         return dc
 
+    def getConstructorTerm(self, str name):
+        """:return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`)."""
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cd.getConstructorTerm(name.encode())
+        return term
+
     def getSelector(self, str name):
         """Return a selector by name."""
         cdef DatatypeSelector ds = DatatypeSelector(self.solver)
