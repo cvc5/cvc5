@@ -38,9 +38,7 @@ BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry& registry,
   d_statistics.init(d_minisat.get());
 }
 
-
-BVMinisatSatSolver::~BVMinisatSatSolver() {
-}
+BVMinisatSatSolver::~BVMinisatSatSolver() { d_statistics.deinit(); }
 
 void BVMinisatSatSolver::MinisatNotify::notify(
     BVMinisat::vec<BVMinisat::Lit>& clause)
@@ -276,6 +274,25 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
   d_statMaxLiterals.set(minisat->max_literals);
   d_statTotLiterals.set(minisat->tot_literals);
   d_statEliminatedVars.set(minisat->eliminated_vars);
+}
+
+void BVMinisatSatSolver::Statistics::deinit()
+{
+  if (!d_registerStats)
+  {
+    return;
+  }
+
+  d_statStarts.reset();
+  d_statDecisions.reset();
+  d_statRndDecisions.reset();
+  d_statPropagations.reset();
+  d_statConflicts.reset();
+  d_statClausesLiterals.reset();
+  d_statLearntsLiterals.reset();
+  d_statMaxLiterals.reset();
+  d_statTotLiterals.reset();
+  d_statEliminatedVars.reset();
 }
 
 }  // namespace prop

@@ -34,6 +34,7 @@
 #include "options/printer_modes.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
+#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 

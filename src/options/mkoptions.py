@@ -121,8 +121,10 @@ TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 TPL_HOLDER_MACRO = '#define ' + TPL_HOLDER_MACRO_NAME
 
 TPL_HOLDER_MACRO_ATTR = "  {name}__option_t::type {name};\\\n"
-TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
+TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__ = false;"
 
+TPL_HOLDER_MACRO_ATTR_DEF = "  {name}__option_t::type {name} = {default};\\\n"
+TPL_HOLDER_MACRO_ATTR_DEF += "  bool {name}__setByUser__ = false;"
 
 TPL_OPTION_STRUCT_RW = \
 """extern struct {name}__option_t
@@ -450,7 +452,13 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         includes.update([format_include(x) for x in option.includes])
 
         # Generate option holder macro
-        holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(name=option.name))
+        if option.default:
+            default = option.default
+            if option.mode and option.type not in default:
+                default = '{}::{}'.format(option.type, default)
+            holder_specs.append(TPL_HOLDER_MACRO_ATTR_DEF.format(name=option.name, default=default))
+        else:
+            holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(name=option.name))
 
         # Generate module declaration
         tpl_decl = TPL_OPTION_STRUCT_RO if option.read_only else TPL_OPTION_STRUCT_RW
@@ -738,15 +746,17 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                         'if ({}) {{'.format(cond))
                     if option.type == 'bool':
                         getoption_handlers.append(
-                            'return options::{}() ? "true" : "false";'.format(
-                                option.name))
+                            'return (*this)[options::{}] ? "true" : "false";'.format(option.name))
+                    elif option.type == 'std::string':
+                        getoption_handlers.append(
+                            'return (*this)[options::{}];'.format(option.name))
+                    elif is_numeric_cpp_type(option.type):
+                        getoption_handlers.append(
+                            'return std::to_string((*this)[options::{}]);'.format(option.name))
                     else:
                         getoption_handlers.append('std::stringstream ss;')
-                        if is_numeric_cpp_type(option.type):
-                            getoption_handlers.append(
-                                'ss << std::fixed << std::setprecision(8);')
-                        getoption_handlers.append('ss << options::{}();'.format(
-                            option.name))
+                        getoption_handlers.append(
+                            'ss << (*this)[options::{}];'.format(option.name))
                         getoption_handlers.append('return ss.str();')
                     getoption_handlers.append('}')
 
@@ -780,21 +790,14 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     options_smt.append('"{}",'.format(optname))
 
                     if option.type == 'bool':
-                        s = '{ std::vector<std::string> v; '
-                        s += 'v.push_back("{}"); '.format(optname)
-                        s += 'v.push_back(std::string('
-                        s += 'd_holder->{}'.format(option.name)
-                        s += ' ? "true" : "false")); '
-                        s += 'opts.push_back(v); }'
+                        s = 'opts.push_back({{"{}", d_holder->{} ? "true" : "false"}});'.format(
+                            optname, option.name)
+                    elif is_numeric_cpp_type(option.type):
+                        s = 'opts.push_back({{"{}", std::to_string(d_holder->{})}});'.format(
+                            optname, option.name)
                     else:
-                        s = '{ std::stringstream ss; '
-                        if is_numeric_cpp_type(option.type):
-                            s += 'ss << std::fixed << std::setprecision(8); '
-                        s += 'ss << d_holder->{}; '.format(option.name)
-                        s += 'std::vector<std::string> v; '
-                        s += 'v.push_back("{}"); '.format(optname)
-                        s += 'v.push_back(ss.str()); '
-                        s += 'opts.push_back(v); }'
+                        s = '{{ std::stringstream ss; ss << d_holder->{}; opts.push_back({{"{}", ss.str()}}); }}'.format(
+                            option.name, optname)
                     options_getoptions.append(s)
 
 
