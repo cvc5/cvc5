@@ -129,9 +129,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 
     if (ji == nullptr)
     {
+      // NOTE: lastChildVal should be SAT_VALUE_TRUE here.
       // assertion should be true?
-      // AlwaysAssert(lastChildVal == SAT_VALUE_TRUE) << "Previous assertion "
-      // << d_current.get() << " had value " << lastChildVal;
       if (!d_currUnderStatus.isNull())
       {
         // notify status if we are watching it
@@ -238,10 +237,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Trace("jh-debug") << "getNextJustifyNode " << curr << " / " << currPol
                     << ", index = " << i
                     << ", last child value = " << lastChildVal << std::endl;
-  // if i>0, we just computed the value of the (i-1)^th child
-  // doesn't hold for backtracking?
-  // Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN)
-  //    << "in getNextJustifyNode, last child has no value";
+  // NOTE: if i>0, we just computed the value of the (i-1)^th child
+  // i.e. i == 0 || lastChildVal != SAT_VALUE_UNKNOWN,
+  // however this does not hold when backtracking has occurred.
   // if i=0, we shouldn't have a last child value
   Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN)
       << "in getNextJustifyNode, value given for non-existent last child";
@@ -576,9 +574,8 @@ bool JustificationStrategy::refreshCurrentAssertion()
       // we've backtracked to another assertion which may be partially
       // processed. don't track its status?
       d_currUnderStatus = Node::null();
-      // also reset the stack ???
-      // d_stack.clear();
-      // d_stack.reset(curr);
+      // NOTE: could reset the stack here to preserve other invariants,
+      // currently we do not.
     }
     return true;
   }
