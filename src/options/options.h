@@ -19,14 +19,13 @@
 #define CVC5__OPTIONS__OPTIONS_H
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "base/listener.h"
-#include "base/modal_exception.h"
 #include "cvc5_export.h"
 #include "options/language.h"
-#include "options/option_exception.h"
 #include "options/printer_modes.h"
 
 namespace cvc5 {
@@ -45,7 +44,7 @@ class CVC5_EXPORT Options
 {
   friend api::Solver;
   /** The struct that holds all option values. */
-  options::OptionsHolder* d_holder;
+  std::unique_ptr<options::OptionsHolder> d_holder;
 
   /** The handler for the options of the theory. */
   options::OptionsHandler* d_handler;
@@ -193,7 +192,7 @@ public:
   bool getStatsEveryQuery() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
-  unsigned long getCumulativeTimeLimit() const;
+  uint64_t getCumulativeTimeLimit() const;
   bool getVersion() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
@@ -250,22 +249,6 @@ public:
 
   /** Print help for the --lang command line option */
   static void printLanguageHelp(std::ostream& out);
-
-  /**
-   * Look up long command-line option names that bear some similarity
-   * to the given name.  Returns an empty string if there are no
-   * suggestions.
-   */
-  static std::string suggestCommandLineOptions(const std::string& optionName);
-
-  /**
-   * Look up SMT option names that bear some similarity to
-   * the given name.  Don't include the initial ":".  This might be
-   * useful in case of typos.  Can return an empty vector if there are
-   * no suggestions.
-   */
-  static std::vector<std::string> suggestSmtOptions(
-      const std::string& optionName);
 
   /**
    * Initialize the Options object options based on the given
