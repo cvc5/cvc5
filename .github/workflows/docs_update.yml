@@ -48,7 +48,7 @@ jobs:
             breathe
 
       - name: Configure
-        run: ./configure.sh debug --docs
+        run: ./configure.sh production --docs
 
       - name: Build
         run: make -j2 docs-gh
