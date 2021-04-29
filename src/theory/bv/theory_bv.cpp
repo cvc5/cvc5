@@ -18,11 +18,13 @@
 #include "expr/proof_checker.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
+#include "theory/trust_substitutions.h"
 
 namespace cvc5 {
 namespace theory {
@@ -40,7 +42,8 @@ TheoryBV::TheoryBV(context::Context* c,
       d_rewriter(),
       d_state(c, u, valuation),
       d_im(*this, d_state, nullptr, "theory::bv::"),
-      d_notify(d_im)
+      d_notify(d_im),
+      d_stats("theory::bv::")
 {
   switch (options::bvSolver())
   {
@@ -182,7 +185,88 @@ void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 Theory::PPAssertStatus TheoryBV::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  return d_internal->ppAssert(tin, outSubstitutions);
+  TNode in = tin.getNode();
+  switch (in.getKind())
+  {
+    case kind::EQUAL:
+    {
+      // Substitute variables
+      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+      {
+        ++d_stats.d_solveSubstitutions;
+        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
+        return Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+      {
+        ++d_stats.d_solveSubstitutions;
+        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
+        return Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+      /**
+       * Eliminate extract over bit-vector variables.
+       *
+       * x[j:i] = c, where c is a constant and x is a variable.
+       *
+       * i == 0:          x = sk1::c with bw(sk1) = bw(x) - 1 - j
+       * j == bw(x) - 1:  x = c::sk2 with bw(sk2) = i
+       * else:            x = sk1::c::sk2 with bw(sk1) = bw(x) - 1 - j
+       *                                  and  bw(sk2) = i
+       */
+      Node node = Rewriter::rewrite(in);
+      if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
+          || (node[1].getKind() == kind::BITVECTOR_EXTRACT
+              && node[0].isConst()))
+      {
+        Node extract = node[0].isConst() ? node[1] : node[0];
+        if (extract[0].isVar())
+        {
+          Node c = node[0].isConst() ? node[0] : node[1];
+
+          uint32_t high = utils::getExtractHigh(extract);
+          uint32_t low = utils::getExtractLow(extract);
+          uint32_t var_bw = utils::getSize(extract[0]);
+          std::vector<Node> children;
+
+          if (low == 0 || high != var_bw - 1)
+          {
+            Assert(high != var_bw - 1);
+            uint32_t skolem_size = var_bw - high - 1;
+            Node skolem = utils::mkVar(skolem_size);
+            children.push_back(skolem);
+          }
+
+          children.push_back(c);
+
+          if (high == var_bw - 1 || low != 0)
+          {
+            Assert(low != 0);
+            uint32_t skolem_size = low;
+            Node skolem = utils::mkVar(skolem_size);
+            children.push_back(skolem);
+          }
+
+          Node concat = utils::mkConcat(children);
+          Assert(utils::getSize(concat) == utils::getSize(extract[0]));
+          if (isLegalElimination(extract[0], concat))
+          {
+            outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
+            return Theory::PP_ASSERT_STATUS_SOLVED;
+          }
+        }
+      }
+    }
+    break;
+    case kind::BITVECTOR_ULT:
+    case kind::BITVECTOR_SLT:
+    case kind::BITVECTOR_ULE:
+    case kind::BITVECTOR_SLE:
+
+    default:
+      // TODO other predicates
+      break;
+  }
+  return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
@@ -219,6 +303,12 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions,
                                 std::vector<Node>& new_assertions)
 {
   return d_internal->applyAbstraction(assertions, new_assertions);
+}
+
+TheoryBV::Statistics::Statistics(const std::string& name)
+    : d_solveSubstitutions(
+        smtStatisticsRegistry().registerInt(name + "NumSolveSubstitutions"))
+{
 }
 
 }  // namespace bv
