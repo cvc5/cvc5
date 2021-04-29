@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Andres Noetzli
+#   Yoni Zohar, Makai Mann, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
@@ -17,9 +17,6 @@ import pytest
 import pycvc5
 from pycvc5 import kinds
 from pycvc5 import Sort, Term
-
-def assert_eq(x, y):
-    assert x == y
 
 @pytest.fixture
 def solver():
@@ -39,7 +36,7 @@ def test_eq(solver):
   assert not (x == z)
   assert x != z
 
-def test_getKind(solver):
+def test_get_kind(solver):
   uSort = solver.mkUninterpretedSort("u")
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -78,9 +75,9 @@ def test_getKind(solver):
   seqSort = solver.mkSequenceSort(intSort)
   s = solver.mkConst(seqSort, "s")
   ss = solver.mkTerm(kinds.SeqConcat, s, s)
-  assert_eq(ss.getKind(), kinds.SeqConcat)
+  assert ss.getKind() == kinds.SeqConcat
 
-def test_getSort(solver):
+def test_get_sort(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -92,45 +89,115 @@ def test_getSort(solver):
       n.getSort()
   x = solver.mkVar(bvSort, "x")
   x.getSort()
-  assert_eq(x.getSort(), bvSort)
+  assert x.getSort() == bvSort
   y = solver.mkVar(bvSort, "y")
   y.getSort()
-  assert_eq(y.getSort(), bvSort)
+  assert y.getSort() == bvSort
 
   f = solver.mkVar(funSort1, "f")
   f.getSort()
-  assert_eq(f.getSort(), funSort1)
+  assert f.getSort() == funSort1
   p = solver.mkVar(funSort2, "p")
   p.getSort()
-  assert_eq(p.getSort(), funSort2)
+  assert p.getSort() == funSort2
 
   zero = solver.mkInteger(0)
   zero.getSort()
-  assert_eq(zero.getSort(), intSort)
+  assert zero.getSort() == intSort
 
   f_x = solver.mkTerm(kinds.ApplyUf, f, x)
   f_x.getSort()
-  assert_eq(f_x.getSort(), intSort)
+  assert f_x.getSort() == intSort
   f_y = solver.mkTerm(kinds.ApplyUf, f, y)
   f_y.getSort()
-  assert_eq(f_y.getSort(), intSort)
+  assert f_y.getSort() == intSort
   sum = solver.mkTerm(kinds.Plus, f_x, f_y)
   sum.getSort()
-  assert_eq(sum.getSort(), intSort)
+  assert sum.getSort() == intSort
   p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
   p_0.getSort()
-  assert_eq(p_0.getSort(), boolSort)
+  assert p_0.getSort() == boolSort
   p_f_y = solver.mkTerm(kinds.ApplyUf, p, f_y)
   p_f_y.getSort()
-  assert_eq(p_f_y.getSort(), boolSort)
+  assert p_f_y.getSort() == boolSort
 
-def test_isNull(solver):
+def test_get_op(solver):
+  intsort = solver.getIntegerSort()
+  bvsort = solver.mkBitVectorSort(8)
+  arrsort = solver.mkArraySort(bvsort, intsort)
+  funsort = solver.mkFunctionSort(intsort, bvsort)
+
+  x = solver.mkConst(intsort, "x")
+  a = solver.mkConst(arrsort, "a")
+  b = solver.mkConst(bvsort, "b")
+
+  assert not x.hasOp()
+  with pytest.raises(RuntimeError):
+      x.getOp()
+
+  ab = solver.mkTerm(kinds.Select, a, b)
+  ext = solver.mkOp(kinds.BVExtract, 4, 0)
+  extb = solver.mkTerm(ext, b)
+
+  assert ab.hasOp()
+  assert not ab.getOp().isIndexed()
+  # can compare directly to a Kind (will invoke constructor)
+  assert extb.hasOp()
+  assert extb.getOp().isIndexed()
+  assert extb.getOp() == ext
+
+  f = solver.mkConst(funsort, "f")
+  fx = solver.mkTerm(kinds.ApplyUf, f, x)
+
+  assert not f.hasOp()
+  with pytest.raises(RuntimeError):
+      f.getOp()
+  assert fx.hasOp()
+  children = [c for c in fx]
+  # testing rebuild from op and children
+  assert fx == solver.mkTerm(fx.getOp(), children)
+
+  # Test Datatypes Ops
+  sort = solver.mkParamSort("T")
+  listDecl = solver.mkDatatypeDecl("paramlist", sort)
+  cons = solver.mkDatatypeConstructorDecl("cons")
+  nil = solver.mkDatatypeConstructorDecl("nil")
+  cons.addSelector("head", sort)
+  cons.addSelectorSelf("tail")
+  listDecl.addConstructor(cons)
+  listDecl.addConstructor(nil)
+  listSort = solver.mkDatatypeSort(listDecl)
+  intListSort = listSort.instantiate([solver.getIntegerSort()])
+  c = solver.mkConst(intListSort, "c")
+  list1 = listSort.getDatatype()
+  # list datatype constructor and selector operator terms
+  consOpTerm = list1.getConstructorTerm("cons")
+  nilOpTerm = list1.getConstructorTerm("nil")
+  headOpTerm = list1["cons"].getSelectorTerm("head")
+  tailOpTerm = list1["cons"].getSelectorTerm("tail")
+
+  nilTerm = solver.mkTerm(kinds.ApplyConstructor, nilOpTerm)
+  consTerm = solver.mkTerm(
+      kinds.ApplyConstructor, consOpTerm, solver.mkInteger(0), nilTerm)
+  headTerm = solver.mkTerm(kinds.ApplySelector, headOpTerm, consTerm)
+  tailTerm = solver.mkTerm(kinds.ApplySelector, tailOpTerm, consTerm)
+
+  assert nilTerm.hasOp()
+  assert consTerm.hasOp()
+  assert headTerm.hasOp()
+  assert tailTerm.hasOp()
+
+  # Test rebuilding
+  children = [c for c in headTerm]
+  assert headTerm == solver.mkTerm(headTerm.getOp(), children)
+
+def test_is_null(solver):
   x = Term(solver)
   assert x.isNull()
   x = solver.mkVar(solver.mkBitVectorSort(4), "x")
   assert not x.isNull()
 
-def test_notTerm(solver):
+def test_not_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -164,7 +231,7 @@ def test_notTerm(solver):
   p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
   p_f_x.notTerm()
 
-def test_andTerm(solver):
+def test_and_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -269,7 +336,7 @@ def test_andTerm(solver):
   p_f_x.andTerm(p_0)
   p_f_x.andTerm(p_f_x)
 
-def test_orTerm(solver):
+def test_or_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -374,7 +441,7 @@ def test_orTerm(solver):
   p_f_x.orTerm(p_0)
   p_f_x.orTerm(p_f_x)
 
-def test_xorTerm(solver):
+def test_xor_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -479,7 +546,7 @@ def test_xorTerm(solver):
   p_f_x.xorTerm(p_0)
   p_f_x.xorTerm(p_f_x)
 
-def test_eqTerm(solver):
+def test_eq_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -575,7 +642,7 @@ def test_eqTerm(solver):
   p_f_x.eqTerm(p_0)
   p_f_x.eqTerm(p_f_x)
 
-def test_impTerm(solver):
+def test_imp_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -680,7 +747,7 @@ def test_impTerm(solver):
   p_f_x.impTerm(p_0)
   p_f_x.impTerm(p_f_x)
 
-def test_iteTerm(solver):
+def test_ite_term(solver):
   bvSort = solver.mkBitVectorSort(8)
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
@@ -740,21 +807,21 @@ def test_iteTerm(solver):
   with pytest.raises(RuntimeError):
       p_f_x.iteTerm(x, b)
 
-def test_termAssignment(solver):
+def test_term_assignment(solver):
   t1 = solver.mkInteger(1)
   t2 = t1
   t2 = solver.mkInteger(2)
-  assert_eq(t1, solver.mkInteger(1))
+  assert t1 == solver.mkInteger(1)
 
-def test_constArray(solver):
+def test_const_array(solver):
   intsort = solver.getIntegerSort()
   arrsort = solver.mkArraySort(intsort, intsort)
   a = solver.mkConst(arrsort, "a")
   one = solver.mkInteger(1)
   constarr = solver.mkConstArray(arrsort, one)
 
-  assert_eq(constarr.getKind(), kinds.ConstArray)
-  assert_eq(constarr.getConstArrayBase(), one)
+  assert constarr.getKind() == kinds.ConstArray
+  assert constarr.getConstArrayBase() == one
   with pytest.raises(RuntimeError):
       a.getConstArrayBase()
 
@@ -765,12 +832,12 @@ def test_constArray(solver):
   stores =       solver.mkTerm(kinds.Store, stores, solver.mkReal(2), solver.mkReal(3))
   stores =       solver.mkTerm(kinds.Store, stores, solver.mkReal(4), solver.mkReal(5))
 
-def test_constSequenceElements(solver):
+def test_const_sequence_elements(solver):
   realsort = solver.getRealSort()
   seqsort = solver.mkSequenceSort(realsort)
   s = solver.mkEmptySequence(seqsort)
 
-  assert_eq(s.getKind(), kinds.ConstSequence)
+  assert s.getKind() == kinds.ConstSequence
   # empty sequence has zero elements
   cs = s.getConstSequenceElements()
   assert len(cs) == 0
@@ -781,9 +848,9 @@ def test_constSequenceElements(solver):
   with pytest.raises(RuntimeError):
       su.getConstSequenceElements()
 
-def test_termScopedToString(solver):
+def test_term_scoped_to_string(solver):
   intsort = solver.getIntegerSort()
   x = solver.mkConst(intsort, "x")
-  assert_eq(str(x), "x")
+  assert str(x) == "x"
   solver2 = pycvc5.Solver()
-  assert_eq(str(x), "x")
+  assert str(x) == "x"
