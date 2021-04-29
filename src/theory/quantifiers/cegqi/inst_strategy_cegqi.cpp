@@ -438,7 +438,8 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
     if( d_check_vts_lemma_lc ){
       Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
-      d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const_multiplier ));
+      d_small_const = NodeManager::currentNM()->mkNode(
+          MULT, d_small_const, d_small_const_multiplier);
       d_small_const = Rewriter::rewrite( d_small_const );
       //heuristic for now, until we know how to do nested quantification
       Node delta = d_vtsCache->getVtsDelta(true, false);
