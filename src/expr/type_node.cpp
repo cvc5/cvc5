@@ -633,10 +633,7 @@ bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
 
 bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
 
-bool TypeNode::isUpdater() const
-{
-  return getKind() == kind::UPDATE_TYPE;
-}
+bool TypeNode::isUpdater() const { return getKind() == kind::UPDATE_TYPE; }
 
 bool TypeNode::isCodatatype() const
 {
