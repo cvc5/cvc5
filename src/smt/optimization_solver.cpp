@@ -25,6 +25,7 @@ namespace smt {
 
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
+  Assert(d_objectives.size() > 0);
   // just a single objective optimization
   std::unique_ptr<OMTOptimizer> optimizer = OMTOptimizer::getOptimizerForNode(
       d_objectives[0].getTarget(), d_objectives[0].bvIsSigned());
@@ -64,6 +65,7 @@ void OptimizationSolver::popObjective()
 
 std::vector<OptimizationResult> OptimizationSolver::getValues()
 {
+  Assert(d_objectives.size() == d_results.size());
   return d_results;
 }
 
