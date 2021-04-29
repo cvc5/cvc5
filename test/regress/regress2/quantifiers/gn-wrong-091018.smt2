@@ -1,4 +1,4 @@
-; COMMAND-LINE: --global-negate --no-check-models
+; COMMAND-LINE: --global-negate
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic BV)

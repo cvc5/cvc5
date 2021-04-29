@@ -18,6 +18,7 @@
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"

@@ -19,6 +19,8 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  decision/assertion_list.cpp
+  decision/assertion_list.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
@@ -500,6 +502,7 @@ libcvc5_add_sources(
   theory/booleans/theory_bool.h
   theory/booleans/theory_bool_rewriter.cpp
   theory/booleans/theory_bool_rewriter.h
+  theory/booleans/theory_bool_type_rules.cpp
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
   theory/builtin/proof_checker.cpp

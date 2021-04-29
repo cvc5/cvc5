@@ -22,14 +22,18 @@ add_subdirectory(cpp)
 set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 
+configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
+
 add_custom_target(docs ALL
                   DEPENDS docs-cpp
                   COMMAND
                     ${SPHINX_EXECUTABLE} -b html
+                    -c ${CMAKE_CURRENT_BINARY_DIR}
                     # Tell Breathe where to find the Doxygen output
                     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_FOLDER}
+                    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_FOLDER}
                     ${SPHINX_INPUT_DIR} ${SPHINX_OUTPUT_DIR}
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMENT "Generating Sphinx Api docs")
 
 set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)

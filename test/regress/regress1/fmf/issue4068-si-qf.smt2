@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --sort-inference --no-check-models
+; COMMAND-LINE: --fmf-fun --sort-inference
 ; EXPECT: sat
 (set-logic QF_UFNIA)
 (set-info :status sat)
