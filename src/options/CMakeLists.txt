@@ -55,6 +55,7 @@ set(options_toml_files
   proof_options.toml
   prop_options.toml
   quantifiers_options.toml
+  resource_manager_options.toml
   sep_options.toml
   sets_options.toml
   smt_options.toml

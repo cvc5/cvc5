@@ -15,6 +15,7 @@
 
 #include "smt/quant_elim_solver.h"
 
+#include "base/modal_exception.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "smt/smt_solver.h"

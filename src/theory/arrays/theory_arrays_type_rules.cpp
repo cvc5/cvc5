@@ -15,7 +15,8 @@
 
 #include "theory/arrays/theory_arrays_type_rules.h"
 
-#include "theory/arrays/theory_arrays_rewriter.h"  // for array-constant attributes
+// for array-constant attributes
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/type_enumerator.h"
 
 namespace cvc5 {

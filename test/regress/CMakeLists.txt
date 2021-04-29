@@ -1806,6 +1806,7 @@ set(regress_1_tests
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
   regress1/quantifiers/lra-vts-inf.smt2
+  regress1/quantifiers/macro-geo-small-3.smt2
   regress1/quantifiers/min-ppgt-em-incomplete.smt2
   regress1/quantifiers/min-ppgt-em-incomplete2.smt2
   regress1/quantifiers/mix-coeff.smt2
@@ -2383,7 +2384,6 @@ set(regress_2_tests
   regress2/ho/partial_app_interpreted_SWW474^2.p
   regress2/hole7.cvc
   regress2/hole8.cvc
-  regress2/hole10.cvc
   regress2/instance_1444.smtv1.smt2
   regress2/issue3687-check-models.smt2
   regress2/issue4707-bv-to-bool-large.smt2
@@ -2483,6 +2483,7 @@ set(regress_3_tests
   regress3/friedman_n4_i5.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc
+  regress3/hole10.cvc
   regress3/incorrect1.smtv1.smt2
   regress3/interpol2.smt2
   regress3/inv_gen_n_c11.sy

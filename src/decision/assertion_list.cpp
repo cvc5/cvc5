@@ -101,13 +101,13 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
     // no decision does not impact the decision order
     return;
   }
-  std::vector<TNode>::iterator it =
-      std::find(d_dlist.begin(), d_dlist.end(), n);
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it =
+      d_dlistSet.find(n);
   if (s == DecisionStatus::DECISION)
   {
-    if (it == d_dlist.end())
+    if (it == d_dlistSet.end())
     {
-      // if we just had status on an assertion and it didnt occur id dlist,
+      // if we just had a status on an assertion and it didn't occur in dlist,
       // then our index should have exhausted dlist
       Assert(d_dindex.get() == d_dlist.size());
       if (d_dindex.get() == d_dlist.size())
@@ -116,6 +116,7 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
       }
       // add to back of the decision list if not already there
       d_dlist.push_back(n);
+      d_dlistSet.insert(n);
       Trace("jh-status") << "...push due to decision" << std::endl;
     }
     return;
@@ -123,9 +124,10 @@ void AssertionList::notifyStatus(TNode n, DecisionStatus s)
   if (s == DecisionStatus::BACKTRACK)
   {
     // backtrack inserts at the current position
-    if (it == d_dlist.end())
+    if (it == d_dlistSet.end())
     {
       d_dlist.insert(d_dlist.begin(), n);
+      d_dlistSet.insert(n);
     }
   }
 }
