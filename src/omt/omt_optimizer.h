@@ -60,24 +60,22 @@ class OMTOptimizer
    * @param parentSMTSolver an SMT solver encoding the assertions as the
    *   constraints
    * @param target the target expression to optimize
-   * @return pair<OptResult, Node>: the result of optimization and the optimized
-   *   value, if OptResult is OPT_UNKNOWN, value returned could be empty node or
-   *   something suboptimal.
+   * @return smt::OptimizationResult the result of optimization, containing
+   *   whether it's optimal and the optimized value.
    **/
-  virtual std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                                   Node target) = 0;
+  virtual smt::OptimizationResult minimize(SmtEngine* parentSMTSolver,
+                                           Node target) = 0;
   /**
    * Maximize the target node with constraints encoded in parentSMTSolver
    *
    * @param parentSMTSolver an SMT solver encoding the assertions as the
    *   constraints
    * @param target the target expression to optimize
-   * @return pair<OptResult, Node>: the result of optimization and the optimized
-   *   value, if OptResult is OPT_UNKNOWN, value returned could be empty node or
-   *   something suboptimal.
+   * @return smt::OptimizationResult the result of optimization, containing
+   *   whether it's optimal and the optimized value.
    **/
-  virtual std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                                   Node target) = 0;
+  virtual smt::OptimizationResult maximize(SmtEngine* parentSMTSolver,
+                                           Node target) = 0;
 };
 
 }  // namespace cvc5::omt

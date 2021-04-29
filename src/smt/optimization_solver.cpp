@@ -22,72 +22,78 @@ using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
 
-/**
- * d_activatedObjective is initialized to a default objective:
- * default objective constructed with Null Node and OBJECTIVE_UNDEFINED
- *
- * d_savedValue is initialized to a default node (Null Node)
- */
-
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
-    : d_parent(parent),
-      d_activatedObjective(Node(), ObjectiveType::OBJECTIVE_UNDEFINED),
-      d_savedValue()
+    : d_parent(parent), d_objectives(), d_results()
 {
 }
 
-OptimizationSolver::~OptimizationSolver() {}
-
-OptResult OptimizationSolver::checkOpt()
+OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
-  // Make sure that the objective is not the default one
-  Assert(d_activatedObjective.getType() != ObjectiveType::OBJECTIVE_UNDEFINED);
-  Assert(!d_activatedObjective.getNode().isNull());
-
+  // just a single objective optimization
   std::unique_ptr<OMTOptimizer> optimizer = OMTOptimizer::getOptimizerForNode(
-      d_activatedObjective.getNode(), d_activatedObjective.getSigned());
+      d_objectives[0].getTarget(), d_objectives[0].bvIsSigned());
 
-  Assert(optimizer != nullptr);
+  if (!optimizer) return OptimizationResult::UNSUPPORTED;
 
-  std::pair<OptResult, Node> optResult;
-  if (d_activatedObjective.getType() == ObjectiveType::OBJECTIVE_MAXIMIZE)
+  OptimizationResult optResult;
+  if (d_objectives[0].getType() == OptimizationObjective::MAXIMIZE)
   {
-    optResult = optimizer->maximize(this->d_parent,
-                                    this->d_activatedObjective.getNode());
+    optResult =
+        optimizer->maximize(this->d_parent, this->d_objectives[0].getTarget());
   }
-  else if (d_activatedObjective.getType() == ObjectiveType::OBJECTIVE_MINIMIZE)
+  else if (d_objectives[0].getType() == OptimizationObjective::MINIMIZE)
   {
-    optResult = optimizer->minimize(this->d_parent,
-                                    this->d_activatedObjective.getNode());
+    optResult =
+        optimizer->minimize(this->d_parent, this->d_objectives[0].getTarget());
   }
 
-  this->d_savedValue = optResult.second;
-  return optResult.first;
+  d_results[0] = optResult;
+  return optResult.getType();
 }
 
-void OptimizationSolver::activateObj(const Node& obj,
-                                     const ObjectiveType type,
-                                     bool bvSigned)
+void OptimizationSolver::pushObjective(
+    const Node target,
+    const OptimizationObjective::ObjectiveType type,
+    bool bvSigned)
 {
-  d_activatedObjective = Objective(obj, type, bvSigned);
+  d_objectives.emplace_back(target, type, bvSigned);
+  d_results.emplace_back(OptimizationResult::UNSUPPORTED, Node());
 }
 
-Node OptimizationSolver::objectiveGetValue()
+void OptimizationSolver::popObjective()
 {
-  Assert(!d_savedValue.isNull());
-  return d_savedValue;
+  d_objectives.pop_back();
+  d_results.pop_back();
 }
 
-Objective::Objective(Node obj, ObjectiveType type, bool bvSigned)
-    : d_type(type), d_node(obj), d_bvSigned(bvSigned)
+std::vector<OptimizationResult> OptimizationSolver::getValues()
+{
+  return d_results;
+}
+
+OptimizationObjective::OptimizationObjective(
+    Node target, OptimizationObjective::ObjectiveType type, bool bvSigned)
+    : d_type(type), d_target(target), d_bvSigned(bvSigned)
 {
 }
 
-ObjectiveType Objective::getType() { return d_type; }
+OptimizationObjective::ObjectiveType OptimizationObjective::getType()
+{
+  return d_type;
+}
 
-Node Objective::getNode() { return d_node; }
+Node OptimizationObjective::getTarget() { return d_target; }
 
-bool Objective::getSigned() { return d_bvSigned; }
+bool OptimizationObjective::bvIsSigned() { return d_bvSigned; }
+
+OptimizationResult::OptimizationResult(OptimizationResult::ResultType type,
+                                       Node value)
+    : d_type(type), d_value(value)
+{
+}
+OptimizationResult::OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
+OptimizationResult::ResultType OptimizationResult::getType() { return d_type; }
+Node OptimizationResult::getValue() { return d_value; }
 
 }  // namespace smt
 }  // namespace cvc5
