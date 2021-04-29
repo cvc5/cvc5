@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file term_processor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term processor utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node converter utility
+ */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__TERM_PROCESSOR_H
-#define CVC4__PROOF__TERM_PROCESSOR_H
+#ifndef CVC4__EXPR__NODE_CONVERTER_H
+#define CVC4__EXPR__NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
@@ -27,9 +28,9 @@ namespace cvc5 {
 namespace proof {
 
 /**
- * A term processor for terms and types. Implements term/type traversals,
- * calling the provided implementations of conversion methods (runConvert and
- * runConvertType) at post-traversal.
+ * A node converter for terms and types. Implements term/type traversals,
+ * calling the provided implementations of conversion methods (pre/postConvert
+ * and pre/postConvertType) at pre-traversal and post-traversal.
  *
  * This class can be used as a generic method for converting terms/types.
  */
@@ -76,10 +77,6 @@ class NodeConverter
   virtual TypeNode postConvertType(TypeNode n);
   //------------------------- end virtual interface
  private:
-  /** convert */
-  Node convertInternal(Node n);
-  /** convert */
-  TypeNode convertTypeInternal(TypeNode tn);
   /** Add to cache */
   void addToCache(TNode cur, TNode ret);
   /** Add to type cache */
@@ -92,7 +89,7 @@ class NodeConverter
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_preTCache;
   /** TypeNode cache for postConvert */
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tcache;
-  /** Whether this term processor is idempotent. */
+  /** Whether this node converter is idempotent. */
   bool d_forceIdem;
 };
 

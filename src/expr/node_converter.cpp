@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file term_processor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term processor utilities
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node converter utility
+ */
 
-#include "proof/term_processor.h"
+#include "expr/node_converter.h"
 
 #include "expr/attribute.h"
 
@@ -29,7 +30,7 @@ Node NodeConverter::convert(Node n)
   {
     return n;
   }
-  Trace("term-process-debug") << "NodeConverter::convert: " << n << std::endl;
+  Trace("nconv-debug") << "NodeConverter::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -40,7 +41,7 @@ Node NodeConverter::convert(Node n)
     cur = visit.back();
     visit.pop_back();
     it = d_cache.find(cur);
-    Trace("term-process-debug2") << "convert " << cur << std::endl;
+    Trace("nconv-debug2") << "convert " << cur << std::endl;
     if (it == d_cache.end())
     {
       Assert(d_preCache.find(cur) == d_preCache.end());
@@ -130,7 +131,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
   {
     return tn;
   }
-  Trace("term-process-debug")
+  Trace("nconv-debug")
       << "NodeConverter::convertType: " << tn << std::endl;
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
   std::vector<TypeNode> visit;
@@ -141,7 +142,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
     cur = visit.back();
     visit.pop_back();
     it = d_tcache.find(cur);
-    Trace("term-process-debug2") << "convert type " << cur << std::endl;
+    Trace("nconv-debug2") << "convert type " << cur << std::endl;
     if (it == d_tcache.end())
     {
       Assert(d_preTCache.find(cur) == d_preTCache.end());
@@ -198,14 +199,14 @@ TypeNode NodeConverter::convertType(TypeNode tn)
         }
         // construct the type node
         ret = nb.constructTypeNode();
-        Trace("term-process-debug") << cur << " <- " << ret << std::endl;
+        Trace("nconv-debug") << cur << " <- " << ret << std::endl;
         // run the callback for the current application
         TypeNode cret = postConvertType(ret);
         if (!cret.isNull())
         {
           ret = cret;
         }
-        Trace("term-process-debug")
+        Trace("nconv-debug")
             << cur << " <- " << ret << " (post-convert)" << std::endl;
         addToTypeCache(cur, ret);
       }
@@ -213,7 +214,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
   } while (!visit.empty());
   Assert(d_tcache.find(tn) != d_tcache.end());
   Assert(!d_tcache.find(tn)->second.isNull());
-  Trace("term-process-debug")
+  Trace("nconv-debug")
       << "NodeConverter::convertType: returns " << d_tcache[tn] << std::endl;
   return d_tcache[tn];
 }

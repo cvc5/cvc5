@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "printer/let_binding.h"
-#include "proof/lfsc/lfsc_term_process.h"
+#include "proof/lfsc/lfsc_node_converter.h"
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 

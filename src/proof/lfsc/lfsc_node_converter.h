@@ -1,28 +1,28 @@
-/*********************                                                        */
-/*! \file lfsc_term_process.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
-
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of LFSC node conversion
+ */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_TERM_PROCESS_H
-#define CVC4__PROOF__LFSC__LFSC_TERM_PROCESS_H
+#ifndef CVC4__PROOF__LFSC__LFSC_NODE_CONVERTER_H
+#define CVC4__PROOF__LFSC__LFSC_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "proof/term_processor.h"
+#include "expr/node_converter.h"
 
 namespace cvc5 {
 namespace proof {

@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
-#include "proof/lfsc/lfsc_term_process.h"
+#include "proof/lfsc/lfsc_node_converter.h"
 #include "proof/lfsc/lfsc_util.h"
 
 namespace cvc5 {
