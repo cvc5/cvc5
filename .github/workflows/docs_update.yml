@@ -2,13 +2,13 @@ name: documentation update
 on:
   push:
     paths:
-    - '.ci/**'
+    - '.github/**'
     - 'docs/**'
     - 'examples/**'
     - 'src/api/**'
   pull_request_target:
     paths:
-    - '.ci/**'
+    - '.github/**'
     - 'docs/**'
     - 'examples/**'
     - 'src/api/**'
