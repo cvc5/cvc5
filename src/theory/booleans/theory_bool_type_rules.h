@@ -10,9 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add brief comments here ]]
- *
- * [[ Add file-specific comments here ]]
+ * Typing and cardinality rules for the theory of boolean.
  */
 
 #include "cvc5_private.h"
@@ -20,56 +18,24 @@
 #ifndef CVC5__THEORY_BOOL_TYPE_RULES_H
 #define CVC5__THEORY_BOOL_TYPE_RULES_H
 
+#include "expr/node.h"
+#include "expr/type_node.h"
+
 namespace cvc5 {
 namespace theory {
 namespace boolean {
 
-class BooleanTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    TypeNode booleanType = nodeManager->booleanType();
-    if( check ) {
-      TNode::iterator child_it = n.begin();
-      TNode::iterator child_it_end = n.end();
-      for(; child_it != child_it_end; ++child_it) {
-        if(!(*child_it).getType(check).isBoolean()) {
-          Debug("pb") << "failed type checking: " << *child_it << std::endl;
-          Debug("pb") << "  integer: " << (*child_it).getType(check).isInteger() << std::endl;
-          Debug("pb") << "  real: " << (*child_it).getType(check).isReal() << std::endl;
-          throw TypeCheckingExceptionPrivate(n, "expecting a Boolean subexpression");
-        }
-      }
-    }
-    return booleanType;
-  }
-};/* class BooleanTypeRule */
+class BooleanTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
-class IteTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    TypeNode thenType = n[1].getType(check);
-    TypeNode elseType = n[2].getType(check);
-    TypeNode iteType = TypeNode::leastCommonTypeNode(thenType, elseType);
-    if( check ) {
-      TypeNode booleanType = nodeManager->booleanType();
-      if (n[0].getType(check) != booleanType) {
-        throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
-      }
-      if (iteType.isNull()) {
-        std::stringstream ss;
-        ss << "Both branches of the ITE must be a subtype of a common type." << std::endl
-           << "then branch: " << n[1] << std::endl
-           << "its type   : " << thenType << std::endl
-           << "else branch: " << n[2] << std::endl
-           << "its type   : " << elseType << std::endl;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
-    return iteType;
-  }
-};/* class IteTypeRule */
+class IteTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
 
 }  // namespace boolean
 }  // namespace theory
