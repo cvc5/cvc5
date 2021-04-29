@@ -7,7 +7,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
       - name: Clone docs repo
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
@@ -24,6 +33,8 @@ jobs:
           git commit -m "Prune docs" || echo "Nothing to prune"
 
       - name: Squash old commits
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           cd target
           git log
@@ -33,6 +44,8 @@ jobs:
           git log
       
       - name: Push
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           cd target
           git push -f

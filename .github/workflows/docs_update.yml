@@ -54,8 +54,17 @@ jobs:
         run: make -j2 docs-gh
         working-directory: build
 
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
       - name: Update docs
         continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
