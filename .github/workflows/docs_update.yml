@@ -41,7 +41,7 @@ jobs:
             build-essential \
             libgmp-dev \
             doxygen \
-            python3-docutils
+            python3-docutils python3-jinja2
           python3 -m pip install \
             setuptools toml \
             sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
@@ -88,7 +88,11 @@ jobs:
             rm -f docs-$NAME
             ln -s docs-$NAME-${{ github.sha }} docs-$NAME
             git add docs-$NAME docs-$NAME-${{ github.sha }}
+
+            python3 genindex.py
+            git add index.html
             git commit -m "Update docs for $NAME"
+
             git push
           else
             echo "Ignored run"

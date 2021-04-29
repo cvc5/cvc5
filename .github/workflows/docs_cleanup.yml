@@ -7,6 +7,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-jinja2
+
       - name: Setup Deploy Key
         env:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -48,4 +53,9 @@ jobs:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           cd target
+
+          python3 genindex.py
+          git add index.html
+          git commit -m "Update index.html"
+          
           git push -f
