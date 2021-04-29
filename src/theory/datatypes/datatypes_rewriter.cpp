@@ -843,7 +843,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       }
     }
     break;
-    case APPLY_DT_UPDATE:
+    case APPLY_UPDATE:
     {
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();

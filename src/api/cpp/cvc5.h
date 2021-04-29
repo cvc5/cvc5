@@ -402,7 +402,7 @@ class CVC5_EXPORT Sort
    * Is this a datatype updater sort?
    * @return true if the sort is a datatype updater sort
    */
-  bool isDatatypeUpdater() const;
+  bool isUpdater() const;
   /**
    * Is this a function sort?
    * @return true if the sort is a function sort

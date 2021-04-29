@@ -243,7 +243,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {APPLY_SELECTOR, cvc5::Kind::APPLY_SELECTOR},
     {APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR},
     {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
-    {APPLY_DT_UPDATE, cvc5::Kind::APPLY_DT_UPDATE},
+    {APPLY_UPDATE, cvc5::Kind::APPLY_UPDATE},
     {DT_SIZE, cvc5::Kind::DT_SIZE},
     {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
@@ -549,7 +549,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {cvc5::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
-        {cvc5::Kind::APPLY_DT_UPDATE, APPLY_DT_UPDATE},
+        {cvc5::Kind::APPLY_UPDATE, APPLY_UPDATE},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
@@ -713,7 +713,7 @@ bool isApplyKind(cvc5::Kind k)
 {
   return (k == cvc5::Kind::APPLY_UF || k == cvc5::Kind::APPLY_CONSTRUCTOR
           || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER
-          || k == cvc5::Kind::APPLY_DT_UPDATE);
+          || k == cvc5::Kind::APPLY_UPDATE);
 }
 
 #ifdef CVC5_ASSERTIONS
@@ -1189,11 +1189,11 @@ bool Sort::isTester() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isDatatypeUpdater() const
+bool Sort::isUpdater() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isDatatypeUpdater();
+  return d_type->isUpdater();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

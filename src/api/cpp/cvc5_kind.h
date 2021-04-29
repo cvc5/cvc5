@@ -1953,7 +1953,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  APPLY_DT_UPDATE,
+  APPLY_UPDATE,
   /**
    * Match expressions.
    * For example, the smt2 syntax match term

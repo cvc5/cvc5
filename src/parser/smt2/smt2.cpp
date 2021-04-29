@@ -135,7 +135,7 @@ void Smt2::addDatatypesOperators()
 
   if (!strictModeEnabled())
   {
-    Parser::addOperator(api::APPLY_DT_UPDATE);
+    Parser::addOperator(api::APPLY_UPDATE);
     addOperator(api::DT_SIZE, "dt.size");
   }
 }
