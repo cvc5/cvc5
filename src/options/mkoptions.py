@@ -746,15 +746,16 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                         'if ({}) {{'.format(cond))
                     if option.type == 'bool':
                         getoption_handlers.append(
-                            'return options::{}() ? "true" : "false";'.format(
-                                option.name))
+                            f'return (*this)[options::{option.name}] ? "true" : "false";')
+                    elif option.type == 'std::string':
+                        getoption_handlers.append(
+                            f'return (*this)[options::{option.name}];')
+                    elif is_numeric_cpp_type(option.type):
+                        getoption_handlers.append(
+                            f'return std::to_string((*this)[options::{option.name}]);')
                     else:
                         getoption_handlers.append('std::stringstream ss;')
-                        if is_numeric_cpp_type(option.type):
-                            getoption_handlers.append(
-                                'ss << std::fixed << std::setprecision(8);')
-                        getoption_handlers.append('ss << options::{}();'.format(
-                            option.name))
+                        getoption_handlers.append(f'ss << (*this)[options::{option.name}];')
                         getoption_handlers.append('return ss.str();')
                     getoption_handlers.append('}')
 
@@ -788,21 +789,13 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     options_smt.append('"{}",'.format(optname))
 
                     if option.type == 'bool':
-                        s = '{ std::vector<std::string> v; '
-                        s += 'v.push_back("{}"); '.format(optname)
-                        s += 'v.push_back(std::string('
-                        s += 'd_holder->{}'.format(option.name)
-                        s += ' ? "true" : "false")); '
-                        s += 'opts.push_back(v); }'
+                        s = f'opts.push_back({{"{optname}", d_holder->{option.name} ? "true" : "false"}});'
+                    elif is_numeric_cpp_type(option.type):
+                        s = f'opts.push_back({{"{optname}", std::to_string(d_holder->{option.name})}});'
                     else:
                         s = '{ std::stringstream ss; '
-                        if is_numeric_cpp_type(option.type):
-                            s += 'ss << std::fixed << std::setprecision(8); '
                         s += 'ss << d_holder->{}; '.format(option.name)
-                        s += 'std::vector<std::string> v; '
-                        s += 'v.push_back("{}"); '.format(optname)
-                        s += 'v.push_back(ss.str()); '
-                        s += 'opts.push_back(v); }'
+                        s += f'opts.push_back({{"{optname}", ss.str()}}); }}'
                     options_getoptions.append(s)
 
 
