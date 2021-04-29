@@ -129,8 +129,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 
     if (ji == nullptr)
     {
-      // NOTE: lastChildVal should be SAT_VALUE_TRUE here.
-      // assertion should be true?
+      // NOTE: lastChildVal should be SAT_VALUE_TRUE here, although this is
+      // not the case if backtracking occurred.
       if (!d_currUnderStatus.isNull())
       {
         // notify status if we are watching it
@@ -499,15 +499,6 @@ void JustificationStrategy::notifyAsserted(TNode n)
   // that a node on the current stack is justified.
 }
 
-void JustificationStrategy::notifyJustified(TNode atom)
-{
-  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::JUSTIFY)
-  {
-    std::vector<TNode> defs;
-    d_skdm->notifyAsserted(atom, defs, true);
-    insertToAssertionList(defs, true);
-  }
-}
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
                                                   bool useSkolemList)
 {

@@ -116,8 +116,6 @@ class JustificationStrategy
    * Lookup value, return value of n if one can be determined.
    */
   prop::SatValue lookupValue(TNode n);
-  /** Notify justified atom */
-  void notifyJustified(TNode atom);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
   /** Is n a theory atom? */
