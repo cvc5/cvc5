@@ -16,16 +16,12 @@
 #include "smt/optimization_solver.h"
 
 #include "omt/omt_optimizer.h"
+#include "smt/assertions.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
-
-OptimizationSolver::OptimizationSolver(SmtEngine* parent)
-    : d_parent(parent), d_objectives(), d_results()
-{
-}
 
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
@@ -70,30 +66,6 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
 {
   return d_results;
 }
-
-OptimizationObjective::OptimizationObjective(
-    Node target, OptimizationObjective::ObjectiveType type, bool bvSigned)
-    : d_type(type), d_target(target), d_bvSigned(bvSigned)
-{
-}
-
-OptimizationObjective::ObjectiveType OptimizationObjective::getType()
-{
-  return d_type;
-}
-
-Node OptimizationObjective::getTarget() { return d_target; }
-
-bool OptimizationObjective::bvIsSigned() { return d_bvSigned; }
-
-OptimizationResult::OptimizationResult(OptimizationResult::ResultType type,
-                                       Node value)
-    : d_type(type), d_value(value)
-{
-}
-OptimizationResult::OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
-OptimizationResult::ResultType OptimizationResult::getType() { return d_type; }
-Node OptimizationResult::getValue() { return d_value; }
 
 }  // namespace smt
 }  // namespace cvc5

@@ -20,7 +20,6 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "smt/assertions.h"
 #include "util/result.h"
 
 namespace cvc5 {
@@ -62,8 +61,10 @@ class OptimizationResult
    * @param result the optimization outcome
    * @param value the optimized value
    **/
-  OptimizationResult(ResultType type, Node value);
-  OptimizationResult();
+  OptimizationResult(ResultType type, Node value) : d_type(type), d_value(value)
+  {
+  }
+  OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
   ~OptimizationResult() = default;
 
   /**
@@ -72,14 +73,14 @@ class OptimizationResult
    * @return an enum showing whether the result is optimal, unbounded,
    *   unsat, unknown or unsupported.
    **/
-  ResultType getType();
+  ResultType getType() { return d_type; }
   /**
    * Returns the optimal value.
    * @return Node containing the optimal value,
    *   if getType() is not OPTIMAL, it might return an empty node or a node
    *   containing non-optimal value
    **/
-  Node getValue();
+  Node getValue() { return d_value; }
 
  private:
   ResultType d_type;
@@ -113,17 +114,20 @@ class OptimizationObjective
    *    for BitVectors this parameter is only valid when the type of target node
    *    is BitVector
    **/
-  OptimizationObjective(Node target, ObjectiveType type, bool bvSigned = false);
+  OptimizationObjective(Node target, ObjectiveType type, bool bvSigned = false)
+      : d_type(type), d_target(target), d_bvSigned(bvSigned)
+  {
+  }
   ~OptimizationObjective() = default;
 
   /** A getter for d_type **/
-  ObjectiveType getType();
+  ObjectiveType getType() { return d_type; }
 
   /** A getter for d_target **/
-  Node getTarget();
+  Node getTarget() { return d_target; }
 
   /** A getter for d_bvSigned **/
-  bool bvIsSigned();
+  bool bvIsSigned() { return d_bvSigned; }
 
  private:
   /**
@@ -159,7 +163,10 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent);
+  OptimizationSolver(SmtEngine* parent)
+      : d_parent(parent), d_objectives(), d_results()
+  {
+  }
   ~OptimizationSolver() = default;
 
   /** Runs the optimization loop for the pushed objective **/
