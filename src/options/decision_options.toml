@@ -16,7 +16,7 @@ header = "options/decision_options.h"
   name = "internal"
   help = "Use the internal decision heuristics of the SAT solver."
 [[option.mode.JUSTIFICATION]]
-  name = "justification-old"
+  name = "justification"
   help = "An ATGP-inspired justification heuristic."
 [[option.mode.RELEVANCY]]
   name = "justification-stoponly"
