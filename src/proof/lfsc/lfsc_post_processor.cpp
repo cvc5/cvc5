@@ -28,7 +28,7 @@ namespace cvc5 {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
-    LfscTermProcessor& ltp, ProofNodeManager* pnm)
+    LfscNodeConverter& ltp, ProofNodeManager* pnm)
     : d_pnm(pnm), d_pc(pnm->getChecker()), d_tproc(ltp), d_firstTime(false)
 {
 }
@@ -208,7 +208,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Node opEq = op.eqNode(op);
       cdp->addStep(opEq, PfRule::REFL, {}, {op});
       size_t nchildren = children.size();
-      Node nullTerm = LfscTermProcessor::getNullTerminator(k);
+      Node nullTerm = LfscNodeConverter::getNullTerminator(k);
       // Are we doing congruence of an n-ary operator? If so, notice that op
       // is a binary operator and we must apply congruence in a special way.
       // Note we use the first block of code if we have more than 2 children,
@@ -313,7 +313,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::AND_INTRO:
     {
-      Node cur = LfscTermProcessor::getNullTerminator(AND);
+      Node cur = LfscNodeConverter::getNullTerminator(AND);
       size_t nchildren = children.size();
       for (size_t j = 0; j < nchildren; j++)
       {
@@ -335,7 +335,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::ARITH_SUM_UB:
     {
       // proof of null terminator base 0 = 0
-      Node zero = LfscTermProcessor::getNullTerminator(PLUS);
+      Node zero = LfscNodeConverter::getNullTerminator(PLUS);
       Node cur = zero.eqNode(zero);
       cdp->addStep(cur, PfRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)
@@ -392,7 +392,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
   size_t nchildren = children.size();
   size_t i = 0;
   // do we have a null terminator? If so, we start with it.
-  Node ret = LfscTermProcessor::getNullTerminator(k);
+  Node ret = LfscNodeConverter::getNullTerminator(k);
   if (ret.isNull())
   {
     ret = children[nchildren - 1];
@@ -412,7 +412,7 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   return nm->mkBoundVar(nm->booleanType());
 }
 
-LfscProofPostprocess::LfscProofPostprocess(LfscTermProcessor& ltp,
+LfscProofPostprocess::LfscProofPostprocess(LfscNodeConverter& ltp,
                                            ProofNodeManager* pnm)
     : d_cb(new proof::LfscProofPostprocessCallback(ltp, pnm)), d_pnm(pnm)
 {

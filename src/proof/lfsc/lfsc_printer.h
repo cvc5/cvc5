@@ -35,7 +35,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscTermProcessor& ltp);
+  LfscPrinter(LfscNodeConverter& ltp);
   ~LfscPrinter() {}
 
   /**
@@ -104,7 +104,7 @@ class LfscPrinter
                                 std::map<const ProofNode*, size_t>& pletMap);
   //------------------------------ end printing proofs
   /** The term processor */
-  LfscTermProcessor& d_tproc;
+  LfscNodeConverter& d_tproc;
   /** The proof traversal callback */
   LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */

@@ -28,7 +28,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp) : d_tproc(ltp)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -114,7 +114,7 @@ void LfscPrinter::print(std::ostream& out,
           else
           {
             preamble << "(declare "
-                     << LfscTermProcessor::getNameForUserName(dt.getName())
+                     << LfscNodeConverter::getNameForUserName(dt.getName())
                      << " sort)" << std::endl;
           }
           for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)

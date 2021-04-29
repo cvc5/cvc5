@@ -27,15 +27,15 @@
 namespace cvc5 {
 namespace proof {
 
-class LfscTermProcessor : public TermProcessor
+class LfscNodeConverter : public NodeConverter
 {
  public:
-  LfscTermProcessor();
-  ~LfscTermProcessor() {}
+  LfscNodeConverter();
+  ~LfscNodeConverter() {}
   /** convert to internal */
-  Node runConvert(Node n) override;
+  Node postConvert(Node n) override;
   /** convert to internal */
-  TypeNode runConvertType(TypeNode tn) override;
+  TypeNode postConvertType(TypeNode tn) override;
   /**
    * Get the null terminator for kind k
    */

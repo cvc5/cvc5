@@ -193,7 +193,7 @@ void PfManager::printProof(std::ostream& out,
     std::vector<Node> assertions;
     getAssertions(as, df, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
-    proof::LfscTermProcessor ltp;
+    proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
     proof::LfscPrinter lp(ltp);

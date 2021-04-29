@@ -33,11 +33,11 @@ namespace proof {
  *
  * This class can be used as a generic method for converting terms/types.
  */
-class TermProcessor
+class NodeConverter
 {
  public:
-  TermProcessor(bool forceIdem = true);
-  virtual ~TermProcessor() {}
+  NodeConverter(bool forceIdem = true);
+  virtual ~NodeConverter() {}
   /**
    * This converts node n based on the runConvert method that can be overriden
    * by instances of this class.
@@ -54,18 +54,26 @@ class TermProcessor
   //------------------------- virtual interface
   /** Should we traverse n? */
   virtual bool shouldTraverse(Node n);
+  /** Run the conversion for n during pre-order traversal. */
+  virtual Node preConvert(Node n);
   /**
-   * Run the conversion, where n is a term of the form:
+   * Run the conversion for at post-order traversal, where notice n is a term
+   * of the form:
    *   (f i_1 ... i_m)
    * where i_1, ..., i_m are terms that have been returned by previous calls
-   * to runConvert.
+   * to postConvert.
    */
-  virtual Node runConvert(Node n);
+  virtual Node postConvert(Node n);
   /**
    * Run the conversion, same as above, but for type nodes, which notice can
    * be built from children similar to Node.
    */
-  virtual TypeNode runConvertType(TypeNode n);
+  virtual TypeNode preConvertType(TypeNode n);
+  /**
+   * Run the conversion, same as above, but for type nodes, which notice can
+   * be built from children similar to Node.
+   */
+  virtual TypeNode postConvertType(TypeNode n);
   //------------------------- end virtual interface
  private:
   /** convert */
@@ -76,9 +84,13 @@ class TermProcessor
   void addToCache(TNode cur, TNode ret);
   /** Add to type cache */
   void addToTypeCache(TypeNode cur, TypeNode ret);
-  /** Node caches */
+  /** Node cache for preConvert */
+  std::unordered_map<Node, Node, NodeHashFunction> d_preCache;
+  /** Node cache for postConvert */
   std::unordered_map<Node, Node, NodeHashFunction> d_cache;
-  /** TypeNode caches */
+  /** TypeNode cache for preConvert */
+  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_preTCache;
+  /** TypeNode cache for postConvert */
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tcache;
   /** Whether this term processor is idempotent. */
   bool d_forceIdem;

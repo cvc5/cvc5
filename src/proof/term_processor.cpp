@@ -21,15 +21,15 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace proof {
 
-TermProcessor::TermProcessor(bool forceIdem) : d_forceIdem(forceIdem) {}
+NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
 
-Node TermProcessor::convert(Node n)
+Node NodeConverter::convert(Node n)
 {
   if (n.isNull())
   {
     return n;
   }
-  Trace("term-process-debug") << "TermProcessor::convert: " << n << std::endl;
+  Trace("term-process-debug") << "NodeConverter::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -43,55 +43,80 @@ Node TermProcessor::convert(Node n)
     Trace("term-process-debug2") << "convert " << cur << std::endl;
     if (it == d_cache.end())
     {
-      if (!shouldTraverse(cur))
+      Assert (d_preCache.find(cur)==d_preCache.end());
+      Node curp = preConvert(cur);
+      d_preCache[cur] = curp;
+      curp = curp.isNull() ? Node(cur) : curp;
+      if (!shouldTraverse(curp))
       {
-        addToCache(cur, cur);
+        if (cur!=curp)
+        {
+          addToCache(cur, curp);
+        }
+        addToCache(curp, curp);
       }
       else
       {
-        d_cache[cur] = Node::null();
-        visit.push_back(cur);
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        if (cur!=curp)
         {
-          visit.push_back(cur.getOperator());
+          d_cache[cur] = Node::null();
+          visit.push_back(cur);
         }
-        visit.insert(visit.end(), cur.begin(), cur.end());
+        d_cache[curp] = Node::null();
+        visit.push_back(curp);
+        if (curp.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          visit.push_back(curp.getOperator());
+        }
+        visit.insert(visit.end(), curp.begin(), curp.end());
       }
     }
     else if (it->second.isNull())
     {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      it = d_preCache.find(cur);
+      Assert (it!=d_preCache.end());
+      if (!it->second.isNull())
       {
-        it = d_cache.find(cur.getOperator());
-        Assert(it != d_cache.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cur.getOperator() != it->second;
-        children.push_back(it->second);
+        // it converts to what its prewrite converts to
+        Assert (d_cache.find(it->second)!=d_cache.end());
+        Node ret = d_cache[it->second];
+        addToCache(cur, ret);
       }
-      for (const Node& cn : cur)
+      else
       {
-        it = d_cache.find(cn);
-        Assert(it != d_cache.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
+        Node ret = cur;
+        bool childChanged = false;
+        std::vector<Node> children;
+        if (ret.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          it = d_cache.find(ret.getOperator());
+          Assert(it != d_cache.end());
+          Assert(!it->second.isNull());
+          childChanged = childChanged || ret.getOperator() != it->second;
+          children.push_back(it->second);
+        }
+        for (const Node& cn : ret)
+        {
+          it = d_cache.find(cn);
+          Assert(it != d_cache.end());
+          Assert(!it->second.isNull());
+          childChanged = childChanged || cn != it->second;
+          children.push_back(it->second);
+        }
+        if (childChanged)
+        {
+          ret = nm->mkNode(ret.getKind(), children);
+        }
+        // run the callback for the current application
+        Node cret = postConvert(ret);
+        if (!cret.isNull() && ret != cret)
+        {
+          AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
+              << "Converting " << ret << " to " << cret << " changes type";
+          ret = cret;
+        }
+        addToCache(cur, ret);
       }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      // run the callback for the current application
-      Node cret = runConvert(ret);
-      if (!cret.isNull() && ret != cret)
-      {
-        AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
-            << "Converting " << ret << " to " << cret << " changes type";
-        ret = cret;
-      }
-      addToCache(cur, ret);
     }
   } while (!visit.empty());
   Assert(d_cache.find(n) != d_cache.end());
@@ -99,14 +124,14 @@ Node TermProcessor::convert(Node n)
   return d_cache[n];
 }
 
-TypeNode TermProcessor::convertType(TypeNode tn)
+TypeNode NodeConverter::convertType(TypeNode tn)
 {
   if (tn.isNull())
   {
     return tn;
   }
   Trace("term-process-debug")
-      << "TermProcessor::convertType: " << tn << std::endl;
+      << "NodeConverter::convertType: " << tn << std::endl;
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
   std::vector<TypeNode> visit;
   TypeNode cur;
@@ -119,59 +144,81 @@ TypeNode TermProcessor::convertType(TypeNode tn)
     Trace("term-process-debug2") << "convert type " << cur << std::endl;
     if (it == d_tcache.end())
     {
+      Assert (d_preTCache.find(cur)==d_preTCache.end());
+      TypeNode curp = preConvertType(cur);
+      d_preTCache[cur] = curp;
+      curp = curp.isNull() ? cur : curp;
       if (cur.getNumChildren() == 0)
       {
-        TypeNode ret = runConvertType(cur);
-        addToTypeCache(cur, ret);
+        TypeNode ret = postConvertType(curp);
+        if (cur!=curp)
+        {
+          addToTypeCache(cur, ret);
+        }
+        addToTypeCache(curp, ret);
       }
       else
       {
         d_tcache[cur] = TypeNode::null();
         visit.push_back(cur);
+        visit.push_back(curp);
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second.isNull())
     {
-      // reconstruct using a node builder, which seems to be required for
-      // type nodes.
-      NodeBuilder nb(cur.getKind());
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      it = d_preTCache.find(cur);
+      Assert (it!=d_preTCache.end());
+      if (!it->second.isNull())
       {
-        // push the operator
-        nb << cur.getOperator();
+        // it converts to what its prewrite converts to
+        Assert (d_tcache.find(it->second)!=d_cache.end());
+        TypeNode ret = d_tcache[it->second];
+        addToTypeCache(cur, ret);
       }
-      for (TypeNode::const_iterator j = cur.begin(), iend = cur.end();
-           j != iend;
-           ++j)
+      else
       {
-        it = d_tcache.find(*j);
-        Assert(it != d_tcache.end());
-        Assert(!it->second.isNull());
-        nb << it->second;
+        TypeNode ret = cur;
+        // reconstruct using a node builder, which seems to be required for
+        // type nodes.
+        NodeBuilder nb(ret.getKind());
+        if (ret.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          // push the operator
+          nb << ret.getOperator();
+        }
+        for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
+            j != iend;
+            ++j)
+        {
+          it = d_tcache.find(*j);
+          Assert(it != d_tcache.end());
+          Assert(!it->second.isNull());
+          nb << it->second;
+        }
+        // construct the type node
+        ret = nb.constructTypeNode();
+        Trace("term-process-debug") << cur << " <- " << ret << std::endl;
+        // run the callback for the current application
+        TypeNode cret = postConvertType(ret);
+        if (!cret.isNull())
+        {
+          ret = cret;
+        }
+        Trace("term-process-debug")
+            << cur << " <- " << ret << " (post-convert)" << std::endl;
+        addToTypeCache(cur, ret);
       }
-      // construct the type node
-      TypeNode ret = nb.constructTypeNode();
-      Trace("term-process-debug") << cur << " <- " << ret << std::endl;
-      // run the callback for the current application
-      TypeNode cret = runConvertType(ret);
-      if (!cret.isNull())
-      {
-        ret = cret;
-      }
-      Trace("term-process-debug")
-          << cur << " <- " << ret << " (post-convert)" << std::endl;
-      addToTypeCache(cur, ret);
     }
   } while (!visit.empty());
   Assert(d_tcache.find(tn) != d_tcache.end());
   Assert(!d_tcache.find(tn)->second.isNull());
   Trace("term-process-debug")
-      << "TermProcessor::convertType: returns " << d_tcache[tn] << std::endl;
+      << "NodeConverter::convertType: returns " << d_tcache[tn] << std::endl;
   return d_tcache[tn];
 }
 
-void TermProcessor::addToCache(TNode cur, TNode ret)
+void NodeConverter::addToCache(TNode cur, TNode ret)
 {
   d_cache[cur] = ret;
   // also force idempotency, if specified
@@ -180,7 +227,7 @@ void TermProcessor::addToCache(TNode cur, TNode ret)
     d_cache[ret] = ret;
   }
 }
-void TermProcessor::addToTypeCache(TypeNode cur, TypeNode ret)
+void NodeConverter::addToTypeCache(TypeNode cur, TypeNode ret)
 {
   d_tcache[cur] = ret;
   // also force idempotency, if specified
@@ -190,10 +237,12 @@ void TermProcessor::addToTypeCache(TypeNode cur, TypeNode ret)
   }
 }
 
-Node TermProcessor::runConvert(Node n) { return Node::null(); }
+Node NodeConverter::preConvert(Node n) { return Node::null(); }
+Node NodeConverter::postConvert(Node n) { return Node::null(); }
 
-TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
-bool TermProcessor::shouldTraverse(Node n) { return true; }
+TypeNode NodeConverter::preConvertType(TypeNode tn) { return TypeNode::null(); }
+TypeNode NodeConverter::postConvertType(TypeNode tn) { return TypeNode::null(); }
+bool NodeConverter::shouldTraverse(Node n) { return true; }
 
 }  // namespace proof
 }  // namespace cvc5

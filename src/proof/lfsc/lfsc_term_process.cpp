@@ -28,7 +28,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace proof {
 
-LfscTermProcessor::LfscTermProcessor()
+LfscNodeConverter::LfscNodeConverter()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_arrow = nm->mkSortConstructor("arrow", 2);
@@ -57,7 +57,7 @@ LfscTermProcessor::LfscTermProcessor()
       getSymbolInternal(FUNCTION_TYPE, setType, "Seq");
 }
 
-Node LfscTermProcessor::runConvert(Node n)
+Node LfscNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
@@ -68,7 +68,7 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   TypeNode tn = n.getType();
   Trace("lfsc-term-process-debug")
-      << "runConvert " << n << " " << k << std::endl;
+      << "postConvert " << n << " " << k << std::endl;
   if (k == BOUND_VARIABLE)
   {
     // ignore internally generated symbols
@@ -143,7 +143,7 @@ Node LfscTermProcessor::runConvert(Node n)
     std::vector<Node> children;
     children.push_back(opc);
     children.insert(children.end(), n.begin(), n.end());
-    return runConvert(nm->mkNode(APPLY_UF, children));
+    return postConvert(nm->mkNode(APPLY_UF, children));
   }
   else if (k == HO_APPLY)
   {
@@ -234,7 +234,7 @@ Node LfscTermProcessor::runConvert(Node n)
       return charVec[0];
     }
     std::reverse(charVec.begin(), charVec.end());
-    Node ret = runConvert(getNullTerminator(STRING_CONCAT));
+    Node ret = postConvert(getNullTerminator(STRING_CONCAT));
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
       ret = nm->mkNode(STRING_CONCAT, charVec[i], ret);
@@ -403,14 +403,14 @@ Node LfscTermProcessor::runConvert(Node n)
   return n;
 }
 
-TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
+TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode cur = tn;
   Node tnn;
   Kind k = tn.getKind();
   Trace("lfsc-term-process-debug")
-      << "runConvertType " << tn << " " << tn.getNumChildren() << " " << k
+      << "postConvertType " << tn << " " << tn.getNumChildren() << " " << k
       << std::endl;
   if (k == FUNCTION_TYPE)
   {
@@ -483,7 +483,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       if (false && (tn.isSort() || tn.isDatatype()))
       {
         std::stringstream sss;
-        sss << LfscTermProcessor::getNameForUserName(ss.str());
+        sss << LfscNodeConverter::getNameForUserName(ss.str());
         tnn = getSymbolInternal(k, d_sortType, sss.str());
         cur = nm->mkSort(sss.str());
       }
@@ -540,14 +540,14 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
   return cur;
 }
 
-std::string LfscTermProcessor::getNameForUserName(const std::string& name)
+std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 {
   std::stringstream ss;
   ss << "cvc." << name;
   return ss.str();
 }
 
-bool LfscTermProcessor::shouldTraverse(Node n)
+bool LfscNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
   // don't convert bound variable list directly
@@ -566,28 +566,28 @@ bool LfscTermProcessor::shouldTraverse(Node n)
   return true;
 }
 
-Node LfscTermProcessor::typeAsNode(TypeNode tni) const
+Node LfscNodeConverter::typeAsNode(TypeNode tni) const
 {
   // should always exist in the cache, as we always run types through
-  // runConvertType before calling this method.
+  // postConvertType before calling this method.
   std::map<TypeNode, Node>::const_iterator it = d_typeAsNode.find(tni);
   AlwaysAssert(it != d_typeAsNode.end()) << "Missing typeAsNode " << tni;
   return it->second;
 }
 
-Node LfscTermProcessor::mkInternalSymbol(const std::string& name, TypeNode tn)
+Node LfscNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn)
 {
   Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
 
-Node LfscTermProcessor::getSymbolInternalFor(Node n, const std::string& name)
+Node LfscNodeConverter::getSymbolInternalFor(Node n, const std::string& name)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name);
 }
 
-Node LfscTermProcessor::getSymbolInternal(Kind k,
+Node LfscNodeConverter::getSymbolInternal(Kind k,
                                           TypeNode tn,
                                           const std::string& name)
 {
@@ -603,7 +603,7 @@ Node LfscTermProcessor::getSymbolInternal(Kind k,
   return sym;
 }
 
-void LfscTermProcessor::getCharVectorInternal(Node c, std::vector<Node>& chars)
+void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
 {
   Assert(c.getKind() == CONST_STRING);
   NodeManager* nm = NodeManager::currentNM();
@@ -623,7 +623,7 @@ void LfscTermProcessor::getCharVectorInternal(Node c, std::vector<Node>& chars)
   }
 }
 
-bool LfscTermProcessor::isIndexedOperatorKind(Kind k)
+bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
   // TODO: this can be moved to a more central place
   return k==BITVECTOR_EXTRACT
@@ -635,7 +635,7 @@ bool LfscTermProcessor::isIndexedOperatorKind(Kind k)
   || k== INT_TO_BITVECTOR;
 }
 
-std::vector<Node> LfscTermProcessor::getOperatorIndices(Node n)
+std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
 {
   // TODO: this can be moved to a more central place
   NodeManager* nm = NodeManager::currentNM();
@@ -675,7 +675,7 @@ std::vector<Node> LfscTermProcessor::getOperatorIndices(Node n)
   return indices;
 }
 
-Node LfscTermProcessor::getNullTerminator(Kind k)
+Node LfscNodeConverter::getNullTerminator(Kind k)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node nullTerm;
@@ -698,7 +698,7 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
   return nullTerm;
 }
 
-Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
+Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
 {
   Assert(n.hasOperator());
   Assert(!n.isClosure());
@@ -829,7 +829,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   return getSymbolInternal(k, ftype, opName.str());
 }
 
-Node LfscTermProcessor::getOperatorOfClosure(Node q)
+Node LfscNodeConverter::getOperatorOfClosure(Node q)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType());
@@ -842,7 +842,7 @@ Node LfscTermProcessor::getOperatorOfClosure(Node q)
       k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
 }
 
-Node LfscTermProcessor::getOperatorOfBoundVar(Node cop, Node v)
+Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
@@ -850,7 +850,7 @@ Node LfscTermProcessor::getOperatorOfBoundVar(Node cop, Node v)
   return nm->mkNode(APPLY_UF, cop, x, tc);
 }
 
-size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)
+size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
 {
   Assert(v.isVar());
   std::map<Node, size_t>::iterator it = d_varIndex.find(v);
