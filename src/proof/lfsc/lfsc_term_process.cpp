@@ -260,7 +260,8 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
-           || k == INTS_MODULUS_TOTAL || k == UMINUS || isIndexedOperatorKind(k))
+           || k == INTS_MODULUS_TOTAL || k == UMINUS
+           || isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that MINUS is not n-ary
@@ -270,7 +271,7 @@ Node LfscNodeConverter::postConvert(Node n)
     children.push_back(opc);
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
-  }\
+  }
   else if (k == EMPTYSET || k == UNIVERSE_SET)
   {
     Node t = typeAsNode(convertType(tn));
@@ -331,8 +332,7 @@ Node LfscNodeConverter::postConvert(Node n)
         {
           if (i != 0 && j != 1)
           {
-            ret = nm->mkNode(
-                AND, ret, nm->mkNode(k, children[i], children[j]));
+            ret = nm->mkNode(AND, ret, nm->mkNode(k, children[i], children[j]));
           }
         }
       Trace("lfsc-term-process-debug") << "n: " << n << std::endl
@@ -626,13 +626,10 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
   // TODO: this can be moved to a more central place
-  return k==BITVECTOR_EXTRACT
-  || k== BITVECTOR_REPEAT
-  || k== BITVECTOR_ZERO_EXTEND
-  || k== BITVECTOR_SIGN_EXTEND
-  || k== BITVECTOR_ROTATE_LEFT
-  || k== BITVECTOR_ROTATE_RIGHT
-  || k== INT_TO_BITVECTOR;
+  return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
+         || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
+         || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
+         || k == INT_TO_BITVECTOR;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
@@ -641,7 +638,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> indices;
   Kind k = n.getKind();
-  switch(k)
+  switch (k)
   {
     case kind::BITVECTOR_EXTRACT_OP:
     {
@@ -651,26 +648,30 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Node n)
       break;
     }
     case kind::BITVECTOR_REPEAT_OP:
-      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
+      indices.push_back(
+          nm->mkConst(Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
       break;
     case kind::BITVECTOR_ZERO_EXTEND_OP:
-      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
+      indices.push_back(nm->mkConst(
+          Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
       break;
     case kind::BITVECTOR_SIGN_EXTEND_OP:
-      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
+      indices.push_back(nm->mkConst(
+          Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
       break;
     case kind::BITVECTOR_ROTATE_LEFT_OP:
-      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
+      indices.push_back(nm->mkConst(
+          Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
       break;
     case kind::BITVECTOR_ROTATE_RIGHT_OP:
-      indices.push_back(nm->mkConst(Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
+      indices.push_back(nm->mkConst(
+          Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
     case kind::INT_TO_BITVECTOR_OP:
-      indices.push_back(nm->mkConst(Rational(n.getConst<IntToBitVector>().d_size)));
+      indices.push_back(
+          nm->mkConst(Rational(n.getConst<IntToBitVector>().d_size)));
       break;
-    default:
-      Assert(false);
-      break;
+    default: Assert(false); break;
   }
   return indices;
 }
@@ -758,7 +759,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     Node ret = getSymbolInternal(k, ftype, opName.str());
     // TODO: if parametric, instantiate the parameters?
-    
+
     // if indexed, apply to index
     if (!indices.empty())
     {

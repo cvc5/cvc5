@@ -43,13 +43,13 @@ Node NodeConverter::convert(Node n)
     Trace("term-process-debug2") << "convert " << cur << std::endl;
     if (it == d_cache.end())
     {
-      Assert (d_preCache.find(cur)==d_preCache.end());
+      Assert(d_preCache.find(cur) == d_preCache.end());
       Node curp = preConvert(cur);
       d_preCache[cur] = curp;
       curp = curp.isNull() ? Node(cur) : curp;
       if (!shouldTraverse(curp))
       {
-        if (cur!=curp)
+        if (cur != curp)
         {
           addToCache(cur, curp);
         }
@@ -57,7 +57,7 @@ Node NodeConverter::convert(Node n)
       }
       else
       {
-        if (cur!=curp)
+        if (cur != curp)
         {
           d_cache[cur] = Node::null();
           visit.push_back(cur);
@@ -74,11 +74,11 @@ Node NodeConverter::convert(Node n)
     else if (it->second.isNull())
     {
       it = d_preCache.find(cur);
-      Assert (it!=d_preCache.end());
+      Assert(it != d_preCache.end());
       if (!it->second.isNull())
       {
         // it converts to what its prewrite converts to
-        Assert (d_cache.find(it->second)!=d_cache.end());
+        Assert(d_cache.find(it->second) != d_cache.end());
         Node ret = d_cache[it->second];
         addToCache(cur, ret);
       }
@@ -144,14 +144,14 @@ TypeNode NodeConverter::convertType(TypeNode tn)
     Trace("term-process-debug2") << "convert type " << cur << std::endl;
     if (it == d_tcache.end())
     {
-      Assert (d_preTCache.find(cur)==d_preTCache.end());
+      Assert(d_preTCache.find(cur) == d_preTCache.end());
       TypeNode curp = preConvertType(cur);
       d_preTCache[cur] = curp;
       curp = curp.isNull() ? cur : curp;
       if (cur.getNumChildren() == 0)
       {
         TypeNode ret = postConvertType(curp);
-        if (cur!=curp)
+        if (cur != curp)
         {
           addToTypeCache(cur, ret);
         }
@@ -168,11 +168,11 @@ TypeNode NodeConverter::convertType(TypeNode tn)
     else if (it->second.isNull())
     {
       it = d_preTCache.find(cur);
-      Assert (it!=d_preTCache.end());
+      Assert(it != d_preTCache.end());
       if (!it->second.isNull())
       {
         // it converts to what its prewrite converts to
-        Assert (d_tcache.find(it->second)!=d_cache.end());
+        Assert(d_tcache.find(it->second) != d_cache.end());
         TypeNode ret = d_tcache[it->second];
         addToTypeCache(cur, ret);
       }
@@ -188,8 +188,8 @@ TypeNode NodeConverter::convertType(TypeNode tn)
           nb << ret.getOperator();
         }
         for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
-            j != iend;
-            ++j)
+             j != iend;
+             ++j)
         {
           it = d_tcache.find(*j);
           Assert(it != d_tcache.end());
@@ -241,7 +241,10 @@ Node NodeConverter::preConvert(Node n) { return Node::null(); }
 Node NodeConverter::postConvert(Node n) { return Node::null(); }
 
 TypeNode NodeConverter::preConvertType(TypeNode tn) { return TypeNode::null(); }
-TypeNode NodeConverter::postConvertType(TypeNode tn) { return TypeNode::null(); }
+TypeNode NodeConverter::postConvertType(TypeNode tn)
+{
+  return TypeNode::null();
+}
 bool NodeConverter::shouldTraverse(Node n) { return true; }
 
 }  // namespace proof

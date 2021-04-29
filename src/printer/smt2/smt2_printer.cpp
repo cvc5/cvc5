@@ -450,7 +450,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
 	      out << ' ';
-        toStream(out, n[i], toDepth);
+              toStream(out, n[i], toDepth);
       }
       out << ')';
     }

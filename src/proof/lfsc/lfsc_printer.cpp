@@ -545,7 +545,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // do not pass type (as[0].getType())
       pf << h << as[0] << as[1];
     }
-      break;
+    break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
