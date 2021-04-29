@@ -38,7 +38,13 @@ class SkolemDefManager;
 namespace decision {
 
 /**
- * An implementation of justification SAT decision heuristic.
+ * An implementation of justification SAT decision heuristic. This class
+ * is given access to the set of input formulas, and chooses next decisions
+ * based on the structure of the input formula.
+ *
+ * It also maintains a dynamic list of assertions, called skolem definitions,
+ * that correspond to definitions of the behavior of skolems that occur in
+ * assertions.
  *
  * Its novel feature is to maintain a SAT-context-dependent stack corresponding
  * to the current place in the input formula we trying to satisfy. This means
@@ -59,7 +65,7 @@ class JustificationStrategy
   /** Presolve, called at the beginning of each check-sat call */
   void presolve();
 
-  /** Gets the next decision based on strategies that are enabled */
+  /** Gets the next decision based on the current assertion to satisfy */
   prop::SatLiteral getNext(bool& stopSearch);
 
   /** Is the DecisionEngine in a state where it has solved everything? */
@@ -71,14 +77,14 @@ class JustificationStrategy
    */
   void addAssertion(TNode assertion);
   /**
-   * Notify this class  that lem is the skolem definition for skolem, which is
+   * Notify this class that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
   void addSkolemDefinition(TNode lem, TNode skolem);
   /**
-   * Notify this class that lem is an active assertion in this SAT context. This
-   * is triggered when lem is a skolem definition for skolem k, and k appears
-   * in a newly asserted literal.
+   * Notify this class that literal n has been asserted. This is triggered when
+   * n is sent to TheoryEngine. This activates skolem definitions for skolems
+   * k that occur in n.
    */
   void notifyAsserted(TNode n);
 
