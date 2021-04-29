@@ -1498,6 +1498,50 @@ cdef class Term:
         sort.csort = self.cterm.getSort()
         return sort
 
+    def substitute(self, arg0=None, ):
+        '''
+        Supports the following uses:
+                Op mkOp(Kind kind)
+                Op mkOp(Kind kind, Kind k)
+                Op mkOp(Kind kind, const string& arg)
+                Op mkOp(Kind kind, uint32_t arg)
+                Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
+        '''
+        cdef Op op = Op(self)
+
+        if arg0 is None:
+            op.cop = self.csolver.mkOp(k.k)
+        elif arg1 is None:
+            if isinstance(arg0, kind):
+                op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
+            elif isinstance(arg0, str):
+                op.cop = self.csolver.mkOp(k.k,
+                                           <const string &>
+                                           arg0.encode())
+            elif isinstance(arg0, int):
+                op.cop = self.csolver.mkOp(k.k, <int?> arg0)
+            else:
+                raise ValueError("Unsupported signature"
+                                 " mkOp: {}".format(" X ".join([k, arg0])))
+        else:
+            if isinstance(arg0, int) and isinstance(arg1, int):
+                op.cop = self.csolver.mkOp(k.k, <int> arg0,
+                                                       <int> arg1)
+            else:
+                raise ValueError("Unsupported signature"
+                                 " mkOp: {}".format(" X ".join([k, arg0, arg1])))
+        return op
+
+
+
+
+
+
+
+
+
+
+
     def substitute(self, list es, list replacements):
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
@@ -1513,6 +1557,15 @@ cdef class Term:
             creplacements.push_back((<Term?> r).cterm)
 
         term.cterm = self.cterm.substitute(ces, creplacements)
+        return term
+
+    def substitute(self, Term e, Term replacement):
+        cdef Term term = Term(self.solver)
+        cdef Term ce = Term(self.solver)
+        cdef Term creplacement = Term(self.solver)
+        ce.cterm = e.cterm
+        creplacement.cterm = replacement.cterm
+        term.cterm = self.cterm.substitute(ce.cterm, creplacement.cterm)
         return term
 
     def hasOp(self):

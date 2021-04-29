@@ -348,7 +348,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         uint64_t getId() except +
         Kind getKind() except +
         Sort getSort() except +
-        Term substitute(const vector[Term] es, const vector[Term] & reps) except +
+        Term substitute(const Term& e, const Term& replacement) except +
+        Term substitute(const vector[Term] & es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
