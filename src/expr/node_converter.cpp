@@ -44,32 +44,32 @@ Node NodeConverter::convert(Node n)
     Trace("nconv-debug2") << "convert " << cur << std::endl;
     if (it == d_cache.end())
     {
+      d_cache[cur] = Node::null();
       Assert(d_preCache.find(cur) == d_preCache.end());
       Node curp = preConvert(cur);
+      // if curp = cur, set null to avoid infinite loop
+      curp = curp==cur ? Node::null() : curp;
       d_preCache[cur] = curp;
-      curp = curp.isNull() ? Node(cur) : curp;
-      if (!shouldTraverse(curp))
+      if (!curp.isNull())
       {
-        if (cur != curp)
-        {
-          addToCache(cur, curp);
-        }
-        addToCache(curp, curp);
+        visit.push_back(cur);
+        visit.push_back(curp);
       }
       else
       {
-        if (cur != curp)
+        if (!shouldTraverse(cur))
         {
-          d_cache[cur] = Node::null();
+          addToCache(cur, cur);
+        }
+        else
+        {
           visit.push_back(cur);
+          if (cur.getMetaKind() == metakind::PARAMETERIZED)
+          {
+            visit.push_back(cur.getOperator());
+          }
+          visit.insert(visit.end(), cur.begin(), cur.end());
         }
-        d_cache[curp] = Node::null();
-        visit.push_back(curp);
-        if (curp.getMetaKind() == metakind::PARAMETERIZED)
-        {
-          visit.push_back(curp.getOperator());
-        }
-        visit.insert(visit.end(), curp.begin(), curp.end());
       }
     }
     else if (it->second.isNull())
@@ -145,25 +145,30 @@ TypeNode NodeConverter::convertType(TypeNode tn)
     Trace("nconv-debug2") << "convert type " << cur << std::endl;
     if (it == d_tcache.end())
     {
+      d_tcache[cur] = TypeNode::null();
       Assert(d_preTCache.find(cur) == d_preTCache.end());
       TypeNode curp = preConvertType(cur);
+      // if curp = cur, set null to avoid infinite loop
+      curp = curp==cur ? TypeNode::null() : curp;
       d_preTCache[cur] = curp;
-      curp = curp.isNull() ? cur : curp;
-      if (cur.getNumChildren() == 0)
+      if (!curp.isNull())
       {
-        TypeNode ret = postConvertType(curp);
-        if (cur != curp)
-        {
-          addToTypeCache(cur, ret);
-        }
-        addToTypeCache(curp, ret);
+        visit.push_back(cur);
+        visit.push_back(curp);
       }
       else
       {
-        d_tcache[cur] = TypeNode::null();
-        visit.push_back(cur);
-        visit.push_back(curp);
-        visit.insert(visit.end(), cur.begin(), cur.end());
+        curp = curp.isNull() ? cur : curp;
+        if (cur.getNumChildren() == 0)
+        {
+          TypeNode ret = postConvertType(cur);
+          addToTypeCache(cur, ret);
+        }
+        else
+        {
+          visit.push_back(cur);
+          visit.insert(visit.end(), cur.begin(), cur.end());
+        }
       }
     }
     else if (it->second.isNull())
