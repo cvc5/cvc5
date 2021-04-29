@@ -182,6 +182,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
         Term mkPi() except +
+        Term mkInteger(const uint64_t i) except +
         Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
         Term mkRegexpEmpty() except +

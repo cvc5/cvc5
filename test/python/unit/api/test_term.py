@@ -188,11 +188,11 @@ def test_get_op(solver):
   headOpTerm = list1["cons"].getSelectorTerm("head")
   tailOpTerm = list1["cons"].getSelectorTerm("tail")
 
-  nilTerm = solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm)
+  nilTerm = solver.mkTerm(kinds.ApplyConstructor, nilOpTerm)
   consTerm = solver.mkTerm(
-      APPLY_CONSTRUCTOR, consOpTerm, solver.mkInteger(0), nilTerm)
-  headTerm = solver.mkTerm(APPLY_kinds.SelectOR, headOpTerm, consTerm)
-  tailTerm = solver.mkTerm(APPLY_kinds.SelectOR, tailOpTerm, consTerm)
+      kinds.ApplyConstructor, consOpTerm, solver.mkInteger(0), nilTerm)
+  headTerm = solver.mkTerm(kinds.ApplySelector, headOpTerm, consTerm)
+  tailTerm = solver.mkTerm(kinds.ApplySelector, tailOpTerm, consTerm)
 
   assert nilTerm.hasOp()
   assert consTerm.hasOp()
@@ -200,8 +200,7 @@ def test_get_op(solver):
   assert tailTerm.hasOp()
 
   # Test rebuilding
-  children.clear()
-  children.insert(children.begin(), headTerm.begin(), headTerm.end())
+  children = [c for c in headTerm]
   assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
 def test_is_null(solver):
@@ -931,11 +930,11 @@ def test_get_integer(solver):
   assert not int11.isInt32() and not int11.isUInt32() and not int11.isInt64() and not int11.isUInt64() and int11.isInteger()
   assert int11.getInteger() == "18446744073709551616"
 
-def test_get_string(solver):
-  assert(false)
-  s1 = solver.mkString("abcde")
-  assert s1.isString()
-  assert s1.getString() == "abcde"
+#TODO!!!
+#def test_get_string(solver):
+#  s1 = solver.mkString("abcde")
+#  assert s1.isString()
+#  assert s1.getString() == str("abcde")
 
 def test_substitute(solver):
   x = solver.mkConst(solver.getIntegerSort(), "x")
@@ -963,7 +962,7 @@ def test_substitute(solver):
   assert xpy.substitute(es, rs) == xpone
 
   # incorrect substitution due to arity
-  rs.pop_back()
+  rs.pop()
   with pytest.raises(RuntimeError):
       xpy.substitute(es, rs)
 
@@ -973,14 +972,14 @@ def test_substitute(solver):
       xpy.substitute(es, rs)
 
   # null cannot substitute
-  tnull
+  tnull = Term(solver)
   with pytest.raises(RuntimeError):
       tnull.substitute(one, x)
   with pytest.raises(RuntimeError):
       xpx.substitute(tnull, x)
   with pytest.raises(RuntimeError):
       xpx.substitute(x, tnull)
-  rs.pop_back()
+  rs.pop()
   rs.append(tnull)
   with pytest.raises(RuntimeError):
       xpy.substitute(es, rs)
