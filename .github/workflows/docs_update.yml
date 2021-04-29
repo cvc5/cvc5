@@ -16,7 +16,7 @@ on:
 # When run by pull_request_target (in comparison to pull_request), the action
 # has access to the repository secrets so that we can push the generated docs.
 # To allow this, the action is run in the context of the master branch instead
-# of the PR directly. We therefore to obtain the changes from the PR manually,
+# of the PR directly. We therefore obtain the changes from the PR manually,
 # but need to be very careful to not pull any changes to files that are executed
 # during configuration or build. At the same time, we try to include as many
 # files as possible that may change how the documentations looks like.
