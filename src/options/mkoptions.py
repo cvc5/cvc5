@@ -746,16 +746,17 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                         'if ({}) {{'.format(cond))
                     if option.type == 'bool':
                         getoption_handlers.append(
-                            f'return (*this)[options::{option.name}] ? "true" : "false";')
+                            'return (*this)[options::{}] ? "true" : "false";'.format(option.name))
                     elif option.type == 'std::string':
                         getoption_handlers.append(
-                            f'return (*this)[options::{option.name}];')
+                            'return (*this)[options::{}];'.format(option.name))
                     elif is_numeric_cpp_type(option.type):
                         getoption_handlers.append(
-                            f'return std::to_string((*this)[options::{option.name}]);')
+                            'return std::to_string((*this)[options::{}]);'.format(option.name))
                     else:
                         getoption_handlers.append('std::stringstream ss;')
-                        getoption_handlers.append(f'ss << (*this)[options::{option.name}];')
+                        getoption_handlers.append(
+                            'ss << (*this)[options::{}];'.format(option.name))
                         getoption_handlers.append('return ss.str();')
                     getoption_handlers.append('}')
 
@@ -789,13 +790,14 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     options_smt.append('"{}",'.format(optname))
 
                     if option.type == 'bool':
-                        s = f'opts.push_back({{"{optname}", d_holder->{option.name} ? "true" : "false"}});'
+                        s = 'opts.push_back({{"{}", d_holder->{} ? "true" : "false"}});'.format(
+                            optname, option.name)
                     elif is_numeric_cpp_type(option.type):
-                        s = f'opts.push_back({{"{optname}", std::to_string(d_holder->{option.name})}});'
+                        s = 'opts.push_back({{"{}", std::to_string(d_holder->{})}});'.format(
+                            optname, option.name)
                     else:
-                        s = '{ std::stringstream ss; '
-                        s += 'ss << d_holder->{}; '.format(option.name)
-                        s += f'opts.push_back({{"{optname}", ss.str()}}); }}'
+                        s = '{{ std::stringstream ss; ss << d_holder->{}; opts.push_back({{"{}", ss.str()}}); }}'.format(
+                            option.name, optname)
                     options_getoptions.append(s)
 
 
