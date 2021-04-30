@@ -37,7 +37,6 @@ class PreprocessingPassContext;
 namespace smt {
 
 class Assertions;
-class ExpandDefs;
 struct SmtEngineStatistics;
 
 /**
@@ -62,7 +61,6 @@ class ProcessAssertions
 
  public:
   ProcessAssertions(SmtEngine& smt,
-                    ExpandDefs& exDefs,
                     ResourceManager& rm,
                     SmtEngineStatistics& stats);
   ~ProcessAssertions();
@@ -85,8 +83,6 @@ class ProcessAssertions
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
-  /** Reference to expand definitions module */
-  ExpandDefs& d_exDefs;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */

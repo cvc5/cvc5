@@ -43,14 +43,14 @@ class PreprocessingPassContext
  public:
   PreprocessingPassContext(
       SmtEngine* smt,
-      theory::booleans::CircuitPropagator* circuitPropagator,
-      ProofNodeManager* pnm);
+      Env& env,
+      theory::booleans::CircuitPropagator* circuitPropagator);
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }
   prop::PropEngine* getPropEngine() { return d_smt->getPropEngine(); }
-  context::Context* getUserContext() { return d_smt->getUserContext(); }
-  context::Context* getDecisionContext() { return d_smt->getContext(); }
+  context::Context* getUserContext();
+  context::Context* getDecisionContext();
 
   theory::booleans::CircuitPropagator* getCircuitPropagator()
   {
@@ -62,10 +62,7 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(Resource r)
-  {
-    d_resourceManager->spendResource(r);
-  }
+  void spendResource(Resource r);
 
   /** Get the current logic info of the SmtEngine */
   const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
@@ -97,6 +94,11 @@ class PreprocessingPassContext
   void addSubstitution(const Node& lhs,
                        const Node& rhs,
                        ProofGenerator* pg = nullptr);
+  /** Same as above, with proof id */
+  void addSubstitution(const Node& lhs,
+                       const Node& rhs,
+                       PfRule id,
+                       const std::vector<Node>& args);
 
   /** The the proof node manager associated with this context, if it exists */
   ProofNodeManager* getProofNodeManager();
@@ -104,18 +106,10 @@ class PreprocessingPassContext
  private:
   /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
-
-  /** Pointer to the ResourceManager for this context. */
-  ResourceManager* d_resourceManager;
-
-  /* The top level substitutions */
-  theory::TrustSubstitutionMap d_topLevelSubstitutions;
-
+  /** Reference to the environment. */
+  Env& d_env;
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
-  /** Pointer to the proof node manager, if it exists */
-  ProofNodeManager* d_pnm;
-
   /**
    * The (user-context-dependent) set of symbols that occur in at least one
    * assertion in the current user context.
