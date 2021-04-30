@@ -47,7 +47,7 @@ namespace decision {
  * assertions.
  *
  * Its novel feature is to maintain a SAT-context-dependent stack corresponding
- * to the current place in the input formula we trying to satisfy. This means
+ * to the current place in the input formula we are trying to satisfy. This means
  * that computing the next decision does not require traversing the current
  * assertion.
  */
@@ -89,7 +89,10 @@ class JustificationStrategy
   void notifyAsserted(TNode n);
 
  private:
-  /** Insert to assertion list */
+  /**
+   * Helper method to insert assertions in `toProcess` to `d_assertions` or
+   * `d_skolemAssertions` based on `useSkolemList`.
+   */
   void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
   /** Refresh current */
   bool refreshCurrentAssertion();
@@ -112,9 +115,7 @@ class JustificationStrategy
    * of n.
    */
   JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
-  /**
-   * Lookup value, return value of n if one can be determined.
-   */
+  /** Lookup value, return value of n if one can be determined. */
   prop::SatValue lookupValue(TNode n);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
