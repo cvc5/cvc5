@@ -178,7 +178,8 @@ class OptimizationSolver
    * Run the optimization loop for the pushed objective 
    * NOTE: this function currently supports only single objective 
    * for multiple pushed objectives it always optimizes the first one. 
-   * Add support for multi-obj later **/
+   * Add support for multi-obj later
+   */
   OptimizationResult::ResultType checkOpt();
 
   /**
