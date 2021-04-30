@@ -205,12 +205,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
     /**
      * Eliminate extract over bit-vector variables.
      *
-     * x[j:i] = c, where c is a constant and x is a variable.
+     * Given x[h:l] = c, where c is a constant and x is a variable.
      *
-     * i == 0:          x = sk1::c with bw(sk1) = bw(x) - 1 - j
-     * j == bw(x) - 1:  x = c::sk2 with bw(sk2) = i
-     * else:            x = sk1::c::sk2 with bw(sk1) = bw(x) - 1 - j
-     *                                  and  bw(sk2) = i
+     * We rewrite to:
+     *
+     * x = sk1::c       if l == 0, where bw(sk1) = bw(x)-1-h
+     * x = c::sk2       if h == bw(x)-1, where bw(sk2) = l
+     * x = sk1::c::sk2  otherwise, where bw(sk1) = bw(x)-1-h and bw(sk2) = l
      */
     Node node = Rewriter::rewrite(in);
     if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
@@ -227,6 +228,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
         uint32_t var_bw = utils::getSize(extract[0]);
         std::vector<Node> children;
 
+        // create sk1 with size bw(x)-1-h
         if (low == 0 || high != var_bw - 1)
         {
           Assert(high != var_bw - 1);
@@ -237,6 +239,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 
         children.push_back(c);
 
+        // create sk2 with size l
         if (high == var_bw - 1 || low != 0)
         {
           Assert(low != 0);
