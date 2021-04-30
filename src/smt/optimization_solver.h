@@ -20,7 +20,6 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "smt/assertions.h"
 #include "util/result.h"
 
 namespace cvc5 {
@@ -30,40 +29,67 @@ class SmtEngine;
 namespace smt {
 
 /**
- * An enum for optimization queries.
- *
- * Represents whether an objective should be minimized or maximized
+ * The optimization result of an optimization objective
+ * containing:
+ * - whether it's optimal or not
+ * - if so, the optimal value, otherwise the value might be empty node or
+ *   something suboptimal
  */
-enum class ObjectiveType
+class OptimizationResult
 {
-  OBJECTIVE_MINIMIZE,
-  OBJECTIVE_MAXIMIZE,
-  OBJECTIVE_UNDEFINED
-};
+ public:
+  /**
+   * Enum indicating whether the checkOpt result
+   * is optimal or not.
+   **/
+  enum ResultType
+  {
+    // the type of the target is not supported
+    UNSUPPORTED,
+    // whether the value is optimal is UNKNOWN
+    UNKNOWN,
+    // the original set of assertions has result UNSAT
+    UNSAT,
+    // the value is optimal
+    OPTIMAL,
+    // the goal is unbounded,
+    // if objective is maximize, it's +infinity
+    // if objective is minimize, it's -infinity
+    UNBOUNDED,
+  };
 
-/**
- * An enum for optimization queries.
- *
- * Represents the result of a checkopt query
- * (unimplemented) OPT_OPTIMAL: if value was found
- */
-enum class OptResult
-{
-  // the original set of assertions has result UNKNOWN
-  OPT_UNKNOWN,
-  // the original set of assertions has result UNSAT
-  OPT_UNSAT,
-  // the optimization loop finished and optimal
-  OPT_OPTIMAL,
+  /**
+   * Constructor
+   * @param type the optimization outcome
+   * @param value the optimized value
+   **/
+  OptimizationResult(ResultType type, TNode value)
+      : d_type(type), d_value(value)
+  {
+  }
+  OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
+  ~OptimizationResult() = default;
 
-  // the goal is unbounded, so it would be -inf or +inf
-  OPT_UNBOUNDED,
+  /**
+   * Returns an enum indicating whether
+   * the result is optimal or not.
+   * @return an enum showing whether the result is optimal, unbounded,
+   *   unsat, unknown or unsupported.
+   **/
+  ResultType getType() { return d_type; }
+  /**
+   * Returns the optimal value.
+   * @return Node containing the optimal value,
+   *   if getType() is not OPTIMAL, it might return an empty node or a node
+   *   containing non-optimal value
+   **/
+  Node getValue() { return d_value; }
 
-  // The last value is here as a preparation for future work
-  // in which pproximate optimizations will be supported.
-
-  // if the solver halted early and value is only approximate
-  OPT_SAT_APPROX
+ private:
+  /** the indicating whether the result is optimal or something else **/
+  ResultType d_type;
+  /** if the result is optimal, this is storing the optimal value **/
+  Node d_value;
 };
 
 /**
@@ -72,38 +98,58 @@ enum class OptResult
  * - whether it's maximize/minimize
  * - and whether it's signed for BitVectors
  */
-class Objective
+class OptimizationObjective
 {
  public:
   /**
+   * An enum for optimization queries.
+   * Represents whether an objective should be minimized or maximized
+   */
+  enum ObjectiveType
+  {
+    MINIMIZE,
+    MAXIMIZE,
+  };
+
+  /**
    * Constructor
-   * @param n the optimization target node
+   * @param target the optimization target node
    * @param type speficies whether it's maximize/minimize
    * @param bvSigned specifies whether it's using signed or unsigned comparison
    *    for BitVectors this parameter is only valid when the type of target node
    *    is BitVector
    **/
-  Objective(Node n, ObjectiveType type, bool bvSigned = false);
-  ~Objective(){};
+  OptimizationObjective(TNode target, ObjectiveType type, bool bvSigned = false)
+      : d_type(type), d_target(target), d_bvSigned(bvSigned)
+  {
+  }
+  ~OptimizationObjective() = default;
 
   /** A getter for d_type **/
-  ObjectiveType getType();
-  /** A getter for d_node **/
-  Node getNode();
+  ObjectiveType getType() { return d_type; }
+
+  /** A getter for d_target **/
+  Node getTarget() { return d_target; }
+
   /** A getter for d_bvSigned **/
-  bool getSigned();
+  bool bvIsSigned() { return d_bvSigned; }
 
  private:
-  /** The type of objective this is, either OBJECTIVE_MAXIMIZE OR
-   * OBJECTIVE_MINIMIZE  **/
+  /**
+   * The type of objective,
+   * it's either MAXIMIZE OR MINIMIZE
+   **/
   ObjectiveType d_type;
-  /** The node associated to the term that was used to construct the objective.
-   * **/
-  Node d_node;
 
-  /** Specify whether to use signed or unsigned comparison
+  /**
+   * The node associated to the term that was used to construct the objective.
+   **/
+  Node d_target;
+
+  /**
+   * Specify whether to use signed or unsigned comparison
    * for BitVectors (only for BitVectors), this variable is defaulted to false
-   * **/
+   **/
   bool d_bvSigned;
 };
 
@@ -122,32 +168,54 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent);
-  ~OptimizationSolver();
+  OptimizationSolver(SmtEngine* parent)
+      : d_parent(parent), d_objectives(), d_results()
+  {
+  }
+  ~OptimizationSolver() = default;
 
-  /** Runs the optimization loop for the activated objective **/
-  OptResult checkOpt();
   /**
-   * Activates an objective: will be optimized for
-   * @param obj the Node representing the expression that will be optimized for
+   * Run the optimization loop for the pushed objective
+   * NOTE: this function currently supports only single objective
+   * for multiple pushed objectives it always optimizes the first one.
+   * Add support for multi-obj later
+   */
+  OptimizationResult::ResultType checkOpt();
+
+  /**
+   * Push an objective.
+   * @param target the Node representing the expression that will be optimized
+   *for
    * @param type specifies whether it's maximize or minimize
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void activateObj(const Node& obj,
-                   const ObjectiveType type,
-                   bool bvSigned = false);
-  /** Gets the value of the optimized objective after checkopt is called **/
-  Node objectiveGetValue();
+  void pushObjective(TNode target,
+                     OptimizationObjective::ObjectiveType type,
+                     bool bvSigned = false);
+
+  /**
+   * Pop the most recent objective.
+   **/
+  void popObjective();
+
+  /**
+   * Returns the values of the optimized objective after checkOpt is called
+   * @return a vector of Optimization Result,
+   *   each containing the outcome and the value.
+   **/
+  std::vector<OptimizationResult> getValues();
 
  private:
   /** The parent SMT engine **/
   SmtEngine* d_parent;
+
   /** The objectives to optimize for **/
-  Objective d_activatedObjective;
-  /** A saved value of the objective from the last sat call. **/
-  Node d_savedValue;
+  std::vector<OptimizationObjective> d_objectives;
+
+  /** The results of the optimizations from the last checkOpt call **/
+  std::vector<OptimizationResult> d_results;
 };
 
 }  // namespace smt
