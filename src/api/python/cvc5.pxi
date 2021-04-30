@@ -303,12 +303,6 @@ cdef class Op:
 
     def getKind(self):
         return kind(<int> self.cop.getKind())
-    
-    def isIndexed(self):
-        return self.cop.isIndexed()
-
-    def getNumIndices(self):
-        return self.cop.getNumIndices()
 
     def isNull(self):
         return self.cop.isNull()
@@ -687,11 +681,8 @@ cdef class Solver:
 
     def mkInteger(self, val):
         cdef Term term = Term(self)
-        if isinstance(val, str):
-            term.cterm = self.csolver.mkInteger(<const string &> str(val).encode())
-        else:
-            assert(isinstance(val, int))
-            term.cterm = self.csolver.mkInteger((<int?> val))
+        integer = int(val)
+        term.cterm = self.csolver.mkInteger("{}".format(integer).encode())
         return term
 
     def mkReal(self, val, den=None):
@@ -1452,18 +1443,6 @@ cdef class Term:
     def __ne__(self, Term other):
         return self.cterm != other.cterm
 
-    def __lt__(self, Term other):
-        return self.cterm < other.cterm
-
-    def __gt__(self, Term other):
-        return self.cterm > other.cterm
-
-    def __le__(self, Term other):
-        return self.cterm <= other.cterm
-
-    def __ge__(self, Term other):
-        return self.cterm >= other.cterm
-
     def __getitem__(self, int index):
         cdef Term term = Term(self.solver)
         if index >= 0:
@@ -1487,12 +1466,6 @@ cdef class Term:
     def __hash__(self):
         return ctermhash(self.cterm)
 
-    def getNumChildren(self):
-        return self.cterm.getNumChildren()
-
-    def getId(self):
-        return self.cterm.getId()
-
     def getKind(self):
         return kind(<int> self.cterm.getKind())
 
@@ -1501,32 +1474,21 @@ cdef class Term:
         sort.csort = self.cterm.getSort()
         return sort
 
-    def substitute(self, term_or_list_1, term_or_list_2):
-        cdef Term term = Term(self.solver)
-        cdef Term ce = Term(self.solver)
-        cdef Term creplacement = Term(self.solver)
+    def substitute(self, list es, list replacements):
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
-        if isinstance(term_or_list_1, list):
-            assert isinstance(term_or_list_2, list)
-            es = term_or_list_1
-            replacements = term_or_list_2
-            if len(es) != len(replacements):
-                raise RuntimeError("Expecting list inputs to substitute to "
-                                   "have the same length but got: "
-                                   "{} and {}".format(len(es), len(replacements)))
+        cdef Term term = Term(self.solver)
 
-            for e, r in zip(es, replacements):
-                ces.push_back((<Term?> e).cterm)
-                creplacements.push_back((<Term?> r).cterm)
+        if len(es) != len(replacements):
+            raise RuntimeError("Expecting list inputs to substitute to "
+                               "have the same length but got: "
+                               "{} and {}".format(len(es), len(replacements)))
 
-            term.cterm = self.cterm.substitute(ces, creplacements)
-        else:
-            e = term_or_list_1
-            replacement = term_or_list_2
-            ce.cterm = (<Term?>e).cterm
-            creplacement.cterm = (<Term?>replacement).cterm
-            term.cterm = self.cterm.substitute(ce.cterm, creplacement.cterm)
+        for e, r in zip(es, replacements):
+            ces.push_back((<Term?> e).cterm)
+            creplacements.push_back((<Term?> r).cterm)
+
+        term.cterm = self.cterm.substitute(ces, creplacements)
         return term
 
     def hasOp(self):
@@ -1587,42 +1549,6 @@ cdef class Term:
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
-
-    def isInt32(self):
-        return self.cterm.isInt32()
-
-    def getInt32(self):
-        return self.cterm.getInt32()
-    
-    def isUInt32(self):
-        return self.cterm.isUInt32()
-    
-    def getUInt32(self):
-        return self.cterm.getUInt32()
-    
-    def isInt64(self):
-        return self.cterm.isInt64()
-    
-    def getInt64(self):
-        return self.cterm.getInt64()
-    
-    def isUInt64(self):
-        return self.cterm.isUInt64()
-    
-    def getUInt64(self):
-        return self.cterm.getUInt64()
-    
-    def isInteger(self):
-        return self.cterm.isInteger()
-    
-    def getInteger(self):
-        return self.cterm.getInteger().decode()
-    
-    def isString(self):
-        return self.cterm.isString()
-# TODO handle!    
-#    def getString(self):
-#        return self.cterm.getString()
 
     def toPythonObj(self):
         '''
