@@ -89,7 +89,7 @@ namespace decision {
  *   (or (P (ite A 1 2)) Q)
  * where P is an uninterpreted predicate of type Int -> Bool. After
  * preprocessing, in particular term formula removal which replaces term-level
- * ITE terms with fresh skolems, we get this set of input assertions:
+ * ITE terms with fresh skolems, we get this set of assertions:
  *   (or (P k) Q), (ite A (= k 1) (= k 2))
  * The second assertion is the skolem definition for k. Conceptually, this
  * lemma is only relevant if we have asserted a literal that contains k.
