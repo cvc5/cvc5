@@ -201,7 +201,7 @@ class OptimizationSolver
   void popObjective();
 
   /**
-   * Returns the values of the optimized objective after checkopt is called
+   * Returns the values of the optimized objective after checkOpt is called
    * @return a vector of Optimization Result,
    *   each containing the outcome and the value.
    **/
