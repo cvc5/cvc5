@@ -94,13 +94,6 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
-/**
- * Representation of a defined function.  We keep these around in
- * SmtEngine to permit expanding definitions late (and lazily), to
- * support getValue() over defined functions, to support user output
- * in terms of defined functions, etc.
- */
-class DefinedFunction;
 
 struct SmtEngineStatistics;
 class SmtScope;
@@ -334,9 +327,6 @@ class CVC5_EXPORT SmtEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
-
-  /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Node func);
 
   /**
    * Define functions recursive
@@ -891,13 +881,6 @@ class CVC5_EXPORT SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter();
-
-  /** The type of our internal map of defined functions */
-  using DefinedFunctionMap =
-      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
-
-  /** Get the defined function map */
-  DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
   /**
    * Get expanded assertions.
    *
@@ -1114,9 +1097,6 @@ class CVC5_EXPORT SmtEngine
    * The unsat core manager, which produces unsat cores and related information
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
-
-  /** An index of our defined functions */
-  DefinedFunctionMap* d_definedFunctions;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;

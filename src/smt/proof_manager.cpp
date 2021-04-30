@@ -29,7 +29,6 @@
 #include "proof/verit/verit_post_processor.h"
 #include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
-#include "smt/defined_function.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
 #include "theory/rewrite_db.h"
@@ -95,9 +94,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
-                              Assertions& as,
-                              DefinedFunctionMap& df)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
@@ -112,7 +109,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
   }
 
   std::vector<Node> assertions;
-  getAssertions(as, df, assertions);
+  getAssertions(as, assertions);
 
   if (Trace.isOn("smt-proof"))
   {
@@ -151,11 +148,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
 
 void PfManager::printProof(std::ostream& out,
                            std::shared_ptr<ProofNode> pfn,
-                           Assertions& as,
-                           DefinedFunctionMap& df)
+                           Assertions& as)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   // if we are in incremental mode, we don't want to invalidate the proof
   // nodes in fp, since these may be reused in further check-sat calls
   if (options::incrementalSolving()
@@ -206,12 +202,10 @@ void PfManager::printProof(std::ostream& out,
     out << "\n)\n";
   }
 }
-void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
-                           Assertions& as,
-                           DefinedFunctionMap& df)
+void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
                            << std::endl;
 }
@@ -231,15 +225,14 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 }
 
 std::shared_ptr<ProofNode> PfManager::getFinalProof(
-    std::shared_ptr<ProofNode> pfn, Assertions& as, DefinedFunctionMap& df)
+    std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
-  setFinalProof(pfn, as, df);
+  setFinalProof(pfn, as);
   Assert(d_finalProof);
   return d_finalProof;
 }
 
 void PfManager::getAssertions(Assertions& as,
-                              DefinedFunctionMap& df,
                               std::vector<Node>& assertions)
 {
   context::CDList<Node>* al = as.getAssertionList();
@@ -248,20 +241,6 @@ void PfManager::getAssertions(Assertions& as,
        ++i)
   {
     assertions.push_back(*i);
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const Node, const smt::DefinedFunction>& dfn : df)
-  {
-    Node def = dfn.second.getFormula();
-    const std::vector<Node>& formals = dfn.second.getFormals();
-    if (!formals.empty())
-    {
-      Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, formals);
-      def = nm->mkNode(kind::LAMBDA, bvl, def);
-    }
-    // assume the (possibly higher order) equality
-    Node eq = dfn.first.eqNode(def);
-    assertions.push_back(eq);
   }
 }
 
