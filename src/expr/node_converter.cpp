@@ -47,7 +47,7 @@ Node NodeConverter::convert(Node n)
       Assert(d_preCache.find(cur) == d_preCache.end());
       Node curp = preConvert(cur);
       // if curp = cur, set null to avoid infinite loop
-      curp = curp==cur ? Node::null() : curp;
+      curp = curp == cur ? Node::null() : curp;
       d_preCache[cur] = curp;
       if (!curp.isNull())
       {
@@ -130,8 +130,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
   {
     return tn;
   }
-  Trace("nconv-debug")
-      << "NodeConverter::convertType: " << tn << std::endl;
+  Trace("nconv-debug") << "NodeConverter::convertType: " << tn << std::endl;
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
   std::vector<TypeNode> visit;
   TypeNode cur;
@@ -148,7 +147,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
       Assert(d_preTCache.find(cur) == d_preTCache.end());
       TypeNode curp = preConvertType(cur);
       // if curp = cur, set null to avoid infinite loop
-      curp = curp==cur ? TypeNode::null() : curp;
+      curp = curp == cur ? TypeNode::null() : curp;
       d_preTCache[cur] = curp;
       if (!curp.isNull())
       {
@@ -218,8 +217,8 @@ TypeNode NodeConverter::convertType(TypeNode tn)
   } while (!visit.empty());
   Assert(d_tcache.find(tn) != d_tcache.end());
   Assert(!d_tcache.find(tn)->second.isNull());
-  Trace("nconv-debug")
-      << "NodeConverter::convertType: returns " << d_tcache[tn] << std::endl;
+  Trace("nconv-debug") << "NodeConverter::convertType: returns " << d_tcache[tn]
+                       << std::endl;
   return d_tcache[tn];
 }
 
