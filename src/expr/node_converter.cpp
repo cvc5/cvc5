@@ -20,7 +20,6 @@
 using namespace cvc5::kind;
 
 namespace cvc5 {
-namespace proof {
 
 NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
 
@@ -253,5 +252,4 @@ TypeNode NodeConverter::postConvertType(TypeNode tn)
 }
 bool NodeConverter::shouldTraverse(Node n) { return true; }
 
-}  // namespace proof
 }  // namespace cvc5
