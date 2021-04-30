@@ -16,6 +16,7 @@
 #include "theory/fp/fp_expand_defs.h"
 
 #include "expr/skolem_manager.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace cvc5 {
 namespace theory {
@@ -260,22 +261,23 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
       << "FpExpandDefs::expandDefinition(): " << node << std::endl;
 
   Node res = node;
+  Kind kind = node.getKind();
 
-  if (node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC)
+  if (kind == kind::FLOATINGPOINT_TO_FP_GENERIC)
   {
     res = removeToFPGeneric::removeToFPGeneric(node);
   }
-  else if (node.getKind() == kind::FLOATINGPOINT_MIN)
+  else if (kind == kind::FLOATINGPOINT_MIN)
   {
     res = NodeManager::currentNM()->mkNode(
         kind::FLOATINGPOINT_MIN_TOTAL, node[0], node[1], minUF(node));
   }
-  else if (node.getKind() == kind::FLOATINGPOINT_MAX)
+  else if (kind == kind::FLOATINGPOINT_MAX)
   {
     res = NodeManager::currentNM()->mkNode(
         kind::FLOATINGPOINT_MAX_TOTAL, node[0], node[1], maxUF(node));
   }
-  else if (node.getKind() == kind::FLOATINGPOINT_TO_UBV)
+  else if (kind == kind::FLOATINGPOINT_TO_UBV)
   {
     FloatingPointToUBV info = node.getOperator().getConst<FloatingPointToUBV>();
     FloatingPointToUBVTotal newInfo(info);
@@ -287,7 +289,7 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
             node[1],
             toUBVUF(node));
   }
-  else if (node.getKind() == kind::FLOATINGPOINT_TO_SBV)
+  else if (kind == kind::FLOATINGPOINT_TO_SBV)
   {
     FloatingPointToSBV info = node.getOperator().getConst<FloatingPointToSBV>();
     FloatingPointToSBVTotal newInfo(info);
@@ -299,14 +301,10 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
             node[1],
             toSBVUF(node));
   }
-  else if (node.getKind() == kind::FLOATINGPOINT_TO_REAL)
+  else if (kind == kind::FLOATINGPOINT_TO_REAL)
   {
     res = NodeManager::currentNM()->mkNode(
         kind::FLOATINGPOINT_TO_REAL_TOTAL, node[0], toRealUF(node));
-  }
-  else
-  {
-    // Do nothing
   }
 
   if (res != node)
