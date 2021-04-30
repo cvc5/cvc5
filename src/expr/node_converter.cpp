@@ -176,7 +176,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
       if (!it->second.isNull())
       {
         // it converts to what its prewrite converts to
-        Assert(d_tcache.find(it->second) != d_cache.end());
+        Assert(d_tcache.find(it->second) != d_tcache.end());
         TypeNode ret = d_tcache[it->second];
         addToTypeCache(cur, ret);
       }

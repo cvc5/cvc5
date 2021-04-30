@@ -170,7 +170,7 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::LeanProofPostprocess lpfpp(d_pnm.get());
     std::vector<Node> assertions;
-    getAssertions(as, df, assertions);
+    getAssertions(as, assertions);
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
@@ -187,7 +187,7 @@ void PfManager::printProof(std::ostream& out,
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
     std::vector<Node> assertions;
-    getAssertions(as, df, assertions);
+    getAssertions(as, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
