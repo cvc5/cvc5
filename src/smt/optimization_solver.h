@@ -183,7 +183,7 @@ class OptimizationSolver
   OptimizationResult::ResultType checkOpt();
 
   /**
-   * Pushes an objective
+   * Push an objective.
    * @param target the Node representing the expression that will be optimized
    *for
    * @param type specifies whether it's maximize or minimize
