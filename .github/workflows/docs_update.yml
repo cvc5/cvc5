@@ -90,7 +90,7 @@ jobs:
             git add docs-$NAME docs-$NAME-${{ github.sha }}
 
             python3 genindex.py
-            git add index.html
+            git add README.md
             git commit -m "Update docs for $NAME"
 
             git push
