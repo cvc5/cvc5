@@ -29,9 +29,9 @@ class OMTOptimizerInteger : public OMTOptimizer
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
   smt::OptimizationResult minimize(SmtEngine* parentSMTSolver,
-                                   Node target) override;
+                                   TNode target) override;
   smt::OptimizationResult maximize(SmtEngine* parentSMTSolver,
-                                   Node target) override;
+                                   TNode target) override;
 
  private:
   /**
@@ -40,7 +40,7 @@ class OMTOptimizerInteger : public OMTOptimizer
    **/
   smt::OptimizationResult optimize(
       SmtEngine* parentSMTSolver,
-      Node target,
+      TNode target,
       smt::OptimizationObjective::ObjectiveType objType);
 };
 

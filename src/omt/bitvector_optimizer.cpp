@@ -43,8 +43,8 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
                         + aMod2PlusbMod2Div2));
 }
 
-OptimizationResult OMTOptimizerBitVector::minimize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* parentSMTSolver,
+                                                   TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
@@ -137,8 +137,8 @@ OptimizationResult OMTOptimizerBitVector::minimize(
   return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
-OptimizationResult OMTOptimizerBitVector::maximize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* parentSMTSolver,
+                                                   TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.

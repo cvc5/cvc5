@@ -23,7 +23,7 @@ namespace cvc5::omt {
 
 OptimizationResult OMTOptimizerInteger::optimize(
     SmtEngine* parentSMTSolver,
-    Node target,
+    TNode target,
     OptimizationObjective::ObjectiveType objType)
 {
   // linear search for integer goal
@@ -75,13 +75,13 @@ OptimizationResult OMTOptimizerInteger::optimize(
 }
 
 OptimizationResult OMTOptimizerInteger::minimize(
-    SmtEngine* parentSMTSolver, Node target)
+    SmtEngine* parentSMTSolver, TNode target)
 {
   return this->optimize(
       parentSMTSolver, target, OptimizationObjective::MINIMIZE);
 }
 OptimizationResult OMTOptimizerInteger::maximize(
-    SmtEngine* parentSMTSolver, Node target)
+    SmtEngine* parentSMTSolver, TNode target)
 {
   return this->optimize(
       parentSMTSolver, target, OptimizationObjective::MAXIMIZE);

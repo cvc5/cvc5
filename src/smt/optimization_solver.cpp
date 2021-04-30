@@ -49,8 +49,8 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
 }
 
 void OptimizationSolver::pushObjective(
-    const Node target,
-    const OptimizationObjective::ObjectiveType type,
+    TNode target,
+    OptimizationObjective::ObjectiveType type,
     bool bvSigned)
 {
   d_objectives.emplace_back(target, type, bvSigned);

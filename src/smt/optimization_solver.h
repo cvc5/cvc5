@@ -46,13 +46,15 @@ class OptimizationResult
   {
     // the type of the target is not supported
     UNSUPPORTED,
-    // the original set of assertions has result UNKNOWN
+    // whether the value is optimal is UNKNOWN
     UNKNOWN,
     // the original set of assertions has result UNSAT
     UNSAT,
-    // the optimization loop finished and optimal
+    // the value is optimal
     OPTIMAL,
-    // the goal is unbounded, so it would be -inf or +inf
+    // the goal is unbounded,
+    // if objective is maximize, it's +infinity
+    // if objective is minimize, it's -infinity
     UNBOUNDED,
   };
 
@@ -61,7 +63,8 @@ class OptimizationResult
    * @param type the optimization outcome
    * @param value the optimized value
    **/
-  OptimizationResult(ResultType type, Node value) : d_type(type), d_value(value)
+  OptimizationResult(ResultType type, TNode value)
+      : d_type(type), d_value(value)
   {
   }
   OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
@@ -116,7 +119,7 @@ class OptimizationObjective
    *    for BitVectors this parameter is only valid when the type of target node
    *    is BitVector
    **/
-  OptimizationObjective(Node target, ObjectiveType type, bool bvSigned = false)
+  OptimizationObjective(TNode target, ObjectiveType type, bool bvSigned = false)
       : d_type(type), d_target(target), d_bvSigned(bvSigned)
   {
   }
@@ -183,8 +186,8 @@ class OptimizationSolver
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
    **/
-  void pushObjective(const Node target,
-                     const OptimizationObjective::ObjectiveType type,
+  void pushObjective(TNode target,
+                     OptimizationObjective::ObjectiveType type,
                      bool bvSigned = false);
 
   /**

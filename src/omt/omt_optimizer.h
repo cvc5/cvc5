@@ -39,7 +39,7 @@ class OMTOptimizer
    *   and this is the optimizer for targetNode
    **/
   static std::unique_ptr<OMTOptimizer> getOptimizerForNode(
-      Node targetNode, bool isSigned = false);
+      TNode targetNode, bool isSigned = false);
 
   /**
    * Initialize an SMT subsolver for offline optimization purpose
@@ -64,7 +64,7 @@ class OMTOptimizer
    *   whether it's optimal and the optimized value.
    **/
   virtual smt::OptimizationResult minimize(SmtEngine* parentSMTSolver,
-                                           Node target) = 0;
+                                           TNode target) = 0;
   /**
    * Maximize the target node with constraints encoded in parentSMTSolver
    *
@@ -75,7 +75,7 @@ class OMTOptimizer
    *   whether it's optimal and the optimized value.
    **/
   virtual smt::OptimizationResult maximize(SmtEngine* parentSMTSolver,
-                                           Node target) = 0;
+                                           TNode target) = 0;
 };
 
 }  // namespace cvc5::omt
