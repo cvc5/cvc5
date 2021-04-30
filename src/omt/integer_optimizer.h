@@ -28,19 +28,20 @@ class OMTOptimizerInteger : public OMTOptimizer
  public:
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
-  std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                           Node target) override;
-  std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                           Node target) override;
+  smt::OptimizationResult minimize(SmtEngine* parentSMTSolver,
+                                   TNode target) override;
+  smt::OptimizationResult maximize(SmtEngine* parentSMTSolver,
+                                   TNode target) override;
 
  private:
   /**
    * Handles the optimization query specified by objType
-   * (objType = OBJECTIVE_MINIMIZE / OBJECTIVE_MAXIMIZE)
+   * (objType = MINIMIZE / MAXIMIZE)
    **/
-  std::pair<smt::OptResult, Node> optimize(SmtEngine* parentSMTSolver,
-                                           Node target,
-                                           smt::ObjectiveType objType);
+  smt::OptimizationResult optimize(
+      SmtEngine* parentSMTSolver,
+      TNode target,
+      smt::OptimizationObjective::ObjectiveType objType);
 };
 
 }  // namespace cvc5::omt

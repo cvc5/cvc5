@@ -27,21 +27,32 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            MethodId ids)
     : d_ctx(c),
       d_subs(c),
-      d_pnm(pnm),
       d_tsubs(c),
-      d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
-      d_subsPg(
-          pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
-              : nullptr),
-      d_applyPg(pnm ? new LazyCDProof(
-                          pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
-                    : nullptr),
-      d_helperPf(pnm, c),
+      d_tspb(nullptr),
+      d_subsPg(nullptr),
+      d_applyPg(nullptr),
+      d_helperPf(nullptr),
       d_name(name),
       d_trustId(trustId),
       d_ids(ids),
       d_eqtIndex(c)
 {
+  setProofNodeManager(pnm);
+}
+
+void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
+{
+  if (pnm != nullptr)
+  {
+    // should not set the proof node manager more than once
+    Assert(d_tspb == nullptr);
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
+        d_subsPg.reset(new LazyCDProof(
+            pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_applyPg.reset(
+        new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+    d_helperPf.reset(new CDProofSet<LazyCDProof>(pnm, d_ctx));
+  }
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
@@ -69,7 +80,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     addSubstitution(x, t, nullptr);
     return;
   }
-  LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
+  LazyCDProof* stepPg = d_helperPf->allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
   stepPg->addStep(eq, id, children, args);
   addSubstitution(x, t, stepPg);
@@ -100,7 +111,7 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     Trace("trust-subs") << "...use generator directly" << std::endl;
     return tn.getGenerator();
   }
-  LazyCDProof* solvePg = d_helperPf.allocateProof(nullptr, d_ctx);
+  LazyCDProof* solvePg = d_helperPf->allocateProof(nullptr, d_ctx);
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
