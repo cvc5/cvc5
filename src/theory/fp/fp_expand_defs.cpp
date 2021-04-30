@@ -16,7 +16,6 @@
 #include "theory/fp/fp_expand_defs.h"
 
 #include "expr/skolem_manager.h"
-#include "theory/bv/theory_bv_utils.h"
 
 namespace cvc5 {
 namespace theory {
