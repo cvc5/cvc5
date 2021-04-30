@@ -106,7 +106,7 @@ class PreprocessingPassContext
  private:
   /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
-  /** Reference to the env */
+  /** Reference to the environment. */
   Env& d_env;
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;

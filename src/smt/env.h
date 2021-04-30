@@ -85,7 +85,7 @@ class Env
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 
-  /** Gets a reference to the top-level substitution map */
+  /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 
   /** Get a pointer to the underlying dump manager. */

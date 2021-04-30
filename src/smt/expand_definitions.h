@@ -81,7 +81,7 @@ class ExpandDefs
       TConvProofGenerator* tpg);
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
-  /** Reference to the env */
+  /** Reference to the environment. */
   Env& d_env;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;

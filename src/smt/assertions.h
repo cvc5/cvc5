@@ -150,7 +150,7 @@ class Assertions
                   bool isAssumption,
                   bool isFunDef,
                   bool maybeHasFv);
-  /** reference to the environment */
+  /** Reference to the environment. */
   Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;

@@ -39,6 +39,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
 {
   setProofNodeManager(pnm);
 }
+
 void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
 {
   if (pnm != nullptr)

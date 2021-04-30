@@ -78,7 +78,7 @@ class PfManager
    * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in as. Note that as includes equalities of the form
+   * respect to assertions in as. Note this includes equalities of the form
    * (= f (lambda (...) t)) which originate from define-fun commands for f.
    * These are considered assertions in the final proof.
    */
