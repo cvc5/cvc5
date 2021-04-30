@@ -98,9 +98,6 @@ SatLiteral JustificationStrategy::getNext()
       TNode curr = d_stack.getCurrentAssertion();
       d_stack.clear();
       d_stack.reset(curr);
-      // NOTE: we could try to backtrack the index only here via
-      // d_stack.getCurrent()->revertChildIndex()
-      // However, this can lead to reporting children with unknown values
     }
   }
   d_lastDecisionLit = TNode::null();
