@@ -64,13 +64,12 @@ void JustificationStrategy::presolve()
   d_stack.clear();
 }
 
-SatLiteral JustificationStrategy::getNext(bool& stopSearch)
+SatLiteral JustificationStrategy::getNext()
 {
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
     Trace("jh-process") << "getNext, already finished" << std::endl;
-    stopSearch = true;
     return undefSatLiteral;
   }
   Assert(d_stack.hasCurrentAssertion());
@@ -214,7 +213,6 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   } while (d_stack.hasCurrentAssertion());
   // we exhausted all assertions
   Trace("jh-process") << "...exhausted all assertions" << std::endl;
-  stopSearch = true;
   return undefSatLiteral;
 }
 
@@ -474,7 +472,8 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
     {
       // this is the moment where we realize a skolem definition is relevant,
       // add now.
-      // NOTE: could call notifyJustified(atom) here
+      // NOTE: if we enable skolems when they are justified, we could call
+      // a method notifyJustified(atom) here
       d_justified.insert(atom, val);
       return pol ? val : invertValue(val);
     }
@@ -558,7 +557,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
     {
       // we skip (top-level) theory literals, since these are always propagated
       // NOTE: skolem definitions that are always relevant should be added to
-      // assertions, for uniformity via notifyJustified(currAtom)
+      // assertions, for uniformity via a method notifyJustified(currAtom)
     }
   }
 }

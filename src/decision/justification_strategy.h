@@ -47,10 +47,33 @@ namespace decision {
  * that correspond to definitions of the behavior of skolems that occur in
  * assertions.
  *
- * Its novel feature is to maintain a SAT-context-dependent stack corresponding
- * to the current place in the input formula we are trying to satisfy. This means
- * that computing the next decision does not require traversing the current
- * assertion.
+ * As an example, say our input formulas are:
+ *   (or (and A B) C D), (or E F)
+ * where A, B, C, D, E, F are theory literals. Moreover, say we are in a
+ * state where the SAT solver has assigned values:
+ *   { A -> false, E -> true }
+ * Given a call to getNext, this module will analyze what is the next
+ * literal that would contribute towards making the input formulas evaluate to
+ * true. Assuming it works on assertions and terms left-to-right, it will
+ * perform the following reasoning:
+ * - The desired value of (or (and A B) C D) is true
+ *   - The desired value of (and A B) is true
+ *     - The desired value of A is true, 
+ *       ...The value of A was assigned false
+ *     ...The value of (and A B) is false
+ *   - Moving to the next literal, the desired value of C is true
+ *     ...The value of C is unassigned, return C as a decision.
+ * After deciding C, the solver may backtrack, or otherwise end up in a state
+ * where we have assigned:
+ *   { A -> false, E -> true, C -> true }
+ * In the next call to getNext, this module will realize that the input
+ * is already true, and hence it will return the null SAT decision literal,
+ * indicating that no further decisions are necessary.
+ *
+ * One novel feature of this module is that it maintains a SAT-context-dependent
+ * stack corresponding to the current path in the input formula we are trying
+ * to satisfy. This means that computing the next decision does not require
+ * traversing the current assertion.
  */
 class JustificationStrategy
 {
@@ -66,10 +89,22 @@ class JustificationStrategy
   /** Presolve, called at the beginning of each check-sat call */
   void presolve();
 
-  /** Gets the next decision based on the current assertion to satisfy */
-  prop::SatLiteral getNext(bool& stopSearch);
+  /**
+   * Gets the next decision based on the current assertion to satisfy. This
+   * returns undefSatLiteral if there are no more assertions. In this case,
+   * all relevant input assertions are already propositionally satisfied by
+   * the current assignment.
+   * 
+   * @return The next SAT literal to decide on.
+   */
+  prop::SatLiteral getNext();
 
-  /** Is the DecisionEngine in a state where it has solved everything? */
+  /** 
+   * Are we finished assigning values to literals?
+   * 
+   * @return true if and only if all relevant input assertions are already
+   * propositionally satisfied by the current assignment.
+   */
   bool isDone();
 
   /**
@@ -95,9 +130,25 @@ class JustificationStrategy
    * `d_skolemAssertions` based on `useSkolemList`.
    */
   void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
-  /** Refresh current */
+  /** 
+   * Refresh current assertion. This ensures that d_stack has a current
+   * assertionto satisfy. If does not already have one, we take the next
+   * assertion from the list of input assertions, or from the relevant
+   * skolem definitions based on the JutificationSkolemMode mode.
+   * 
+   * @return true if we successfully initialized d_stack with the next
+   * assertion to satisfy.
+   */
   bool refreshCurrentAssertion();
-  /** Reference current assertion from list */
+  /** 
+   * Implements the above function for the case where d_stack must get a new
+   * assertion to satisfy. 
+   * 
+   * @param useSkolemList If this is true, we pull the next assertion from
+   * the list of relevant skolem definitions.
+   * @return true if we successfully initialized d_stack with the next
+   * assertion to satisfy.
+   */
   bool refreshCurrentAssertionFromList(bool useSkolemList);
   /**
    * Let n be the node referenced by ji.
@@ -109,14 +160,22 @@ class JustificationStrategy
    * Note that knowing which child of n we processed last is the value of
    * ji->d_childIndex.
    *
-   * This method either:
-   * (1) Returns the justify node corresponding to the next child of n to
-   * consider adding to the stack, and its desired polarity.
-   * (2) Returns a null justify node and updates lastChildVal to the value
-   * of n.
+   * @param ji The justify node to process
+   * @param lastChildVal The value determined for the last child of the node of ji.
+   * @return Either (1) the justify node corresponding to the next child of n to
+   * consider adding to the stack, and its desired polarity, or
+   * (2) a null justify node and updates lastChildVal to the value of n.
    */
   JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
-  /** Lookup value, return value of n if one can be determined. */
+  /** 
+   * Returns the value TRUE/FALSE for n, or UNKNOWN otherwise.
+   *
+   * We return a value for n only if we have justified its values based on its
+   * children. For example, we return UNKNOWN for n of the form (and A B) if
+   * A and B have UNKNOWN value, even if the SAT solver has assigned a value for
+   * (internal) node n. If n itself is a theory literal, we lookup its value
+   * in the SAT solver if it is not already cached.
+   */
   prop::SatValue lookupValue(TNode n);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
