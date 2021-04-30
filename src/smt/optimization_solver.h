@@ -58,7 +58,7 @@ class OptimizationResult
 
   /**
    * Constructor
-   * @param result the optimization outcome
+   * @param type the optimization outcome
    * @param value the optimized value
    **/
   OptimizationResult(ResultType type, Node value) : d_type(type), d_value(value)
@@ -83,7 +83,9 @@ class OptimizationResult
   Node getValue() { return d_value; }
 
  private:
+  /** the indicating whether the result is optimal or something else **/
   ResultType d_type;
+  /** if the result is optimal, this is storing the optimal value **/
   Node d_value;
 };
 
