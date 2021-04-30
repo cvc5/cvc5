@@ -16,8 +16,6 @@
  * Options::wasSetByUser<T> for different option types T.
  */
 
-#include "options.h"
-
 #include <fstream>
 #include <ostream>
 #include <string>
@@ -25,6 +23,7 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
+#include "options.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
@@ -33,6 +32,7 @@
 #include "options/printer_modes.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
+#include "options/resource_manager_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 
@@ -141,7 +141,8 @@ int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
 }
 
-unsigned long Options::getCumulativeTimeLimit() const {
+uint64_t Options::getCumulativeTimeLimit() const
+{
   return (*this)[options::cumulativeMillisecondLimit];
 }
 

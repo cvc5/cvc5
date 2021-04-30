@@ -151,5 +151,30 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
             << std::endl;
 }
 
+TEST_F(TestTheoryWhiteBVOpt, min_boundary)
+{
+  Node x = d_nodeManager->mkVar(*d_BV32Type);
+  Node y = d_nodeManager->mkVar(*d_BV32Type);
+
+  // x <= 18
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(
+      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+  // this perturbs the solver to trigger some boundary bug
+  // that existed previously
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+
+  d_optslv->activateObj(x, ObjectiveType::OBJECTIVE_MINIMIZE, false);
+
+  OptResult r = d_optslv->checkOpt();
+
+  ASSERT_EQ(r, OptResult::OPT_OPTIMAL);
+
+  // expect the maximum x = 18
+  ASSERT_EQ(d_optslv->objectiveGetValue(),
+            d_nodeManager->mkConst(BitVector(32u, 18u)));
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
+}
+
 }  // namespace test
 }  // namespace cvc5
