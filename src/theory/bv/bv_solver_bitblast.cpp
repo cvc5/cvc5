@@ -34,7 +34,9 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
       d_nullRegistrar(new prop::NullRegistrar()),
       d_nullContext(new context::Context()),
       d_bbFacts(s->getSatContext()),
+      d_bbInputFacts(s->getSatContext()),
       d_assumptions(s->getSatContext()),
+      d_assertions(s->getSatContext()),
       d_invalidateModelCache(s->getSatContext(), true),
       d_inSatMode(s->getSatContext(), false),
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
@@ -76,6 +78,21 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     }
   }
 
+  /* Process input assertions bit-blast queue. */
+  while (!d_bbInputFacts.empty())
+  {
+    Node fact = d_bbInputFacts.front();
+    d_bbInputFacts.pop();
+    /* Bit-blast fact and cache literal. */
+    if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
+    {
+      d_bitblaster->bbAtom(fact);
+      Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
+      d_cnfStream->convertAndAssert(bb_fact, false, false);
+    }
+    d_assertions.push_back(fact);
+  }
+
   /* Process bit-blast queue and store SAT literals. */
   while (!d_bbFacts.empty())
   {
@@ -106,25 +123,44 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   {
     std::vector<prop::SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
-    Assert(unsat_assumptions.size() > 0);
 
-    std::vector<Node> conflict;
-    for (const prop::SatLiteral& lit : unsat_assumptions)
+    if (unsat_assumptions.size() > 0)
     {
-      conflict.push_back(d_literalFactCache[lit]);
-      Debug("bv-bitblast") << "unsat assumption (" << lit
-                           << "): " << conflict.back() << std::endl;
-    }
+      std::vector<Node> conflict;
+      for (const prop::SatLiteral& lit : unsat_assumptions)
+      {
+        conflict.push_back(d_literalFactCache[lit]);
+        Debug("bv-bitblast") << "unsat assumption (" << lit
+                             << "): " << conflict.back() << std::endl;
+      }
 
-    NodeManager* nm = NodeManager::currentNM();
-    d_im.conflict(nm->mkAnd(conflict), InferenceId::BV_BITBLAST_CONFLICT);
+      NodeManager* nm = NodeManager::currentNM();
+      d_im.conflict(nm->mkAnd(conflict), InferenceId::BV_BITBLAST_CONFLICT);
+    }
+    else
+    {
+      std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
+      NodeManager* nm = NodeManager::currentNM();
+      d_im.conflict(nm->mkAnd(assertions), InferenceId::BV_BITBLAST_CONFLICT);
+    }
   }
 }
 
 bool BVSolverBitblast::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  d_bbFacts.push_back(fact);
+  Valuation& val = d_state.getValuation();
+
+  if (val.isSatLiteral(fact) && !val.isDecision(fact)
+      && val.getIntroLevel(fact) == 0)
+  {
+    d_bbInputFacts.push_back(fact);
+  }
+  else
+  {
+    d_bbFacts.push_back(fact);
+  }
+
   return false;  // Return false to enable equality engine reasoning in Theory.
 }
 

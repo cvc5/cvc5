@@ -108,8 +108,13 @@ class BVSolverBitblast : public BVSolver
    */
   context::CDQueue<Node> d_bbFacts;
 
+  context::CDQueue<Node> d_bbInputFacts;
+
   /** Corresponds to the SAT literals of the currently asserted facts. */
   context::CDList<prop::SatLiteral> d_assumptions;
+
+  /** Stores the current input assertions. */
+  context::CDList<Node> d_assertions;
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
   context::CDO<bool> d_invalidateModelCache;

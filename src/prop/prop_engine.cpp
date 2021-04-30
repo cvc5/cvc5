@@ -332,6 +332,13 @@ bool PropEngine::isDecision(Node lit) const {
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
 }
 
+int32_t PropEngine::getIntroLevel(Node lit) const
+{
+  Assert(isSatLiteral(lit));
+  return d_satSolver->getIntroLevel(
+      d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::NodeToLiteralMap& transCache =
     d_cnfStream->getTranslationCache();

@@ -259,6 +259,11 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }
 
+int32_t MinisatSatSolver::getIntroLevel(SatVariable v) const
+{
+  return d_minisat->getIntroLevel(v);
+}
+
 SatProofManager* MinisatSatSolver::getProofManager()
 {
   return d_minisat->getProofManager();

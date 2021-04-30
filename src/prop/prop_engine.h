@@ -157,6 +157,8 @@ class PropEngine
    */
   bool isDecision(Node lit) const;
 
+  int32_t getIntroLevel(Node lit) const;
+
   /**
    * Checks the current context for satisfiability.
    *
