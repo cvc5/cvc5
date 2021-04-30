@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file justification_strategy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Justification strategy
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the justification SAT decision strategy
+ */
 
 #include "decision/justification_strategy.h"
 
@@ -243,21 +244,24 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // if i=0, we shouldn't have a last child value
   Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN)
       << "in getNextJustifyNode, value given for non-existent last child";
-  // In the following, we determine if we have a value and set value if so.
-  // If not, we set desiredValue for the value of the next value to justify.
-  // One of these two values should always be set below.
-  SatValue value = SAT_VALUE_UNKNOWN;
-  SatValue desiredVal = SAT_VALUE_UNKNOWN;
   // we are trying to make the value of curr equal to currDesiredVal
   SatValue currDesiredVal = currPol ? jc.second : invertValue(jc.second);
+  // value is set to TRUE/FALSE if the value of curr can be determined.
+  SatValue value = SAT_VALUE_UNKNOWN;
+  // if we require processing the next child of curr, we set desiredVal to
+  // value which we want that child to be to make curr's value equal to
+  // currDesiredVal.
+  SatValue desiredVal = SAT_VALUE_UNKNOWN;
   if (ck == AND || ck == OR)
   {
     if (i == 0)
     {
-      // we scan only once, when processing the first child
+      // See if a single child with currDesiredVal forces value, which is the
+      // case if ck / currDesiredVal in { and / false, or / true }.
       if ((ck == AND) == (currDesiredVal == SAT_VALUE_FALSE))
       {
         // lookahead to determine if already satisfied
+        // we scan only once, when processing the first child
         for (const Node& c : curr)
         {
           SatValue v = lookupValue(c);
@@ -376,6 +380,12 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       else
       {
+        // if the RHS of the XOR/EQUAL already had a value val1, then:
+        // ck    / currDesiredVal
+        // equal / true             ... LHS should have same value as RHS
+        // equal / false            ... LHS should have opposite value as RHS
+        // xor   / true             ... LHS should have opposite value as RHS
+        // xor   / false            ... LHS should have same value as RHS
         desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                          ? val1
                          : invertValue(val1);
@@ -384,6 +394,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     else if (i == 1)
     {
       Assert(lastChildVal != SAT_VALUE_UNKNOWN);
+      // same as above, choosing a value for RHS based on the value of LHS,
+      // which is stored in lastChildVal.
       desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                        ? lastChildVal
                        : invertValue(lastChildVal);
@@ -394,7 +406,13 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       SatValue val0 = lookupValue(curr[0]);
       Assert(val0 != SAT_VALUE_UNKNOWN);
       Assert(lastChildVal != SAT_VALUE_UNKNOWN);
-      // compute the value
+      // compute the value of the equal/xor. The values for LHS/RHS are
+      // stored in val0 and lastChildVal.
+      // (al0 == lastChildVal) / ck
+      // true                  / equal ... value of curr is true
+      // true                  / xor   ... value of curr is false
+      // false                 / equal ... value of curr is false
+      // false                 / xor   ... value of curr is true
       value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
                                                         : SAT_VALUE_FALSE;
     }
@@ -438,8 +456,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   // check if we have already determined the value
   // notice that d_justified may contain nodes that are not assigned SAT values,
   // since this class infers when the value of nodes can be determined.
-  context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator
-      jit = d_justified.find(atom);
+  auto jit = d_justified.find(atom);
   if (jit != d_justified.end())
   {
     return pol ? jit->second : invertValue(jit->second);
@@ -503,6 +520,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
                                                   bool useSkolemList)
 {
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
+  IntStat& sizeStat = useSkolemList ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
   // always miniscope AND and negated OR immediately
   size_t index = 0;
   // must keep some intermediate nodes below around for ref counting
@@ -534,14 +552,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
     {
       al.addAssertion(curr);
       // take stats
-      if (useSkolemList)
-      {
-        d_stats.d_maxSkolemDefsSize.maxAssign(al.size());
-      }
-      else
-      {
-        d_stats.d_maxAssertionsSize.maxAssign(al.size());
-      }
+      sizeStat.maxAssign(al.size());
     }
     else
     {
