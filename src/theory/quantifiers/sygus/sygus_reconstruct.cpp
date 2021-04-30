@@ -126,10 +126,6 @@ Node SygusReconstruct::reconstructSolution(Node sol,
             Trace("sygus-rcons")
                 << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
                 << std::endl;
-            if (sz.toString() == "(Start__0_1_2_3_4_5_6_6_Start_6_ITE fv_StartBool__0_1_2_0 fv_Start__0_1_2_3_4_5_6_0 fv_Start__0_1_2_3_4_5_6_1)")
-            {
-              int x = 0;
-            }
             // try to match builtin term `t` with the enumerated term sz
             TypeObligationSetMap temp = matchNewObs(t, sz);
             // cache the new obligations for processing in the match phase
