@@ -43,9 +43,11 @@ namespace decision {
  * is given access to the set of input formulas, and chooses next decisions
  * based on the structure of the input formula.
  *
- * It also maintains a dynamic list of assertions, called skolem definitions,
- * that correspond to definitions of the behavior of skolems that occur in
- * assertions.
+ * Notice that the SAT solver still propagates values for literals in the
+ * normal way based on BCP when using this SAT decision heuristic. This means
+ * that values for literals can be assigned between calls to get next
+ * decision. Thus, this module has access to the SAT solver for the purpose
+ * of looking up values already assigned to literals.
  *
  * One novel feature of this module is that it maintains a SAT-context-dependent
  * stack corresponding to the current path in the input formula we are trying
