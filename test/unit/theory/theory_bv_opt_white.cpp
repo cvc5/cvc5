@@ -112,7 +112,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
   std::cout << "opt value is: " << val << std::endl;
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
-            BitVector(32u, (unsigned)2));
+            BitVector(32u, 2u));
   d_optslv->popObjective();
 }
 
