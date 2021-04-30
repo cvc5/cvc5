@@ -32,6 +32,10 @@ using ObligationSet = std::unordered_set<Node, NodeHashFunction>;
 using TypeObligationSetMap =
     std::unordered_map<TypeNode, ObligationSet, TypeNodeHashFunction>;
 
+using BuiltinSet = std::unordered_set<Node, NodeHashFunction>;
+using TypeBuiltinSetMap =
+    std::unordered_map<TypeNode, BuiltinSet, TypeNodeHashFunction>;
+
 /** SygusReconstruct
  *
  * This class implements an algorithm for reconstructing a given term such that
@@ -62,7 +66,7 @@ using TypeObligationSetMap =
  *          for matching against the terms to reconstruct t in (k, t, s).
  *
  *   let k_0 be a fresh skolem of sygus type T_0
- *   Obs[T_0] += (k_0, [t_0], null)
+ *   Obs[T_0] += (k_0, {t_0}, null)
  *
  *   while Sol[k_0] == null
  *     Obs' = {} // map from T to sets of triples pending addition to Obs
@@ -110,7 +114,7 @@ using TypeObligationSetMap =
  *         else
  *           let sk be a new variable of type : typeOf(z)
  *           Sub[z] = sk
- *           Obs'[typeOf(z)] += (sk, [st], null)
+ *           Obs'[typeOf(z)] += (sk, {st}, null)
  *       if Sol[sk] != null forall (z, sk) in Sub
  *         markSolved(k, s{Sub})
  *       else
@@ -170,39 +174,39 @@ class SygusReconstruct : public expr::NotifyMatch
                            uint64_t enumLimit);
 
  private:
-  /** Match obligation `k`'s builtin term with pattern `sz`.
+  /** Match builtin term `t` with pattern `sz`.
    *
-   * This function matches the builtin term to reconstruct for obligation `k`
-   * with the builtin analog of the pattern `sz`. If the match succeeds, `sz` is
-   * added to the set of candidate solutions for `k` and a set of new
-   * sub-obligations to satisfy is returned. If there are no new sub-obligations
-   * to satisfy, then `sz` is considered a solution to obligation `k` and
-   * `matchNewObs(k, sz)` is called. For example, given:
+   * This function matches the builtin term to reconstruct `t` with the builtin
+   * analog of the pattern `sz`. If the match succeeds, `sz` is added to the set
+   * of candidate solutions for the obligation `k` corresponding to the builtin
+   * term `t` and a set of new sub-terms to reconstruct is returned. If there
+   * are no new sub-terms to reconstruct, then `sz` is considered a solution to
+   * obligation `k` and `markSolved(k, sz)` is called. For example, given:
    *
-   * Obs[typeOf(c_z1)] = {(c_z1, (+ 1 1), null)}
+   * Obs[typeOf(c_z1)] = {(c_z1, {(+ 1 1)}, null)}
    * Pool[typeOf(c_z1)] = {(c_+ c_z2 c_z3)}
    * CandSols = {}
    *
-   * Then calling `matchNewObs(c_z1, (c_+ c_z2 c_z3))` will result in:
+   * Then calling `matchNewObs((+ 1 1), (c_+ c_z2 c_z3))` will result in:
    *
-   * Obs[typeOf(c_z1)] = {(c_z1, (+ 1 1), null), (c_z4, 1, null)}
+   * Obs[typeOf(c_z1)] = {(c_z1, {(+ 1 1)}, null), (c_z4, {1}, null)}
    * Pool[typeOf(c_z1)] = {(c_+ c_z2 c_z3)}
    * CandSols = {c_z1 -> {(c_+ c_z4 c_z4)}}
    *
-   * and will return `{typeOf(c_z4) -> {c_z4}}`.
+   * and will return `{typeOf(c_z4) -> {1}}`.
    *
-   * Notice that `c_z2` and `c_z3` are not returned as new sub-obligations.
+   * Notice that `c_z2` and `c_z3` are not added to the set of obligations.
    * Instead, `(c_+ c_z2 c_z3)` is instantiated with a new skolem `c_z4`, which
    * is then added to the set of obligations. This is done to allow the reuse of
    * patterns in `Pool`. Also, notice that only one new skolem/sub-obligation is
    * generated. That's because the builtin analogs of `c_z2` and `c_z3` match
    * with the same builtin term `1`.
    *
-   * @param k free var whose builtin term we need to match
+   * @param t builtin term we need to reconstruct
    * @param sz a pattern to match `ob`s builtin term with
    * @return a set of new obligations to satisfy if the match succeeds
    */
-  TypeObligationSetMap matchNewObs(Node k, Node sz);
+  TypeObligationSetMap matchNewObs(Node t, Node sz);
 
   /** mark obligation `k` as solved.
    *
