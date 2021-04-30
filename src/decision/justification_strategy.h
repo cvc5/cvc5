@@ -47,10 +47,15 @@ namespace decision {
  * that correspond to definitions of the behavior of skolems that occur in
  * assertions.
  *
+ * One novel feature of this module is that it maintains a SAT-context-dependent
+ * stack corresponding to the current path in the input formula we are trying
+ * to satisfy. This means that computing the next decision does not require
+ * traversing the current assertion.
+ *
  * As an example, say our input formulas are:
  *   (or (and A B) C D), (or E F)
  * where A, B, C, D, E, F are theory literals. Moreover, say we are in a
- * state where the SAT solver has assigned values:
+ * state where the SAT solver has initially assigned values:
  *   { A -> false, E -> true }
  * Given a call to getNext, this module will analyze what is the next
  * literal that would contribute towards making the input formulas evaluate to
@@ -66,14 +71,49 @@ namespace decision {
  * After deciding C, the solver may backtrack, or otherwise end up in a state
  * where we have assigned:
  *   { A -> false, E -> true, C -> true }
- * In the next call to getNext, this module will realize that the input
- * is already true, and hence it will return the null SAT decision literal,
- * indicating that no further decisions are necessary.
+ * In the next call to getNext, this module will proceed, keeping the stack
+ * from the previous call:
+ *     ... The value of C is true
+ *   ... The value of (or (and A B) C D) is true
+ * - Moving to the next assertion, the desired value of (or E F) is true
+ *   - The desired value of E is true
+ *     ... The value of E is (already) assigned true
+ *   ... the value of (or E F) is true.
+ * - The are no further assertions.
+ * Hence it will return the null SAT decision literal, indicating that no
+ * further decisions are necessary to satisfy the input assertions.
  *
- * One novel feature of this module is that it maintains a SAT-context-dependent
- * stack corresponding to the current path in the input formula we are trying
- * to satisfy. This means that computing the next decision does not require
- * traversing the current assertion.
+ * This class has special handling of "skolem definitions", which arise when
+ * lemmas are introduced that correspond to the behavior of skolems. As an
+ * example, say our input, prior to preocessing, is:
+ *   (or (P (ite A 1 2)) Q)
+ * where P is an uninterpreted predicate of type Int -> Bool. After
+ * preprocessing, in particular term formula removal which replaces term-level
+ * ITE terms with fresh skolems, we get this set of input assertions:
+ *   (or (P k) Q), (ite A (= k 1) (= k 2))
+ * The second assertion is the skolem definition for k. Conceptually, this
+ * lemma is only relevant if we have asserted a literal that contains k.
+ * This module thus maintains two seperate assertion lists, one for
+ * input assertions, and one for skolem definitions. The latter is populated
+ * only as skolems appear in assertions. In this example, we have initially:
+ *   input assertions = { (or (P k) Q) }
+ *   relevant skolem definitions =  {}
+ *   SAT context = {}
+ * Say this module returns (P k) as a decision. When this is asserted to
+ * the theory engine, a call to notifyAsserted is made with (P k). The
+ * skolem definition manager will recognize that (P k) contains k and hence
+ * its skolem definition is activated, giving us this state:
+ *   input assertions = { (or (P k) Q) }
+ *   relevant skolem definitions =  { (ite A (= k 1) (= k 2)) }
+ *   SAT context = { (P k) }
+ * We then proceed by satisfying (ite A (= k 1) (= k 2)), e.g. by returning
+ * A as a decision for getNext.
+ *
+ * Notice that the above policy allows us to ignore certain skolem definitions
+ * entirely. For example, if Q were to have been asserted instead of (P k),
+ * then (ite A (= k 1) (= k 2)) would not be added as a relevant skolem
+ * definition, and Q alone would have sufficed to show the input formula
+ * was satisfied.
  */
 class JustificationStrategy
 {
