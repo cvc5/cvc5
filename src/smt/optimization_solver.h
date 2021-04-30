@@ -196,7 +196,7 @@ class OptimizationSolver
                      bool bvSigned = false);
 
   /**
-   * Pops the objective that is lastly pushed.
+   * Pop the most recent objective.
    **/
   void popObjective();
 
