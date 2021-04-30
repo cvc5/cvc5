@@ -41,7 +41,7 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
   else if (d_objectives[0].getType() == OptimizationObjective::MINIMIZE)
   {
     optResult =
-        optimizer->minimize(this->d_parent, this->d_objectives[0].getTarget());
+        optimizer->minimize(d_parent, d_objectives[0].getTarget());
   }
 
   d_results[0] = optResult;
