@@ -85,7 +85,7 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   std::cout << "opt value is: " << val << std::endl;
 
   // expect the minimum x = -1
-  ASSERT_EQ(val, BitVector(32u, (unsigned)0x80000000));
+  ASSERT_EQ(val, BitVector(32u, (uint32_t)0x80000000));
   d_optslv->popObjective();
 }
 
