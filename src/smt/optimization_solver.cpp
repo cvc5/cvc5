@@ -35,13 +35,11 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
   OptimizationResult optResult;
   if (d_objectives[0].getType() == OptimizationObjective::MAXIMIZE)
   {
-    optResult =
-        optimizer->maximize(this->d_parent, d_objectives[0].getTarget());
+    optResult = optimizer->maximize(d_parent, d_objectives[0].getTarget());
   }
   else if (d_objectives[0].getType() == OptimizationObjective::MINIMIZE)
   {
-    optResult =
-        optimizer->minimize(d_parent, d_objectives[0].getTarget());
+    optResult = optimizer->minimize(d_parent, d_objectives[0].getTarget());
   }
 
   d_results[0] = optResult;
