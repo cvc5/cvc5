@@ -21,8 +21,10 @@
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
-std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
-    SmtEngine* parentSMTSolver, Node target, ObjectiveType objType)
+OptimizationResult OMTOptimizerInteger::optimize(
+    SmtEngine* parentSMTSolver,
+    TNode target,
+    OptimizationObjective::ObjectiveType objType)
 {
   // linear search for integer goal
   // the smt engine to which we send intermediate queries
@@ -36,22 +38,22 @@ std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
   Node value;
   if (intermediateSatResult.isUnknown())
   {
-    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    return OptimizationResult(OptimizationResult::UNKNOWN, value);
   }
   if (intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return std::make_pair(OptResult::OPT_UNSAT, value);
+    return OptimizationResult(OptimizationResult::UNSAT, value);
   }
   // asserts objective > old_value (used in optimization loop)
   Node increment;
   Kind incrementalOperator = kind::NULL_EXPR;
-  if (objType == ObjectiveType::OBJECTIVE_MINIMIZE)
+  if (objType == OptimizationObjective::MINIMIZE)
   {
     // if objective is MIN, then assert optimization_target <
     // current_model_value
     incrementalOperator = kind::LT;
   }
-  else if (objType == ObjectiveType::OBJECTIVE_MAXIMIZE)
+  else if (objType == OptimizationObjective::MAXIMIZE)
   {
     // if objective is MAX, then assert optimization_target >
     // current_model_value
@@ -69,20 +71,20 @@ std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
     optChecker->assertFormula(increment);
     intermediateSatResult = optChecker->checkSat();
   }
-  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+  return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
-std::pair<OptResult, Node> OMTOptimizerInteger::minimize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerInteger::minimize(
+    SmtEngine* parentSMTSolver, TNode target)
 {
   return this->optimize(
-      parentSMTSolver, target, ObjectiveType::OBJECTIVE_MINIMIZE);
+      parentSMTSolver, target, OptimizationObjective::MINIMIZE);
 }
-std::pair<OptResult, Node> OMTOptimizerInteger::maximize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerInteger::maximize(
+    SmtEngine* parentSMTSolver, TNode target)
 {
   return this->optimize(
-      parentSMTSolver, target, ObjectiveType::OBJECTIVE_MAXIMIZE);
+      parentSMTSolver, target, OptimizationObjective::MAXIMIZE);
 }
 
 }  // namespace cvc5::omt
