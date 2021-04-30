@@ -60,27 +60,23 @@ namespace rewrite {
 
   RewriteResponse notFP(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Unreachable() << "non floating-point kind (" << node.getKind()
                   << ") in floating point rewrite?";
   }
 
   RewriteResponse identity(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     return RewriteResponse(REWRITE_DONE, node);
   }
 
   RewriteResponse type(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Unreachable() << "sort kind (" << node.getKind()
                   << ") found in expression?";
   }
 
   RewriteResponse removeDoubleNegation(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
     if (node[0].getKind() == kind::FLOATINGPOINT_NEG) {
       return RewriteResponse(REWRITE_AGAIN, node[0][0]);
@@ -91,7 +87,6 @@ namespace rewrite {
 
   RewriteResponse compactAbs(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
     if (node[0].getKind() == kind::FLOATINGPOINT_NEG
         || node[0].getKind() == kind::FLOATINGPOINT_ABS)
@@ -106,7 +101,6 @@ namespace rewrite {
 
   RewriteResponse convertSubtractionToAddition(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_SUB);
     Node negation = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_NEG,node[2]);
     Node addition = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_PLUS,node[0],node[1],negation);
@@ -143,7 +137,6 @@ namespace rewrite {
 
   RewriteResponse ieeeEqToEq(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
     NodeManager *nm = NodeManager::currentNM();
 
@@ -161,28 +154,24 @@ namespace rewrite {
 
   RewriteResponse geqToleq(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_GEQ);
     return RewriteResponse(REWRITE_DONE,NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_LEQ,node[1],node[0]));
   }
 
   RewriteResponse gtTolt(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_GT);
     return RewriteResponse(REWRITE_DONE,NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_LT,node[1],node[0]));
   }
 
   RewriteResponse removed(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Unreachable() << "kind (" << node.getKind()
                   << ") should have been removed?";
   }
 
   RewriteResponse variable(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     // We should only get floating point and rounding mode variables to rewrite.
     TypeNode tn = node.getType(true);
     Assert(tn.isFloatingPoint() || tn.isRoundingMode());
@@ -215,7 +204,6 @@ namespace rewrite {
 
   // Note these cannot be assumed to be symmetric for +0/-0, thus no symmetry reorder
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
-    (void)isPreRewrite;
 #ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
     Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
@@ -268,7 +256,6 @@ namespace rewrite {
   }
 
   RewriteResponse removeSignOperations (TNode node, bool isPreRewrite) {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISN
            || node.getKind() == kind::FLOATINGPOINT_ISSN
            || node.getKind() == kind::FLOATINGPOINT_ISZ
@@ -336,7 +323,6 @@ namespace rewrite {
 
   RewriteResponse ltId(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_LT);
 
     if (node[0] == node[1])
@@ -353,7 +339,6 @@ namespace constantFold {
 
 RewriteResponse fpLiteral(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_FP);
 
   BitVector bv(node[0].getConst<BitVector>());
@@ -371,7 +356,6 @@ RewriteResponse fpLiteral(TNode node, bool isPreRewrite)
 
 RewriteResponse abs(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
   Assert(node.getNumChildren() == 1);
 
@@ -392,7 +376,6 @@ RewriteResponse neg(TNode node, bool isPreRewrite)
 
 RewriteResponse plus(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_PLUS);
   Assert(node.getNumChildren() == 3);
 
@@ -408,7 +391,6 @@ RewriteResponse plus(TNode node, bool isPreRewrite)
 
 RewriteResponse mult(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_MULT);
   Assert(node.getNumChildren() == 3);
 
@@ -424,7 +406,6 @@ RewriteResponse mult(TNode node, bool isPreRewrite)
 
 RewriteResponse fma(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_FMA);
   Assert(node.getNumChildren() == 4);
 
@@ -443,7 +424,6 @@ RewriteResponse fma(TNode node, bool isPreRewrite)
 
 RewriteResponse div(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_DIV);
   Assert(node.getNumChildren() == 3);
 
@@ -459,7 +439,6 @@ RewriteResponse div(TNode node, bool isPreRewrite)
 
 RewriteResponse sqrt(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_SQRT);
   Assert(node.getNumChildren() == 2);
 
@@ -472,7 +451,6 @@ RewriteResponse sqrt(TNode node, bool isPreRewrite)
 
 RewriteResponse rti(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_RTI);
   Assert(node.getNumChildren() == 2);
 
@@ -485,7 +463,6 @@ RewriteResponse rti(TNode node, bool isPreRewrite)
 
 RewriteResponse rem(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_REM);
   Assert(node.getNumChildren() == 2);
 
@@ -500,7 +477,6 @@ RewriteResponse rem(TNode node, bool isPreRewrite)
 
 RewriteResponse min(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
   Assert(node.getNumChildren() == 2);
 
@@ -525,7 +501,6 @@ RewriteResponse min(TNode node, bool isPreRewrite)
 
 RewriteResponse max(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_MAX);
   Assert(node.getNumChildren() == 2);
 
@@ -550,7 +525,6 @@ RewriteResponse max(TNode node, bool isPreRewrite)
 
 RewriteResponse minTotal(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL);
   Assert(node.getNumChildren() == 3);
 
@@ -587,7 +561,6 @@ RewriteResponse minTotal(TNode node, bool isPreRewrite)
 
 RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 {
-  (void)isPreRewrite;
   Assert(node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL);
   Assert(node.getNumChildren() == 3);
 
@@ -623,7 +596,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 }
 
   RewriteResponse equal (TNode node, bool isPreRewrite) {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::EQUAL);
 
     // We should only get equalities of floating point or rounding mode types.
@@ -649,7 +621,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse leq(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_LEQ);
     Assert(node.getNumChildren() == 2);
 
@@ -663,7 +634,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse lt(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_LT);
     Assert(node.getNumChildren() == 2);
 
@@ -677,7 +647,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNormal(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISN);
     Assert(node.getNumChildren() == 1);
 
@@ -686,7 +655,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isSubnormal(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISSN);
     Assert(node.getNumChildren() == 1);
 
@@ -695,7 +663,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isZero(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISZ);
     Assert(node.getNumChildren() == 1);
 
@@ -704,7 +671,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isInfinite(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISINF);
     Assert(node.getNumChildren() == 1);
 
@@ -713,7 +679,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNaN(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISNAN);
     Assert(node.getNumChildren() == 1);
 
@@ -722,7 +687,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNegative(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISNEG);
     Assert(node.getNumChildren() == 1);
 
@@ -731,7 +695,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isPositive(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_ISPOS);
     Assert(node.getNumChildren() == 1);
 
@@ -740,7 +703,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromIEEEBitVectorLiteral(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
 
     TNode op = node.getOperator();
@@ -757,7 +719,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse constantConvert(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
     Assert(node.getNumChildren() == 2);
 
@@ -772,7 +733,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromRealLiteral(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
 
     TNode op = node.getOperator();
@@ -790,7 +750,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromSBV(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
 
     TNode op = node.getOperator();
@@ -808,7 +767,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromUBV(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
 
     TNode op = node.getOperator();
@@ -826,7 +784,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToUBV(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
 
     TNode op = node.getOperator();
@@ -849,7 +806,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToSBV(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
 
     TNode op = node.getOperator();
@@ -872,7 +828,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToReal(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL);
 
     FloatingPoint arg(node[0].getConst<FloatingPoint>());
@@ -890,7 +845,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToUBVTotal(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL);
 
     TNode op = node.getOperator();
@@ -924,7 +878,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToSBVTotal(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL);
 
     TNode op = node.getOperator();
@@ -958,7 +911,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToRealTotal(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
     FloatingPoint arg(node[0].getConst<FloatingPoint>());
@@ -986,7 +938,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse componentFlag(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Kind k = node.getKind();
 
     Assert((k == kind::FLOATINGPOINT_COMPONENT_NAN)
@@ -1016,7 +967,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse componentExponent(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_EXPONENT);
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
@@ -1034,7 +984,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse componentSignificand(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
@@ -1051,7 +1000,6 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse roundingModeBitBlast(TNode node, bool isPreRewrite)
   {
-    (void)isPreRewrite;
     Assert(node.getKind() == kind::ROUNDINGMODE_BITBLAST);
 
     BitVector value;
