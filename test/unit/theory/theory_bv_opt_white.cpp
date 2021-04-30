@@ -61,7 +61,7 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
   ASSERT_EQ(r, OptimizationResult::OPTIMAL);
 
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<BitVector>(),
-            BitVector(32u, (unsigned)0x3FFFFFA1));
+            BitVector(32u, (uint32_t)0x3FFFFFA1));
   d_optslv->popObjective();
 }
 
