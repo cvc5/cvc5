@@ -519,7 +519,8 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
                                                   bool useSkolemList)
 {
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
-  IntStat& sizeStat = useSkolemList ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
+  IntStat& sizeStat =
+      useSkolemList ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
   // always miniscope AND and negated OR immediately
   size_t index = 0;
   // must keep some intermediate nodes below around for ref counting

@@ -58,7 +58,7 @@ namespace decision {
  * perform the following reasoning:
  * - The desired value of (or (and A B) C D) is true
  *   - The desired value of (and A B) is true
- *     - The desired value of A is true, 
+ *     - The desired value of A is true,
  *       ...The value of A was assigned false
  *     ...The value of (and A B) is false
  *   - Moving to the next literal, the desired value of C is true
@@ -94,14 +94,14 @@ class JustificationStrategy
    * returns undefSatLiteral if there are no more assertions. In this case,
    * all relevant input assertions are already propositionally satisfied by
    * the current assignment.
-   * 
+   *
    * @return The next SAT literal to decide on.
    */
   prop::SatLiteral getNext();
 
-  /** 
+  /**
    * Are we finished assigning values to literals?
-   * 
+   *
    * @return true if and only if all relevant input assertions are already
    * propositionally satisfied by the current assignment.
    */
@@ -130,20 +130,20 @@ class JustificationStrategy
    * `d_skolemAssertions` based on `useSkolemList`.
    */
   void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
-  /** 
+  /**
    * Refresh current assertion. This ensures that d_stack has a current
    * assertionto satisfy. If does not already have one, we take the next
    * assertion from the list of input assertions, or from the relevant
    * skolem definitions based on the JutificationSkolemMode mode.
-   * 
+   *
    * @return true if we successfully initialized d_stack with the next
    * assertion to satisfy.
    */
   bool refreshCurrentAssertion();
-  /** 
+  /**
    * Implements the above function for the case where d_stack must get a new
-   * assertion to satisfy. 
-   * 
+   * assertion to satisfy.
+   *
    * @param useSkolemList If this is true, we pull the next assertion from
    * the list of relevant skolem definitions.
    * @return true if we successfully initialized d_stack with the next
@@ -161,13 +161,14 @@ class JustificationStrategy
    * ji->d_childIndex.
    *
    * @param ji The justify node to process
-   * @param lastChildVal The value determined for the last child of the node of ji.
+   * @param lastChildVal The value determined for the last child of the node of
+   * ji.
    * @return Either (1) the justify node corresponding to the next child of n to
    * consider adding to the stack, and its desired polarity, or
    * (2) a null justify node and updates lastChildVal to the value of n.
    */
   JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
-  /** 
+  /**
    * Returns the value TRUE/FALSE for n, or UNKNOWN otherwise.
    *
    * We return a value for n only if we have justified its values based on its
