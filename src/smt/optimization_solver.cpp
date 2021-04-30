@@ -25,8 +25,8 @@ namespace smt {
 
 OptimizationResult::ResultType OptimizationSolver::checkOpt()
 {
-  Assert(d_objectives.size() > 0);
-  // just a single objective optimization
+  Assert(d_objectives.size() == 1);
+  // NOTE: currently we are only dealing with single obj
   std::unique_ptr<OMTOptimizer> optimizer = OMTOptimizer::getOptimizerForNode(
       d_objectives[0].getTarget(), d_objectives[0].bvIsSigned());
 
@@ -49,9 +49,7 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
 }
 
 void OptimizationSolver::pushObjective(
-    TNode target,
-    OptimizationObjective::ObjectiveType type,
-    bool bvSigned)
+    TNode target, OptimizationObjective::ObjectiveType type, bool bvSigned)
 {
   d_objectives.emplace_back(target, type, bvSigned);
   d_results.emplace_back(OptimizationResult::UNSUPPORTED, Node());
