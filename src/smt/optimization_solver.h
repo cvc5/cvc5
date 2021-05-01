@@ -208,6 +208,19 @@ class OptimizationSolver
   std::vector<OptimizationResult> getValues();
 
  private:
+  /**
+   * Initialize an SMT subsolver for offline optimization purpose
+   * @param parentSMTSolver the parental solver containing the assertions
+   * @param needsTimeout specifies whether it needs timeout for each single
+   *    query
+   * @param timeout the timeout value, given in milliseconds (ms)
+   * @return a unique_pointer of SMT subsolver
+   **/
+  static std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
+      SmtEngine* parentSMTSolver,
+      bool needsTimeout = false,
+      unsigned long timeout = 0);
+
   /** The parent SMT engine **/
   SmtEngine* d_parent;
 
