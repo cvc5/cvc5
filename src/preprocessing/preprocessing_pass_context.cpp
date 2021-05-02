@@ -16,6 +16,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
+#include "smt/env.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
@@ -24,23 +25,33 @@ namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
-    theory::booleans::CircuitPropagator* circuitPropagator,
-    ProofNodeManager* pnm)
+    Env& env,
+    theory::booleans::CircuitPropagator* circuitPropagator)
     : d_smt(smt),
-      d_resourceManager(smt->getResourceManager()),
-      d_topLevelSubstitutions(smt->getUserContext(), pnm),
+      d_env(env),
       d_circuitPropagator(circuitPropagator),
-      d_pnm(pnm),
-      d_symsInAssertions(smt->getUserContext())
+      d_symsInAssertions(env.getUserContext())
 {
 }
 
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
-  return d_topLevelSubstitutions;
+  return d_env.getTopLevelSubstitutions();
 }
 
+context::Context* PreprocessingPassContext::getUserContext()
+{
+  return d_env.getUserContext();
+}
+context::Context* PreprocessingPassContext::getDecisionContext()
+{
+  return d_env.getContext();
+}
+void PreprocessingPassContext::spendResource(Resource r)
+{
+  d_env.getResourceManager()->spendResource(r);
+}
 void PreprocessingPassContext::recordSymbolsInAssertions(
     const std::vector<Node>& assertions)
 {
@@ -67,14 +78,24 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
-  d_topLevelSubstitutions.addSubstitution(lhs, rhs, pg);
+  getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
+  // also add as a model substitution
+  addModelSubstitution(lhs, rhs);
+}
+
+void PreprocessingPassContext::addSubstitution(const Node& lhs,
+                                               const Node& rhs,
+                                               PfRule id,
+                                               const std::vector<Node>& args)
+{
+  getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
   // also add as a model substitution
   addModelSubstitution(lhs, rhs);
 }
 
 ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
 {
-  return d_pnm;
+  return d_env.getProofNodeManager();
 }
 
 }  // namespace preprocessing
