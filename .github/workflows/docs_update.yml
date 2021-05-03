@@ -44,9 +44,10 @@ jobs:
             python3-docutils python3-jinja2
           python3 -m pip install \
             setuptools toml pytest \
-            Cython==0.29.* --install-option="--no-cython-compile" \
             sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
             breathe
+          python3 -m pip install \
+            Cython==0.29.* --install-option="--no-cython-compile"
           echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
       
       - name: Checkout PR
