@@ -46,6 +46,26 @@ jobs:
             setuptools toml \
             sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
             breathe
+      
+      - name: Checkout PR
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
+          if [ "${{ github.event_name }}" == "push" ] ; then
+            NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
+            echo "Identified branch $NAME"
+          elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
+            NAME="${{ github.event.number }}"
+            PRHASH="${{ github.event.pull_request.head.sha }}"
+            echo "Identified PR #$NAME (from $PRHASH)"
+            NAME="pr$NAME"
+            # be careful here, see explanation above!
+            git checkout "${PRHASH}" -- \
+              `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
+              `git ls-tree "${PRHASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
+              `git ls-tree "${PRHASH}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
+          fi
+          echo "NAME=$NAME" >> $GITHUB_ENV
 
       - name: Configure
         run: ./configure.sh production --docs
@@ -66,25 +86,7 @@ jobs:
         env:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          git config --global user.email "docbot@cvc5"
-          git config --global user.name "DocBot"
           git clone git@github.com:cvc5/docs-ci.git target/
-          if [ "${{ github.event_name }}" == "push" ] ; then
-            NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
-            echo "Identified branch $NAME"
-          elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
-            echo "GITHUB_REF: ${GITHUB_REF}"
-            NAME="${{ github.event.number }}"
-            PRHASH="${{ github.event.pull_request.head.sha }}"
-            echo "Identified PR #$NAME (from $PRHASH)"
-            NAME="pr$NAME"
-            # be careful here, see explanation above!
-            git fetch
-            git checkout "${PRHASH}" -- \
-              `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
-              `git ls-tree "${PRHASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
-              `git ls-tree "${PRHASH}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
-          fi
           if [ -n "$NAME" ]; then
             rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
             cd target/
