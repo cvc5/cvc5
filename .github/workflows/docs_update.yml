@@ -31,6 +31,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v2
 
@@ -63,7 +64,8 @@ jobs:
             echo "Identified PR #$NAME (from $PRHASH)"
             NAME="pr$NAME"
             # be careful here, see explanation above!
-            git fetch
+            git remote add pr "${{ github.event.pull_request.head.repo.clone_url}}"
+            git fetch pr "${{ github.event.pull_request.head.ref}}:pr"
             git checkout "${PRHASH}" -- \
               `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
               `git ls-tree "${PRHASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
@@ -72,7 +74,7 @@ jobs:
           echo "NAME=$NAME" >> $GITHUB_ENV
 
       - name: Configure
-        run: ./configure.sh production --docs --all-bindings
+        run: ./configure.sh production --docs --all-bindings --auto-download
 
       - name: Build
         run: make -j2 docs-gh
