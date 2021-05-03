@@ -786,6 +786,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     NodeManager* nm = NodeManager::currentNM();
 
+    /* symFPU does not allow conversions from signed bit-vector of size 1 */
     if (sbv.getSize() == 1)
     {
       FloatingPoint fromubv(size, rm, sbv, false);
