@@ -40,37 +40,26 @@ Node removeToFPGeneric(TNode node)
     op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
     return nm->mkNode(op, node[0]);
   }
+  Assert(children == 2);
+  Assert(node[0].getType().isRoundingMode());
+
+  TypeNode t = node[1].getType();
+
+  if (t.isFloatingPoint())
+  {
+    op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
+  }
+  else if (t.isReal())
+  {
+    op = nm->mkConst(FloatingPointToFPReal(info));
+  }
   else
   {
-    Assert(children == 2);
-    Assert(node[0].getType().isRoundingMode());
-
-    TypeNode t = node[1].getType();
-
-    if (t.isFloatingPoint())
-    {
-      op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
-    }
-    else if (t.isReal())
-    {
-      op = nm->mkConst(FloatingPointToFPReal(info));
-    }
-    else if (t.isBitVector())
-    {
-      op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
-    }
-    else
-    {
-      throw TypeCheckingExceptionPrivate(
-          node,
-          "cannot rewrite to_fp generic due to incorrect type of second "
-          "argument");
-    }
-
-    return nm->mkNode(op, node[0], node[1]);
+    Assert(t.isBitVector());
+    op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
   }
 
-  Unreachable() << "to_fp generic not rewritten";
+  return nm->mkNode(op, node[0], node[1]);
 }
 }  // namespace removeToFPGeneric
 
