@@ -36,6 +36,18 @@ def test_eq(solver):
   assert not (x == z)
   assert x != z
 
+def test_get_id(solver):
+  n = Term(solver)
+  with pytest.raises(RuntimeError):
+      n.getId()
+  x = solver.mkVar(solver.getIntegerSort(), "x")
+  x.getId()
+  y = x
+  assert x.getId() == y.getId()
+
+  z = solver.mkVar(solver.getIntegerSort(), "z")
+  assert x.getId() != z.getId()
+
 def test_get_kind(solver):
   uSort = solver.mkUninterpretedSort("u")
   intSort = solver.getIntegerSort()
@@ -120,6 +132,76 @@ def test_get_sort(solver):
   p_f_y = solver.mkTerm(kinds.ApplyUf, p, f_y)
   p_f_y.getSort()
   assert p_f_y.getSort() == boolSort
+
+def test_get_op(solver):
+  intsort = solver.getIntegerSort()
+  bvsort = solver.mkBitVectorSort(8)
+  arrsort = solver.mkArraySort(bvsort, intsort)
+  funsort = solver.mkFunctionSort(intsort, bvsort)
+
+  x = solver.mkConst(intsort, "x")
+  a = solver.mkConst(arrsort, "a")
+  b = solver.mkConst(bvsort, "b")
+
+  assert not x.hasOp()
+  with pytest.raises(RuntimeError):
+      x.getOp()
+
+  ab = solver.mkTerm(kinds.Select, a, b)
+  ext = solver.mkOp(kinds.BVExtract, 4, 0)
+  extb = solver.mkTerm(ext, b)
+
+  assert ab.hasOp()
+  assert not ab.getOp().isIndexed()
+  # can compare directly to a Kind (will invoke constructor)
+  assert extb.hasOp()
+  assert extb.getOp().isIndexed()
+  assert extb.getOp() == ext
+
+  f = solver.mkConst(funsort, "f")
+  fx = solver.mkTerm(kinds.ApplyUf, f, x)
+
+  assert not f.hasOp()
+  with pytest.raises(RuntimeError):
+      f.getOp()
+  assert fx.hasOp()
+  children = [c for c in fx]
+  # testing rebuild from op and children
+  assert fx == solver.mkTerm(fx.getOp(), children)
+
+  # Test Datatypes Ops
+  sort = solver.mkParamSort("T")
+  listDecl = solver.mkDatatypeDecl("paramlist", sort)
+  cons = solver.mkDatatypeConstructorDecl("cons")
+  nil = solver.mkDatatypeConstructorDecl("nil")
+  cons.addSelector("head", sort)
+  cons.addSelectorSelf("tail")
+  listDecl.addConstructor(cons)
+  listDecl.addConstructor(nil)
+  listSort = solver.mkDatatypeSort(listDecl)
+  intListSort = listSort.instantiate([solver.getIntegerSort()])
+  c = solver.mkConst(intListSort, "c")
+  list1 = listSort.getDatatype()
+  # list datatype constructor and selector operator terms
+  consOpTerm = list1.getConstructorTerm("cons")
+  nilOpTerm = list1.getConstructorTerm("nil")
+  headOpTerm = list1["cons"].getSelectorTerm("head")
+  tailOpTerm = list1["cons"].getSelectorTerm("tail")
+
+  nilTerm = solver.mkTerm(kinds.ApplyConstructor, nilOpTerm)
+  consTerm = solver.mkTerm(
+      kinds.ApplyConstructor, consOpTerm, solver.mkInteger(0), nilTerm)
+  headTerm = solver.mkTerm(kinds.ApplySelector, headOpTerm, consTerm)
+  tailTerm = solver.mkTerm(kinds.ApplySelector, tailOpTerm, consTerm)
+
+  assert nilTerm.hasOp()
+  assert consTerm.hasOp()
+  assert headTerm.hasOp()
+  assert tailTerm.hasOp()
+
+  # Test rebuilding
+  children = [c for c in headTerm]
+  assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
 def test_is_null(solver):
   x = Term(solver)
@@ -742,6 +824,64 @@ def test_term_assignment(solver):
   t2 = t1
   t2 = solver.mkInteger(2)
   assert t1 == solver.mkInteger(1)
+
+def test_substitute(solver):
+  x = solver.mkConst(solver.getIntegerSort(), "x")
+  one = solver.mkInteger(1)
+  ttrue = solver.mkTrue()
+  xpx = solver.mkTerm(kinds.Plus, x, x)
+  onepone = solver.mkTerm(kinds.Plus, one, one)
+
+  assert xpx.substitute(x, one) == onepone
+  assert onepone.substitute(one, x) == xpx
+  # incorrect due to type
+  with pytest.raises(RuntimeError):
+      xpx.substitute(one, ttrue)
+
+  # simultaneous substitution
+  y = solver.mkConst(solver.getIntegerSort(), "y")
+  xpy = solver.mkTerm(kinds.Plus, x, y)
+  xpone = solver.mkTerm(kinds.Plus, y, one)
+  es = []
+  rs = []
+  es.append(x)
+  rs.append(y)
+  es.append(y)
+  rs.append(one)
+  assert xpy.substitute(es, rs) == xpone
+
+  # incorrect substitution due to arity
+  rs.pop()
+  with pytest.raises(RuntimeError):
+      xpy.substitute(es, rs)
+
+  # incorrect substitution due to types
+  rs.append(ttrue)
+  with pytest.raises(RuntimeError):
+      xpy.substitute(es, rs)
+
+  # null cannot substitute
+  tnull = Term(solver)
+  with pytest.raises(RuntimeError):
+      tnull.substitute(one, x)
+  with pytest.raises(RuntimeError):
+      xpx.substitute(tnull, x)
+  with pytest.raises(RuntimeError):
+      xpx.substitute(x, tnull)
+  rs.pop()
+  rs.append(tnull)
+  with pytest.raises(RuntimeError):
+      xpy.substitute(es, rs)
+  es.clear()
+  rs.clear()
+  es.append(x)
+  rs.append(y)
+  with pytest.raises(RuntimeError):
+      tnull.substitute(es, rs)
+  es.append(tnull)
+  rs.append(one)
+  with pytest.raises(RuntimeError):
+      xpx.substitute(es, rs)
 
 def test_const_array(solver):
   intsort = solver.getIntegerSort()
