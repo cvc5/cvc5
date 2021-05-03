@@ -64,6 +64,7 @@ jobs:
             echo "Identified PR #$NAME (from $PRHASH)"
             NAME="pr$NAME"
             # be careful here, see explanation above!
+            echo ${{ github.event.pull_request }}
             git remote -v
             git branch -a
             git fetch
