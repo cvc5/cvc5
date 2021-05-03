@@ -267,10 +267,9 @@ void PropEngine::assertInternal(
     TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
   // Assert as (possibly) removable
-  if (isProofEnabled())
+  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS
-        && input)
+    if (input)
     {
       Assert(!negated);
       d_cnfStream->ensureLiteral(node);
@@ -278,10 +277,13 @@ void PropEngine::assertInternal(
     }
     else
     {
-      d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
+      d_cnfStream->convertAndAssert(node, removable, negated, input);
     }
-
-    // if input, register the assertion
+  }
+  else if (isProofEnabled())
+  {
+    d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
+    // if input, register the assertion in the proof manager
     if (input)
     {
       d_ppm->registerAssertion(node);
