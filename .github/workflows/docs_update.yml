@@ -43,7 +43,7 @@ jobs:
             doxygen \
             python3-docutils python3-jinja2
           python3 -m pip install \
-            setuptools toml \
+            setuptools toml pytest \
             sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
             breathe
       
