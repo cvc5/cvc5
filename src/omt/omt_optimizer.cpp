@@ -26,7 +26,7 @@ using namespace cvc5::theory;
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
-std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(Node targetNode,
+std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(TNode targetNode,
                                                                 bool isSigned)
 {
   // the datatype of the target node
