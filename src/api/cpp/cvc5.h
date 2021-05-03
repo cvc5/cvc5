@@ -26,7 +26,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <variant>
 
 #include "api/cpp/cvc5_kind.h"
 
@@ -764,6 +763,8 @@ struct CVC5_EXPORT SortHashFunction
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
+class Term;
+
 /**
  * A cvc5 operator.
  * An operator is a term that represents certain operators, instantiated
@@ -825,12 +826,12 @@ class CVC5_EXPORT Op
   size_t getNumIndices() const;
 
   /**
-   * Get the variant at a given index.
-   * @param index the index of the variant to return
-   * @return the variant with the given index
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
    */
 
-  std::variant<uint32_t, std::string> operator[](size_t index) const;
+  Term operator[](size_t i) const;
 
   /**
    * Get the indices used to create this Op.
@@ -891,7 +892,7 @@ class CVC5_EXPORT Op
    * Helper for getIndices<std::vector<std::variant<uint32_t, std::string>>>()
    * @return the indices of this operator
    */
-  std::vector<std::variant<uint32_t, std::string>> getIndicesHelper() const;
+  std::vector<Term> getIndicesHelper() const;
 
   /**
    * The associated solver object.
