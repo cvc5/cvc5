@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file sygus_inst.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SyGuS instantiator class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SyGuS instantiator class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INST_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INST_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdhashset.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/decision_strategy.h"
+#include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 class QuantifiersEngine;
@@ -62,7 +64,10 @@ namespace quantifiers {
 class SygusInst : public QuantifiersModule
 {
  public:
-  SygusInst(QuantifiersEngine* qe);
+  SygusInst(QuantifiersState& qs,
+            QuantifiersInferenceManager& qim,
+            QuantifiersRegistry& qr,
+            TermRegistry& tr);
   ~SygusInst() = default;
 
   bool needsCheck(Theory::Effort e) override;
@@ -143,6 +148,6 @@ class SygusInst : public QuantifiersModule
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

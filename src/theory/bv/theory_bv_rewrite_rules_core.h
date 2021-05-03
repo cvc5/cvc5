@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules_core.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Liana Hadarean, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -36,7 +37,7 @@ bool RewriteRule<ConcatFlatten>::applies(TNode node) {
 template<> inline
 Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {
@@ -91,7 +92,7 @@ Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
     // If the next one can be merged, try to merge
     bool merged = false;
     if (next.getKind() == kind::BITVECTOR_EXTRACT && current[0] == next[0]) {
-      //x[i : j] @ x[j − 1 : k] -> c x[i : k]
+      // x[i : j] @ x[j - 1 : k] -> c x[i : k]
       unsigned nextHigh = utils::getExtractHigh(next);
       unsigned nextLow  = utils::getExtractLow(next);
       if(nextHigh + 1 == currentLow) {
@@ -302,4 +303,4 @@ Node RewriteRule<ReflexivityEq>::apply(TNode node) {
 
 }
 }
-}
+}  // namespace cvc5

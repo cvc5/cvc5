@@ -1,30 +1,34 @@
-/*********************                                                        */
-/*! \file proof_node_updater.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A utility for updating proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A utility for updating proof nodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_UPDATER_H
-#define CVC4__EXPR__PROOF_NODE_UPDATER_H
+#ifndef CVC5__EXPR__PROOF_NODE_UPDATER_H
+#define CVC5__EXPR__PROOF_NODE_UPDATER_H
 
 #include <map>
-#include <unordered_set>
+#include <memory>
 
-#include "expr/proof.h"
+#include "expr/node.h"
 #include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class CDProof;
+class ProofNode;
+class ProofNodeManager;
 
 /**
  * A virtual callback class for updating ProofNode. An example use case of this
@@ -38,10 +42,12 @@ class ProofNodeUpdaterCallback
   /** Should proof pn be updated?
    *
    * @param pn the proof node that maybe should be updated
+   * @param fa the assumptions in scope
    * @param continueUpdate whether we should continue recursively updating pn
    * @return whether we should run the update method on pn
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                            const std::vector<Node>& fa,
                             bool& continueUpdate) = 0;
   /**
    * Update the proof rule application, store steps in cdp. Return true if
@@ -80,10 +86,13 @@ class ProofNodeUpdater
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
+   * @param autoSym Whether intermediate CDProof objects passed to updater
+   * callbacks automatically introduce SYMM steps.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
-                   bool mergeSubproofs = false);
+                   bool mergeSubproofs = false,
+                   bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -142,8 +151,13 @@ class ProofNodeUpdater
   std::vector<Node> d_freeAssumps;
   /** Whether we are merging subproofs */
   bool d_mergeSubproofs;
+  /**
+   * Whether intermediate CDProof objects passed to updater callbacks
+   * automatically introduce SYMM steps.
+   */
+  bool d_autoSym;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

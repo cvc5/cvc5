@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
-
- ** \todo document this file
-
-**/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ */
 
 #include "proof/proof_manager.h"
 
@@ -36,7 +36,7 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 ProofManager::ProofManager(context::Context* context)
     : d_context(context),
@@ -72,7 +72,7 @@ void ProofManager::initSatProof(Minisat::Solver* solver)
   // Destroy old instance before initializing new one to avoid issues with
   // registering stats
   d_satProof.reset();
-  d_satProof.reset(new CoreSatProof(solver, d_context, ""));
+  d_satProof.reset(new CoreSatProof(solver, d_context, "satproof::"));
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
@@ -127,7 +127,7 @@ void ProofManager::traceDeps(TNode n, CDNodeSet* coreAssertions)
 }
 
 void ProofManager::traceUnsatCore() {
-  Assert(options::unsatCores());
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF);
   d_satProof->refreshProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
@@ -174,7 +174,7 @@ void ProofManager::constructSatProof()
 
 void ProofManager::getLemmasInUnsatCore(std::vector<Node>& lemmas)
 {
-  Assert(options::unsatCores())
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF)
       << "Cannot compute unsat core when proofs are off";
   Assert(unsatCoreAvailable())
       << "Cannot get unsat core at this time. Mabye the input is SAT?";
@@ -217,4 +217,4 @@ void ProofManager::addUnsatCore(Node formula)
   d_outputCoreFormulas.insert(formula);
 }
 
-} /* CVC4  namespace */
+}  // namespace cvc5

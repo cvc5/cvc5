@@ -1,36 +1,34 @@
-/*********************                                                        */
-/*! \file options.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Global (command-line, set-option, ...) parameters for SMT.
- **
- ** Global (command-line, set-option, ...) parameters for SMT.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Paul Meng
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Global (command-line, set-option, ...) parameters for SMT.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__OPTIONS__OPTIONS_H
-#define CVC4__OPTIONS__OPTIONS_H
+#ifndef CVC5__OPTIONS__OPTIONS_H
+#define CVC5__OPTIONS__OPTIONS_H
 
-#include <fstream>
-#include <ostream>
+#include <iosfwd>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "base/listener.h"
-#include "base/modal_exception.h"
+#include "cvc5_export.h"
 #include "options/language.h"
-#include "options/option_exception.h"
 #include "options/printer_modes.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -38,14 +36,15 @@ class Solver;
 namespace options {
   struct OptionsHolder;
   class OptionsHandler;
-}/* CVC4::options namespace */
+  }  // namespace options
 
 class OptionsListener;
 
-class CVC4_PUBLIC Options {
+class CVC5_EXPORT Options
+{
   friend api::Solver;
   /** The struct that holds all option values. */
-  options::OptionsHolder* d_holder;
+  std::unique_ptr<options::OptionsHolder> d_holder;
 
   /** The handler for the options of the theory. */
   options::OptionsHandler* d_handler;
@@ -76,11 +75,9 @@ class CVC4_PUBLIC Options {
 
   static std::string formatThreadOptionException(const std::string& option);
 
-  static const size_t s_maxoptlen = 128;
-  static const unsigned s_preemptAdditional = 6;
-
 public:
-  class CVC4_PUBLIC OptionsScope {
+ class OptionsScope
+ {
   private:
     Options* d_oldOptions;
   public:
@@ -92,7 +89,7 @@ public:
     ~OptionsScope(){
       Options::s_current = d_oldOptions;
     }
-  };
+ };
 
   /** Return true if current Options are null */
   static inline bool isCurrentNull() {
@@ -100,8 +97,8 @@ public:
   }
 
   /** Get the current Options in effect */
-  static inline Options* current() {
-    return s_current;
+  static inline Options& current() {
+    return *s_current;
   }
 
   Options(OptionsListener* ol = nullptr);
@@ -115,15 +112,39 @@ public:
   void copyValues(const Options& options);
 
   /**
-   * Set the value of the given option.  Use of this default
-   * implementation causes a compile-time error; write-able
-   * options specialize this template with a real implementation.
+   * Set the value of the given option.  Uses `ref()`, which causes a
+   * compile-time error if the given option is read-only.
    */
   template <class T>
-  void set(T, const typename T::type&) {
-    // Flag a compile-time error.  Write-able options specialize
-    // this template to provide an implementation.
-    T::you_are_trying_to_assign_to_a_read_only_option;
+  void set(T t, const typename T::type& val) {
+    ref(t) = val;
+  }
+
+  /**
+   * Set the default value of the given option. Is equivalent to calling `set()`
+   * if `wasSetByUser()` returns false. Uses `ref()`, which causes a compile-time
+   * error if the given option is read-only.
+   */
+  template <class T>
+  void setDefault(T t, const typename T::type& val)
+  {
+    if (!wasSetByUser(t))
+    {
+      ref(t) = val;
+    }
+  }
+
+  /**
+   * Get a non-const reference to the value of the given option. Causes a
+   * compile-time error if the given option is read-only. Writeable options
+   * specialize this template with a real implementation.
+   */
+  template <class T>
+  typename T::type& ref(T) {
+    // Flag a compile-time error.
+    T::you_are_trying_to_get_nonconst_access_to_a_read_only_option;
+    // Ensure the compiler does not complain about the return value.
+    return *static_cast<typename T::type*>(nullptr);
   }
 
   /**
@@ -153,7 +174,6 @@ public:
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
-  bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
   bool getFilesystemAccess() const;
@@ -170,10 +190,9 @@ public:
   bool getSemanticChecks() const;
   bool getStatistics() const;
   bool getStatsEveryQuery() const;
-  bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
-  unsigned long getCumulativeTimeLimit() const;
+  uint64_t getCumulativeTimeLimit() const;
   bool getVersion() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
@@ -182,7 +201,6 @@ public:
   std::ostream* getOut();
   std::ostream* getOutConst() const; // TODO: Remove this.
   std::string getBinaryName() const;
-  unsigned getParseStep() const;
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
@@ -190,7 +208,6 @@ public:
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
 
-  bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;
   bool wasSetByUserIncrementalSolving() const;
@@ -232,22 +249,6 @@ public:
 
   /** Print help for the --lang command line option */
   static void printLanguageHelp(std::ostream& out);
-
-  /**
-   * Look up long command-line option names that bear some similarity
-   * to the given name.  Returns an empty string if there are no
-   * suggestions.
-   */
-  static std::string suggestCommandLineOptions(const std::string& optionName);
-
-  /**
-   * Look up SMT option names that bear some similarity to
-   * the given name.  Don't include the initial ":".  This might be
-   * useful in case of typos.  Can return an empty vector if there are
-   * no suggestions.
-   */
-  static std::vector<std::string> suggestSmtOptions(
-      const std::string& optionName);
 
   /**
    * Initialize the Options object options based on the given
@@ -299,12 +300,11 @@ public:
    *
    * Preconditions: options, extender and nonoptions are non-null.
    */
-  static void parseOptionsRecursive(Options* options,
-                                    int argc,
+  void parseOptionsRecursive(int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions);
-};/* class Options */
+}; /* class Options */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__OPTIONS__OPTIONS_H */
+#endif /* CVC5__OPTIONS__OPTIONS_H */

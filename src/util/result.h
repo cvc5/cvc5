@@ -1,40 +1,39 @@
-/*********************                                                        */
-/*! \file result.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Encapsulation of the result of a query.
- **
- ** Encapsulation of the result of a query.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Encapsulation of the result of a query.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__RESULT_H
-#define CVC4__RESULT_H
+#ifndef CVC5__RESULT_H
+#define CVC5__RESULT_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
-#include "base/exception.h"
 #include "options/language.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Result;
 
-std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Result& r);
 
 /**
  * Three-valued SMT result, with optional explanation.
  */
-class CVC4_PUBLIC Result {
+class Result
+{
  public:
   enum Sat { UNSAT = 0, SAT = 1, SAT_UNKNOWN = 2 };
 
@@ -52,7 +51,8 @@ class CVC4_PUBLIC Result {
     TYPE_NONE
   };
 
-  enum UnknownExplanation {
+  enum UnknownExplanation
+  {
     REQUIRES_FULL_CHECK,
     INCOMPLETE,
     TIMEOUT,
@@ -149,18 +149,16 @@ class CVC4_PUBLIC Result {
 
 inline bool Result::operator!=(const Result& r) const { return !(*this == r); }
 
-std::ostream& operator<<(std::ostream& out, enum Result::Sat s) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& out,
-                         enum Result::Entailment e) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& out,
-                         enum Result::UnknownExplanation e) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, enum Result::Sat s);
+std::ostream& operator<<(std::ostream& out, enum Result::Entailment e);
+std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);
 
-bool operator==(enum Result::Sat s, const Result& r) CVC4_PUBLIC;
-bool operator==(enum Result::Entailment e, const Result& r) CVC4_PUBLIC;
+bool operator==(enum Result::Sat s, const Result& r);
+bool operator==(enum Result::Entailment e, const Result& r);
 
-bool operator!=(enum Result::Sat s, const Result& r) CVC4_PUBLIC;
-bool operator!=(enum Result::Entailment e, const Result& r) CVC4_PUBLIC;
+bool operator!=(enum Result::Sat s, const Result& r);
+bool operator!=(enum Result::Entailment e, const Result& r);
 
-} /* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__RESULT_H */
+#endif /* CVC5__RESULT_H */

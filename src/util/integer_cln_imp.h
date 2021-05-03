@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file integer_cln_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Gereon Kremer, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multiprecision integer constant; wraps a CLN multiprecision
- ** integer.
- **
- ** A multiprecision integer constant; wraps a CLN multiprecision integer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multiprecision integer constant; wraps a CLN multiprecision integer.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
 #include <cln/input.h>
 #include <cln/integer.h>
@@ -31,14 +29,15 @@
 #include <string>
 
 #include "base/exception.h"
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC5_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::Rational;
 
  public:
   /**
@@ -74,10 +73,10 @@ class CVC4_PUBLIC Integer
   Integer(signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Integer(int64_t z) : d_value(static_cast<long>(z)) {}
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
   ~Integer() {}
@@ -131,11 +130,8 @@ class CVC4_PUBLIC Integer
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /**
    * Returns the integer with the binary representation of 'size' bits
@@ -382,11 +378,11 @@ class CVC4_PUBLIC Integer
 
 struct IntegerHashFunction
 {
-  size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */

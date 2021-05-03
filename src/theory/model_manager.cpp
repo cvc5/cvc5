@@ -1,24 +1,29 @@
-/*********************                                                        */
-/*! \file model_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract management of models for TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract management of models for TheoryEngine.
+ */
 
 #include "theory/model_manager.h"
 
+#include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "prop/prop_engine.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
@@ -60,7 +65,7 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   // not have a model builder
   if (d_modelBuilder == nullptr)
   {
-    d_alocModelBuilder.reset(new TheoryEngineModelBuilder(&d_te));
+    d_alocModelBuilder.reset(new TheoryEngineModelBuilder);
     d_modelBuilder = d_alocModelBuilder.get();
   }
   // notice that the equality engine of the model has yet to be assigned.
@@ -95,6 +100,16 @@ bool ModelManager::buildModel()
 
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
+
+  if (Trace.isOn("model-builder"))
+  {
+    Trace("model-builder") << "Final model:" << std::endl;
+    Trace("model-builder") << d_model->debugPrintModelEqc() << std::endl;
+  }
+
+  Trace("model-builder") << "ModelManager: model built success is "
+                         << d_modelBuiltSuccess << std::endl;
+
   return d_modelBuiltSuccess;
 }
 
@@ -225,4 +240,4 @@ void ModelManager::collectTerms(TheoryId tid,
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

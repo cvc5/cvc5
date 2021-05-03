@@ -1,4 +1,4 @@
-; COMMAND: --check-models --incremental
+; COMMAND-LINE: --check-models --incremental
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :check-models true)

@@ -1,49 +1,78 @@
-/*********************                                                        */
-/*! \file regexp_elim.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of techniques for eliminating regular expressions
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of techniques for eliminating regular expressions.
+ */
 
 #include "theory/strings/regexp_elim.h"
 
+#include "expr/proof_node_manager.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::strings;
+using namespace cvc5::kind;
 
-RegExpElimination::RegExpElimination()
+namespace cvc5 {
+namespace theory {
+namespace strings {
+
+RegExpElimination::RegExpElimination(bool isAgg,
+                                     ProofNodeManager* pnm,
+                                     context::Context* c)
+    : d_isAggressive(isAgg),
+      d_pnm(pnm),
+      d_epg(pnm == nullptr
+                ? nullptr
+                : new EagerProofGenerator(pnm, c, "RegExpElimination::epg"))
 {
 }
 
-Node RegExpElimination::eliminate(Node atom)
+Node RegExpElimination::eliminate(Node atom, bool isAgg)
 {
   Assert(atom.getKind() == STRING_IN_REGEXP);
   if (atom[1].getKind() == REGEXP_CONCAT)
   {
-    return eliminateConcat(atom);
+    return eliminateConcat(atom, isAgg);
   }
   else if (atom[1].getKind() == REGEXP_STAR)
   {
-    return eliminateStar(atom);
+    return eliminateStar(atom, isAgg);
   }
   return Node::null();
 }
 
-Node RegExpElimination::eliminateConcat(Node atom)
+TrustNode RegExpElimination::eliminateTrusted(Node atom)
+{
+  Node eatom = eliminate(atom, d_isAggressive);
+  if (!eatom.isNull())
+  {
+    // Currently aggressive doesnt work due to fresh bound variables
+    if (isProofEnabled() && !d_isAggressive)
+    {
+      Node eq = atom.eqNode(eatom);
+      Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
+      std::shared_ptr<ProofNode> pn =
+          d_pnm->mkNode(PfRule::RE_ELIM, {}, {atom, aggn}, eq);
+      d_epg->setProofFor(eq, pn);
+      return TrustNode::mkTrustRewrite(atom, eatom, d_epg.get());
+    }
+    return TrustNode::mkTrustRewrite(atom, eatom, nullptr);
+  }
+  return TrustNode::null();
+}
+
+Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node x = atom[0];
@@ -217,7 +246,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // otherwise, we can use indexof to represent some next occurrence
         if (gap_exact[i + 1] && i + 1 != size)
         {
-          if (!options::regExpElimAgg())
+          if (!isAgg)
           {
             canProcess = false;
             break;
@@ -330,7 +359,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     }
   }
 
-  if (!options::regExpElimAgg())
+  if (!isAgg)
   {
     return Node::null();
   }
@@ -455,9 +484,9 @@ Node RegExpElimination::eliminateConcat(Node atom)
   return Node::null();
 }
 
-Node RegExpElimination::eliminateStar(Node atom)
+Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
 {
-  if (!options::regExpElimAgg())
+  if (!isAgg)
   {
     return Node::null();
   }
@@ -580,3 +609,8 @@ Node RegExpElimination::returnElim(Node atom, Node atomElim, const char* id)
                    << "." << std::endl;
   return atomElim;
 }
+bool RegExpElimination::isProofEnabled() const { return d_pnm != nullptr; }
+
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5

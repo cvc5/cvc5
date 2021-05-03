@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file synth_conjecture.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Class that encapsulates techniques for a single (SyGuS) synthesis
- ** conjecture.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class that encapsulates techniques for a single (SyGuS) synthesis
+ * conjecture.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
-#define CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#define CVC5__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
 
 #include <memory>
 
-#include "theory/decision_manager.h"
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
@@ -28,18 +28,17 @@
 #include "theory/quantifiers/sygus/cegis_unif.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/example_infer.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/template_infer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-class SynthEngine;
+class CegGrammarConstructor;
+class SygusPbe;
 class SygusStatistics;
 
 /**
@@ -83,7 +82,11 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p, SygusStatistics& s);
+  SynthConjecture(QuantifiersState& qs,
+                  QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr,
+                  SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -197,11 +200,18 @@ class SynthConjecture
    */
   bool checkSideCondition(const std::vector<Node>& cvals) const;
 
+  /** get a reference to the statistics of parent */
+  SygusStatistics& getSygusStatistics() { return d_stats; };
+
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** pointer to the synth engine that owns this */
-  SynthEngine* d_parent;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
@@ -360,17 +370,8 @@ class SynthConjecture
   unsigned d_repair_index;
   /** number of times we have called doRefine */
   unsigned d_refine_count;
-  /** get candidadate */
-  Node getCandidate(unsigned int i) { return d_candidates[i]; }
-  /** record instantiation (this is used to construct solutions later) */
-  void recordInstantiation(std::vector<Node>& vs)
-  {
-    Assert(vs.size() == d_candidates.size());
-    for (unsigned i = 0; i < vs.size(); i++)
-    {
-      d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
-    }
-  }
+  /** record solution (this is used to construct solutions later) */
+  void recordSolution(std::vector<Node>& vs);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all
@@ -390,33 +391,8 @@ class SynthConjecture
    * the sygus datatype constructor corresponding to variable x.
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
-                                 std::vector<int>& status);
+                                 std::vector<int8_t>& status);
   //-------------------------------- sygus stream
-  /** current stream guard */
-  Node d_current_stream_guard;
-  /** the decision strategy for streaming solutions */
-  class SygusStreamDecisionStrategy : public DecisionStrategyFmf
-  {
-   public:
-    SygusStreamDecisionStrategy(context::Context* satContext,
-                                Valuation valuation);
-    /** make literal */
-    Node mkLiteral(unsigned i) override;
-    /** identify */
-    std::string identify() const override
-    {
-      return std::string("sygus_stream");
-    }
-  };
-  std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
-  /** get current stream guard */
-  Node getCurrentStreamGuard() const;
-  /** get stream guarded lemma
-   *
-   * If sygusStream is enabled, this returns ( G V n ) where G is the guard
-   * returned by getCurrentStreamGuard, otherwise this returns n.
-   */
-  Node getStreamGuardedLemma(Node n) const;
   /**
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
@@ -451,6 +427,6 @@ class SynthConjecture
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5
 
 #endif

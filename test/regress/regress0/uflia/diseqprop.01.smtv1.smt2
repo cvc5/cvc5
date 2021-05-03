@@ -1,4 +1,5 @@
 (set-option :incremental false)
+(set-info :status sat)
 (set-logic QF_UFLIA)
 (declare-fun f (Int) Int)
 (declare-fun x1 () Int)

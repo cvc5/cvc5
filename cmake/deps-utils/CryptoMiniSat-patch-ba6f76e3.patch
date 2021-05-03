@@ -1,0 +1,41 @@
+https://github.com/msoos/cryptominisat/commit/ba6f76e353c2b235131f0357eeea057b597c9d08
+From ba6f76e353c2b235131f0357eeea057b597c9d08 Mon Sep 17 00:00:00 2001
+From: Yevgeny Kazakov <yevgeny.kazakov@uni-ulm.de>
+Date: Sat, 1 Aug 2020 17:53:39 +0200
+Subject: [PATCH] Fix compilation under mingw32; address #625
+
+---
+ src/packedmatrix.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/packedmatrix.h b/src/packedmatrix.h
+index 486dda706..221dd9d5a 100644
+--- a/src/packedmatrix.h
++++ b/src/packedmatrix.h
+@@ -50,7 +50,7 @@ class PackedMatrix
+ 
+     ~PackedMatrix()
+     {
+-        #ifdef _MSC_VER
++        #ifdef _WIN32
+         _aligned_free((void*)mp);
+         #else
+         free(mp);
+@@ -62,7 +62,7 @@ class PackedMatrix
+         num_cols = num_cols / 64 + (bool)(num_cols % 64);
+         if (numRows*(numCols+1) < (int)num_rows*((int)num_cols+1)) {
+             size_t size = sizeof(int64_t) * num_rows*(num_cols+1);
+-            #ifdef _MSC_VER
++            #ifdef _WIN32
+             _aligned_free((void*)mp);
+             mp =  (int64_t*)_aligned_malloc(size, 16);
+             #else
+@@ -85,7 +85,7 @@ class PackedMatrix
+     {
+         if (numRows*(numCols+1) < b.numRows*(b.numCols+1)) {
+             size_t size = sizeof(int64_t) * b.numRows*(b.numCols+1);
+-            #ifdef _MSC_VER
++            #ifdef _WIN32
+             _aligned_free((void*)mp);
+             mp =  (int64_t*)_aligned_malloc(size, 16);
+             #else

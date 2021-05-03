@@ -1,32 +1,30 @@
-/*********************                                                        */
-/*! \file buffered_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A proof generator for buffered proof steps
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A proof generator for buffered proof steps.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__BUFFERED_PROOF_GENERATOR_H
-#define CVC4__EXPR__BUFFERED_PROOF_GENERATOR_H
-
-#include <map>
-#include <vector>
+#ifndef CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
+#define CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "context/cdhashset.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_step_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNodeManager;
+class ProofStep;
 
 /**
  * The proof generator for buffered steps. This class is a context-dependent
@@ -50,6 +48,8 @@ class BufferedProofGenerator : public ProofGenerator
                CDPOverwrite opolicy = CDPOverwrite::NEVER);
   /** Get proof for. It is robust to (dis)equality symmetry. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Whether a step has been registered for f. */
+  bool hasProofFor(Node f) override;
   /** identify */
   std::string identify() const override { return "BufferedProofGenerator"; }
 
@@ -60,6 +60,6 @@ class BufferedProofGenerator : public ProofGenerator
   ProofNodeManager* d_pnm;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__BUFFERED_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__BUFFERED_PROOF_GENERATOR_H */

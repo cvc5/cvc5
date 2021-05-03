@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file bvminisat.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the minisat for cvc4 (bitvectors).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Dejan Jovanovic, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the minisat for cvc5 (bit-vectors).
+ */
 
 #include "prop/bvminisat/bvminisat.h"
 
@@ -20,24 +21,24 @@
 #include "proof/clause_id.h"
 #include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
-BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name)
-: context::ContextNotifyObj(mainSatContext, false),
-  d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
-  d_minisatNotify(nullptr),
-  d_assertionsCount(0),
-  d_assertionsRealCount(mainSatContext, 0),
-  d_lastPropagation(mainSatContext, 0),
-  d_statistics(registry, name)
+BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry& registry,
+                                       context::Context* mainSatContext,
+                                       const std::string& name)
+    : context::ContextNotifyObj(mainSatContext, false),
+      d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
+      d_minisatNotify(nullptr),
+      d_assertionsCount(0),
+      d_assertionsRealCount(mainSatContext, 0),
+      d_lastPropagation(mainSatContext, 0),
+      d_statistics(registry, name)
 {
   d_statistics.init(d_minisat.get());
 }
 
-
-BVMinisatSatSolver::~BVMinisatSatSolver() {
-}
+BVMinisatSatSolver::~BVMinisatSatSolver() { d_statistics.deinit(); }
 
 void BVMinisatSatSolver::MinisatNotify::notify(
     BVMinisat::vec<BVMinisat::Lit>& clause)
@@ -226,58 +227,36 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
 
 // Satistics for BVMinisatSatSolver
 
-BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry* registry,
+BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                            const std::string& prefix)
-    : d_registry(registry),
-      d_statStarts(prefix + "::bvminisat::starts"),
-      d_statDecisions(prefix + "::bvminisat::decisions"),
-      d_statRndDecisions(prefix + "::bvminisat::rnd_decisions"),
-      d_statPropagations(prefix + "::bvminisat::propagations"),
-      d_statConflicts(prefix + "::bvminisat::conflicts"),
-      d_statClausesLiterals(prefix + "::bvminisat::clauses_literals"),
-      d_statLearntsLiterals(prefix + "::bvminisat::learnts_literals"),
-      d_statMaxLiterals(prefix + "::bvminisat::max_literals"),
-      d_statTotLiterals(prefix + "::bvminisat::tot_literals"),
-      d_statEliminatedVars(prefix + "::bvminisat::eliminated_vars"),
-      d_statCallsToSolve(prefix + "::bvminisat::calls_to_solve", 0),
-      d_statSolveTime(prefix + "::bvminisat::solve_time"),
-      d_registerStats(!prefix.empty())
+    : d_statStarts(
+        registry.registerReference<int64_t>(prefix + "bvminisat::starts")),
+      d_statDecisions(
+          registry.registerReference<int64_t>(prefix + "bvminisat::decisions")),
+      d_statRndDecisions(registry.registerReference<int64_t>(
+          prefix + "bvminisat::rnd_decisions")),
+      d_statPropagations(registry.registerReference<int64_t>(
+          prefix + "bvminisat::propagations")),
+      d_statConflicts(
+          registry.registerReference<int64_t>(prefix + "bvminisat::conflicts")),
+      d_statClausesLiterals(registry.registerReference<int64_t>(
+          prefix + "bvminisat::clauses_literals")),
+      d_statLearntsLiterals(registry.registerReference<int64_t>(
+          prefix + "bvminisat::learnts_literals")),
+      d_statMaxLiterals(registry.registerReference<int64_t>(
+          prefix + "bvminisat::max_literals")),
+      d_statTotLiterals(registry.registerReference<int64_t>(
+          prefix + "bvminisat::tot_literals")),
+      d_statEliminatedVars(registry.registerReference<int64_t>(
+          prefix + "bvminisat::eliminated_vars")),
+      d_statCallsToSolve(
+          registry.registerInt(prefix + "bvminisat::calls_to_solve")),
+      d_statSolveTime(registry.registerTimer(prefix + "bvminisat::solve_time"))
 {
   if (!d_registerStats)
   {
     return;
   }
-
-  d_registry->registerStat(&d_statStarts);
-  d_registry->registerStat(&d_statDecisions);
-  d_registry->registerStat(&d_statRndDecisions);
-  d_registry->registerStat(&d_statPropagations);
-  d_registry->registerStat(&d_statConflicts);
-  d_registry->registerStat(&d_statClausesLiterals);
-  d_registry->registerStat(&d_statLearntsLiterals);
-  d_registry->registerStat(&d_statMaxLiterals);
-  d_registry->registerStat(&d_statTotLiterals);
-  d_registry->registerStat(&d_statEliminatedVars);
-  d_registry->registerStat(&d_statCallsToSolve);
-  d_registry->registerStat(&d_statSolveTime);
-}
-
-BVMinisatSatSolver::Statistics::~Statistics() {
-  if (!d_registerStats){
-    return;
-  }
-  d_registry->unregisterStat(&d_statStarts);
-  d_registry->unregisterStat(&d_statDecisions);
-  d_registry->unregisterStat(&d_statRndDecisions);
-  d_registry->unregisterStat(&d_statPropagations);
-  d_registry->unregisterStat(&d_statConflicts);
-  d_registry->unregisterStat(&d_statClausesLiterals);
-  d_registry->unregisterStat(&d_statLearntsLiterals);
-  d_registry->unregisterStat(&d_statMaxLiterals);
-  d_registry->unregisterStat(&d_statTotLiterals);
-  d_registry->unregisterStat(&d_statEliminatedVars);
-  d_registry->unregisterStat(&d_statCallsToSolve);
-  d_registry->unregisterStat(&d_statSolveTime);
 }
 
 void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
@@ -285,17 +264,36 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
     return;
   }
 
-  d_statStarts.setData(minisat->starts);
-  d_statDecisions.setData(minisat->decisions);
-  d_statRndDecisions.setData(minisat->rnd_decisions);
-  d_statPropagations.setData(minisat->propagations);
-  d_statConflicts.setData(minisat->conflicts);
-  d_statClausesLiterals.setData(minisat->clauses_literals);
-  d_statLearntsLiterals.setData(minisat->learnts_literals);
-  d_statMaxLiterals.setData(minisat->max_literals);
-  d_statTotLiterals.setData(minisat->tot_literals);
-  d_statEliminatedVars.setData(minisat->eliminated_vars);
+  d_statStarts.set(minisat->starts);
+  d_statDecisions.set(minisat->decisions);
+  d_statRndDecisions.set(minisat->rnd_decisions);
+  d_statPropagations.set(minisat->propagations);
+  d_statConflicts.set(minisat->conflicts);
+  d_statClausesLiterals.set(minisat->clauses_literals);
+  d_statLearntsLiterals.set(minisat->learnts_literals);
+  d_statMaxLiterals.set(minisat->max_literals);
+  d_statTotLiterals.set(minisat->tot_literals);
+  d_statEliminatedVars.set(minisat->eliminated_vars);
 }
 
-} /* namespace CVC4::prop */
-} /* namespace CVC4 */
+void BVMinisatSatSolver::Statistics::deinit()
+{
+  if (!d_registerStats)
+  {
+    return;
+  }
+
+  d_statStarts.reset();
+  d_statDecisions.reset();
+  d_statRndDecisions.reset();
+  d_statPropagations.reset();
+  d_statConflicts.reset();
+  d_statClausesLiterals.reset();
+  d_statLearntsLiterals.reset();
+  d_statMaxLiterals.reset();
+  d_statTotLiterals.reset();
+  d_statEliminatedVars.reset();
+}
+
+}  // namespace prop
+}  // namespace cvc5

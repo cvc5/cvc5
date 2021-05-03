@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --dump-models
 ; EXPECT: sat
-; EXPECT: (model
+; EXPECT: (
 ; EXPECT: (define-fun x () Int 1)
 ; EXPECT: (define-fun y () Int 1)
 ; EXPECT: )

@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-logic AUFLIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-sort Index 0)

@@ -1,41 +1,33 @@
-/*********************                                                        */
-/*! \file theory_arith_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #pragma once
 
-#include <stdint.h>
-
 #include <map>
-#include <queue>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/proof_generator.h"
-#include "options/arith_options.h"
-#include "smt/logic_exception.h"
-#include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -45,6 +37,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
+#include "theory/arith/error_set.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
@@ -52,22 +45,22 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
-#include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+
+class EagerProofGenerator;
+class TheoryModel;
+
 namespace arith {
 
 class BranchCutInfo;
@@ -145,12 +138,6 @@ private:
   void entailmentCheckBoundLookup(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
   void entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
 
-  std::pair<Node, DeltaRational> entailmentCheckSimplex(int sgn, TNode tp, const inferbounds::InferBoundAlgorithm& p, InferBoundsResult& out);
-
-  //InferBoundsResult inferBound(TNode term, const InferBoundsParameters& p);
-  //InferBoundsResult inferUpperBoundLookup(TNode t, const InferBoundsParameters& p);
-  //InferBoundsResult inferUpperBoundSimplex(TNode t, const SimplexInferBoundsParameters& p);
-
   /**
    * Infers either a new upper/lower bound on term in the real relaxation.
    * Either:
@@ -220,8 +207,10 @@ private:
     return d_partialModel.isAuxiliary(x);
   }
 
-  inline bool isIntegerInput(ArithVar x) const {
-    return d_partialModel.isIntegerInput(x);
+  inline bool isIntegerInput(ArithVar x) const
+  {
+    return d_partialModel.isIntegerInput(x)
+           && d_preregisteredNodes.contains(d_partialModel.asNode(x));
   }
 
   /**
@@ -239,7 +228,15 @@ private:
   context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
-  Node dioCutting();
+  /**
+   * Produces lemmas of the form (or (>= f 0) (<= f 0)),
+   * where f is a plane that the diophantine solver is interested in.
+   *
+   * More precisely, produces lemmas of the form (or (>= lc -c) (<= lc -c))
+   * where lc is a linear combination of variables, c is a constant, and lc + c
+   * is the plane.
+   */
+  TrustNode dioCutting();
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
@@ -266,6 +263,11 @@ private:
   std::deque<ConstraintP> d_currentPropagationList;
 
   context::CDQueue<ConstraintP> d_learnedBounds;
+
+  /**
+   * Contains all nodes that have been preregistered
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
 
 
   /**
@@ -309,7 +311,7 @@ private:
 
 
   /** This is only used by simplex at the moment. */
-  context::CDList<ConstraintCP> d_conflicts;
+  context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
@@ -323,12 +325,12 @@ private:
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
    */
-  void raiseConflict(ConstraintCP a);
+  void raiseConflict(ConstraintCP a, InferenceId id);
 
   // inline void raiseConflict(const ConstraintCPVec& cv){
   //   d_conflicts.push_back(cv);
   // }
-  
+
   // void raiseConflict(ConstraintCP a, ConstraintCP b);
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
@@ -417,9 +419,6 @@ private:
    */
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
-
-  Node axiomIteForTotalDivision(Node div_tot);
-  Node axiomIteForTotalIntDivision(Node int_div_like);
  public:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
@@ -470,7 +469,7 @@ private:
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
@@ -503,6 +502,9 @@ private:
    * setIncomplete should be called on the output channel of TheoryArith.
    */
   bool foundNonlinear() const;
+
+  /** get the proof checker of this theory */
+  ArithProofRuleChecker* getProofChecker();
 
  private:
   /** The constant zero. */
@@ -547,16 +549,18 @@ private:
    *
    * If there is no such variable, returns ARITHVAR_SENTINEL;
    */
-  ArithVar nextIntegerViolatation(bool assumeBounds) const;
+  ArithVar nextIntegerViolation(bool assumeBounds) const;
 
   /**
    * Issues branches for non-auxiliary integer variables with non-integer assignments.
    * Returns a cut for a lemma.
    * If there is an integer model, this returns Node::null().
    */
-  Node roundRobinBranch();
+  TrustNode roundRobinBranch();
 
-public:
+  bool proofsEnabled() const { return d_pnm; }
+
+ public:
   /**
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
@@ -672,8 +676,7 @@ private:
   bool isImpliedUpperBound(ArithVar var, Node exp);
   bool isImpliedLowerBound(ArithVar var, Node exp);
 
-  void internalExplain(TNode n, NodeBuilder<>& explainBuilder);
-
+  void internalExplain(TNode n, NodeBuilder& explainBuilder);
 
   void asVectors(const Polynomial& p,
                  std::vector<Rational>& coeffs,
@@ -691,10 +694,10 @@ private:
   inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
   inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   inline context::Context* getSatContext() const { return d_containing.getSatContext(); }
-  void outputTrustedLemma(TrustNode lem);
-  void outputLemma(TNode lem);
-  void outputTrustedConflict(TrustNode conf);
-  void outputConflict(TNode lit);
+  void outputTrustedLemma(TrustNode lem, InferenceId id);
+  void outputLemma(TNode lem, InferenceId id);
+  void outputTrustedConflict(TrustNode conf, InferenceId id);
+  void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);
   void outputRestart();
 
@@ -705,13 +708,15 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
-  context::CDQueue<Node> d_approxCuts;
-  std::vector<Node> d_acTmp;
+  /** Used for replaying approximate simplex */
+  context::CDQueue<TrustNode> d_approxCuts;
+  /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
+  std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  Node branchIntegerVariable(ArithVar x) const;
+  TrustNode branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
@@ -751,7 +756,7 @@ private:
 
   static ConstraintCP vectorToIntHoleConflict(const ConstraintCPVec& conflict);
   static void intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict);
-  
+
   // Returns true if the node contains a literal
   // that is an arithmetic literal and is not a sat literal
   // No caching is done so this should likely only
@@ -855,7 +860,6 @@ private:
     HistogramStat<uint32_t> d_unsatPivots;
     HistogramStat<uint32_t> d_unknownPivots;
 
-
     IntStat d_solveIntModelsAttempts;
     IntStat d_solveIntModelsSuccessful;
     TimerStat d_mipTimer;
@@ -866,16 +870,13 @@ private:
 
     IntStat d_numBranchesFailed;
 
-
-
-    Statistics();
-    ~Statistics();
+    Statistics(const std::string& name);
   };
 
 
   Statistics d_statistics;
 };/* class TheoryArithPrivate */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

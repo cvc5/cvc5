@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file sep_log_api.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew V. Jones, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Two tests to validate the use of the separation logic API.
- **
- ** First test validates that we cannot use the API if not using separation
- ** logic.
- **
- ** Second test validates that the expressions returned from the API are
- ** correct and can be interrogated.
- **
- *****************************************************************************/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew V. Jones, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Two tests to validate the use of the separation logic API.
+ *
+ * First test validates that we cannot use the API if not using separation
+ * logic.
+ *
+ * Second test validates that the expressions returned from the API are
+ * correct and can be interrogated.
+ *
+ ****************************************************************************/
 
 #include <iostream>
 #include <sstream>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 
-using namespace CVC4::api;
+using namespace cvc5::api;
 using namespace std;
 
 /**
@@ -36,7 +37,7 @@ int validate_exception(void)
   Solver slv;
 
   /*
-   * Setup some options for CVC4 -- we explictly want to use a simplistic
+   * Setup some options for cvc5 -- we explictly want to use a simplistic
    * theory (e.g., QF_IDL)
    */
   slv.setLogic("QF_IDL");
@@ -45,6 +46,8 @@ int validate_exception(void)
 
   /* Our integer type */
   Sort integer = slv.getIntegerSort();
+
+  /** we intentionally do not set the separation logic heap */
 
   /* Our SMT constants */
   Term x = slv.mkConst(integer, "x");
@@ -82,7 +85,7 @@ int validate_exception(void)
   {
     Term heap_expr = slv.getSeparationHeap();
   }
-  catch (const CVC4ApiException& e)
+  catch (const CVC5ApiException& e)
   {
     caught_on_heap = true;
 
@@ -98,7 +101,7 @@ int validate_exception(void)
   {
     Term nil_expr = slv.getSeparationNilTerm();
   }
-  catch (const CVC4ApiException& e)
+  catch (const CVC5ApiException& e)
   {
     caught_on_nil = true;
 
@@ -126,13 +129,16 @@ int validate_getters(void)
 {
   Solver slv;
 
-  /* Setup some options for CVC4 */
+  /* Setup some options for cvc5 */
   slv.setLogic("QF_ALL_SUPPORTED");
   slv.setOption("produce-models", "true");
   slv.setOption("incremental", "false");
 
   /* Our integer type */
   Sort integer = slv.getIntegerSort();
+
+  /** Declare the separation logic heap types */
+  slv.declareSeparationHeap(integer, integer);
 
   /* A "random" constant */
   Term random_constant = slv.mkInteger(0xDEADBEEF);

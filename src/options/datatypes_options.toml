@@ -4,7 +4,7 @@ header = "options/datatypes_options.h"
 
 # How to handle selectors applied to incorrect constructors.  If this option is set,
 # then we do not rewrite such a selector term to an arbitrary ground term.  
-# For example, by default cvc4 considers cdr( nil ) = nil.  If this option is set, then
+# For example, by default cvc5 considers cdr( nil ) = nil.  If this option is set, then
 # cdr( nil ) has no set value.
 [[option]]
   name       = "dtRewriteErrorSel"
@@ -21,6 +21,16 @@ header = "options/datatypes_options.h"
   type       = "bool"
   default    = "false"
   help       = "force the datatypes solver to give specific values to all datatypes terms before answering sat"
+
+[[option]]
+  name       = "dtPoliteOptimize"
+  smt_name   = "dt-polite-optimize"
+  category   = "experimental"
+  long       = "dt-polite-optimize"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "turn on optimization for polite combination"
 
 [[option]]
   name       = "dtBinarySplit"

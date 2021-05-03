@@ -1,34 +1,35 @@
-/*********************                                                        */
-/*! \file preprocess_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for proofs for preprocessing in an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for proofs for preprocessing in an SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-#define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-
-#include <map>
+#ifndef CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
+#define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
 #include "expr/lazy_proof.h"
-#include "expr/lazy_proof_set.h"
+#include "expr/proof.h"
+#include "expr/proof_set.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class LazyCDProof;
+class ProofNodeManager;
+
 namespace smt {
 
 /**
@@ -118,6 +119,8 @@ class PreprocessProofGenerator : public ProofGenerator
   ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
+  /** The context used here */
+  context::Context* d_ctx;
   /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
@@ -127,7 +130,7 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   NodeTrustNodeMap d_src;
   /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  LazyCDProofSet d_helperProofs;
+  CDProofSet<LazyCDProof> d_helperProofs;
   /**
    * A cd proof for input assertions, this is an empty proof that intentionally
    * returns (ASSUME f) for all f.
@@ -142,6 +145,6 @@ class PreprocessProofGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

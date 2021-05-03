@@ -1,36 +1,38 @@
-/*********************                                                        */
-/*! \file cvc_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the CVC output language
- **
- ** The pretty-printer interface for the CVC output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the CVC output language.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__CVC_PRINTER_H
-#define CVC4__PRINTER__CVC_PRINTER_H
+#ifndef CVC5__PRINTER__CVC_PRINTER_H
+#define CVC5__PRINTER__CVC_PRINTER_H
 
 #include <iostream>
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class LetBinding;
+
 namespace printer {
 namespace cvc {
 
-class CvcPrinter : public CVC4::Printer
+class CvcPrinter : public cvc5::Printer
 {
  public:
-  using CVC4::Printer::toStream;
+  using cvc5::Printer::toStream;
   CvcPrinter(bool cvc3Mode = false) : d_cvc3Mode(cvc3Mode) {}
   void toStream(std::ostream& out,
                 TNode n,
@@ -63,8 +65,6 @@ class CvcPrinter : public CVC4::Printer
 
   /** Print declare-sort command */
   void toStreamCmdDeclareType(std::ostream& out,
-                              const std::string& id,
-                              size_t arity,
                               TypeNode type) const override;
 
   /** Print define-sort command */
@@ -79,13 +79,6 @@ class CvcPrinter : public CVC4::Printer
                                  const std::vector<Node>& formals,
                                  TypeNode range,
                                  Node formula) const override;
-
-  /** Print define-named-fun command */
-  void toStreamCmdDefineNamedFunction(std::ostream& out,
-                                      const std::string& id,
-                                      const std::vector<Node>& formals,
-                                      TypeNode range,
-                                      Node formula) const override;
 
   /** Print check-sat command */
   void toStreamCmdCheckSat(std::ostream& out,
@@ -131,7 +124,7 @@ class CvcPrinter : public CVC4::Printer
   /** Print set-info command */
   void toStreamCmdSetInfo(std::ostream& out,
                           const std::string& flag,
-                          SExpr sexpr) const override;
+                          const std::string& value) const override;
 
   /** Print get-info command */
   void toStreamCmdGetInfo(std::ostream& out,
@@ -140,7 +133,7 @@ class CvcPrinter : public CVC4::Printer
   /** Print set-option command */
   void toStreamCmdSetOption(std::ostream& out,
                             const std::string& flag,
-                            SExpr sexpr) const override;
+                            const std::string& value) const override;
 
   /** Print get-option command */
   void toStreamCmdGetOption(std::ostream& out,
@@ -172,16 +165,44 @@ class CvcPrinter : public CVC4::Printer
       std::ostream& out, const std::vector<Command*>& sequence) const override;
 
  private:
-  void toStream(std::ostream& out, TNode n, int toDepth, bool bracket) const;
-  void toStream(std::ostream& out,
-                const smt::Model& m,
-                const NodeCommand* c) const override;
+  /**
+   * The main method for printing Nodes.
+   */
+  void toStreamNode(std::ostream& out,
+                    TNode n,
+                    int toDepth,
+                    bool bracket,
+                    LetBinding* lbind) const;
+  /**
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  void toStreamModelSort(std::ostream& out,
+                         const smt::Model& m,
+                         TypeNode tn) const override;
+
+  /**
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
+   */
+  void toStreamModelTerm(std::ostream& out,
+                         const smt::Model& m,
+                         Node n) const override;
+  /**
+   * To stream with let binding. This prints n, possibly in the scope
+   * of letification generated by this method based on lbind.
+   */
+  void toStreamNodeWithLetify(std::ostream& out,
+                              Node n,
+                              int toDepth,
+                              bool bracket,
+                              LetBinding* lbind) const;
 
   bool d_cvc3Mode;
 }; /* class CvcPrinter */
 
 }  // namespace cvc
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PRINTER__CVC_PRINTER_H */
+#endif /* CVC5__PRINTER__CVC_PRINTER_H */

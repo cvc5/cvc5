@@ -1,46 +1,46 @@
-/*********************                                                        */
-/*! \file smt2.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of SMT2 constants.
- **
- ** Definitions of SMT2 constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 constants.
+ */
 #include "parser/smt2/smt2.h"
 
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
-Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly),
+Smt2::Smt2(api::Solver* solver,
+           SymbolManager* sm,
+           Input* input,
+           bool strictMode,
+           bool parseOnly)
+    : Parser(solver, sm, input, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  pushScope(true);
 }
 
-Smt2::~Smt2() { popScope(); }
+Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
   addOperator(api::PLUS, "+");
@@ -80,10 +80,6 @@ void Smt2::addTranscendentalOperators()
 
 void Smt2::addQuantifiersOperators()
 {
-  if (!strictModeEnabled())
-  {
-    addOperator(api::INST_CLOSURE, "inst-closure");
-  }
 }
 
 void Smt2::addBitvectorOperators() {
@@ -182,26 +178,12 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_UNIT, "seq.unit");
     addOperator(api::SEQ_NTH, "seq.nth");
   }
-  // at the moment, we only use this syntax for smt2.6
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-      || getLanguage() == language::input::LANG_SYGUS_V2)
-  {
-    addOperator(api::STRING_FROM_INT, "str.from_int");
-    addOperator(api::STRING_TO_INT, "str.to_int");
-    addOperator(api::STRING_IN_REGEXP, "str.in_re");
-    addOperator(api::STRING_TO_REGEXP, "str.to_re");
-    addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
-  }
-  else
-  {
-    addOperator(api::STRING_FROM_INT, "int.to.str");
-    addOperator(api::STRING_TO_INT, "str.to.int");
-    addOperator(api::STRING_IN_REGEXP, "str.in.re");
-    addOperator(api::STRING_TO_REGEXP, "str.to.re");
-    addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
-  }
+  addOperator(api::STRING_FROM_INT, "str.from_int");
+  addOperator(api::STRING_TO_INT, "str.to_int");
+  addOperator(api::STRING_IN_REGEXP, "str.in_re");
+  addOperator(api::STRING_TO_REGEXP, "str.to_re");
+  addOperator(api::STRING_TO_CODE, "str.to_code");
+  addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
 
   addOperator(api::REGEXP_CONCAT, "re.++");
   addOperator(api::REGEXP_UNION, "re.union");
@@ -441,17 +423,16 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+  return bindVar(fname, ft, false, true);
 }
 
 void Smt2::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
     api::Term func,
     const std::vector<api::Term>& flattenVars,
-    std::vector<api::Term>& bvs,
-    bool bindingLevel)
+    std::vector<api::Term>& bvs)
 {
-  pushScope(bindingLevel);
+  pushScope();
 
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
@@ -470,16 +451,6 @@ void Smt2::reset() {
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
-  this->Parser::reset();
-  pushScope(true);
-}
-
-void Smt2::resetAssertions() {
-  // Remove all declarations except the ones at level 0.
-  while (this->scopeLevel() > 0) {
-    this->popScope();
-  }
-  pushScope(true);
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -559,9 +530,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
-      addOperator(api::INTS_DIVISION, "div");
-      addOperator(api::INTS_MODULUS, "mod");
-      addOperator(api::ABS, "abs");
+      if (!strictModeEnabled() || !d_logic.isLinear())
+      {
+        addOperator(api::INTS_DIVISION, "div");
+        addOperator(api::INTS_MODULUS, "mod");
+        addOperator(api::ABS, "abs");
+      }
       addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
     }
 
@@ -651,7 +625,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INTERSECTION_MIN, "intersection_min");
     addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
     addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::SUBBAG, "bag.is_included");
+    addOperator(api::SUBBAG, "subbag");
     addOperator(api::BAG_COUNT, "bag.count");
     addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
     addOperator(api::MK_BAG, "bag");
@@ -666,15 +640,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-        || getLanguage() == language::input::LANG_SYGUS_V2)
-    {
-      defineVar("re.none", d_solver->mkRegexpEmpty());
-    }
-    else
-    {
-      defineVar("re.nostr", d_solver->mkRegexpEmpty());
-    }
+    defineVar("re.none", d_solver->mkRegexpEmpty());
     defineVar("re.allchar", d_solver->mkRegexpSigma());
 
     // Boolean is a placeholder
@@ -747,14 +713,6 @@ bool Smt2::sygus_v2() const
   return getLanguage() == language::input::LANG_SYGUS_V2;
 }
 
-void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
-}
-
-void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
-}
-
 void Smt2::checkThatLogicIsSet()
 {
   if (!logicIsSet())
@@ -773,7 +731,7 @@ void Smt2::checkThatLogicIsSet()
       else
       {
         warning("No set-logic command was given before this point.");
-        warning("CVC4 will make all theories available.");
+        warning("cvc5 will make all theories available.");
         warning(
             "Consider setting a stricter logic for (likely) better "
             "performance.");
@@ -818,11 +776,11 @@ static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
   // in C target runtime.
   //
   pANTLR3_INPUT_STREAM    in;
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename.c_str());
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if( in == NULL ) {
     Debug("parser") << "Can't open " << filename << std::endl;
     return false;
@@ -876,7 +834,7 @@ bool Smt2::isAbstractValue(const std::string& name)
 
 api::Term Smt2::mkAbstractValue(const std::string& name)
 {
-  assert(isAbstractValue(name));
+  Assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
 }
@@ -953,7 +911,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
   {
     expr = getExpressionForName(p.d_name);
   }
-  assert(!expr.isNull());
+  Assert(!expr.isNull());
   return expr;
 }
 
@@ -1088,12 +1046,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
-    if (!x.fitsUnsignedInt())
+    if (!p.d_expr.isUInt64())
     {
-      parseError("index of tupSel is larger than size of unsigned int");
+      parseError("index of tupSel is larger than size of uint64_t");
     }
-    unsigned int n = x.toUnsignedInt();
+    uint64_t n = p.d_expr.getUInt64();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
@@ -1114,6 +1071,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     api::Term ret = d_solver->mkTerm(
         api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
+    return ret;
+  }
+  else if (p.d_kind == api::TUPLE_PROJECT)
+  {
+    api::Term ret = d_solver->mkTerm(p.d_op, args[0]);
+    Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != api::NULL_EXPR)
@@ -1215,28 +1178,16 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   return ret;
 }
 
-api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
+void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
 {
-  if (!sexpr.isKeyword())
-  {
-    parseError("improperly formed :named annotation");
-  }
-  std::string name = sexpr.getValue();
   checkUserSymbol(name);
-  // ensure expr is a closed subterm
-  if (expr.getExpr().hasFreeVariable())
-  {
-    std::stringstream ss;
-    ss << ":named annotations can only name terms that are closed";
-    parseError(ss.str());
-  }
-  // check that sexpr is a fresh function symbol, and reserve it
-  reserveSymbolAtAssertionLevel(name);
-  // define it
-  api::Term func = bindVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED);
-  // remember the last term to have been given a :named attribute
+  // remember the expression name in the symbol manager
+  getSymbolManager()->setExpressionName(expr, name, false);
+  // define the variable
+  defineVar(name, expr);
+  // set the last named term, which ensures that we catch when assertions are
+  // named
   setLastNamedTerm(expr, name);
-  return func;
 }
 
 api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
@@ -1256,4 +1207,4 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
 }
 
 }  // namespace parser
-}/* CVC4 namespace */
+}  // namespace cvc5

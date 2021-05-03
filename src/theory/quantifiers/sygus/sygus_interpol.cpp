@@ -1,21 +1,24 @@
-/*********************                                                        */
-/*! \file sygus_interpol.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus interpolation utility, which
- ** transforms an input of axioms and conjecture into an interpolation problem,
- *and solve it.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus interpolation utility, which transforms an input of
+ * axioms and conjecture into an interpolation problem, and solve it.
+ */
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 
+#include <sstream>
+
+#include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
@@ -25,7 +28,7 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -233,14 +236,6 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
-  // sygus attribute
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  SygusAttribute ca;
-  sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(kind::INST_ATTRIBUTE, sygusVar);
-  std::vector<Node> iplc;
-  iplc.push_back(instAttr);
-  Node instAttrList = nm->mkNode(kind::INST_PATTERN_LIST, iplc);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
@@ -339,12 +334,12 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   l.enableSygus();
   subSolver->setLogic(l);
 
-  for (Node var : d_vars)
+  for (const Node& var : d_vars)
   {
-    subSolver->declareSygusVar(name, var, var.getType());
+    subSolver->declareSygusVar(var);
   }
   std::vector<Node> vars_empty;
-  subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
+  subSolver->declareSynthFun(itp, grammarType, false, vars_empty);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;
@@ -364,4 +359,4 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

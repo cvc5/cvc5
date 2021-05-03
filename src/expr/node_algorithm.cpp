@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file node_algorithm.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common algorithms on nodes
- **
- ** This file implements common algorithms applied to nodes, such as checking if
- ** a node contains a free or a bound variable.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Common algorithms on nodes.
+ *
+ * This file implements common algorithms applied to nodes, such as checking if
+ * a node contains a free or a bound variable.
+ */
 
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 bool hasSubterm(TNode n, TNode t, bool strict)
@@ -261,7 +261,11 @@ bool hasBoundVar(TNode n)
     {
       for (auto i = n.begin(); i != n.end() && !hasBv; ++i)
       {
-        hasBv = hasBoundVar(*i);
+        if (hasBoundVar(*i))
+        {
+          hasBv = true;
+          break;
+        }
       }
     }
     if (!hasBv && n.hasOperator())
@@ -324,8 +328,16 @@ bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv)
 {
-  std::unordered_set<TNode, TNodeHashFunction> bound_var;
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction> scope;
+  return getFreeVariablesScope(n, fvs, scope, computeFv);
+}
+
+bool getFreeVariablesScope(TNode n,
+                           std::unordered_set<Node, NodeHashFunction>& fvs,
+                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           bool computeFv)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -338,15 +350,14 @@ bool getFreeVariables(TNode n,
     {
       continue;
     }
-    Kind k = cur.getKind();
-    bool isQuant = cur.isClosure();
-    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
+    std::unordered_set<TNode, TNodeHashFunction>::iterator itv =
         visited.find(cur);
     if (itv == visited.end())
     {
-      if (k == kind::BOUND_VARIABLE)
+      visited.insert(cur);
+      if (cur.getKind() == kind::BOUND_VARIABLE)
       {
-        if (bound_var.find(cur) == bound_var.end())
+        if (scope.find(cur) == scope.end())
         {
           if (computeFv)
           {
@@ -358,35 +369,35 @@ bool getFreeVariables(TNode n,
           }
         }
       }
-      else if (isQuant)
+      else if (cur.isClosure())
       {
+        // add to scope
         for (const TNode& cn : cur[0])
         {
           // should not shadow
-          Assert(bound_var.find(cn) == bound_var.end());
-          bound_var.insert(cn);
+          Assert(scope.find(cn) == scope.end())
+              << "Shadowed variable " << cn << " in " << cur << "\n";
+          scope.insert(cn);
         }
-        visit.push_back(cur);
+        // must make recursive call to use separate cache
+        if (getFreeVariablesScope(cur[1], fvs, scope, computeFv) && !computeFv)
+        {
+          return true;
+        }
+        // cleanup
+        for (const TNode& cn : cur[0])
+        {
+          scope.erase(cn);
+        }
       }
-      // must visit quantifiers again to clean up below
-      visited[cur] = !isQuant;
-      if (cur.hasOperator())
+      else
       {
-        visit.push_back(cur.getOperator());
+        if (cur.hasOperator())
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-      for (const TNode& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (!itv->second)
-    {
-      Assert(isQuant);
-      for (const TNode& cn : cur[0])
-      {
-        bound_var.erase(cn);
-      }
-      visited[cur] = true;
     }
   } while (!visit.empty());
 
@@ -413,10 +424,7 @@ bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
       }
       else
       {
-        for (const TNode& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
       visited.insert(cur);
     }
@@ -453,10 +461,41 @@ void getSymbols(TNode n,
       {
         visit.push_back(cur.getOperator());
       }
-      for (TNode cn : cur)
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
       {
-        visit.push_back(cn);
+        ts.insert(cur);
+        if (topLevel)
+        {
+          // only considering top-level applications
+          continue;
+        }
       }
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
 }
@@ -500,10 +539,7 @@ void getOperatorsMap(
         ops[tn].insert(o);
       }
       // add children to visit in the future
-      for (TNode cn : cur)
-      {
-        visit.push_back(cn);
-      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
 }
@@ -588,7 +624,7 @@ Node substituteCaptureAvoiding(TNode n,
     else if (it->second.isNull())
     {
       // build node
-      NodeBuilder<> nb(curr.getKind());
+      NodeBuilder nb(curr.getKind());
       if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator
@@ -728,4 +764,4 @@ bool match(Node x,
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

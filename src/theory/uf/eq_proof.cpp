@@ -1,24 +1,26 @@
-/*********************                                                        */
-/*! \file eq_proof.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a proof as produced by the equality engine.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a proof as produced by the equality engine.
+ */
 
 #include "theory/uf/eq_proof.h"
 
+#include "base/configuration.h"
 #include "expr/proof.h"
+#include "expr/proof_checker.h"
 #include "options/uf_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace eq {
 
@@ -1180,7 +1182,7 @@ Node EqProof::addToProof(
   // use (= t1 t2) as a premise and rely on a symmetry step to justify it.
   unsigned arity = d_node[0].getNumChildren();
   Kind k = d_node[0].getKind();
-  bool isNary = ExprManager::isNAryKind(k);
+  bool isNary = NodeManager::isNAryKind(k);
 
   // N-ary operators are fun. The following proof is a valid EqProof
   //
@@ -1436,4 +1438,4 @@ Node EqProof::addToProof(
 
 }  // namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5

@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Morgan Deters, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Base of the pretty-printer interface
- **
- ** Base of the pretty-printer interface.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base of the pretty-printer interface.
+ */
 #include "printer/printer.h"
 
 #include <string>
@@ -26,25 +25,19 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
+#include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 unique_ptr<Printer> Printer::d_printers[language::output::LANG_MAX];
 
 unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 {
-  using namespace CVC4::language::output;
+  using namespace cvc5::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V2_0:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant));
-
-  case LANG_SMTLIB_V2_5:
-    return unique_ptr<Printer>(new printer::smt2::Smt2Printer());
-
   case LANG_SMTLIB_V2_6:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
@@ -52,8 +45,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_TPTP:
     return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
-  case LANG_CVC4:
-    return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
+  case LANG_CVC: return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
   case LANG_SYGUS_V2:
     // sygus version 2.0 does not have discrepancies with smt2, hence we use
@@ -64,27 +56,39 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_AST:
     return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
-  case LANG_CVC3:
-    return unique_ptr<Printer>(
-        new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
-
   default: Unhandled() << lang;
   }
 }
 
 void Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
-  for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    const NodeCommand* cmd = m.getCommand(i);
-    const DeclareFunctionNodeCommand* dfc =
-        dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
-    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction()))
+  // print the declared sorts
+  const std::vector<TypeNode>& dsorts = m.getDeclaredSorts();
+  for (const TypeNode& tn : dsorts)
+  {
+    toStreamModelSort(out, m, tn);
+  }
+
+  // print the declared terms
+  const std::vector<Node>& dterms = m.getDeclaredTerms();
+  for (const Node& n : dterms)
+  {
+    // take into account model core, independently of the format
+    if (!m.isModelCoreSymbol(n))
     {
       continue;
     }
-    toStream(out, m, cmd);
+    toStreamModelTerm(out, m, n);
   }
+
 }/* Printer::toStream(Model) */
+
+void Printer::toStreamUsing(OutputLanguage lang,
+                            std::ostream& out,
+                            const smt::Model& m) const
+{
+  getPrinter(lang)->toStream(out, m);
+}
 
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
@@ -94,27 +98,60 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
   }
 }/* Printer::toStream(UnsatCore) */
 
+void Printer::toStream(std::ostream& out, const InstantiationList& is) const
+{
+  out << "(instantiations " << is.d_quant << std::endl;
+  for (const std::vector<Node>& i : is.d_inst)
+  {
+    out << "  ( ";
+    for (const Node& n : i)
+    {
+      out << n << " ";
+    }
+    out << ")" << std::endl;
+  }
+  out << ")" << std::endl;
+}
+
+void Printer::toStream(std::ostream& out, const SkolemList& sks) const
+{
+  out << "(skolem " << sks.d_quant << std::endl;
+  out << "  ( ";
+  for (const Node& n : sks.d_sks)
+  {
+    out << n << " ";
+  }
+  out << ")" << std::endl;
+  out << ")" << std::endl;
+}
+
 Printer* Printer::getPrinter(OutputLanguage lang)
 {
-  if(lang == language::output::LANG_AUTO) {
-  // Infer the language to use for output.
-  //
-  // Options can be null in certain circumstances (e.g., when printing
-  // the singleton "null" expr.  So we guard against segfault
-  if(not Options::isCurrentNull()) {
-    if(options::outputLanguage.wasSetByUser()) {
-      lang = options::outputLanguage();
+  if (lang == language::output::LANG_AUTO)
+  {
+    // Infer the language to use for output.
+    //
+    // Options can be null in certain circumstances (e.g., when printing
+    // the singleton "null" expr.  So we guard against segfault
+    if (not Options::isCurrentNull())
+    {
+      if (Options::current().wasSetByUser(options::outputLanguage))
+      {
+        lang = options::outputLanguage();
+      }
+      if (lang == language::output::LANG_AUTO
+          && Options::current().wasSetByUser(options::inputLanguage))
+      {
+        lang = language::toOutputLanguage(options::inputLanguage());
+      }
     }
-    if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
-      lang = language::toOutputLanguage(options::inputLanguage());
-     }
-   }
-   if (lang == language::output::LANG_AUTO)
-   {
-     lang = language::output::LANG_SMTLIB_V2_6;  // default
-   }
+    if (lang == language::output::LANG_AUTO)
+    {
+      lang = language::output::LANG_SMTLIB_V2_6;  // default
+    }
   }
-  if(d_printers[lang] == NULL) {
+  if (d_printers[lang] == nullptr)
+  {
     d_printers[lang] = makePrinter(lang);
   }
   return d_printers[lang].get();
@@ -159,9 +196,15 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
   printUnknownCommand(out, "declare-fun");
 }
 
-void Printer::toStreamCmdDeclareType(std::ostream& out,
+void Printer::toStreamCmdDeclarePool(std::ostream& out,
                                      const std::string& id,
-                                     size_t arity,
+                                     TypeNode type,
+                                     const std::vector<Node>& initValue) const
+{
+  printUnknownCommand(out, "declare-pool");
+}
+
+void Printer::toStreamCmdDeclareType(std::ostream& out,
                                      TypeNode type) const
 {
   printUnknownCommand(out, "declare-sort");
@@ -182,15 +225,6 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
                                         Node formula) const
 {
   printUnknownCommand(out, "define-fun");
-}
-
-void Printer::toStreamCmdDefineNamedFunction(std::ostream& out,
-                                             const std::string& id,
-                                             const std::vector<Node>& formals,
-                                             TypeNode range,
-                                             Node formula) const
-{
-  printUnknownCommand(out, "define-named-function");
 }
 
 void Printer::toStreamCmdDefineFunctionRec(
@@ -233,9 +267,8 @@ void Printer::toStreamCmdDeclareVar(std::ostream& out,
 }
 
 void Printer::toStreamCmdSynthFun(std::ostream& out,
-                                  const std::string& sym,
+                                  Node f,
                                   const std::vector<Node>& vars,
-                                  TypeNode range,
                                   bool isInv,
                                   TypeNode sygusType) const
 {
@@ -356,7 +389,7 @@ void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Printer::toStreamCmdSetInfo(std::ostream& out,
                                  const std::string& flag,
-                                 SExpr sexpr) const
+                                 const std::string& value) const
 {
   printUnknownCommand(out, "set-info");
 }
@@ -369,7 +402,7 @@ void Printer::toStreamCmdGetInfo(std::ostream& out,
 
 void Printer::toStreamCmdSetOption(std::ostream& out,
                                    const std::string& flag,
-                                   SExpr sexpr) const
+                                   const std::string& value) const
 {
   printUnknownCommand(out, "set-option");
 }
@@ -415,6 +448,13 @@ void Printer::toStreamCmdComment(std::ostream& out,
   printUnknownCommand(out, "comment");
 }
 
+void Printer::toStreamCmdDeclareHeap(std::ostream& out,
+                                     TypeNode locType,
+                                     TypeNode dataType) const
+{
+  printUnknownCommand(out, "declare-heap");
+}
+
 void Printer::toStreamCmdCommandSequence(
     std::ostream& out, const std::vector<Command*>& sequence) const
 {
@@ -427,4 +467,4 @@ void Printer::toStreamCmdDeclarationSequence(
   printUnknownCommand(out, "sequence");
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5

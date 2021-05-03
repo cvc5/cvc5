@@ -1,30 +1,35 @@
-/*********************                                                        */
-/*! \file cegis_core_connective.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Cegis core connective module.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Cegis core connective module.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
-#define CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#define CVC5__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
 
 #include <unordered_set>
+
 #include "expr/node.h"
 #include "expr/node_trie.h"
-
 #include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/cegis.h"
+#include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -155,7 +160,9 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersEngine* qe, SynthConjecture* p);
+  CegisCoreConnective(QuantifiersInferenceManager& qim,
+                      TermDbSygus* tds,
+                      SynthConjecture* p);
   ~CegisCoreConnective() {}
   /**
    * Return whether this module has the possibility to construct solutions. This
@@ -393,6 +400,6 @@ class CegisCoreConnective : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

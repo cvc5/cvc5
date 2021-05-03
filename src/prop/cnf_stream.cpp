@@ -1,27 +1,24 @@
-/*********************                                                        */
-/*! \file cnf_stream.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A CNF converter that takes in asserts and has the side effect
- ** of given an equisatisfiable stream of assertions to PropEngine.
- **
- ** A CNF converter that takes in asserts and has the side effect
- ** of given an equisatisfiable stream of assertions to PropEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Haniel Barbosa, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A CNF converter that takes in asserts and has the side effect of given an
+ * equisatisfiable stream of assertions to PropEngine.
+ */
 #include "prop/cnf_stream.h"
 
 #include <queue>
 
 #include "base/check.h"
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "proof/clause_id.h"
@@ -38,7 +35,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 CnfStream::CnfStream(SatSolver* satSolver,
@@ -46,15 +43,15 @@ CnfStream::CnfStream(SatSolver* satSolver,
                      context::Context* context,
                      OutputManager* outMgr,
                      ResourceManager* rm,
-                     bool fullLitToNodeMap,
+                     FormulaLitPolicy flpol,
                      std::string name)
     : d_satSolver(satSolver),
       d_outMgr(outMgr),
       d_booleanVariables(context),
+      d_notifyFormulas(context),
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
-      d_fullLitToNodeMap(fullLitToNodeMap),
-      d_convertAndAssertCounter(0),
+      d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(nullptr),
@@ -77,7 +74,7 @@ bool CnfStream::assertClause(TNode node, SatClause& c)
     else
     {
       Assert(c.size() > 1);
-      NodeBuilder<> b(kind::OR);
+      NodeBuilder b(kind::OR);
       for (unsigned i = 0; i < c.size(); ++i)
       {
         b << getNode(c[i]);
@@ -128,41 +125,37 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
+void CnfStream::ensureMappingForLiteral(TNode n)
 {
-  // These are not removable and have no proof ID
-  d_removable = false;
-
-  Trace("cnf") << "ensureLiteral(" << n << ")\n";
-  if(hasLiteral(n)) {
-    SatLiteral lit = getLiteral(n);
-    if(!d_literalToNodeMap.contains(lit)){
-      // Store backward-mappings
-      d_literalToNodeMap.insert(lit, n);
-      d_literalToNodeMap.insert(~lit, n.notNode());
-    }
-    return;
+  SatLiteral lit = getLiteral(n);
+  if (!d_literalToNodeMap.contains(lit))
+  {
+    // Store backward-mappings
+    d_literalToNodeMap.insert(lit, n);
+    d_literalToNodeMap.insert(~lit, n.notNode());
   }
+}
 
+void CnfStream::ensureLiteral(TNode n)
+{
   AlwaysAssertArgument(
-      n.getType().isBoolean(),
+      hasLiteral(n) || n.getType().isBoolean(),
       n,
-      "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
+      "ProofCnfStream::ensureLiteral() requires a node of Boolean type.\n"
       "got node: %s\n"
       "its type: %s\n",
       n.toString().c_str(),
       n.getType().toString().c_str());
-
-  bool negated CVC4_UNUSED = false;
-  SatLiteral lit;
-
-  if(n.getKind() == kind::NOT) {
-    negated = true;
-    n = n[0];
+  Trace("cnf") << "ensureLiteral(" << n << ")\n";
+  if (hasLiteral(n))
+  {
+    ensureMappingForLiteral(n);
+    return;
   }
-
-  if( theory::Theory::theoryOf(n) == theory::THEORY_BOOL &&
-      !n.isVar() ) {
+  // remove top level negation
+  n = n.getKind() == kind::NOT ? n[0] : n;
+  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
@@ -177,8 +170,10 @@ void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
     {
       d_cnfProof->pushCurrentAssertion(Node::null());
     }
+    // These are not removable and have no proof ID
+    d_removable = false;
 
-    lit = toCNF(n, false);
+    SatLiteral lit = toCNF(n, false);
 
     if (d_cnfProof)
     {
@@ -189,13 +184,12 @@ void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
     // These may already exist
     d_literalToNodeMap.insert_safe(lit, n);
     d_literalToNodeMap.insert_safe(~lit, n.notNode());
-  } else {
-    // We have a theory atom or variable.
-    lit = convertAtom(n, noPreregistration);
   }
-
-  Assert(hasLiteral(n) && getNode(lit) == n);
-  Debug("ensureLiteral") << "CnfStream::ensureLiteral(): out lit is " << lit << std::endl;
+  else
+  {
+    // We have a theory atom or variable.
+    convertAtom(n);
+  }
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
@@ -203,6 +197,13 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
                << ")\n"
                << push;
   Assert(node.getKind() != kind::NOT);
+
+  // if we are tracking formulas, everything is a theory atom
+  if (!isTheoryAtom && d_flitPolicy == FormulaLitPolicy::TRACK_AND_NOTIFY)
+  {
+    isTheoryAtom = true;
+    d_notifyFormulas.insert(node);
+  }
 
   // Get the literal for this node
   SatLiteral lit;
@@ -227,7 +228,9 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If it's a theory literal, need to store it for back queries
-  if ( isTheoryAtom || d_fullLitToNodeMap || (Dump.isOn("clauses")) ) {
+  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK
+      || (Dump.isOn("clauses")))
+  {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());
   }
@@ -269,12 +272,18 @@ void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
   }
 }
 
+bool CnfStream::isNotifyFormula(TNode node) const
+{
+  return d_notifyFormulas.find(node) != d_notifyFormulas.end();
+}
+
 void CnfStream::setProof(CnfProof* proof) {
   Assert(d_cnfProof == NULL);
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
+SatLiteral CnfStream::convertAtom(TNode node)
+{
   Trace("cnf") << "convertAtom(" << node << ")\n";
 
   Assert(!hasLiteral(node)) << "atom already mapped!";
@@ -292,7 +301,7 @@ SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
   {
     theoryLiteral = true;
     canEliminate = false;
-    preRegister = !noPreregistration;
+    preRegister = true;
   }
 
   // Make a new literal (variables are not considered theory literals)
@@ -544,6 +553,8 @@ SatLiteral CnfStream::toCNF(TNode node, bool negated)
     break;
   }
   // Return the (maybe negated) literal
+  Trace("cnf") << "toCNF(): resulting literal: "
+               << (!negated ? nodeLit : ~nodeLit) << "\n";
   return !negated ? nodeLit : ~nodeLit;
 }
 
@@ -744,11 +755,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
-    d_convertAndAssertCounter = 0;
-  }
-  ++d_convertAndAssertCounter;
+  d_resourceManager->spendResource(Resource::CnfStep);
 
   switch(node.getKind()) {
     case kind::AND: convertAndAssertAnd(node, negated); break;
@@ -763,7 +770,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       Node nnode = node;
@@ -778,5 +785,5 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5

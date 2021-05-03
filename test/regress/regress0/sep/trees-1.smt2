@@ -5,6 +5,7 @@
 (declare-const loc0 Loc)
 
 (declare-datatypes ((Node 0)) (((node (data Int) (left Loc) (right Loc)))))
+(declare-heap (Loc Node))
 
 (declare-fun data0 () Node)
 

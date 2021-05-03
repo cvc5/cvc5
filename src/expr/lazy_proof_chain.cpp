@@ -1,24 +1,28 @@
-/*********************                                                        */
-/*! \file lazy_proof_chain.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of lazy proof utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of lazy proof utility.
+ */
 
 #include "expr/lazy_proof_chain.h"
 
 #include "expr/proof.h"
+#include "expr/proof_ensure_closed.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_algorithm.h"
-#include "options/smt_options.h"
+#include "expr/proof_node_manager.h"
+#include "options/proof_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    bool cyclic,
@@ -40,7 +44,7 @@ const std::map<Node, std::shared_ptr<ProofNode>> LazyCDProofChain::getLinks()
     const
 {
   std::map<Node, std::shared_ptr<ProofNode>> links;
-  for (const std::pair<const Node, ProofGenerator*>& link : d_gens)
+  for (const std::pair<const Node, ProofGenerator* const>& link : d_gens)
   {
     Assert(link.second);
     std::shared_ptr<ProofNode> pfn = link.second->getProofFor(link.first);
@@ -64,7 +68,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
                      std::vector<std::shared_ptr<ProofNode>>,
                      NodeHashFunction>
       assumptionsToExpand;
-  // invariant of the loop below, the first iteration notwhistanding:
+  // invariant of the loop below, the first iteration notwithstanding:
   //   visit = domain(assumptionsToExpand) \ domain(toConnect)
   std::vector<Node> visit{fact};
   std::unordered_map<Node, bool, NodeHashFunction> visited;
@@ -118,13 +122,22 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       expr::getFreeAssumptionsMap(curPfn, famap);
       if (Trace.isOn("lazy-cdproofchain"))
       {
+        unsigned alreadyToVisit = 0;
         Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: free assumptions:\n";
+            << "LazyCDProofChain::getProofFor: " << famap.size()
+            << " free assumptions:\n";
         for (auto fap : famap)
         {
           Trace("lazy-cdproofchain")
               << "LazyCDProofChain::getProofFor:  - " << fap.first << "\n";
+          alreadyToVisit +=
+              std::find(visit.begin(), visit.end(), fap.first) != visit.end()
+                  ? 1
+                  : 0;
         }
+        Trace("lazy-cdproofchain")
+            << "LazyCDProofChain::getProofFor: " << alreadyToVisit
+            << " already to visit\n";
       }
       // mark for post-traversal if we are controlling cycles
       if (d_cyclic)
@@ -260,15 +273,15 @@ void LazyCDProofChain::addLazyStep(Node expected,
                              << " set to generator " << pg->identify() << "\n";
   // note this will rewrite the generator for expected, if any
   d_gens.insert(expected, pg);
-  // check if chain is closed if options::proofNewEagerChecking() is on
-  if (options::proofNewEagerChecking())
+  // check if chain is closed if options::proofEagerChecking() is on
+  if (options::proofEagerChecking())
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";
     std::shared_ptr<ProofNode> pfn = pg->getProofFor(expected);
     std::vector<Node> allowedLeaves{assumptions.begin(), assumptions.end()};
     // add all current links in the chain
-    for (const std::pair<const Node, ProofGenerator*>& link : d_gens)
+    for (const std::pair<const Node, ProofGenerator* const>& link : d_gens)
     {
       allowedLeaves.push_back(link.first);
     }
@@ -314,4 +327,4 @@ ProofGenerator* LazyCDProofChain::getGeneratorForInternal(Node fact, bool& rec)
 
 std::string LazyCDProofChain::identify() const { return "LazyCDProofChain"; }
 
-}  // namespace CVC4
+}  // namespace cvc5

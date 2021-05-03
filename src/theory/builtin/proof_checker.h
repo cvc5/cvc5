@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file proof_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Equality proof checker utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Equality proof checker utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__PROOF_CHECKER_H
-#define CVC4__THEORY__BUILTIN__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__BUILTIN__PROOF_CHECKER_H
+#define CVC5__THEORY__BUILTIN__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /**
@@ -63,6 +64,21 @@ enum class MethodId : uint32_t
   SB_LITERAL,
   // P is interpreted as P -> true using Node::substitute
   SB_FORMULA,
+  //---------------------------- Substitution applications
+  // multiple substitutions are applied sequentially
+  SBA_SEQUENTIAL,
+  // multiple substitutions are applied simultaneously
+  SBA_SIMUL,
+  // multiple substitutions are applied to fix point
+  SBA_FIXPOINT
+  // For example, for x -> u, y -> f(z), z -> g(x), applying this substituion to
+  // y gives:
+  // - f(g(x)) for SBA_SEQUENTIAL
+  // - f(z) for SBA_SIMUL
+  // - f(g(u)) for SBA_FIXPOINT
+  // Notice that SBA_FIXPOINT should provide a terminating rewrite system
+  // as a substitution, or else non-termination will occur during proof
+  // checking.
 };
 /** Converts a rewriter id to a string. */
 const char* toString(MethodId id);
@@ -125,10 +141,12 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static Node applySubstitution(Node n,
                                 Node exp,
-                                MethodId ids = MethodId::SB_DEFAULT);
+                                MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId ida = MethodId::SBA_SEQUENTIAL);
   static Node applySubstitution(Node n,
                                 const std::vector<Node>& exp,
-                                MethodId ids = MethodId::SB_DEFAULT);
+                                MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId ida = MethodId::SBA_SEQUENTIAL);
   /** Apply substitution + rewriting
    *
    * Combines the above two steps.
@@ -142,6 +160,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node applySubstitutionRewrite(Node n,
                                 const std::vector<Node>& exp,
                                 MethodId ids = MethodId::SB_DEFAULT,
+                                MethodId ida = MethodId::SBA_SEQUENTIAL,
                                 MethodId idr = MethodId::RW_REWRITE);
   /** get a method identifier from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
@@ -152,13 +171,17 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   bool getMethodIds(const std::vector<Node>& args,
                     MethodId& ids,
+                    MethodId& ida,
                     MethodId& idr,
                     size_t index);
   /**
    * Add method identifiers ids and idr as nodes to args. This does not add ids
    * or idr if their values are the default ones.
    */
-  static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
+  static void addMethodIds(std::vector<Node>& args,
+                           MethodId ids,
+                           MethodId ida,
+                           MethodId idr);
 
   /** get a TheoryId from a node, return false if we fail */
   static bool getTheoryId(TNode n, TheoryId& tid);
@@ -179,6 +202,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__BUILTIN__PROOF_CHECKER_H */

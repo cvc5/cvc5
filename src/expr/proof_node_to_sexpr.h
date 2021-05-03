@@ -1,28 +1,31 @@
-/*********************                                                        */
-/*! \file proof_node_to_sexpr.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Conversion from ProofNode to s-expressions
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Conversion from ProofNode to s-expressions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__PROOF_NODE_TO_SEXPR_H
-#define CVC4__EXPR__PROOF_NODE_TO_SEXPR_H
+#ifndef CVC5__EXPR__PROOF_NODE_TO_SEXPR_H
+#define CVC5__EXPR__PROOF_NODE_TO_SEXPR_H
 
 #include <map>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "expr/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNode;
 
 /** A class to convert ProofNode objects to s-expressions */
 class ProofNodeToSExpr
@@ -47,6 +50,8 @@ class ProofNodeToSExpr
   std::map<PfRule, Node> d_pfrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;
+  /** Dummy ":conclusion" marker */
+  Node d_conclusionMarker;
   /** map proof nodes to their s-expression */
   std::map<const ProofNode*, Node> d_pnMap;
   /**
@@ -60,6 +65,6 @@ class ProofNodeToSExpr
   Node getOrMkNodeVariable(Node n);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_RULE_H */
+#endif /* CVC5__EXPR__PROOF_RULE_H */

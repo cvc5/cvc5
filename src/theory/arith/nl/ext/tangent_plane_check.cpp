@@ -1,25 +1,29 @@
-/*********************                                                        */
-/*! \file tangent_plane_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of tangent_plane check
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of tangent_plane check.
+ */
 
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/ext/ext_state.h"
+#include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -114,77 +118,43 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                                                 nm->mkNode(Kind::MULT, b_v, a),
                                                 nm->mkNode(Kind::MULT, a_v, b)),
                                      nm->mkNode(Kind::MULT, a_v, b_v));
-            // conjuncts of the tangent plane lemma
-            std::vector<Node> tplaneConj;
-            for (unsigned d = 0; d < 4; d++)
+            // construct the following lemmas:
+            // t <= tplane  <=>  ((a <= a_v ^ b >= b_v) v (a >= a_v ^ b <= b_v))
+            // t >= tplane  <=>  ((a <= a_v ^ b <= b_v) v (a >= a_v ^ b >= b_v))
+
+            for (unsigned d = 0; d < 2; d++)
             {
-              Node aa =
-                  nm->mkNode(d == 0 || d == 3 ? Kind::GEQ : Kind::LEQ, a, a_v);
-              Node ab =
-                  nm->mkNode(d == 1 || d == 3 ? Kind::GEQ : Kind::LEQ, b, b_v);
-              Node conc = nm->mkNode(d <= 1 ? Kind::LEQ : Kind::GEQ, t, tplane);
-              Node tlem = nm->mkNode(Kind::OR, aa.negate(), ab.negate(), conc);
+              Node b1 = nm->mkNode(d == 0 ? Kind::GEQ : Kind::LEQ, b, b_v);
+              Node b2 = nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, b, b_v);
+              Node tlem = nm->mkNode(
+                  Kind::EQUAL,
+                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t, tplane),
+                  nm->mkNode(
+                      Kind::OR,
+                      nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1),
+                      nm->mkNode(
+                          Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
-              tplaneConj.push_back(tlem);
+              CDProof* proof = nullptr;
+              if (d_data->isProofEnabled())
+              {
+                proof = d_data->getProof();
+                proof->addStep(tlem,
+                               PfRule::ARITH_MULT_TANGENT,
+                               {},
+                               {t,
+                                a,
+                                b,
+                                a_v,
+                                b_v,
+                                nm->mkConst(Rational(d == 0 ? -1 : 1))});
+              }
+              d_data->d_im.addPendingLemma(tlem,
+                                           InferenceId::ARITH_NL_TANGENT_PLANE,
+                                           proof,
+                                           asWaitingLemmas);
             }
-
-            // tangent plane reverse implication
-
-            // t <= tplane -> ( (a <= a_v ^ b >= b_v) v
-            // (a >= a_v ^ b <= b_v) ).
-            // in clause form, the above becomes
-            // t <= tplane -> a <= a_v v b <= b_v.
-            // t <= tplane -> b >= b_v v a >= a_v.
-            Node a_leq_av = nm->mkNode(Kind::LEQ, a, a_v);
-            Node b_leq_bv = nm->mkNode(Kind::LEQ, b, b_v);
-            Node a_geq_av = nm->mkNode(Kind::GEQ, a, a_v);
-            Node b_geq_bv = nm->mkNode(Kind::GEQ, b, b_v);
-
-            Node t_leq_tplane = nm->mkNode(Kind::LEQ, t, tplane);
-            Node a_leq_av_or_b_leq_bv =
-                nm->mkNode(Kind::OR, a_leq_av, b_leq_bv);
-            Node b_geq_bv_or_a_geq_av =
-                nm->mkNode(Kind::OR, b_geq_bv, a_geq_av);
-            Node ub_reverse1 = nm->mkNode(
-                Kind::OR, t_leq_tplane.negate(), a_leq_av_or_b_leq_bv);
-            Trace("nl-ext-tplanes")
-                << "Tangent plane lemma (reverse) : " << ub_reverse1
-                << std::endl;
-            tplaneConj.push_back(ub_reverse1);
-            Node ub_reverse2 = nm->mkNode(
-                Kind::OR, t_leq_tplane.negate(), b_geq_bv_or_a_geq_av);
-            Trace("nl-ext-tplanes")
-                << "Tangent plane lemma (reverse) : " << ub_reverse2
-                << std::endl;
-            tplaneConj.push_back(ub_reverse2);
-
-            // t >= tplane -> ( (a <= a_v ^ b <= b_v) v
-            // (a >= a_v ^ b >= b_v) ).
-            // in clause form, the above becomes
-            // t >= tplane -> a <= a_v v b >= b_v.
-            // t >= tplane -> b >= b_v v a <= a_v
-            Node t_geq_tplane = nm->mkNode(Kind::GEQ, t, tplane);
-            Node a_leq_av_or_b_geq_bv =
-                nm->mkNode(Kind::OR, a_leq_av, b_geq_bv);
-            Node a_geq_av_or_b_leq_bv =
-                nm->mkNode(Kind::OR, a_geq_av, b_leq_bv);
-            Node lb_reverse1 = nm->mkNode(
-                Kind::OR, t_geq_tplane.negate(), a_leq_av_or_b_geq_bv);
-            Trace("nl-ext-tplanes")
-                << "Tangent plane lemma (reverse) : " << lb_reverse1
-                << std::endl;
-            tplaneConj.push_back(lb_reverse1);
-            Node lb_reverse2 = nm->mkNode(
-                Kind::OR, t_geq_tplane.negate(), a_geq_av_or_b_leq_bv);
-            Trace("nl-ext-tplanes")
-                << "Tangent plane lemma (reverse) : " << lb_reverse2
-                << std::endl;
-            tplaneConj.push_back(lb_reverse2);
-
-            Node tlem = nm->mkAnd(tplaneConj);
-            d_data->d_im.addPendingArithLemma(
-                tlem, InferenceId::NL_TANGENT_PLANE, asWaitingLemmas);
           }
         }
       }
@@ -195,4 +165,4 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

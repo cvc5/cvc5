@@ -1,25 +1,30 @@
-/*********************                                                        */
-/*! \file preprocess_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The implementation of the module for proofs for preprocessing in an
- ** SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The implementation of the module for proofs for preprocessing in an
+ * SMT engine.
+ */
 
 #include "smt/preprocess_proof_generator.h"
 
+#include <sstream>
+
 #include "expr/proof.h"
-#include "options/smt_options.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
+#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
@@ -28,8 +33,9 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
                                                    PfRule ra,
                                                    PfRule rpp)
     : d_pnm(pnm),
-      d_src(c ? c : &d_context),
-      d_helperProofs(pnm, c ? c : &d_context),
+      d_ctx(c ? c : &d_context),
+      d_src(d_ctx),
+      d_helperProofs(pnm, d_ctx),
       d_inputPf(pnm, nullptr),
       d_name(name),
       d_ra(ra),
@@ -227,14 +233,14 @@ ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
 LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
-  return d_helperProofs.allocateProof();
+  return d_helperProofs.allocateProof(nullptr, d_ctx);
 }
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 {
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
@@ -249,4 +255,4 @@ void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5

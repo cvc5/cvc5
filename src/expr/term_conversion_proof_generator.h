@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file term_conversion_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term conversion proof generator utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term conversion proof generator utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
-#define CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
+#ifndef CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
+#define CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNodeManager;
+class TermContext;
 
 /** A policy for how rewrite steps are applied in TConvProofGenerator */
 enum class TConvPolicy : uint32_t
@@ -79,12 +81,9 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  * [***] This class traverses the left hand side of a given equality-to-prove
  * (the term g(f(a),h(a),e) in the above example) and "replays" the rewrite
  * steps to obtain its rewritten form. To do so, it applies any available
- * rewrite step both at pre-rewrite (pre-order traversal) and post-rewrite
- * (post-order traversal). It thus does not require the user of this class to
- * distinguish whether a rewrite is a pre-rewrite or a post-rewrite during
- * addRewriteStep. In particular, notice that in the above example, we realize
- * that f(a) --> c at pre-rewrite instead of post-rewriting a --> b and then
- * ending with f(a)=f(b).
+ * rewrite step at pre-rewrite (pre-order traversal) and post-rewrite
+ * (post-order traversal) based on whether the user specified pre-rewrite or a
+ * post-rewrite during addRewriteStep.
  *
  * This class may additionally be used for term-context-sensitive rewrite
  * systems. An example is the term formula removal pass which rewrites
@@ -144,6 +143,8 @@ class TConvProofGenerator : public ProofGenerator
   /**
    * Add rewrite step t --> s based on proof generator.
    *
+   * @param isPre Whether the rewrite is applied at prerewrite (pre-order
+   * traversal).
    * @param trustId If a null proof generator is provided, we add a step to
    * the proof that has trustId as the rule and expected as the sole argument.
    * @param isClosed whether to expect that pg can provide a closed proof for
@@ -156,25 +157,28 @@ class TConvProofGenerator : public ProofGenerator
   void addRewriteStep(Node t,
                       Node s,
                       ProofGenerator* pg,
+                      bool isPre = false,
                       PfRule trustId = PfRule::ASSUME,
                       bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
-  void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);
+  void addRewriteStep(
+      Node t, Node s, ProofStep ps, bool isPre = false, uint32_t tctx = 0);
   /** Same as above, with explicit arguments */
   void addRewriteStep(Node t,
                       Node s,
                       PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
+                      bool isPre = false,
                       uint32_t tctx = 0);
   /** Has rewrite step for term t */
-  bool hasRewriteStep(Node t, uint32_t tctx = 0) const;
+  bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /** 
    * Get rewrite step for term t, returns the s provided in a call to
    * addRewriteStep if one exists, or null otherwise.
    */
-  Node getRewriteStep(Node t, uint32_t tctx = 0) const;
+  Node getRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps
@@ -186,6 +190,14 @@ class TConvProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+  /**
+   * Get the proof for how term n would rewrite. This is in contrast to the
+   * above method where the user provides an equality (= n n'). The motivation
+   * for this method is when it may be expensive to compute n', and hence it
+   * is preferred that the proof checker computes the rewritten form of
+   * n, instead of verifying that n has rewritten form n'.
+   */
+  std::shared_ptr<ProofNode> getProofForRewriting(Node n);
 
  protected:
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
@@ -194,7 +206,8 @@ class TConvProofGenerator : public ProofGenerator
   /** The (lazy) context dependent proof object. */
   LazyCDProof d_proof;
   /** map to rewritten forms */
-  NodeNodeMap d_rewriteMap;
+  NodeNodeMap d_preRewriteMap;
+  NodeNodeMap d_postRewriteMap;
   /**
    * Policy for how rewrites are applied to terms. As a simple example, say we
    * have registered the rewrite steps:
@@ -220,7 +233,7 @@ class TConvProofGenerator : public ProofGenerator
    */
   bool d_rewriteOps;
   /** Get rewrite step for (hash value of) term. */
-  Node getRewriteStepInternal(Node thash) const;
+  Node getRewriteStepInternal(Node thash, bool isPre) const;
   /**
    * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
    * t based on the rewrite steps registered to this class. This method then
@@ -231,13 +244,13 @@ class TConvProofGenerator : public ProofGenerator
    * Register rewrite step, returns the equality t=s if t is distinct from s
    * and a rewrite step has not already been registered for t.
    */
-  Node registerRewriteStep(Node t, Node s, uint32_t tctx);
+  Node registerRewriteStep(Node t, Node s, uint32_t tctx, bool isPre);
   /** cache that r is the rewritten form of cur, pf can provide a proof */
   void doCache(Node curHash, Node cur, Node r, LazyCDProof& pf);
   /** get debug information on this generator */
   std::string toStringDebug() const;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

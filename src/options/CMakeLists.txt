@@ -1,28 +1,22 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 # Check if the toml Python module is installed.
-execute_process(
-  COMMAND
-  ${PYTHON_EXECUTABLE} -c "import toml"
-  RESULT_VARIABLE
-    RET_TOML
-  ERROR_QUIET
-)
+check_python_module("toml")
 
-if(RET_TOML)
-    message(FATAL_ERROR
-      "Could not find Python module toml. Install via `pip install toml'.")
-endif()
-
-libcvc4_add_sources(
+libcvc5_add_sources(
   base_handlers.h
   decision_weight.h
   didyoumean.cpp
@@ -61,6 +55,7 @@ set(options_toml_files
   proof_options.toml
   prop_options.toml
   quantifiers_options.toml
+  resource_manager_options.toml
   sep_options.toml
   sets_options.toml
   smt_options.toml
@@ -72,7 +67,7 @@ set(options_toml_files
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
 
-libcvc4_add_sources(GENERATED options.cpp ${options_gen_cpp_files})
+libcvc5_add_sources(GENERATED options.cpp ${options_gen_cpp_files})
 
 list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
 
@@ -84,7 +79,6 @@ add_custom_command(
       ${PYTHON_EXECUTABLE}
       ${CMAKE_CURRENT_LIST_DIR}/mkoptions.py
       ${CMAKE_CURRENT_LIST_DIR}
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc
       ${CMAKE_CURRENT_BINARY_DIR}
       ${abs_toml_files}
     DEPENDS
@@ -94,9 +88,6 @@ add_custom_command(
       module_template.cpp
       options_holder_template.h
       options_template.cpp
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/cvc4.1_template
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/SmtEngine.3cvc_template
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/options.3cvc_template
 )
 
 add_custom_target(gen-options

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_builtin_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 
@@ -23,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -92,43 +93,26 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
-  else if (node.getKind() == kind::WITNESS)
+  // otherwise, do the default call
+  return doRewrite(node);
+}
+
+RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
+{
+  switch (node.getKind())
   {
-    if (node[1].getKind() == kind::EQUAL)
+    case kind::WITNESS:
     {
-      for (unsigned i = 0; i < 2; i++)
-      {
-        // (witness ((x T)) (= x t)) ---> t
-        if (node[1][i] == node[0][0])
-        {
-          Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
-                                   << node[1][1 - i] << std::endl;
-          // also must be a legal elimination: the other side of the equality
-          // cannot contain the variable, and it must be a subtype of the
-          // variable
-          if (!expr::hasSubterm(node[1][1 - i], node[0][0]) &&
-              node[1][i].getType().isSubtypeOf(node[0][0].getType()))
-          {
-            return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
-          }
-        }
-      }
+      // it is important to run this rewriting at prerewrite and postrewrite,
+      // since e.g. arithmetic rewrites equalities in ways that may make an
+      // equality not in solved form syntactically, e.g. (= x (+ 1 a)) rewrites
+      // to (= a (- x 1)), where x no longer is in solved form.
+      Node rnode = rewriteWitness(node);
+      return RewriteResponse(REWRITE_DONE, rnode);
     }
-    else if (node[1] == node[0][0])
-    {
-      // (witness ((x Bool)) x) ---> true
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
-    }
-    else if (node[1].getKind() == kind::NOT && node[1][0] == node[0][0])
-    {
-      // (witness ((x Bool)) (not x)) ---> false
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(false));
-    }
-    return RewriteResponse(REWRITE_DONE, node);
-  }else{ 
-    return doRewrite(node);
+    case kind::DISTINCT:
+      return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+    default: return RewriteResponse(REWRITE_DONE, node);
   }
 }
 
@@ -468,6 +452,42 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   }
 }
 
+Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
+{
+  Assert(node.getKind() == kind::WITNESS);
+  if (node[1].getKind() == kind::EQUAL)
+  {
+    for (size_t i = 0; i < 2; i++)
+    {
+      // (witness ((x T)) (= x t)) ---> t
+      if (node[1][i] == node[0][0])
+      {
+        Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
+                                 << node[1][1 - i] << std::endl;
+        // also must be a legal elimination: the other side of the equality
+        // cannot contain the variable, and it must be a subtype of the
+        // variable
+        if (!expr::hasSubterm(node[1][1 - i], node[0][0])
+            && node[1][i].getType().isSubtypeOf(node[0][0].getType()))
+        {
+          return node[1][1 - i];
+        }
+      }
+    }
+  }
+  else if (node[1] == node[0][0])
+  {
+    // (witness ((x Bool)) x) ---> true
+    return NodeManager::currentNM()->mkConst(true);
+  }
+  else if (node[1].getKind() == kind::NOT && node[1][0] == node[0][0])
+  {
+    // (witness ((x Bool)) (not x)) ---> false
+    return NodeManager::currentNM()->mkConst(false);
+  }
+  return node;
+}
+
 Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
 {
   Assert(n.getKind() == kind::LAMBDA);
@@ -483,6 +503,6 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
   return Rewriter::rewrite(anode);
 }
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5

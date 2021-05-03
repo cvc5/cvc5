@@ -1,42 +1,78 @@
-/*********************                                                        */
-/*! \file attribute.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Node attributes.
- **
- ** Node attributes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node attributes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 /* There are strong constraints on ordering of declarations of
  * attributes and nodes due to template use */
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef CVC4__EXPR__ATTRIBUTE_H
-#define CVC4__EXPR__ATTRIBUTE_H
+#ifndef CVC5__EXPR__ATTRIBUTE_H
+#define CVC5__EXPR__ATTRIBUTE_H
 
 #include <string>
-#include <stdint.h>
 #include "expr/attribute_unique_id.h"
 
 // include supporting templates
-#define CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#define CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #include "expr/attribute_internals.h"
-#undef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#undef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 namespace attr {
 
+/**
+ * Attributes are roughly speaking [almost] global hash tables from Nodes
+ * (TNodes) to data. Attributes can be thought of as additional fields used to
+ * extend NodeValues. Attributes are mutable and come in both sat
+ * context-dependent and non-context dependent varieties. Attributes live only
+ * as long as the node itself does. If a Node is garbage-collected, Attributes
+ * associated with it will automatically be garbage collected. (Being in the
+ * domain of an Attribute does not increase a Node's reference count.) To
+ * achieve this special relationship with Nodes, Attributes are mapped by hash
+ * tables (AttrHash<> and CDAttrHash<>) that live in the AttributeManager. The
+ * AttributeManager is owned by the NodeManager.
+ *
+ * Example:
+ *
+ * Attributes tend to be defined in a fixed pattern:
+ *
+ * ```
+ * struct InstLevelAttributeId {};
+ * typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+ * ```
+ *
+ * To get the value of an Attribute InstLevelAttribute on a Node n, use
+ * ```
+ * n.getAttribute(InstLevelAttribute());
+ * ```
+ *
+ * To check whether the attribute has been set:
+ * ```
+ * n.hasAttribute(InstLevelAttribute());
+ * ```
+ *
+ * To separate Attributes of the same type in the same table, each of the
+ * structures `struct InstLevelAttributeId {};` is given a different unique value
+ * at load time. An example is the empty struct InstLevelAttributeId. These
+ * should be unique for each Attribute. Then via some template messiness when
+ * InstLevelAttribute() is passed as the argument to getAttribute(...) the load
+ * time id is instantiated.
+ */
 // ATTRIBUTE MANAGER ===========================================================
 
 /**
@@ -175,13 +211,13 @@ public:
 
   /**
    * debugHook() is an empty function for the purpose of debugging
-   * the AttributeManager without recompiling all of CVC4.
+   * the AttributeManager without recompiling all of cvc5.
    * Formally this is a nop.
    */
   void debugHook(int debugFlag);
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // MAPPING OF ATTRIBUTE KINDS TO TABLES IN THE ATTRIBUTE MANAGER ===============
 
@@ -281,7 +317,7 @@ struct getTable<std::string, false> {
   }
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE MANAGER IMPLEMENTATIONS ===========================================
 
@@ -503,9 +539,8 @@ void AttributeManager::reconstructTable(AttrHash<T>& table){
   d_inGarbageCollection = false;
 }
 
-
-}/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
+}  // namespace attr
+}  // namespace expr
 
 template <class AttrKind>
 inline typename AttrKind::value_type
@@ -585,6 +620,6 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
   d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__ATTRIBUTE_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_H */

@@ -1,7 +1,7 @@
 # kinds [for builtin theory]                                          -*- sh -*-
 #
 # This "kinds" file is written in a domain-specific language for
-# declaring CVC4 kinds.  Comments are marked with #, as this line is.
+# declaring cvc5 kinds.  Comments are marked with #, as this line is.
 #
 # The first non-blank, non-comment line in this file must be a theory
 # declaration:
@@ -196,7 +196,7 @@
 #     is with your type checker:
 #
 #       cardinality MY_TYPE \
-#           ::CVC4::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
+#           ::cvc5::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
 #           "theory/foo/theory_foo_type_rules.h"
 #
 #   well-founded K wellfoundedness-computer ground-term-computer [header]
@@ -240,13 +240,13 @@
 # commands.
 #
 
-theory THEORY_BUILTIN ::CVC4::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
+theory THEORY_BUILTIN ::cvc5::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
 typechecker "theory/builtin/theory_builtin_type_rules.h"
 
 properties stable-infinite
 
 # Rewriter responsible for all the terms of the theory
-rewriter ::CVC4::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
+rewriter ::cvc5::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
 
 sort BUILTIN_OPERATOR_TYPE \
     Cardinality::INTEGERS \
@@ -259,33 +259,33 @@ parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpr
 # enough (for now) ?
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
-    "::CVC4::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
+    "::cvc5::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 
 constant UNINTERPRETED_CONSTANT \
-    ::CVC4::UninterpretedConstant \
-    ::CVC4::UninterpretedConstantHashFunction \
+    ::cvc5::UninterpretedConstant \
+    ::cvc5::UninterpretedConstantHashFunction \
     "expr/uninterpreted_constant.h" \
-    "the kind of expressions representing uninterpreted constants; payload is an instance of the CVC4::UninterpretedConstant class (used in models)"
-typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
+    "the kind of expressions representing uninterpreted constants; payload is an instance of the cvc5::UninterpretedConstant class (used in models)"
+typerule UNINTERPRETED_CONSTANT ::cvc5::theory::builtin::UninterpretedConstantTypeRule
 enumerator SORT_TYPE \
-    ::CVC4::theory::builtin::UninterpretedSortEnumerator \
+    ::cvc5::theory::builtin::UninterpretedSortEnumerator \
     "theory/builtin/type_enumerator.h"
 
 constant ABSTRACT_VALUE \
-    ::CVC4::AbstractValue \
-    ::CVC4::AbstractValueHashFunction \
+    ::cvc5::AbstractValue \
+    ::cvc5::AbstractValueHashFunction \
     "util/abstract_value.h" \
-    "the kind of expressions representing abstract values (other than uninterpreted sort constants); payload is an instance of the CVC4::AbstractValue class (used in models)"
-typerule ABSTRACT_VALUE ::CVC4::theory::builtin::AbstractValueTypeRule
+    "the kind of expressions representing abstract values (other than uninterpreted sort constants); payload is an instance of the cvc5::AbstractValue class (used in models)"
+typerule ABSTRACT_VALUE ::cvc5::theory::builtin::AbstractValueTypeRule
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
 # not stored that way.  If you ask for the operator of (EQUAL a b),
 # you'll get a special, singleton (BUILTIN EQUAL) Node.
 constant BUILTIN \
-    ::CVC4::Kind \
-    ::CVC4::kind::KindHashFunction \
+    ::cvc5::Kind \
+    ::cvc5::kind::KindHashFunction \
     "expr/kind.h" \
     "the kind of expressions representing built-in operators"
 
@@ -301,37 +301,33 @@ operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, sec
 operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
-    ::CVC4::TypeConstant \
-    ::CVC4::TypeConstantHashFunction \
+    ::cvc5::TypeConstant \
+    ::cvc5::TypeConstantHashFunction \
     "expr/kind.h" \
     "a representation for basic types"
 operator FUNCTION_TYPE 2: "a function type"
 cardinality FUNCTION_TYPE \
-    "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 well-founded FUNCTION_TYPE \
-    "::CVC4::theory::builtin::FunctionProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::FunctionProperties::mkGroundTerm(%TYPE%)" \
+    "::cvc5::theory::builtin::FunctionProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::builtin::FunctionProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 enumerator FUNCTION_TYPE \
-    ::CVC4::theory::builtin::FunctionEnumerator \
+    ::cvc5::theory::builtin::FunctionEnumerator \
     "theory/builtin/type_enumerator.h"
-operator SEXPR_TYPE 0: "the type of a symbolic expression"
-cardinality SEXPR_TYPE \
-    "::CVC4::theory::builtin::SExprProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded SEXPR_TYPE \
-    "::CVC4::theory::builtin::SExprProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::SExprProperties::mkGroundTerm(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
+sort SEXPR_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "the type of a symbolic expression"
 
-typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
-typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
-typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
-typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-typerule WITNESS ::CVC4::theory::builtin::WitnessTypeRule
+typerule EQUAL ::cvc5::theory::builtin::EqualityTypeRule
+typerule DISTINCT ::cvc5::theory::builtin::DistinctTypeRule
+typerule SEXPR ::cvc5::theory::builtin::SExprTypeRule
+typerule LAMBDA ::cvc5::theory::builtin::LambdaTypeRule
+typerule WITNESS ::cvc5::theory::builtin::WitnessTypeRule
 
 # lambda expressions that are isomorphic to array constants can be considered constants
-construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+construle LAMBDA ::cvc5::theory::builtin::LambdaTypeRule
 
 endtheory

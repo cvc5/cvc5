@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file bv_solver_lazy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Lazy bit-vector solver.
+ */
 
 #include "theory/bv/bv_solver_lazy.h"
 
@@ -31,9 +31,9 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::theory::bv::utils;
+using namespace cvc5::theory::bv::utils;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -42,7 +42,7 @@ BVSolverLazy::BVSolverLazy(TheoryBV& bv,
                            context::UserContext* u,
                            ProofNodeManager* pnm,
                            std::string name)
-    : BVSolver(bv.d_state, bv.d_inferMgr),
+    : BVSolver(bv.d_state, bv.d_im),
       d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
@@ -117,39 +117,25 @@ void BVSolverLazy::finishInit()
   }
 }
 
-void BVSolverLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(Resource r)
 {
-  d_inferManager.spendResource(r);
+  d_im.spendResource(r);
 }
 
 BVSolverLazy::Statistics::Statistics()
-    : d_avgConflictSize("theory::bv::lazy::AvgBVConflictSize"),
-      d_solveSubstitutions("theory::bv::lazy::NumSolveSubstitutions", 0),
-      d_solveTimer("theory::bv::lazy::solveTimer"),
-      d_numCallsToCheckFullEffort("theory::bv::lazy::NumFullCheckCalls", 0),
-      d_numCallsToCheckStandardEffort("theory::bv::lazy::NumStandardCheckCalls",
-                                      0),
-      d_weightComputationTimer("theory::bv::lazy::weightComputationTimer"),
-      d_numMultSlice("theory::bv::lazy::NumMultSliceApplied", 0)
+    : d_avgConflictSize(smtStatisticsRegistry().registerAverage(
+        "theory::bv::lazy::AvgBVConflictSize")),
+      d_solveTimer(smtStatisticsRegistry().registerTimer(
+          "theory::bv::lazy::solveTimer")),
+      d_numCallsToCheckFullEffort(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumFullCheckCalls")),
+      d_numCallsToCheckStandardEffort(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumStandardCheckCalls")),
+      d_weightComputationTimer(smtStatisticsRegistry().registerTimer(
+          "theory::bv::lazy::weightComputationTimer")),
+      d_numMultSlice(smtStatisticsRegistry().registerInt(
+          "theory::bv::lazy::NumMultSliceApplied"))
 {
-  smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
-  smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);
-  smtStatisticsRegistry()->registerStat(&d_solveTimer);
-  smtStatisticsRegistry()->registerStat(&d_numCallsToCheckFullEffort);
-  smtStatisticsRegistry()->registerStat(&d_numCallsToCheckStandardEffort);
-  smtStatisticsRegistry()->registerStat(&d_weightComputationTimer);
-  smtStatisticsRegistry()->registerStat(&d_numMultSlice);
-}
-
-BVSolverLazy::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_avgConflictSize);
-  smtStatisticsRegistry()->unregisterStat(&d_solveSubstitutions);
-  smtStatisticsRegistry()->unregisterStat(&d_solveTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_numCallsToCheckFullEffort);
-  smtStatisticsRegistry()->unregisterStat(&d_numCallsToCheckStandardEffort);
-  smtStatisticsRegistry()->unregisterStat(&d_weightComputationTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_numMultSlice);
 }
 
 void BVSolverLazy::preRegisterTerm(TNode node)
@@ -196,8 +182,8 @@ void BVSolverLazy::sendConflict()
   {
     Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
-    d_inferManager.conflict(d_conflictNode);
-    d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
+    d_im.conflict(d_conflictNode, InferenceId::BV_LAZY_CONFLICT);
+    d_statistics.d_avgConflictSize << d_conflictNode.getNumChildren();
     d_conflictNode = Node::null();
   }
 }
@@ -207,7 +193,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
   if (fact.getKind() == kind::EQUAL)
   {
     NodeManager* nm = NodeManager::currentNM();
-    if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[0].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[0];
       TNode result = fact[1];
@@ -219,7 +205,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
           kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
-    if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[1].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[1];
       TNode result = fact[0];
@@ -287,11 +273,11 @@ void BVSolverLazy::check(Theory::Effort e)
     {
       if (assertions.size() == 1)
       {
-        d_inferManager.conflict(assertions[0]);
+        d_im.conflict(assertions[0], InferenceId::BV_LAZY_CONFLICT);
         return;
       }
       Node conflict = utils::mkAnd(assertions);
-      d_inferManager.conflict(conflict);
+      d_im.conflict(conflict, InferenceId::BV_LAZY_CONFLICT);
       return;
     }
     return;
@@ -426,7 +412,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
     {
       Debug("bitvector::propagate")
           << "BVSolverLazy:: propagating " << literal << "\n";
-      ok = d_inferManager.propagateLit(literal);
+      ok = d_im.propagateLit(literal);
     }
   }
 
@@ -437,89 +423,6 @@ void BVSolverLazy::propagate(Theory::Effort e)
         << std::endl;
     setConflict();
   }
-}
-
-Theory::PPAssertStatus BVSolverLazy::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
-{
-  TNode in = tin.getNode();
-  switch (in.getKind())
-  {
-    case kind::EQUAL:
-    {
-      if (in[0].isVar() && d_bv.isLegalElimination(in[0], in[1]))
-      {
-        ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-      if (in[1].isVar() && d_bv.isLegalElimination(in[1], in[0]))
-      {
-        ++(d_statistics.d_solveSubstitutions);
-        outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-      Node node = Rewriter::rewrite(in);
-      if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
-          || (node[1].getKind() == kind::BITVECTOR_EXTRACT
-              && node[0].isConst()))
-      {
-        Node extract = node[0].isConst() ? node[1] : node[0];
-        if (extract[0].isVar())
-        {
-          Node c = node[0].isConst() ? node[0] : node[1];
-
-          unsigned high = utils::getExtractHigh(extract);
-          unsigned low = utils::getExtractLow(extract);
-          unsigned var_bitwidth = utils::getSize(extract[0]);
-          std::vector<Node> children;
-
-          if (low == 0)
-          {
-            Assert(high != var_bitwidth - 1);
-            unsigned skolem_size = var_bitwidth - high - 1;
-            Node skolem = utils::mkVar(skolem_size);
-            children.push_back(skolem);
-            children.push_back(c);
-          }
-          else if (high == var_bitwidth - 1)
-          {
-            unsigned skolem_size = low;
-            Node skolem = utils::mkVar(skolem_size);
-            children.push_back(c);
-            children.push_back(skolem);
-          }
-          else
-          {
-            unsigned skolem1_size = low;
-            unsigned skolem2_size = var_bitwidth - high - 1;
-            Node skolem1 = utils::mkVar(skolem1_size);
-            Node skolem2 = utils::mkVar(skolem2_size);
-            children.push_back(skolem2);
-            children.push_back(c);
-            children.push_back(skolem1);
-          }
-          Node concat = utils::mkConcat(children);
-          Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-          if (d_bv.isLegalElimination(extract[0], concat))
-          {
-            outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
-            return Theory::PP_ASSERT_STATUS_SOLVED;
-          }
-        }
-      }
-    }
-    break;
-    case kind::BITVECTOR_ULT:
-    case kind::BITVECTOR_SLT:
-    case kind::BITVECTOR_ULE:
-    case kind::BITVECTOR_SLE:
-
-    default:
-      // TODO other predicates
-      break;
-  }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
 TrustNode BVSolverLazy::ppRewrite(TNode t)
@@ -670,7 +573,7 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   constexpr bool ok = true;
   if (subtheory == SUB_CORE)
   {
-    d_inferManager.propagateLit(literal);
+    d_im.propagateLit(literal);
     if (!ok)
     {
       setConflict();
@@ -740,7 +643,7 @@ EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {
@@ -827,4 +730,4 @@ void BVSolverLazy::setConflict(Node conflict)
 
 }  // namespace bv
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

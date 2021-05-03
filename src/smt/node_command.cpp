@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file node_command.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of NodeCommand functions.
- **
- ** Implementation of NodeCommand functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Yoni Zohar, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of NodeCommand functions.
+ */
 
 #include "smt/node_command.h"
 
+#include <sstream>
+
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* class NodeCommand                                                          */
@@ -51,9 +52,7 @@ DeclareFunctionNodeCommand::DeclareFunctionNodeCommand(const std::string& id,
                                                        TypeNode type)
     : d_id(id),
       d_fun(expr),
-      d_type(type),
-      d_printInModel(true),
-      d_printInModelSetByUser(false)
+      d_type(type)
 {
 }
 
@@ -72,22 +71,6 @@ NodeCommand* DeclareFunctionNodeCommand::clone() const
 
 const Node& DeclareFunctionNodeCommand::getFunction() const { return d_fun; }
 
-bool DeclareFunctionNodeCommand::getPrintInModel() const
-{
-  return d_printInModel;
-}
-
-bool DeclareFunctionNodeCommand::getPrintInModelSetByUser() const
-{
-  return d_printInModelSetByUser;
-}
-
-void DeclareFunctionNodeCommand::setPrintInModel(bool p)
-{
-  d_printInModel = p;
-  d_printInModelSetByUser = true;
-}
-
 /* -------------------------------------------------------------------------- */
 /* class DeclareTypeNodeCommand                                               */
 /* -------------------------------------------------------------------------- */
@@ -104,8 +87,7 @@ void DeclareTypeNodeCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareType(
-      out, d_id, d_arity, d_type);
+  Printer::getPrinter(language)->toStreamCmdDeclareType(out, d_type);
 }
 
 NodeCommand* DeclareTypeNodeCommand::clone() const
@@ -175,4 +157,4 @@ NodeCommand* DefineFunctionNodeCommand::clone() const
   return new DefineFunctionNodeCommand(d_id, d_fun, d_formals, d_formula);
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

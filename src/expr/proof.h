@@ -1,33 +1,34 @@
-/*********************                                                        */
-/*! \file proof.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__PROOF_H
-#define CVC4__EXPR__PROOF_H
+#ifndef CVC5__EXPR__PROOF_H
+#define CVC5__EXPR__PROOF_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNode;
+class ProofNodeManager;
 
 /**
  * A (context-dependent) proof.
@@ -134,9 +135,17 @@ namespace CVC4 {
 class CDProof : public ProofGenerator
 {
  public:
+  /**
+   * @param pnm The proof node manager responsible for constructor ProofNode
+   * @param c The context this proof depends on
+   * @param name The name of this proof (for debugging)
+   * @param autoSymm Whether this proof automatically adds symmetry steps based
+   * on policy documented above.
+   */
   CDProof(ProofNodeManager* pnm,
           context::Context* c = nullptr,
-          std::string name = "CDProof");
+          std::string name = "CDProof",
+          bool autoSymm = true);
   virtual ~CDProof();
   /**
    * Make proof for fact.
@@ -247,6 +256,8 @@ class CDProof : public ProofGenerator
   NodeProofNodeMap d_nodes;
   /** Name identifier */
   std::string d_name;
+  /** Whether we automatically add symmetry steps */
+  bool d_autoSymm;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
@@ -263,6 +274,6 @@ class CDProof : public ProofGenerator
   void notifyNewProof(Node expected);
 };
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__PROOF_MANAGER_H */
+#endif /* CVC5__EXPR__PROOF_MANAGER_H */

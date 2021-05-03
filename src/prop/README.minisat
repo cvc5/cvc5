@@ -4,8 +4,8 @@ This is MiniSAT 2.2.0, downloaded from here:
 
 on 11 July 2010.
 
-The code has been modified to put everything in the CVC4::MiniSat
+The code has been modified to put everything in the cvc5::MiniSat
 namespace.  The build process has been modified.  Other parts have
-been modified to serve CVC4's purposes.
+been modified to serve cvc5's purposes.
 
 -- Morgan Deters <mdeters@cs.nyu.edu>  Sun, 07 Nov 2010 22:27:09 -0500

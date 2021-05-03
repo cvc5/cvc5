@@ -3,6 +3,7 @@
 (set-logic QF_ALL_SUPPORTED)
 
 (declare-sort Loc 0)
+(declare-heap (Loc Loc))
 
 (declare-const w Loc)
 (declare-const u1 Loc)

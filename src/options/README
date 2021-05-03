@@ -7,7 +7,7 @@ Modules
     name   ... (string) name of the module (e.g., "Arithmetic Theory")
     header ... (string) name of the options header to generated (e.g., "options/arith_options.h")
 
-  A module defines 0 or more options and/or aliases.
+  A module defines 0 or more options.
 
   In general, each attribute/value pair is required to be in one line.
   Comments start with # and are not allowed in attribute/value lines.
@@ -40,10 +40,7 @@ Options
                             option
     predicates ... (list)   functions that check whether given option value is
                             valid
-    includes   ... (list)   header files required by
-                            handler/predicates/notifies
-    notifies   ... (list)   notifications to call when option is set
-    links      ... (list)   additional options to set after this option is set
+    includes   ... (list)   header files required by handler/predicates
     read_only  ... (bool)   true: option should not provide a ::set method,
                             false (default): option should provide a ::set
                             method to set the option value
@@ -57,7 +54,7 @@ Options
   to false.
   This behaviour can be explicitely disabled for options with attribute
   alternate = false.
-  More information on how to use handler, predicates and notifies can be found
+  More information on how to use handler and predicates can be found
   at the end of the README.
 
 
@@ -74,72 +71,8 @@ Options
       handler    = "stringToOutputLanguage"
       predicates = []
       includes   = ["options/language.h"]
-      notifies   = []
-      links      = []
       read_only  = false
       help       = "force output language (default is \"auto\"; see --output-lang help)"
-
-
-  If an alternate option is generated, the linked options defined via attribute
-  links are not considered. If you want to define links for an alternate option
-  --no-<long> for an existing option <long>, you can define an alias with long
-  option no-<long>. This overwrites the default --no-<long> behaviour and
-  creates the linked options.
-
-
-Aliases
-=======
-
-  Aliases can be defined with the [[alias]] tag, which creates a new long
-  option and binds it to the list of long options specified via the 'links'
-  attributes.
-
-
-  The required attributes are:
-
-    category ... (string) common | expert | regular | undocumented
-    long     ... (string) long option name
-    links    ... (list)   list of long options to set
-
-  Optional attributes are:
-
-    help     ... (string) documentation (only option for category undocumented)
-
-
-  Example:
-
-    [[alias]]
-      category   = "regular"
-      long       = "smtlib-strict"
-      links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
-      help       = "SMT-LIBv2 compliance mode (implies other options)"
-
-
-  This example creates a regular option with the long option name
-  'smtlib-strict', which links to the long options given as a list 'links'.
-  Calling
-
-    --smtlib-strict
-
-  is equivalent to specifying the options
-
-    --lang=smt2 --output-lang=smt2 --strict-parsing --expr-depth=-1 --print-success --incremental --abstract-values
-
-
-  It's also possible to pass an argument through to another option.
-
-  Example:
-
-    [[alias]]
-      category   = "undocumented"
-      long       = "output-language=L"
-      links      = ["--output-lang=L"]
-
-  This alias makes --output-language synonymous with --output-lang and passes
-  argument L through to --output-lang. The placeholer name (in this example
-  'L') of the argument can be arbitrarily chosen and can be referenced multiple
-  times in 'links'.
-
 
 
 Further information (the old option package)
@@ -150,7 +83,6 @@ Further information (the old option package)
 
    - handler to parse an option before setting its value.
    - predicates to reject bad values for the option.
-   - notifies for dynamic dispatch after an option is assigned.
 
   More details on each class of custom handlers.
 
@@ -169,12 +101,11 @@ Further information (the old option package)
        T OptionsHandler::custom-option-handler(std::string option,
                                                std::string optarg);
 
-    The handlers are run before predicates and notifications.
+    The handlers are run before predicates.
     Having multiple handlers is considered bad practice and is unsupported.
     Handlers may have arbitrary side effects, but should call no code
     inaccessible to liboptions. For side effects that are not required in order
-    to parse the option, using :predicate is recommended. Use :notify to
-    achieve dynamic dispatch outside of base/, lib/, and options/. Memory
+    to parse the option, using :predicate is recommended. Memory
     management done by a handler needs to either be encapsulated by the type
     and the destructor for the type or should *always* be owned by handler.
     More elaborate memory management schemes are not currently supported.
@@ -182,8 +113,7 @@ Further information (the old option package)
    - predicates = [...]
 
     Predicates provide support for checking whether or not the value of an
-    option is acceptable. Predicates are run after handlers and before
-    notifications.
+    option is acceptable. Predicates are run after handlers.
     The signature for a predicate call is:
 
       void custom-predicate(std::string option, T value,
@@ -195,35 +125,7 @@ Further information (the old option package)
 
       void OptionsHandler::custom-predicate(std::string option, T value);
 
-    The predicates are run after handlers and before notifications. Multiple
+    The predicates are run after handlers. Multiple
     predicates may be defined for the same option, but the order they are run
     is not guaranteed. Predicates may have arbitrary side effects, but should
-    call no code inaccessible to liboptions. Use :notify to
-    achieve dynamic dispatch outside of base/, lib/, and options/.
-    Predicates are expected to reject bad value for the option by throwing an
-    OptionsException.
-
-   - notifies = [...]
-
-    This allows for the installation of custom post-processing callbacks using
-    the Listener infrastructure. custom-option-notification is a C++ function
-    that is called after the assignment of the option is updated.
-    The normal usage of an notify is to call a Listener that is registered for
-    this specific option. This is how dynamic dispatch outside of the
-    liboptions package should always be done.
-    The signature of custom-option-notification should take an option name as
-    well as an OptionsHandler*.
-
-      void custom-notification(
-        const std::string& option, CVC4::options::OptionsHandler* handler);
-
-    The name is provided so multiple options can use the same notification
-    implementation.
-    This is called after all handlers and predicates have been run.
-    Formally, this is always placed at the end of either the generated
-    Options::assign or Options::assignBool function for the option.
-    Because of this :notify cannot be used with void type options.
-    Users of this feature should *always* check the code generated in
-    builds/src/options/options.cpp for the correctness of the placement of the
-    generated code. The Listener notify() function is allowed to throw
-    an arbitrary std::exception.
+    call no code inaccessible to liboptions.

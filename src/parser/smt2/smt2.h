@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file smt2.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of SMT2 constants.
- **
- ** Definitions of SMT2 constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 constants.
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef CVC4__PARSER__SMT2_H
-#define CVC4__PARSER__SMT2_H
+#ifndef CVC5__PARSER__SMT2_H
+#define CVC5__PARSER__SMT2_H
 
 #include <sstream>
 #include <stack>
@@ -25,16 +24,14 @@
 #include <unordered_map>
 #include <utility>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
-#include "util/abstract_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class Command;
-class SExpr;
 
 namespace api {
 class Solver;
@@ -68,6 +65,7 @@ class Smt2 : public Parser
 
  protected:
   Smt2(api::Solver* solver,
+       SymbolManager* sm,
        Input* input,
        bool strictMode = false,
        bool parseOnly = false);
@@ -168,7 +166,7 @@ class Smt2 : public Parser
 
   /** Push scope for define-fun-rec
    *
-   * This calls Parser::pushScope(bindingLevel) and sets up
+   * This calls Parser::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
    * The input parameters func/flattenVars are the result
@@ -179,7 +177,7 @@ class Smt2 : public Parser
    * flattenVars : the implicit variables introduced when defining func.
    *
    * This function:
-   * (1) Calls Parser::pushScope(bindingLevel).
+   * (1) Calls Parser::pushScope().
    * (2) Computes the bound variable list for the quantified formula
    *     that defined this definition and stores it in bvs.
    */
@@ -187,12 +185,9 @@ class Smt2 : public Parser
       const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
-      std::vector<api::Term>& bvs,
-      bool bindingLevel = false);
+      std::vector<api::Term>& bvs);
 
   void reset() override;
-
-  void resetAssertions();
 
   /**
    * Creates a command that adds an invariant constraint.
@@ -229,18 +224,6 @@ class Smt2 : public Parser
   api::Grammar* mkGrammar(const std::vector<api::Term>& boundVars,
                           const std::vector<api::Term>& ntSymbols);
 
-  bool v2_0() const
-  {
-    return getLanguage() == language::input::LANG_SMTLIB_V2_0;
-  }
-  /**
-   * Are we using smtlib 2.5 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.5.
-   */
-  bool v2_5(bool exact = false) const
-  {
-    return language::isInputLang_smt2_5(getLanguage(), exact);
-  }
   /**
    * Are we using smtlib 2.6 or above? If exact=true, then this method returns
    * false if the input language is not exactly SMT-LIB 2.6.
@@ -259,11 +242,7 @@ class Smt2 : public Parser
    * and SyGuS) treats duplicate double quotes ("") as an escape sequence
    * denoting a single double quote (").
    */
-  bool escapeDupDblQuote() const { return v2_5() || sygus(); }
-
-  void setInfo(const std::string& flag, const SExpr& sexpr);
-
-  void setOption(const std::string& flag, const SExpr& sexpr);
+  bool escapeDupDblQuote() const { return v2_6() || sygus(); }
 
   void checkThatLogicIsSet();
 
@@ -343,17 +322,11 @@ class Smt2 : public Parser
     }
     this->Parser::checkDeclaration(name, check, type, notes);
   }
-  /** Set named attribute
-   *
-   * This is called when expression expr is annotated with a name, i.e.
-   * (! expr :named sexpr). It sets up the necessary information to process
-   * this naming, including marking that expr is the last named term.
-   *
-   * We construct an expression symbol whose name is the name of s-expression
-   * which is used later for tracking assertions in unsat cores. This
-   * symbol is returned by this method.
+  /**
+   * Notify that expression expr was given name std::string via a :named
+   * attribute.
    */
-  api::Term setNamedAttribute(api::Term& expr, const SExpr& sexpr);
+  void notifyNamedExpression(api::Term& expr, std::string name);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)
@@ -455,6 +428,6 @@ class Smt2 : public Parser
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__SMT2_H */
+#endif /* CVC5__PARSER__SMT2_H */

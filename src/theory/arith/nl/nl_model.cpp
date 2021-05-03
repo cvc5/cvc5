@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file nl_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model object for the non-linear extension class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model object for the non-linear extension class.
+ */
 
 #include "theory/arith/nl/nl_model.h"
 
@@ -20,11 +21,13 @@
 #include "options/theory_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/theory_model.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -640,7 +643,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     Node conf = seq.negate();
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
                           << std::endl;
-    lemmas.push_back(conf);
+    lemmas.emplace_back(InferenceId::ARITH_NL_CM_QUADRATIC_EQ, conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }
@@ -1340,4 +1343,4 @@ void NlModel::getModelValueRepair(
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

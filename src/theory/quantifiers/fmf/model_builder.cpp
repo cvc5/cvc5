@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file model_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model builder class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model builder class.
+ */
 
 #include "theory/quantifiers/fmf/model_builder.h"
 
@@ -19,21 +20,26 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5;
+using namespace cvc5::kind;
+using namespace cvc5::context;
+using namespace cvc5::theory;
+using namespace cvc5::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(context::Context* c, QuantifiersEngine* qe)
-    : TheoryEngineModelBuilder(qe->getTheoryEngine()),
-      d_qe(qe),
+QModelBuilder::QModelBuilder(QuantifiersState& qs,
+                             QuantifiersRegistry& qr,
+                             QuantifiersInferenceManager& qim)
+    : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
-      d_triedLemmas(0) {}
+      d_triedLemmas(0),
+      d_qstate(qs),
+      d_qreg(qr),
+      d_qim(qim)
+{
+}
 
 bool QModelBuilder::optUseModel() {
   return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound();
@@ -90,14 +96,16 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
+    QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
+    Instantiate* inst = d_qim.getInstantiate();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       std::vector< Node > vars;
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      QRepBoundExt qrbe(d_qe);
-      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
+      QRepBoundExt qrbe(qbi, fm);
+      RepSetIterator riter(fm->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;
@@ -106,7 +114,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
+          Node n = inst->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
           if (!val.isConst() || !val.getConst<bool>())
           {

@@ -1,69 +1,53 @@
-/*********************                                                        */
-/*! \file smt_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SmtEngine: the main public entry point of libcvc4.
- **
- ** SmtEngine: the main public entry point of libcvc4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SmtEngine: the main public entry point of libcvc5.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__SMT_ENGINE_H
-#define CVC4__SMT_ENGINE_H
+#ifndef CVC5__SMT_ENGINE_H
+#define CVC5__SMT_ENGINE_H
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "base/modal_exception.h"
 #include "context/cdhashmap_forward.h"
-#include "context/cdhashset_forward.h"
-#include "context/cdlist_forward.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
+#include "cvc5_export.h"
 #include "options/options.h"
-#include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
-#include "util/hash.h"
 #include "util/result.h"
-#include "util/sexpr.h"
-#include "util/statistics.h"
-#include "util/unsafe_interrupt_exception.h"
 
-// In terms of abstraction, this is below (and provides services to)
-// ValidityChecker and above (and requires the services of)
-// PropEngine.
-
-namespace CVC4 {
+namespace cvc5 {
 
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
+class TypeNode;
 struct NodeHashFunction;
 
-class Command;
-class GetModelCommand;
-
-class SmtEngine;
-class DecisionEngine;
+class Env;
+class NodeManager;
 class TheoryEngine;
-
 class ProofManager;
 class UnsatCore;
-
 class LogicRequest;
 class StatisticsRegistry;
-
 class Printer;
+class ResourceManager;
 
 /* -------------------------------------------------------------------------- */
 
@@ -76,7 +60,7 @@ class Solver;
 namespace context {
   class Context;
   class UserContext;
-}/* CVC4::context namespace */
+  }  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -88,7 +72,7 @@ class PreprocessingPassContext;
 
 namespace prop {
   class PropEngine;
-}/* CVC4::prop namespace */
+  }  // namespace prop
 
 /* -------------------------------------------------------------------------- */
 
@@ -98,7 +82,6 @@ class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
-class ExprNames;
 class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
@@ -111,55 +94,30 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
-/**
- * Representation of a defined function.  We keep these around in
- * SmtEngine to permit expanding definitions late (and lazily), to
- * support getValue() over defined functions, to support user output
- * in terms of defined functions, etc.
- */
-class DefinedFunction;
 
 struct SmtEngineStatistics;
 class SmtScope;
-class ProcessAssertions;
 class PfManager;
+class UnsatCoreManager;
 
 ProofManager* currentProofManager();
-}/* CVC4::smt namespace */
+}  // namespace smt
 
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class TheoryModel;
   class Rewriter;
-}/* CVC4::theory namespace */
-
-// TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
-// hood): use a type parameter and have check() delegate, or subclass
-// SmtEngine and override check()?
-//
-// Probably better than that is to have a configuration object that
-// indicates which passes are desired.  The configuration occurs
-// elsewhere (and can even occur at runtime).  A simple "pass manager"
-// of sorts determines check()'s behavior.
-//
-// The CNF conversion can go on in PropEngine.
+  class QuantifiersEngine;
+  }  // namespace theory
 
 /* -------------------------------------------------------------------------- */
 
-class CVC4_PUBLIC SmtEngine
+class CVC5_EXPORT SmtEngine
 {
-  friend class ::CVC4::api::Solver;
-  // TODO (Issue #1096): Remove this friend relationship.
-  friend class ::CVC4::preprocessing::PreprocessingPassContext;
-  friend class ::CVC4::smt::SmtEngineState;
-  friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::ProcessAssertions;
-  friend class ::CVC4::smt::SmtSolver;
-  friend ProofManager* ::CVC4::smt::currentProofManager();
-  friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::theory::TheoryModel;
-  friend class ::CVC4::theory::Rewriter;
+  friend class ::cvc5::api::Solver;
+  friend class ::cvc5::smt::SmtEngineState;
+  friend class ::cvc5::smt::SmtScope;
+  friend class ::cvc5::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -170,7 +128,7 @@ class CVC4_PUBLIC SmtEngine
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
-  SmtEngine(ExprManager* em, Options* optr = nullptr);
+  SmtEngine(NodeManager* nm, Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -206,6 +164,12 @@ class CVC4_PUBLIC SmtEngine
   /** Return the current mode of the solver. */
   SmtMode getSmtMode() const;
   /**
+   * Whether the SmtMode allows for get-value, get-model, get-assignment, etc.
+   * This is equivalent to:
+   * getSmtMode()==SmtMode::SAT || getSmtMode()==SmtMode::SAT_UNKNOWN
+   */
+  bool isSmtModeSat() const;
+  /**
    * Returns the most recent result of checkSat/checkEntailed or
    * (set-info :status).
    */
@@ -231,28 +195,27 @@ class CVC4_PUBLIC SmtEngine
   void setLogic(const LogicInfo& logic);
 
   /** Get the logic information currently set. */
-  LogicInfo getLogicInfo() const;
+  const LogicInfo& getLogicInfo() const;
 
   /** Get the logic information set by the user. */
   LogicInfo getUserLogicInfo() const;
 
   /**
    * Set information about the script executing.
-   * @throw OptionException, ModalException
    */
-  void setInfo(const std::string& key, const CVC4::SExpr& value);
+  void setInfo(const std::string& key, const std::string& value);
 
   /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
   bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
-  CVC4::SExpr getInfo(const std::string& key) const;
+  std::string getInfo(const std::string& key) const;
 
   /**
    * Set an aspect of the current SMT execution environment.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const CVC4::SExpr& value);
+  void setOption(const std::string& key, const std::string& value);
 
   /** Set is internal subsolver.
    *
@@ -273,9 +236,18 @@ class CVC4_PUBLIC SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void notifyStartParsing(std::string filename);
+  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
   /** return the input name (if any) */
   const std::string& getFilename() const;
+
+  /**
+   * Helper method for the API to put the last check result into the statistics.
+   */
+  void setResultStatistic(const std::string& result) CVC5_EXPORT;
+  /**
+   * Helper method for the API to put the total runtime into the statistics.
+   */
+  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
@@ -289,7 +261,7 @@ class CVC4_PUBLIC SmtEngine
    * block-models option is set to a mode other than "none".
    *
    * This adds an assertion to the assertion stack that blocks the current
-   * model based on the current options configured by CVC4.
+   * model based on the current options configured by cvc5.
    *
    * The return value has the same meaning as that of assertFormula.
    */
@@ -309,6 +281,23 @@ class CVC4_PUBLIC SmtEngine
    */
   Result blockModelValues(const std::vector<Node>& exprs);
 
+  /**
+   * Declare heap. For smt2 inputs, this is called when the command
+   * (declare-heap (locT datat)) is invoked by the user. This sets locT as the
+   * location type and dataT is the data type for the heap. This command should
+   * be executed only once, and must be invoked before solving separation logic
+   * inputs.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+
+  /**
+   * Get the separation heap types, which extracts which types were passed to
+   * the method above.
+   *
+   * @return true if the separation logic heap types have been declared.
+   */
+  bool getSepHeapTypes(TypeNode& locT, TypeNode& dataT);
+
   /** When using separation logic, obtain the expression for the heap.  */
   Node getSepHeapExpr();
 
@@ -319,7 +308,7 @@ class CVC4_PUBLIC SmtEngine
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
-  CVC4::SExpr getOption(const std::string& key) const;
+  std::string getOption(const std::string& key) const;
 
   /**
    * Define function func in the current context to be:
@@ -338,9 +327,6 @@ class CVC4_PUBLIC SmtEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
-
-  /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Node func);
 
   /**
    * Define functions recursive
@@ -433,13 +419,13 @@ class CVC4_PUBLIC SmtEngine
    * which a function is being synthesized. Thus declared functions should use
    * this method as well.
    */
-  void declareSygusVar(const std::string& id, Node var, TypeNode type);
+  void declareSygusVar(Node var);
 
   /**
    * Add a function-to-synthesize declaration.
    *
-   * The given type may not correspond to the actual function type but to a
-   * datatype encoding the syntax restrictions for the
+   * The given sygusType may not correspond to the actual function type of func
+   * but to a datatype encoding the syntax restrictions for the
    * function-to-synthesize. In this case this information is stored to be used
    * during solving.
    *
@@ -450,11 +436,14 @@ class CVC4_PUBLIC SmtEngine
    * invariant. This information is necessary if we are dumping a command
    * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(const std::string& id,
-                       Node func,
-                       TypeNode type,
+  void declareSynthFun(Node func,
+                       TypeNode sygusType,
                        bool isInv,
                        const std::vector<Node>& vars);
+  /**
+   * Same as above, without a sygus type.
+   */
+  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint.*/
   void assertSygusConstraint(Node constraint);
@@ -496,6 +485,17 @@ class CVC4_PUBLIC SmtEngine
   /*------------------------- end of sygus commands ------------------------*/
 
   /**
+   * Declare pool whose initial value is the terms in initValue. A pool is
+   * a variable of type (Set T) that is used in quantifier annotations and does
+   * not occur in constraints.
+   *
+   * @param p The pool to declare, which should be a variable of type (Set T)
+   * for some type T.
+   * @param initValue The initial value of p, which should be a vector of terms
+   * of type T.
+   */
+  void declarePool(const Node& p, const std::vector<Node>& initValue);
+  /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
@@ -509,12 +509,15 @@ class CVC4_PUBLIC SmtEngine
   Node simplify(const Node& e);
 
   /**
-   * Expand the definitions in a term or formula.  No other
-   * simplification or normalization is done.
+   * Expand the definitions in a term or formula.
+   *
+   * @param n The node to expand
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& e);
+  Node expandDefinitions(const Node& n, bool expandOnly = true);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -531,27 +534,20 @@ class CVC4_PUBLIC SmtEngine
    */
   std::vector<Node> getValues(const std::vector<Node>& exprs);
 
-  /**
-   * Add a function to the set of expressions whose value is to be
-   * later returned by a call to getAssignment().  The expression
-   * should be a Boolean zero-ary defined function or a Boolean
-   * variable.  Rather than throwing a ModalException on modal
-   * failures (not in interactive mode or not producing assignments),
-   * this function returns true if the expression was added and false
-   * if this request was ignored.
+  /** print instantiations
+   *
+   * Print all instantiations for all quantified formulas on out,
+   * returns true if at least one instantiation was printed. The type of output
+   * (list, num, etc.) is determined by printInstMode.
    */
-  bool addToAssignment(const Expr& e);
-
-  /**
-   * Get the assignment (only if immediately preceded by a SAT or
-   * NOT_ENTAILED query).  Only permitted if the SmtEngine is set to
-   * operate interactively and produce-assignments is on.
-   */
-  std::vector<std::pair<Expr, Expr> > getAssignment();
-
-  /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof. This method should be called after an UNSAT
+   * response. It gets the proof of false from the PropEngine and passes
+   * it to the ProofManager, which post-processes the proof and prints it
+   * in the proper format.
+   */
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -670,18 +666,6 @@ class CVC4_PUBLIC SmtEngine
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
 
   /**
-   * Get instantiations for quantified formula q.
-   *
-   * If q was a quantified formula that was instantiated on the last call to
-   * check-sat (i.e. q is returned as part of the vector in the method
-   * getInstantiatedQuantifiedFormulas above), then the list of instantiations
-   * of that formula that were generated are added to insts.
-   *
-   * In particular, if q is of the form forall x. P(x), then insts is a list
-   * of formulas of the form P(t1), ..., P(tn).
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /**
    * Get instantiation term vectors for quantified formula q.
    *
    * This method is similar to above, but in the example above, we return the
@@ -692,13 +676,33 @@ class CVC4_PUBLIC SmtEngine
    */
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
+  /**
+   * As above but only the instantiations that were relevant for the
+   * refutation.
+   */
+  void getRelevantInstantiationTermVectors(
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
+  /**
+   * Get instantiation term vectors, which maps each instantiated quantified
+   * formula to the list of instantiations for that quantified formula. This
+   * list is minimized if proofs are enabled, and this call is immediately
+   * preceded by an UNSAT or ENTAILED query
+   */
+  void getInstantiationTermVectors(
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
-   * ENTAILED query).  Only permitted if CVC4 was built with unsat-core support
+   * ENTAILED query).  Only permitted if cvc5 was built with unsat-core support
    * and produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
+
+  /**
+   * Get a refutation proof (only if immediately preceded by an UNSAT or
+   * ENTAILED query). Only permitted if cvc5 was built with proof support and
+   * the proof option is on. */
+  std::string getProof();
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -718,13 +722,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void pop();
 
-  /**
-   * Completely reset the state of the solver, as though destroyed and
-   * recreated.  The result is as if newly constructed (so it still
-   * retains the same options structure and ExprManager).
-   */
-  void reset();
-
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
 
@@ -742,9 +739,9 @@ class CVC4_PUBLIC SmtEngine
    * limit, but it's deterministic so that reproducible results can be
    * obtained.  Currently, it's based on the number of conflicts.
    * However, please note that the definition may change between different
-   * versions of CVC4 (as may the number of conflicts required, anyway),
+   * versions of cvc5 (as may the number of conflicts required, anyway),
    * and it might even be different between instances of the same version
-   * of CVC4 on different platforms.
+   * of cvc5 on different platforms.
    *
    * A cumulative and non-cumulative (per-call) resource limit can be
    * set at the same time.  A call to setResourceLimit() with
@@ -768,7 +765,7 @@ class CVC4_PUBLIC SmtEngine
    * resource limit for all remaining calls into the SmtEngine (true), or
    * whether it's a per-call resource limit (false); the default is false
    */
-  void setResourceLimit(unsigned long units, bool cumulative = false);
+  void setResourceLimit(uint64_t units, bool cumulative = false);
 
   /**
    * Set a per-call time limit for SmtEngine operations.
@@ -793,7 +790,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @param millis the time limit in milliseconds, or 0 for no limit
    */
-  void setTimeLimit(unsigned long millis);
+  void setTimeLimit(uint64_t millis);
 
   /**
    * Get the current resource usage count for this SmtEngine.  This
@@ -815,20 +812,28 @@ class CVC4_PUBLIC SmtEngine
    */
   unsigned long getResourceRemaining() const;
 
-  /** Permit access to the underlying ExprManager. */
-  ExprManager* getExprManager() const { return d_exprManager; }
-
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** Export statistics from this SmtEngine. */
-  Statistics getStatistics() const;
+  /**
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine.
+   */
+  void printStatistics(std::ostream& out) const;
 
-  /** Get the value of one named statistic from this SmtEngine. */
-  SExpr getStatistic(std::string name) const;
+  /**
+   * Print statistics from the statistics registry in the env object owned by
+   * this SmtEngine. Safe to use in a signal handler.
+   */
+  void printStatisticsSafe(int fd) const;
 
-  /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
-  void safeFlushStatistics(int fd) const;
+  /**
+   * Print the changes to the statistics from the statistics registry in the
+   * env object owned by this SmtEngine since this method was called the last
+   * time. Internally prints the diff and then stores a snapshot for the next
+   * call.
+   */
+  void printStatisticsDiff(std::ostream&) const;
 
   /**
    * Set user attribute.
@@ -836,69 +841,13 @@ class CVC4_PUBLIC SmtEngine
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
   void setUserAttribute(const std::string& attr,
-                        Expr expr,
-                        const std::vector<Expr>& expr_values,
+                        Node expr,
+                        const std::vector<Node>& expr_values,
                         const std::string& str_value);
-
-  /**
-   * Get expression name.
-   *
-   * Return true if given expressoion has a name in the current context.
-   * If it returns true, the name of expression 'e' is stored in 'name'.
-   */
-  bool getExpressionName(const Node& e, std::string& name) const;
-
-  /**
-   * Set name of given expression 'e' to 'name'.
-   *
-   * This information is user-context-dependent.
-   * If 'e' already has a name, it is overwritten.
-   */
-  void setExpressionName(const Node& e, const std::string& name);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
-
-  /** Get the resource manager of this SMT engine */
-  ResourceManager* getResourceManager();
-
-  /** Permit access to the underlying dump manager. */
-  smt::DumpManager* getDumpManager();
-
-  /** Get the printer used by this SMT engine */
-  const Printer* getPrinter() const;
-
-  /** Get the output manager for this SMT engine */
-  OutputManager& getOutputManager();
-
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
-
-  /**
-   * Get expanded assertions.
-   *
-   * Return the set of assertions, after expanding definitions.
-   */
-  std::vector<Node> getExpandedAssertions();
-  /* .......................................................................  */
- private:
-  /* .......................................................................  */
-
-  /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
-  /** The type of our internal assertion list */
-  typedef context::CDList<Node> AssertionList;
-  /** The type of our internal assignment set */
-  typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
-
-  // disallow copy/assignment
-  SmtEngine(const SmtEngine&) = delete;
-  SmtEngine& operator=(const SmtEngine&) = delete;
-
-  /** Set solver instance that owns this SmtEngine. */
-  void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext();
@@ -918,19 +867,58 @@ class CVC4_PUBLIC SmtEngine
    */
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
+  /** Get the resource manager of this SMT engine */
+  ResourceManager* getResourceManager() const;
+
+  /** Permit access to the underlying dump manager. */
+  smt::DumpManager* getDumpManager();
+
+  /** Get the printer used by this SMT engine */
+  const Printer& getPrinter() const;
+
+  /** Get the output manager for this SMT engine */
+  OutputManager& getOutputManager();
+
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter();
+  /**
+   * Get expanded assertions.
+   *
+   * Return the set of assertions, after expanding definitions.
+   */
+  std::vector<Node> getExpandedAssertions();
+  /* .......................................................................  */
+ private:
+  /* .......................................................................  */
+
+  // disallow copy/assignment
+  SmtEngine(const SmtEngine&) = delete;
+  SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
+
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
-  StatisticsRegistry* getStatisticsRegistry()
-  {
-    return d_statisticsRegistry.get();
-  };
+  StatisticsRegistry& getStatisticsRegistry();
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
-   * by an UNSAT or ENTAILED query). Only permitted if CVC4 was built with
+   * by an UNSAT or ENTAILED query). Only permitted if cvc5 was built with
    * unsat-core support and produce-unsat-cores is on. Does not dump the
    * command.
    */
   UnsatCore getUnsatCoreInternal();
+
+  /**
+   * Check that a generated proof checks. This method is the same as printProof,
+   * but does not print the proof. Like that method, it should be called
+   * after an UNSAT response. It ensures that a well-formed proof of false
+   * can be constructed by the combination of the PropEngine and ProofManager.
+   */
+  void checkProof();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
@@ -974,13 +962,22 @@ class CVC4_PUBLIC SmtEngine
    * return nullptr.
    *
    * This ensures that the underlying theory model of the SmtSolver maintained
-   * by this class is currently available, which means that CVC4 is producing
+   * by this class is currently available, which means that cvc5 is producing
    * models, and is in "SAT mode", otherwise a recoverable exception is thrown.
    *
-   * The flag c is used for giving an error message to indicate the context
+   * @param c used for giving an error message to indicate the context
    * this method was called.
    */
   smt::Model* getAvailableModel(const char* c) const;
+  /**
+   * Get available quantifiers engine, which throws a modal exception if it
+   * does not exist. This can happen if a quantifiers-specific call (e.g.
+   * getInstantiatedQuantifiedFormulas) is called in a non-quantified logic.
+   *
+   * @param c used for giving an error message to indicate the context
+   * this method was called.
+   */
+  theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**
@@ -1018,15 +1015,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void setLogicInternal();
 
-  /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
-   */
-  void addToModelCommandAndDump(const Command& c,
-                                uint32_t flags = 0,
-                                bool userVisible = true,
-                                const char* dumpTag = "declarations");
-
   /*
    * Check satisfiability (used to check satisfiability and entailment).
    */
@@ -1063,23 +1051,20 @@ class CVC4_PUBLIC SmtEngine
   api::Solver* d_solver = nullptr;
 
   /**
+   * The environment object, which contains all utilities that are globally
+   * available to internal code.
+   */
+  std::unique_ptr<Env> d_env;
+  /**
    * The state of this SmtEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
   std::unique_ptr<smt::SmtEngineState> d_state;
 
-  /** Our expression manager */
-  ExprManager* d_exprManager;
-  /** Our internal expression/node manager */
-  NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
   std::unique_ptr<smt::Assertions> d_asserts;
-  /** Expression names */
-  std::unique_ptr<smt::ExprNames> d_exprNames;
-  /** The dump manager */
-  std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
   /** Node manager listener */
@@ -1109,15 +1094,9 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::PfManager> d_pfManager;
 
   /**
-   * The rewriter associated with this SmtEngine. We have a different instance
-   * of the rewriter for each SmtEngine instance. This is because rewriters may
-   * hold references to objects that belong to theory solvers, which are
-   * specific to an SmtEngine/TheoryEngine instance.
-   */
-  std::unique_ptr<theory::Rewriter> d_rewriter;
-
-  /** An index of our defined functions */
-  DefinedFunctionMap* d_definedFunctions;
+   * The unsat core manager, which produces unsat cores and related information
+   * from refutations. */
+  std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
@@ -1128,24 +1107,12 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
-  /**
-   * List of items for which to retrieve values using getAssignment().
-   */
-  AssignmentSet* d_assignments;
 
   /**
-   * The logic we're in. This logic may be an extension of the logic set by the
-   * user.
+   * The logic set by the user. The actual logic, which may extend the user's
+   * logic, lives in the Env class.
    */
-  LogicInfo d_logic;
-
-  /** The logic set by the user. */
   LogicInfo d_userLogic;
-
-  /**
-   * Keep a copy of the original option settings (for reset()).
-   */
-  Options d_originalOptions;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
@@ -1153,22 +1120,13 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Verbosity of various commands.
    */
-  std::map<std::string, Integer> d_commandVerbosity;
+  std::map<std::string, int> d_commandVerbosity;
 
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
-
+  /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
-
-  /** The options object */
-  Options d_options;
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  std::unique_ptr<ResourceManager> d_resourceManager;
   /**
    * The options manager, which is responsible for implementing core options
    * such as those related to time outs and printing. It is also responsible
@@ -1189,6 +1147,6 @@ class CVC4_PUBLIC SmtEngine
 
 /* -------------------------------------------------------------------------- */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__SMT_ENGINE_H */
+#endif /* CVC5__SMT_ENGINE_H */

@@ -1,34 +1,39 @@
-/*********************                                                        */
-/*! \file assertion_pipeline.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Justin Xu
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AssertionPipeline stores a list of assertions modified by
- ** preprocessing passes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AssertionPipeline stores a list of assertions modified by
+ * preprocessing passes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
-#define CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#ifndef CVC5__PREPROCESSING__ASSERTION_PIPELINE_H
+#define CVC5__PREPROCESSING__ASSERTION_PIPELINE_H
 
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "smt/preprocess_proof_generator.h"
-#include "smt/term_formula_removal.h"
 #include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofGenerator;
+namespace smt {
+class PreprocessProofGenerator;
+}
+
 namespace preprocessing {
+
+using IteSkolemMap = std::unordered_map<size_t, Node>;
 
 /**
  * Assertion Pipeline stores a list of assertions modified by preprocessing
@@ -194,6 +199,6 @@ class AssertionPipeline
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */
+#endif /* CVC5__PREPROCESSING__ASSERTION_PIPELINE_H */

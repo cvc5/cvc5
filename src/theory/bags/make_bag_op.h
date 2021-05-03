@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file mk_bag_op.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief a class for MK_BAG operator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for MK_BAG operator.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__MAKE_BAG_OP_H
-#define CVC4__MAKE_BAG_OP_H
+#ifndef CVC5__MAKE_BAG_OP_H
+#define CVC5__MAKE_BAG_OP_H
 
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TypeNode;
 
@@ -34,7 +35,7 @@ class TypeNode;
 class MakeBagOp
 {
  public:
-  MakeBagOp(const TypeNode& elementType);
+  explicit MakeBagOp(const TypeNode& elementType);
   MakeBagOp(const MakeBagOp& op);
 
   /** return the type of the current object */
@@ -43,7 +44,6 @@ class MakeBagOp
   bool operator==(const MakeBagOp& op) const;
 
  private:
-  MakeBagOp();
   /** a pointer to the type of the bag element */
   std::unique_ptr<TypeNode> d_type;
 }; /* class MakeBagOp */
@@ -53,11 +53,11 @@ std::ostream& operator<<(std::ostream& out, const MakeBagOp& op);
 /**
  * Hash function for the MakeBagOpHashFunction objects.
  */
-struct CVC4_PUBLIC MakeBagOpHashFunction
+struct MakeBagOpHashFunction
 {
   size_t operator()(const MakeBagOp& op) const;
 }; /* struct MakeBagOpHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__MAKE_BAG_OP_H */
+#endif /* CVC5__MAKE_BAG_OP_H */

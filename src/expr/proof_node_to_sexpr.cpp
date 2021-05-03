@@ -1,30 +1,35 @@
-/*********************                                                        */
-/*! \file proof_node_to_sexpr.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of proof node to s-expression
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of proof node to s-expression.
+ */
 
 #include "expr/proof_node_to_sexpr.h"
 
 #include <iostream>
+#include <sstream>
 
-using namespace CVC4::kind;
+#include "expr/proof_node.h"
+#include "options/proof_options.h"
 
-namespace CVC4 {
+using namespace cvc5::kind;
+
+namespace cvc5 {
 
 ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
+  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->sExprType());
+  d_argsMarker = nm->mkBoundVar(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
@@ -53,7 +58,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
             != traversing.end())
         {
           Unhandled() << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use "
-                         "--proof-new-eager-checking)"
+                         "--proof-eager-checking)"
                       << std::endl;
           return Node::null();
         }
@@ -67,6 +72,11 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
+      if (options::proofPrintConclusion())
+      {
+        children.push_back(d_conclusionMarker);
+        children.push_back(cur->getResult());
+      }
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
@@ -115,8 +125,7 @@ Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
   std::stringstream ss;
   ss << r;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
   d_pfrMap[r] = var;
   return var;
 }
@@ -131,10 +140,9 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(Node n)
   std::stringstream ss;
   ss << n;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TypeNode> types;
-  Node var = nm->mkBoundVar(ss.str(), nm->mkSExprType(types));
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
   d_nodeMap[n] = var;
   return var;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5

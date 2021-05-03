@@ -1,40 +1,44 @@
-/*********************                                                        */
-/*! \file factoring_check.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check for factoring lemma
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check for factoring lemma.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__FACTORING_CHECK_H
 
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class CDProof;
+
 namespace theory {
 namespace arith {
 namespace nl {
 
+struct ExtState;
+
 class FactoringCheck
 {
  public:
-  FactoringCheck(InferenceManager& im, NlModel& model);
+  FactoringCheck(ExtState* data);
 
   /** check factoring
    *
    * Returns a set of valid theory lemmas, based on a
-   * lemma schema that states a relationship betwen monomials
+   * lemma schema that states a relationship between monomials
    * with common factors that occur in the same constraint.
    *
    * Examples:
@@ -47,22 +51,25 @@ class FactoringCheck
              const std::vector<Node>& false_asserts);
 
  private:
-  /** The inference manager that we push conflicts and lemmas to. */
-  InferenceManager& d_im;
-  /** Reference to the non-linear model object */
-  NlModel& d_model;
+  /** Basic data that is shared with other checks */
+  ExtState* d_data;
+
   /** maps nodes to their factor skolems */
   std::map<Node, Node> d_factor_skolem;
 
   Node d_zero;
   Node d_one;
 
-  Node getFactorSkolem(Node n);
+  /**
+   * Introduces a new purification skolem k for n and adds k=n as lemma.
+   * If proof is not nullptr, it proves this lemma via MACRO_SR_PRED_INTRO.
+   */
+  Node getFactorSkolem(Node n, CDProof* proof);
 };
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file strings_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of rewrite rules for string-specific operators in
- ** theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of rewrite rules for string-specific operators in
+ * theory of strings.
+ */
 
 #include "theory/strings/strings_rewriter.h"
 
@@ -19,9 +20,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -179,7 +180,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (const Node& nc : node[0])
     {
       concatBuilder << nm->mkNode(nk, nc);
@@ -251,15 +252,13 @@ Node StringsRewriter::rewriteStringLeq(Node n)
   {
     String s = n1[0].getConst<String>();
     String t = n2[0].getConst<String>();
-    // only need to truncate if s is longer
-    if (s.size() > t.size())
+    size_t prefixLen = std::min(s.size(), t.size());
+    s = s.prefix(prefixLen);
+    t = t.prefix(prefixLen);
+    // if the prefixes are not the same, then we can already decide the outcome
+    if (s != t)
     {
-      s = s.prefix(t.size());
-    }
-    // if prefix is not leq, then entire string is not leq
-    if (!s.isLeq(t))
-    {
-      Node ret = nm->mkConst(false);
+      Node ret = nm->mkConst(s.isLeq(t));
       return returnRewrite(n, ret, Rewrite::STR_LEQ_CPREFIX);
     }
   }
@@ -326,4 +325,4 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

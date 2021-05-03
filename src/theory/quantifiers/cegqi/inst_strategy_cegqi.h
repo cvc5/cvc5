@@ -1,32 +1,33 @@
-/*********************                                                        */
-/*! \file inst_strategy_cegqi.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief counterexample-guided quantifier instantiation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Counterexample-guided quantifier instantiation.
+ */
 
+#include "cvc5_private.h"
 
-#include "cvc4_private.h"
-
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
-#define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
+#include "theory/quantifiers/quant_module.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -68,7 +69,10 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe);
+  InstStrategyCegqi(QuantifiersState& qs,
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */
@@ -82,7 +86,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** check complete */
-  bool checkComplete() override;
+  bool checkComplete(IncompleteId& incId) override;
   /** check complete for quantified formula */
   bool checkCompleteFor(Node q) override;
   /** check ownership */
@@ -97,8 +101,6 @@ class InstStrategyCegqi : public QuantifiersModule
   BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
-  // presolve
-  void presolve() override;
 
   /**
    * Rewrite the instantiation inst of quantified formula q for terms; return
@@ -121,8 +123,6 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /** Add lemma lem via the output channel of this class. */
-  bool addLemma(Node lem);
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
@@ -143,8 +143,6 @@ class InstStrategyCegqi : public QuantifiersModule
   bool d_incomplete_check;
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;
-  /** whether we have added cbqi lemma */
-  NodeSet d_elim_quants;
   /** parent guards */
   std::map< Node, std::vector< Node > > d_parent_quant;
   std::map< Node, std::vector< Node > > d_children_quant;
@@ -178,6 +176,8 @@ class InstStrategyCegqi : public QuantifiersModule
    * form inf > (1/c)^1, inf > (1/c)^2, ....
    */
   bool d_check_vts_lemma_lc;
+  /** a multiplier used to make d_small_const even smaller over time */
+  const Node d_small_const_multiplier;
   /** a small constant, used as a coefficient above */
   Node d_small_const;
   //---------------------- end for vts delta minimization
@@ -193,6 +193,14 @@ class InstStrategyCegqi : public QuantifiersModule
   void registerCounterexampleLemma(Node q, Node lem);
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
+  /**
+   * Return true if q can be processed with nested quantifier elimination.
+   * This may add a lemma on the output channel of quantifiers engine if so.
+   *
+   * @param q The quantified formula to process
+   * @param isPreregister Whether this method is being called at preregister.
+   */
+  bool processNestedQe(Node q, bool isPreregister);
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
   /**
@@ -204,46 +212,12 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getCounterexampleLiteral(Node q);
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
-
-  //for identification
-  uint64_t d_qid_count;
-  //nested qe map
-  std::map< Node, Node > d_nested_qe;
-  //mark ids on quantifiers 
-  Node getIdMarkedQuantNode( Node n, std::map< Node, Node >& visited );
-  // id to ce quant
-  std::map< Node, Node > d_id_to_ce_quant;
-  std::map< Node, Node > d_ce_quant_to_id;
-  //do nested quantifier elimination recursive
-  Node doNestedQENode( Node q, Node ceq, Node n, std::vector< Node >& inst_terms, bool doVts );
-  Node doNestedQERec( Node q, Node n, std::map< Node, Node >& visited, std::vector< Node >& inst_terms, bool doVts );
-  //elimination information (for delayed elimination)
-  class NestedQEInfo {
-  public:
-    NestedQEInfo() : d_doVts(false){}
-    ~NestedQEInfo(){}
-    Node d_q;
-    std::vector< Node > d_inst_terms;
-    bool d_doVts;
-  };
-  std::map< Node, NestedQEInfo > d_nested_qe_info;
-  NodeIntMap d_nested_qe_waitlist_size;
-  NodeIntMap d_nested_qe_waitlist_proc;
-  std::map< Node, std::vector< Node > > d_nested_qe_waitlist;
-
-  /** Do nested quantifier elimination.
-   *
-   * This rewrites the quantified formulas in inst based on nested quantifier
-   * elimination. In this method, inst is the instantiation of quantified
-   * formula q for the vector terms. The flag doVts indicates whether we must
-   * apply virtual term substitution (if terms contains virtual terms).
-   */
-  Node doNestedQE(Node q, std::vector<Node>& terms, Node inst, bool doVts);
+  /** The nested quantifier elimination utility */
+  std::unique_ptr<NestedQe> d_nestedQe;
 };
 
-
 }
 }
-}
+}  // namespace cvc5
 
 #endif

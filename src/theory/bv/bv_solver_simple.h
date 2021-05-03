@@ -1,34 +1,33 @@
-/*********************                                                        */
-/*! \file bv_solver_simple.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Simple bit-blast solver
- **
- ** Simple bit-blast solver that sends bit-blast lemmas directly to MiniSat.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Haniel Barbosa, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Simple bit-blast solver that sends bit-blast lemmas directly to MiniSat.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
-#define CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
+#ifndef CVC5__THEORY__BV__BV_SOLVER_SIMPLE_H
+#define CVC5__THEORY__BV__BV_SOLVER_SIMPLE_H
 
-#include <unordered_map>
-
+#include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"
+#include "theory/bv/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class TConvProofGenerator;
 
 namespace theory {
 namespace bv {
-
-class BBSimple;
 
 /**
  * Simple bit-blasting solver that sends bit-blasting lemmas directly to the
@@ -40,7 +39,9 @@ class BBSimple;
 class BVSolverSimple : public BVSolver
 {
  public:
-  BVSolverSimple(TheoryState& state, TheoryInferenceManager& inferMgr);
+  BVSolverSimple(TheoryState* state,
+                 TheoryInferenceManager& inferMgr,
+                 ProofNodeManager* pnm);
   ~BVSolverSimple() = default;
 
   void preRegisterTerm(TNode n) override {}
@@ -53,14 +54,11 @@ class BVSolverSimple : public BVSolver
 
   std::string identify() const override { return "BVSolverSimple"; };
 
-  Theory::PPAssertStatus ppAssert(
-      TrustNode in, TrustSubstitutionMap& outSubstitutions) override
-  {
-    return Theory::PPAssertStatus::PP_ASSERT_STATUS_UNSOLVED;
-  }
-
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
+
+  /** get the proof checker of this theory */
+  BVProofRuleChecker* getProofChecker();
 
  private:
   /**
@@ -69,12 +67,16 @@ class BVSolverSimple : public BVSolver
    */
   void addBBLemma(TNode fact);
 
+  /** Proof generator. */
+  std::unique_ptr<TConvProofGenerator> d_tcpg;
   /** Bit-blaster used to bit-blast atoms/terms. */
-  std::unique_ptr<BBSimple> d_bitblaster;
+  std::unique_ptr<BBProof> d_bitblaster;
+  /** Proof rule checker */
+  BVProofRuleChecker d_checker;
 };
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

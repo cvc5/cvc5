@@ -4,9 +4,9 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_FP ::CVC4::theory::fp::TheoryFp "theory/fp/theory_fp.h"
+theory THEORY_FP ::cvc5::theory::fp::TheoryFp "theory/fp/theory_fp.h"
 typechecker "theory/fp/theory_fp_type_rules.h"
-rewriter ::CVC4::theory::fp::TheoryFpRewriter "theory/fp/theory_fp_rewriter.h"
+rewriter ::cvc5::theory::fp::TheoryFpRewriter "theory/fp/theory_fp_rewriter.h"
 
 properties check
 
@@ -14,19 +14,19 @@ properties check
 
 # constants...
 constant CONST_FLOATINGPOINT \
-    ::CVC4::FloatingPoint \
-    ::CVC4::FloatingPointHashFunction \
+    ::cvc5::FloatingPoint \
+    ::cvc5::FloatingPointHashFunction \
     "util/floatingpoint.h" \
     "a floating-point literal"
-typerule CONST_FLOATINGPOINT    ::CVC4::theory::fp::FloatingPointConstantTypeRule
+typerule CONST_FLOATINGPOINT    ::cvc5::theory::fp::FloatingPointConstantTypeRule
 
 
 constant CONST_ROUNDINGMODE \
-    ::CVC4::RoundingMode \
-    ::CVC4::RoundingModeHashFunction \
+    ::cvc5::RoundingMode \
+    ::cvc5::RoundingModeHashFunction \
     "util/floatingpoint.h" \
     "a floating-point rounding mode"    
-typerule CONST_ROUNDINGMODE    ::CVC4::theory::fp::RoundingModeConstantTypeRule
+typerule CONST_ROUNDINGMODE    ::cvc5::theory::fp::RoundingModeConstantTypeRule
 
 
 
@@ -39,272 +39,272 @@ sort ROUNDINGMODE_TYPE \
     "floating-point rounding mode"
 
 enumerator ROUNDINGMODE_TYPE \
-    "::CVC4::theory::fp::RoundingModeEnumerator" \
+    "::cvc5::theory::fp::RoundingModeEnumerator" \
     "theory/fp/type_enumerator.h"
 
 
 
 constant FLOATINGPOINT_TYPE \
-    ::CVC4::FloatingPointSize \
-    ::CVC4::FloatingPointSizeHashFunction \
+    ::cvc5::FloatingPointSize \
+    ::cvc5::FloatingPointSizeHashFunction \
     "util/floatingpoint.h" \
     "floating-point type"
 
 cardinality FLOATINGPOINT_TYPE \
-    "::CVC4::theory::fp::CardinalityComputer::computeCardinality(%TYPE%)" \
+    "::cvc5::theory::fp::CardinalityComputer::computeCardinality(%TYPE%)" \
     "theory/fp/theory_fp_type_rules.h"
 
 enumerator FLOATINGPOINT_TYPE \
-    "::CVC4::theory::fp::FloatingPointEnumerator" \
+    "::cvc5::theory::fp::FloatingPointEnumerator" \
     "theory/fp/type_enumerator.h"
 
 well-founded FLOATINGPOINT_TYPE \
     true \
-    "(*CVC4::theory::TypeEnumerator(%TYPE%))" \
+    "(*cvc5::theory::TypeEnumerator(%TYPE%))" \
     "theory/type_enumerator.h"
 
 
 
 # operators...
 operator FLOATINGPOINT_FP 3 "construct a floating-point literal from bit vectors"
-typerule FLOATINGPOINT_FP    ::CVC4::theory::fp::FloatingPointFPTypeRule
+typerule FLOATINGPOINT_FP    ::cvc5::theory::fp::FloatingPointFPTypeRule
 
 
 
 operator FLOATINGPOINT_EQ 2: "floating-point equality"
-typerule FLOATINGPOINT_EQ    ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_EQ    ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ABS 1 "floating-point absolute value"
-typerule FLOATINGPOINT_ABS   ::CVC4::theory::fp::FloatingPointOperationTypeRule
+typerule FLOATINGPOINT_ABS   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 
 operator FLOATINGPOINT_NEG 1 "floating-point negation"
-typerule FLOATINGPOINT_NEG   ::CVC4::theory::fp::FloatingPointOperationTypeRule
+typerule FLOATINGPOINT_NEG   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 
 operator FLOATINGPOINT_PLUS 3 "floating-point addition"
-typerule FLOATINGPOINT_PLUS   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_PLUS   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_SUB 3 "floating-point sutraction"
-typerule FLOATINGPOINT_SUB   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_SUB   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_MULT 3 "floating-point multiply"
-typerule FLOATINGPOINT_MULT   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_MULT   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_DIV 3 "floating-point division"
-typerule FLOATINGPOINT_DIV   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_DIV   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_FMA 4 "floating-point fused multiply and add"
-typerule FLOATINGPOINT_FMA   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_FMA   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_SQRT 2 "floating-point square root"
-typerule FLOATINGPOINT_SQRT   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_SQRT   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_REM 2 "floating-point remainder"
-typerule FLOATINGPOINT_REM   ::CVC4::theory::fp::FloatingPointOperationTypeRule
+typerule FLOATINGPOINT_REM   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 
 operator FLOATINGPOINT_RTI 2 "floating-point round to integral"
-typerule FLOATINGPOINT_RTI   ::CVC4::theory::fp::FloatingPointRoundingOperationTypeRule
+typerule FLOATINGPOINT_RTI   ::cvc5::theory::fp::FloatingPointRoundingOperationTypeRule
 
 operator FLOATINGPOINT_MIN 2 "floating-point minimum"
-typerule FLOATINGPOINT_MIN   ::CVC4::theory::fp::FloatingPointOperationTypeRule
+typerule FLOATINGPOINT_MIN   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 
 operator FLOATINGPOINT_MAX 2 "floating-point maximum"
-typerule FLOATINGPOINT_MAX   ::CVC4::theory::fp::FloatingPointOperationTypeRule
+typerule FLOATINGPOINT_MAX   ::cvc5::theory::fp::FloatingPointOperationTypeRule
 
 operator FLOATINGPOINT_MIN_TOTAL 3 "floating-point minimum (defined for all inputs)"
-typerule FLOATINGPOINT_MIN_TOTAL   ::CVC4::theory::fp::FloatingPointPartialOperationTypeRule
+typerule FLOATINGPOINT_MIN_TOTAL   ::cvc5::theory::fp::FloatingPointPartialOperationTypeRule
 
 operator FLOATINGPOINT_MAX_TOTAL 3 "floating-point maximum (defined for all inputs)"
-typerule FLOATINGPOINT_MAX_TOTAL   ::CVC4::theory::fp::FloatingPointPartialOperationTypeRule
+typerule FLOATINGPOINT_MAX_TOTAL   ::cvc5::theory::fp::FloatingPointPartialOperationTypeRule
 
 
 operator FLOATINGPOINT_LEQ 2: "floating-point less than or equal"
-typerule FLOATINGPOINT_LEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_LEQ   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_LT 2: "floating-point less than"
-typerule FLOATINGPOINT_LT   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_LT   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_GEQ 2: "floating-point greater than or equal"
-typerule FLOATINGPOINT_GEQ   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_GEQ   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_GT 2: "floating-point greater than"
-typerule FLOATINGPOINT_GT   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_GT   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 
 
 operator FLOATINGPOINT_ISN 1 "floating-point is normal"
-typerule FLOATINGPOINT_ISN   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISN   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ISSN 1 "floating-point is sub-normal"
-typerule FLOATINGPOINT_ISSN   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISSN   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ISZ 1 "floating-point is zero"
-typerule FLOATINGPOINT_ISZ   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISZ   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ISINF 1 "floating-point is infinite"
-typerule FLOATINGPOINT_ISINF   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISINF   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ISNAN 1 "floating-point is NaN"
-typerule FLOATINGPOINT_ISNAN   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISNAN   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ISNEG 1 "floating-point is negative"
-typerule FLOATINGPOINT_ISNEG   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISNEG   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 operator FLOATINGPOINT_ISPOS 1 "floating-point is positive"
-typerule FLOATINGPOINT_ISPOS   ::CVC4::theory::fp::FloatingPointTestTypeRule
+typerule FLOATINGPOINT_ISPOS   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 
 
 constant FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP \
-    ::CVC4::FloatingPointToFPIEEEBitVector \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x1>" \
+    ::cvc5::FloatingPointToFPIEEEBitVector \
+    "::cvc5::FloatingPointConvertSortHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_fp from bit vector"
-typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_IEEE_BITVECTOR FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP 1 "convert an IEEE-754 bit vector to floating-point"
-typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR   ::CVC4::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule
+typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR   ::cvc5::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule
 
 
 
 constant FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP \
-    ::CVC4::FloatingPointToFPFloatingPoint \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x2>" \
+    ::cvc5::FloatingPointToFPFloatingPoint \
+    "::cvc5::FloatingPointConvertSortHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_fp from floating point"
-typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_FLOATINGPOINT FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP 2 "convert between floating-point sorts"
-typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT   ::CVC4::theory::fp::FloatingPointToFPFloatingPointTypeRule
+typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT   ::cvc5::theory::fp::FloatingPointToFPFloatingPointTypeRule
 
 
 
 
 constant FLOATINGPOINT_TO_FP_REAL_OP \
-    ::CVC4::FloatingPointToFPReal \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x4>" \
+    ::cvc5::FloatingPointToFPReal \
+    "::cvc5::FloatingPointConvertSortHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_fp from real"
-typerule FLOATINGPOINT_TO_FP_REAL_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_REAL_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_REAL FLOATINGPOINT_TO_FP_REAL_OP 2 "convert a real to floating-point"
-typerule FLOATINGPOINT_TO_FP_REAL   ::CVC4::theory::fp::FloatingPointToFPRealTypeRule
+typerule FLOATINGPOINT_TO_FP_REAL   ::cvc5::theory::fp::FloatingPointToFPRealTypeRule
 
 
 
 constant FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP \
-    ::CVC4::FloatingPointToFPSignedBitVector \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x8>" \
+    ::cvc5::FloatingPointToFPSignedBitVector \
+    "::cvc5::FloatingPointConvertSortHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_fp from signed bit vector"
-typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP 2 "convert a signed bit vector to floating-point"
-typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR   ::CVC4::theory::fp::FloatingPointToFPSignedBitVectorTypeRule
+typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR   ::cvc5::theory::fp::FloatingPointToFPSignedBitVectorTypeRule
 
 
 
 constant FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP \
-    ::CVC4::FloatingPointToFPUnsignedBitVector \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x10>" \
+    ::cvc5::FloatingPointToFPUnsignedBitVector \
+    "::cvc5::FloatingPointConvertSortHashFunction<0x10>" \
     "util/floatingpoint.h" \
     "operator for to_fp from unsigned bit vector"
-typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 
 parameterized FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP 2 "convert an unsigned bit vector to floating-point"
-typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR   ::CVC4::theory::fp::FloatingPointToFPUnsignedBitVectorTypeRule
+typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR   ::cvc5::theory::fp::FloatingPointToFPUnsignedBitVectorTypeRule
 
 
 
 constant FLOATINGPOINT_TO_FP_GENERIC_OP \
-    ::CVC4::FloatingPointToFPGeneric \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x11>" \
+    ::cvc5::FloatingPointToFPGeneric \
+    "::cvc5::FloatingPointConvertSortHashFunction<0x11>" \
     "util/floatingpoint.h" \
     "operator for a generic to_fp"
-typerule FLOATINGPOINT_TO_FP_GENERIC_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_GENERIC_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 
 parameterized FLOATINGPOINT_TO_FP_GENERIC FLOATINGPOINT_TO_FP_GENERIC_OP 1:2 "a generic conversion to floating-point, used in parsing only"
-typerule FLOATINGPOINT_TO_FP_GENERIC   ::CVC4::theory::fp::FloatingPointToFPGenericTypeRule
+typerule FLOATINGPOINT_TO_FP_GENERIC   ::cvc5::theory::fp::FloatingPointToFPGenericTypeRule
 
 
 
 
 
 constant FLOATINGPOINT_TO_UBV_OP \
-    ::CVC4::FloatingPointToUBV \
-    "::CVC4::FloatingPointToBVHashFunction<0x1>" \
+    ::cvc5::FloatingPointToUBV \
+    "::cvc5::FloatingPointToBVHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_ubv"
-typerule FLOATINGPOINT_TO_UBV_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_UBV_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_UBV FLOATINGPOINT_TO_UBV_OP 2 "convert a floating-point value to an unsigned bit vector"
-typerule FLOATINGPOINT_TO_UBV   ::CVC4::theory::fp::FloatingPointToUBVTypeRule
+typerule FLOATINGPOINT_TO_UBV   ::cvc5::theory::fp::FloatingPointToUBVTypeRule
 
 
 constant FLOATINGPOINT_TO_UBV_TOTAL_OP \
-    ::CVC4::FloatingPointToUBVTotal \
-    "::CVC4::FloatingPointToBVHashFunction<0x4>" \
+    ::cvc5::FloatingPointToUBVTotal \
+    "::cvc5::FloatingPointToBVHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_ubv_total"
-typerule FLOATINGPOINT_TO_UBV_TOTAL_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_UBV_TOTAL_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_UBV_TOTAL FLOATINGPOINT_TO_UBV_TOTAL_OP 3 "convert a floating-point value to an unsigned bit vector (defined for all inputs)"
-typerule FLOATINGPOINT_TO_UBV_TOTAL   ::CVC4::theory::fp::FloatingPointToUBVTotalTypeRule
+typerule FLOATINGPOINT_TO_UBV_TOTAL   ::cvc5::theory::fp::FloatingPointToUBVTotalTypeRule
 
 
 
 constant FLOATINGPOINT_TO_SBV_OP \
-    ::CVC4::FloatingPointToSBV \
-    "::CVC4::FloatingPointToBVHashFunction<0x2>" \
+    ::cvc5::FloatingPointToSBV \
+    "::cvc5::FloatingPointToBVHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_sbv"
-typerule FLOATINGPOINT_TO_SBV_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_SBV_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_SBV FLOATINGPOINT_TO_SBV_OP 2 "convert a floating-point value to a signed bit vector"
-typerule FLOATINGPOINT_TO_SBV   ::CVC4::theory::fp::FloatingPointToSBVTypeRule
+typerule FLOATINGPOINT_TO_SBV   ::cvc5::theory::fp::FloatingPointToSBVTypeRule
 
 
 constant FLOATINGPOINT_TO_SBV_TOTAL_OP \
-    ::CVC4::FloatingPointToSBVTotal \
-    "::CVC4::FloatingPointToBVHashFunction<0x8>" \
+    ::cvc5::FloatingPointToSBVTotal \
+    "::cvc5::FloatingPointToBVHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_sbv_total"
-typerule FLOATINGPOINT_TO_SBV_TOTAL_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_SBV_TOTAL_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_SBV_TOTAL FLOATINGPOINT_TO_SBV_TOTAL_OP 3 "convert a floating-point value to a signed bit vector (defined for all inputs)"
-typerule FLOATINGPOINT_TO_SBV_TOTAL   ::CVC4::theory::fp::FloatingPointToSBVTotalTypeRule
+typerule FLOATINGPOINT_TO_SBV_TOTAL   ::cvc5::theory::fp::FloatingPointToSBVTotalTypeRule
 
 
 operator FLOATINGPOINT_TO_REAL 1 "floating-point to real"
-typerule FLOATINGPOINT_TO_REAL   ::CVC4::theory::fp::FloatingPointToRealTypeRule
+typerule FLOATINGPOINT_TO_REAL   ::cvc5::theory::fp::FloatingPointToRealTypeRule
 
 operator FLOATINGPOINT_TO_REAL_TOTAL 2 "floating-point to real (defined for all inputs)"
-typerule FLOATINGPOINT_TO_REAL_TOTAL   ::CVC4::theory::fp::FloatingPointToRealTotalTypeRule
+typerule FLOATINGPOINT_TO_REAL_TOTAL   ::cvc5::theory::fp::FloatingPointToRealTotalTypeRule
 
 
 
 operator FLOATINGPOINT_COMPONENT_NAN 1 "NaN component of a word-blasted floating-point number"
-typerule FLOATINGPOINT_COMPONENT_NAN   ::CVC4::theory::fp::FloatingPointComponentBit
+typerule FLOATINGPOINT_COMPONENT_NAN   ::cvc5::theory::fp::FloatingPointComponentBit
 
 operator FLOATINGPOINT_COMPONENT_INF 1 "Inf component of a word-blasted floating-point number"
-typerule FLOATINGPOINT_COMPONENT_INF   ::CVC4::theory::fp::FloatingPointComponentBit
+typerule FLOATINGPOINT_COMPONENT_INF   ::cvc5::theory::fp::FloatingPointComponentBit
 
 operator FLOATINGPOINT_COMPONENT_ZERO 1 "Zero component of a word-blasted floating-point number"
-typerule FLOATINGPOINT_COMPONENT_ZERO   ::CVC4::theory::fp::FloatingPointComponentBit
+typerule FLOATINGPOINT_COMPONENT_ZERO   ::cvc5::theory::fp::FloatingPointComponentBit
 
 operator FLOATINGPOINT_COMPONENT_SIGN 1 "Sign component of a word-blasted floating-point number"
-typerule FLOATINGPOINT_COMPONENT_SIGN   ::CVC4::theory::fp::FloatingPointComponentBit
+typerule FLOATINGPOINT_COMPONENT_SIGN   ::cvc5::theory::fp::FloatingPointComponentBit
 
 operator FLOATINGPOINT_COMPONENT_EXPONENT 1 "Exponent component of a word-blasted floating-point number"
-typerule FLOATINGPOINT_COMPONENT_EXPONENT   ::CVC4::theory::fp::FloatingPointComponentExponent
+typerule FLOATINGPOINT_COMPONENT_EXPONENT   ::cvc5::theory::fp::FloatingPointComponentExponent
 
 operator FLOATINGPOINT_COMPONENT_SIGNIFICAND 1 "Significand component of a word-blasted floating-point number"
-typerule FLOATINGPOINT_COMPONENT_SIGNIFICAND   ::CVC4::theory::fp::FloatingPointComponentSignificand
+typerule FLOATINGPOINT_COMPONENT_SIGNIFICAND   ::cvc5::theory::fp::FloatingPointComponentSignificand
 
 
 operator ROUNDINGMODE_BITBLAST 1 "The bit-vector for a non-deterministic rounding mode"
-typerule ROUNDINGMODE_BITBLAST    ::CVC4::theory::fp::RoundingModeBitBlast
+typerule ROUNDINGMODE_BITBLAST    ::cvc5::theory::fp::RoundingModeBitBlast
 
 
 endtheory

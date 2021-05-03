@@ -1,22 +1,21 @@
-/*********************                                                        */
-/*! \file rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The Rewriter class.
+ */
 
 #include "theory/rewriter.h"
 
+#include "expr/term_conversion_proof_generator.h"
 #include "options/theory_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -28,7 +27,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 /** Attribute true for nodes that have been rewritten with proofs enabled */
@@ -88,7 +87,7 @@ struct RewriteStackElement {
   /** Index of the child this node is done rewriting */
   unsigned d_nextChild : 32;
   /** Builder for this node */
-  NodeBuilder<> d_builder;
+  NodeBuilder d_builder;
 };
 
 RewriteResponse identityRewrite(RewriteEnvironment* re, TNode n)
@@ -190,7 +189,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          TConvProofGenerator* tcpg)
 {
   RewriteWithProofsAttribute rpfa;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
   if (d_rewriteStack == nullptr)
@@ -219,11 +218,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
   // Rewrite until the stack is empty
   for (;;){
-
-    if (hasSmtEngine &&
-		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
-      rm->spendResource(ResourceManager::Resource::RewriteStep);
-      d_iterationCount = 0;
+    if (hasSmtEngine)
+    {
+      rm->spendResource(Resource::RewriteStep);
     }
 
     // Get the top of the recursion stack
@@ -330,21 +327,21 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           // In the post rewrite if we've changed theories, we must do a full rewrite
           Assert(response.d_node != rewriteStackTop.d_node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
           Assert(d_rewriteStack->find(response.d_node)
                  == d_rewriteStack->end());
           d_rewriteStack->insert(response.d_node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.d_node, tcpg);
           rewriteStackTop.d_node = rewritten;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
           d_rewriteStack->erase(response.d_node);
 #endif
           break;
         }
         else if (response.d_status == REWRITE_DONE)
         {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
           RewriteResponse r2 =
               d_theoryRewriters[newTheoryId]->postRewrite(response.d_node);
           Assert(r2.d_node == response.d_node)
@@ -384,11 +381,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                 << "with proofs: " << rewriteStackTop.d_node << std::endl;
             Trace("rewriter-proof") << " w/o proofs: " << cached << std::endl;
             Node eq = rewriteStackTop.d_node.eqNode(cached);
+            // we make this a post-rewrite, since we are processing a node that
+            // has finished post-rewriting above
             tcpg->addRewriteStep(rewriteStackTop.d_node,
                                  cached,
                                  PfRule::TRUST_REWRITE,
                                  {},
-                                 {eq});
+                                 {eq},
+                                 false);
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
           }
@@ -481,19 +481,19 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     {
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
       // add small step trusted rewrite
-      NodeManager* nm = NodeManager::currentNM();
       Node rid = mkMethodId(isPre ? MethodId::RW_REWRITE_THEORY_PRE
                                   : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {proven, tidn, rid});
+                           {proven, tidn, rid},
+                           isPre);
     }
     else
     {
       // store proven rewrite step
-      tcpg->addRewriteStep(proven[0], proven[1], pg);
+      tcpg->addRewriteStep(proven[0], proven[1], pg, isPre);
     }
   }
   return RewriteResponse(tresponse.d_status, trn.getNode());
@@ -502,12 +502,12 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
 void Rewriter::clearCaches() {
   Rewriter* rewriter = getInstance();
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   rewriter->d_rewriteStack.reset(nullptr);
 #endif
 
   rewriter->clearCachesInternal();
 }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

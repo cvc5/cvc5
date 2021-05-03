@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file decision_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Aina Niemetz, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Decision engine
- **
- ** Decision engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Decision engine.
+ */
 #include "decision/decision_engine.h"
 
 #include "decision/decision_attributes.h"
@@ -20,25 +19,24 @@
 #include "expr/node.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
+namespace decision {
 
 DecisionEngine::DecisionEngine(context::Context* sc,
                                context::UserContext* uc,
                                ResourceManager* rm)
-    : d_enabledITEStrategy(nullptr),
-      d_needIteSkolemMap(),
-      d_relevancyStrategy(nullptr),
-      d_assertions(uc),
-      d_cnfStream(nullptr),
+    : d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_satContext(sc),
       d_userContext(uc),
       d_result(sc, SAT_VALUE_UNKNOWN),
       d_engineState(0),
-      d_resourceManager(rm)
+      d_resourceManager(rm),
+      d_enabledITEStrategy(nullptr)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
 }
@@ -58,7 +56,6 @@ void DecisionEngine::init()
   {
     d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
         this, d_userContext, d_satContext));
-    d_needIteSkolemMap.push_back(d_enabledITEStrategy.get());
   }
 }
 
@@ -69,12 +66,11 @@ void DecisionEngine::shutdown()
   Assert(d_engineState == 1);
   d_engineState = 2;
   d_enabledITEStrategy.reset(nullptr);
-  d_needIteSkolemMap.clear();
 }
 
 SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
-  d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
+  d_resourceManager->spendResource(Resource::DecisionStep);
   Assert(d_cnfStream != nullptr)
       << "Forgot to set cnfStream for decision engine?";
   Assert(d_satSolver != nullptr)
@@ -85,49 +81,25 @@ SatLiteral DecisionEngine::getNext(bool& stopSearch)
              : d_enabledITEStrategy->getNext(stopSearch);
 }
 
-bool DecisionEngine::isRelevant(SatVariable var)
-{
-  Debug("decision") << "isRelevant(" << var <<")" << std::endl;
-  if (d_relevancyStrategy != nullptr)
-  {
-    //Assert(d_cnfStream->hasNode(var));
-    return d_relevancyStrategy->isRelevant( d_cnfStream->getNode(SatLiteral(var)) );
-  }
-  else
-  {
-    return true;
-  }
-}
-
-SatValue DecisionEngine::getPolarity(SatVariable var)
-{
-  Debug("decision") << "getPolarity(" << var <<")" << std::endl;
-  if (d_relevancyStrategy != nullptr)
-  {
-    Assert(isRelevant(var));
-    return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
-  }
-  else
-  {
-    return SAT_VALUE_UNKNOWN;
-  }
-}
-
-void DecisionEngine::addAssertions(
-    const preprocessing::AssertionPipeline& assertions)
+void DecisionEngine::addAssertion(TNode assertion)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;
-
-  for (const Node& assertion : assertions)
+  if (d_enabledITEStrategy != nullptr)
   {
-    d_assertions.push_back(assertion);
-  }
-
-  for(unsigned i = 0; i < d_needIteSkolemMap.size(); ++i)
-  {
-    d_needIteSkolemMap[i]->addAssertions(assertions);
+    d_enabledITEStrategy->addAssertion(assertion);
   }
 }
 
-}/* CVC4 namespace */
+void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
+{
+  // new assertions, reset whatever result we knew
+  d_result = SAT_VALUE_UNKNOWN;
+  if (d_enabledITEStrategy != nullptr)
+  {
+    d_enabledITEStrategy->addSkolemDefinition(lem, skolem);
+  }
+}
+
+}
+}  // namespace cvc5

@@ -1,25 +1,25 @@
-/*********************                                                        */
-/*! \file node_algorithm.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common algorithms on nodes
- **
- ** This file implements common algorithms applied to nodes, such as checking if
- ** a node contains a free or a bound variable. This file should generally only
- ** be included in source files.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Common algorithms on nodes.
+ *
+ * This file implements common algorithms applied to nodes, such as checking if
+ * a node contains a free or a bound variable. This file should generally only
+ * be included in source files.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NODE_ALGORITHM_H
-#define CVC4__EXPR__NODE_ALGORITHM_H
+#ifndef CVC5__EXPR__NODE_ALGORITHM_H
+#define CVC5__EXPR__NODE_ALGORITHM_H
 
 #include <unordered_map>
 #include <vector>
@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /**
@@ -105,6 +105,20 @@ bool hasClosure(Node n);
 bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv = true);
+/**
+ * Get the free variables in n, that is, the subterms of n of kind
+ * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs.
+ * @param n The node under investigation
+ * @param fvs The set which free variables are added to
+ * @param scope The scope we are considering.
+ * @param computeFv If this flag is false, then we only return true/false and
+ * do not add to fvs.
+ * @return true iff this node contains a free variable.
+ */
+bool getFreeVariablesScope(TNode n,
+                           std::unordered_set<Node, NodeHashFunction>& fvs,
+                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           bool computeFv = true);
 
 /**
  * Get all variables in n.
@@ -132,6 +146,18 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+/**
+ * For term n, this function collects the subterms of n whose kind is k.
+ * @param n The node under investigation
+ * @param k The kind we are considering
+ * @param topLevel If true, we collect only the top-level subterms with kind k.
+ * @param ts The set which the symbols of n are added to
+ */
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts);
 
 /**
  * For term n, this function collects the operators that occur in n.
@@ -209,6 +235,6 @@ bool match(Node n1,
            std::unordered_map<Node, Node, NodeHashFunction>& subs);
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of strings proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of strings proof checker.
+ */
 
 #include "theory/strings/proof_checker.h"
 
@@ -25,9 +26,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -438,9 +439,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_ELIM)
   {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    return RegExpElimination::eliminate(children[0]);
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    bool isAgg;
+    if (!getBool(args[1], isAgg))
+    {
+      return Node::null();
+    }
+    Node ea = RegExpElimination::eliminate(args[0], isAgg);
+    // if we didn't eliminate, then this trivially proves the reflexive equality
+    if (ea.isNull())
+    {
+      ea = args[0];
+    }
+    return args[0].eqNode(ea);
   }
   else if (id == PfRule::STRING_CODE_INJ)
   {
@@ -506,4 +518,4 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

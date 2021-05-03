@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file rewrites.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of inference information utility.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of inference information utility.
+ */
 
 #include "theory/bags/rewrites.h"
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bags {
 
@@ -32,6 +33,9 @@ const char* toString(Rewrite r)
     case Rewrite::COUNT_EMPTY: return "COUNT_EMPTY";
     case Rewrite::COUNT_MK_BAG: return "COUNT_MK_BAG";
     case Rewrite::DUPLICATE_REMOVAL_MK_BAG: return "DUPLICATE_REMOVAL_MK_BAG";
+    case Rewrite::EQ_CONST_FALSE: return "EQ_CONST_FALSE";
+    case Rewrite::EQ_REFL: return "EQ_REFL";
+    case Rewrite::EQ_SYM: return "EQ_SYM";
     case Rewrite::FROM_SINGLETON: return "FROM_SINGLETON";
     case Rewrite::IDENTICAL_NODES: return "IDENTICAL_NODES";
     case Rewrite::INTERSECTION_EMPTY_LEFT: return "INTERSECTION_EMPTY_LEFT";
@@ -76,4 +80,4 @@ std::ostream& operator<<(std::ostream& out, Rewrite r)
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

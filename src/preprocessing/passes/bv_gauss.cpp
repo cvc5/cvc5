@@ -1,37 +1,39 @@
-/*********************                                                        */
-/*! \file bv_gauss.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Gaussian Elimination preprocessing pass.
- **
- ** Simplify a given equation system modulo a (prime) number via Gaussian
- ** Elimination if possible.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Gaussian Elimination preprocessing pass.
+ *
+ * Simplify a given equation system modulo a (prime) number via Gaussian
+ * Elimination if possible.
+ */
 
 #include "preprocessing/passes/bv_gauss.h"
 
+#include <unordered_map>
+#include <vector>
+
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-#include <unordered_map>
-#include <vector>
+using namespace cvc5;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
-
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -163,7 +165,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_UREM_TOTAL:
+        case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
         {
@@ -212,7 +214,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
 
         default:
         {
-          /* BITVECTOR_UDIV_TOTAL (since x / 0 = -1)
+          /* BITVECTOR_UDIV (since x / 0 = -1)
            * BITVECTOR_NOT
            * BITVECTOR_NEG
            * BITVECTOR_SHL */
@@ -262,7 +264,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
 
-  #ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
 #endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
@@ -283,7 +285,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
     /* lhs[j][pcol]: element in pivot column */
     for (size_t j = prow; j < nrows; ++j)
     {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       for (size_t k = 0; k < pcol; ++k)
       {
         Assert(lhs[j][k] == 0);
@@ -499,8 +501,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder<> nb_consts(NodeManager::currentNM(), k);
-        NodeBuilder<> nb_nonconsts(NodeManager::currentNM(), k);
+        NodeBuilder nb_consts(NodeManager::currentNM(), k);
+        NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
         {
           Node nnrw = Rewriter::rewrite(nn);
@@ -576,7 +578,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     return BVGauss::Result::INVALID;
   }
   size_t nrows = vars.begin()->second.size();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& p : vars)
   {
     Assert(p.second.size() == nrows);
@@ -596,7 +598,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (const auto& row : lhs)
   {
     Assert(row.size() == nvars);
@@ -703,7 +705,7 @@ PreprocessingPassResult BVGauss::applyInternal(
   {
     Node a = assertions.back();
     assertions.pop_back();
-    CVC4::Kind k = a.getKind();
+    cvc5::Kind k = a.getKind();
 
     if (k == kind::AND)
     {
@@ -799,4 +801,4 @@ PreprocessingPassResult BVGauss::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

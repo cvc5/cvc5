@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_arrays.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of arrays.
- **
- ** Implementation of the theory of arrays.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of arrays.
+ */
 
 #include "theory/arrays/theory_arrays.h"
 
@@ -28,13 +27,15 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/decision_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arrays {
 
@@ -61,30 +62,34 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            ProofNodeManager* pnm,
                            std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
-      d_numRow(name + "theory::arrays::number of Row lemmas", 0),
-      d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
-      d_numProp(name + "theory::arrays::number of propagations", 0),
-      d_numExplain(name + "theory::arrays::number of explanations", 0),
-      d_numNonLinear(name + "theory::arrays::number of calls to setNonLinear",
-                     0),
-      d_numSharedArrayVarSplits(
-          name + "theory::arrays::number of shared array var splits", 0),
-      d_numGetModelValSplits(
-          name + "theory::arrays::number of getModelVal splits", 0),
-      d_numGetModelValConflicts(
-          name + "theory::arrays::number of getModelVal conflicts", 0),
-      d_numSetModelValSplits(
-          name + "theory::arrays::number of setModelVal splits", 0),
-      d_numSetModelValConflicts(
-          name + "theory::arrays::number of setModelVal conflicts", 0),
-      d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
+      d_numRow(
+          smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(
+          smtStatisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numProp(
+          smtStatisticsRegistry().registerInt(name + "number of propagations")),
+      d_numExplain(
+          smtStatisticsRegistry().registerInt(name + "number of explanations")),
+      d_numNonLinear(smtStatisticsRegistry().registerInt(
+          name + "number of calls to setNonLinear")),
+      d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
+          name + "number of shared array var splits")),
+      d_numGetModelValSplits(smtStatisticsRegistry().registerInt(
+          name + "number of getModelVal splits")),
+      d_numGetModelValConflicts(smtStatisticsRegistry().registerInt(
+          name + "number of getModelVal conflicts")),
+      d_numSetModelValSplits(smtStatisticsRegistry().registerInt(
+          name + "number of setModelVal splits")),
+      d_numSetModelValConflicts(smtStatisticsRegistry().registerInt(
+          name + "number of setModelVal conflicts")),
+      d_ppEqualityEngine(u, name + "pp", true),
       d_ppFacts(u),
       d_state(c, u, valuation),
       d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
-      d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
+      d_mayEqualEqualityEngine(c, name + "mayEqual", true),
       d_notify(*this),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -111,17 +116,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
 {
-  smtStatisticsRegistry()->registerStat(&d_numRow);
-  smtStatisticsRegistry()->registerStat(&d_numExt);
-  smtStatisticsRegistry()->registerStat(&d_numProp);
-  smtStatisticsRegistry()->registerStat(&d_numExplain);
-  smtStatisticsRegistry()->registerStat(&d_numNonLinear);
-  smtStatisticsRegistry()->registerStat(&d_numSharedArrayVarSplits);
-  smtStatisticsRegistry()->registerStat(&d_numGetModelValSplits);
-  smtStatisticsRegistry()->registerStat(&d_numGetModelValConflicts);
-  smtStatisticsRegistry()->registerStat(&d_numSetModelValSplits);
-  smtStatisticsRegistry()->registerStat(&d_numSetModelValConflicts);
-
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
@@ -129,11 +123,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
 
-  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
-  if (pc != nullptr)
-  {
-    d_pchecker.registerTo(pc);
-  }
   // indicate we are using the default theory state object, and the arrays
   // inference manager
   d_theoryState = &d_state;
@@ -151,24 +140,16 @@ TheoryArrays::~TheoryArrays() {
     it2->second->deleteSelf();
   }
   delete d_constReadsContext;
-  smtStatisticsRegistry()->unregisterStat(&d_numRow);
-  smtStatisticsRegistry()->unregisterStat(&d_numExt);
-  smtStatisticsRegistry()->unregisterStat(&d_numProp);
-  smtStatisticsRegistry()->unregisterStat(&d_numExplain);
-  smtStatisticsRegistry()->unregisterStat(&d_numNonLinear);
-  smtStatisticsRegistry()->unregisterStat(&d_numSharedArrayVarSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numGetModelValConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValSplits);
-  smtStatisticsRegistry()->unregisterStat(&d_numSetModelValConflicts);
 }
 
 TheoryRewriter* TheoryArrays::getTheoryRewriter() { return &d_rewriter; }
 
+ProofRuleChecker* TheoryArrays::getProofChecker() { return &d_checker; }
+
 bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
-  esi.d_name = d_instanceName + "theory::arrays::ee";
+  esi.d_name = d_instanceName + "ee";
   return true;
 }
 
@@ -248,7 +229,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // (index_0 != index_1 & index_0 != index_2 & ... & index_0 != index_n) -> read(store, index_0) = v_0
     TNode write_i, write_j, index_i, index_j;
     Node conc;
-    NodeBuilder<> result(kind::AND);
+    NodeBuilder result(kind::AND);
     int i, j;
     write_i = left;
     for (i = leftWrites-1; i >= 0; --i) {
@@ -258,7 +239,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
       //         ... && index_i /= index_(i+1)] -> read(store, index_i) = v_i
       write_j = left;
       {
-        NodeBuilder<> hyp(kind::AND);
+        NodeBuilder hyp(kind::AND);
         for (j = leftWrites - 1; j > i; --j) {
           index_j = write_j[1];
           if (!ppCheck || !ppDisequal(index_i, index_j)) {
@@ -301,7 +282,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // store(store(...),i,select(a,i)) = a && select(store(...),i)=v
     Node l = left;
     Node tmp;
-    NodeBuilder<> nb(kind::AND);
+    NodeBuilder nb(kind::AND);
     while (right.getKind() == kind::STORE) {
       tmp = nm->mkNode(kind::SELECT, l, right[1]);
       nb << tmp.eqNode(right[2]);
@@ -316,20 +297,27 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
   return term;
 }
 
-TrustNode TheoryArrays::ppRewrite(TNode term)
+TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
+  // first, see if we need to expand definitions
+  TrustNode texp = d_rewriter.expandDefinition(term);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
   if (!d_preprocess)
   {
     return TrustNode::null();
   }
   d_ppEqualityEngine.addTerm(term);
+  NodeManager* nm = NodeManager::currentNM();
   Node ret;
   switch (term.getKind()) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
       if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
-        ret = NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
+        ret = nm->mkNode(kind::SELECT, term[0][0], term[1]);
       }
       break;
     }
@@ -337,8 +325,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term)
       // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
       //    IF i != j and j comes before i in the ordering
       if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
-        Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
-        Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
+        Node inner = nm->mkNode(kind::STORE, term[0][0], term[1], term[2]);
+        Node outer = nm->mkNode(kind::STORE, inner, term[0][1], term[0][2]);
         ret = outer;
       }
       break;
@@ -765,8 +753,11 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         preRegisterTermInternal(ni);
       }
       // Apply RIntro1 Rule
-      d_im.assertInference(
-          ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
+      d_im.assertInference(ni.eqNode(v),
+                           true,
+                           InferenceId::ARRAYS_READ_OVER_WRITE_1,
+                           d_true,
+                           PfRule::ARRAYS_READ_OVER_WRITE_1);
 
       d_infoMap.addStore(node, node);
       d_infoMap.addInStore(a, node);
@@ -779,8 +770,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         Assert(weakEquivGetRep(node) == node);
         d_infoMap.setWeakEquivPointer(node, node[0]);
         d_infoMap.setWeakEquivIndex(node, node[1]);
-#ifdef CVC4_ASSERTIONS
-      checkWeakEquiv(false);
+#ifdef CVC5_ASSERTIONS
+        checkWeakEquiv(false);
 #endif
     }
 
@@ -858,7 +849,7 @@ void TheoryArrays::notifySharedTerm(TNode t)
     d_sharedArrays.insert(t);
   }
   else {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     d_sharedOther.insert(t);
 #endif
     d_sharedTerms = true;
@@ -925,9 +916,13 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
       break;
     case EQUALITY_FALSE_AND_PROPAGATED:
+      Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair "
+                                  "called when false in model"
+                               << std::endl;
       // Should have been propagated to us
       Assert(false);
-    case EQUALITY_FALSE:
+      break;
+    case EQUALITY_FALSE: CVC5_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:
       // This is unlikely, but I think it could happen
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair called when false in model" << std::endl;
@@ -1169,7 +1164,7 @@ void TheoryArrays::presolve()
   {
     d_dstratInit = true;
     // add the decision strategy, which is user-context-independent
-    getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_ARRAYS,
         d_dstrat.get(),
         DecisionManager::STRAT_SCOPE_CTX_INDEPENDENT);
@@ -1225,11 +1220,11 @@ void TheoryArrays::postCheck(Effort level)
         d_infoMap.setWeakEquivPointer(b, a);
         d_infoMap.setWeakEquivIndex(b, TNode());
       }
-#ifdef CVC4_ASSERTIONS
-    checkWeakEquiv(false);
+#ifdef CVC5_ASSERTIONS
+      checkWeakEquiv(false);
 #endif
     }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     checkWeakEquiv(true);
 #endif
 
@@ -1367,14 +1362,14 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                            << "\teq = " << eq << std::endl
                            << "\treason = " << fact << std::endl;
-        d_im.assertInference(eq, false, fact, PfRule::ARRAYS_EXT);
+        d_im.assertInference(eq, false, InferenceId::ARRAYS_EXT, fact, PfRule::ARRAYS_EXT);
         ++d_numProp;
       }
 
       // If this is the solution pass, generate the lemma. Otherwise, don't
       // generate it - as this is the lemma that we're reproving...
       Trace("arrays-lem") << "Arrays::addExtLemma " << lemma << "\n";
-      d_im.arrayLemma(eq.notNode(), fact, PfRule::ARRAYS_EXT);
+      d_im.arrayLemma(eq.notNode(), InferenceId::ARRAYS_EXT, fact, PfRule::ARRAYS_EXT);
       ++d_numExt;
     }
     else
@@ -1428,7 +1423,7 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
     }
   }
 
-  NodeBuilder<> conjunction(invert ? kind::OR : kind::AND);
+  NodeBuilder conjunction(invert ? kind::OR : kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
@@ -1654,8 +1649,11 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     {
       preRegisterTermInternal(selConst);
     }
-    d_im.assertInference(
-        selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
+    d_im.assertInference(selConst.eqNode(defValue),
+                         true,
+                         InferenceId::UNKNOWN,
+                         d_true,
+                         PfRule::ARRAYS_TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
@@ -1752,7 +1750,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   Trace("arrays-crl")<<"Arrays::checkLemmas done.\n";
 }
 
-void TheoryArrays::propagate(RowLemmaType lem)
+void TheoryArrays::propagateRowLemma(RowLemmaType lem)
 {
   Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
                      << options::arraysPropagate() << std::endl;
@@ -1792,7 +1790,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
         preRegisterTermInternal(bj);
       }
       d_im.assertInference(
-          aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+          aj_eq_bj, true, InferenceId::ARRAYS_READ_OVER_WRITE, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1803,7 +1801,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node j_eq_i = j.eqNode(i);
       d_im.assertInference(
-          j_eq_i, true, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
+          j_eq_i, true, InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
       ++d_numProp;
       return;
     }
@@ -1839,7 +1837,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   // If propagating, check propagations
   int prop = options::arraysPropagate();
   if (prop > 0) {
-    propagate(lem);
+    propagateRowLemma(lem);
   }
 
   // Prefer equality between indexes so as not to introduce new read terms
@@ -1870,7 +1868,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
         preRegisterTermInternal(aj2);
       }
       d_im.assertInference(
-          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          aj.eqNode(aj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -1882,7 +1880,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
         preRegisterTermInternal(bj2);
       }
       d_im.assertInference(
-          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          bj.eqNode(bj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -1900,14 +1898,14 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -1917,7 +1915,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     d_RowAlreadyAdded.insert(lem);
     // use non-rewritten nodes
     d_im.arrayLemma(
-        aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
+        aj.eqNode(bj), InferenceId::ARRAYS_READ_OVER_WRITE, eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
   }
   else {
@@ -1969,7 +1967,7 @@ bool TheoryArrays::dischargeLemmas()
 
     int prop = options::arraysPropagate();
     if (prop > 0) {
-      propagate(l);
+      propagateRowLemma(l);
       if (d_state.isInConflict())
       {
         return true;
@@ -1987,7 +1985,7 @@ bool TheoryArrays::dischargeLemmas()
         preRegisterTermInternal(aj2);
       }
       d_im.assertInference(
-          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          aj.eqNode(aj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -1999,7 +1997,7 @@ bool TheoryArrays::dischargeLemmas()
         preRegisterTermInternal(bj2);
       }
       d_im.assertInference(
-          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          bj.eqNode(bj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       continue;
@@ -2017,14 +2015,14 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
@@ -2034,7 +2032,7 @@ bool TheoryArrays::dischargeLemmas()
     d_RowAlreadyAdded.insert(l);
     // use non-rewritten nodes, theory preprocessing will rewrite
     d_im.arrayLemma(
-        aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
+        aj.eqNode(bj), InferenceId::ARRAYS_READ_OVER_WRITE, eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
     lemmasAdded = true;
     if (options::arraysReduceSharing()) {
@@ -2068,62 +2066,6 @@ Node TheoryArrays::TheoryArraysDecisionStrategy::getNextDecisionRequest()
 std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
 {
   return std::string("th_arrays_dec");
-}
-
-TrustNode TheoryArrays::expandDefinition(Node node)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Kind kind = node.getKind();
-
-  /* Expand
-   *
-   *   (eqrange a b i j)
-   *
-   * to
-   *
-   *  forall k . i <= k <= j => a[k] = b[k]
-   *
-   */
-  if (kind == kind::EQ_RANGE)
-  {
-    TNode a = node[0];
-    TNode b = node[1];
-    TNode i = node[2];
-    TNode j = node[3];
-    Node k = nm->mkBoundVar(i.getType());
-    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, k);
-    TypeNode type = k.getType();
-
-    Kind kle;
-    Node range;
-    if (type.isBitVector())
-    {
-      kle = kind::BITVECTOR_ULE;
-    }
-    else if (type.isFloatingPoint())
-    {
-      kle = kind::FLOATINGPOINT_LEQ;
-    }
-    else if (type.isInteger() || type.isReal())
-    {
-      kle = kind::LEQ;
-    }
-    else
-    {
-      Unimplemented() << "Type " << type << " is not supported for predicate "
-                      << kind;
-    }
-
-    range = nm->mkNode(kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
-
-    Node eq = nm->mkNode(kind::EQUAL,
-                         nm->mkNode(kind::SELECT, a, k),
-                         nm->mkNode(kind::SELECT, b, k));
-    Node implies = nm->mkNode(kind::IMPLIES, range, eq);
-    Node ret = nm->mkNode(kind::FORALL, bvl, implies);
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
 }
 
 void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
@@ -2251,6 +2193,6 @@ void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
   } while (changed);
 }
 
-}/* CVC4::theory::arrays namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arrays
+}  // namespace theory
+}  // namespace cvc5

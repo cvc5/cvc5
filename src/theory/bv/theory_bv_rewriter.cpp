@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_bv_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -25,9 +26,9 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
+using namespace cvc5;
+using namespace cvc5::theory;
+using namespace cvc5::theory::bv;
 
 TheoryBVRewriter::TheoryBVRewriter() { initializeRewrites(); }
 
@@ -51,6 +52,26 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
         << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
+}
+
+TrustNode TheoryBVRewriter::expandDefinition(Node node)
+{
+  Debug("bitvector-expandDefinition")
+      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
+  Node ret;
+  switch (node.getKind())
+  {
+    case kind::BITVECTOR_SDIV:
+    case kind::BITVECTOR_SREM:
+    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
+
+    default: break;
+  }
+  if (!ret.isNull() && node != ret)
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
@@ -440,26 +461,6 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
 RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite){
   Node resultNode = node;
 
-  if(node[1].isConst() && node[1].getConst<BitVector>().getValue() != 0) {
-    return RewriteUdivTotal(node, prerewrite);
-  }
-
-  return RewriteResponse(REWRITE_DONE, resultNode); 
-}
-
-RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite){
-  Node resultNode = node;
-
-  if(node[1].isConst() && node[1].getConst<BitVector>().getValue() != 0) {
-    return RewriteUremTotal(node, prerewrite);
-  }
-
-  return RewriteResponse(REWRITE_DONE, resultNode); 
-}
-
-RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
-  Node resultNode = node;
-
   if(RewriteRule<UdivPow2>::applies(node)) {
     resultNode = RewriteRule<UdivPow2>::run <false> (node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
@@ -472,7 +473,8 @@ RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUremTotal(TNode node, bool prerewrite) {
+RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite)
+{
   Node resultNode = node;
 
   if(RewriteRule<UremPow2>::applies(node)) {
@@ -485,7 +487,7 @@ RewriteResponse TheoryBVRewriter::RewriteUremTotal(TNode node, bool prerewrite) 
       RewriteRule<UremOne>,
       RewriteRule<UremSelf>
       >::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSmod(TNode node, bool prerewrite) {
@@ -713,8 +715,6 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
   d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;
   d_rewriteTable [ kind::BITVECTOR_UREM ] = RewriteUrem;
-  d_rewriteTable [ kind::BITVECTOR_UDIV_TOTAL ] = RewriteUdivTotal;
-  d_rewriteTable [ kind::BITVECTOR_UREM_TOTAL ] = RewriteUremTotal;
   d_rewriteTable [ kind::BITVECTOR_SMOD ] = RewriteSmod;
   d_rewriteTable [ kind::BITVECTOR_SDIV ] = RewriteSdiv;
   d_rewriteTable [ kind::BITVECTOR_SREM ] = RewriteSrem;
