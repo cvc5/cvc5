@@ -421,7 +421,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // whether we want to force safe unsat cores, i.e., if we are in the OLD_PROOF
   // unsat core mode, since new ones are experimental
   bool safeUnsatCores =
-      options::unsatCoresMode() == options::UnsatCoresMode::OLD_PROOF;
+      options::unsatCoresMode() != options::UnsatCoresMode::OFF;
 
   // Disable options incompatible with incremental solving, unsat cores or
   // output an error if enabled explicitly. It is also currently incompatible
