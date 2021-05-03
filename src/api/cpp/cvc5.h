@@ -899,7 +899,7 @@ class CVC5_EXPORT Op
   size_t getNumIndicesHelper() const;
 
   /**
-   * Helper for getIndices<std::vector<std::variant<uint32_t, std::string>>>()
+   * Helper for getIndices<std::vector<Term>()
    * @return the indices of this operator
    */
   std::vector<Term> getIndicesHelper() const;
