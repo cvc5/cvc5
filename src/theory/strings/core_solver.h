@@ -19,8 +19,8 @@
 #ifndef CVC5__THEORY__STRINGS__CORE_SOLVER_H
 #define CVC5__THEORY__STRINGS__CORE_SOLVER_H
 
-#include "context/cdhashset.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -473,7 +473,7 @@ class CoreSolver
    * in inferences that follow from this disequality of the form:
    *   (not (= n1 n2)) => (not (= k1 k2))
    * where k1, k2 are either strings of length one or elements of a sequence.
-   * 
+   *
    * @param n1 The first string in the disequality
    * @param n2 The second string in the disequality
    */

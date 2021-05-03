@@ -2075,7 +2075,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
     Trace("strings-solve-debug") << "...processed reverse" << std::endl;
     return;
   }
-  
+
   if (options::stringsDeqExt())
   {
     processDeqExtensionality(ni, nj);
@@ -2446,7 +2446,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
 void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 {
   // hash based on equality
-  Node eq = n1<n2 ? n1.eqNode(n2) : n2.eqNode(n1);
+  Node eq = n1 < n2 ? n1.eqNode(n2) : n2.eqNode(n1);
   NodeSet::const_iterator it = d_extDeq.find(eq);
   if (it != d_extDeq.end())
   {
@@ -2454,24 +2454,25 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
     return;
   }
   d_extDeq.insert(eq);
-  
-  NodeManager * nm = NodeManager::currentNM();
+
+  NodeManager* nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
   TypeNode intType = nm->integerType();
-  Node k = sc->mkTypedSkolemCached(intType,n1,n2,SkolemCache::SK_DEQ_DIFF, "diff");
+  Node k = sc->mkTypedSkolemCached(
+      intType, n1, n2, SkolemCache::SK_DEQ_DIFF, "diff");
   Node deq = eq.negate();
   Node ss1, ss2;
   if (n1.getType().isString())
   {
     // substring of length 1
-    ss1 = nm->mkNode(STRING_SUBSTR,n1,k,d_one);
-    ss2 = nm->mkNode(STRING_SUBSTR,n2,k,d_one);
+    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
+    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
   }
   else
   {
     // as an optimization, for sequences, use seq.nth
-    ss1 = nm->mkNode(SEQ_NTH,n1,k);
-    ss2 = nm->mkNode(SEQ_NTH,n2,k);
+    ss1 = nm->mkNode(SEQ_NTH, n1, k);
+    ss2 = nm->mkNode(SEQ_NTH, n2, k);
   }
   // disequality between nth/substr
   Node conc1 = ss1.eqNode(ss2).negate();
@@ -2487,7 +2488,8 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   vector<Node> concs = {conc1, conc2, conc3};
   Node conc = nm->mkAnd(concs);
-  d_im.sendInference({deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
+  d_im.sendInference(
+      {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
