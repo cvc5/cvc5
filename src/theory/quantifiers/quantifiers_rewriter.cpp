@@ -1267,7 +1267,12 @@ Node QuantifiersRewriter::computePrenex(
         Node vv;
         if (!q.isNull())
         {
-          Node cacheVal = BoundVarManager::getCacheValue(q, v);
+          // We cache based on the original quantified formula, the subformula
+          // that we are pulling variables from (body), and the variable v.
+          // The argument body is required since in rare cases, two subformulas
+          // may share the same variables. This is the case for define-fun
+          // or inferred substitutions that contain quantified formulas.
+          Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
           vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
         }
         else

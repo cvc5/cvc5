@@ -12,12 +12,11 @@
  *
  * A multi-precision rational constant.
  */
-#include "util/rational.h"
-
 #include <sstream>
 #include <string>
 
-#include "cvc4autoconfig.h"
+#include "base/cvc5config.h"
+#include "util/rational.h"
 
 #ifndef CVC5_CLN_IMP
 #error "This source should only ever be built if CVC5_CLN_IMP is on !"

@@ -1,5 +1,5 @@
-; COMMAND-LINE: --iand-mode=value --no-check-models
-; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --finite-model-find --no-check-models
+; COMMAND-LINE: --iand-mode=value
+; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --finite-model-find
 ; COMMAND-LINE: --iand-mode=bitwise
 ; COMMAND-LINE: --iand-mode=bitwise --bvand-integer-granularity=1
 ; COMMAND-LINE: --iand-mode=bitwise --bvand-integer-granularity=3

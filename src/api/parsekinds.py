@@ -34,7 +34,7 @@ US = '_'
 NL = '\n'
 
 # Enum Declarations
-ENUM_START = 'enum CVC4_EXPORT Kind'
+ENUM_START = 'enum CVC5_EXPORT Kind'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens

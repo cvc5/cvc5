@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "theory/theory_id.h"
 
 namespace cvc5 {
@@ -42,7 +42,7 @@ namespace cvc5 {
  * (e.g., for communicating to the SmtEngine which theories should be used,
  * rather than having to provide an SMT-LIB string).
  */
-class CVC4_EXPORT LogicInfo
+class CVC5_EXPORT LogicInfo
 {
   mutable std::string d_logicString; /**< an SMT-LIB-like logic string */
   std::vector<bool> d_theories; /**< set of active theories */

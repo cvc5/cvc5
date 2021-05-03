@@ -17,11 +17,18 @@
 
 find_path(SymFPU_INCLUDE_DIR NAMES symfpu/core/unpackedFloat.h)
 
+set(SymFPU_FOUND_SYSTEM FALSE)
 if(SymFPU_INCLUDE_DIR)
   # Found SymFPU to be installed system-wide
   set(SymFPU_FOUND_SYSTEM TRUE)
-else()
-  set(SymFPU_FOUND_SYSTEM FALSE)
+endif()
+
+if(NOT SymFPU_FOUND_SYSTEM)
+  check_ep_downloaded("SymFPU-EP")
+  if(NOT SymFPU-EP_DOWNLOADED)
+    check_auto_download("SymFPU" "--no-symfpu")
+  endif()
+
   include(ExternalProject)
   include(deps-helper)
 
@@ -32,6 +39,8 @@ else()
     ${COMMON_EP_CONFIG}
     URL https://github.com/martin-cs/symfpu/archive/${SymFPU_COMMIT}.tar.gz
     URL_HASH SHA1=9e00045130b93e3c2a46ce73a1b5b6451340dc46
+    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
+          -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/SymFPU-patch-20201114.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/core

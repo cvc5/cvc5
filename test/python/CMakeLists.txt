@@ -17,7 +17,7 @@
 check_python_module("pytest")
 
 # Add Python bindings API tests.
-macro(cvc4_add_python_api_test name filename)
+macro(cvc5_add_python_api_test name filename)
 # We create test target 'python/unit/api/myapitest' and run it with
 # 'ctest -R "python/unit/api/myapitest"'.
 add_test (NAME python/unit/api/${name}
@@ -27,4 +27,6 @@ add_test (NAME python/unit/api/${name}
 endmacro()
 
 # add specific test files
-cvc4_add_python_api_test(pytest_solver unit/api/test_solver.py)
+cvc5_add_python_api_test(pytest_solver unit/api/test_solver.py)
+cvc5_add_python_api_test(pytest_sort unit/api/test_sort.py)
+cvc5_add_python_api_test(pytest_term unit/api/test_term.py)

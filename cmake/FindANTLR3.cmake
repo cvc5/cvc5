@@ -18,12 +18,12 @@
 
 include(deps-helper)
 
-find_program(ANTLR3_BINARY NAMES antlr3)
+find_file(ANTLR3_JAR NAMES antlr-3.4-complete.jar PATH_SUFFIXES share/java/)
 find_path(ANTLR3_INCLUDE_DIR NAMES antlr3.h)
 find_library(ANTLR3_RUNTIME NAMES antlr3c)
 
 set(ANTLR3_FOUND_SYSTEM FALSE)
-if(ANTLR3_BINARY AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
+if(ANTLR3_JAR AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
     set(ANTLR3_FOUND_SYSTEM TRUE)
 
     # Parse ANTLR3 version
@@ -34,6 +34,11 @@ if(ANTLR3_BINARY AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
 endif()
 
 if(NOT ANTLR3_FOUND_SYSTEM)
+    check_ep_downloaded("ANTLR3-EP-jar")
+    if(NOT ANTLR3-EP-jar_DOWNLOADED)
+      check_auto_download("ANTLR3" "")
+    endif()
+
     include(ExternalProject)
 
     set(ANTLR3_VERSION "3.4")
@@ -96,18 +101,19 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libantlr3c.a
     )
 
-    find_package(Java COMPONENTS Runtime REQUIRED)
-    set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE}
-        -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
+    set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(ANTLR3_RUNTIME "${DEPS_BASE}/lib/libantlr3c.a")
 endif()
+
+find_package(Java COMPONENTS Runtime REQUIRED)
 
 set(ANTLR3_FOUND TRUE)
 # This may not be a single binary: the EP has a whole commandline
 # We thus do not make this an executable target.
 # Just call ${ANTLR3_COMMAND} instead.
-set(ANTLR3_COMMAND ${ANTLR3_BINARY} CACHE STRING "run ANTLR3" FORCE)
+set(ANTLR3_COMMAND ${Java_JAVA_EXECUTABLE} -cp "${ANTLR3_JAR}" org.antlr.Tool
+    CACHE STRING "run ANTLR3" FORCE)
 
 add_library(ANTLR3 STATIC IMPORTED GLOBAL)
 set_target_properties(ANTLR3 PROPERTIES IMPORTED_LOCATION "${ANTLR3_RUNTIME}")
@@ -123,7 +129,9 @@ mark_as_advanced(ANTLR3_RUNTIME)
 
 if(ANTLR3_FOUND_SYSTEM)
     message(STATUS "Found ANTLR3 runtime: ${ANTLR3_RUNTIME}")
+    message(STATUS "Found ANTLR3 JAR: ${ANTLR3_JAR}")
 else()
     message(STATUS "Building ANTLR3 runtime: ${ANTLR3_RUNTIME}")
+    message(STATUS "Downloading ANTLR3 JAR: ${ANTLR3_JAR}")
     add_dependencies(ANTLR3 ANTLR3-EP-runtime ANTLR3-EP-jar)
 endif()

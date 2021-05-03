@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/options.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -94,13 +94,6 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
-/**
- * Representation of a defined function.  We keep these around in
- * SmtEngine to permit expanding definitions late (and lazily), to
- * support getValue() over defined functions, to support user output
- * in terms of defined functions, etc.
- */
-class DefinedFunction;
 
 struct SmtEngineStatistics;
 class SmtScope;
@@ -119,7 +112,7 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-class CVC4_EXPORT SmtEngine
+class CVC5_EXPORT SmtEngine
 {
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
@@ -243,18 +236,18 @@ class CVC4_EXPORT SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void notifyStartParsing(const std::string& filename) CVC4_EXPORT;
+  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
   /** return the input name (if any) */
   const std::string& getFilename() const;
 
   /**
    * Helper method for the API to put the last check result into the statistics.
    */
-  void setResultStatistic(const std::string& result) CVC4_EXPORT;
+  void setResultStatistic(const std::string& result) CVC5_EXPORT;
   /**
    * Helper method for the API to put the total runtime into the statistics.
    */
-  void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
+  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
@@ -334,9 +327,6 @@ class CVC4_EXPORT SmtEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
-
-  /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Node func);
 
   /**
    * Define functions recursive
@@ -891,13 +881,6 @@ class CVC4_EXPORT SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter();
-
-  /** The type of our internal map of defined functions */
-  using DefinedFunctionMap =
-      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
-
-  /** Get the defined function map */
-  DefinedFunctionMap* getDefinedFunctionMap() { return d_definedFunctions; }
   /**
    * Get expanded assertions.
    *
@@ -1114,9 +1097,6 @@ class CVC4_EXPORT SmtEngine
    * The unsat core manager, which produces unsat cores and related information
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
-
-  /** An index of our defined functions */
-  DefinedFunctionMap* d_definedFunctions;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
