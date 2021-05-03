@@ -75,7 +75,7 @@ jobs:
           elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
             NAME="${{ github.event.number }}"
             PRREF="${{ github.event.pull_request.head.sha }}"
-            echo "Identified PR #$NAME"
+            echo "Identified PR #$NAME (from $PRREF)"
             NAME="pr$NAME"
             # be careful here, see explanation above!
             git checkout "${PRREF}" -- \
