@@ -1,0 +1,61 @@
+name: documentation cleanup
+on:
+  schedule:
+    - cron: '0 1 * * SUN'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-jinja2
+
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
+      - name: Clone docs repo
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
+          git clone git@github.com:cvc5/docs-ci.git target/
+      
+      - name: Remove stale docs
+        run: |
+          cd target
+          for file in `find ./ -maxdepth 1 -name "docs-*"`; do
+            mod=`git log -1 HEAD --pretty="%ci" $file`
+            touch -d "$mod" $file
+          done
+          find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
+          git commit -m "Prune docs" || echo "Nothing to prune"
+
+      - name: Squash old commits
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          cd target
+          git log
+          first=`git rev-list --max-parents=0 HEAD`
+          last=`git rev-list --until=1.month.ago -n1 HEAD`
+          git rebase -Xtheirs --onto $first $last
+          git log
+      
+      - name: Push
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          cd target
+
+          python3 genindex.py
+          git add README.md
+          git commit -m "Update README.md"
+
+          git push -f
