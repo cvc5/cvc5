@@ -69,7 +69,7 @@ jobs:
           echo "NAME=$NAME" >> $GITHUB_ENV
 
       - name: Configure
-        run: ./configure.sh production --docs
+        run: ./configure.sh production --docs --all-bindings
 
       - name: Build
         run: make -j2 docs-gh
