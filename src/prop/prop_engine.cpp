@@ -111,11 +111,17 @@ PropEngine::PropEngine(TheoryEngine* te,
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver
-  d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
+  d_satSolver->initialize(
+      d_context,
+      d_theoryProxy,
+      userContext,
+      options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
+          ? pnm
+          : nullptr);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
-  if (pnm)
+  if (pnm && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
         userContext,
@@ -267,7 +273,7 @@ void PropEngine::assertInternal(
         && input)
     {
       Assert(!negated);
-      d_pfCnfStream->ensureLiteral(node);
+      d_cnfStream->ensureLiteral(node);
       d_assumptions.push_back(node);
     }
     else
