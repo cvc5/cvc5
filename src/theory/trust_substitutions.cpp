@@ -27,21 +27,32 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            MethodId ids)
     : d_ctx(c),
       d_subs(c),
-      d_pnm(pnm),
       d_tsubs(c),
-      d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
-      d_subsPg(
-          pnm ? new LazyCDProof(pnm, nullptr, c, "TrustSubstitutionMap::subsPg")
-              : nullptr),
-      d_applyPg(pnm ? new LazyCDProof(
-                          pnm, nullptr, c, "TrustSubstitutionMap::applyPg")
-                    : nullptr),
-      d_helperPf(pnm, c),
+      d_tspb(nullptr),
+      d_subsPg(nullptr),
+      d_applyPg(nullptr),
+      d_helperPf(nullptr),
       d_name(name),
       d_trustId(trustId),
       d_ids(ids),
       d_eqtIndex(c)
 {
+  setProofNodeManager(pnm);
+}
+
+void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
+{
+  if (pnm != nullptr)
+  {
+    // should not set the proof node manager more than once
+    Assert(d_tspb == nullptr);
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
+        d_subsPg.reset(new LazyCDProof(
+            pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_applyPg.reset(
+        new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+    d_helperPf.reset(new CDProofSet<LazyCDProof>(pnm, d_ctx));
+  }
 }
 
 void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
@@ -61,6 +72,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
                                            PfRule id,
+                                           const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
   if (!isProofEnabled())
@@ -68,9 +80,9 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     addSubstitution(x, t, nullptr);
     return;
   }
-  LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
+  LazyCDProof* stepPg = d_helperPf->allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
-  stepPg->addStep(eq, id, {}, args);
+  stepPg->addStep(eq, id, children, args);
   addSubstitution(x, t, stepPg);
 }
 
@@ -99,12 +111,13 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     Trace("trust-subs") << "...use generator directly" << std::endl;
     return tn.getGenerator();
   }
-  LazyCDProof* solvePg = d_helperPf.allocateProof(nullptr, d_ctx);
+  LazyCDProof* solvePg = d_helperPf->allocateProof(nullptr, d_ctx);
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
-    // failed to rewrite
-    addSubstitution(x, t, nullptr);
+    // failed to rewrite, it is critical for unsat cores that proven is a
+    // premise here, since the conclusion depends on it
+    addSubstitution(x, t, PfRule::TRUST_SUBS_MAP, {proven}, {eq});
     Trace("trust-subs") << "...failed to rewrite" << std::endl;
     return nullptr;
   }

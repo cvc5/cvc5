@@ -24,12 +24,19 @@ ${headers_module}$
 namespace cvc5 {
 namespace options {
 
+#if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
+#else /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
+#endif /* CVC5_MUZZLED || CVC5_COMPETITION_MODE */
+
 struct OptionsHolder
 {
-  OptionsHolder();
   ${macros_module}$
 
 }; /* struct OptionsHolder */
+
+#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 }  // namespace options
 }  // namespace cvc5

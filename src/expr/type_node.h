@@ -651,6 +651,9 @@ public:
   /** Is this a tester type */
   bool isTester() const;
 
+  /** Is this a datatype updater type */
+  bool isDatatypeUpdater() const;
+
   /** Get the internal Datatype specification from a datatype type */
   const DType& getDType() const;
 
