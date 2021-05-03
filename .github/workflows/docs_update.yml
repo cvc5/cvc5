@@ -63,7 +63,7 @@ jobs:
             PRHASH="${{ github.event.pull_request.head.sha }}"
             echo "Identified PR #$NAME (from $PRHASH)"
             NAME="pr$NAME"
-            git remote add pr "${{ github.event.pull_request.head.repo.url}}"
+            git remote add pr "${{ github.event.pull_request.head.repo.clone_url}}"
             git fetch pr "${{ github.event.pull_request.head.ref}}:pr"
             git checkout "${PRHASH}" -- \
               `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
