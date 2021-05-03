@@ -31,6 +31,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v2
 
@@ -72,7 +73,7 @@ jobs:
           echo "NAME=$NAME" >> $GITHUB_ENV
 
       - name: Configure
-        run: ./configure.sh production --docs --all-bindings
+        run: ./configure.sh production --docs --all-bindings --auto-download
 
       - name: Build
         run: make -j2 docs-gh
