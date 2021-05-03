@@ -73,15 +73,17 @@ jobs:
             NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
             echo "Identified branch $NAME"
           elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
+            echo "GITHUB_REF: ${GITHUB_REF}"
             NAME="${{ github.event.number }}"
-            PRREF="${{ github.event.pull_request.head.sha }}"
-            echo "Identified PR #$NAME (from $PRREF)"
+            PRHASH="${{ github.event.pull_request.head.sha }}"
+            echo "Identified PR #$NAME (from $PRHASH)"
             NAME="pr$NAME"
             # be careful here, see explanation above!
+            git fetch ${PRHASH}
             git checkout "${PRREF}" -- \
-              `git ls-tree "${PRREF}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
-              `git ls-tree "${GITHUBPRREF_REF}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
-              `git ls-tree "${PRREF}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
+              `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
+              `git ls-tree "${PRHASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
+              `git ls-tree "${PRHASH}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
           fi
           if [ -n "$NAME" ]; then
             rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
