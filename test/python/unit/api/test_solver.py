@@ -15,19 +15,6 @@ import sys
 from pycvc4 import kinds
 from contextlib import contextmanager
 
-@contextmanager
-def assert_no_raises(ExpectedException):
-    try:
-        yield
-
-    except ExpectedException as error:
-        pytest.fail()
-        raise AssertionError(f"Raised exception {error} when it should not!")
-
-    except Exception as error:
-        pytest.fail()
-        raise AssertionError(f"An unexpected exception {error} raised.")
-
 @pytest.fixture
 def solver():
     return pycvc4.Solver()
@@ -41,42 +28,88 @@ def test_recoverable_exception(solver):
 
 def test_supports_floating_point(solver):
     if solver.supportsFloatingPoint():
-        with assert_no_raises(RuntimeError):
-            solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
+        solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
     else:
         with pytest.raises(RuntimeError):
             solver.mkRoundingMode(pycvc4.RoundNearestTiesToEven)
 
-def test_get_boolean_sort(solver):
-    with assert_no_raises(RuntimeError):
-        solver.getBooleanSort()
+def test_getBooleanSort(solver):
+    solver.getBooleanSort()
 
-def test_get_integer_sort(solver):
-    with assert_no_raises(RuntimeError):
-        solver.getIntegerSort()
+def test_getIntegerSort(solver):
+    solver.getIntegerSort()
 
-#def test_get_null_sort(solver):
-#    try:
+#def test_getNullSort(solver):
 #        solver.getNullSort()
-#    except RuntimeError:
-#        pytest.fail()
 
-def test_get_real_sort(solver):
-    with assert_no_raises(RuntimeError):
-        solver.getRealSort()
+def test_getRealSort(solver):
+    solver.getRealSort()
 
-def test_get_reg_exp_sort(solver):
-    with assert_no_raises(RuntimeError):
-        solver.getRegExpSort()
+def test_getRegExpSort(solver):
+    solver.getRegExpSort()
 
-def test_get_string_sort(solver):
-    with assert_no_raises(RuntimeError):
-        solver.getStringSort()
+def test_getStringSort(solver):
+    solver.getStringSort()
 
 def test_get_rounding_mode_sort(solver):
     if solver.supportsFloatingPoint():
-        with assert_no_raises(RuntimeError):
-            solver.getRoundingModeSort()
+        solver.getRoundingModeSort()
     else:
         with pytest.raises(RuntimeError):
             solver.getRoundingModeSort()
+
+def test_mkArraySort(solver):
+    boolSort = solver.getBooleanSort()
+    intSort = solver.getIntegerSort()
+    realSort = solver.getRealSort()
+    bvSort = solver.mkBitVectorSort(32)
+    solver.mkArraySort(boolSort, boolSort)
+    solver.mkArraySort(intSort, intSort)
+    solver.mkArraySort(realSort, realSort)
+    solver.mkArraySort(bvSort, bvSort)
+    solver.mkArraySort(boolSort, intSort)
+    solver.mkArraySort(realSort, bvSort)
+
+    if (solver.supportsFloatingPoint()):
+        fpSort = solver.mkFloatingPointSort(3, 5)
+        solver.mkArraySort(fpSort, fpSort)
+        solver.mkArraySort(bvSort, fpSort)
+
+    slv = pycvc4.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkArraySort(boolSort, boolSort)
+
+def test_mkBitVectorSort(solver):
+    solver.mkBitVectorSort(32);
+    with pytest.raises(RuntimeError):
+        solver.mkBitVectorSort(0)
+
+def test_mkFloatingPointSort(solver):
+    if solver.supportsFloatingPoint():
+        solver.mkFloatingPointSort(4, 8)
+        with pytest.raises(RuntimeError):
+            solver.mkFloatingPointSort(0, 8)
+        with pytest.raises(RuntimeError):
+            solver.mkFloatingPointSort(4, 0)
+    else:
+        with pytest.raises(RuntimeError):
+            solver.mkFloatingPointSort(4, 8)
+
+def test_mkDatatypeSort(solver):
+    dtypeSpec = solver.mkDatatypeDecl("list")
+    cons = solver.mkDatatypeConstructorDecl("cons")
+    cons.addSelector("head", solver.getIntegerSort())
+    dtypeSpec.addConstructor(cons)
+    nil = solver.mkDatatypeConstructorDecl("nil")
+    dtypeSpec.addConstructor(nil)
+    solver.mkDatatypeSort(dtypeSpec)
+
+    slv = pycvc4.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSort(dtypeSpec)
+
+    throwsDtypeSpec = solver.mkDatatypeDecl("list")
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSort(throwsDtypeSpec)
+
+def 
