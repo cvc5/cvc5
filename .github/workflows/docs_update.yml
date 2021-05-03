@@ -60,7 +60,7 @@ jobs:
             echo "Identified PR #$NAME (from $PRHASH)"
             NAME="pr$NAME"
             # be careful here, see explanation above!
-            git fetch "${{ github.event.pull_request.head.ref }}"
+            git fetch
             git checkout "${PRHASH}" -- \
               `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
               `git ls-tree "${PRHASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
