@@ -887,7 +887,8 @@ class CVC5_EXPORT SmtEngine
   std::vector<Node> getExpandedAssertions();
 
   /**
-   * !!!!! temporary
+   * !!!!! temporary, until the environment is passsed to all classes that
+   * require it.
    */
   Env& getEnv();
   /* .......................................................................  */

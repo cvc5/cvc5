@@ -27,7 +27,6 @@ namespace cvc5 {
 
 class Env;
 class ProofNodeManager;
-class SmtEngine;
 class TConvProofGenerator;
 
 namespace smt {
@@ -43,7 +42,7 @@ struct SmtEngineStatistics;
 class ExpandDefs
 {
  public:
-  ExpandDefs(SmtEngine& smt, Env& env, SmtEngineStatistics& stats);
+  ExpandDefs(Env& env, SmtEngineStatistics& stats);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
@@ -70,8 +69,6 @@ class ExpandDefs
       TNode n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       TConvProofGenerator* tpg);
-  /** Reference to the SMT engine */
-  SmtEngine& d_smt;
   /** Reference to the environment. */
   Env& d_env;
   /** Reference to the SMT stats */

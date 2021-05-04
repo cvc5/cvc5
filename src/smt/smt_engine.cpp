@@ -133,7 +133,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
-      new SmtSolver(*this, *d_env.get(), *d_state, *d_pp, *d_stats));
+      new SmtSolver(*this, *d_state, getResourceManager(), *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(
       new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
@@ -1137,18 +1137,6 @@ Node SmtEngine::expandDefinitions(const Node& ex)
   d_state->doPendingPops();
   return d_pp->expandDefinitions(ex);
 }
-
-/*
-Node SmtEngine::applySubstitutions(const Node& n)
-{
-  getResourceManager()->spendResource(Resource::PreprocessStep);
-  SmtScope smts(this);
-  finishInit();
-  d_state->doPendingPops();
-  theory::SubstitutionMap& sm = d_env->getTopLevelSubstitutions().get();
-  return sm.apply(n);
-}
-*/
 
 // TODO(#1108): Simplify the error reporting of this method.
 Node SmtEngine::getValue(const Node& ex) const
