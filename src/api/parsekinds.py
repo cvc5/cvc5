@@ -61,9 +61,14 @@ class KindsParser:
     }
 
     def __init__(self):
+        # dictionary from C++ Kind name to shortened name
         self.kinds = OrderedDict()
+        # the end token for the current type of block
+        # none if not in a block comment or macro
         self.endtoken = None
+        # stack of end tokens
         self.endtoken_stack = []
+        # boolean that is true when in the kinds enum
         self.in_kinds = False
 
     def format_name(self, name):
