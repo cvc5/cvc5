@@ -59,8 +59,8 @@ TrustNode ExpandDefs::expandDefinitions(
   // output / rewritten node and finally a flag tracking whether the children
   // have been explored (i.e. if this is a downward or upward pass).
 
-  ResourceManager * rm = d_env.getResourceManager();
-  Rewriter * rr = d_env.getRewriter();
+  ResourceManager* rm = d_env.getResourceManager();
+  Rewriter* rr = d_env.getRewriter();
   do
   {
     rm->spendResource(Resource::PreprocessStep);
