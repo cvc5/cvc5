@@ -110,16 +110,15 @@ void Preprocessor::clearLearnedLiterals()
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
-Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
+Node Preprocessor::expandDefinitions(const Node& n)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return expandDefinitions(n, cache, expandOnly);
+  return expandDefinitions(n, cache);
 }
 
 Node Preprocessor::expandDefinitions(
     const Node& node,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly)
+    std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
   // Substitute out any abstract values in node.
@@ -130,13 +129,9 @@ Node Preprocessor::expandDefinitions(
     n.getType(true);
   }
   // we apply substitutions here, before expanding definitions
-  theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-  n = sm.apply(n);
-  if (!expandOnly)
-  {
-    // expand only = true
-    n = d_exDefs.expandDefinitions(n, cache, expandOnly);
-  }
+  n = d_env.getTopLevelSubstitutions().apply(n, false);
+  // now call expand definitions
+  n = d_exDefs.expandDefinitions(n, cache);
   return n;
 }
 
@@ -148,8 +143,7 @@ Node Preprocessor::simplify(const Node& node)
     d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
         d_smt.getOutputManager().getDumpOut(), node);
   }
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Node ret = expandDefinitions(node, cache, false);
+  Node ret = expandDefinitions(node);
   ret = theory::Rewriter::rewrite(ret);
   return ret;
 }

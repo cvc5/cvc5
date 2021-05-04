@@ -1129,16 +1129,26 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
+Node SmtEngine::expandDefinitions(const Node& ex)
 {
-  getResourceManager()->spendResource(
-      Resource::PreprocessStep);
-
+  getResourceManager()->spendResource(Resource::PreprocessStep);
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  return d_pp->expandDefinitions(ex, expandOnly);
+  return d_pp->expandDefinitions(ex);
 }
+
+/*
+Node SmtEngine::applySubstitutions(const Node& n)
+{
+  getResourceManager()->spendResource(Resource::PreprocessStep);
+  SmtScope smts(this);
+  finishInit();
+  d_state->doPendingPops();
+  theory::SubstitutionMap& sm = d_env->getTopLevelSubstitutions().get();
+  return sm.apply(n);
+}
+*/
 
 // TODO(#1108): Simplify the error reporting of this method.
 Node SmtEngine::getValue(const Node& ex) const
@@ -1340,6 +1350,10 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   }
   return eassertsProc;
 }
+Env& SmtEngine::getEnv()
+{
+  return *d_env.get();
+}
 
 void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
@@ -1455,8 +1469,9 @@ void SmtEngine::checkUnsatCore() {
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
            << std::endl;
+  theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    Node assertionAfterExpansion = expandDefinitions(*i);
+    Node assertionAfterExpansion = tls.apply(*i, false);
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
     coreChecker->assertFormula(assertionAfterExpansion);

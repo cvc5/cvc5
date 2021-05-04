@@ -25,6 +25,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "smt/env.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -235,7 +236,6 @@ Node mkSygusTerm(const DType& dt,
         // expandDefinitions.
         opn = smt::currentSmtEngine()->expandDefinitions(op);
         opn = Rewriter::rewrite(opn);
-        opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
       }

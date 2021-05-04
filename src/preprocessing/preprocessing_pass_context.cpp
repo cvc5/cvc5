@@ -71,7 +71,7 @@ void PreprocessingPassContext::addModelSubstitution(const Node& lhs,
                                                     const Node& rhs)
 {
   getTheoryEngine()->getModel()->addSubstitution(
-      lhs, d_smt->expandDefinitions(rhs, false));
+      lhs, d_smt->expandDefinitions(rhs));
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,

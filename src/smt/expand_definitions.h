@@ -30,10 +30,6 @@ class ProofNodeManager;
 class SmtEngine;
 class TConvProofGenerator;
 
-namespace preprocessing {
-class AssertionPipeline;
-}
-
 namespace smt {
 
 struct SmtEngineStatistics;
@@ -54,14 +50,11 @@ class ExpandDefs
    *
    * @param n The node to expand
    * @param cache Cache of previous results
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
   Node expandDefinitions(
       TNode n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly = false);
+      std::unordered_map<Node, Node, NodeHashFunction>& cache);
 
   /**
    * Set proof node manager, which signals this class to enable proofs using the
@@ -77,7 +70,6 @@ class ExpandDefs
   theory::TrustNode expandDefinitions(
       TNode n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly,
       TConvProofGenerator* tpg);
   /** Reference to the SMT engine */
   SmtEngine& d_smt;

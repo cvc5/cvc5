@@ -24,6 +24,8 @@
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/env.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
 
@@ -46,7 +48,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  Node conjn = d_parent->expandDefinitions(goal);
+  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(goal);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;

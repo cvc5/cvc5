@@ -41,17 +41,15 @@ ExpandDefs::~ExpandDefs() {}
 
 Node ExpandDefs::expandDefinitions(
     TNode n,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly)
+    std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
-  TrustNode trn = expandDefinitions(n, cache, expandOnly, nullptr);
+  TrustNode trn = expandDefinitions(n, cache, nullptr);
   return trn.isNull() ? Node(n) : trn.getNode();
 }
 
 TrustNode ExpandDefs::expandDefinitions(
     TNode n,
     std::unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly,
     TConvProofGenerator* tpg)
 {
   const TNode orig = n;
@@ -93,30 +91,25 @@ TrustNode ExpandDefs::expandDefinitions(
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      if (!expandOnly)
+      // TODO: use rewriter
+      theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
+      theory::TheoryRewriter* tr = t->getTheoryRewriter();
+
+      Assert(t != NULL);
+      TrustNode trn = tr->expandDefinition(n);
+      if (!trn.isNull())
       {
-        // do not do any theory stuff if expandOnly is true
-
-        theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
-        theory::TheoryRewriter* tr = t->getTheoryRewriter();
-
-        Assert(t != NULL);
-        TrustNode trn = tr->expandDefinition(n);
-        if (!trn.isNull())
+        node = trn.getNode();
+        if (tpg != nullptr)
         {
-          node = trn.getNode();
-          if (tpg != nullptr)
-          {
-            tpg->addRewriteStep(
-                n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
-          }
-        }
-        else
-        {
-          node = n;
+          tpg->addRewriteStep(
+              n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
         }
       }
-
+      else
+      {
+        node = n;
+      }
       // the partial functions can fall through, in which case we still
       // consider their children
       worklist.push(std::make_tuple(
