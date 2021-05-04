@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file decision_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Decision engine
- **
- ** Decision engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Old implementation of the decision engine
+ */
 
 #include "cvc5_private.h"
 
@@ -35,22 +34,6 @@ namespace cvc5 {
 
 class DecisionEngineOld
 {
-  // PropEngine* d_propEngine;
-  CnfStream* d_cnfStream;
-  CDCLTSatSolverInterface* d_satSolver;
-
-  context::Context* d_satContext;
-  context::UserContext* d_userContext;
-
-  // Does decision engine know the answer?
-  context::CDO<SatValue> d_result;
-
-  // Disable creating decision engine without required parameters
-  DecisionEngineOld();
-
-  // init/shutdown state
-  unsigned d_engineState;  // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
-
  public:
   // Necessary functions
 
@@ -143,8 +126,23 @@ class DecisionEngineOld
   Node getNode(SatLiteral l) { return d_cnfStream->getNode(l); }
 
  private:
+  // Disable creating decision engine without required parameters
+  DecisionEngineOld();
+  
+  CnfStream* d_cnfStream;
+  CDCLTSatSolverInterface* d_satSolver;
+
+  context::Context* d_satContext;
+  context::UserContext* d_userContext;
+
+  // Does decision engine know the answer?
+  context::CDO<SatValue> d_result;
+
+  // init/shutdown state
+  unsigned d_engineState;  // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
   /** The ITE decision strategy we have allocated */
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
+  
 }; /* DecisionEngineOld class */
 
 }  // namespace cvc5

@@ -61,7 +61,7 @@ class DecisionEngine
    */
   void addAssertion(TNode assertion);
   /**
-   * TODO: remove this interface
+   * !!!! temporary until the old justification implementation is deleted.
    * Notify this class  that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
