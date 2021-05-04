@@ -43,9 +43,7 @@ void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
   }
 }
 
-void DecisionEngine::presolve()
-{
-}
+void DecisionEngine::presolve() {}
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
