@@ -5,7 +5,7 @@ Python API Documentation
 
     .. warning::
 
-        This documentation was build while python bindings were disabled. Most probably, this part of the documentation is either empty or outdated. Please enable :code:`BUILD_BINDINGS_PYTHON` in :code:`cmake` and build the documentation again.
+        This documentation was built while python bindings were disabled. This part of the documentation is likely either empty or outdated. Please enable :code:`BUILD_BINDINGS_PYTHON` in :code:`cmake` and build the documentation again.
 
 .. toctree::
     :maxdepth: 2
