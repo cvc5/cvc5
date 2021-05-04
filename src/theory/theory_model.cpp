@@ -33,7 +33,7 @@ TheoryModel::TheoryModel(context::Context* c,
                          std::string name,
                          bool enableFuncModels)
     : d_name(name),
-      d_substitutions(c, false),
+      d_substitutions(c),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
@@ -200,10 +200,13 @@ Node TheoryModel::getModelValue(TNode n) const
   Node ret = n;
   NodeManager* nm = NodeManager::currentNM();
 
-  // if it is an evaluated kind, compute model values for children and evaluate
-  if (n.getNumChildren() > 0
-      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
-      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
+  // If it has children, evaluate them. We do this even if n is an unevaluatable
+  // or semi-unevaluatable operator. Notice this includes quantified
+  // formulas. It may not be possible in general to evaluate bodies of
+  // quantified formulas, because they have free variables. Regardless, we
+  // may often be able to evaluate the body of a quantified formula to true,
+  // e.g. forall x. P(x) where P = lambda x. true.
+  if (n.getNumChildren() > 0)
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
@@ -219,9 +222,17 @@ Node TheoryModel::getModelValue(TNode n) const
       children.push_back(n.getOperator());
     }
     // evaluate the children
-    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i]);
+      if (n.isClosure() && i==0)
+      {
+        // do not evaluate bound variable lists
+        ret = n[0];
+      }
+      else
+      {
+        ret = getModelValue(n[i]);
+      }
       Debug("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
@@ -245,8 +256,16 @@ Node TheoryModel::getModelValue(TNode n) const
       ret = nm->mkConst(
           Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
-    d_modelCache[n] = ret;
-    return ret;
+    // if the value was constant, we return it. If it was non-constant,
+    // we only return it if we an evaluated kind. This can occur if the
+    // children of n failed to evaluate.
+    if (ret.isConst() || (
+     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
+    {
+      d_modelCache[n] = ret;
+      return ret;
+    }
   }
   // it might be approximate
   std::map<Node, Node>::const_iterator ita = d_approximations.find(n);

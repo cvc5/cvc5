@@ -34,7 +34,11 @@ if(ANTLR3_JAR AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
 endif()
 
 if(NOT ANTLR3_FOUND_SYSTEM)
-    check_auto_download("ANTLR3" "")
+    check_ep_downloaded("ANTLR3-EP-jar")
+    if(NOT ANTLR3-EP-jar_DOWNLOADED)
+      check_auto_download("ANTLR3" "")
+    endif()
+
     include(ExternalProject)
 
     set(ANTLR3_VERSION "3.4")
@@ -108,8 +112,7 @@ set(ANTLR3_FOUND TRUE)
 # This may not be a single binary: the EP has a whole commandline
 # We thus do not make this an executable target.
 # Just call ${ANTLR3_COMMAND} instead.
-set(ANTLR3_COMMAND ${Java_JAVA_EXECUTABLE} -cp
-    "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool
+set(ANTLR3_COMMAND ${Java_JAVA_EXECUTABLE} -cp "${ANTLR3_JAR}" org.antlr.Tool
     CACHE STRING "run ANTLR3" FORCE)
 
 add_library(ANTLR3 STATIC IMPORTED GLOBAL)
@@ -126,7 +129,9 @@ mark_as_advanced(ANTLR3_RUNTIME)
 
 if(ANTLR3_FOUND_SYSTEM)
     message(STATUS "Found ANTLR3 runtime: ${ANTLR3_RUNTIME}")
+    message(STATUS "Found ANTLR3 JAR: ${ANTLR3_JAR}")
 else()
     message(STATUS "Building ANTLR3 runtime: ${ANTLR3_RUNTIME}")
+    message(STATUS "Downloading ANTLR3 JAR: ${ANTLR3_JAR}")
     add_dependencies(ANTLR3 ANTLR3-EP-runtime ANTLR3-EP-jar)
 endif()

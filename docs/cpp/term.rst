@@ -1,12 +1,12 @@
 Term
 ====
 
-.. doxygenstruct:: cvc5::api::TermHashFunction
+.. doxygenclass:: cvc5::api::Term
     :project: cvc5
     :members:
     :undoc-members:
 
-.. doxygenclass:: cvc5::api::Term
-    :project: cvc5
+.. doxygenstruct:: std::hash< cvc5::api::Term >
+    :project: std
     :members:
     :undoc-members:

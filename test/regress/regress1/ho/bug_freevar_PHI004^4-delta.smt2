@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho --finite-model-find --no-check-models
+; COMMAND-LINE: --uf-ho --finite-model-find -q
 ; EXPECT: sat
 
 (set-logic ALL)

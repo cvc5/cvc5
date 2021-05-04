@@ -63,8 +63,6 @@ class TheoryBV : public Theory
 
   void finishInit() override;
 
-  TrustNode expandDefinition(Node node) override;
-
   void preRegisterTerm(TNode n) override;
 
   bool preCheck(Effort e) override;
@@ -123,6 +121,13 @@ class TheoryBV : public Theory
 
   /** The notify class for equality engine. */
   TheoryEqNotifyClass d_notify;
+
+  /** TheoryBV statistics. */
+  struct Statistics
+  {
+    Statistics(const std::string& name);
+    IntStat d_solveSubstitutions;
+  } d_stats;
 
 }; /* class TheoryBV */
 

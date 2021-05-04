@@ -35,22 +35,16 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
   uint32_t aMod2 = static_cast<uint32_t>(a.isBitSet(0));
   uint32_t bMod2 = static_cast<uint32_t>(b.isBitSet(0));
-  BitVector aMod2PlusbMod2(a.getSize(), (aMod2 + bMod2) / 2);
+  BitVector aMod2PlusbMod2Div2(a.getSize(), (aMod2 + bMod2) / 2);
   BitVector bv1 = BitVector::mkOne(a.getSize());
-  if (isSigned)
-  {
-    return (a.arithRightShift(bv1) + b.arithRightShift(bv1)
-            + aMod2PlusbMod2.arithRightShift(bv1));
-  }
-  else
-  {
-    return (a.logicalRightShift(bv1) + b.logicalRightShift(bv1)
-            + aMod2PlusbMod2.logicalRightShift(bv1));
-  }
+  return (isSigned) ? ((a.arithRightShift(bv1) + b.arithRightShift(bv1)
+                        + aMod2PlusbMod2Div2))
+                    : ((a.logicalRightShift(bv1) + b.logicalRightShift(bv1)
+                        + aMod2PlusbMod2Div2));
 }
 
-std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* parentSMTSolver,
+                                                   TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
@@ -62,11 +56,11 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
   Node value;
   if (intermediateSatResult.isUnknown())
   {
-    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    return OptimizationResult(OptimizationResult::UNKNOWN, value);
   }
   if (intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return std::make_pair(OptResult::OPT_UNSAT, value);
+    return OptimizationResult(OptimizationResult::UNSAT, value);
   }
 
   // value equals to upperBound
@@ -92,27 +86,28 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
   // pivot = (lowerBound + upperBound) / 2
   // rounded towards -infinity
   BitVector pivot;
-  while (true)
+  while ((d_isSigned && lowerBound.signedLessThan(upperBound))
+         || (!d_isSigned && lowerBound.unsignedLessThan(upperBound)))
   {
-    if (d_isSigned)
+    pivot = computeAverage(lowerBound, upperBound, d_isSigned);
+    optChecker->push();
+    if (lowerBound == pivot)
     {
-      if (!lowerBound.signedLessThan(upperBound)) break;
+      optChecker->assertFormula(
+          nm->mkNode(kind::EQUAL, target, nm->mkConst(lowerBound)));
     }
     else
     {
-      if (!lowerBound.unsignedLessThan(upperBound)) break;
+      // lowerBound <= target < pivot
+      optChecker->assertFormula(
+          nm->mkNode(kind::AND,
+                     nm->mkNode(GEOperator, target, nm->mkConst(lowerBound)),
+                     nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
     }
-    pivot = computeAverage(lowerBound, upperBound, d_isSigned);
-    optChecker->push();
-    // lowerBound <= target < pivot
-    optChecker->assertFormula(
-        nm->mkNode(kind::AND,
-                   nm->mkNode(GEOperator, target, nm->mkConst(lowerBound)),
-                   nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
     {
@@ -126,7 +121,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
         // lowerBound == pivot ==> upperbound = lowerbound + 1
         // and lowerbound <= target < upperbound is UNSAT
         // return the upperbound
-        return std::make_pair(OptResult::OPT_OPTIMAL, value);
+        return OptimizationResult(OptimizationResult::OPTIMAL, value);
       }
       else
       {
@@ -135,15 +130,15 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
     }
     else
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     optChecker->pop();
   }
-  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+  return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
-std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* parentSMTSolver,
+                                                   TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
@@ -155,11 +150,11 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   Node value;
   if (intermediateSatResult.isUnknown())
   {
-    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    return OptimizationResult(OptimizationResult::UNKNOWN, value);
   }
   if (intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return std::make_pair(OptResult::OPT_UNSAT, value);
+    return OptimizationResult(OptimizationResult::UNSAT, value);
   }
 
   // value equals to upperBound
@@ -186,19 +181,15 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   // pivot = (lowerBound + upperBound) / 2
   // rounded towards -infinity
   BitVector pivot;
-  while (true)
+  while ((d_isSigned && lowerBound.signedLessThan(upperBound))
+         || (!d_isSigned && lowerBound.unsignedLessThan(upperBound)))
   {
-    if (d_isSigned)
-    {
-      if (!lowerBound.signedLessThan(upperBound)) break;
-    }
-    else
-    {
-      if (!lowerBound.unsignedLessThan(upperBound)) break;
-    }
     pivot = computeAverage(lowerBound, upperBound, d_isSigned);
 
     optChecker->push();
+    // notice that we don't have boundary condition here
+    // because lowerBound == pivot / lowerBound == upperBound + 1 is also
+    // covered
     // pivot < target <= upperBound
     optChecker->assertFormula(
         nm->mkNode(kind::AND,
@@ -207,7 +198,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
     {
@@ -221,7 +212,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
         // upperbound = lowerbound + 1
         // and lowerbound < target <= upperbound is UNSAT
         // return the lowerbound
-        return std::make_pair(OptResult::OPT_OPTIMAL, value);
+        return OptimizationResult(OptimizationResult::OPTIMAL, value);
       }
       else
       {
@@ -230,11 +221,11 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     }
     else
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     optChecker->pop();
   }
-  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+  return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
 }  // namespace cvc5::omt

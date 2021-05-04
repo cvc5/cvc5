@@ -44,6 +44,7 @@ class DumpManager;
 
 namespace theory {
 class Rewriter;
+class TrustSubstitutionMap;
 }
 
 /**
@@ -60,7 +61,7 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm);
+  Env(NodeManager* nm, Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -84,8 +85,17 @@ class Env
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 
+  /** Get a reference to the top-level substitution map */
+  theory::TrustSubstitutionMap& getTopLevelSubstitutions();
+
   /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
+
+  template <typename Opt>
+  const auto& getOption(Opt opt) const
+  {
+    return d_options[opt];
+  }
 
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
@@ -116,10 +126,6 @@ class Env
  private:
   /* Private initialization ------------------------------------------------- */
 
-  /** Set options, which makes a deep copy of optr if non-null */
-  void setOptions(Options* optr = nullptr);
-  /** Set the statistics registry */
-  void setStatisticsRegistry(StatisticsRegistry* statReg);
   /** Set proof node manager if it exists */
   void setProofNodeManager(ProofNodeManager* pnm);
 
@@ -153,6 +159,8 @@ class Env
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  /** The top level substitutions */
+  std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpManager;
   /**

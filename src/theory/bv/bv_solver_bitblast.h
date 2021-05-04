@@ -60,12 +60,6 @@ class BVSolverBitblast : public BVSolver
 
   std::string identify() const override { return "BVSolverBitblast"; };
 
-  Theory::PPAssertStatus ppAssert(
-      TrustNode in, TrustSubstitutionMap& outSubstitutions) override
-  {
-    return Theory::PPAssertStatus::PP_ASSERT_STATUS_UNSOLVED;
-  }
-
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   bool collectModelValues(TheoryModel* m,
