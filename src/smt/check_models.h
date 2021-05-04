@@ -25,7 +25,7 @@ namespace cvc5 {
 namespace smt {
 
 class Model;
-class SmtSolver;
+class Env;
 
 /**
  * This utility is responsible for checking the current model.
@@ -33,7 +33,7 @@ class SmtSolver;
 class CheckModels
 {
  public:
-  CheckModels(SmtSolver& s);
+  CheckModels(Env& e);
   ~CheckModels();
   /**
    * Check model m against the current set of input assertions al.
@@ -44,8 +44,8 @@ class CheckModels
   void checkModel(Model* m, context::CDList<Node>* al, bool hardFailure);
 
  private:
-  /** Reference to the SMT solver */
-  SmtSolver& d_smt;
+  /** Reference to the environment */
+  Env& d_env;
 };
 
 }  // namespace smt

@@ -243,7 +243,7 @@ void SmtEngine::finishInit()
   {
     d_model.reset(new Model(tm));
     // make the check models utility
-    d_checkModels.reset(new CheckModels(*d_smtSolver.get()));
+    d_checkModels.reset(new CheckModels(*d_env.get()));
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -1492,7 +1492,15 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");
   Assert(m != nullptr);
-
+  
+  // check the model with the theory engine for debugging
+  if (options::debugCheckModels())
+  {
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
+    te->checkTheoryAssertionsWithModel(hardFailure);
+  }
+  
   // check the model with the check models utility
   Assert(d_checkModels != nullptr);
   d_checkModels->checkModel(m, al, hardFailure);
