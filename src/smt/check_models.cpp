@@ -67,7 +67,7 @@ void CheckModels::checkModel(Model* m,
     // evaluate e.g. divide-by-zero. This is intentional since the evaluation
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
-    Node n = sm.apply(n);
+    Node n = sm.apply(assertion);
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << std::endl;
 
     n = Rewriter::rewrite(n);
