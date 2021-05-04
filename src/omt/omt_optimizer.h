@@ -30,6 +30,7 @@ class OMTOptimizer
 
   /**
    * Returns whether node supports optimization
+   * Currently supported: BitVectors, Integers (preliminary).
    * @param node the target node to check for optimizability
    * @return whether node supports optimization
    **/

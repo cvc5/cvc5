@@ -25,6 +25,7 @@ namespace cvc5::omt {
 bool OMTOptimizer::nodeSupportsOptimization(TNode node)
 {
   TypeNode type = node.getType();
+  // only supports Integer and BitVectors as of now
   return (type.isInteger() || type.isBitVector());
 }
 
@@ -120,10 +121,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
         CVC5_FATAL() << "Target type does not support optimization";
       }
     }
-      // there's no default case
-      // because if more cases in OptimizationObjective::ObjectiveType are added
-      // compiler will issue a warning here in compile time instead of pushing
-      // it to run time.
+    default:
+      CVC5_FATAL() << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
   }
   Unreachable();
 }
@@ -200,6 +199,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
         CVC5_FATAL() << "Target type does not support optimization";
       }
     }
+    default:
+      CVC5_FATAL() << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
   }
   Unreachable();
 }
