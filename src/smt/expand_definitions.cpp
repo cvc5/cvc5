@@ -19,14 +19,14 @@
 #include <utility>
 
 #include "expr/node_manager_attributes.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
-#include "util/resource_manager.h"
 #include "theory/theory.h"
-#include "expr/term_conversion_proof_generator.h"
+#include "util/resource_manager.h"
 
 using namespace cvc5::preprocessing;
 using namespace cvc5::theory;
