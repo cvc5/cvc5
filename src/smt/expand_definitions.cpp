@@ -24,6 +24,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
+#include "util/resource_manager.h"
+#include "theory/theory.h"
+#include "expr/term_conversion_proof_generator.h"
 
 using namespace cvc5::preprocessing;
 using namespace cvc5::theory;
@@ -95,7 +98,7 @@ TrustNode ExpandDefs::expandDefinitions(
       theory::TheoryId tid = theory::Theory::theoryOf(node);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
-      Assert(t != NULL);
+      Assert(tr != NULL);
       TrustNode trn = tr->expandDefinition(n);
       if (!trn.isNull())
       {
