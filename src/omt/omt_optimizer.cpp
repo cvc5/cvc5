@@ -67,10 +67,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
     {
       if (targetType.isInteger())
       {
-        Assert(lhs.getType().isInteger() || lhs.getType().isReal())
-            << lhsTypeError;
-        Assert(rhs.getType().isInteger() || rhs.getType().isReal())
-            << rhsTypeError;
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
         return nm->mkNode(Kind::LT, lhs, rhs);
       }
       else if (targetType.isBitVector())
@@ -83,17 +81,15 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       }
       else
       {
-        CVC5_FATAL() << "Target type does not support optimization";
+        Unimplemented() << "Target type does not support optimization";
       }
     }
     case OptimizationObjective::MAXIMIZE:
     {
       if (targetType.isInteger())
       {
-        Assert(lhs.getType().isInteger() || lhs.getType().isReal())
-            << lhsTypeError;
-        Assert(rhs.getType().isInteger() || rhs.getType().isReal())
-            << rhsTypeError;
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
         return nm->mkNode(Kind::GT, lhs, rhs);
       }
       else if (targetType.isBitVector())
@@ -106,7 +102,7 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       }
       else
       {
-        CVC5_FATAL() << "Target type does not support optimization";
+        Unimplemented() << "Target type does not support optimization";
       }
     }
     default:
@@ -133,10 +129,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
     {
       if (targetType.isInteger())
       {
-        Assert(lhs.getType().isInteger() || lhs.getType().isReal())
-            << lhsTypeError;
-        Assert(rhs.getType().isInteger() || rhs.getType().isReal())
-            << rhsTypeError;
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
         return nm->mkNode(Kind::LEQ, lhs, rhs);
       }
       else if (targetType.isBitVector())
@@ -149,17 +143,15 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
       }
       else
       {
-        CVC5_FATAL() << "Target type does not support optimization";
+        Unimplemented() << "Target type does not support optimization";
       }
     }
     case OptimizationObjective::MAXIMIZE:
     {
       if (targetType.isInteger())
       {
-        Assert(lhs.getType().isInteger() || lhs.getType().isReal())
-            << lhsTypeError;
-        Assert(rhs.getType().isInteger() || rhs.getType().isReal())
-            << rhsTypeError;
+        Assert(lhs.getType().isInteger()) << lhsTypeError;
+        Assert(rhs.getType().isInteger()) << rhsTypeError;
         return nm->mkNode(Kind::GEQ, lhs, rhs);
       }
       else if (targetType.isBitVector())
@@ -172,7 +164,7 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
       }
       else
       {
-        CVC5_FATAL() << "Target type does not support optimization";
+        Unimplemented() << "Target type does not support optimization";
       }
     }
     default:
