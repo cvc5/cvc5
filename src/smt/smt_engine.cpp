@@ -1492,7 +1492,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");
   Assert(m != nullptr);
-  
+
   // check the model with the theory engine for debugging
   if (options::debugCheckModels())
   {
@@ -1500,7 +1500,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     Assert(te != nullptr);
     te->checkTheoryAssertionsWithModel(hardFailure);
   }
-  
+
   // check the model with the check models utility
   Assert(d_checkModels != nullptr);
   d_checkModels->checkModel(m, al, hardFailure);
