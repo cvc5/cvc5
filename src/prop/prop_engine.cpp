@@ -113,7 +113,9 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver
   d_satSolver->initialize(
-      d_env.getContext(), d_theoryProxy, d_env.getUserContext(), 
+      d_env.getContext(),
+      d_theoryProxy,
+      d_env.getUserContext(),
       options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
           ? pnm
           : nullptr);
