@@ -885,9 +885,9 @@ class CVC5_EXPORT SmtEngine
    * Return the set of assertions, after expanding definitions.
    */
   std::vector<Node> getExpandedAssertions();
-  
-  /** 
-   * !!!!! temporary 
+
+  /**
+   * !!!!! temporary
    */
   Env& getEnv();
   /* .......................................................................  */

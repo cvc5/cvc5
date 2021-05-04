@@ -108,5 +108,5 @@ const Printer& Env::getPrinter()
 }
 
 std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
-  
+
 }  // namespace cvc5

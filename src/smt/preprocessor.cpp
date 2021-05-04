@@ -117,8 +117,7 @@ Node Preprocessor::expandDefinitions(const Node& n)
 }
 
 Node Preprocessor::expandDefinitions(
-    const Node& node,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache)
+    const Node& node, std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
   // Substitute out any abstract values in node.

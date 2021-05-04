@@ -90,8 +90,7 @@ class Preprocessor
   Node expandDefinitions(const Node& n);
   /** Same as above, with a cache of previous results. */
   Node expandDefinitions(
-      const Node& n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache);
+      const Node& n, std::unordered_map<Node, Node, NodeHashFunction>& cache);
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */

@@ -53,8 +53,7 @@ class ExpandDefs
    * @return The expanded term.
    */
   Node expandDefinitions(
-      TNode n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache);
+      TNode n, std::unordered_map<Node, Node, NodeHashFunction>& cache);
 
   /**
    * Set proof node manager, which signals this class to enable proofs using the

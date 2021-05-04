@@ -21,11 +21,11 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
-#include "smt/env.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;

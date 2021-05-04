@@ -1350,10 +1350,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
   }
   return eassertsProc;
 }
-Env& SmtEngine::getEnv()
-{
-  return *d_env.get();
-}
+Env& SmtEngine::getEnv() { return *d_env.get(); }
 
 void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {

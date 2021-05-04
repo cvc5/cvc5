@@ -40,8 +40,7 @@ ExpandDefs::ExpandDefs(SmtEngine& smt, Env& env, SmtEngineStatistics& stats)
 ExpandDefs::~ExpandDefs() {}
 
 Node ExpandDefs::expandDefinitions(
-    TNode n,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache)
+    TNode n, std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   TrustNode trn = expandDefinitions(n, cache, nullptr);
   return trn.isNull() ? Node(n) : trn.getNode();
