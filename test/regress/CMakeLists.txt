@@ -574,6 +574,7 @@ set(regress_0_tests
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/from_ubv.smt2
+  regress0/fp/from_sbv.smt2
   regress0/fp/issue-5524.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
