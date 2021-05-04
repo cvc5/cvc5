@@ -31,6 +31,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
+#include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
@@ -47,7 +48,6 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "smt/env.h"
 
 using namespace std;
 
@@ -206,10 +206,15 @@ void TheoryEngine::finishInit()
 
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 
+context::Context* TheoryEngine::getSatContext() const
+{
+  return d_env.getContext();
+}
 
-context::Context* TheoryEngine::getSatContext() const { return d_env.getContext(); }
-
-context::UserContext* TheoryEngine::getUserContext() const { return d_env.getUserContext(); }
+context::UserContext* TheoryEngine::getUserContext() const
+{
+  return d_env.getUserContext();
+}
 
 TheoryEngine::TheoryEngine(Env& env,
                            OutputManager& outMgr,
@@ -219,10 +224,12 @@ TheoryEngine::TheoryEngine(Env& env,
       d_logicInfo(env.getLogicInfo()),
       d_outMgr(outMgr),
       d_pnm(pnm),
-      d_lazyProof(
-          d_pnm != nullptr ? new LazyCDProof(
-              d_pnm, nullptr, d_env.getUserContext(), "TheoryEngine::LazyCDProof")
-                           : nullptr),
+      d_lazyProof(d_pnm != nullptr
+                      ? new LazyCDProof(d_pnm,
+                                        nullptr,
+                                        d_env.getUserContext(),
+                                        "TheoryEngine::LazyCDProof")
+                      : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_env.getUserContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),

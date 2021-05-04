@@ -35,12 +35,12 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace prop {
@@ -84,9 +84,9 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_assumptions(d_env.getUserContext())
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
-  context::Context * satContext = d_env.getContext();
-  context::UserContext * userContext = d_env.getUserContext();
-  ResourceManager * rm = d_env.getResourceManager();
+  context::Context* satContext = d_env.getContext();
+  context::UserContext* userContext = d_env.getUserContext();
+  ResourceManager* rm = d_env.getResourceManager();
 
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
@@ -112,7 +112,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver
-  d_satSolver->initialize(d_env.getContext(), d_theoryProxy, d_env.getUserContext(), pnm);
+  d_satSolver->initialize(
+      d_env.getContext(), d_theoryProxy, d_env.getUserContext(), pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
@@ -388,7 +389,7 @@ Result PropEngine::checkSat() {
   }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    ResourceManager * rm = d_env.getResourceManager();
+    ResourceManager* rm = d_env.getResourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
     if (rm->outOfTime())
     {

@@ -342,7 +342,7 @@ class PropEngine
 
   /** Reference to the environment */
   Env& d_env;
-  
+
   /** The decision engine we will be using */
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 

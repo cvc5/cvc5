@@ -108,7 +108,7 @@ class TheoryEngine {
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
 
-  /** 
+  /**
    * Reference to the environment.
    */
   Env& d_env;
@@ -294,9 +294,7 @@ class TheoryEngine {
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env,
-               OutputManager& outMgr,
-               ProofNodeManager* pnm);
+  TheoryEngine(Env& env, OutputManager& outMgr, ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

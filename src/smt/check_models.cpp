@@ -17,6 +17,7 @@
 
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/model.h"
 #include "smt/node_command.h"
 #include "smt/preprocessor.h"
@@ -24,7 +25,6 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
-#include "smt/env.h"
 
 using namespace cvc5::theory;
 
