@@ -2323,25 +2323,53 @@ bool VeritProofPostprocessCallback::update(Node res,
       Node lesser;
       Node greater;
 
-      if(res.getKind() == kind::EQUAL){equal = res;}
-      else if(children[0].getKind() == kind::NOT){equal = children[0];}
-      else if(children[1].getKind() == kind::NOT){equal = children[1];}
+      if (res.getKind() == kind::EQUAL)
+      {
+        equal = res;
+      }
+      else if (children[0].getKind() == kind::NOT)
+      {
+        equal = children[0];
+      }
+      else if (children[1].getKind() == kind::NOT)
+      {
+        equal = children[1];
+      }
 
-      if(res.getKind() == kind::GT){greater = res;}
-      else if(children[0].getKind() == kind::LEQ){greater = children[0];}
-      else if(children[1].getKind() == kind::LEQ){greater = children[1];}
+      if (res.getKind() == kind::GT)
+      {
+        greater = res;
+      }
+      else if (children[0].getKind() == kind::LEQ)
+      {
+        greater = children[0];
+      }
+      else if (children[1].getKind() == kind::LEQ)
+      {
+        greater = children[1];
+      }
 
-      if(res.getKind() == kind::LT){lesser = res;}
-      else if(children[0].getKind() == kind::GEQ){lesser = children[0];}
-      else if(children[1].getKind() == kind::GEQ){lesser = children[1];}
+      if (res.getKind() == kind::LT)
+      {
+        lesser = res;
+      }
+      else if (children[0].getKind() == kind::GEQ)
+      {
+        lesser = children[0];
+      }
+      else if (children[1].getKind() == kind::GEQ)
+      {
+        lesser = children[1];
+      }
 
       Node x = equal[0][0];
       Node c = equal[0][1];
       Node vp_child1 = children[0];
       Node vp_child2 = children[1];
 
-      //Preprocessing
-      if(res == equal || res == greater){ // C = (= x c) or C = (> x c)
+      // Preprocessing
+      if (res == equal || res == greater)
+      {  // C = (= x c) or C = (> x c)
         // lesser = (>= x c)
         Node vpc2 = d_nm->mkNode(kind::SEXPR,
                                  d_cl,
@@ -2377,7 +2405,7 @@ bool VeritProofPostprocessCallback::update(Node res,
         }
       }
 
-      //Process
+      // Process
       Node vp1 =
           d_nm->mkNode(kind::SEXPR,
                        d_cl,
@@ -2395,8 +2423,9 @@ bool VeritProofPostprocessCallback::update(Node res,
       success &= addVeritStep(vp1, VeritRule::LA_DISEQUALITY, {}, {}, *cdp)
                  && addVeritStep(vp2, VeritRule::OR, {vp1}, {}, *cdp);
 
-      //Postprocessing
-      if (res == equal){ //no postprocessing necessary
+      // Postprocessing
+      if (res == equal)
+      {  // no postprocessing necessary
         return success
                && addVeritStep(res,
                                VeritRule::RESOLUTION,
@@ -2446,7 +2475,8 @@ bool VeritProofPostprocessCallback::update(Node res,
                                {},
                                *cdp);
       }
-      else{ //have (not (<= c x)) but result should be (< x c)
+      else
+      {  // have (not (<= c x)) but result should be (< x c)
         Node vp3 = d_nm->mkNode(
             kind::SEXPR,
             d_cl,
