@@ -168,7 +168,6 @@ jobs:
       with:
         path: build/deps
         key: deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
-        restore-keys: deps-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure
       run: |
