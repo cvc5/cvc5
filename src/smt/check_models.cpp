@@ -24,6 +24,7 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"
+#include "smt/env.h"
 
 using namespace cvc5::theory;
 

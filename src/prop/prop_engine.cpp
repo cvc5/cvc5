@@ -40,6 +40,7 @@
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace prop {
@@ -65,15 +66,13 @@ public:
 };
 
 PropEngine::PropEngine(TheoryEngine* te,
-                       context::Context* satContext,
-                       context::UserContext* userContext,
-                       ResourceManager* rm,
+                       Env& env,
                        OutputManager& outMgr,
                        ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
-      d_context(satContext),
-      d_skdm(new SkolemDefManager(satContext, userContext)),
+      d_env(env),
+      d_skdm(new SkolemDefManager(d_env.getContext(), d_env.getUserContext())),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
       d_pnm(pnm),
@@ -81,11 +80,13 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_pfCnfStream(nullptr),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_resourceManager(rm),
       d_outMgr(outMgr),
-      d_assumptions(userContext)
+      d_assumptions(d_env.getUserContext())
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
+  context::Context * satContext = d_env.getContext();
+  context::UserContext * userContext = d_env.getUserContext();
+  ResourceManager * rm = d_env.getResourceManager();
 
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
@@ -111,7 +112,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver
-  d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
+  d_satSolver->initialize(d_env.getContext(), d_theoryProxy, d_env.getUserContext(), pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
@@ -387,13 +388,16 @@ Result PropEngine::checkSat() {
   }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-
+    ResourceManager * rm = d_env.getResourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
-    if (d_resourceManager->outOfTime())
+    if (rm->outOfTime())
+    {
       why = Result::TIMEOUT;
-    if (d_resourceManager->outOfResources())
+    }
+    if (rm->outOfResources())
+    {
       why = Result::RESOURCEOUT;
-
+    }
     return Result(Result::SAT_UNKNOWN, why);
   }
 
@@ -568,7 +572,7 @@ void PropEngine::interrupt()
 
 void PropEngine::spendResource(Resource r)
 {
-  d_resourceManager->spendResource(r);
+  d_env.getResourceManager()->spendResource(r);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const

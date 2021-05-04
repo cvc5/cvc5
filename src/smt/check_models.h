@@ -22,10 +22,12 @@
 #include "expr/node.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace smt {
 
 class Model;
-class Env;
 
 /**
  * This utility is responsible for checking the current model.
