@@ -93,9 +93,6 @@ class BVSolverLazy : public BVSolver
 
   std::string identify() const override { return std::string("BVSolverLazy"); }
 
-  Theory::PPAssertStatus ppAssert(
-      TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
-
   TrustNode ppRewrite(TNode t) override;
 
   void ppStaticLearn(TNode in, NodeBuilder& learned) override;
@@ -112,7 +109,6 @@ class BVSolverLazy : public BVSolver
   {
    public:
     AverageStat d_avgConflictSize;
-    IntStat d_solveSubstitutions;
     TimerStat d_solveTimer;
     IntStat d_numCallsToCheckFullEffort;
     IntStat d_numCallsToCheckStandardEffort;

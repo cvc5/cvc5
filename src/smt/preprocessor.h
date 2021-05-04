@@ -25,6 +25,7 @@
 #include "theory/booleans/circuit_propagator.h"
 
 namespace cvc5 {
+class Env;
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -46,7 +47,7 @@ class Preprocessor
 {
  public:
   Preprocessor(SmtEngine& smt,
-               context::UserContext* u,
+               Env& env,
                AbstractValues& abs,
                SmtEngineStatistics& stats);
   ~Preprocessor();
@@ -94,17 +95,16 @@ class Preprocessor
       const Node& n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly = false);
-
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
-  /** A copy of the current context */
-  context::Context* d_context;
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
+  /** Reference to the env */
+  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**

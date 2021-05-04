@@ -31,7 +31,6 @@ class SmtEngine;
 namespace smt {
 
 class Assertions;
-class DefinedFunction;
 class PreprocessProofGenerator;
 class ProofPostproccess;
 
@@ -70,10 +69,6 @@ class ProofPostproccess;
  */
 class PfManager
 {
-  /** The type of our internal map of defined functions */
-  using DefinedFunctionMap =
-      context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
-
  public:
   PfManager(context::UserContext* u, SmtEngine* smte);
   ~PfManager();
@@ -83,20 +78,17 @@ class PfManager
    * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in as and df. For the latter, entries in the defined
-   * function map correspond to equalities of the form (= f (lambda (...) t)),
-   * which are considered assertions in the final proof.
+   * respect to assertions in as. Note this includes equalities of the form
+   * (= f (lambda (...) t)) which originate from define-fun commands for f.
+   * These are considered assertions in the final proof.
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> pfn,
-                  Assertions& as,
-                  DefinedFunctionMap& df);
+                  Assertions& as);
   /**
    * Check proof, same as above, without printing.
    */
-  void checkProof(std::shared_ptr<ProofNode> pfn,
-                  Assertions& as,
-                  DefinedFunctionMap& df);
+  void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
 
   /**
    * Get final proof.
@@ -104,8 +96,7 @@ class PfManager
    * The argument pfn is the proof for false in the current context.
    */
   std::shared_ptr<ProofNode> getFinalProof(std::shared_ptr<ProofNode> pfn,
-                                           Assertions& as,
-                                           DefinedFunctionMap& df);
+                                           Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -119,14 +110,11 @@ class PfManager
    * Set final proof, which initializes d_finalProof to the given proof node of
    * false, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(std::shared_ptr<ProofNode> pfn,
-                     Assertions& as,
-                     DefinedFunctionMap& df);
+  void setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
   /**
    * Get assertions from the assertions
    */
   void getAssertions(Assertions& as,
-                     DefinedFunctionMap& df,
                      std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
