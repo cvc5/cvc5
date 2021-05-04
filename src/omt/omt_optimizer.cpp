@@ -67,6 +67,7 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
     {
       if (targetType.isInteger() || targetType.isReal())
       {
+        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -81,12 +82,6 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
                    ? (nm->mkNode(Kind::BITVECTOR_SLT, lhs, rhs))
                    : (nm->mkNode(Kind::BITVECTOR_ULT, lhs, rhs));
       }
-      else if (targetType.isFloatingPoint())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return nm->mkNode(Kind::FLOATINGPOINT_LT, lhs, rhs);
-      }
       else
       {
         CVC5_FATAL() << "Target type does not support optimization";
@@ -96,6 +91,7 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
     {
       if (targetType.isInteger() || targetType.isReal())
       {
+        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -109,12 +105,6 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
         return (objective.bvIsSigned())
                    ? (nm->mkNode(Kind::BITVECTOR_SGT, lhs, rhs))
                    : (nm->mkNode(Kind::BITVECTOR_UGT, lhs, rhs));
-      }
-      else if (targetType.isFloatingPoint())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return nm->mkNode(Kind::FLOATINGPOINT_GT, lhs, rhs);
       }
       else
       {
@@ -145,6 +135,7 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
     {
       if (targetType.isInteger() || targetType.isReal())
       {
+        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -159,12 +150,6 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
                    ? (nm->mkNode(Kind::BITVECTOR_SLE, lhs, rhs))
                    : (nm->mkNode(Kind::BITVECTOR_ULE, lhs, rhs));
       }
-      else if (targetType.isFloatingPoint())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return nm->mkNode(Kind::FLOATINGPOINT_LEQ, lhs, rhs);
-      }
       else
       {
         CVC5_FATAL() << "Target type does not support optimization";
@@ -174,6 +159,7 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
     {
       if (targetType.isInteger() || targetType.isReal())
       {
+        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -187,12 +173,6 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
         return (objective.bvIsSigned())
                    ? (nm->mkNode(Kind::BITVECTOR_SGE, lhs, rhs))
                    : (nm->mkNode(Kind::BITVECTOR_UGE, lhs, rhs));
-      }
-      else if (targetType.isFloatingPoint())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return nm->mkNode(Kind::FLOATINGPOINT_GEQ, lhs, rhs);
       }
       else
       {
