@@ -65,9 +65,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
   {
     case OptimizationObjective::MINIMIZE:
     {
-      if (targetType.isInteger() || targetType.isReal())
+      if (targetType.isInteger())
       {
-        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -89,9 +88,8 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
     }
     case OptimizationObjective::MAXIMIZE:
     {
-      if (targetType.isInteger() || targetType.isReal())
+      if (targetType.isInteger())
       {
-        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -133,9 +131,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
   {
     case OptimizationObjective::MINIMIZE:
     {
-      if (targetType.isInteger() || targetType.isReal())
+      if (targetType.isInteger())
       {
-        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
@@ -157,9 +154,8 @@ Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
     }
     case OptimizationObjective::MAXIMIZE:
     {
-      if (targetType.isInteger() || targetType.isReal())
+      if (targetType.isInteger())
       {
-        Assert(!targetType.isReal());  // remove this if real support is added
         Assert(lhs.getType().isInteger() || lhs.getType().isReal())
             << lhsTypeError;
         Assert(rhs.getType().isInteger() || rhs.getType().isReal())
