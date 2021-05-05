@@ -24,6 +24,8 @@ libcvc5_add_sources(
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
+  decision/decision_engine_old.cpp
+  decision/decision_engine_old.h
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
@@ -222,7 +224,6 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
-  smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
