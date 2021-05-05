@@ -6,24 +6,9 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        name: [
-          production,
-          production-clang,
-          production-dbg,
-          production-dbg-clang
-        ]
-
-        exclude:
-          - name: production-clang
-            os: macos-latest
-          - name: production-dbg
-            os: macos-latest
-          - name: production-dbg-clang
-            os: macos-latest
-
         include:
-          - name: production
+          - name: ubuntu:production
+            os: ubuntu-latest
             config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
@@ -31,33 +16,41 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
-          - name: production-clang
+          - name: macos:production
+            os: macos-latest
+            config: production --auto-download --all-bindings --editline
+            cache-key: production
+            python-bindings: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
+
+          - name: ubuntu:production-clang
+            os: ubuntu-latest
+            env: CC=clang CXX=clang++
             config: production --auto-download --all-bindings --docs
             cache-key: productionclang
             check-examples: true
             python-bindings: true
             build-documentation: true
-            env: CC=clang CXX=clang++
-            os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
-          - name: production-dbg
+          - name: ubuntu:production-dbg
+            os: ubuntu-latest
             config: production --auto-download --assertions --tracing --unit-testing --editline
             cache-key: dbg
-            os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores
 
-          - name: production-dbg-clang
+          - name: ubuntu:production-dbg-clang
+            os: ubuntu-latest
+            env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --unit-testing --cln --gpl
             cache-key: dbgclang
-            env: CC=clang CXX=clang++
-            os: ubuntu-latest
             exclude_regress: 3-4
             run_regression_args: --no-check-proofs
 
-    name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
