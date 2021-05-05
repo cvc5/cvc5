@@ -165,11 +165,38 @@ class OptimizationSolver
 {
  public:
   /**
+   * An enum specifying how multiple objectives are dealt.
+   * Definition:
+   *   phi(x, y): set of assertions with variables x and y
+   *
+   * Box: treat the objectives as independent objectives
+   *   v_x = max(x) s.t. phi(x, y) = sat
+   *   v_y = max(y) s.t. phi(x, y) = sat
+   *
+   * Lexicographic: optimize the objectives one-by-one, in the order they push
+   *   v_x = max(x) s.t. phi(x, y) = sat
+   *   v_y = max(y) s.t. phi(v_x, y) = sat
+   *
+   * Pareto: optimize multiple goals to a state such that
+   *   further optimization of one goal will worsen the other goal(s)
+   *   (v_x, v_y) s.t. phi(v_x, v_y) = sat, and
+   *     forall (x, y), (phi(x, y) = sat) -> (x <= v_x or y <= v_y)
+   **/
+  enum ObjectiveCombination
+  {
+    BOX,
+    LEXICOGRAPHIC,
+    PARETO,
+  };
+  /**
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
   OptimizationSolver(SmtEngine* parent)
-      : d_parent(parent), d_objectives(), d_results()
+      : d_parent(parent),
+        d_objectives(),
+        d_results(),
+        d_objectiveCombination(BOX)
   {
   }
   ~OptimizationSolver() = default;
@@ -221,7 +248,7 @@ class OptimizationSolver
       bool needsTimeout = false,
       unsigned long timeout = 0);
 
-  /** The parent SMT engine **/
+  /** A point to the parent SMT engine **/
   SmtEngine* d_parent;
 
   /** The objectives to optimize for **/
@@ -229,6 +256,9 @@ class OptimizationSolver
 
   /** The results of the optimizations from the last checkOpt call **/
   std::vector<OptimizationResult> d_results;
+
+  /** The current objective order **/
+  ObjectiveCombination d_objectiveCombination;
 };
 
 }  // namespace smt
