@@ -105,6 +105,7 @@ QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit(TheoryEngine* te)
 {
+  // connect the quantifiers model to the underlying theory model
   d_model->finishInit(te->getModel());
   d_te = te;
   // Initialize the modules and the utilities here.
@@ -131,10 +132,6 @@ quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
-}
-quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
-{
-  return d_model;
 }
 
 /// !!!!!!!!!!!!!! temporary (project #15)

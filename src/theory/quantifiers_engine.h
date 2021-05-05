@@ -69,8 +69,6 @@ class QuantifiersEngine {
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   //---------------------- end utilities

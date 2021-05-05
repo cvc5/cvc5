@@ -46,6 +46,7 @@ QModelBuilder::QModelBuilder(QuantifiersState& qs,
 
 void QModelBuilder::finishInit()
 {
+  // allocate the default model
   d_modelAloc.reset(new FirstOrderModel(d_qstate, d_qreg, d_treg));
   d_model = d_modelAloc.get();
 }
