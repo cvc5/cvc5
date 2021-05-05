@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Michael Chang, Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Michael Chang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -44,8 +44,6 @@ class OptimizationResult
    **/
   enum ResultType
   {
-    // the type of the target is not supported
-    UNSUPPORTED,
     // whether the value is optimal is UNKNOWN
     UNKNOWN,
     // the original set of assertions has result UNSAT
@@ -67,14 +65,14 @@ class OptimizationResult
       : d_type(type), d_value(value)
   {
   }
-  OptimizationResult() : d_type(UNSUPPORTED), d_value() {}
+  OptimizationResult() : d_type(UNKNOWN), d_value() {}
   ~OptimizationResult() = default;
 
   /**
    * Returns an enum indicating whether
    * the result is optimal or not.
    * @return an enum showing whether the result is optimal, unbounded,
-   *   unsat, unknown or unsupported.
+   *   unsat or unknown.
    **/
   ResultType getType() { return d_type; }
   /**
@@ -192,20 +190,11 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent)
-      : d_parent(parent),
-        d_objectives(),
-        d_results(),
-        d_objectiveCombination(LEXICOGRAPHIC)
-  {
-  }
+  OptimizationSolver(SmtEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
    * Run the optimization loop for the pushed objective
-   * NOTE: this function currently supports only single objective
-   * for multiple pushed objectives it always optimizes the first one.
-   * Add support for multi-obj later
    */
   OptimizationResult::ResultType checkOpt();
 
@@ -237,6 +226,11 @@ class OptimizationSolver
    **/
   std::vector<OptimizationResult> getValues();
 
+  /**
+   * Sets the objective combination
+   **/
+  void setObjectiveCombination(ObjectiveCombination combination);
+
  private:
   /**
    * Initialize an SMT subsolver for offline optimization purpose
@@ -251,8 +245,41 @@ class OptimizationSolver
       bool needsTimeout = false,
       unsigned long timeout = 0);
 
+  /**
+   * Optimize multiple goals in Box order
+   * @return OPTIMAL if all objectives are OPTIMAL or UNBOUNDED;
+   *   UNSAT if one of the objectives is UNSAT and no objective is UNKNOWN;
+   *   UNKNOWN if one the objectives is UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeBox();
+
+  /**
+   * Optimize multiple goals in Lexicographic order,
+   * using iterative implementation
+   * @return OPTIMAL if all objectives are OPTIMAL and bounded;
+   *   UNBOUNDED if one of the objectives is UNBOUNDED
+   *     and optimization will stop at that objective;
+   *   UNSAT if one of the objectives is UNSAT
+   *     and optimization will stop at that objective;
+   *   UNKNOWN if one of the objectives is UNKNOWN
+   *     and optimization will stop at that objective
+   **/
+  OptimizationResult::ResultType optimizeLexicographicIterative();
+
+  /**
+   * Optimize multiple goals in Pareto order
+   * Using a variant of linear search called Guided Improvement Algorithm
+   * @return if there's a result it will return OPTIMAL;
+   *   if it exhausts the results in the pareto front it will return UNSAT;
+   *   if it doesn't know whether there's a result it will return UNKNOWN.
+   **/
+  OptimizationResult::ResultType optimizeParetoNaiveGIA();
+
   /** A point to the parent SMT engine **/
   SmtEngine* d_parent;
+
+  /** A subsolver for offline optimization **/
+  std::unique_ptr<SmtEngine> d_optChecker;
 
   /** The objectives to optimize for **/
   std::vector<OptimizationObjective> d_objectives;

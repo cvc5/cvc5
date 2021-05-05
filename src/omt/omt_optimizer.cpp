@@ -47,7 +47,7 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
   }
   else
   {
-    return nullptr;
+    Unimplemented() << "Target type does not support optimization";
   }
 }
 
