@@ -156,7 +156,7 @@ class FirstOrderModel
   EqualityQuery* getEqualityQuery();
 
  protected:
-  /** The model */
+  /** Pointer to the underyling theory model */
   TheoryModel* d_model;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;

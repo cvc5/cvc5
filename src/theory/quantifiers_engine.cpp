@@ -73,8 +73,10 @@ QuantifiersEngine::~QuantifiersEngine() {}
 void QuantifiersEngine::finishInit(TheoryEngine* te)
 {
   d_te = te;
-  // Finish initializing the term registry by hooking it up to the inference
-  // manager. This is required due to a cyclic dependency between the term
+  // Finish initializing the term registry by hooking it up to the model and the
+  // inference manager. The former is required since theories are not given
+  // access to the model in their constructors currently.
+  // The latter is required due to a cyclic dependency between the term
   // database and the instantiate module. Term database needs inference manager
   // since it sends out lemmas when term indexing is inconsistent, instantiate
   // needs term database for entailment checks.
