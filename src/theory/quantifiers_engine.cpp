@@ -65,10 +65,10 @@ QuantifiersEngine::QuantifiersEngine(
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if ((options::finiteModelFind() || options::fmfBound())
-      && (options::mbqiMode() == options::MbqiMode::FMC
-          || options::mbqiMode() == options::MbqiMode::TRUST
-          || options::fmfBound()))
+  if (options::fmfBound()
+      || (options::finiteModelFind()
+          && (options::mbqiMode() == options::MbqiMode::FMC
+              || options::mbqiMode() == options::MbqiMode::TRUST)))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
