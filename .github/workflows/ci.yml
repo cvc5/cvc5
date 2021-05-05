@@ -110,6 +110,14 @@ jobs:
         python3 -m pip install \
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+    
+    - name: Install Documentation Dependencies
+      if: matrix.build-documentation
+      run: |
+        sudo apt-get install -y \
+          doxygen python3-docutils python3-jinja2
+        python3 -m pip install \
+          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
 
     # The GitHub action for caching currently does not support modifying an
     # already existing cache. We thus have a few different possibilities:
