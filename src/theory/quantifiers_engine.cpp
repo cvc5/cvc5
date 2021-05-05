@@ -72,7 +72,13 @@ QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit(TheoryEngine* te)
 {
-  d_te = te;
+  d_te = te;  
+  // Finish initializing the term registry by hooking it up to the inference
+  // manager. This is required due to a cyclic dependency between the term
+  // database and the instantiate module. Term database needs inference manager
+  // since it sends out lemmas when term indexing is inconsistent, instantiate
+  // needs term database for entailment checks.
+  d_treg.finishInit(d_te->getModel(), &d_qim);
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(d_qstate, d_qim, d_qreg, d_treg, d_modules);

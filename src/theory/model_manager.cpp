@@ -136,13 +136,13 @@ void ModelManager::postProcessModel(bool incomplete)
     }
     Trace("model-builder-debug")
         << "  PostProcessModel on theory: " << theoryId << std::endl;
-    t->postProcessModel(d_model);
+    t->postProcessModel(d_model.get());
   }
   // also call the model builder's post-process model
-  d_modelBuilder->postProcessModel(incomplete, d_model);
+  d_modelBuilder->postProcessModel(incomplete, d_model.get());
 }
 
-theory::TheoryModel* ModelManager::getModel() { return d_model; }
+theory::TheoryModel* ModelManager::getModel() { return d_model.get(); }
 
 bool ModelManager::collectModelBooleanVariables()
 {

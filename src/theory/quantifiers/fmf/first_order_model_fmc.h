@@ -39,10 +39,10 @@ class FirstOrderModelFmc : public FirstOrderModel
   void processInitializeModelForTerm(Node n) override;
 
  public:
-  FirstOrderModelFmc(QuantifiersState& qs,
+  FirstOrderModelFmc(
+                  QuantifiersState& qs,
                      QuantifiersRegistry& qr,
-                     TermRegistry& tr,
-                     std::string name);
+                     TermRegistry& tr);
   ~FirstOrderModelFmc() override;
   // initialize the model
   void processInitialize(bool ispre) override;

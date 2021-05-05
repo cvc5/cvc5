@@ -305,7 +305,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   d_preinitialized_eqc.clear();
   d_preinitialized_types.clear();
   //traverse equality engine
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->getEqualityEngine() );
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode tr = r.getType();
@@ -387,6 +387,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   }
 
   //now, make models
+  TheoryModel * tm = fm->getTheoryModel();
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
     Node op = it->first;
     //reset the model
@@ -395,17 +396,15 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
     bool needsDefault = true;
-    std::map< Node, std::vector< Node > >::iterator itut = fm->d_uf_terms.find( op );
-    if( itut!=fm->d_uf_terms.end() ){
-      Trace("fmc-model-debug") << itut->second.size() << " model values for " << op << " ... " << std::endl;
-      for( size_t i=0; i<itut->second.size(); i++ ){
-        Node n = itut->second[i];
+    if( tm->hasUfTerms(op) ){
+      const std::vector<Node>& uft = tm->getUfTerms(op);
+      Trace("fmc-model-debug") << uft.size() << " model values for " << op << " ... " << std::endl;
+      for (const Node& n : uft){
         // only consider unique up to congruence (in model equality engine)?
         add_conds.push_back( n );
         add_values.push_back( n );
-        Node r = fm->getRepresentative(n);
+        Node r = tm->getRepresentative(n);
         Trace("fmc-model-debug") << n << " -> " << r << std::endl;
-        //AlwaysAssert( fm->areEqual( itut->second[i], r ) );
       }
     }else{
       Trace("fmc-model-debug") << "No model values for " << op << " ... " << std::endl;
@@ -415,7 +414,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if( needsDefault ){
       Node nmb = fm->getModelBasisOpTerm(op);
       //add default value if necessary
-      if( fm->hasTerm( nmb ) ){
+      if( tm->hasTerm( nmb ) ){
         Trace("fmc-model-debug") << "Add default " << nmb << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( nmb );
@@ -423,7 +422,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node vmb = getSomeDomainElement(fm, nmb.getType());
         Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
         Trace("fmc-model-debug")
-            << fm->getRepSet()->getNumRepresentatives(nmb.getType())
+            << tm->getRepSet()->getNumRepresentatives(nmb.getType())
             << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( vmb );
@@ -541,6 +540,7 @@ void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn )
     d_preinitialized_types[tn] = true;
     if (tn.isFirstClass())
     {
+      TheoryModel * tm = fm->getTheoryModel();
       Trace("fmc") << "Get model basis term " << tn << "..." << std::endl;
       Node mb = fm->getModelBasisTerm(tn);
       Trace("fmc") << "...return " << mb << std::endl;
@@ -548,20 +548,20 @@ void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn )
       // either add it directly to the model's equality engine if no other terms
       // of this type exist, or otherwise assert that it is equal to the first
       // equivalence class of its type.
-      if (!fm->hasTerm(mb) && !mb.isConst())
+      if (!tm->hasTerm(mb) && !mb.isConst())
       {
         std::map<TypeNode, Node>::iterator itpe = d_preinitialized_eqc.find(tn);
         if (itpe == d_preinitialized_eqc.end())
         {
           Trace("fmc") << "...add model basis term to EE of model " << mb << " "
                        << tn << std::endl;
-          fm->d_equalityEngine->addTerm(mb);
+          tm->getEqualityEngine()->addTerm(mb);
         }
         else
         {
           Trace("fmc") << "...add model basis eqc equality to model " << mb
                        << " == " << itpe->second << " " << tn << std::endl;
-          bool ret = fm->assertEquality(mb, itpe->second, true);
+          bool ret = tm->assertEquality(mb, itpe->second, true);
           AlwaysAssert(ret);
         }
       }

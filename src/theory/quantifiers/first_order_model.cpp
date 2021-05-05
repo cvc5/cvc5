@@ -42,11 +42,10 @@ struct ModelBasisArgAttributeId
 };
 using ModelBasisArgAttribute = expr::Attribute<ModelBasisArgAttributeId, uint64_t>;
 
-FirstOrderModel::FirstOrderModel(TheoryModel* m,
-                                 QuantifiersState& qs,
+FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
-    : d_model(m),
+    : d_model(nullptr),
       d_qreg(qr),
       d_treg(tr),
       d_eq_query(qs, this),
@@ -54,6 +53,36 @@ FirstOrderModel::FirstOrderModel(TheoryModel* m,
       d_forallRlvComputed(false)
 {
 }
+
+void FirstOrderModel::finishInit(TheoryModel * m)
+{
+  d_model = m;
+}
+
+Node FirstOrderModel::getValue(TNode n) const
+{
+  return d_model->getValue(n);
+}
+bool FirstOrderModel::hasTerm(TNode a) { return d_model->hasTerm(a); }
+Node FirstOrderModel::getRepresentative(TNode a) { return d_model->getRepresentative(a); }
+bool FirstOrderModel::areEqual(TNode a, TNode b) { return d_model->areEqual(a,b); }
+bool FirstOrderModel::areDisequal(TNode a, TNode b) { return d_model->areDisequal(a, b); }
+eq::EqualityEngine* FirstOrderModel::getEqualityEngine()
+{
+  return d_model->getEqualityEngine();
+}
+  const RepSet* FirstOrderModel::getRepSet() const
+  {
+    return d_model->getRepSet();
+  }
+  RepSet* FirstOrderModel::getRepSetPtr()
+  {
+    return d_model->getRepSetPtr();
+  }
+  TheoryModel * FirstOrderModel::getTheoryModel()
+  {
+    return d_model;
+  }
 
 Node FirstOrderModel::getInternalRepresentative(Node a, Node q, size_t index)
 {
