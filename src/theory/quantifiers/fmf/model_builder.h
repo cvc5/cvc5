@@ -30,6 +30,7 @@ class FirstOrderModel;
 class QuantifiersState;
 class QuantifiersRegistry;
 class QuantifiersInferenceManager;
+class TermRegistry;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
@@ -73,8 +74,10 @@ class QModelBuilder : public TheoryEngineModelBuilder
   QuantifiersRegistry& d_qreg;
   /** Term registry */
   TermRegistry& d_treg;
-  /** The model object we are using */
-  std::unique_ptr<FirstOrderModel> d_model;
+  /** Pointer to the model object we are using */
+  FirstOrderModel * d_model;
+  /** The model object we have allocated */
+  std::unique_ptr<FirstOrderModel> d_modelAloc;
 };
 
 }  // namespace quantifiers

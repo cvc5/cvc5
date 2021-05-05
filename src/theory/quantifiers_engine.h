@@ -194,6 +194,8 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
+  /** model builder */
+  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities

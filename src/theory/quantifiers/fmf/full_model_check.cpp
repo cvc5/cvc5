@@ -289,13 +289,13 @@ FullModelChecker::FullModelChecker(QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
             QuantifiersRegistry& qr,
             TermRegistry& tr)
-    : QModelBuilder(qs, qr, qim)
+    : QModelBuilder(qs, qim, qr, tr), d_fm(new FirstOrderModelFmc(qs, qr, tr))
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-void QModelBuilder::finishInit()
+void FullModelChecker::finishInit()
 {
   d_model = d_fm.get();
 }
@@ -320,8 +320,8 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
 
   //must ensure model basis terms exists in model for each relevant type
   Trace("fmc") << "preInitialize types..." << std::endl;
-  d_fm.initialize();
-  for( std::pair<Node, Def * >::iterator mp = d_fm.d_models) {
+  d_fm->initialize();
+  for( std::pair<const Node, Def * >& mp : d_fm->d_models) {
     Node op = mp.first;
     Trace("fmc") << "preInitialize types for " << op << std::endl;
     TypeNode tno = op.getType();
@@ -333,10 +333,10 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   }
   Trace("fmc") << "Finish preInitialize types" << std::endl;
   //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
-  for (unsigned i = 0, nquant = d_fm.getNumAssertedQuantifiers(); i < nquant;
+  for (unsigned i = 0, nquant = d_fm->getNumAssertedQuantifiers(); i < nquant;
        i++)
   {
-    Node q = d_fm.getAssertedQuantifier(i);
+    Node q = d_fm->getAssertedQuantifier(i);
     registerQuantifiedFormula(q);
     if (!isHandled(q))
     {
@@ -357,7 +357,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     // nothing to do if no functions
     return true;
   }
-  FirstOrderModelFmc* fm = d_fm;
+  FirstOrderModelFmc* fm = d_fm.get();
   Trace("fmc") << "---Full Model Check reset() " << std::endl;
   d_quant_models.clear();
   d_rep_ids.clear();
@@ -392,10 +392,10 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   }
 
   //now, make models
-  for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
-    Node op = it->first;
+  for( std::pair<const Node, Def * >& fmm : d_fm->d_models ) {
+    Node op = fmm.first;
     //reset the model
-    fm->d_models[op]->reset();
+    d_fm->d_models[op]->reset();
 
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
@@ -419,7 +419,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     Trace("fmc-model-debug") << std::endl;
     //possibly get default
     if( needsDefault ){
-      Node nmb = fm->getModelBasisOpTerm(op);
+      Node nmb = d_fm->getModelBasisOpTerm(op);
       //add default value if necessary
       if (m->hasTerm(nmb))
       {
@@ -427,7 +427,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         add_conds.push_back( nmb );
         add_values.push_back( nmb );
       }else{
-        Node vmb = getSomeDomainElement(fm, nmb.getType());
+        Node vmb = getSomeDomainElement(d_fm.get(), nmb.getType());
         Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
         Trace("fmc-model-debug")
             << m->getRepSet()->getNumRepresentatives(nmb.getType())
@@ -549,7 +549,7 @@ void FullModelChecker::preInitializeType( TheoryModel * m, TypeNode tn ){
     if (tn.isFirstClass())
     {
       Trace("fmc") << "Get model basis term " << tn << "..." << std::endl;
-      Node mb = d_fm.getModelBasisTerm(tn);
+      Node mb = d_fm->getModelBasisTerm(tn);
       Trace("fmc") << "...return " << mb << std::endl;
       // if the model basis term does not exist in the model,
       // either add it directly to the model's equality engine if no other terms
@@ -815,7 +815,7 @@ class RepBoundFmcEntry : public QRepBoundExt
                                unsigned i,
                                std::vector<Node>& elements) override
   {
-    if (!d_fm.isStar(d_entry[i]))
+    if (!d_fm->isStar(d_entry[i]))
     {
       // only need to consider the single point
       elements.push_back(d_entry[i]);
@@ -1354,10 +1354,6 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 
 bool FullModelChecker::useSimpleModels() {
   return options::fmfFmcSimple();
-}
-FirstOrderModel * FullModelChecker::getModel()
-{
-  return d_fm.get();
 }
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {

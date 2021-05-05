@@ -113,7 +113,7 @@ protected:
    * if a bound variable is of type T, or an uninterpreted function has an
    * argument or a return value of type T.
    */
-  void preInitializeType( FirstOrderModelFmc * fm, TypeNode tn );
+  void preInitializeType( TheoryModel * m, TypeNode tn );
   /** for each type, an equivalence class of that type from the model */
   std::map<TypeNode, Node> d_preinitialized_eqc;
   /** map from types to whether we have called the method above */
@@ -175,8 +175,6 @@ protected:
   bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
-  /** get the model we are using */
-  FirstOrderModel * getModel() override;
  private:
   /**
    * Register quantified formula.
@@ -186,6 +184,8 @@ protected:
   void registerQuantifiedFormula(Node q);
   /** Is quantified formula q handled by model-based instantiation? */
   bool isHandled(Node q) const;
+  /** The first order model */
+  std::unique_ptr<FirstOrderModelFmc> d_fm;
 };/* class FullModelChecker */
 
 }  // namespace fmcheck
