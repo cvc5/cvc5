@@ -26,7 +26,7 @@ using namespace cvc5::api;
  * Method:    newSolver
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv* env, jobject)
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv*, jobject)
 {
   Solver* solver = new Solver();
   return ((jlong)solver);
@@ -37,9 +37,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv* env, jobject)
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv* env,
-                                                      jclass,
-                                                      jlong pointer)
+JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv*,
+                                                     jclass,
+                                                     jlong pointer)
 {
   delete ((Solver*)pointer);
 }
