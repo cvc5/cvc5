@@ -85,7 +85,7 @@ bool ModelManagerDistributed::prepareModel()
     collectAssertedTerms(theoryId, termSet);
     // also get relevant terms
     t->computeRelevantTerms(termSet);
-    if (!t->collectModelInfo(d_model, termSet))
+    if (!t->collectModelInfo(d_model.get(), termSet))
     {
       Trace("model-builder")
           << "ModelManagerDistributed: fail collect model info" << std::endl;
@@ -106,7 +106,7 @@ bool ModelManagerDistributed::prepareModel()
 bool ModelManagerDistributed::finishBuildModel() const
 {
   // do not use relevant terms
-  if (!d_modelBuilder->buildModel(d_model))
+  if (!d_modelBuilder->buildModel(d_model.get()))
   {
     Trace("model-builder") << "ModelManager: fail build model" << std::endl;
     return false;
