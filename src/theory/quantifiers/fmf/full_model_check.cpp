@@ -286,19 +286,16 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
 }
 
 FullModelChecker::FullModelChecker(QuantifiersState& qs,
-            QuantifiersInferenceManager& qim,
-            QuantifiersRegistry& qr,
-            TermRegistry& tr)
+                                   QuantifiersInferenceManager& qim,
+                                   QuantifiersRegistry& qr,
+                                   TermRegistry& tr)
     : QModelBuilder(qs, qim, qr, tr), d_fm(new FirstOrderModelFmc(qs, qr, tr))
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-void FullModelChecker::finishInit()
-{
-  d_model = d_fm.get();
-}
+void FullModelChecker::finishInit() { d_model = d_fm.get(); }
 
 bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   //standard pre-process
@@ -321,13 +318,14 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   //must ensure model basis terms exists in model for each relevant type
   Trace("fmc") << "preInitialize types..." << std::endl;
   d_fm->initialize();
-  for( std::pair<const Node, Def * >& mp : d_fm->d_models) {
+  for (std::pair<const Node, Def*>& mp : d_fm->d_models)
+  {
     Node op = mp.first;
     Trace("fmc") << "preInitialize types for " << op << std::endl;
     TypeNode tno = op.getType();
     for( unsigned i=0; i<tno.getNumChildren(); i++) {
       Trace("fmc") << "preInitializeType " << tno[i] << std::endl;
-      preInitializeType( m, tno[i] );
+      preInitializeType(m, tno[i]);
       Trace("fmc") << "finished preInitializeType " << tno[i] << std::endl;
     }
   }
@@ -372,7 +370,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if( it->first.isSort() ){
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
-        Node r = m->getRepresentative( it->second[a] );
+        Node r = m->getRepresentative(it->second[a]);
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
           d_qstate.getEquivalenceClass(r, eqc);
@@ -392,7 +390,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   }
 
   //now, make models
-  for( std::pair<const Node, Def * >& fmm : d_fm->d_models ) {
+  for (std::pair<const Node, Def*>& fmm : d_fm->d_models)
+  {
     Node op = fmm.first;
     //reset the model
     d_fm->d_models[op]->reset();
@@ -543,7 +542,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
-void FullModelChecker::preInitializeType( TheoryModel * m, TypeNode tn ){
+void FullModelChecker::preInitializeType(TheoryModel* m, TypeNode tn)
+{
   if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
     d_preinitialized_types[tn] = true;
     if (tn.isFirstClass())

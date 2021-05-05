@@ -61,7 +61,7 @@ class QuantifiersModules
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
-                  QModelBuilder * builder,
+                  QModelBuilder* builder,
                   std::vector<QuantifiersModule*>& modules);
 
  private:

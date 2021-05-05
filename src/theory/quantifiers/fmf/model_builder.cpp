@@ -30,9 +30,9 @@ using namespace cvc5::theory;
 using namespace cvc5::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(QuantifiersState& qs,
-            QuantifiersInferenceManager& qim,
-            QuantifiersRegistry& qr,
-            TermRegistry& tr)
+                             QuantifiersInferenceManager& qim,
+                             QuantifiersRegistry& qr,
+                             TermRegistry& tr)
     : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
       d_triedLemmas(0),
@@ -73,9 +73,13 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
       ++eqcs_i;
     }
     //look at quantified formulas
-    for( size_t i=0, nquant = d_model->getNumAssertedQuantifiers(); i<nquant; i++ ){
-      Node q = d_model->getAssertedQuantifier( i, true );
-      if( d_model->isQuantifierActive( q ) ){
+    for (size_t i = 0, nquant = d_model->getNumAssertedQuantifiers();
+         i < nquant;
+         i++)
+    {
+      Node q = d_model->getAssertedQuantifier(i, true);
+      if (d_model->isQuantifierActive(q))
+      {
         //check if any of these quantified formulas can be set inactive
         if (q[0].getNumChildren() == 1)
         {
@@ -87,7 +91,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
             {
               Trace("model-engine-debug")
                   << "Irrelevant function definition : " << q << std::endl;
-              d_model->setQuantifierActive( q, false );
+              d_model->setQuantifierActive(q, false);
             }
           }
         }
@@ -123,7 +127,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
             terms.push_back( riter.getCurrentTerm( k ) );
           }
           Node n = inst->getInstantiation(f, vars, terms);
-          Node val = m->getValue( n );
+          Node val = m->getValue(n);
           if (!val.isConst() || !val.getConst<bool>())
           {
             Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
@@ -146,7 +150,4 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     }
   }
 }
-FirstOrderModel * QModelBuilder::getModel()
-{
-  return d_model;
-}
+FirstOrderModel* QModelBuilder::getModel() { return d_model; }

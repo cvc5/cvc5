@@ -71,18 +71,18 @@ QuantifiersEngine::QuantifiersEngine(
           || options::fmfBound()))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
-    d_builder.reset(new quantifiers::fmcheck::FullModelChecker(qs, qim, qr, tr));
+    d_builder.reset(
+        new quantifiers::fmcheck::FullModelChecker(qs, qim, qr, tr));
   }
   else
   {
-    Trace("quant-init-debug")
-        << "...make default model builder." << std::endl;
+    Trace("quant-init-debug") << "...make default model builder." << std::endl;
     d_builder.reset(new quantifiers::QModelBuilder(qs, qim, qr, tr));
   }
   // set the model object
   d_builder->finishInit();
   d_model = d_builder->getModel();
-  
+
   // Finish initializing the term registry by hooking it up to the model and the
   // inference manager. The former is required since theories are not given
   // access to the model in their constructors currently.
@@ -91,7 +91,7 @@ QuantifiersEngine::QuantifiersEngine(
   // since it sends out lemmas when term indexing is inconsistent, instantiate
   // needs term database for entailment checks.
   d_treg.finishInit(d_model, &d_qim);
-  
+
   // initialize the utilities
   d_util.push_back(d_model->getEqualityQuery());
   // quantifiers registry must come before the remaining utilities
@@ -109,14 +109,15 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_te = te;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
+  d_qmodules->initialize(
+      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
 
   // handle any circular dependencies
-  
+
   // quantifiers bound inference needs to be informed of the bounded integers
   // module, which has information about which quantifiers have finite bounds
   d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());

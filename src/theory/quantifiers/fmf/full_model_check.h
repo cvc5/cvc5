@@ -113,7 +113,7 @@ protected:
    * if a bound variable is of type T, or an uninterpreted function has an
    * argument or a return value of type T.
    */
-  void preInitializeType( TheoryModel * m, TypeNode tn );
+  void preInitializeType(TheoryModel* m, TypeNode tn);
   /** for each type, an equivalence class of that type from the model */
   std::map<TypeNode, Node> d_preinitialized_eqc;
   /** map from types to whether we have called the method above */
@@ -156,9 +156,9 @@ protected:
 
  public:
   FullModelChecker(QuantifiersState& qs,
-            QuantifiersInferenceManager& qim,
-            QuantifiersRegistry& qr,
-            TermRegistry& tr);
+                   QuantifiersInferenceManager& qim,
+                   QuantifiersRegistry& qr,
+                   TermRegistry& tr);
   /** finish init, which sets the model object */
   void finishInit() override;
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);

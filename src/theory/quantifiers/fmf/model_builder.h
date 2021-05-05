@@ -44,9 +44,9 @@ class QModelBuilder : public TheoryEngineModelBuilder
 
  public:
   QModelBuilder(QuantifiersState& qs,
-            QuantifiersInferenceManager& qim,
-            QuantifiersRegistry& qr,
-            TermRegistry& tr);
+                QuantifiersInferenceManager& qim,
+                QuantifiersRegistry& qr,
+                TermRegistry& tr);
   /** finish init, which sets the model object */
   virtual void finishInit();
   //do exhaustive instantiation  
@@ -64,7 +64,8 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned getNumAddedLemmas() { return d_addedLemmas; }
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
   /** get the model we are using */
-  FirstOrderModel * getModel();
+  FirstOrderModel* getModel();
+
  protected:
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
@@ -75,7 +76,7 @@ class QModelBuilder : public TheoryEngineModelBuilder
   /** Term registry */
   TermRegistry& d_treg;
   /** Pointer to the model object we are using */
-  FirstOrderModel * d_model;
+  FirstOrderModel* d_model;
   /** The model object we have allocated */
   std::unique_ptr<FirstOrderModel> d_modelAloc;
 };

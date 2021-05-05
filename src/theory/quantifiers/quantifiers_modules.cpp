@@ -44,7 +44,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
                                     TermRegistry& tr,
-                  QModelBuilder * builder,
+                                    QModelBuilder* builder,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -80,7 +80,7 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
     d_bint.reset(new BoundedIntegers(qs, qim, qr, tr));
     modules.push_back(d_bint.get());
   }
-  
+
   if (options::finiteModelFind() || options::fmfBound())
   {
     d_model_engine.reset(new ModelEngine(qs, qim, qr, tr, builder));

@@ -46,7 +46,8 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 }
 
-void TermRegistry::finishInit(FirstOrderModel * fm, QuantifiersInferenceManager* qim)
+void TermRegistry::finishInit(FirstOrderModel* fm,
+                              QuantifiersInferenceManager* qim)
 {
   d_qmodel = fm;
   d_termDb->finishInit(qim);

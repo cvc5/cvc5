@@ -45,7 +45,7 @@ class TermRegistry
   TermRegistry(QuantifiersState& qs,
                QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
-  void finishInit(FirstOrderModel * fm, QuantifiersInferenceManager* qim);
+  void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
   /** Presolve */
   void presolve();
 
@@ -106,7 +106,7 @@ class TermRegistry
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** extended model object */
-  FirstOrderModel * d_qmodel;
+  FirstOrderModel* d_qmodel;
 };
 
 }  // namespace quantifiers
