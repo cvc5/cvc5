@@ -13,7 +13,6 @@
  * The cvc5 Java API.
  */
 
-
 #include "cvc5_Solver.h"
 
 #include "api/cpp/cvc5.h"
@@ -38,8 +37,8 @@ JNIEXPORT jlong JNICALL Java_cvc5_Solver_newSolver(JNIEnv*, jobject)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_cvc5_Solver_deletePointer(JNIEnv*,
-                                                     jclass,
-                                                     jlong pointer)
+                                                      jclass,
+                                                      jlong pointer)
 {
   delete ((Solver*)pointer);
 }
