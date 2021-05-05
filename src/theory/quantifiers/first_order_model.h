@@ -39,8 +39,7 @@ class QuantifiersRegistry;
 class FirstOrderModel
 {
  public:
-  FirstOrderModel(Env& env, 
-                  QuantifiersState& qs,
+  FirstOrderModel(QuantifiersState& qs,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);
   virtual ~FirstOrderModel() {}

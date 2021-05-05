@@ -22,6 +22,7 @@
 #include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
+#include "theory/trust_substitutions.h"
 
 using namespace std;
 using namespace cvc5::kind;
