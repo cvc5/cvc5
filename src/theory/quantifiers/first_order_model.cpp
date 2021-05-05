@@ -42,10 +42,11 @@ struct ModelBasisArgAttributeId
 };
 using ModelBasisArgAttribute = expr::Attribute<ModelBasisArgAttributeId, uint64_t>;
 
-FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
+FirstOrderModel::FirstOrderModel(TheoryModel* m,
+                                 QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
-    : d_qe(nullptr),
+    : d_model(m),
       d_qreg(qr),
       d_treg(tr),
       d_eq_query(qs, this),
@@ -53,9 +54,6 @@ FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
       d_forallRlvComputed(false)
 {
 }
-
-//!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-void FirstOrderModel::finishInit(QuantifiersEngine* qe) { d_qe = qe; }
 
 Node FirstOrderModel::getInternalRepresentative(Node a, Node q, size_t index)
 {
@@ -116,23 +114,25 @@ void FirstOrderModel::initializeModelForTerm( Node n, std::map< Node, bool >& vi
 
 Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   //check if there is even any domain elements at all
-  if (!d_rep_set.hasType(tn) || d_rep_set.d_type_reps[tn].size() == 0)
+  RepSet* rs = d_model->getRepSetPtr();
+  if (!rs->hasType(tn) || rs->getNumRepresentatives(tn) == 0)
   {
     Trace("fm-debug") << "Must create domain element for " << tn << "..."
                       << std::endl;
     Node mbt = getModelBasisTerm(tn);
     Trace("fm-debug") << "Add to representative set..." << std::endl;
-    d_rep_set.add(tn, mbt);
+    rs->add(tn, mbt);
   }
-  return d_rep_set.d_type_reps[tn][0];
+  return rs->getRepresentative(tn, 0);
 }
 
 bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
 {
+  RepSet* rs = d_model->getRepSetPtr();
   if (tn.isSort())
   {
     // must ensure uninterpreted type is non-empty.
-    if (!d_rep_set.hasType(tn))
+    if (!rs->hasType(tn))
     {
       // terms in rep_set are now constants which mapped to terms through
       // TheoryModel. Thus, should introduce a constant and a term.
@@ -140,7 +140,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
       Node var = getSomeDomainElement(tn);
       Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn
                      << std::endl;
-      d_rep_set.add(tn, var);
+      rs->add(tn, var);
     }
     return true;
   }
@@ -151,9 +151,9 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     {
       Trace("fm-debug") << "  do complete, since cardinality is small ("
                         << tn.getCardinality() << ")..." << std::endl;
-      d_rep_set.complete(tn);
+      rs->complete(tn);
       // must have succeeded
-      Assert(d_rep_set.hasType(tn));
+      Assert(rs->hasType(tn));
       return true;
     }
     Trace("fm-debug") << "  variable cannot be bounded." << std::endl;

@@ -32,7 +32,7 @@ ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
-      d_model(nullptr),
+      d_model(new TheoryModel(te.getUserContext(), "DefaultModel", options::assignFunctionValues())),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)
@@ -51,14 +51,6 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
     d_modelBuilder = qe->getModelBuilder();
-    d_model = qe->getModel();
-  }
-  else
-  {
-    context::Context* u = d_te.getUserContext();
-    d_alocModel.reset(
-        new TheoryModel(u, "DefaultModel", options::assignFunctionValues()));
-    d_model = d_alocModel.get();
   }
 
   // make the default builder, e.g. in the case that the quantifiers engine does

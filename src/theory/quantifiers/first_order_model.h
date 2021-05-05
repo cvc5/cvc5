@@ -38,10 +38,11 @@ class QuantifiersRegistry;
 class FirstOrderModel
 {
  public:
-  FirstOrderModel(QuantifiersState& qs,
+  FirstOrderModel(TheoryModel* m,
+                  QuantifiersState& qs,
                   QuantifiersRegistry& qr,
-                  TermRegistry& tr,
-                  std::string name);
+                  TermRegistry& tr);
+  virtual ~FirstOrderModel(){}
 
   //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
   /** finish initialize */
@@ -136,8 +137,8 @@ class FirstOrderModel
   EqualityQuery* getEqualityQuery();
 
  protected:
-  //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
-  QuantifiersEngine* d_qe;
+  /** The model */
+  TheoryModel * d_model;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */

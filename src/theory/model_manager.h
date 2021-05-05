@@ -73,7 +73,7 @@ class ModelManager
    */
   void postProcessModel(bool incomplete);
   /** Get a pointer to model object maintained by this class. */
-  theory::TheoryModel* getModel();
+  TheoryModel* getModel();
   //------------------------ finer grained control over model building
   /**
    * Prepare model, which is the manager-specific method for setting up the
@@ -138,10 +138,8 @@ class ModelManager
   eq::EqualityEngine* d_modelEqualityEngine;
   /** The equality engine of the model, if we allocated it */
   std::unique_ptr<eq::EqualityEngine> d_modelEqualityEngineAlloc;
-  /** The model object we are using */
-  theory::TheoryModel* d_model;
   /** The model object we have allocated (if one exists) */
-  std::unique_ptr<theory::TheoryModel> d_alocModel;
+  std::unique_ptr<theory::TheoryModel> d_model;
   /** The model builder object we are using */
   theory::TheoryEngineModelBuilder* d_modelBuilder;
   /** The model builder object we have allocated (if one exists) */
