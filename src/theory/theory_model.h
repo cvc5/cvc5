@@ -28,7 +28,7 @@
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
-  
+
 class Env;
 
 namespace theory {
@@ -81,6 +81,7 @@ namespace theory {
 class TheoryModel
 {
   friend class TheoryEngineModelBuilder;
+
  public:
   TheoryModel(Env& env, std::string name, bool enableFuncModels);
   virtual ~TheoryModel();

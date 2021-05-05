@@ -55,8 +55,8 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   }
   else
   {
-    d_alocModel.reset(
-        new TheoryModel(d_env, "DefaultModel", options::assignFunctionValues()));
+    d_alocModel.reset(new TheoryModel(
+        d_env, "DefaultModel", options::assignFunctionValues()));
     d_model = d_alocModel.get();
   }
 

@@ -19,9 +19,9 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/rewriter.h"
-#include "smt/env.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -30,9 +30,7 @@ using namespace cvc5::context;
 namespace cvc5 {
 namespace theory {
 
-TheoryModel::TheoryModel(Env& env,
-                         std::string name,
-                         bool enableFuncModels)
+TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
     : d_env(env),
       d_name(name),
       d_equalityEngine(nullptr),

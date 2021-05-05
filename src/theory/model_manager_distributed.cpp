@@ -23,7 +23,7 @@ namespace cvc5 {
 namespace theory {
 
 ModelManagerDistributed::ModelManagerDistributed(TheoryEngine& te,
-                                                 Env& env, 
+                                                 Env& env,
                                                  EqEngineManager& eem)
     : ModelManager(te, env, eem)
 {
