@@ -24,18 +24,19 @@ jobs:
 
         include:
           - name: production
-            config: production --auto-download --all-bindings --editline --docs
+            config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
             check-examples: true
-            build-documentation: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: production-clang
-            config: production --auto-download
+            config: production --auto-download --all-bindings --docs
             cache-key: productionclang
             check-examples: true
+            python-bindings: true
+            build-documentation: true
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 3-4
@@ -112,7 +113,7 @@ jobs:
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
     
     - name: Install Documentation Dependencies
-      if: matrix.build-documentation && runner.os == 'Linux'
+      if: matrix.build-documentation
       run: |
         sudo apt-get install -y \
           doxygen python3-docutils python3-jinja2
@@ -226,12 +227,12 @@ jobs:
       working-directory: examples
 
     - name: Build Documentation
-      if: matrix.build-documentation && runner.os == 'Linux'
+      if: matrix.build-documentation
       run: make -j2 docs-gh
       working-directory: build
     
     - name: Store Documentation
-      if: matrix.build-documentation && runner.os == 'Linux'
+      if: matrix.build-documentation
       uses: actions/upload-artifact@v2
       with:
         name: documentation
