@@ -52,11 +52,17 @@ OptimizationResult::ResultType OptimizationSolver::checkOpt()
   return optResult.getType();
 }
 
-void OptimizationSolver::pushObjective(
+bool OptimizationSolver::pushObjective(
     TNode target, OptimizationObjective::ObjectiveType type, bool bvSigned)
 {
+  if (!OMTOptimizer::nodeSupportsOptimization(target))
+  {
+    Warning() << "Target node does not support optimization";
+    return false;
+  }
   d_objectives.emplace_back(target, type, bvSigned);
   d_results.emplace_back(OptimizationResult::UNSUPPORTED, Node());
+  return true;
 }
 
 void OptimizationSolver::popObjective()

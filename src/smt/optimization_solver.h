@@ -196,7 +196,7 @@ class OptimizationSolver
       : d_parent(parent),
         d_objectives(),
         d_results(),
-        d_objectiveCombination(BOX)
+        d_objectiveCombination(LEXICOGRAPHIC)
   {
   }
   ~OptimizationSolver() = default;
@@ -217,13 +217,16 @@ class OptimizationSolver
    * @param bvSigned specifies whether we should use signed/unsigned
    *   comparison for BitVectors (only effective for BitVectors)
    *   and its default is false
+   * @return whether target has a supported type,
+   *   if the type is not supported,
+   *   it will return false and target won't be pushed
    **/
-  void pushObjective(TNode target,
+  bool pushObjective(TNode target,
                      OptimizationObjective::ObjectiveType type,
                      bool bvSigned = false);
 
   /**
-   * Pop the most recent objective.
+   * Pop the most recently successfully-pushed objective.
    **/
   void popObjective();
 
