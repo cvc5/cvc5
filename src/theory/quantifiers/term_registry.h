@@ -45,7 +45,7 @@ class TermRegistry
   TermRegistry(QuantifiersState& qs,
                QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
-  void finishInit(TheoryModel * m, QuantifiersInferenceManager* qim);
+  void finishInit(TheoryModel* m, QuantifiersInferenceManager* qim);
   /** Presolve */
   void presolve();
 

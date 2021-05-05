@@ -54,35 +54,32 @@ FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
 {
 }
 
-void FirstOrderModel::finishInit(TheoryModel * m)
-{
-  d_model = m;
-}
+void FirstOrderModel::finishInit(TheoryModel* m) { d_model = m; }
 
-Node FirstOrderModel::getValue(TNode n) const
-{
-  return d_model->getValue(n);
-}
+Node FirstOrderModel::getValue(TNode n) const { return d_model->getValue(n); }
 bool FirstOrderModel::hasTerm(TNode a) { return d_model->hasTerm(a); }
-Node FirstOrderModel::getRepresentative(TNode a) { return d_model->getRepresentative(a); }
-bool FirstOrderModel::areEqual(TNode a, TNode b) { return d_model->areEqual(a,b); }
-bool FirstOrderModel::areDisequal(TNode a, TNode b) { return d_model->areDisequal(a, b); }
+Node FirstOrderModel::getRepresentative(TNode a)
+{
+  return d_model->getRepresentative(a);
+}
+bool FirstOrderModel::areEqual(TNode a, TNode b)
+{
+  return d_model->areEqual(a, b);
+}
+bool FirstOrderModel::areDisequal(TNode a, TNode b)
+{
+  return d_model->areDisequal(a, b);
+}
 eq::EqualityEngine* FirstOrderModel::getEqualityEngine()
 {
   return d_model->getEqualityEngine();
 }
-  const RepSet* FirstOrderModel::getRepSet() const
-  {
-    return d_model->getRepSet();
-  }
-  RepSet* FirstOrderModel::getRepSetPtr()
-  {
-    return d_model->getRepSetPtr();
-  }
-  TheoryModel * FirstOrderModel::getTheoryModel()
-  {
-    return d_model;
-  }
+const RepSet* FirstOrderModel::getRepSet() const
+{
+  return d_model->getRepSet();
+}
+RepSet* FirstOrderModel::getRepSetPtr() { return d_model->getRepSetPtr(); }
+TheoryModel* FirstOrderModel::getTheoryModel() { return d_model; }
 
 Node FirstOrderModel::getInternalRepresentative(Node a, Node q, size_t index)
 {

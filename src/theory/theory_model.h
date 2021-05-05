@@ -424,9 +424,10 @@ public:
 
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */
-  std::map< Node, std::vector< Node > > d_uf_terms;
-  /** a map from functions f to a list of all HO_APPLY terms with first argument f */
-  std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  std::map<Node, std::vector<Node> > d_uf_terms;
+  /** a map from functions f to a list of all HO_APPLY terms with first argument
+   * f */
+  std::map<Node, std::vector<Node> > d_ho_uf_terms;
   /** whether function models are enabled */
   bool d_enableFuncModels;
   /** map from function terms to the (lambda) definitions

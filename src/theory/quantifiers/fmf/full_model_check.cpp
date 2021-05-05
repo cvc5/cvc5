@@ -305,7 +305,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   d_preinitialized_eqc.clear();
   d_preinitialized_types.clear();
   //traverse equality engine
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->getEqualityEngine() );
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(fm->getEqualityEngine());
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode tr = r.getType();
@@ -387,7 +387,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   }
 
   //now, make models
-  TheoryModel * tm = fm->getTheoryModel();
+  TheoryModel* tm = fm->getTheoryModel();
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
     Node op = it->first;
     //reset the model
@@ -396,10 +396,13 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
     bool needsDefault = true;
-    if( tm->hasUfTerms(op) ){
+    if (tm->hasUfTerms(op))
+    {
       const std::vector<Node>& uft = tm->getUfTerms(op);
-      Trace("fmc-model-debug") << uft.size() << " model values for " << op << " ... " << std::endl;
-      for (const Node& n : uft){
+      Trace("fmc-model-debug")
+          << uft.size() << " model values for " << op << " ... " << std::endl;
+      for (const Node& n : uft)
+      {
         // only consider unique up to congruence (in model equality engine)?
         add_conds.push_back( n );
         add_values.push_back( n );
@@ -414,7 +417,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if( needsDefault ){
       Node nmb = fm->getModelBasisOpTerm(op);
       //add default value if necessary
-      if( tm->hasTerm( nmb ) ){
+      if (tm->hasTerm(nmb))
+      {
         Trace("fmc-model-debug") << "Add default " << nmb << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( nmb );
@@ -540,7 +544,7 @@ void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn )
     d_preinitialized_types[tn] = true;
     if (tn.isFirstClass())
     {
-      TheoryModel * tm = fm->getTheoryModel();
+      TheoryModel* tm = fm->getTheoryModel();
       Trace("fmc") << "Get model basis term " << tn << "..." << std::endl;
       Node mb = fm->getModelBasisTerm(tn);
       Trace("fmc") << "...return " << mb << std::endl;

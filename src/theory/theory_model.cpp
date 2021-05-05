@@ -683,14 +683,14 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
 
 bool TheoryModel::hasUfTerms(Node f) const
 {
-  std::map< Node, std::vector< Node > >::const_iterator it = d_uf_terms.find(f);
-  return it!=d_uf_terms.end();
+  std::map<Node, std::vector<Node> >::const_iterator it = d_uf_terms.find(f);
+  return it != d_uf_terms.end();
 }
 
 const std::vector<Node>& TheoryModel::getUfTerms(Node f) const
 {
-  std::map< Node, std::vector< Node > >::const_iterator it = d_uf_terms.find(f);
-  Assert( it!=d_uf_terms.end() );
+  std::map<Node, std::vector<Node> >::const_iterator it = d_uf_terms.find(f);
+  Assert(it != d_uf_terms.end());
   return it->second;
 }
 

@@ -45,7 +45,7 @@ class FirstOrderModel
   virtual ~FirstOrderModel() {}
 
   /** finish init */
-  void finishInit(TheoryModel * m);
+  void finishInit(TheoryModel* m);
   //---------------------------------- access functions for underlying model
   /** Get value in the underlying theory model */
   Node getValue(TNode n) const;
@@ -64,7 +64,7 @@ class FirstOrderModel
   /** get the representative set object */
   RepSet* getRepSetPtr();
   /** get the entire theory model */
-  TheoryModel * getTheoryModel();
+  TheoryModel* getTheoryModel();
   //---------------------------------- end access functions for underlying model
   /** get internal representative
    *

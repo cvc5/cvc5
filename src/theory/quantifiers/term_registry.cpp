@@ -53,17 +53,15 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
           || options::fmfBound()))
   {
     d_useFmcModel = true;
-    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-        qs, qr, *this));
+    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(qs, qr, *this));
   }
   else
   {
-    d_qmodel.reset(
-        new quantifiers::FirstOrderModel(qs, qr, *this));
+    d_qmodel.reset(new quantifiers::FirstOrderModel(qs, qr, *this));
   }
 }
 
-void TermRegistry::finishInit(TheoryModel * m, QuantifiersInferenceManager* qim)
+void TermRegistry::finishInit(TheoryModel* m, QuantifiersInferenceManager* qim)
 {
   d_qmodel->finishInit(m);
   d_termDb->finishInit(qim);
