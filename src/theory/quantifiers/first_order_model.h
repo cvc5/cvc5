@@ -35,7 +35,7 @@ class TermRegistry;
 class QuantifiersRegistry;
 
 // TODO (#1301) : document and refactor this class
-class FirstOrderModel : public TheoryModel
+class FirstOrderModel
 {
  public:
   FirstOrderModel(QuantifiersState& qs,

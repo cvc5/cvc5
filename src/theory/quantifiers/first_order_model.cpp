@@ -44,10 +44,8 @@ using ModelBasisArgAttribute = expr::Attribute<ModelBasisArgAttributeId, uint64_
 
 FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
-                                 TermRegistry& tr,
-                                 std::string name)
-    : TheoryModel(qs.getSatContext(), name, true),
-      d_qe(nullptr),
+                                 TermRegistry& tr)
+    : d_qe(nullptr),
       d_qreg(qr),
       d_treg(tr),
       d_eq_query(qs, this),
