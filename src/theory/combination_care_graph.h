@@ -36,7 +36,7 @@ class CombinationCareGraph : public CombinationEngine
 {
  public:
   CombinationCareGraph(TheoryEngine& te,
-                    Env& env,
+                       Env& env,
                        const std::vector<Theory*>& paraTheories,
                        ProofNodeManager* pnm);
   ~CombinationCareGraph();
