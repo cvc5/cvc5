@@ -279,15 +279,16 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: documentation
-          path: target/docs-$NAME-$HASH
+          path: docs-new
 
       - name: Update docs
         continue-on-error: true
         env:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+            working-directory: target/
         run: |
           if [ -n "$NAME" ]; then
-            cd target/
+            mv ../docs-new docs-$NAME-$HASH
             rm -f docs-$NAME
             ln -s docs-$NAME-$HASH docs-$NAME
             git add docs-$NAME docs-$NAME-$HASH
