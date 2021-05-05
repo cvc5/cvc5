@@ -32,7 +32,9 @@ ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
-      d_model(new TheoryModel(te.getUserContext(), "DefaultModel", options::assignFunctionValues())),
+      d_model(new TheoryModel(te.getUserContext(),
+                              "DefaultModel",
+                              options::assignFunctionValues())),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)

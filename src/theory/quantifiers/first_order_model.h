@@ -42,7 +42,7 @@ class FirstOrderModel
                   QuantifiersState& qs,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);
-  virtual ~FirstOrderModel(){}
+  virtual ~FirstOrderModel() {}
 
   //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
   /** finish initialize */
@@ -138,7 +138,7 @@ class FirstOrderModel
 
  protected:
   /** The model */
-  TheoryModel * d_model;
+  TheoryModel* d_model;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
