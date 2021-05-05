@@ -342,7 +342,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       Trace("non-clausal-simplify")
           << "substitute: " << lhs << " " << rhs << std::endl;
-      d_preprocContext->addModelSubstitution(lhs, rhs);
+      //d_preprocContext->addModelSubstitution(lhs, rhs);
     }
     else
     {

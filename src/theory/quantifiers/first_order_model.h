@@ -38,7 +38,8 @@ class QuantifiersRegistry;
 class FirstOrderModel : public TheoryModel
 {
  public:
-  FirstOrderModel(QuantifiersState& qs,
+  FirstOrderModel(Env& env, 
+                  QuantifiersState& qs,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
                   std::string name);

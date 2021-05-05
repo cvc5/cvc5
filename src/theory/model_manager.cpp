@@ -22,6 +22,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_engine.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
