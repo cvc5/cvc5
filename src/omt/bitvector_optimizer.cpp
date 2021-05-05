@@ -43,8 +43,8 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
                         + aMod2PlusbMod2Div2));
 }
 
-std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* parentSMTSolver,
+                                                   TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
@@ -56,11 +56,11 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
   Node value;
   if (intermediateSatResult.isUnknown())
   {
-    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    return OptimizationResult(OptimizationResult::UNKNOWN, value);
   }
   if (intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return std::make_pair(OptResult::OPT_UNSAT, value);
+    return OptimizationResult(OptimizationResult::UNSAT, value);
   }
 
   // value equals to upperBound
@@ -107,7 +107,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
     {
@@ -121,7 +121,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
         // lowerBound == pivot ==> upperbound = lowerbound + 1
         // and lowerbound <= target < upperbound is UNSAT
         // return the upperbound
-        return std::make_pair(OptResult::OPT_OPTIMAL, value);
+        return OptimizationResult(OptimizationResult::OPTIMAL, value);
       }
       else
       {
@@ -130,15 +130,15 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
     }
     else
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     optChecker->pop();
   }
-  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+  return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
-std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
-    SmtEngine* parentSMTSolver, Node target)
+OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* parentSMTSolver,
+                                                   TNode target)
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
@@ -150,11 +150,11 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
   Node value;
   if (intermediateSatResult.isUnknown())
   {
-    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    return OptimizationResult(OptimizationResult::UNKNOWN, value);
   }
   if (intermediateSatResult.isSat() == Result::UNSAT)
   {
-    return std::make_pair(OptResult::OPT_UNSAT, value);
+    return OptimizationResult(OptimizationResult::UNSAT, value);
   }
 
   // value equals to upperBound
@@ -198,7 +198,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     intermediateSatResult = optChecker->checkSat();
     if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull())
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     if (intermediateSatResult.isSat() == Result::SAT)
     {
@@ -212,7 +212,7 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
         // upperbound = lowerbound + 1
         // and lowerbound < target <= upperbound is UNSAT
         // return the lowerbound
-        return std::make_pair(OptResult::OPT_OPTIMAL, value);
+        return OptimizationResult(OptimizationResult::OPTIMAL, value);
       }
       else
       {
@@ -221,11 +221,11 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
     }
     else
     {
-      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+      return OptimizationResult(OptimizationResult::UNKNOWN, value);
     }
     optChecker->pop();
   }
-  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+  return OptimizationResult(OptimizationResult::OPTIMAL, value);
 }
 
 }  // namespace cvc5::omt

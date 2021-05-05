@@ -1,7 +1,8 @@
 ; COMMAND-LINE: --incremental --produce-models --block-models=values
 ; EXPECT: sat
 ; EXPECT: sat
-; EXPECT: sat
+; if we only block models restricted to (a,b), then there are only 2 models
+; EXPECT: unsat
 (set-logic QF_UFLIA)
 (declare-fun a () Int)
 (declare-fun b () Int)

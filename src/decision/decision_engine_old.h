@@ -128,7 +128,7 @@ class DecisionEngineOld
  private:
   // Disable creating decision engine without required parameters
   DecisionEngineOld();
-  
+
   CnfStream* d_cnfStream;
   CDCLTSatSolverInterface* d_satSolver;
 
@@ -142,7 +142,7 @@ class DecisionEngineOld
   unsigned d_engineState;  // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
   /** The ITE decision strategy we have allocated */
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
-  
+
 }; /* DecisionEngineOld class */
 
 }  // namespace cvc5

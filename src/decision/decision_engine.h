@@ -18,7 +18,10 @@
 #ifndef CVC5__DECISION__DECISION_ENGINE_H
 #define CVC5__DECISION__DECISION_ENGINE_H
 
+<<<<<<< HEAD
 #include "decision/justification_strategy.h"
+=======
+>>>>>>> 8a7c43f82b17a444c2f9518bc27f4ea8afe21201
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
