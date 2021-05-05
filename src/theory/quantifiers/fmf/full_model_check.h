@@ -184,7 +184,7 @@ protected:
   void registerQuantifiedFormula(Node q);
   /** Is quantified formula q handled by model-based instantiation? */
   bool isHandled(Node q) const;
-  /** 
+  /**
    * The first order model. This is an extended form of the first order model
    * class that is specialized for this class.
    */
