@@ -81,7 +81,7 @@ namespace theory {
 class TheoryModel
 {
   friend class TheoryEngineModelBuilder;
-public:
+ public:
   TheoryModel(Env& env, std::string name, bool enableFuncModels);
   virtual ~TheoryModel();
   /**
