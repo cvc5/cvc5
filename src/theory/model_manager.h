@@ -139,11 +139,11 @@ class ModelManager
   /** The equality engine of the model, if we allocated it */
   std::unique_ptr<eq::EqualityEngine> d_modelEqualityEngineAlloc;
   /** The model object we have allocated (if one exists) */
-  std::unique_ptr<theory::TheoryModel> d_model;
+  std::unique_ptr<TheoryModel> d_model;
   /** The model builder object we are using */
-  theory::TheoryEngineModelBuilder* d_modelBuilder;
+  TheoryEngineModelBuilder* d_modelBuilder;
   /** The model builder object we have allocated (if one exists) */
-  std::unique_ptr<theory::TheoryEngineModelBuilder> d_alocModelBuilder;
+  std::unique_ptr<TheoryEngineModelBuilder> d_alocModelBuilder;
   /** whether we have tried to build this model in the current context */
   bool d_modelBuilt;
   /** whether this model has been built successfully */
