@@ -30,15 +30,23 @@ using namespace cvc5::theory;
 using namespace cvc5::theory::quantifiers;
 
 QModelBuilder::QModelBuilder(QuantifiersState& qs,
-                             QuantifiersRegistry& qr,
-                             QuantifiersInferenceManager& qim)
+            QuantifiersInferenceManager& qim,
+            QuantifiersRegistry& qr,
+            TermRegistry& tr)
     : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
       d_triedLemmas(0),
       d_qstate(qs),
+      d_qim(qim),
       d_qreg(qr),
-      d_qim(qim)
+      d_treg(tr),
+      d_model(nullptr)
 {
+}
+
+void QModelBuilder::finishInit()
+{
+  d_qmodel.reset(new FirstOrderModel(d_qstate, d_qreg, d_treg));
 }
 
 bool QModelBuilder::optUseModel() {
@@ -54,7 +62,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
   d_triedLemmas = 0;
   if (options::fmfFunWellDefinedRelevant())
   {
-    FirstOrderModel * fm = (FirstOrderModel*)m;
+    FirstOrderModel * fm = m;
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;
     eq::EqClassesIterator eqcs_i =
@@ -92,7 +100,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
 void QModelBuilder::debugModel( TheoryModel* m ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
   if( Trace.isOn("quant-check-model") ){
-    FirstOrderModel* fm = (FirstOrderModel*)m;
+    FirstOrderModel* fm = getModel();
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
@@ -137,4 +145,8 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       }
     }
   }
+}
+FirstOrderModel * QModelBuilder::getModel()
+{
+  return d_model;
 }

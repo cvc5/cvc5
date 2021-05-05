@@ -85,17 +85,25 @@ void QuantifiersModules::initialize(QuantifiersState& qs,
     Trace("quant-init-debug")
         << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
         << options::fmfBound() << std::endl;
-    if (tr.useFmcModel())
+    // Finite model finding requires specialized ways of building the model.
+    // We require constructing the model here, since it is required for
+    // initializing the CombinationEngine and the rest of quantifiers engine.
+    if ((options::finiteModelFind() || options::fmfBound())
+        && (options::mbqiMode() == options::MbqiMode::FMC
+            || options::mbqiMode() == options::MbqiMode::TRUST
+            || options::fmfBound()))
     {
       Trace("quant-init-debug") << "...make fmc builder." << std::endl;
-      d_builder.reset(new fmcheck::FullModelChecker(qs, qr, qim));
+      d_builder.reset(new fmcheck::FullModelChecker(qs, qim, qr, tr));
     }
     else
     {
       Trace("quant-init-debug")
           << "...make default model builder." << std::endl;
-      d_builder.reset(new QModelBuilder(qs, qr, qim));
+      d_builder.reset(new QModelBuilder(qs, qim, qr, tr));
     }
+    // set the model object
+    d_builder->finishInit();
     d_model_engine.reset(new ModelEngine(qs, qim, qr, tr, d_builder.get()));
     modules.push_back(d_model_engine.get());
   }

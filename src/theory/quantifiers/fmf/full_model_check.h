@@ -156,9 +156,11 @@ protected:
 
  public:
   FullModelChecker(QuantifiersState& qs,
-                   QuantifiersRegistry& qr,
-                   QuantifiersInferenceManager& qim);
-
+            QuantifiersInferenceManager& qim,
+            QuantifiersRegistry& qr,
+            TermRegistry& tr);
+  /** finish init, which sets the model object */
+  void finishInit() override;
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
@@ -173,7 +175,8 @@ protected:
   bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
-
+  /** get the model we are using */
+  FirstOrderModel * getModel() override;
  private:
   /**
    * Register quantified formula.
