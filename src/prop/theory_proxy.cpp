@@ -98,7 +98,8 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (options::produceProofs())
+  if (options::produceProofs()
+      && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
   {
     Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
            || tte.getGenerator());

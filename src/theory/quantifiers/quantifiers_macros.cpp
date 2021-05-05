@@ -41,9 +41,9 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
   {
     return Node::null();
   }
-  lit = lit[1];
-  bool pol = lit.getKind() != NOT;
-  Node n = pol ? lit : lit[0];
+  Node body = lit[1];
+  bool pol = body.getKind() != NOT;
+  Node n = pol ? body : body[0];
   NodeManager* nm = NodeManager::currentNM();
   if (n.getKind() == APPLY_UF)
   {
@@ -54,7 +54,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
       Node n_def = nm->mkConst(pol);
       Node fdef = solveEq(n, n_def);
       Assert(!fdef.isNull());
-      return fdef;
+      return returnMacro(fdef, lit);
     }
   }
   else if (pol && n.getKind() == EQUAL)
@@ -89,14 +89,14 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
             << "...does not contain bad (recursive) operator." << std::endl;
         // must be ground UF term if mode is GROUND_UF
         if (options::macrosQuantMode() != options::MacrosQuantMode::GROUND_UF
-            || preservesTriggerVariables(lit, n_def))
+            || preservesTriggerVariables(body, n_def))
         {
           Trace("macros-debug")
               << "...respects ground-uf constraint." << std::endl;
           Node fdef = solveEq(m, n_def);
           if (!fdef.isNull())
           {
-            return fdef;
+            return returnMacro(fdef, lit);
           }
         }
       }
@@ -276,6 +276,13 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   TNode fdeft = fdef;
   Assert(op.getType().isComparableTo(fdef.getType()));
   return op.eqNode(fdef);
+}
+
+Node QuantifiersMacros::returnMacro(Node fdef, Node lit) const
+{
+  Trace("macros") << "* Inferred macro " << fdef << " from " << lit
+                  << std::endl;
+  return fdef;
 }
 
 }  // namespace quantifiers

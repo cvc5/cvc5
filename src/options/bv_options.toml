@@ -51,6 +51,7 @@ header = "options/bv_options.h"
   category   = "expert"
   long       = "bv-aig-simp=COMMAND"
   type       = "std::string"
+  default    = "\"balance;drw\""
   predicates = ["abcEnabledBuild"]
   help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
 

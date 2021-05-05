@@ -1,0 +1,112 @@
+name: documentation update
+on:
+  push:
+    paths:
+    - '.github/**'
+    - 'docs/**'
+    - 'examples/**'
+    - 'src/api/**'
+  pull_request_target:
+    paths:
+    - '.github/**'
+    - 'docs/**'
+    - 'examples/**'
+    - 'src/api/**'
+
+# When run by pull_request_target (in comparison to pull_request), the action
+# has access to the repository secrets so that we can push the generated docs.
+# To allow this, the action is run in the context of the master branch instead
+# of the PR. We therefore obtain the changes from the PR manually,
+# but need to be very careful to not pull any changes to files that are executed
+# during configuration or build. At the same time, we try to include as many
+# files as possible that may change how the documentations looks like.
+# To ensure this, we only checkout a very selected set of files from the PR
+# branch:
+# - docs/**.(bib|rst)
+# - src/api/**.(cpp|h|java|py)
+# - examples/**.(cpp|h|java|py|smt2)
+# In particular, we should not checkout any CMakeLists.txt files or any python
+# files used by sphinx.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgmp-dev \
+            doxygen \
+            python3-docutils python3-jinja2
+          python3 -m pip install \
+            setuptools toml pytest \
+            sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme \
+            breathe
+          python3 -m pip install \
+            Cython==0.29.* --install-option="--no-cython-compile"
+          echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+      
+      - name: Checkout PR
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
+          if [ "${{ github.event_name }}" == "push" ] ; then
+            NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
+            HASH=${{ github.sha }}
+            echo "Identified branch $NAME"
+          elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
+            NAME="${{ github.event.number }}"
+            HASH="${{ github.event.pull_request.head.sha }}"
+            echo "Identified PR #$NAME (from $HASH)"
+            NAME="pr$NAME"
+            # be careful here, see explanation above!
+            git remote add pr "${{ github.event.pull_request.head.repo.clone_url}}"
+            git fetch pr "${{ github.event.pull_request.head.ref}}:pr"
+            git checkout "${HASH}" -- \
+              `git ls-tree "${HASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
+              `git ls-tree "${HASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
+              `git ls-tree "${HASH}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
+          fi
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Configure
+        run: ./configure.sh production --docs --all-bindings --auto-download
+
+      - name: Build
+        run: make -j2 docs-gh
+        working-directory: build
+
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
+      - name: Update docs
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          git clone git@github.com:cvc5/docs-ci.git target/
+          if [ -n "$NAME" ]; then
+            rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-$HASH
+            cd target/
+            rm -f docs-$NAME
+            ln -s docs-$NAME-$HASH docs-$NAME
+            git add docs-$NAME docs-$NAME-$HASH
+
+            python3 genindex.py
+            git add README.md
+            git commit -m "Update docs for $NAME"
+
+            git push
+          else
+            echo "Ignored run"
+          fi
