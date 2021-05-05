@@ -112,7 +112,7 @@ jobs:
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
     
     - name: Install Documentation Dependencies
-      if: matrix.build-documentation
+      if: matrix.build-documentation && runner.os == 'Linux'
       run: |
         sudo apt-get install -y \
           doxygen python3-docutils python3-jinja2
@@ -226,21 +226,22 @@ jobs:
       working-directory: examples
 
     - name: Build Documentation
-      if: matrix.build-documentation
+      if: matrix.build-documentation && runner.os == 'Linux'
       run: make -j2 docs-gh
       working-directory: build
     
     - name: Store Documentation
-      if: matrix.build-documentation
+      if: matrix.build-documentation && runner.os == 'Linux'
       uses: actions/upload-artifact@v2
       with:
         name: documentation
         path: build/docs/sphinx-gh/
 
   upload-docs:
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request_target' }}
+    if: github.event_name == 'push' || github.event_name == 'pull_request_target'
     name: upload-docs
     runs-on: ubuntu-latest
+    continue-on-error: true
     needs: build
     steps:
       - name: Setup Deploy Key
