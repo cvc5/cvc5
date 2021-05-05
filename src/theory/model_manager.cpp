@@ -26,9 +26,9 @@
 namespace cvc5 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
+ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
     : d_te(te),
-      d_logicInfo(te.getLogicInfo()),
+      d_env(env),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
@@ -44,7 +44,7 @@ ModelManager::~ModelManager() {}
 void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& logicInfo = d_env.getLogicInfo();
   // Initialize the model and model builder.
   if (logicInfo.isQuantified())
   {
@@ -55,9 +55,8 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   }
   else
   {
-    context::Context* u = d_te.getUserContext();
     d_alocModel.reset(
-        new TheoryModel(u, "DefaultModel", options::assignFunctionValues()));
+        new TheoryModel(d_env, "DefaultModel", options::assignFunctionValues()));
     d_model = d_alocModel.get();
   }
 

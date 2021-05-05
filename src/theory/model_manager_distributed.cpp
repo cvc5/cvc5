@@ -23,8 +23,9 @@ namespace cvc5 {
 namespace theory {
 
 ModelManagerDistributed::ModelManagerDistributed(TheoryEngine& te,
+                                                 Env& env, 
                                                  EqEngineManager& eem)
-    : ModelManager(te, eem)
+    : ModelManager(te, env, eem)
 {
 }
 
@@ -69,10 +70,11 @@ bool ModelManagerDistributed::prepareModel()
   // model, which includes both dump their equality information and assigning
   // values. Notice the order of theories here is important and is the same
   // as the list in CVC5_FOR_EACH_THEORY in theory_engine.cpp.
+  const LogicInfo& logicInfo = d_env.getLogicInfo();
   for (TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST;
        ++theoryId)
   {
-    if (!d_logicInfo.isTheoryEnabled(theoryId))
+    if (!logicInfo.isTheoryEnabled(theoryId))
     {
       // theory not active, skip
       continue;

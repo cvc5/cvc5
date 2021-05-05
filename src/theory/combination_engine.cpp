@@ -29,9 +29,11 @@ namespace cvc5 {
 namespace theory {
 
 CombinationEngine::CombinationEngine(TheoryEngine& te,
+                                     Env& env,
                                      const std::vector<Theory*>& paraTheories,
                                      ProofNodeManager* pnm)
     : d_te(te),
+    d_env(env),
       d_valuation(&te),
       d_pnm(pnm),
       d_logicInfo(te.getLogicInfo()),
@@ -57,7 +59,7 @@ void CombinationEngine::finishInit()
     d_eemanager.reset(
         new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
     // make the distributed model manager
-    d_mmanager.reset(new ModelManagerDistributed(d_te, *d_eemanager.get()));
+    d_mmanager.reset(new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
   }
   else
   {
