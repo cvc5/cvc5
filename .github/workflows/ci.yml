@@ -51,6 +51,7 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --no-check-proofs
 
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
