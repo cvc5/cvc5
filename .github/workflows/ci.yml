@@ -252,19 +252,8 @@ jobs:
             ssh-agent -a $SSH_AUTH_SOCK > /dev/null
             ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
       
-      - name: Fetch artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: documentation
-
-      - name: Update docs
-        continue-on-error: true
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      - name: Setup Context
         run: |
-          git config --global user.email "docbot@cvc5"
-          git config --global user.name "DocBot"
-
           if [ "${{ github.event_name }}" == "push" ] ; then
             NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
             HASH=${{ github.sha }}
@@ -275,10 +264,29 @@ jobs:
             echo "Identified PR #$NAME (from $HASH)"
             NAME="pr$NAME"
           fi
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
 
+      - name: Clone Documentation Repository
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
           git clone git@github.com:cvc5/docs-ci.git target/
+      
+      - name: Fetch artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: documentation
+          path: target/docs-$NAME-$HASH
+
+      - name: Update docs
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
           if [ -n "$NAME" ]; then
-            cp -r build/docs/sphinx-gh/ target/docs-$NAME-$HASH
             cd target/
             rm -f docs-$NAME
             ln -s docs-$NAME-$HASH docs-$NAME
