@@ -660,6 +660,18 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
   }
 }
 
+bool TheoryModel::hasUfTerms(Node f) const
+{
+  return d_uf_terms.find(f) != d_uf_terms.end();
+}
+
+const std::vector<Node>& TheoryModel::getUfTerms(Node f) const
+{
+  const auto it = d_uf_terms.find(f);
+  Assert(it != d_uf_terms.end());
+  return it->second;
+}
+
 bool TheoryModel::areFunctionValuesEnabled() const
 {
   return d_enableFuncModels;
