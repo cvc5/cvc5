@@ -57,21 +57,23 @@ jobs:
           git config --global user.name "DocBot"
           if [ "${{ github.event_name }}" == "push" ] ; then
             NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
+            HASH=${{ github.sha }}
             echo "Identified branch $NAME"
           elif [ "${{ github.event_name }}" == "pull_request_target" ] ; then
             NAME="${{ github.event.number }}"
-            PRHASH="${{ github.event.pull_request.head.sha }}"
-            echo "Identified PR #$NAME (from $PRHASH)"
+            HASH="${{ github.event.pull_request.head.sha }}"
+            echo "Identified PR #$NAME (from $HASH)"
             NAME="pr$NAME"
             # be careful here, see explanation above!
             git remote add pr "${{ github.event.pull_request.head.repo.clone_url}}"
             git fetch pr "${{ github.event.pull_request.head.ref}}:pr"
-            git checkout "${PRHASH}" -- \
-              `git ls-tree "${PRHASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
-              `git ls-tree "${PRHASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
-              `git ls-tree "${PRHASH}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
+            git checkout "${HASH}" -- \
+              `git ls-tree "${HASH}" --name-only -r docs/ | grep -E ".*\.(rst|bib)"` \
+              `git ls-tree "${HASH}" --name-only -r src/api/ | grep -E ".*\.(h|cpp|java|py)"` \
+              `git ls-tree "${HASH}" --name-only -r examples/ | grep -E ".*\.(h|cpp|java|py|smt2)"`
           fi
           echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
 
       - name: Configure
         run: ./configure.sh production --docs --all-bindings --auto-download
@@ -94,11 +96,11 @@ jobs:
         run: |
           git clone git@github.com:cvc5/docs-ci.git target/
           if [ -n "$NAME" ]; then
-            rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-${{ github.sha }}
+            rsync -a --delete build/docs/sphinx-gh/ target/docs-$NAME-$HASH
             cd target/
             rm -f docs-$NAME
-            ln -s docs-$NAME-${{ github.sha }} docs-$NAME
-            git add docs-$NAME docs-$NAME-${{ github.sha }}
+            ln -s docs-$NAME-$HASH docs-$NAME
+            git add docs-$NAME docs-$NAME-$HASH
 
             python3 genindex.py
             git add README.md
