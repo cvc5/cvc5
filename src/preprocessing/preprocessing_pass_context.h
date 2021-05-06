@@ -78,7 +78,8 @@ class PreprocessingPassContext
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
   /**
-   * Add substitution to the top-level substitutions and to the theory model.
+   * Add substitution to the top-level substitutions, which also as a
+   * consequence is used by the theory model.
    * @param lhs The node replaced by node 'rhs'
    * @param rhs The node to substitute node 'lhs'
    * @param pg The proof generator that can provide a proof of lhs == rhs.
