@@ -338,7 +338,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
       // If using incremental, we must check whether this variable has occurred
       // before now. If it has, we must add as an assertion.
-      // FIXME
       if (d_preprocContext->getSymsInAssertions().find(lhs)
           != d_preprocContext->getSymsInAssertions().end())
       {
@@ -353,14 +352,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
                                                     trhs.getGenerator());
       }
     }
-  }
-  else
-  {
-    // Add new substitutions to topLevelSubstitutions
-    // Note that we don't have to keep rhs's in full solved form
-    // because SubstitutionMap::apply does a fixed-point iteration when
-    // substituting
-    ttls.addSubstitutions(*newSubstitutions.get());
   }
 
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
@@ -402,6 +393,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Trace("non-clausal-simplify")
         << "non-clausal constant propagation : " << cProp << std::endl;
   }
+
+  // Add new substitutions to topLevelSubstitutions
+  // Note that we don't have to keep rhs's in full solved form
+  // because SubstitutionMap::apply does a fixed-point iteration when
+  // substituting
+  ttls.addSubstitutions(*newSubstitutions.get());
 
   if (!learnedLitsToConjoin.empty())
   {
