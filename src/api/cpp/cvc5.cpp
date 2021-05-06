@@ -2641,7 +2641,15 @@ std::int32_t Term::getInt32() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isUInt32() const { return detail::isUInt32(*d_node); }
+bool Term::isUInt32() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isUInt32(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 std::uint32_t Term::getUInt32() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -2654,7 +2662,14 @@ std::uint32_t Term::getUInt32() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isInt64() const { return detail::isInt64(*d_node); }
+bool Term::isInt64() const {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isInt64(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 std::int64_t Term::getInt64() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -2689,7 +2704,14 @@ std::uint64_t Term::getUInt64() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isInteger() const { return detail::isInteger(*d_node); }
+bool Term::isInteger() const {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isInteger(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 std::string Term::getInteger() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -2747,36 +2769,66 @@ bool checkReal64Bounds(const cvc5::Node& node)
          && detail::checkIntegerBounds<std::uint64_t>(r.getDenominator());
 }
 
-bool Term::isReal32() const
-{
-  return isString() && checkReal32Bounds(*d_node);
+bool Term::isReal32() const {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isReal32(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 std::pair<std::int32_t, std::uint32_t> Term::getReal32() const
 {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(detail::isReal32(*d_node))
       << "Term should be a Real32 when calling getReal32()";
+  //////// all checks before this line
   const Rational& r = detail::getRational(*d_node);
   return std::make_pair(r.getNumerator().getSignedInt(),
                         r.getDenominator().getUnsignedInt());
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
-bool Term::isReal64() const
-{
-  return isString() && checkReal64Bounds(*d_node);
+bool Term::isReal64() const {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isReal64(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 std::pair<std::int64_t, std::uint64_t> Term::getReal64() const
 {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(detail::isReal64(*d_node))
       << "Term should be a Real64 when calling getReal64()";
+  //////// all checks before this line
   const Rational& r = detail::getRational(*d_node);
   return std::make_pair(r.getNumerator().getLong(),
                         r.getDenominator().getUnsignedLong());
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
-bool Term::isReal() const { return detail::isReal(*d_node); }
+bool Term::isReal() const {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isReal(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 std::string Term::getReal() const
 {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(detail::isReal(*d_node))
       << "Term should be a Real when calling getReal()";
+  //////// all checks before this line
   return detail::getRational(*d_node).toString();
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 bool Term::isConstArray() const
@@ -2891,15 +2943,12 @@ std::tuple<std::uint32_t, std::uint32_t, Term> Term::getFloatingPoint() const
   CVC5_API_CHECK(d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT)
       << "Term should be a FloatingPoint when calling getFloatingPoint()";
   const auto& fp = d_node->getConst<FloatingPoint>();
-  return std::make_tuple(
-    fp.getSize().exponentWidth(),
+  return std::make_tuple(fp.getSize().exponentWidth(),
                          fp.getSize().significandWidth(),
                          d_solver->mkValHelper<BitVector>(fp.pack()));
 }
 
-bool Term::isSet() const {
-  return d_node->getType().isSet(); 
-}
+bool Term::isSet() const { return d_node->getType().isSet(); }
 namespace {
 void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
 {
@@ -2908,7 +2957,7 @@ void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
     case cvc5::Kind::EMPTYSET: break;
     case cvc5::Kind::SINGLETON:
       // TODO: fix this
-      //set.emplace(Term(slv, node[0])); break;
+      // set.emplace(Term(slv, node[0])); break;
     case cvc5::Kind::UNION:
     {
       for (const auto& sub : node)
@@ -2921,7 +2970,8 @@ void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
   }
 }
 }  // namespace
-std::set<Term> Term::getSet() const {
+std::set<Term> Term::getSet() const
+{
   CVC5_API_CHECK(d_node->getType().isSet())
       << "Term should be a Set when calling getSet()";
   std::set<Term> res;
@@ -2934,12 +2984,6 @@ bool Term::isChar() const
   return d_node->getKind() == cvc5::Kind::CONST_STRING
          && d_node->getConst<String>().getVec().size() == 1;
 }
-bool Term::isEmptySequence() const
-{
-  return d_node->getKind() == cvc5::Kind::CONST_SEQUENCE
-         && d_node->getConst<Sequence>().empty();
-}
-bool Term::isSequence() const { return d_node->getType().isSequence(); }
 std::string Term::getChar() const
 {
   CVC5_API_CHECK(d_node->getKind() == cvc5::Kind::CONST_STRING
@@ -2955,6 +2999,7 @@ std::string Term::getChar() const
   std::reverse(res.begin(), res.end());
   return res;
 }
+bool Term::isSequence() const { return d_node->getType().isSequence(); }
 std::vector<Term> Term::getSequence() const
 {
   CVC5_API_CHECK(d_node->getType().isSequence())
