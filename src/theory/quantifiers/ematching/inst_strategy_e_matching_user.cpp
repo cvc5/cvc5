@@ -146,7 +146,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   std::vector<Node> nodes;
   for (const Node& p : pat)
   {
-    if (std::find(nodes.begin(), nodes.end(), p)!=nodes.end())
+    if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
     {
       // skip duplicate pattern term
       continue;
