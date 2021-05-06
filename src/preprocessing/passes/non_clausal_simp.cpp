@@ -350,8 +350,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         TrustNode trhs = newSubstitutions->apply((*pos).first);
         Assert(!trhs.isNull());
         Trace("non-clausal-simplify")
-            << "substitute: will notify SAT layer of substitution: " << trhs.getProven()
-            << std::endl;
+            << "substitute: will notify SAT layer of substitution: "
+            << trhs.getProven() << std::endl;
         assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
                                                     trhs.getGenerator());
       }
