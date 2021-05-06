@@ -2856,8 +2856,11 @@ bool Term::isBoolean() const
 }
 bool Term::getBoolean() const
 {
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_node->getKind() == cvc5::Kind::CONST_BOOLEAN)
       << "Term should be a Boolean when calling getBoolean()";
+  //////// all checks before this line
   return d_node->getConst<bool>();
   ////////
   CVC5_API_TRY_CATCH_END;
