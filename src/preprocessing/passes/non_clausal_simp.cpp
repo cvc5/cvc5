@@ -332,10 +332,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // we are in incremental mode. For example, say our first call to check-sat
   // is a formula F containing variable x. On the second call to check-sat,
   // say we solve a top-level assertion (= x t). Since the solver already has
-  // constraints involving x, we must still keep (x=t) as an assertion.
+  // constraints involving x, we must still keep (= x t) as an assertion.
   // However, notice that we do no retract the substitution { x -> t }. This
-  // means that (= x t) is kept as an assertion and all further new assertions
-  // will replace x by t.
+  // means that all further new assertions will replace x by t.
   NodeManager* nm = NodeManager::currentNM();
   if (assertionsToPreprocess->storeSubstsInAsserts())
   {
