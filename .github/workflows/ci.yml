@@ -236,7 +236,7 @@ jobs:
     name: upload-docs
     runs-on: ubuntu-latest
     continue-on-error: true
-    needs: ubuntu:production
+    needs: build
     steps:
       - name: Setup Deploy Key
         env:
