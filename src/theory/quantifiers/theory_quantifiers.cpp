@@ -49,18 +49,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
 
-  // Finish initializing the term registry by hooking it up to the inference
-  // manager. This is required due to a cyclic dependency between the term
-  // database and the instantiate module. Term database needs inference manager
-  // since it sends out lemmas when term indexing is inconsistent, instantiate
-  // needs term database for entailment checks.
-  d_treg.finishInit(&d_qim);
-
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, pnm));
-
-  //!!!!!!!!!!!!!! temporary (project #15)
-  d_treg.getModel()->finishInit(d_qengine.get());
 
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;
