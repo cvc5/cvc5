@@ -33,6 +33,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
+class BBRegistrar;
+
 /**
  * Bit-blasting solver with support for different SAT back ends.
  */
@@ -81,6 +83,8 @@ class BVSolverBitblast : public BVSolver
    */
   Node getValue(TNode node);
 
+  void handleEagerAtom(TNode fact, bool assertFact);
+
   /**
    * Cache for getValue() calls.
    *
@@ -93,7 +97,7 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<BBSimple> d_bitblaster;
 
   /** Used for initializing `d_cnfStream`. */
-  std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
+  std::unique_ptr<BBRegistrar> d_bbRegistrar;
   std::unique_ptr<context::Context> d_nullContext;
 
   /** SAT solver back end (configured via options::bvSatSolver. */
