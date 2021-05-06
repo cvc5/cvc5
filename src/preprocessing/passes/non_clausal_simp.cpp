@@ -327,7 +327,15 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "non-clausal preprocessed: " << assertion << std::endl;
   }
 
-  // if necessary, add as assertions if needed (when incremental)
+  // If necessary, add as assertions if needed (when incremental). This is
+  // necessary because certain variables cannot truly be eliminated when
+  // we are in incremental mode. For example, say our first call to check-sat
+  // is a formula F containing variable x. On the second call to check-sat,
+  // say we solve a top-level assertion (= x t). Since the solver already has
+  // constraints involving x, we must still keep (x=t) as an assertion.
+  // However, notice that we do no retract the substitution { x -> t }. This
+  // means that (= x t) is kept as an assertion and all further new assertions
+  // will replace x by t.
   NodeManager* nm = NodeManager::currentNM();
   if (assertionsToPreprocess->storeSubstsInAsserts())
   {
@@ -438,7 +446,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // Note that typically ttls.get().apply(assert)==assert here.
   // However, this invariant is invalidated for cases where we use explicit
   // equality assertions for variables solved in incremental mode that already
-  // exist in assertions.
+  // exist in assertions, as described above.
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
