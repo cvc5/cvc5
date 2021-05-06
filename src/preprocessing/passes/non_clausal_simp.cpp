@@ -335,7 +335,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // constraints involving x, we must still keep (= x t) as an assertion.
   // However, notice that we do no retract the substitution { x -> t }. This
   // means that all further new assertions will replace x by t.
-  NodeManager* nm = NodeManager::currentNM();
   if (assertionsToPreprocess->storeSubstsInAsserts())
   {
     for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
