@@ -184,6 +184,8 @@ public:
    */
   bool isDecision(Node lit) const;
 
+  int32_t getDecisionLevel(Node lit) const;
+
   int32_t getIntroLevel(Node lit) const;
 
   /**

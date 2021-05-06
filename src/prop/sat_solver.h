@@ -168,6 +168,8 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual bool isDecision(SatVariable decn) const = 0;
 
+  virtual int32_t getLevel(SatVariable v) const { return -1; }
+
   virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;

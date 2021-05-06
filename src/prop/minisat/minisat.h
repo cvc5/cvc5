@@ -85,6 +85,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   bool isDecision(SatVariable decn) const override;
 
+  int32_t getLevel(SatVariable v) const override;
+
   int32_t getIntroLevel(SatVariable v) const override;
 
   /** Retrieve a pointer to the unerlying solver. */

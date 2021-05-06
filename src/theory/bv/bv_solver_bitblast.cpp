@@ -152,7 +152,7 @@ bool BVSolverBitblast::preNotifyFact(
   Valuation& val = d_state.getValuation();
 
   if (val.isSatLiteral(fact) && !val.isDecision(fact)
-      && val.getIntroLevel(fact) == 0)
+      && val.getDecisionLevel(fact) == 0 && val.getIntroLevel(fact) == 0)
   {
     d_bbInputFacts.push_back(fact);
   }

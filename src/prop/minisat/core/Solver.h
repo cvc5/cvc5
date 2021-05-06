@@ -296,6 +296,8 @@ public:
  int nVars() const;     // The current number of variables.
  int nFreeVars() const;
  bool isDecision(Var x) const;  // is the given var a decision?
+ int32_t getLevel(Var x) const;  // Return decision level of x.
+
  int32_t getIntroLevel(
      Var x) const;  // Return user-level when x was introduced.
 
@@ -586,6 +588,11 @@ inline bool Solver::isDecision(Var x) const
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;
+}
+
+inline int32_t Solver::getLevel(Var x) const
+{
+  return level(x);
 }
 
 inline int32_t Solver::getIntroLevel(Var x) const
