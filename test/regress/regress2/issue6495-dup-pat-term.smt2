@@ -1,13 +1,5 @@
-(set-option :print-success false)
-(set-info :smt-lib-version 2.6)
-(set-option :produce-models true)
-(set-option :smt.QI.EAGER_THRESHOLD 100)
-(set-option :smt.QI.LAZY_THRESHOLD 100)
-(set-option :smt.random_seed 1)
 (set-logic ALL_SUPPORTED)
-; done setting options
-
-
+(set-info :status unsat)
 (declare-sort |T@[Int]Int| 0)
 (declare-datatypes ((T@Vec_2846 0)) (((Vec_2846 (|v#Vec_2846| |T@[Int]Int|) (|l#Vec_2846| Int) ) ) ))
 (declare-datatypes ((T@$Location 0)) ((($Global (|a#$Global| Int) ) ($Local (|i#$Local| Int) ) ($Param (|i#$Param| Int) ) ) ))
