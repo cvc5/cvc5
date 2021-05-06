@@ -1266,6 +1266,145 @@ class CVC5_EXPORT Term
    */
   std::wstring getString() const;
 
+  bool isReal32() const;
+  /**
+   * Returns the stored rational as a pair of its numerator and denominator.
+   * Asserts isReal32().
+   */
+  std::pair<std::int32_t, std::uint32_t> getReal32() const;
+  /**
+   * Returns true if the term is a rational whose numerator and denominator fit
+   * within std::int64_t and std::uint64_t, respectively.
+   */
+  bool isReal64() const;
+  /**
+   * Returns the stored rational as a pair of its numerator and denominator.
+   * Asserts isReal64().
+   */
+  std::pair<std::int64_t, std::uint64_t> getReal64() const;
+  /**
+   * Returns true if the term is a rational.
+   */
+  bool isReal() const;
+  /**
+   * Returns the stored rational in (decimal) string representation.
+   * Asserts isRealString().
+   */
+  std::string getReal() const;
+
+  /**
+   * Returns true if the term is a constant array.
+   */
+  bool isConstArray() const;
+  /**
+   * Returns the value stored in the constant array. Asserts isConstArray().
+   */
+  Term getConstArray() const;
+
+  /**
+   * Returns true if the term is a Boolean constant.
+   */
+  bool isBoolean() const;
+  /**
+   * Returns the stored Boolean constant. Asserts isBoolean().
+   */
+  bool getBoolean() const;
+
+  /**
+   * Returns true if the term is a BitVector constant.
+   */
+  bool isBitVector() const;
+  /**
+   * Returns the stored BitVector constant in string representation. Supported
+   * bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal string).
+   */
+  std::string getBitVector(std::uint32_t base = 2) const;
+
+  /**
+   * Returns true if the term is an abstract value.
+   */
+  bool isAbstractValue() const;
+  /**
+   * Returns the stored abstract value in string representation.
+   */
+  std::string getAbstractValue() const;
+
+  /**
+   * Returns true if the term is a tuple.
+   */
+  bool isTuple() const;
+  /**
+   * Returns the stored tuple as a vector of terms.
+   */
+  std::vector<Term> getTuple() const;
+
+  /**
+   * Returns true if the term is the floating-point constant for positive zero.
+   */
+  bool isPosZero() const;
+  /**
+   * Returns true if the term is the floating-point constant for negative zero.
+   */
+  bool isNegZero() const;
+  /**
+   * Returns true if the term is the floating-point constant for positive
+   * infinity.
+   */
+  bool isPosInf() const;
+  /**
+   * Returns true if the term is the floating-point constant for negative
+   * infinity.
+   */
+  bool isNegInf() const;
+  /**
+   * Returns true if the term is the floating-point constant for not a number.
+   */
+  bool isNaN() const;
+  /**
+   * Returns true if the term is a floating-point constant.
+   */
+  bool isFloatingPoint() const;
+  /**
+   * Returns the stored floating-point constant as a tuple of the exponent
+   * width, the significand with and a bit-vector constant. Asserts
+   * isFloatingPoint().
+   */
+  std::tuple<std::uint32_t, std::uint32_t, Term> getFloatingPoint() const;
+
+  /**
+   * Returns true if the term is a set.
+   */
+  bool isSet() const;
+  /**
+   * Returns the stored set as a set of terms. Asserts isSet().
+   */
+  std::set<Term> getSet() const;
+
+  /**
+   * Returns true if the term is a single string character.
+   */
+  bool isChar() const;
+  /**
+   * Returns the stored character as a string that holds the unicode code point
+   * as hexadecimal numer. Asserts isChar().
+   */
+  std::string getChar() const;
+  /**
+   * Returns true if the term is a constant sequence.
+   */
+  bool isSequence() const;
+  std::vector<Term> getSequence() const;
+
+  /**
+   * Returns true if the term is a constant from an uninterpreted sort.
+   */
+  bool isUninterpretedConst() const;
+  /**
+   * Returns the stored uninterpreted constant as a pair of its sort and its
+   * index.
+   */
+  std::pair<Sort, std::int32_t> getUninterpretedConst() const;
+
  protected:
   /**
    * The associated solver object.
