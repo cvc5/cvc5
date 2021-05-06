@@ -42,12 +42,6 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
       d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
                    : nullptr)
 {
-}
-
-CombinationEngine::~CombinationEngine() {}
-
-void CombinationEngine::finishInit()
-{
   // create the equality engine, model manager, and shared solver
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
@@ -64,7 +58,12 @@ void CombinationEngine::finishInit()
     Unhandled() << "CombinationEngine::finishInit: equality engine mode "
                 << options::eeMode() << " not supported";
   }
+}
 
+CombinationEngine::~CombinationEngine() {}
+
+void CombinationEngine::finishInit()
+{
   Assert(d_eemanager != nullptr);
 
   // initialize equality engines in all theories, including quantifiers engine
