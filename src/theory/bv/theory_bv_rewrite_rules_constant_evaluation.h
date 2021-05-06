@@ -491,6 +491,18 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
   return utils::mkConst(1, 0);
 }
 
+template <>
+inline bool RewriteRule<EvalEagerAtom>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_EAGER_ATOM && node[0].isConst());
+}
+
+template <>
+inline Node RewriteRule<EvalEagerAtom>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<EvalComp>(" << node << ")" << std::endl;
+  return node[0];
+}
 }
 }
 }  // namespace cvc5
