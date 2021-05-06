@@ -139,7 +139,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: deps/install
-        key: aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: cvc5-aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Setup Auxiliary Tools
       if: steps.restore-aux-tools.outputs.cache-hit != 'true'
@@ -151,8 +151,8 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ccache-dir
-        key: ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
-        restore-keys: ccache-${{ runner.os }}-${{ matrix.cache-key }}-
+        key: cvc5-ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
+        restore-keys: cvc5-ccache-${{ runner.os }}-${{ matrix.cache-key }}-
 
     - name: Configure ccache
       run: |
@@ -167,7 +167,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build/deps
-        key: deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        key: cvc5-deps-${{ runner.os }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
 
     - name: Configure
       run: |
