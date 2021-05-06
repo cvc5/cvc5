@@ -83,6 +83,8 @@ class BoundVarManager
   //---------------------------------- utilities for computing Node hash
   /** get cache value from two nodes, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2);
+  /** get cache value from three nodes, returns SEXPR */
+  static Node getCacheValue(TNode cv1, TNode cv2, TNode cv3);
   /** get cache value from two nodes and a size_t, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2, size_t i);
   /** get cache value, returns a constant rational node */

@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 
@@ -42,7 +42,7 @@ class Parser;
  * called any number of times on an instance and will generate a fresh
  * parser each time.
  */
-class CVC4_EXPORT ParserBuilder
+class CVC5_EXPORT ParserBuilder
 {
   enum InputType {
     FILE_INPUT,

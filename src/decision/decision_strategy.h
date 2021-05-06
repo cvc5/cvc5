@@ -26,20 +26,24 @@
 
 namespace cvc5 {
 
-class DecisionEngine;
+class DecisionEngineOld;
 
 namespace context {
   class Context;
   }  // namespace context
 
 namespace decision {
+  
+class DecisionEngine;
 
 class DecisionStrategy {
 protected:
-  DecisionEngine* d_decisionEngine;
+ DecisionEngineOld* d_decisionEngine;
+
 public:
-  DecisionStrategy(DecisionEngine* de, context::Context *c) :
-    d_decisionEngine(de) {
+ DecisionStrategy(DecisionEngineOld* de, context::Context* c)
+     : d_decisionEngine(de)
+ {
   }
 
   virtual ~DecisionStrategy() { }
@@ -49,8 +53,9 @@ public:
 
 class ITEDecisionStrategy : public DecisionStrategy {
 public:
-  ITEDecisionStrategy(DecisionEngine* de, context::Context *c) :
-    DecisionStrategy(de, c) {
+ ITEDecisionStrategy(DecisionEngineOld* de, context::Context* c)
+     : DecisionStrategy(de, c)
+ {
   }
   /**
    * Add that assertion is an (input) assertion, not corresponding to a

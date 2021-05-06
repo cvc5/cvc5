@@ -45,7 +45,7 @@ class TermRegistry
   TermRegistry(QuantifiersState& qs,
                QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
-  void finishInit(QuantifiersInferenceManager* qim);
+  void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
   /** Presolve */
   void presolve();
 
@@ -79,9 +79,6 @@ class TermRegistry
   void processInstantiation(Node q, const std::vector<Node>& terms);
   void processSkolemization(Node q, const std::vector<Node>& skolems);
 
-  /** Whether we use the full model check builder and corresponding model */
-  bool useFmcModel() const;
-
   /** get term database */
   TermDb* getTermDatabase() const;
   /** get term database sygus */
@@ -109,7 +106,7 @@ class TermRegistry
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** extended model object */
-  std::unique_ptr<FirstOrderModel> d_qmodel;
+  FirstOrderModel* d_qmodel;
 };
 
 }  // namespace quantifiers
