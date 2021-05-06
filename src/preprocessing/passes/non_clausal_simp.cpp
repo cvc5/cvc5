@@ -339,7 +339,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       // If using incremental, we must check whether this variable has occurred
       // before now. If it hasn't we can add this as a substitution.
       if (d_preprocContext->getSymsInAssertions().find(lhs)
-                != d_preprocContext->getSymsInAssertions().end())
+          != d_preprocContext->getSymsInAssertions().end())
       {
         // if it has, the substitution becomes an assertion
         Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
@@ -349,7 +349,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         trhs = newSubstitutions->apply((*pos).first);
         Assert(!trhs.isNull());
         assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
-        trhs.getGenerator());
+                                                    trhs.getGenerator());
       }
     }
   }
