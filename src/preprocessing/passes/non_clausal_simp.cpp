@@ -337,7 +337,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       TrustNode trhs = newSubstitutions->apply((*pos).second);
       Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
       // If using incremental, we must check whether this variable has occurred
-      // before now. If it hasn't we can add this as a substitution.
+      // before now. If it has, we must add as an assertion.
+      // FIXME
       if (d_preprocContext->getSymsInAssertions().find(lhs)
           != d_preprocContext->getSymsInAssertions().end())
       {
@@ -352,6 +353,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
                                                     trhs.getGenerator());
       }
     }
+  }
+  else
+  {
+    // Add new substitutions to topLevelSubstitutions
+    // Note that we don't have to keep rhs's in full solved form
+    // because SubstitutionMap::apply does a fixed-point iteration when
+    // substituting
+    ttls.addSubstitutions(*newSubstitutions.get());
   }
 
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
@@ -394,12 +403,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "non-clausal constant propagation : " << cProp << std::endl;
   }
 
-  // Add new substitutions to topLevelSubstitutions
-  // Note that we don't have to keep rhs's in full solved form
-  // because SubstitutionMap::apply does a fixed-point iteration when
-  // substituting
-  ttls.addSubstitutions(*newSubstitutions.get());
-
   if (!learnedLitsToConjoin.empty())
   {
     size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
@@ -434,6 +437,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   propagator->setNeedsFinish(true);
+
+  // Note that typically ttls.get().apply(assert)==assert here.
+  // However, this invariant is invalidated for cases where we use explicit
+  // equality assertions for variables solved in incremental mode that already
+  // exist in assertions.
+
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
