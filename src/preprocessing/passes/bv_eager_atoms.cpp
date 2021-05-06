@@ -43,7 +43,6 @@ PreprocessingPassResult BvEagerAtoms::applyInternal(
       continue;
     }
     Node eager_atom = nm->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
-    // d_preprocContext->addModelSubstitution(eager_atom, atom);
     assertionsToPreprocess->replace(i, eager_atom);
   }
   return PreprocessingPassResult::NO_CONFLICT;

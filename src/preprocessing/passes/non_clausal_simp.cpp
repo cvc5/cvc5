@@ -327,34 +327,30 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "non-clausal preprocessed: " << assertion << std::endl;
   }
 
-  // add substitutions to model, or as assertions if needed (when incremental)
+  // if necessary, add as assertions if needed (when incremental)
   NodeManager* nm = NodeManager::currentNM();
-  for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
+  if (assertionsToPreprocess->storeSubstsInAsserts())
   {
-    Node lhs = (*pos).first;
-    TrustNode trhs = newSubstitutions->apply((*pos).second);
-    Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
-    // If using incremental, we must check whether this variable has occurred
-    // before now. If it hasn't we can add this as a substitution.
-    if (!assertionsToPreprocess->storeSubstsInAsserts()
-        || d_preprocContext->getSymsInAssertions().find(lhs)
-               == d_preprocContext->getSymsInAssertions().end())
+    for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
     {
-      Trace("non-clausal-simplify")
-          << "substitute: " << lhs << " " << rhs << std::endl;
-      // d_preprocContext->addModelSubstitution(lhs, rhs);
-    }
-    else
-    {
-      // if it has, the substitution becomes an assertion
-      Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
-      Trace("non-clausal-simplify")
-          << "substitute: will notify SAT layer of substitution: " << eq
-          << std::endl;
-       trhs = newSubstitutions->apply((*pos).first);
-       Assert(!trhs.isNull());
-       assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
-       trhs.getGenerator());
+      Node lhs = (*pos).first;
+      TrustNode trhs = newSubstitutions->apply((*pos).second);
+      Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
+      // If using incremental, we must check whether this variable has occurred
+      // before now. If it hasn't we can add this as a substitution.
+      if (d_preprocContext->getSymsInAssertions().find(lhs)
+                != d_preprocContext->getSymsInAssertions().end())
+      {
+        // if it has, the substitution becomes an assertion
+        Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
+        Trace("non-clausal-simplify")
+            << "substitute: will notify SAT layer of substitution: " << eq
+            << std::endl;
+        trhs = newSubstitutions->apply((*pos).first);
+        Assert(!trhs.isNull());
+        assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
+        trhs.getGenerator());
+      }
     }
   }
 
