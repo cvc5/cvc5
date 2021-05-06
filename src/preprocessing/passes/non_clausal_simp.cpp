@@ -341,20 +341,17 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
     {
       Node lhs = (*pos).first;
-      TrustNode trhs = newSubstitutions->apply((*pos).second);
-      Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
       // If using incremental, we must check whether this variable has occurred
       // before now. If it has, we must add as an assertion.
       if (d_preprocContext->getSymsInAssertions().find(lhs)
           != d_preprocContext->getSymsInAssertions().end())
       {
         // if it has, the substitution becomes an assertion
-        Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
-        Trace("non-clausal-simplify")
-            << "substitute: will notify SAT layer of substitution: " << eq
-            << std::endl;
-        trhs = newSubstitutions->apply((*pos).first);
+        TrustNode trhs = newSubstitutions->apply((*pos).first);
         Assert(!trhs.isNull());
+        Trace("non-clausal-simplify")
+            << "substitute: will notify SAT layer of substitution: " << trhs.getProven()
+            << std::endl;
         assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
                                                     trhs.getGenerator());
       }
