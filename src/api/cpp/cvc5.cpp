@@ -2546,7 +2546,14 @@ const cvc5::Node& Term::getNode(void) const { return *d_node; }
 namespace detail {
 const Rational& getRational(const cvc5::Node& node)
 {
-  return node.getConst<Rational>();
+  switch (node.getKind())
+  {
+    case cvc5::Kind::CAST_TO_REAL: return node[0].getConst<Rational>();
+    case cvc5::Kind::CONST_RATIONAL: return node.getConst<Rational>();
+    default:
+      CVC5_API_CHECK(false) << "Node is not a rational.";
+      return node.getConst<Rational>();
+  }
 }
 Integer getInteger(const cvc5::Node& node)
 {
@@ -2571,7 +2578,8 @@ bool checkReal64Bounds(const Rational& r)
 
 bool isReal(const Node& node)
 {
-  return node.getKind() == cvc5::Kind::CONST_RATIONAL;
+  return node.getKind() == cvc5::Kind::CONST_RATIONAL
+         || node.getKind() == cvc5::Kind::CAST_TO_REAL;
 }
 bool isReal32(const Node& node)
 {

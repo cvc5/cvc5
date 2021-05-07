@@ -749,6 +749,35 @@ TEST_F(TestApiBlackTerm, getString)
   ASSERT_EQ(s1.getString(), L"abcde");
 }
 
+TEST_F(TestApiBlackTerm, getReal)
+{
+  Term real1 = d_solver.mkReal("0");
+  Term real2 = d_solver.mkReal(".0");
+  Term real3 = d_solver.mkReal("-17");
+  Term real4 = d_solver.mkReal("-3/5");
+  Term real5 = d_solver.mkReal("12.7");
+  Term real6 = d_solver.mkReal("1/4294967297");
+  Term real7 = d_solver.mkReal("4294967297");
+  Term real8 = d_solver.mkReal("1/18446744073709551617");
+  Term real9 = d_solver.mkReal("18446744073709551617");
+
+  ASSERT_TRUE(real1.isReal());
+  ASSERT_TRUE(real1.isReal32());
+  ASSERT_TRUE(real1.isReal64());
+
+  ASSERT_TRUE(real1.isReal() && real1.isReal32() && real1.isReal64());
+  ASSERT_TRUE(real2.isReal() && real2.isReal32() && real2.isReal64());
+  ASSERT_TRUE(real3.isReal() && real3.isReal32() && real3.isReal64());
+  ASSERT_TRUE(real4.isReal() && real4.isReal32() && real4.isReal64());
+  ASSERT_TRUE(real5.isReal() && real5.isReal32() && real5.isReal64());
+  ASSERT_TRUE(real6.isReal() && real6.isReal64());
+  ASSERT_TRUE(real7.isReal() && real7.isReal64());
+  ASSERT_TRUE(real8.isReal());
+  ASSERT_TRUE(real9.isReal());
+
+  ASSERT_EQ(std::make_pair(0, 1u), real1.getReal32());
+}
+
 TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
