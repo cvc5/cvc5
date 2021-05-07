@@ -146,6 +146,11 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   std::vector<Node> nodes;
   for (const Node& p : pat)
   {
+    if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
+    {
+      // skip duplicate pattern term
+      continue;
+    }
     Node pat_use = PatternTermSelector::getIsUsableTrigger(p, q);
     if (pat_use.isNull())
     {

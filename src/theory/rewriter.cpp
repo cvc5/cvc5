@@ -179,6 +179,11 @@ void Rewriter::registerPostRewriteEqual(
   d_postRewritersEqual[tid] = fn;
 }
 
+TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
+{
+  return d_theoryRewriters[theoryId];
+}
+
 Rewriter* Rewriter::getInstance()
 {
   return smt::currentSmtEngine()->getRewriter();

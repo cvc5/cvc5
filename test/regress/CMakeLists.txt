@@ -2383,6 +2383,7 @@ set(regress_2_tests
   regress2/instance_1444.smtv1.smt2
   regress2/issue3687-check-models.smt2
   regress2/issue4707-bv-to-bool-large.smt2
+  regress2/issue6495-dup-pat-term.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/nt-lemmas-bad.smt2
