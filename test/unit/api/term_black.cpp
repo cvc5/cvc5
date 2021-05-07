@@ -975,6 +975,19 @@ TEST_F(TestApiBlackTerm, getSequence)
   ASSERT_EQ(std::vector<Term>({i1, i1, i2}), s5.getSequence());
 }
 
+TEST_F(TestApiBlackTerm, getUninterpretedConst)
+{
+  Sort s = d_solver.mkUninterpretedSort("test");
+  Term t1 = d_solver.mkUninterpretedConst(s, 3);
+  Term t2 = d_solver.mkUninterpretedConst(s, 5);
+
+  ASSERT_TRUE(t1.isUninterpretedConst());
+  ASSERT_TRUE(t2.isUninterpretedConst());
+
+  ASSERT_EQ(std::make_pair(s, 3), t1.getUninterpretedConst());
+  ASSERT_EQ(std::make_pair(s, 5), t2.getUninterpretedConst());
+}
+
 TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
