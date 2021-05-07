@@ -915,6 +915,29 @@ TEST_F(TestApiBlackTerm, getFloatingPoint)
   ASSERT_TRUE(d_solver.mkNaN(5, 11).isNaN());
 }
 
+TEST_F(TestApiBlackTerm, getSet)
+{
+  Sort s = d_solver.mkSetSort(d_solver.getIntegerSort());
+
+  Term s1 = d_solver.mkEmptySet(s);
+  Term s2 = d_solver.mkTerm(Kind::SINGLETON, d_solver.mkInteger(5));
+  Term s3 = d_solver.mkTerm(Kind::SINGLETON, d_solver.mkInteger(5));
+  Term s4 = d_solver.mkTerm(Kind::SINGLETON, d_solver.mkInteger(7));
+  Term s5 = d_solver.mkTerm(Kind::UNION, s2, d_solver.mkTerm(Kind::UNION, s3, s4));
+
+  ASSERT_TRUE(s1.isSet());
+  ASSERT_TRUE(s2.isSet());
+  ASSERT_TRUE(s3.isSet());
+  ASSERT_TRUE(s4.isSet());
+  ASSERT_TRUE(s5.isSet());
+
+  ASSERT_EQ(std::set<Term>({}), s1.getSet());
+  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(5)}), s2.getSet());
+  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(5)}), s3.getSet());
+  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(7)}), s4.getSet());
+  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(5), d_solver.mkInteger(7)}), s5.getSet());
+}
+
 TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");

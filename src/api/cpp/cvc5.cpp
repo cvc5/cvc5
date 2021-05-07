@@ -3028,15 +3028,14 @@ bool Term::isSet() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-namespace {
-void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
+
+void Term::collectSet(std::set<Term>& set, const cvc5::Node& node, const Solver* slv)
 {
   switch (node.getKind())
   {
     case cvc5::Kind::EMPTYSET: break;
     case cvc5::Kind::SINGLETON:
-      // TODO: fix this
-      // set.emplace(Term(slv, node[0])); break;
+      set.emplace(Term(slv, node[0])); break;
     case cvc5::Kind::UNION:
     {
       for (const auto& sub : node)
@@ -3048,7 +3047,7 @@ void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
     default: break;
   }
 }
-}  // namespace
+
 std::set<Term> Term::getSet() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -3057,7 +3056,7 @@ std::set<Term> Term::getSet() const
       << "Term should be a Set when calling getSet()";
   //////// all checks before this line
   std::set<Term> res;
-  collectSet(res, *d_node, d_solver);
+  Term::collectSet(res, *d_node, d_solver);
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
