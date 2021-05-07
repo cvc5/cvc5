@@ -82,6 +82,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
       case BAG_FROM_SET: response = rewriteFromSet(n); break;
       case BAG_TO_SET: response = rewriteToSet(n); break;
+      case BAG_MAP: response = postRewriteMap(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -499,6 +500,18 @@ BagsRewriteResponse BagsRewriter::postRewriteEqual(const TNode& n) const
   {
     Node ret = d_nm->mkNode(kind::EQUAL, n[1], n[0]);
     return BagsRewriteResponse(ret, Rewrite::EQ_SYM);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_MAP);
+  if (n[1].getKind() == EMPTYBAG)
+  {
+    // (bag.map (lambda ((x U))  t) emptybag) = emptybag
+    Node ret = d_nm->mkConst(EmptyBag(n[0].getType().getRangeType()));
+    return BagsRewriteResponse(ret, Rewrite::MAP_EMPTY);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }

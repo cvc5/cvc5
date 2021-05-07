@@ -211,6 +211,12 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse postRewriteEqual(const TNode& n) const;
 
+  /**
+   *  rewrites for n include:
+   *  - (bag.map (lambda ((x U))  t) emptybag) = emptybag
+   */
+  BagsRewriteResponse postRewriteMap(const TNode& n) const;
+
  private:
   /** Reference to the rewriter statistics. */
   NodeManager* d_nm;

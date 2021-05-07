@@ -691,5 +691,27 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
   ASSERT_TRUE(response.d_node == singleton
               && response.d_status == REWRITE_AGAIN_FULL);
 }
+
+TEST_F(TestTheoryWhiteBagsRewriter, map)
+{
+  Node emptybagString =
+      d_nodeManager->mkConst(EmptyBag(d_nodeManager->stringType()));
+
+  Node one = d_nodeManager->mkConst(Rational(1));
+  Node x = d_nodeManager->mkBoundVar("x", d_nodeManager->integerType());
+  std::vector<Node> args;
+  args.push_back(x);
+  Node bound = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, args);
+  Node lambda = d_nodeManager->mkNode(LAMBDA, bound, one);
+
+  // (bag.map (lambda ((x U))  t) emptybag) = emptybag
+  Node n = d_nodeManager->mkNode(BAG_MAP, lambda, emptybagString);
+  RewriteResponse response = d_rewriter->postRewrite(n);
+  Node emptybagInteger =
+      d_nodeManager->mkConst(EmptyBag(d_nodeManager->integerType()));
+  ASSERT_TRUE(response.d_node == emptybagInteger
+              && response.d_status == REWRITE_AGAIN_FULL);
+}
+
 }  // namespace test
 }  // namespace cvc5
