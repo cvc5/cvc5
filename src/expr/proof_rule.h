@@ -106,19 +106,19 @@ enum class PfRule : uint32_t
   // rewritten form under a (proven) substitution.
   //
   // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids (idr)?)?)
+  // Arguments: (t, (ids (ida (idr)?)?)?)
   // ---------------------------------------------------------------
   // Conclusion: (= t t')
   // where
   //   t' is
-  //   Rewriter{idr}(t*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(t*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
   //
   // In other words, from the point of view of Skolem forms, this rule
   // transforms t to t' by standard substitution + rewriting.
   //
-  // The argument ids and idr is optional and specify the identifier of the
-  // substitution and rewriter respectively to be used. For details, see
-  // theory/builtin/proof_checker.h.
+  // The arguments ids, ida and idr are optional and specify the identifier of
+  // the substitution, the substitution application and rewriter respectively to
+  // be used. For details, see theory/builtin/proof_checker.h.
   MACRO_SR_EQ_INTRO,
   // ======== Substitution + Rewriting predicate introduction
   //
@@ -126,11 +126,11 @@ enum class PfRule : uint32_t
   // that it rewrites to true under a proven substitution.
   //
   // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (F, (ids (idr)?)?)
+  // Arguments: (F, (ids (ida (idr)?)?)?)
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) == true
   // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
@@ -152,12 +152,12 @@ enum class PfRule : uint32_t
   // rewritten form under a proven substitution.
   //
   // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: ((ids (idr)?)?)
+  // Arguments: ((ids (ida (idr)?)?)?)
   // ----------------------------------------
   // Conclusion: F'
   // where
   //   F' is
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)).
+  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)).
   // where ids and idr are method identifiers.
   //
   // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
@@ -169,12 +169,12 @@ enum class PfRule : uint32_t
   // substitution.
   //
   // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: (G, (ids (idr)?)?)
+  // Arguments: (G, (ids (ida (idr)?)?)?)
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) ==
+  //   Rewriter{idr}(G*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
   //
   // More generally, this rule also holds when:
   //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
