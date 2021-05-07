@@ -307,7 +307,7 @@ TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
-    if (!(argTypes.size() == 1 || argTypes[0] == elementType))
+    if (!(argTypes.size() == 1 && argTypes[0] == elementType))
     {
       std::stringstream ss;
       ss << "Operator " << n.getKind() << " expects a function of type  (-> "
