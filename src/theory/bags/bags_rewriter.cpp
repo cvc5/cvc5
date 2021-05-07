@@ -513,6 +513,21 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     Node ret = d_nm->mkConst(EmptyBag(n[0].getType().getRangeType()));
     return BagsRewriteResponse(ret, Rewrite::MAP_EMPTY);
   }
+  if (n[1].isConst())
+  {
+    std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
+    std::map<Node, Rational> mappedElements;
+    std::map<Node, Rational>::iterator it = elements.begin();
+    while (it != elements.end())
+    {
+      Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], it->first);
+      mappedElements[mappedElement] = it->second;
+      ++it;
+    }
+    TypeNode t = d_nm->mkBagType(n[0].getType().getRangeType());
+    Node ret = NormalForm::constructConstantBagFromElements(t, mappedElements);
+    return BagsRewriteResponse(ret, Rewrite::MAP_EMPTY);
+  }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

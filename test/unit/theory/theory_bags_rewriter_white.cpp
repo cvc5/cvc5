@@ -705,12 +705,36 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   Node lambda = d_nodeManager->mkNode(LAMBDA, bound, one);
 
   // (bag.map (lambda ((x U))  t) emptybag) = emptybag
-  Node n = d_nodeManager->mkNode(BAG_MAP, lambda, emptybagString);
-  RewriteResponse response = d_rewriter->postRewrite(n);
+  Node n1 = d_nodeManager->mkNode(BAG_MAP, lambda, emptybagString);
+  RewriteResponse response1 = d_rewriter->postRewrite(n1);
   Node emptybagInteger =
       d_nodeManager->mkConst(EmptyBag(d_nodeManager->integerType()));
-  ASSERT_TRUE(response.d_node == emptybagInteger
-              && response.d_status == REWRITE_AGAIN_FULL);
+  ASSERT_TRUE(response1.d_node == emptybagInteger
+              && response1.d_status == REWRITE_AGAIN_FULL);
+
+  std::vector<Node> elements = getNStrings(2);
+  Node a = d_nodeManager->mkConst(String("a"));
+  Node b = d_nodeManager->mkConst(String("b"));
+  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
+                                a,
+                                d_nodeManager->mkConst(Rational(3)));
+  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
+                                b,
+                                d_nodeManager->mkConst(Rational(4)));
+  Node unionDisjointAB = d_nodeManager->mkNode(UNION_DISJOINT, A, B);
+
+  ASSERT_TRUE(unionDisjointAB.isConst());
+  // - (bag.map (lambda ((x U)) t) (union_disjoint (bag "a" 3) (bag "b" 4))) =
+  //     (union_disjoint
+  //        (bag ((lambda ((x U)) t) "a") 3)
+  //        (bag ((lambda ((x U)) t) "b") 4))
+  Node n2 = d_nodeManager->mkNode(BAG_MAP, lambda, unionDisjointAB);
+
+  Node rewritten = Rewriter:: rewrite(n2);
+
+  Node bag = d_nodeManager->mkBag(d_nodeManager->integerType(),
+                                  one,               d_nodeManager->mkConst(Rational(1)));
+  ASSERT_TRUE(rewritten == bag);
 }
 
 }  // namespace test
