@@ -333,19 +333,19 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // is a formula F containing variable x. On the second call to check-sat,
   // say we solve a top-level assertion (= x t). Since the solver already has
   // constraints involving x, we must still keep (= x t) as an assertion.
-  // However, notice that we do no retract the substitution { x -> t }. This
-  // means that all further new assertions will replace x by t.
+  // However, notice that we do not retract the substitution { x -> t }. This
+  // means that all *subsequent* assertions after (= x t) will replace x by t.
   if (assertionsToPreprocess->storeSubstsInAsserts())
   {
     for (const std::pair<const Node, Node>& pos: nss)
     {
-      Node lhs = (*pos).first;
+      Node lhs = pos.first;
       // If using incremental, we must check whether this variable has occurred
       // before now. If it has, we must add as an assertion.
       if (d_preprocContext->getSymsInAssertions().contains(lhs))
       {
         // if it has, the substitution becomes an assertion
-        TrustNode trhs = newSubstitutions->applyTrusted((*pos).first);
+        TrustNode trhs = newSubstitutions->applyTrusted(lhs);
         Assert(!trhs.isNull());
         Trace("non-clausal-simplify")
             << "substitute: will notify SAT layer of substitution: "
