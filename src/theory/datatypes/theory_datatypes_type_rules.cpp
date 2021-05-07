@@ -207,7 +207,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check)
 {
-  Assert(n.getKind() == kind::APPLY_UPDATE);
+  Assert(n.getKind() == kind::APPLY_UPDATER);
   TypeNode updType = n.getOperator().getType(check);
   Assert(updType.getNumChildren() == 2);
   if (check)

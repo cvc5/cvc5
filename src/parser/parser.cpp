@@ -156,7 +156,7 @@ api::Kind Parser::getKindForFunction(api::Term fun)
   }
   else if (t.isUpdater())
   {
-    return api::APPLY_UPDATE;
+    return api::APPLY_UPDATER;
   }
   return api::UNDEFINED_KIND;
 }

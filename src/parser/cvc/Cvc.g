@@ -1639,7 +1639,7 @@ tupleStore[cvc5::api::Term& f]
     {
       const api::Datatype& dt = f.getSort().getDatatype();
       f = SOLVER->mkTerm(
-         api::APPLY_UPDATE, dt[0][k].getUpdaterTerm(), f, f2);
+         api::APPLY_UPDATER, dt[0][k].getUpdaterTerm(), f, f2);
     }
   ;
 
@@ -1672,7 +1672,7 @@ recordStore[cvc5::api::Term& f]
     {
       const api::Datatype& dt = f.getSort().getDatatype();
       f = SOLVER->mkTerm(
-         api::APPLY_UPDATE, dt[0][id].getUpdaterTerm(), f, f2);
+         api::APPLY_UPDATER, dt[0][id].getUpdaterTerm(), f, f2);
     }
   ;
 

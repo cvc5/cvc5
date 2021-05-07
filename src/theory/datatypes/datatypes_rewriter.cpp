@@ -48,7 +48,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteTester(in);
   }
-  else if (kind == APPLY_UPDATE)
+  else if (kind == APPLY_UPDATER)
   {
     return rewriteUpdater(in);
   }
@@ -479,7 +479,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteUpdater(TNode in)
 {
-  Assert (in.getKind()==APPLY_UPDATE);
+  Assert (in.getKind()==APPLY_UPDATER);
   if (in[0].getKind() == APPLY_CONSTRUCTOR)
   {
     Node op = in.getOperator();
@@ -869,7 +869,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       }
     }
     break;
-    case APPLY_UPDATE:
+    case APPLY_UPDATER:
     {
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
