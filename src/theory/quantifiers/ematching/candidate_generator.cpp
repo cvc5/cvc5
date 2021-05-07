@@ -289,7 +289,10 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
 {
   Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
   Assert(mpat.getKind() == APPLY_SELECTOR);
-  Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpat, false);
+  // NOTE: could use qs.getValuation().getPreprocessedTerm(mpat); when
+  // expand definitions is eliminated, however, this also requires avoiding
+  // term formula removal.
+  Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpat);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   if (mpatExp.getKind() == ITE)
   {

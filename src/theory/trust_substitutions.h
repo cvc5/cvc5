@@ -89,7 +89,9 @@ class TrustSubstitutionMap : public ProofGenerator
    * proving n = n*sigma, where the proof generator is provided by this class
    * (when proofs are enabled).
    */
-  TrustNode apply(Node n, bool doRewrite = true);
+  TrustNode applyTrusted(Node n, bool doRewrite = true);
+  /** Same as above, without proofs */
+  Node apply(Node n, bool doRewrite = true);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
