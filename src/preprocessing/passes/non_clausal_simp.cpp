@@ -437,7 +437,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   propagator->setNeedsFinish(true);
 
-  // Note that typically ttls.get().apply(assert)==assert here.
+  // Note that typically ttls.apply(assert)==assert here.
   // However, this invariant is invalidated for cases where we use explicit
   // equality assertions for variables solved in incremental mode that already
   // exist in assertions, as described above.

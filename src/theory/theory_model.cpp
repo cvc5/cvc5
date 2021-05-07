@@ -137,7 +137,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
-  Node nn = d_env.getTopLevelSubstitutions().get().apply(n);
+  Node nn = d_env.getTopLevelSubstitutions().apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
@@ -727,7 +727,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Node n = it->first;
     Assert(!n.isNull());
     // should not have been solved for in a substitution
-    Assert(d_env.getTopLevelSubstitutions().get().apply(n) == n);
+    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){
