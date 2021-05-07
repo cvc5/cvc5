@@ -761,21 +761,45 @@ TEST_F(TestApiBlackTerm, getReal)
   Term real8 = d_solver.mkReal("1/18446744073709551617");
   Term real9 = d_solver.mkReal("18446744073709551617");
 
-  ASSERT_TRUE(real1.isReal());
-  ASSERT_TRUE(real1.isReal32());
-  ASSERT_TRUE(real1.isReal64());
-
-  ASSERT_TRUE(real1.isReal() && real1.isReal32() && real1.isReal64());
-  ASSERT_TRUE(real2.isReal() && real2.isReal32() && real2.isReal64());
-  ASSERT_TRUE(real3.isReal() && real3.isReal32() && real3.isReal64());
-  ASSERT_TRUE(real4.isReal() && real4.isReal32() && real4.isReal64());
-  ASSERT_TRUE(real5.isReal() && real5.isReal32() && real5.isReal64());
+  ASSERT_TRUE(real1.isReal() && real1.isReal64() && real1.isReal32());
+  ASSERT_TRUE(real2.isReal() && real2.isReal64() && real2.isReal32());
+  ASSERT_TRUE(real3.isReal() && real3.isReal64() && real3.isReal32());
+  ASSERT_TRUE(real4.isReal() && real4.isReal64() && real4.isReal32());
+  ASSERT_TRUE(real5.isReal() && real5.isReal64() && real5.isReal32());
   ASSERT_TRUE(real6.isReal() && real6.isReal64());
   ASSERT_TRUE(real7.isReal() && real7.isReal64());
   ASSERT_TRUE(real8.isReal());
   ASSERT_TRUE(real9.isReal());
 
   ASSERT_EQ(std::make_pair(0, 1u), real1.getReal32());
+  ASSERT_EQ(std::make_pair(0l, 1ul), real1.getReal64());
+  ASSERT_EQ("0", real1.getReal());
+
+  ASSERT_EQ(std::make_pair(0, 1u), real2.getReal32());
+  ASSERT_EQ(std::make_pair(0l, 1ul), real2.getReal64());
+  ASSERT_EQ("0", real2.getReal());
+
+  ASSERT_EQ(std::make_pair(-17, 1u), real3.getReal32());
+  ASSERT_EQ(std::make_pair(-17l, 1ul), real3.getReal64());
+  ASSERT_EQ("-17", real3.getReal());
+
+  ASSERT_EQ(std::make_pair(-3, 5u), real4.getReal32());
+  ASSERT_EQ(std::make_pair(-3l, 5ul), real4.getReal64());
+  ASSERT_EQ("-3/5", real4.getReal());
+
+  ASSERT_EQ(std::make_pair(127, 10u), real5.getReal32());
+  ASSERT_EQ(std::make_pair(127l, 10ul), real5.getReal64());
+  ASSERT_EQ("127/10", real5.getReal());
+
+  ASSERT_EQ(std::make_pair(1l, 4294967297ul), real6.getReal64());
+  ASSERT_EQ("1/4294967297", real6.getReal());
+
+  ASSERT_EQ(std::make_pair(4294967297l, 1ul), real7.getReal64());
+  ASSERT_EQ("4294967297", real7.getReal());
+
+  ASSERT_EQ("1/18446744073709551617", real8.getReal());
+
+  ASSERT_EQ("18446744073709551617", real9.getReal());
 }
 
 TEST_F(TestApiBlackTerm, substitute)
