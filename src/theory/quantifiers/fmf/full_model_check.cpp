@@ -286,13 +286,16 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
 }
 
 FullModelChecker::FullModelChecker(QuantifiersState& qs,
+                                   QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
-                                   QuantifiersInferenceManager& qim)
-    : QModelBuilder(qs, qr, qim)
+                                   TermRegistry& tr)
+    : QModelBuilder(qs, qim, qr, tr), d_fm(new FirstOrderModelFmc(qs, qr, tr))
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
+
+void FullModelChecker::finishInit() { d_model = d_fm.get(); }
 
 bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   //standard pre-process
@@ -300,12 +303,11 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
     return false;
   }
 
-  FirstOrderModelFmc* fm = (FirstOrderModelFmc*)m;
   Trace("fmc") << "---Full Model Check preprocess() " << std::endl;
   d_preinitialized_eqc.clear();
   d_preinitialized_types.clear();
   //traverse equality engine
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(m->getEqualityEngine());
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode tr = r.getType();
@@ -315,23 +317,24 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
 
   //must ensure model basis terms exists in model for each relevant type
   Trace("fmc") << "preInitialize types..." << std::endl;
-  fm->initialize();
-  for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
-    Node op = it->first;
+  d_fm->initialize();
+  for (std::pair<const Node, Def*>& mp : d_fm->d_models)
+  {
+    Node op = mp.first;
     Trace("fmc") << "preInitialize types for " << op << std::endl;
     TypeNode tno = op.getType();
     for( unsigned i=0; i<tno.getNumChildren(); i++) {
       Trace("fmc") << "preInitializeType " << tno[i] << std::endl;
-      preInitializeType( fm, tno[i] );
+      preInitializeType(m, tno[i]);
       Trace("fmc") << "finished preInitializeType " << tno[i] << std::endl;
     }
   }
   Trace("fmc") << "Finish preInitialize types" << std::endl;
   //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
-  for (unsigned i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant;
+  for (unsigned i = 0, nquant = d_fm->getNumAssertedQuantifiers(); i < nquant;
        i++)
   {
-    Node q = fm->getAssertedQuantifier(i);
+    Node q = d_fm->getAssertedQuantifier(i);
     registerQuantifiedFormula(q);
     if (!isHandled(q))
     {
@@ -340,7 +343,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
     // make sure all types are set
     for (const Node& v : q[0])
     {
-      preInitializeType(fm, v.getType());
+      preInitializeType(m, v.getType());
     }
   }
   return true;
@@ -352,13 +355,13 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     // nothing to do if no functions
     return true;
   }
-  FirstOrderModelFmc* fm = (FirstOrderModelFmc*)m;
+  FirstOrderModelFmc* fm = d_fm.get();
   Trace("fmc") << "---Full Model Check reset() " << std::endl;
   d_quant_models.clear();
   d_rep_ids.clear();
   d_star_insts.clear();
   //process representatives
-  RepSet* rs = fm->getRepSetPtr();
+  RepSet* rs = m->getRepSetPtr();
   for (std::map<TypeNode, std::vector<Node> >::iterator it =
            rs->d_type_reps.begin();
        it != rs->d_type_reps.end();
@@ -367,7 +370,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if( it->first.isSort() ){
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
-        Node r = fm->getRepresentative( it->second[a] );
+        Node r = m->getRepresentative(it->second[a]);
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
           d_qstate.getEquivalenceClass(r, eqc);
@@ -387,25 +390,27 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   }
 
   //now, make models
-  for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
-    Node op = it->first;
+  for (std::pair<const Node, Def*>& fmm : d_fm->d_models)
+  {
+    Node op = fmm.first;
     //reset the model
-    fm->d_models[op]->reset();
+    d_fm->d_models[op]->reset();
 
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
     bool needsDefault = true;
-    std::map< Node, std::vector< Node > >::iterator itut = fm->d_uf_terms.find( op );
-    if( itut!=fm->d_uf_terms.end() ){
-      Trace("fmc-model-debug") << itut->second.size() << " model values for " << op << " ... " << std::endl;
-      for( size_t i=0; i<itut->second.size(); i++ ){
-        Node n = itut->second[i];
+    if (m->hasUfTerms(op))
+    {
+      const std::vector<Node>& uft = m->getUfTerms(op);
+      Trace("fmc-model-debug")
+          << uft.size() << " model values for " << op << " ... " << std::endl;
+      for (const Node& n : uft)
+      {
         // only consider unique up to congruence (in model equality engine)?
         add_conds.push_back( n );
         add_values.push_back( n );
-        Node r = fm->getRepresentative(n);
+        Node r = m->getRepresentative(n);
         Trace("fmc-model-debug") << n << " -> " << r << std::endl;
-        //AlwaysAssert( fm->areEqual( itut->second[i], r ) );
       }
     }else{
       Trace("fmc-model-debug") << "No model values for " << op << " ... " << std::endl;
@@ -413,17 +418,18 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     Trace("fmc-model-debug") << std::endl;
     //possibly get default
     if( needsDefault ){
-      Node nmb = fm->getModelBasisOpTerm(op);
+      Node nmb = d_fm->getModelBasisOpTerm(op);
       //add default value if necessary
-      if( fm->hasTerm( nmb ) ){
+      if (m->hasTerm(nmb))
+      {
         Trace("fmc-model-debug") << "Add default " << nmb << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( nmb );
       }else{
-        Node vmb = getSomeDomainElement(fm, nmb.getType());
+        Node vmb = getSomeDomainElement(d_fm.get(), nmb.getType());
         Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
         Trace("fmc-model-debug")
-            << fm->getRepSet()->getNumRepresentatives(nmb.getType())
+            << m->getRepSet()->getNumRepresentatives(nmb.getType())
             << std::endl;
         add_conds.push_back( nmb );
         add_values.push_back( vmb );
@@ -536,32 +542,33 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
 
-void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn ){
+void FullModelChecker::preInitializeType(TheoryModel* m, TypeNode tn)
+{
   if( d_preinitialized_types.find( tn )==d_preinitialized_types.end() ){
     d_preinitialized_types[tn] = true;
     if (tn.isFirstClass())
     {
       Trace("fmc") << "Get model basis term " << tn << "..." << std::endl;
-      Node mb = fm->getModelBasisTerm(tn);
+      Node mb = d_fm->getModelBasisTerm(tn);
       Trace("fmc") << "...return " << mb << std::endl;
       // if the model basis term does not exist in the model,
       // either add it directly to the model's equality engine if no other terms
       // of this type exist, or otherwise assert that it is equal to the first
       // equivalence class of its type.
-      if (!fm->hasTerm(mb) && !mb.isConst())
+      if (!m->hasTerm(mb) && !mb.isConst())
       {
         std::map<TypeNode, Node>::iterator itpe = d_preinitialized_eqc.find(tn);
         if (itpe == d_preinitialized_eqc.end())
         {
           Trace("fmc") << "...add model basis term to EE of model " << mb << " "
                        << tn << std::endl;
-          fm->d_equalityEngine->addTerm(mb);
+          m->getEqualityEngine()->addTerm(mb);
         }
         else
         {
           Trace("fmc") << "...add model basis eqc equality to model " << mb
                        << " == " << itpe->second << " " << tn << std::endl;
-          bool ret = fm->assertEquality(mb, itpe->second, true);
+          bool ret = m->assertEquality(mb, itpe->second, true);
           AlwaysAssert(ret);
         }
       }
@@ -1348,7 +1355,6 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 bool FullModelChecker::useSimpleModels() {
   return options::fmfFmcSimple();
 }
-
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {
   if (d_quant_cond.find(q) != d_quant_cond.end())

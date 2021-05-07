@@ -42,10 +42,12 @@ class TrustSubstitutionMap : public ProofGenerator
 
  public:
   TrustSubstitutionMap(context::Context* c,
-                       ProofNodeManager* pnm,
+                       ProofNodeManager* pnm = nullptr,
                        std::string name = "TrustSubstitutionMap",
                        PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
+  /** Set proof node manager */
+  void setProofNodeManager(ProofNodeManager* pnm);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
   /**
@@ -105,8 +107,6 @@ class TrustSubstitutionMap : public ProofGenerator
   context::Context* d_ctx;
   /** The substitution map */
   SubstitutionMap d_subs;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
@@ -118,7 +118,7 @@ class TrustSubstitutionMap : public ProofGenerator
   /**
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
-  CDProofSet<LazyCDProof> d_helperPf;
+  std::unique_ptr<CDProofSet<LazyCDProof>> d_helperPf;
   /** Name for debugging */
   std::string d_name;
   /**

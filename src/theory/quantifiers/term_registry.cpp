@@ -29,12 +29,12 @@ namespace quantifiers {
 
 TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
-      d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
       d_termPools(new TermPools(qs)),
       d_termDb(new TermDb(qs, qr)),
-      d_sygusTdb(nullptr)
+      d_sygusTdb(nullptr),
+      d_qmodel(nullptr)
 {
   if (options::sygus() || options::sygusInst())
   {
@@ -44,27 +44,12 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug")
       << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
-  // Finite model finding requires specialized ways of building the model.
-  // We require constructing the model here, since it is required for
-  // initializing the CombinationEngine and the rest of quantifiers engine.
-  if ((options::finiteModelFind() || options::fmfBound())
-      && (options::mbqiMode() == options::MbqiMode::FMC
-          || options::mbqiMode() == options::MbqiMode::TRUST
-          || options::fmfBound()))
-  {
-    d_useFmcModel = true;
-    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-        qs, qr, *this, "FirstOrderModelFmc"));
-  }
-  else
-  {
-    d_qmodel.reset(
-        new quantifiers::FirstOrderModel(qs, qr, *this, "FirstOrderModel"));
-  }
 }
 
-void TermRegistry::finishInit(QuantifiersInferenceManager* qim)
+void TermRegistry::finishInit(FirstOrderModel* fm,
+                              QuantifiersInferenceManager* qim)
 {
+  d_qmodel = fm;
   d_termDb->finishInit(qim);
   if (d_sygusTdb.get())
   {
@@ -149,9 +134,7 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 
 TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
-FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }
-
-bool TermRegistry::useFmcModel() const { return d_useFmcModel; }
+FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 
 }  // namespace quantifiers
 }  // namespace theory

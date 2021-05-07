@@ -574,10 +574,16 @@ set(regress_0_tests
   regress0/fp/abs-unsound2.smt2
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
+  regress0/fp/from_ubv.smt2
+  regress0/fp/from_sbv.smt2
   regress0/fp/issue-5524.smt2
   regress0/fp/issue3536.smt2
+  regress0/fp/issue3582.smt2
   regress0/fp/issue3619.smt2
   regress0/fp/issue4277-assign-func.smt2
+  regress0/fp/issue5511.smt2
+  regress0/fp/issue5734.smt2
+  regress0/fp/issue6164.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/wrong-model.smt2
@@ -2378,6 +2384,7 @@ set(regress_2_tests
   regress2/instance_1444.smtv1.smt2
   regress2/issue3687-check-models.smt2
   regress2/issue4707-bv-to-bool-large.smt2
+  regress2/issue6495-dup-pat-term.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/nt-lemmas-bad.smt2
