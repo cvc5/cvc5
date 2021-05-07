@@ -2310,20 +2310,6 @@ bool Term::isNull() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Term::getConstArrayBase() const
-{
-  NodeManagerScope scope(d_solver->getNodeManager());
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  // CONST_ARRAY kind maps to STORE_ALL internal kind
-  CVC5_API_CHECK(d_node->getKind() == cvc5::Kind::STORE_ALL)
-      << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
-  //////// all checks before this line
-  return Term(d_solver, d_node->getConst<ArrayStoreAll>().getValue());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 std::vector<Term> Term::getConstSequenceElements() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -2832,7 +2818,7 @@ bool Term::isConstArray() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-Term Term::getConstArray() const
+Term Term::getConstArrayBase() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;

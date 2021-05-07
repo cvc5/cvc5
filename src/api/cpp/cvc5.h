@@ -1049,13 +1049,6 @@ class CVC5_EXPORT Term
   bool isNull() const;
 
   /**
-   *  Return the base (element stored at all indices) of a constant array
-   *  throws an exception if the kind is not CONST_ARRAY
-   *  @return the base value
-   */
-  Term getConstArrayBase() const;
-
-  /**
    *  Return the elements of a constant sequence
    *  throws an exception if the kind is not CONST_SEQUENCE
    *  @return the elements of the constant sequence.
@@ -1297,9 +1290,10 @@ class CVC5_EXPORT Term
    */
   bool isConstArray() const;
   /**
-   * Returns the value stored in the constant array. Asserts isConstArray().
+   * Return the base (element stored at all indices) of a constant array
+   * Asserts isConstArray().
    */
-  Term getConstArray() const;
+  Term getConstArrayBase() const;
 
   /**
    * Returns true if the term is a Boolean constant.
