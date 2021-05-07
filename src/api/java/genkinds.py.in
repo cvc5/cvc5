@@ -102,8 +102,8 @@ CPP_JAVA_MAPPING = \
 
 # convert from c++ doc to java doc
 def format_comment(comment):
-    for kind, value in CPP_JAVA_MAPPING.items():
-        comment = re.sub(kind, value, comment)
+    for pattern, replacement in CPP_JAVA_MAPPING.items():
+        comment = re.sub(pattern, replacement, comment)
     java_comment = "\n  /**"
     for line in comment.split("\n"):
         java_comment += "\n   * " + line
