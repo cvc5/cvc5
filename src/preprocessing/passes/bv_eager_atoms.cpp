@@ -37,8 +37,12 @@ PreprocessingPassResult BvEagerAtoms::applyInternal(
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     TNode atom = (*assertionsToPreprocess)[i];
+    if (atom.isConst())
+    {
+      // don't bother making true/false into atoms
+      continue;
+    }
     Node eager_atom = nm->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
-    d_preprocContext->addModelSubstitution(eager_atom, atom);
     assertionsToPreprocess->replace(i, eager_atom);
   }
   return PreprocessingPassResult::NO_CONFLICT;
