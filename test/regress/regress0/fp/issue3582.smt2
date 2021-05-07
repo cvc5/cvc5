@@ -1,4 +1,4 @@
-; REQUIRES: symfpu
+; REQUIRE: symfpu
 ; EXPECT: unsat
 (set-logic QF_FP)
 (declare-fun bv () (_ BitVec 1))
