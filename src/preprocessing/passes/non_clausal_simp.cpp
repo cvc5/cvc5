@@ -337,13 +337,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // means that all further new assertions will replace x by t.
   if (assertionsToPreprocess->storeSubstsInAsserts())
   {
-    for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
+    for (const std::pair<const Node, Node>& pos: nss)
     {
       Node lhs = (*pos).first;
       // If using incremental, we must check whether this variable has occurred
       // before now. If it has, we must add as an assertion.
-      if (d_preprocContext->getSymsInAssertions().find(lhs)
-          != d_preprocContext->getSymsInAssertions().end())
+      if (d_preprocContext->getSymsInAssertions().contains(lhs))
       {
         // if it has, the substitution becomes an assertion
         TrustNode trhs = newSubstitutions->apply((*pos).first);
