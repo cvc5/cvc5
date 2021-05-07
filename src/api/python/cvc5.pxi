@@ -1574,6 +1574,7 @@ cdef class Term:
             else:
                 assert string_repr == "false"
                 res = False
+
         elif sort.isInteger():
             updated_string_repr = string_repr.strip('()').replace(' ', '')
             try:
@@ -1581,10 +1582,11 @@ cdef class Term:
             except:
                 raise ValueError("Failed to convert"
                                  " {} to an int".format(string_repr))
+
         elif sort.isReal():
             updated_string_repr = string_repr
             try:
-                # expecting format (/ a b)
+                # rational format (/ a b) most likely
                 # note: a or b could be negated: (- a)
                 splits = [s.strip('()/')
                           for s in updated_string_repr.strip('()/') \
@@ -1594,8 +1596,12 @@ cdef class Term:
                 den = int(splits[1])
                 res = Fraction(num, den)
             except:
-                raise ValueError("Failed to convert "
-                                 "{} to a Fraction".format(string_repr))
+                try:
+                    # could be exact: 1.0
+                    res = Fraction(updated_string_repr)
+                except:
+                    raise ValueError("Failed to convert "
+                                     "{} to a Fraction".format(string_repr))
 
         elif sort.isBitVector():
             # expecting format #b<bits>
@@ -1606,6 +1612,7 @@ cdef class Term:
             except:
                 raise ValueError("Failed to convert bitvector "
                                  "{} to an int".format(string_repr))
+
         elif sort.isArray():
             keys = []
             values = []
@@ -1632,6 +1639,7 @@ cdef class Term:
             res = defaultdict(lambda : base_value)
             for k, v in zip(keys, values):
                 res[k] = v
+
         elif sort.isString():
             # Strip leading and trailing double quotes and replace double
             # double quotes by single quotes
