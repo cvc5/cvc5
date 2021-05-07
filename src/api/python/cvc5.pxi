@@ -1485,9 +1485,13 @@ cdef class Term:
         return sort
 
     def substitute(self, term_or_list_1, term_or_list_2):
+        # The resulting term after substitution
         cdef Term term = Term(self.solver)
+        # lists for substitutions
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
+        
+        # normalize the input parameters to be lists
         if isinstance(term_or_list_1, list):
             assert isinstance(term_or_list_2, list)
             es = term_or_list_1
@@ -1506,6 +1510,7 @@ cdef class Term:
             ces.push_back((<Term?> term_or_list_1).cterm)
             creplacements.push_back((<Term?> term_or_list_2).cterm)
         
+        # call the API substitute method with lists
         term.cterm = self.cterm.substitute(ces, creplacements)
         return term
 
