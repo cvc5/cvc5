@@ -13,7 +13,7 @@
  * Reconstruct Obligation Info class implementation.
  */
 
-#include "rcons_obligation_info.h"
+#include "rcons_obligation.h"
 
 #include <sstream>
 
@@ -31,9 +31,11 @@ Obligation::Obligation(TypeNode stn, Node t) : d_ts({t})
   d_k = sm->mkDummySkolem("sygus_rcons", stn);
 }
 
+TypeNode Obligation::getType() const { return d_k.getType(); }
+
 Node Obligation::getSkolem() const { return d_k; }
 
-TypeNode Obligation::getType() const { return d_k.getType(); }
+void Obligation::addBuiltin(Node builtin) { d_ts.emplace(builtin); }
 
 const std::unordered_set<Node, NodeHashFunction>& Obligation::getBuiltins()
     const
@@ -45,8 +47,6 @@ void Obligation::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
 }
-
-void Obligation::addBuiltin(Node builtin) { d_ts.emplace(builtin); }
 
 const std::unordered_set<Node, NodeHashFunction>&
 Obligation::getCandidateSolutions() const
@@ -66,21 +66,41 @@ const std::unordered_set<Node, NodeHashFunction>& Obligation::getWatchSet()
 }
 
 void Obligation::printCandSols(
-    const std::vector<std::unique_ptr<Obligation>>& obs)
+    const Obligation* root, const std::vector<std::unique_ptr<Obligation>>& obs)
 {
+  std::unordered_set<Node, NodeHashFunction> visited;
+  std::vector<const Obligation*> stack;
+  stack.push_back(root);
   Trace("sygus-rcons") << std::endl << "Eq classes: " << std::endl << '[';
 
-  for (const std::unique_ptr<Obligation>& ob : obs)
+  while (!stack.empty())
   {
-    Trace("sygus-rcons") << std::endl
-                         << "  "
-                         << datatypes::utils::sygusToBuiltin(ob->getSkolem())
-                         << ' ' << *ob << std::endl << "  {" << std::endl;
+    const Obligation* curr = stack.back();
+    stack.pop_back();
+    visited.emplace(curr->getSkolem());
 
-    for (const Node& j : ob->getCandidateSolutions())
+    Trace("sygus-rcons") << std::endl
+                         << "  " << *curr << std::endl
+                         << "  {" << std::endl;
+
+    for (const Node& candSol : curr->getCandidateSolutions())
     {
-      Trace("sygus-rcons") << "    " << datatypes::utils::sygusToBuiltin(j)
+      Trace("sygus-rcons") << "    "
+                           << datatypes::utils::sygusToBuiltin(candSol)
                            << std::endl;
+      std::unordered_set<TNode, TNodeHashFunction> vars;
+      expr::getVariables(candSol, vars);
+      for (TNode var : vars)
+      {
+        if (visited.find(var) == visited.cend())
+          for (const std::unique_ptr<Obligation>& ob : obs)
+          {
+            if (ob->getSkolem() == var)
+            {
+              stack.push_back(ob.get());
+            }
+          }
+      }
     }
     Trace("sygus-rcons") << "  }" << std::endl;
   }
@@ -90,7 +110,7 @@ void Obligation::printCandSols(
 
 std::ostream& operator<<(std::ostream& out, const Obligation& ob)
 {
-  out << '(' << ob.getType()  << ", {";
+  out << '(' << ob.getType() << ", " << ob.getSkolem() << ", {";
   std::unordered_set<Node, NodeHashFunction>::const_iterator it =
       ob.getBuiltins().cbegin();
   out << *it;

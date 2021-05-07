@@ -21,16 +21,12 @@
 #include <map>
 #include <vector>
 
-#include "theory/quantifiers/sygus/rcons_obligation_info.h"
+#include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
-
-using ObligationSet = std::unordered_set<Node, NodeHashFunction>;
-using TypeObligationSetMap =
-    std::unordered_map<TypeNode, ObligationSet, TypeNodeHashFunction>;
 
 using BuiltinSet = std::unordered_set<Node, NodeHashFunction>;
 using TypeBuiltinSetMap =
@@ -46,15 +42,15 @@ using TypeBuiltinSetMap =
  *
  * rcons(t_0, T_0) returns g
  * {
- *   Obs: A set of triples to reconstruct into T, where each triple is of the form (k, ts, s), where k is a skolem of
- *        type T, ts is a set of builtin terms of the type encoded by T, and s
- *        is a possibly null sygus term of type T representing the solution.
+ *   Obs: A set of pairs to reconstruct into T, where each pair is of the form
+ *        (k, ts), where k is a skolem of a sygus type T and ts is a set of
+ *        builtin terms of the type encoded by T.
  *
- *   Sol: A map from skolems k to solutions s in the triples (k, ts, s). That
- *        is, Sol[k] = s.
+ *   Terms: A map from skolems k to a set of builtin terms in the pairs (k, ts).
+ *          That is, Terms[k] = ts.
  *
- *   Terms: A map from skolems k to a set of builtin terms in the triples
- *          (k, ts, s). That is, Terms[k] = ts
+ *   Sol: A map from skolems k to (possibly null) sygus terms of type T
+ *        representing solutions to the obligations.
  *
  *   CandSols : A map from a skolem k to a set of possible solutions for its
  *              corresponding obligation. Whenever there is a successful match,
@@ -62,15 +58,16 @@ using TypeBuiltinSetMap =
  *
  *   Pool : A map from a sygus type T to a set of enumerated terms in T.
  *          The terms in this pool are patterns whose builtin analogs are used
- *          for matching against the terms to reconstruct t in (k, t, s).
+ *          for matching against the terms to reconstruct ts in (k, ts).
  *
  *   let k_0 be a fresh skolem of sygus type T_0
- *   Obs[T_0] += (k_0, {t_0}, null)
+ *   Obs[T_0] += (k_0, {t_0})
  *
- *   UnResTerms[T_0] = {t_0}
+ *   TermsToRecons[T_0] = {t_0}
  *
  *   while Sol[k_0] == null
- *     UnResTerms' = {} // map from T to terms pending addition to UnResTerms
+ *     // map from T to terms pending addition to TermsToRecons
+ *     TermsToRecons' = {}
  *     // enumeration phase
  *     for each subfield type T of T_0
  *       // enumerated terms may contain variables zs ranging over all terms of
@@ -79,51 +76,51 @@ using TypeBuiltinSetMap =
  *       if (s[zs] is ground)
  *         builtin = rewrite(toBuiltIn(s[zs]))
  *         // let X be the theory the solver is invoked with
- *         find (k, ts, s) in Obs[T] s.t. |=_X ts[0] = builtin
- *         if no such triple exists
- *           let k be a new variable of type : T
- *           Obs[T] += (k, {builtin}, null)
- *         markSolved(k, s[zs])
+ *         find (k, ts) in Obs s.t. |=_X ts[0] = builtin
+ *         if no such pair exists
+ *           k = newVar(T)
+ *           ts = {builtin}
+ *           Obs += (k, ts)
+ *         markSolved((k, ts), s[zs])
  *       else if no s' in Pool[T] and matcher sigma s.t.
  *             rewrite(toBuiltIn(s')) * sigma = rewrite(toBuiltIn(s[zs]))
  *         Pool[T] += s[zs]
- *         for each t in UnResTerms[T_0]
- *           UnResTerms' += matchNewObs(k, s[zs])
+ *         for each t in TermsToRecons[T]
+ *           TermsToRecons' += matchNewObs(t, s[zs])
  *     // match phase
- *     while UnResTerms' != {}
- *       UnResTerms'' = {}
+ *     while TermsToRecons' != {}
+ *       TermsToRecons'' = {}
  *       for each subfield type T of T_0
- *         for each t in UnResTerms'[T]
- *           UnResTerms'[T] += t
+ *         for each t in TermsToRecons'[T]
+ *           TermsToRecons'[T] += t
  *           for each s[zs] in Pool[T]
- *             UnResTerms'' += matchNewObs(t, s[zs])
- *         UnResTerms' = UnResTerms''
+ *             TermsToRecons'' += matchNewObs(t, s[zs])
+ *         TermsToRecons' = TermsToRecons''
  *   g = Sol[k_0]
  *   instantiate free variables of g with arbitrary sygus datatype values
  * }
  *
- * matchNewObs(k, s[zs]) returns UnResTerms'
+ * matchNewObs(t, s[zs]) returns TermsToRecons'
  * {
  *   u = rewrite(toBuiltIn(s[zs]))
- *   for each t in Terms[k]
- *     if match(u, t) == {toBuiltin(zs) -> sts}
- *       Sub = {} // substitution map from zs to corresponding new vars ks
- *       for each (z, st) in {zs -> sts}
- *         // let X be the theory the solver is invoked with
- *         if exists (k', ts', s') in Obs[T] s.t. !=_X ts'[0] = st
- *           ts' += st
- *           Sub[z] = k'
- *         else
- *           let sk be a new variable of type : typeOf(z)
- *           Sub[z] = sk
- *           Obs'[typeOf(z)] += (sk, {st}, null)
- *       if Sol[sk] != null forall (z, sk) in Sub
- *         markSolved(k, s{Sub})
+ *   if match(u, t) == {toBuiltin(zs) -> sts}
+ *     Sub = {} // substitution map from zs to corresponding new vars ks
+ *     for each (z, st) in {zs -> sts}
+ *       // let X be the theory the solver is invoked with
+ *       if exists (k, ts) in Obs s.t. !=_X ts[0] = st
+ *         ts += st
+ *         Sub[z] = k
  *       else
- *         CandSol[k] += s{Sub}
+ *         sk = newVar(typeOf(z))
+ *         Sub[z] = sk
+ *         TermsToRecons'[typeOf(z)] += st
+ *     if Sol[sk] != null forall (z, sk) in Sub
+ *       markSolved(k, s{Sub})
+ *     else
+ *       CandSol[k] += s{Sub}
  * }
  *
- * markSolved(k, s)
+ * markSolved((k, ts), s)
  * {
  *   if Sol[k] != null
  *     return
@@ -146,8 +143,8 @@ class SygusReconstruct : public expr::NotifyMatch
   /**
    * Constructor.
    *
-   * @param tds Database for sygus terms
-   * @param s Statistics managed for the synth engine
+   * @param tds database for sygus terms
+   * @param s statistics managed for the synth engine
    */
   SygusReconstruct(TermDbSygus* tds, SygusStatistics& s);
 
@@ -162,13 +159,13 @@ class SygusReconstruct : public expr::NotifyMatch
    *           Start -> (c_PLUS Start Start) | c_x | c_0 | c_1
    * This method may return (c_PLUS c_x c_x) and set reconstructed to 1.
    *
-   * @param sol The target term
-   * @param stn The sygus datatype type encoding the syntax restrictions
-   * @param reconstructed The flag to update, set to 1 if we successfully return
+   * @param sol the target term
+   * @param stn the sygus datatype type encoding the syntax restrictions
+   * @param reconstructed the flag to update, set to 1 if we successfully return
    *                      a node, otherwise it is set to -1
-   * @param enumLimit A value to limit the effort spent by this class (roughly
+   * @param enumLimit a value to limit the effort spent by this class (roughly
    *                  equal to the number of intermediate terms to try)
-   * @return The reconstructed sygus term
+   * @return the reconstructed sygus term
    */
   Node reconstructSolution(Node sol,
                            TypeNode stn,
@@ -180,18 +177,18 @@ class SygusReconstruct : public expr::NotifyMatch
    *
    * This function matches the builtin term to reconstruct `t` with the builtin
    * analog of the pattern `sz`. If the match succeeds, `sz` is added to the set
-   * of candidate solutions for the obligation `k` corresponding to the builtin
+   * of candidate solutions for the obligation `ob` corresponding to the builtin
    * term `t` and a set of new sub-terms to reconstruct is returned. If there
    * are no new sub-terms to reconstruct, then `sz` is considered a solution to
-   * obligation `k` and `markSolved(k, sz)` is called. For example, given:
+   * obligation `ob` and `markSolved(ob, sz)` is called. For example, given:
    *
-   * Obs[typeOf(c_z1)] = {(c_z1, {(+ 1 1)}, null)}
+   * Obs = [(c_z1, {(+ 1 1)})]
    * Pool[typeOf(c_z1)] = {(c_+ c_z2 c_z3)}
    * CandSols = {}
    *
    * Then calling `matchNewObs((+ 1 1), (c_+ c_z2 c_z3))` will result in:
    *
-   * Obs[typeOf(c_z1)] = {(c_z1, {(+ 1 1)}, null), (c_z4, {1}, null)}
+   * Obs = [(c_z1, {(+ 1 1)}), (c_z4, {1})]
    * Pool[typeOf(c_z1)] = {(c_+ c_z2 c_z3)}
    * CandSols = {c_z1 -> {(c_+ c_z4 c_z4)}}
    *
@@ -205,12 +202,12 @@ class SygusReconstruct : public expr::NotifyMatch
    * with the same builtin term `1`.
    *
    * @param t builtin term we need to reconstruct
-   * @param sz a pattern to match `ob`s builtin term with
-   * @return a set of new obligations to satisfy if the match succeeds
+   * @param sz a pattern to match against `t`
+   * @return a set of new builtin terms to reconstruct if the match succeeds
    */
-  TypeObligationSetMap matchNewObs(Node t, Node sz);
+  TypeBuiltinSetMap matchNewObs(Node t, Node sz);
 
-  /** mark obligation `k` as solved.
+  /** mark obligation `ob` as solved.
    *
    * This function first marks `s` as the complete/constant solution for
    * `ob`. Then it substitutes all instances of `ob` in partial solutions to
@@ -219,25 +216,26 @@ class SygusReconstruct : public expr::NotifyMatch
    * example, given:
    *
    * CandSols = {
-   *  mainOb -> {(+ z1 1)},
-   *  z1 -> {(* z2 x)},
-   *  z2 -> {2}
+   *   c_mainOb -> {(c_+ c_z1 c_1)},
+   *   c_z1 -> {(c_* c_z2 c_x)},
+   *   c_z2 -> {c_2}
    * }
-   * Sol = {z2 -> 2}
+   * Sol = {}
    *
-   * Then calling `markSolved(z2, 2)` will result in:
+   * Then calling `markSolved(c_z2, c_2)` will result in:
    *
    * CandSols = {
-   *  mainOb -> {(+ z1 1), (+ (* 2 x) 1)},
-   *  z1 -> {(* z2 x), (* 2 x)},
-   *  z2 -> {2}
+   *   c_mainOb -> {(c_+ c_z1 c_1), (c_+ (c_* c_2 c_x) c_1)},
+   *   c_z1 -> {(c_* c_z2 c_x), (c_* c_2 c_x)},
+   *   c_z2 -> {c_2}
    * }
-   * Sol = {mainOb -> (+ (* 2 x) 1), z1 -> (* 2 x), z2 -> 2}
-   *
-   * Note: example uses builtin terms instead of sygus terms for simplicity.
+   * Sol = {
+   *   c_mainOb -> (c_+ (c_* c_2 c_x) c_1),
+   *   c_z1 -> (c_* c_2 c_x), c_z2 -> c_2
+   * }
    *
    * @param ob free var to mark as solved and substitute
-   * @param sol constant solution to `ob`
+   * @param sol solution to `ob`
    */
   void markSolved(Obligation* ob, Node s);
 
@@ -250,11 +248,12 @@ class SygusReconstruct : public expr::NotifyMatch
   void initialize(TypeNode stn);
 
   /**
-   * Remove solved obligations from the given set of obligations.
+   * Remove reconstructed terms from the given set of terms to reconstruct.
    *
-   * @param unsolvedObs A set of obligations containing solved ones
+   * @param termsToRecons a set of terms to reconstruct possibly containing
+   *                      already reconstructed ones
    */
-  void removeSolvedObs(TypeObligationSetMap& obs);
+  void removeReconstructedTerms(TypeBuiltinSetMap& termsToRecons);
 
   /**
    * Replace all variables in `n` with ground values. Before, calling `match`,
@@ -268,7 +267,7 @@ class SygusReconstruct : public expr::NotifyMatch
    * the eliminated variables do not matter, they are replaced with some ground
    * values by calling this method.
    *
-   * @param n A term containing variables
+   * @param n a term containing variables
    * @return `n` with all vars in `n` replaced with ground values
    */
   Node mkGround(Node n) const;
@@ -303,7 +302,7 @@ class SygusReconstruct : public expr::NotifyMatch
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
 
-  /** a map from an obligation to its reconstruction info */
+  /** a list of obligations to solve */
   std::vector<std::unique_ptr<Obligation>> d_obs;
   /** a map from a sygus datatype type to its reconstruction info */
   std::unordered_map<TypeNode, RConsTypeInfo, TypeNodeHashFunction> d_stnInfo;

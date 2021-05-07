@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
-#define CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_H
+#define CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_H
 
 #include "expr/node.h"
 
@@ -25,14 +25,13 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * A utility class for Sygus Reconstruct obligations. An obligation is a builtin
+ * A class for holding Sygus Reconstruct obligations. An obligation is a builtin
  * term t and a SyGuS type T, and indicates that we are trying to build a term
- * of type T whose builtin analog is equivalent to t. The main algorithm encodes
- * each obligation (t, T) as a skolem k of type T to embed obligations in
- * candidate solutions (see d_candSols below). It mainly operates over skolems
- * and stores cooresponding builtin terms and other info in instances of this
- * class. Notice that the SyGuS type T of an obligation is not stored in this
- * class as it can be inferred from the type of the skolem k.
+ * of type T whose builtin analog is equivalent to t. This class encodes each
+ * obligation (T, t) as a skolem k of type T to embed obligations in candidate
+ * solutions (see d_candSols below). Notice that the SyGuS type T of an
+ * obligation is not stored in this class as it can be inferred from the type of
+ * the skolem k.
  */
 class Obligation
 {
@@ -40,26 +39,32 @@ class Obligation
   /**
    * Constructor. Default value needed for maps.
    *
-   * @param builtin builtin term to reconstruct
+   * @param stn sygus datatype type to reconstruct `t` into
+   * @param t builtin term to reconstruct
    */
   Obligation(TypeNode stn, Node t);
 
-  Node getSkolem() const;
-
+  /**
+   * @return sygus datatype type to reconstruct equivalent builtin terms into
+   */
   TypeNode getType() const;
 
   /**
-   * Add `builtin` to the set of equivalent builtins this class' obligation
-   * solves.
-   *
-   * \note `builtin` MUST be equivalent to the builtin terms in `d_ts`
-   *
-   * @param builtin builtin term to add
+   * @return skolem representing this obligation
    */
-  void addBuiltin(Node builtin);
+  Node getSkolem() const;
 
   /**
-   * @return equivalent builtin terms to reconstruct for this class' obligation
+   * Add `t` to the set of equivalent builtins this obligation solves.
+   *
+   * \note `t` MUST be equivalent to the builtin terms in `d_ts`
+   *
+   * @param t builtin term to add
+   */
+  void addBuiltin(Node t);
+
+  /**
+   * @return equivalent builtin terms to reconstruct for this obligation
    */
   const std::unordered_set<Node, NodeHashFunction>& getBuiltins() const;
 
@@ -72,7 +77,7 @@ class Obligation
   void addCandidateSolution(Node candSol);
 
   /**
-   * @return set of candidate solutions for this class' obligation
+   * @return set of candidate solutions for this obligation
    */
   const std::unordered_set<Node, NodeHashFunction>& getCandidateSolutions()
       const;
@@ -86,19 +91,9 @@ class Obligation
   void addCandidateSolutionToWatchSet(Node candSol);
 
   /**
-   * @return set of candidate solutions waiting for this class' obligation
-   * to be solved
+   * @return set of candidate solutions waiting for this obligation to be solved
    */
   const std::unordered_set<Node, NodeHashFunction>& getWatchSet() const;
-
-  /**
-   * Return a string representation of an obligation.
-   *
-   * @param k An obligation
-   * @param obInfo Obligation `k`'s info
-   * @return A string representation of `k`
-   */
-  static std::string obToString(Node k, const Obligation& obInfo);
 
   /**
    * Print all reachable obligations and their candidate solutions from
@@ -110,36 +105,39 @@ class Obligation
    *
    * For example, if we have:
    *
-   * Obs = {c_z1, c_z2, c_z3, c_z4} // list of obligations in rcons algorithm
+   * Obs = [(c_z1, {(+ 1 (- x))}, (c_z2, (- x)), (c_z3, x), (c_z4, 0)]
    * CandSols = {c_z1 -> {(c_+ c_1 c_z2)}, c_z2 -> {(c_- c_z3)},
-   *             c_z3 -> {c_x}, c_z4 -> {}}
+   *             c_z3 -> {c_x}, c_z4 -> {c_0}}
    * root = c_z1
    *
    * Then, the set of reachable obligations from `root` is {c_z1, c_z2, c_z3}
    *
    * \note requires enabling "sygus-rcons" trace
    *
-   * @param root The root obligation to start from
-   * @param obInfo a map from obligations to their corresponding infos
+   * @param root the root obligation to start from
+   * @param obs a list of obligations containing at least 1 obligation
+   * @param
    */
-  static void printCandSols(
-      const std::vector<std::unique_ptr<Obligation>>& obs);
+  static void printCandSols(const Obligation* root,
+                            const std::vector<std::unique_ptr<Obligation>>& obs);
 
  private:
+  /** Skolem representing this obligation used to embed obligations in candidate
+   * solutions. */
   Node d_k;
-  /** Equivalent builtin terms for this class' obligation.
+  /** Equivalent builtin terms for this obligation.
    *
    * To solve the obligation, one of these builtin terms must be reconstructed
    * in the specified grammar (sygus datatype type) of the obligation.
    */
   std::unordered_set<Node, NodeHashFunction> d_ts;
-  /** A set of candidate solutions to this class' obligation.
+  /** A set of candidate solutions to this obligation.
    *
    * Each candidate solution is a sygus datatype term containing skolem subterms
    * (sub-obligations). By replacing all sub-obligations with their
    * corresponding solutions, we get a term whose builtin analog rewrites to
-   * `d_builtin` and hence solves this obligation. For example, given:
-   *   d_builtin = (+ x y)
+   * a term in `d_ts` and hence solves this obligation. For example, given:
+   *   d_ts = {(+ x y)}
    * a possible set of candidate solutions would be:
    *   d_candSols = {(c_+ c_z1 c_z2), (c_+ c_x c_z2), (c_+ c_z1 c_y),
    *                 (c_+ c_x c_y)}
@@ -147,8 +145,7 @@ class Obligation
    * pure term that solves the obligation ((c_+ c_x c_y) in this example).
    */
   std::unordered_set<Node, NodeHashFunction> d_candSols;
-  /** A set of candidate solutions waiting for this class' obligation to
-   * be solved.
+  /** A set of candidate solutions waiting for this obligation to be solved.
    *
    * In the example above, (c_+ c_z1 c_z2) and (c_+ c_x c_z2) are in
    * the watch-set of c_z2. Similarly, (c_+ c_z1 c_z2) and (c_+ c_z1 c_y) are in
@@ -157,10 +154,17 @@ class Obligation
   std::unordered_set<Node, NodeHashFunction> d_watchSet;
 };
 
+/**
+ * Print obligation `ob` into the given output stream `out`
+ *
+ * @param out the output stream to print `ob` into
+ * @param ob the obligation to print
+ * @return a reference to the given output stream `out`
+ */
 std::ostream& operator<<(std::ostream& out, const Obligation& ob);
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5
 
-#endif  // CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
+#endif  // CVC5__THEORY__QUANTIFIERS__RCONS_OBLIGATION_H

@@ -47,16 +47,15 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   initialize(stn);
 
-  /** a set of obligations that are not yet satisfied for each sygus datatype */
-  TypeObligationSetMap unsolvedObs;
+  /** a set of builtin terms to reconstruct satisfied for each sygus datatype */
+  TypeBuiltinSetMap termsToRecons;
 
-  // add the main obligation to the set of obligations that are not yet
-  // satisfied
-  unsolvedObs[stn].emplace(sol);
-  // paramaters sol and stn constitute the main obligation to satisfy
+  // add the main obligation to the set of obligations
+  // paramaters stn and sol constitute the main obligation to satisfy
   d_obs.push_back(std::make_unique<Obligation>(stn, sol));
+  termsToRecons[stn].emplace(sol);
   d_stnInfo[stn].setBuiltinToOb(sol, d_obs[0].get());
-  Node mainOb = d_obs[0]->getSkolem();
+  Obligation* mainOb = d_obs[0].get();
 
   // We need to add the main obligation to the crd in case it cannot be broken
   // down by matching. By doing so, we can solve the obligation using
@@ -70,13 +69,13 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   uint64_t count = 0;
 
   // algorithm
-  while (d_sol[mainOb].isNull() && count < enumLimit)
+  while (d_sol[mainOb->getSkolem()].isNull() && count < enumLimit)
   {
     // enumeration phase
-    // a temporary set of new obligations cached for processing in the match
-    // phase
-    TypeObligationSetMap obsPrime;
-    for (const std::pair<const TypeNode, ObligationSet>& pair : unsolvedObs)
+    // a temporary set of new terms to reconstruct cached for processing in the
+    // match phase
+    TypeBuiltinSetMap termsToReconsPrime;
+    for (const std::pair<const TypeNode, BuiltinSet>& pair : termsToRecons)
     {
       // enumerate a new term
       Trace("sygus-rcons") << "enum: " << stn << ": ";
@@ -120,40 +119,39 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           {
             Trace("sygus-rcons") << "ob: " << *ob << std::endl;
             // try to match builtin term `t` with the enumerated term sz
-            TypeObligationSetMap temp = matchNewObs(t, sz);
+            TypeBuiltinSetMap temp = matchNewObs(t, sz);
             // cache the new obligations for processing in the match phase
-            for (const std::pair<const TypeNode, ObligationSet>& tempPair :
-                 temp)
+            for (const std::pair<const TypeNode, BuiltinSet>& tempPair : temp)
             {
-              obsPrime[tempPair.first].insert(tempPair.second.cbegin(),
-                                              tempPair.second.cend());
+              termsToReconsPrime[tempPair.first].insert(
+                  tempPair.second.cbegin(), tempPair.second.cend());
             }
           }
         }
       }
     }
     // match phase
-    while (!obsPrime.empty())
+    while (!termsToReconsPrime.empty())
     {
-      // a temporary set of new obligations cached for later processing
-      TypeObligationSetMap obsDPrime;
-      for (const std::pair<const TypeNode, ObligationSet>& pair : obsPrime)
+      // a temporary set of new terms to reconstruct cached for later processing
+      TypeBuiltinSetMap obsDPrime;
+      for (const std::pair<const TypeNode, BuiltinSet>& pair :
+           termsToReconsPrime)
       {
         for (const Node& t : pair.second)
         {
-          unsolvedObs[pair.first].emplace(t);
+          termsToRecons[pair.first].emplace(t);
           Obligation* ob = d_stnInfo[pair.first].builtinToOb(t);
           if (d_sol[ob->getSkolem()].isNull())
           {
             Trace("sygus-rcons") << "ob: " << *ob << std::endl;
             for (Node sz : pool[pair.first])
             {
-              // try to match each newly generated and cached obligation
-              // with patterns in pool
-              TypeObligationSetMap temp = matchNewObs(t, sz);
-              // cache the new obligations for later processing
-              for (const std::pair<const TypeNode, ObligationSet>& tempPair :
-                   temp)
+              // try to match each newly generated and cached term with patterns
+              // in pool
+              TypeBuiltinSetMap temp = matchNewObs(t, sz);
+              // cache the new terms for later processing
+              for (const std::pair<const TypeNode, BuiltinSet>& tempPair : temp)
               {
                 obsDPrime[tempPair.first].insert(tempPair.second.cbegin(),
                                                  tempPair.second.cend());
@@ -162,41 +160,42 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           }
         }
       }
-      obsPrime = std::move(obsDPrime);
+      termsToReconsPrime = std::move(obsDPrime);
     }
-    // remove solved obligations from unsolvedObs
-    removeSolvedObs(unsolvedObs);
+    // remove reconstructed terms from termsToRecons
+    removeReconstructedTerms(termsToRecons);
     ++count;
   }
 
   if (Trace("sygus-rcons").isConnected())
   {
-    Obligation::printCandSols(d_obs);
+    Obligation::printCandSols(mainOb, d_obs);
     printPool(pool);
   }
 
   // if the main obligation is solved, return the solution
-  if (!d_sol[mainOb].isNull())
+  if (!d_sol[mainOb->getSkolem()].isNull())
   {
     reconstructed = 1;
     // The algorithm mostly works with rewritten terms and may not notice that
     // the original terms contain variables eliminated by the rewriter. For
     // example, rewrite((ite true 0 z)) = 0. In such cases, we replace those
     // variables with ground values.
-    return d_sol[mainOb].isConst() ? Node(d_sol[mainOb])
-                                   : mkGround(d_sol[mainOb]);
+    return d_sol[mainOb->getSkolem()].isConst()
+               ? Node(d_sol[mainOb->getSkolem()])
+               : mkGround(d_sol[mainOb->getSkolem()]);
   }
 
   // we ran out of elements, return null
   reconstructed = -1;
   Warning() << CommandFailure(
       "Cannot get synth function: reconstruction to syntax failed.");
-  return d_sol[mainOb];
+  return Node::null();
 }
 
-TypeObligationSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
+TypeBuiltinSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
 {
-  TypeObligationSetMap obsPrime;
+  TypeBuiltinSetMap termsToReconsPrime;
 
   // substitutions generated by match. Note that we might have already seen (and
   // even solved) obligations corresponsing to those substitutions
@@ -219,7 +218,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
     {
       matches.erase(pair.first);
     }
-    // for each candidate obligation
+    // for each match
     for (const std::pair<const Node, Node>& match : matches)
     {
       TypeNode stn = datatypes::utils::builtinVarToSygus(match.first).getType();
@@ -240,20 +239,15 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
         //
         // In this case, `match.second` is easy to reconstruct by matching
         // because it only uses operators that are already in the grammar.
-        // `rep`, on the other hand, is cannot be reconstructed by matching and
+        // `rep`, on the other hand, cannot be reconstructed by matching and
         // can only be solved by enumeration (currently).
         //
         // At this point, we do not know which one is easier to reconstruct by
         // matching, so we add `match.second` to the set of equivalent builtin
-        // terms corresponding to `k` and match against both terms.
+        // terms in `repOb` and match against both terms.
         repOb->addBuiltin(match.second);
         d_stnInfo[stn].setBuiltinToOb(match.second, repOb);
-        // add this candidate obligation if the representative obligation does
-        // not have a solution yet
-        if (d_sol[repOb->getSkolem()].isNull())
-        {
-          obsPrime[stn].emplace(match.second);
-        }
+        termsToReconsPrime[stn].emplace(match.second);
       }
       else
       {
@@ -261,8 +255,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
         d_obs.push_back(std::make_unique<Obligation>(stn, match.second));
         d_stnInfo[stn].setBuiltinToOb(match.second, d_obs.back().get());
         newOb = d_obs.back().get();
-        // if the candidate obligation is a constant and the grammar allows
-        // random constants
+        // if the match is a constant and the grammar allows random constants
         if (match.second.isConst() && stn.getDType().getSygusAllowConst())
         {
           // then immediately solve the obligation
@@ -270,8 +263,8 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
         }
         else
         {
-          // otherwise, add this candidate obligation to the list of obligations
-          obsPrime[stn].emplace(match.second);
+          // otherwise, add this match to the list of obligations
+          termsToReconsPrime[stn].emplace(match.second);
         }
       }
       subs.emplace(datatypes::utils::builtinVarToSygus(match.first),
@@ -315,7 +308,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
     }
   }
 
-  return obsPrime;
+  return termsToReconsPrime;
 }
 
 void SygusReconstruct::markSolved(Obligation* ob, Node s)
@@ -415,11 +408,12 @@ void SygusReconstruct::initialize(TypeNode stn)
   }
 }
 
-void SygusReconstruct::removeSolvedObs(TypeObligationSetMap& unsolvedObs)
+void SygusReconstruct::removeReconstructedTerms(
+    TypeBuiltinSetMap& termsToRecons)
 {
-  for (std::pair<const TypeNode, ObligationSet>& pair : unsolvedObs)
+  for (std::pair<const TypeNode, BuiltinSet>& pair : termsToRecons)
   {
-    ObligationSet::iterator it = pair.second.begin();
+    BuiltinSet::iterator it = pair.second.begin();
     while (it != pair.second.end())
     {
       if (d_sol[d_stnInfo[pair.first].builtinToOb(*it)->getSkolem()].isNull())

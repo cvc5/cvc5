@@ -815,8 +815,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
-  theory/quantifiers/sygus/rcons_obligation_info.cpp
-  theory/quantifiers/sygus/rcons_obligation_info.h
+  theory/quantifiers/sygus/rcons_obligation.cpp
+  theory/quantifiers/sygus/rcons_obligation.h
   theory/quantifiers/sygus/rcons_type_info.cpp
   theory/quantifiers/sygus/rcons_type_info.h
   theory/quantifiers/sygus/sygus_abduct.cpp
