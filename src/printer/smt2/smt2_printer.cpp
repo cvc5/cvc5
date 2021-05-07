@@ -528,8 +528,7 @@ void Smt2Printer::toStream(std::ostream& out,
   bool stillNeedToPrintParams = true;
   bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
-  if (n.getNumChildren() != 0 && k != kind::INST_PATTERN_LIST
-      && k != kind::CONSTRUCTOR_TYPE)
+  if (n.getNumChildren() != 0 && k != kind::CONSTRUCTOR_TYPE)
   {
     out << '(';
   }
