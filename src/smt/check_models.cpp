@@ -17,6 +17,7 @@
 
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/model.h"
 #include "smt/node_command.h"
 #include "smt/preprocessor.h"
@@ -30,7 +31,7 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-CheckModels::CheckModels(SmtSolver& s) : d_smt(s) {}
+CheckModels::CheckModels(Env& e) : d_env(e) {}
 CheckModels::~CheckModels() {}
 
 void CheckModels::checkModel(Model* m,
@@ -50,16 +51,7 @@ void CheckModels::checkModel(Model* m,
         "Cannot run check-model on a model with approximate values.");
   }
 
-  // Check individual theory assertions
-  if (options::debugCheckModels())
-  {
-    TheoryEngine* te = d_smt.getTheoryEngine();
-    Assert(te != nullptr);
-    te->checkTheoryAssertionsWithModel(hardFailure);
-  }
-
-  Preprocessor* pp = d_smt.getPreprocessor();
-
+  theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   // the list of assertions that did not rewrite to true
@@ -75,8 +67,8 @@ void CheckModels::checkModel(Model* m,
     // evaluate e.g. divide-by-zero. This is intentional since the evaluation
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
-    Node n = pp->expandDefinitions(assertion, cache, true);
-    Notice() << "SmtEngine::checkModel(): -- expands to " << n << std::endl;
+    Node n = sm.apply(assertion, false);
+    Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << std::endl;
 
     n = Rewriter::rewrite(n);
     Notice() << "SmtEngine::checkModel(): -- rewrites to " << n << std::endl;

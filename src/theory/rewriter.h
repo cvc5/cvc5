@@ -147,6 +147,9 @@ class Rewriter {
       theory::TheoryId tid,
       std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn);
 
+  /** Get the theory rewriter for the given id */
+  TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
+
  private:
   /**
    * Get the rewriter associated with the SmtEngine in scope.

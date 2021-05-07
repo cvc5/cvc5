@@ -512,12 +512,10 @@ class CVC5_EXPORT SmtEngine
    * Expand the definitions in a term or formula.
    *
    * @param n The node to expand
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& n, bool expandOnly = true);
+  Node expandDefinitions(const Node& n);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -887,6 +885,12 @@ class CVC5_EXPORT SmtEngine
    * Return the set of assertions, after expanding definitions.
    */
   std::vector<Node> getExpandedAssertions();
+
+  /**
+   * !!!!! temporary, until the environment is passsed to all classes that
+   * require it.
+   */
+  Env& getEnv();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
