@@ -1597,7 +1597,7 @@ cdef class Term:
                 res = Fraction(num, den)
             except:
                 try:
-                    # could be exact: 1.0
+                    # could be exact: e.g., 1.0
                     res = Fraction(updated_string_repr)
                 except:
                     raise ValueError("Failed to convert "
