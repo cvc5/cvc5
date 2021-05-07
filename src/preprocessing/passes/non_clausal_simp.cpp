@@ -298,7 +298,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->apply(assertion);
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
     if (!assertionNew.isNull())
     {
@@ -310,7 +310,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     for (;;)
     {
-      assertionNew = constantPropagations->apply(assertion);
+      assertionNew = constantPropagations->applyTrusted(assertion);
       if (assertionNew.isNull())
       {
         break;
@@ -345,7 +345,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       if (d_preprocContext->getSymsInAssertions().contains(lhs))
       {
         // if it has, the substitution becomes an assertion
-        TrustNode trhs = newSubstitutions->apply((*pos).first);
+        TrustNode trhs = newSubstitutions->applyTrusted((*pos).first);
         Assert(!trhs.isNull());
         Trace("non-clausal-simplify")
             << "substitute: will notify SAT layer of substitution: "
@@ -454,7 +454,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   TrustNode tlit;
   if (subs != nullptr)
   {
-    tlit = subs->apply(lit);
+    tlit = subs->applyTrusted(lit);
     if (!tlit.isNull())
     {
       lit = processRewrittenLearnedLit(tlit);
@@ -467,7 +467,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   {
     for (;;)
     {
-      tlit = cp->apply(lit);
+      tlit = cp->applyTrusted(lit);
       if (tlit.isNull())
       {
         break;
