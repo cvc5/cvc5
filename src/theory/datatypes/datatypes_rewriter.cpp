@@ -48,6 +48,10 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteTester(in);
   }
+  else if (kind == APPLY_UPDATE)
+  {
+    return rewriteUpdater(in);
+  }
   else if (kind == kind::DT_SIZE)
   {
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
@@ -470,6 +474,28 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
                            NodeManager::currentNM()->mkConst(true));
   }
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
+  return RewriteResponse(REWRITE_DONE, in);
+}
+
+RewriteResponse DatatypesRewriter::rewriteUpdater(TNode in)
+{
+  Assert (in.getKind()==APPLY_UPDATE);
+  if (in[0].getKind() == APPLY_CONSTRUCTOR)
+  {
+    Node op = in.getOperator();
+    size_t cindex = utils::indexOf(in[0].getOperator());
+    size_t cuindex = utils::cindexOf(op);
+    if (cindex==cuindex)
+    {
+      NodeManager * nm = NodeManager::currentNM();
+      size_t updateIndex = utils::indexOf(op);
+      std::vector<Node> children(in[0].begin(), in[0].end());
+      children[updateIndex] = in[1];
+      children.insert(children.begin(),in[0].getOperator());
+      return RewriteResponse(REWRITE_DONE, nm->mkNode(APPLY_CONSTRUCTOR, children));
+    }
+    return RewriteResponse(REWRITE_DONE, in[0]);
+  }
   return RewriteResponse(REWRITE_DONE, in);
 }
 
