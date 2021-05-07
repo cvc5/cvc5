@@ -18,106 +18,90 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtins({builtin})
+Obligation::Obligation(TypeNode stn, Node t) : d_ts({t})
 {
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  d_k = sm->mkDummySkolem("sygus_rcons", stn);
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-RConsObligationInfo::getBuiltins() const
+Node Obligation::getSkolem() const { return d_k; }
+
+TypeNode Obligation::getType() const { return d_k.getType(); }
+
+const std::unordered_set<Node, NodeHashFunction>& Obligation::getBuiltins()
+    const
 {
-  return d_builtins;
+  return d_ts;
 }
 
-void RConsObligationInfo::addCandidateSolution(Node candSol)
+void Obligation::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
 }
 
-void RConsObligationInfo::addBuiltin(Node builtin)
-{
-  d_builtins.emplace(builtin);
-}
+void Obligation::addBuiltin(Node builtin) { d_ts.emplace(builtin); }
 
 const std::unordered_set<Node, NodeHashFunction>&
-RConsObligationInfo::getCandidateSolutions() const
+Obligation::getCandidateSolutions() const
 {
   return d_candSols;
 }
 
-void RConsObligationInfo::addCandidateSolutionToWatchSet(Node candSol)
+void Obligation::addCandidateSolutionToWatchSet(Node candSol)
 {
   d_watchSet.emplace(candSol);
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-RConsObligationInfo::getWatchSet() const
+const std::unordered_set<Node, NodeHashFunction>& Obligation::getWatchSet()
+    const
 {
   return d_watchSet;
 }
 
-std::string RConsObligationInfo::obToString(Node k,
-                                            const RConsObligationInfo& obInfo)
+void Obligation::printCandSols(
+    const std::vector<std::unique_ptr<Obligation>>& obs)
 {
-  std::stringstream ss;
-  ss << "([";
-  std::unordered_set<Node, NodeHashFunction>::const_iterator it =
-      obInfo.getBuiltins().cbegin();
-  ss << *it;
-  ++it;
-  while (it != obInfo.getBuiltins().cend())
+  Trace("sygus-rcons") << std::endl << "Eq classes: " << std::endl << '[';
+
+  for (const std::unique_ptr<Obligation>& ob : obs)
   {
-    ss << ", " << *it;
-    ++it;
+    Trace("sygus-rcons") << std::endl
+                         << "  "
+                         << datatypes::utils::sygusToBuiltin(ob->getSkolem())
+                         << ' ' << *ob << std::endl << "  {" << std::endl;
+
+    for (const Node& j : ob->getCandidateSolutions())
+    {
+      Trace("sygus-rcons") << "    " << datatypes::utils::sygusToBuiltin(j)
+                           << std::endl;
+    }
+    Trace("sygus-rcons") << "  }" << std::endl;
   }
-  ss << "]), " << k.getType() << ')' << std::endl;
-  return ss.str();
+
+  Trace("sygus-rcons") << ']' << std::endl;
 }
 
-void RConsObligationInfo::printCandSols(
-    const Node& root,
-    const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
-        obInfo)
+std::ostream& operator<<(std::ostream& out, const Obligation& ob)
 {
-  std::unordered_set<Node, NodeHashFunction> visited;
-  std::vector<Node> stack;
-  stack.push_back(root);
-
-  Trace("sygus-rcons") << "\nEq classes: \n[";
-
-  while (!stack.empty())
+  out << '(' << ob.getType()  << ", {";
+  std::unordered_set<Node, NodeHashFunction>::const_iterator it =
+      ob.getBuiltins().cbegin();
+  out << *it;
+  ++it;
+  while (it != ob.getBuiltins().cend())
   {
-    const Node& k = stack.back();
-    stack.pop_back();
-    visited.emplace(k);
-
-    Trace("sygus-rcons") << std::endl
-                         << datatypes::utils::sygusToBuiltin(k) << " "
-                         << obToString(k, obInfo.at(k)) << ":\n [";
-
-    for (const Node& j : obInfo.at(k).getCandidateSolutions())
-    {
-      Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(j) << " ";
-      std::unordered_set<TNode, TNodeHashFunction> subObs;
-      expr::getVariables(j, subObs);
-      for (const TNode& l : subObs)
-      {
-        if (visited.find(l) == visited.cend()
-            && obInfo.find(l) != obInfo.cend())
-        {
-          stack.push_back(l);
-        }
-      }
-    }
-    Trace("sygus-rcons") << "]" << std::endl;
+    out << ", " << *it;
+    ++it;
   }
-
-  Trace("sygus-rcons") << "]" << std::endl;
+  out << "})";
+  return out;
 }
 
 }  // namespace quantifiers

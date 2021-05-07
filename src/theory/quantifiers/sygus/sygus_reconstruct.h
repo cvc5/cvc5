@@ -46,8 +46,7 @@ using TypeBuiltinSetMap =
  *
  * rcons(t_0, T_0) returns g
  * {
- *   Obs: A map from sygus types T to a set of triples to reconstruct into T,
- *        where each triple is of the form (k, ts, s), where k is a skolem of
+ *   Obs: A set of triples to reconstruct into T, where each triple is of the form (k, ts, s), where k is a skolem of
  *        type T, ts is a set of builtin terms of the type encoded by T, and s
  *        is a possibly null sygus term of type T representing the solution.
  *
@@ -68,8 +67,10 @@ using TypeBuiltinSetMap =
  *   let k_0 be a fresh skolem of sygus type T_0
  *   Obs[T_0] += (k_0, {t_0}, null)
  *
+ *   UnResTerms[T_0] = {t_0}
+ *
  *   while Sol[k_0] == null
- *     Obs' = {} // map from T to sets of triples pending addition to Obs
+ *     UnResTerms' = {} // map from T to terms pending addition to UnResTerms
  *     // enumeration phase
  *     for each subfield type T of T_0
  *       // enumerated terms may contain variables zs ranging over all terms of
@@ -81,26 +82,27 @@ using TypeBuiltinSetMap =
  *         find (k, ts, s) in Obs[T] s.t. |=_X ts[0] = builtin
  *         if no such triple exists
  *           let k be a new variable of type : T
- *           Obs[T] += (k, [builtin], null)
+ *           Obs[T] += (k, {builtin}, null)
  *         markSolved(k, s[zs])
  *       else if no s' in Pool[T] and matcher sigma s.t.
  *             rewrite(toBuiltIn(s')) * sigma = rewrite(toBuiltIn(s[zs]))
  *         Pool[T] += s[zs]
- *         for each (k, ts, null) in Obs[T]
- *           Obs' += matchNewObs(k, s[zs])
+ *         for each t in UnResTerms[T_0]
+ *           UnResTerms' += matchNewObs(k, s[zs])
  *     // match phase
- *     while Obs' != {}
- *       Obs'' = {}
- *       for each (k, ts, null) in Obs' // s = null for all triples in Obs'
- *         Obs[T] += (k, ts, null)
- *         for each s[zs] in Pool[T]
- *           Obs'' += matchNewObs(k, s[zs])
- *       Obs' = Obs''
+ *     while UnResTerms' != {}
+ *       UnResTerms'' = {}
+ *       for each subfield type T of T_0
+ *         for each t in UnResTerms'[T]
+ *           UnResTerms'[T] += t
+ *           for each s[zs] in Pool[T]
+ *             UnResTerms'' += matchNewObs(t, s[zs])
+ *         UnResTerms' = UnResTerms''
  *   g = Sol[k_0]
  *   instantiate free variables of g with arbitrary sygus datatype values
  * }
  *
- * matchNewObs(k, s[zs]) returns Obs'
+ * matchNewObs(k, s[zs]) returns UnResTerms'
  * {
  *   u = rewrite(toBuiltIn(s[zs]))
  *   for each t in Terms[k]
@@ -108,7 +110,7 @@ using TypeBuiltinSetMap =
  *       Sub = {} // substitution map from zs to corresponding new vars ks
  *       for each (z, st) in {zs -> sts}
  *         // let X be the theory the solver is invoked with
- *         if exists (k', ts', s') in Obs[T] !=_X ts'[0] = st
+ *         if exists (k', ts', s') in Obs[T] s.t. !=_X ts'[0] = st
  *           ts' += st
  *           Sub[z] = k'
  *         else
@@ -237,7 +239,7 @@ class SygusReconstruct : public expr::NotifyMatch
    * @param ob free var to mark as solved and substitute
    * @param sol constant solution to `ob`
    */
-  void markSolved(Node k, Node s);
+  void markSolved(Obligation* ob, Node s);
 
   /**
    * Initialize a sygus enumerator and a candidate rewrite database for each
@@ -302,17 +304,17 @@ class SygusReconstruct : public expr::NotifyMatch
   SygusStatistics& d_stats;
 
   /** a map from an obligation to its reconstruction info */
-  std::unordered_map<Node, RConsObligationInfo, NodeHashFunction> d_obInfo;
+  std::vector<std::unique_ptr<Obligation>> d_obs;
   /** a map from a sygus datatype type to its reconstruction info */
   std::unordered_map<TypeNode, RConsTypeInfo, TypeNodeHashFunction> d_stnInfo;
 
-  /** a map from an obligation to its sygus solution (if it exists) */
+  /** a map from an obligation's skolem to its sygus solution (if it exists) */
   std::unordered_map<TNode, TNode, TNodeHashFunction> d_sol;
 
   /** a map from a candidate solution to its sub-obligations */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_subObs;
+  std::unordered_map<Node, std::vector<Obligation*>, NodeHashFunction> d_subObs;
   /** a map from a candidate solution to its parent obligation */
-  std::unordered_map<Node, Node, NodeHashFunction> d_parentOb;
+  std::unordered_map<Node, Obligation*, NodeHashFunction> d_parentOb;
 
   /** a cache of sygus variables treated as ground terms by matching */
   std::unordered_map<Node, Node, NodeHashFunction> d_sygusVars;

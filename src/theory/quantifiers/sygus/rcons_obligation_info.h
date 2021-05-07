@@ -34,7 +34,7 @@ namespace quantifiers {
  * class. Notice that the SyGuS type T of an obligation is not stored in this
  * class as it can be inferred from the type of the skolem k.
  */
-class RConsObligationInfo
+class Obligation
 {
  public:
   /**
@@ -42,13 +42,17 @@ class RConsObligationInfo
    *
    * @param builtin builtin term to reconstruct
    */
-  explicit RConsObligationInfo(Node builtin = Node::null());
+  Obligation(TypeNode stn, Node t);
+
+  Node getSkolem() const;
+
+  TypeNode getType() const;
 
   /**
    * Add `builtin` to the set of equivalent builtins this class' obligation
    * solves.
    *
-   * \note `builtin` MUST be equivalent to the builtin terms in `d_builtins`
+   * \note `builtin` MUST be equivalent to the builtin terms in `d_ts`
    *
    * @param builtin builtin term to add
    */
@@ -94,7 +98,7 @@ class RConsObligationInfo
    * @param obInfo Obligation `k`'s info
    * @return A string representation of `k`
    */
-  static std::string obToString(Node k, const RConsObligationInfo& obInfo);
+  static std::string obToString(Node k, const Obligation& obInfo);
 
   /**
    * Print all reachable obligations and their candidate solutions from
@@ -119,17 +123,16 @@ class RConsObligationInfo
    * @param obInfo a map from obligations to their corresponding infos
    */
   static void printCandSols(
-      const Node& root,
-      const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
-          obInfo);
+      const std::vector<std::unique_ptr<Obligation>>& obs);
 
  private:
+  Node d_k;
   /** Equivalent builtin terms for this class' obligation.
    *
    * To solve the obligation, one of these builtin terms must be reconstructed
    * in the specified grammar (sygus datatype type) of the obligation.
    */
-  std::unordered_set<Node, NodeHashFunction> d_builtins;
+  std::unordered_set<Node, NodeHashFunction> d_ts;
   /** A set of candidate solutions to this class' obligation.
    *
    * Each candidate solution is a sygus datatype term containing skolem subterms
@@ -153,6 +156,8 @@ class RConsObligationInfo
    */
   std::unordered_set<Node, NodeHashFunction> d_watchSet;
 };
+
+std::ostream& operator<<(std::ostream& out, const Obligation& ob);
 
 }  // namespace quantifiers
 }  // namespace theory
