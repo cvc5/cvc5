@@ -3101,6 +3101,27 @@ bool Term::isSequence() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+void Term::collectSequence(std::vector<Term>& seq,
+                           const cvc5::Node& node,
+                           const Solver* slv)
+{
+  switch (node.getKind())
+  {
+    case cvc5::Kind::STRING_CONCAT:
+    {
+      for (const auto& sub : node)
+      {
+        collectSequence(seq, sub, slv);
+      }
+      break;
+    }
+    case cvc5::Kind::SEQ_UNIT: seq.emplace_back(Term(slv, node[0])); break;
+    case cvc5::Kind::CONST_SEQUENCE:
+      // Is this always the empty sequence?
+      break;
+    default: break;
+  }
+}
 std::vector<Term> Term::getSequence() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -3109,11 +3130,7 @@ std::vector<Term> Term::getSequence() const
       << "Term should be a Sequence when calling getSequence()";
   //////// all checks before this line
   std::vector<Term> res;
-  const Sequence& seq = d_node->getConst<Sequence>();
-  for (const Node& n : seq.getVec())
-  {
-    res.emplace_back(Term(d_solver, n));
-  }
+  Term::collectSequence(res, *d_node, d_solver);
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;

@@ -919,10 +919,13 @@ TEST_F(TestApiBlackTerm, getSet)
 {
   Sort s = d_solver.mkSetSort(d_solver.getIntegerSort());
 
+  Term i1 = d_solver.mkInteger(5);
+  Term i2 = d_solver.mkInteger(7);
+
   Term s1 = d_solver.mkEmptySet(s);
-  Term s2 = d_solver.mkTerm(Kind::SINGLETON, d_solver.mkInteger(5));
-  Term s3 = d_solver.mkTerm(Kind::SINGLETON, d_solver.mkInteger(5));
-  Term s4 = d_solver.mkTerm(Kind::SINGLETON, d_solver.mkInteger(7));
+  Term s2 = d_solver.mkTerm(Kind::SINGLETON, i1);
+  Term s3 = d_solver.mkTerm(Kind::SINGLETON, i1);
+  Term s4 = d_solver.mkTerm(Kind::SINGLETON, i2);
   Term s5 = d_solver.mkTerm(Kind::UNION, s2, d_solver.mkTerm(Kind::UNION, s3, s4));
 
   ASSERT_TRUE(s1.isSet());
@@ -932,10 +935,44 @@ TEST_F(TestApiBlackTerm, getSet)
   ASSERT_TRUE(s5.isSet());
 
   ASSERT_EQ(std::set<Term>({}), s1.getSet());
-  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(5)}), s2.getSet());
-  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(5)}), s3.getSet());
-  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(7)}), s4.getSet());
-  ASSERT_EQ(std::set<Term>({d_solver.mkInteger(5), d_solver.mkInteger(7)}), s5.getSet());
+  ASSERT_EQ(std::set<Term>({i1}), s2.getSet());
+  ASSERT_EQ(std::set<Term>({i1}), s3.getSet());
+  ASSERT_EQ(std::set<Term>({i2}), s4.getSet());
+  ASSERT_EQ(std::set<Term>({i1, i2}), s5.getSet());
+}
+
+TEST_F(TestApiBlackTerm, getChar)
+{
+  Term c = d_solver.mkChar("15");
+  ASSERT_TRUE(c.isChar());
+  ASSERT_EQ("15", c.getChar());
+}
+
+TEST_F(TestApiBlackTerm, getSequence)
+{
+  Sort s = d_solver.mkSequenceSort(d_solver.getIntegerSort());
+
+  Term i1 = d_solver.mkInteger(5);
+  Term i2 = d_solver.mkInteger(7);
+
+  Term s1 = d_solver.mkEmptySequence(s);
+  Term s2 = d_solver.mkTerm(Kind::SEQ_UNIT, i1);
+  Term s3 = d_solver.mkTerm(Kind::SEQ_UNIT, i1);
+  Term s4 = d_solver.mkTerm(Kind::SEQ_UNIT, i2);
+  Term s5 = d_solver.mkTerm(
+      Kind::SEQ_CONCAT, s2, d_solver.mkTerm(Kind::SEQ_CONCAT, s3, s4));
+
+  ASSERT_TRUE(s1.isSequence());
+  ASSERT_TRUE(s2.isSequence());
+  ASSERT_TRUE(s3.isSequence());
+  ASSERT_TRUE(s4.isSequence());
+  ASSERT_TRUE(s5.isSequence());
+
+  ASSERT_EQ(std::vector<Term>({}), s1.getSequence());
+  ASSERT_EQ(std::vector<Term>({i1}), s2.getSequence());
+  ASSERT_EQ(std::vector<Term>({i1}), s3.getSequence());
+  ASSERT_EQ(std::vector<Term>({i2}), s4.getSequence());
+  ASSERT_EQ(std::vector<Term>({i1, i1, i2}), s5.getSequence());
 }
 
 TEST_F(TestApiBlackTerm, substitute)

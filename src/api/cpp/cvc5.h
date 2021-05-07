@@ -1411,6 +1411,10 @@ class CVC5_EXPORT Term
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set, const cvc5::Node& node, const Solver* slv);
+  /** Helper method to collect all elements of a sequence. */
+  static void collectSequence(std::vector<Term>& seq,
+                              const cvc5::Node& node,
+                              const Solver* slv);
 
   /**
    * Constructor.
