@@ -802,6 +802,69 @@ TEST_F(TestApiBlackTerm, getReal)
   ASSERT_EQ("18446744073709551617", real9.getReal());
 }
 
+TEST_F(TestApiBlackTerm, getConstArrayBase)
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+  Term one = d_solver.mkInteger(1);
+  Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  ASSERT_TRUE(constarr.isConstArray());
+  ASSERT_EQ(one, constarr.getConstArrayBase());
+}
+
+TEST_F(TestApiBlackTerm, getBoolean)
+{
+  Term b1 = d_solver.mkBoolean(true);
+  Term b2 = d_solver.mkBoolean(false);
+
+  ASSERT_TRUE(b1.isBoolean());
+  ASSERT_TRUE(b2.isBoolean());
+  ASSERT_TRUE(b1.getBoolean());
+  ASSERT_FALSE(b2.getBoolean());
+}
+
+TEST_F(TestApiBlackTerm, getBitVector)
+{
+  Term b1 = d_solver.mkBitVector(8, 15);
+  Term b2 = d_solver.mkBitVector("00001111", 2);
+  Term b3 = d_solver.mkBitVector("15", 10);
+  Term b4 = d_solver.mkBitVector("0f", 16);
+  Term b5 = d_solver.mkBitVector(8, "00001111", 2);
+  Term b6 = d_solver.mkBitVector(8, "15", 10);
+  Term b7 = d_solver.mkBitVector(8, "0f", 16);
+
+  ASSERT_TRUE(b1.isBitVector());
+  ASSERT_TRUE(b2.isBitVector());
+  ASSERT_TRUE(b3.isBitVector());
+  ASSERT_TRUE(b4.isBitVector());
+  ASSERT_TRUE(b5.isBitVector());
+  ASSERT_TRUE(b6.isBitVector());
+  ASSERT_TRUE(b7.isBitVector());
+
+  ASSERT_EQ("00001111", b1.getBitVector(2));
+  ASSERT_EQ("15", b1.getBitVector(10));
+  ASSERT_EQ("f", b1.getBitVector(16));
+  ASSERT_EQ("00001111", b2.getBitVector(2));
+  ASSERT_EQ("15", b2.getBitVector(10));
+  ASSERT_EQ("f", b2.getBitVector(16));
+  ASSERT_EQ("1111", b3.getBitVector(2));
+  ASSERT_EQ("15", b3.getBitVector(10));
+  ASSERT_EQ("f", b3.getBitVector(16));
+  ASSERT_EQ("00001111", b4.getBitVector(2));
+  ASSERT_EQ("15", b4.getBitVector(10));
+  ASSERT_EQ("f", b4.getBitVector(16));
+  ASSERT_EQ("00001111", b5.getBitVector(2));
+  ASSERT_EQ("15", b5.getBitVector(10));
+  ASSERT_EQ("f", b5.getBitVector(16));
+  ASSERT_EQ("00001111", b6.getBitVector(2));
+  ASSERT_EQ("15", b6.getBitVector(10));
+  ASSERT_EQ("f", b6.getBitVector(16));
+  ASSERT_EQ("00001111", b7.getBitVector(2));
+  ASSERT_EQ("15", b7.getBitVector(10));
+  ASSERT_EQ("f", b7.getBitVector(16));
+}
+
 TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
