@@ -3322,12 +3322,14 @@ class CVC5_EXPORT Solver
 
   /**
    * Create an abstract value constant.
+   * The given index needs to be a positive integer in base 10.
    * @param index Index of the abstract value
    */
   Term mkAbstractValue(const std::string& index) const;
 
   /**
    * Create an abstract value constant.
+   * The given index needs to be positive.
    * @param index Index of the abstract value
    */
   Term mkAbstractValue(uint64_t index) const;

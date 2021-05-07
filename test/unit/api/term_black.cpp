@@ -865,6 +865,56 @@ TEST_F(TestApiBlackTerm, getBitVector)
   ASSERT_EQ("f", b7.getBitVector(16));
 }
 
+TEST_F(TestApiBlackTerm, getAbstractValue)
+{
+  Term v1 = d_solver.mkAbstractValue(1);
+  Term v2 = d_solver.mkAbstractValue("15");
+  Term v3 = d_solver.mkAbstractValue("18446744073709551617");
+
+  ASSERT_TRUE(v1.isAbstractValue());
+  ASSERT_TRUE(v2.isAbstractValue());
+  ASSERT_TRUE(v3.isAbstractValue());
+  ASSERT_EQ("1", v1.getAbstractValue());
+  ASSERT_EQ("15", v2.getAbstractValue());
+  ASSERT_EQ("18446744073709551617", v3.getAbstractValue());
+}
+
+TEST_F(TestApiBlackTerm, getTuple)
+{
+  Sort s1 = d_solver.getIntegerSort();
+  Sort s2 = d_solver.getRealSort();
+  Sort s3 = d_solver.getStringSort();
+
+  Term t1 = d_solver.mkInteger(15);
+  Term t2 = d_solver.mkReal(17, 25);
+  Term t3 = d_solver.mkString("abc");
+
+  Term tup = d_solver.mkTuple({s1, s2, s3}, {t1, t2, t3});
+
+  ASSERT_TRUE(tup.isTuple());
+  ASSERT_EQ(std::vector<Term>({t1, t2, t3}), tup.getTuple());
+}
+
+TEST_F(TestApiBlackTerm, getFloatingPoint)
+{
+  Term bvval = d_solver.mkBitVector("0000110000000011");
+  Term fp = d_solver.mkFloatingPoint(5, 11, bvval);
+
+  ASSERT_TRUE(fp.isFloatingPoint());
+  ASSERT_FALSE(fp.isPosZero());
+  ASSERT_FALSE(fp.isNegZero());
+  ASSERT_FALSE(fp.isPosInf());
+  ASSERT_FALSE(fp.isNegInf());
+  ASSERT_FALSE(fp.isNaN());
+  ASSERT_EQ(std::make_tuple(5u, 11u, bvval), fp.getFloatingPoint());
+
+  ASSERT_TRUE(d_solver.mkPosZero(5, 11).isPosZero());
+  ASSERT_TRUE(d_solver.mkNegZero(5, 11).isNegZero());
+  ASSERT_TRUE(d_solver.mkPosInf(5, 11).isPosInf());
+  ASSERT_TRUE(d_solver.mkNegInf(5, 11).isNegInf());
+  ASSERT_TRUE(d_solver.mkNaN(5, 11).isNaN());
+}
+
 TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");

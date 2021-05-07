@@ -2920,7 +2920,7 @@ std::vector<Term> Term::getTuple() const
       << "Term should be a Tuple when calling getTuple()";
   //////// all checks before this line
   std::vector<Term> res;
-  for (std::size_t i = 1, n = d_node->getNumChildren(); i < n; ++i)
+  for (size_t i = 0, n = d_node->getNumChildren(); i < n; ++i)
   {
     res.emplace_back(Term(d_solver, (*d_node)[i]));
   }
