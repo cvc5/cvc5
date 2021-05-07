@@ -1486,8 +1486,6 @@ cdef class Term:
 
     def substitute(self, term_or_list_1, term_or_list_2):
         cdef Term term = Term(self.solver)
-        cdef Term ce = Term(self.solver)
-        cdef Term creplacement = Term(self.solver)
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
         if isinstance(term_or_list_1, list):
@@ -1503,13 +1501,12 @@ cdef class Term:
                 ces.push_back((<Term?> e).cterm)
                 creplacements.push_back((<Term?> r).cterm)
 
-            term.cterm = self.cterm.substitute(ces, creplacements)
         else:
-            e = term_or_list_1
-            replacement = term_or_list_2
-            ce.cterm = (<Term?>e).cterm
-            creplacement.cterm = (<Term?>replacement).cterm
-            term.cterm = self.cterm.substitute(ce.cterm, creplacement.cterm)
+            # add the single elements to the vectors
+            ces.push_back((<Term?> term_or_list_1).cterm)
+            creplacements.push_back((<Term?> term_or_list_2).cterm)
+        
+        term.cterm = self.cterm.substitute(ces, creplacements)
         return term
 
     def hasOp(self):
