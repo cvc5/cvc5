@@ -108,8 +108,7 @@ jobs:
     - name: Install Documentation Dependencies
       if: matrix.build-documentation
       run: |
-        sudo apt-get install -y \
-          doxygen python3-docutils python3-jinja2
+        sudo apt-get install -y doxygen python3-docutils python3-jinja2
         python3 -m pip install \
           sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
 
