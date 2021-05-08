@@ -28,9 +28,9 @@ jobs:
             NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
             HASH=${{ github.event.workflow_run.sha }}
             echo "Identified branch $NAME"
-          elif [ "${{ github.event.workflow_run.event_name }}" == "pull_request_target" ] ; then
-            NAME="${{ github.event.workflow_run.event.number }}"
-            HASH="${{ github.event.workflow_run.event.pull_request.head.sha }}"
+          elif [ "${{ github.event.workflow_run.event_name }}" == "pull_request" ] ; then
+            NAME="${{ github.event.workflow_run.number }}"
+            HASH="${{ github.event.workflow_run.pull_request.head.sha }}"
             echo "Identified PR #$NAME (from $HASH)"
             NAME="pr$NAME"
           fi
