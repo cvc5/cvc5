@@ -109,6 +109,12 @@ cdef class Datatype:
         term.cterm = self.cd.getConstructorTerm(name.encode())
         return term
 
+    def getSelector(self, str name):
+        """Return a selector by name."""
+        cdef DatatypeSelector ds = DatatypeSelector(self.solver)
+        ds.cds = self.cd.getSelector(name.encode())
+        return ds
+
     def getNumConstructors(self):
         """:return: number of constructors."""
         return self.cd.getNumConstructors()
@@ -265,6 +271,11 @@ cdef class DatatypeSelector:
     def getSelectorTerm(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cds.getSelectorTerm()
+        return term
+
+    def getUpdaterTerm(self):
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cds.getUpdaterTerm()
         return term
 
     def getRangeSort(self):
