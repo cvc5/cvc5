@@ -11,7 +11,7 @@ jobs:
     name: upload-docs
     runs-on: ubuntu-latest
     continue-on-error: true
-    #if: runs in upstream repository
+    if: github.repository == 'cvc5/cvc5'
     steps:
       - name: Setup Deploy Key
         env:
