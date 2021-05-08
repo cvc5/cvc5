@@ -298,7 +298,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->apply(assertion);
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
     if (!assertionNew.isNull())
     {
@@ -310,7 +310,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     for (;;)
     {
-      assertionNew = constantPropagations->apply(assertion);
+      assertionNew = constantPropagations->applyTrusted(assertion);
       if (assertionNew.isNull())
       {
         break;
@@ -332,7 +332,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (SubstitutionMap::iterator pos = nss.begin(); pos != nss.end(); ++pos)
   {
     Node lhs = (*pos).first;
-    TrustNode trhs = newSubstitutions->apply((*pos).second);
+    TrustNode trhs = newSubstitutions->applyTrusted((*pos).second);
     Node rhs = trhs.isNull() ? (*pos).second : trhs.getNode();
     // If using incremental, we must check whether this variable has occurred
     // before now. If it hasn't we can add this as a substitution.
@@ -351,10 +351,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Trace("non-clausal-simplify")
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
-       trhs = newSubstitutions->apply((*pos).first);
-       Assert(!trhs.isNull());
-       assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
-       trhs.getGenerator());
+      trhs = newSubstitutions->applyTrusted((*pos).first);
+      Assert(!trhs.isNull());
+      assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
+                                                  trhs.getGenerator());
     }
   }
 
@@ -450,7 +450,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   TrustNode tlit;
   if (subs != nullptr)
   {
-    tlit = subs->apply(lit);
+    tlit = subs->applyTrusted(lit);
     if (!tlit.isNull())
     {
       lit = processRewrittenLearnedLit(tlit);
@@ -463,7 +463,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   {
     for (;;)
     {
-      tlit = cp->apply(lit);
+      tlit = cp->applyTrusted(lit);
       if (tlit.isNull())
       {
         break;
