@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status sat)

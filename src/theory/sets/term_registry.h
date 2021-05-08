@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file term_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets state object
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets state object.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__SETS__TERM_REGISTRY_H
 #define CVC5__THEORY__SETS__TERM_REGISTRY_H
@@ -21,6 +22,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -38,7 +40,10 @@ class TermRegistry
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im, SkolemCache& skc);
+  TermRegistry(SolverState& state,
+               InferenceManager& im,
+               SkolemCache& skc,
+               ProofNodeManager* pnm);
   /** Get type constraint skolem
    *
    * The sets theory solver outputs equality lemmas of the form:
@@ -71,6 +76,8 @@ class TermRegistry
   void debugPrintSet(Node s, const char* c) const;
 
  private:
+  /** Send simple lemma internal */
+  void sendSimpleLemmaInternal(Node n, InferenceId id);
   /** The inference manager */
   InferenceManager& d_im;
   /** Reference to the skolem cache */
@@ -85,6 +92,8 @@ class TermRegistry
   std::map<TypeNode, Node> d_emptyset;
   /** Map from types to universe set of that type */
   std::map<TypeNode, Node> d_univset;
+  /** Eager proof generator for purification lemmas */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

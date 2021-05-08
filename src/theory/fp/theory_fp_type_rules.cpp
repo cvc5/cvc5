@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file theory_fp_type_rules.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type rules for the theory of floating-point arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Martin Brain, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type rules for the theory of floating-point arithmetic.
+ */
 
 #include "theory/fp/theory_fp_type_rules.h"
 
@@ -430,18 +431,31 @@ TypeNode FloatingPointToFPGenericTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    /* As this is a generic kind intended only for parsing,
-     * the checking here is light.  For better checking, use
-     * expandDefinitions first.
-     */
-
-    size_t children = n.getNumChildren();
-    for (size_t i = 0; i < children; ++i)
+    uint32_t nchildren = n.getNumChildren();
+    if (nchildren == 1)
     {
-      n[i].getType(check);
+      if (!n[0].getType(check).isBitVector())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a bit-vector");
+      }
+    }
+    else
+    {
+      Assert(nchildren == 2);
+      if (!n[0].getType(check).isRoundingMode())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument must be a roundingmode");
+      }
+      TypeNode tn = n[1].getType(check);
+      if (!tn.isBitVector() && !tn.isFloatingPoint() && !tn.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "second argument must be a bit-vector, floating-point or Real");
+      }
     }
   }
-
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
@@ -711,7 +725,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
     }
   }
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   /* Need to create some symfpu objects as the size of bit-vector
    * that is needed for this component is dependent on the encoding
    * used (i.e. whether subnormals are forcibly normalised or not).
@@ -751,7 +765,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
     }
   }
 
-#ifdef CVC4_USE_SYMFPU
+#ifdef CVC5_USE_SYMFPU
   /* As before we need to use some of sympfu. */
   FloatingPointSize fps = operandType.getConst<FloatingPointSize>();
   uint32_t bw = FloatingPoint::getUnpackedSignificandWidth(fps);
@@ -783,7 +797,7 @@ TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
     }
   }
 
-  return nodeManager->mkBitVectorType(CVC4_NUM_ROUNDING_MODES);
+  return nodeManager->mkBitVectorType(CVC5_NUM_ROUNDING_MODES);
 }
 
 Cardinality CardinalityComputer::computeCardinality(TypeNode type)

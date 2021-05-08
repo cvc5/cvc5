@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file bv_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bit-vector solver interface.
- **
- ** Describes the interface for the internal bit-vector solver of TheoryBV.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bit-vector solver interface.
+ *
+ * Describes the interface for the internal bit-vector solver of TheoryBV.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__BV_SOLVER_H
 #define CVC5__THEORY__BV__BV_SOLVER_H
@@ -84,9 +85,6 @@ class BVSolver
                                   const std::set<Node>& termSet) = 0;
 
   virtual std::string identify() const = 0;
-
-  virtual Theory::PPAssertStatus ppAssert(
-      TrustNode in, TrustSubstitutionMap& outSubstitutions) = 0;
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); };
 

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file bool_to_bv.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Makai Mann, Yoni Zohar, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BoolToBV preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Makai Mann, Yoni Zohar, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The BoolToBV preprocessing pass.
+ *
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H
 #define CVC5__PREPROCESSING__PASSES__BOOL_TO_BV_H
@@ -21,7 +22,7 @@
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -43,7 +44,6 @@ class BoolToBV : public PreprocessingPass
     IntStat d_numTermsLowered;
     IntStat d_numIntroducedItes;
     Statistics();
-    ~Statistics();
   };
 
   /** Takes an assertion and attempts to create more bit-vector structure

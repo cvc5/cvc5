@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file quant_conflict_find.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements conflict-based instantiation (Reynolds et al FMCAD 2014)
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements conflict-based instantiation (Reynolds et al FMCAD 2014).
+ */
 
 #include "theory/quantifiers/quant_conflict_find.h"
 
@@ -2270,17 +2270,12 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
   }
 }
 
-QuantConflictFind::Statistics::Statistics():
-  d_inst_rounds("QuantConflictFind::Inst_Rounds", 0),
-  d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
+QuantConflictFind::Statistics::Statistics()
+    : d_inst_rounds(
+        smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(smtStatisticsRegistry().registerInt(
+          "QuantConflictFind::Entailment_Checks"))
 {
-  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
-  smtStatisticsRegistry()->registerStat(&d_entailment_checks);
-}
-
-QuantConflictFind::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 
 TNode QuantConflictFind::getZero( Kind k ) {

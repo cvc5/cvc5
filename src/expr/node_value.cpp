@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file node_value.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An expression node.
- **
- ** An expression node.
- **
- ** Instances of this class are generally referenced through
- ** cvc4::Node rather than by pointer; cvc4::Node maintains the
- ** reference count on NodeValue instances and
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A node value.
+ *
+ * The actual node implementation.
+ * Instances of this class are generally referenced through cvc5::Node rather
+ * than by pointer. Note that cvc5::Node maintains the reference count on
+ * NodeValue instances.
+ */
 #include "expr/node_value.h"
 
 #include <sstream>

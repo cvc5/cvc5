@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file type_info.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus type info data structure
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus type info data structure.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_INFO_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__TYPE_INFO_H
@@ -80,6 +81,11 @@ class SygusTypeInfo
    * ITE, or is a lambda whose body is ITE.
    */
   bool hasIte() const;
+  /**
+   * Returns true if this sygus type has a constructor whose sygus operator is
+   * a Boolean connective.
+   */
+  bool hasBoolConnective() const;
   /**
    * Get the builtin kind for the i^th constructor of this sygus type. If the
    * i^th constructor does not encode an application of a builtin kind, this
@@ -195,6 +201,11 @@ class SygusTypeInfo
    * or is a lambda whose body is ITE.
    */
   bool d_hasIte;
+  /**
+   * Whether this sygus type has a constructor whose sygus operator is a
+   * Boolean connective.
+   */
+  bool d_hasBoolConnective;
   /**
    * Maps constructor indices to the constant that they encode, if any.
    */

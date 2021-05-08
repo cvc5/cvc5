@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
@@ -125,9 +124,9 @@ typedef NodeTemplate<true> Node;
  * creation.  If this is returned as a TNode rather than a Node, the
  * count drops to zero, marking the expression as eligible for reclamation.)
  *
- * More guidelines on when to use TNodes is available in the CVC4
+ * More guidelines on when to use TNodes is available in the cvc5
  * Developer's Guide:
- * http://cvc4.cs.stanford.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
+ * https://github.com/CVC4/CVC4/wiki/Developer-Guide#dealing-with-expressions-nodes-and-tnodes
  */
 typedef NodeTemplate<false> TNode;
 
@@ -389,20 +388,6 @@ public:
     assertTNodeNotExpired();
     return NodeTemplate(d_nv->getChild(i));
   }
-
-  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
-   *
-   * It has been decided for now to hold off on implementations of
-   * these functions, as they may only be needed in CNF conversion,
-   * where it's pointless to do a lazy isAtomic determination by
-   * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 CVC4
-   * developer's meeting notes at:
-   *
-   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
-   */
-  // bool containsDecision(); // is "atomic"
-  // bool properlyContainsDecision(); // maybe not atomic but all children are
 
   /**
    * Returns true if this node represents a constant
@@ -1435,7 +1420,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 }
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1488,7 +1473,7 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 

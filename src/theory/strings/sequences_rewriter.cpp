@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file sequences_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of strings.
- **
- ** Implementation of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of strings.
+ */
 
 #include "theory/strings/sequences_rewriter.h"
 
@@ -22,9 +21,11 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/regexp_entail.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -33,7 +34,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics)
+SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics), d_stringsEntail(*this)
 {
 }
@@ -1512,6 +1513,30 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
 RewriteResponse SequencesRewriter::preRewrite(TNode node)
 {
   return RewriteResponse(REWRITE_DONE, node);
+}
+
+TrustNode SequencesRewriter::expandDefinition(Node node)
+{
+  Trace("strings-exp-def") << "SequencesRewriter::expandDefinition : " << node
+                           << std::endl;
+
+  if (node.getKind() == kind::SEQ_NTH)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = node[0];
+    Node n = node[1];
+    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
+    Node cond = nm->mkNode(AND,
+                           nm->mkNode(LEQ, nm->mkConst(Rational(0)), n),
+                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
+    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
+    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
+    Node u = nm->mkNode(APPLY_UF, uf, s, n);
+    Node ret = nm->mkNode(ITE, cond, ss, u);
+    Trace("strings-exp-def") << "...return " << ret << std::endl;
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 Node SequencesRewriter::rewriteSeqNth(Node node)

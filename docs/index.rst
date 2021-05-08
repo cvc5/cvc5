@@ -13,6 +13,9 @@ cvc5 API Documentation
 ---------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   cpp
+   cpp/cpp
+   python/python
+   references
+   examples/examples

@@ -1,16 +1,21 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 set(EXAMPLES_NRA_TRANSLATE_BIN_DIR ${EXAMPLES_BIN_DIR}/nra-translate)
 
-set(CVC4_EXAMPLES_NRA_TRANSLATE
+set(CVC5_EXAMPLES_NRA_TRANSLATE
   normalize
   smt2info
   smt2todreal
@@ -20,8 +25,8 @@ set(CVC4_EXAMPLES_NRA_TRANSLATE
   smt2toredlog
 )
 
-foreach(example ${CVC4_EXAMPLES_NRA_TRANSLATE})
-  cvc4_add_example(${example} "" "nra-translate"
+foreach(example ${CVC5_EXAMPLES_NRA_TRANSLATE})
+  cvc5_add_example(${example} "" "nra-translate"
     # arguments to binary (for testing)
     # input file is required by all tests
     ${CMAKE_CURRENT_SOURCE_DIR}/nra-translate-example-input.smt2

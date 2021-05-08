@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file set_language.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definition of input and output languages
- **
- ** Definition of input and output languages.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of input and output languages.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__OPTIONS__SET_LANGUAGE_H
 #define CVC5__OPTIONS__SET_LANGUAGE_H
 
 #include <iostream>
 
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 #include "options/language.h"
 
 namespace cvc5 {
@@ -30,7 +29,7 @@ namespace language {
 /**
  * IOStream manipulator to set the output language for Exprs.
  */
-class CVC4_EXPORT SetLanguage
+class CVC5_EXPORT SetLanguage
 {
  public:
   /**
@@ -88,7 +87,7 @@ private:
  *
  * The setting stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC5_EXPORT;
 
 }  // namespace language
 }  // namespace cvc5

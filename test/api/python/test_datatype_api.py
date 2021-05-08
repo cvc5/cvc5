@@ -1,21 +1,24 @@
-#####################
-## test_datatype_api.py
-## Top contributors (to current version):
-##   Andres Noetzli, Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli, Makai Mann
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
 ##
+
 import pytest
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 
 def test_datatype_simply_rec():
-    solver = pycvc4.Solver()
+    solver = pycvc5.Solver()
 
     # Create mutual datatypes corresponding to this definition block:
     #

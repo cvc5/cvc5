@@ -1,45 +1,40 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-#-----------------------------------------------------------------------------#
-# Collect libcvc4 source files
 
-libcvc4_add_sources(
+# Collect libcvc5 source files
+libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
-  context/backtrackable.h
-  context/cddense_set.h
-  context/cdhashmap.h
-  context/cdhashmap_forward.h
-  context/cdhashset.h
-  context/cdhashset_forward.h
-  context/cdinsert_hashmap.h
-  context/cdinsert_hashmap_forward.h
-  context/cdlist.h
-  context/cdlist_forward.h
-  context/cdmaybe.h
-  context/cdo.h
-  context/cdqueue.h
-  context/cdtrail_queue.h
-  context/context.cpp
-  context/context.h
-  context/context_mm.cpp
-  context/context_mm.h
+  decision/assertion_list.cpp
+  decision/assertion_list.h
   decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
+  decision/decision_engine_old.cpp
+  decision/decision_engine_old.h
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  decision/justify_info.cpp
+  decision/justify_info.h
+  decision/justify_stack.cpp
+  decision/justify_stack.h
+  decision/justify_stats.cpp
+  decision/justify_stats.h
   lib/clock_gettime.c
   lib/clock_gettime.h
   lib/ffs.c
@@ -97,8 +92,6 @@ libcvc4_add_sources(
   preprocessing/passes/non_clausal_simp.h
   preprocessing/passes/pseudo_boolean_processor.cpp
   preprocessing/passes/pseudo_boolean_processor.h
-  preprocessing/passes/quantifier_macros.cpp
-  preprocessing/passes/quantifier_macros.h
   preprocessing/passes/quantifiers_preprocess.cpp
   preprocessing/passes/quantifiers_preprocess.h
   preprocessing/passes/real_to_int.cpp
@@ -229,7 +222,6 @@ libcvc4_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
-  smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
@@ -447,6 +439,7 @@ libcvc4_add_sources(
   theory/arith/theory_arith.h
   theory/arith/theory_arith_private.cpp
   theory/arith/theory_arith_private.h
+  theory/arith/theory_arith_type_rules.cpp
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
@@ -461,6 +454,7 @@ libcvc4_add_sources(
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
   theory/arrays/theory_arrays_rewriter.h
+  theory/arrays/theory_arrays_type_rules.cpp
   theory/arrays/theory_arrays_type_rules.h
   theory/arrays/type_enumerator.h
   theory/arrays/union_find.cpp
@@ -507,6 +501,7 @@ libcvc4_add_sources(
   theory/booleans/theory_bool.h
   theory/booleans/theory_bool_rewriter.cpp
   theory/booleans/theory_bool_rewriter.h
+  theory/booleans/theory_bool_type_rules.cpp
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
   theory/builtin/proof_checker.cpp
@@ -571,6 +566,7 @@ libcvc4_add_sources(
   theory/bv/theory_bv_rewrite_rules_simplification.h
   theory/bv/theory_bv_rewriter.cpp
   theory/bv/theory_bv_rewriter.h
+  theory/bv/theory_bv_type_rules.cpp
   theory/bv/theory_bv_type_rules.h
   theory/bv/theory_bv_utils.cpp
   theory/bv/theory_bv_utils.h
@@ -598,6 +594,7 @@ libcvc4_add_sources(
   theory/datatypes/sygus_simple_sym.h
   theory/datatypes/theory_datatypes.cpp
   theory/datatypes/theory_datatypes.h
+  theory/datatypes/theory_datatypes_type_rules.cpp
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
@@ -624,6 +621,8 @@ libcvc4_add_sources(
   theory/ext_theory.h
   theory/fp/fp_converter.cpp
   theory/fp/fp_converter.h
+  theory/fp/fp_expand_defs.cpp
+  theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
   theory/fp/theory_fp.h
   theory/fp/theory_fp_rewriter.cpp
@@ -742,6 +741,8 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/inst_strategy_pool.cpp
+  theory/quantifiers/inst_strategy_pool.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/instantiation_list.cpp
@@ -768,6 +769,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp
   theory/quantifiers/quantifiers_inference_manager.h
+  theory/quantifiers/quantifiers_macros.cpp
+  theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_registry.cpp
@@ -882,12 +885,15 @@ libcvc4_add_sources(
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp
   theory/quantifiers/term_enumeration.h
+  theory/quantifiers/term_pools.cpp
+  theory/quantifiers/term_pools.h
   theory/quantifiers/term_registry.cpp
   theory/quantifiers/term_registry.h
   theory/quantifiers/term_util.cpp
   theory/quantifiers/term_util.h
   theory/quantifiers/theory_quantifiers.cpp
   theory/quantifiers/theory_quantifiers.h
+  theory/quantifiers/theory_quantifiers_type_rules.cpp
   theory/quantifiers/theory_quantifiers_type_rules.h
   theory/quantifiers_engine.cpp
   theory/quantifiers_engine.h
@@ -902,6 +908,7 @@ libcvc4_add_sources(
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
+  theory/sep/theory_sep_type_rules.cpp
   theory/sep/theory_sep_type_rules.h
   theory/sets/cardinality_extension.cpp
   theory/sets/cardinality_extension.h
@@ -927,6 +934,7 @@ libcvc4_add_sources(
   theory/sets/theory_sets_rewriter.h
   theory/sets/theory_sets_type_enumerator.cpp
   theory/sets/theory_sets_type_enumerator.h
+  theory/sets/theory_sets_type_rules.cpp
   theory/sets/theory_sets_type_rules.h
   theory/shared_solver.cpp
   theory/shared_solver.h
@@ -992,6 +1000,7 @@ libcvc4_add_sources(
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
   theory/strings/theory_strings_preprocess.h
+  theory/strings/theory_strings_type_rules.cpp
   theory/strings/theory_strings_type_rules.h
   theory/strings/theory_strings_utils.cpp
   theory/strings/theory_strings_utils.h
@@ -1061,7 +1070,9 @@ libcvc4_add_sources(
   theory/uf/theory_uf.h
   theory/uf/theory_uf_model.cpp
   theory/uf/theory_uf_model.h
+  theory/uf/theory_uf_rewriter.cpp
   theory/uf/theory_uf_rewriter.h
+  theory/uf/theory_uf_type_rules.cpp
   theory/uf/theory_uf_type_rules.h
   theory/valuation.cpp
   theory/valuation.h
@@ -1094,6 +1105,7 @@ set(KINDS_FILES
 # Add subdirectories
 
 add_subdirectory(base)
+add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(options)
 if (NOT BUILD_LIB_ONLY)
@@ -1103,80 +1115,76 @@ add_subdirectory(theory)
 add_subdirectory(util)
 
 #-----------------------------------------------------------------------------#
-# All sources for libcvc4 are now collected in LIBCVC4_SRCS and (if generated)
-# LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
+# All sources for libcvc5 are now collected in LIBCVC5_SRCS and (if generated)
+# LIBCVC5_GEN_SRCS (via libcvc5_add_sources). We can now build libcvc5.
 
-set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
-target_include_directories(cvc4
+set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
+add_library(cvc5 ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS}
+  $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
+target_include_directories(cvc5
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 
 include(GenerateExportHeader)
-generate_export_header(cvc4)
+generate_export_header(cvc5)
 
-install(TARGETS cvc4
-  EXPORT cvc4-targets
+install(TARGETS cvc5
+  EXPORT cvc5-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
-target_compile_definitions(cvc4
-  PRIVATE
-    -D__BUILDING_CVC4LIB
-    -D__STDC_LIMIT_MACROS
-    -D__STDC_FORMAT_MACROS
-)
-# Add libcvc4 dependencies for generated sources.
-add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
+# Add libcvc5 dependencies for generated sources.
+add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc4 PRIVATE ${Valgrind_INCLUDE_DIR})
+  target_include_directories(cvc5 PRIVATE ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_link_libraries(cvc4 PRIVATE ${ABC_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${ABC_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE ${ABC_LIBRARIES})
+  target_include_directories(cvc5 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
 if(USE_CADICAL)
-  target_link_libraries(cvc4 PRIVATE CaDiCaL)
+  target_link_libraries(cvc5 PRIVATE CaDiCaL)
 endif()
 if(USE_CLN)
-  target_link_libraries(cvc4 PRIVATE CLN)
+  target_link_libraries(cvc5 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
-  target_link_libraries(cvc4 PRIVATE CryptoMiniSat)
+  target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
 endif()
 if(USE_KISSAT)
-  target_link_libraries(cvc4 PRIVATE Kissat)
+  target_link_libraries(cvc5 PRIVATE Kissat)
 endif()
 if(USE_GLPK)
-  target_link_libraries(cvc4 PRIVATE ${GLPK_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
+  target_include_directories(cvc5 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc4 PRIVATE Polyxx)
+  target_link_libraries(cvc5 PRIVATE Polyxx)
 endif()
 if(USE_SYMFPU)
-  target_link_libraries(cvc4 PRIVATE SymFPU)
+  target_link_libraries(cvc5 PRIVATE SymFPU)
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
-target_link_libraries(cvc4 PRIVATE GMP)
+target_link_libraries(cvc5 PRIVATE GMP)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
-target_link_libraries(cvc4 PRIVATE ${RT_LIBRARIES})
+target_link_libraries(cvc5 PRIVATE ${RT_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
-# Visit main subdirectory after creating target cvc4. For target main, we have
+# Visit main subdirectory after creating target cvc5. For target main, we have
 # to manually add library dependencies since we can't use
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
-# Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
+# Thus, we can only visit main as soon as all dependencies for cvc5 are set up.
 
 if (NOT BUILD_LIB_ONLY)
   add_subdirectory(main)
@@ -1191,7 +1199,7 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
-          ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
+          ${CMAKE_CURRENT_BINARY_DIR}/cvc5_export.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 

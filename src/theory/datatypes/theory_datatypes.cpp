@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_datatypes.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the theory of datatypes
- **
- ** Implementation of the theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the theory of datatypes.
+ */
 #include "theory/datatypes/theory_datatypes.h"
 
 #include <map>
@@ -219,7 +218,7 @@ void TheoryDatatypes::postCheck(Effort level)
             const DType& dt = tt.getDType();
             Trace("datatypes-debug")
                 << "Datatype " << dt.getName() << " is "
-                << dt.isInterpretedFinite(tt) << " "
+                << dt.getCardinalityClass(tt) << " "
                 << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
@@ -274,14 +273,21 @@ void TheoryDatatypes::postCheck(Effort level)
               int consIndex = -1;
               int fconsIndex = -1;
               bool needSplit = true;
-              for( unsigned int j=0; j<pcons.size(); j++ ) {
+              for (size_t j = 0, psize = pcons.size(); j < psize; j++)
+              {
                 if( pcons[j] ) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
                   Trace("datatypes-debug") << j << " compute finite..."
                                            << std::endl;
-                  bool ifin = dt[j].isInterpretedFinite(tt);
+                  // Notice that we split here on all datatypes except the
+                  // truly infinite ones. It is possible to also not split
+                  // on those that are interpreted-finite when finite model
+                  // finding is disabled, but as a heuristic we choose to split
+                  // on those too.
+                  bool ifin = dt[j].getCardinalityClass(tt)
+                              != CardinalityClass::INFINITE;
                   Trace("datatypes-debug") << "...returned " << ifin
                                            << std::endl;
                   if (!ifin)
@@ -476,125 +482,11 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
   d_im.process();
 }
 
-TrustNode TheoryDatatypes::expandDefinition(Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  TypeNode tn = n.getType();
-  Node ret;
-  switch (n.getKind())
-  {
-    case kind::APPLY_SELECTOR:
-    {
-      Node selector = n.getOperator();
-      // APPLY_SELECTOR always applies to an external selector, cindexOf is
-      // legal here
-      size_t cindex = utils::cindexOf(selector);
-      const DType& dt = utils::datatypeOf(selector);
-      const DTypeConstructor& c = dt[cindex];
-      Node selector_use;
-      TypeNode ndt = n[0].getType();
-      if (options::dtSharedSelectors())
-      {
-        size_t selectorIndex = utils::indexOf(selector);
-        Trace("dt-expand") << "...selector index = " << selectorIndex
-                           << std::endl;
-        Assert(selectorIndex < c.getNumArgs());
-        selector_use = c.getSelectorInternal(ndt, selectorIndex);
-      }else{
-        selector_use = selector;
-      }
-      Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
-      if (options::dtRewriteErrorSel())
-      {
-        ret = sel;
-      }
-      else
-      {
-        Node tester = c.getTester();
-        Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
-        tst = Rewriter::rewrite(tst);
-        if (tst == d_true)
-        {
-          ret = sel;
-        }else{
-          mkExpDefSkolem(selector, ndt, n.getType());
-          Node sk =
-              nm->mkNode(kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
-          if (tst == nm->mkConst(false))
-          {
-            ret = sk;
-          }
-          else
-          {
-            ret = nm->mkNode(kind::ITE, tst, sel, sk);
-          }
-        }
-        Trace("dt-expand") << "Expand def : " << n << " to " << ret
-                           << std::endl;
-      }
-    }
-    break;
-    case TUPLE_UPDATE:
-    case RECORD_UPDATE:
-    {
-      Assert(tn.isDatatype());
-      const DType& dt = tn.getDType();
-      NodeBuilder b(APPLY_CONSTRUCTOR);
-      b << dt[0].getConstructor();
-      size_t size, updateIndex;
-      if (n.getKind() == TUPLE_UPDATE)
-      {
-        Assert(tn.isTuple());
-        size = tn.getTupleLength();
-        updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
-      }
-      else
-      {
-        Assert(tn.isRecord());
-        const DTypeConstructor& recCons = dt[0];
-        size = recCons.getNumArgs();
-        // get the index for the name
-        updateIndex = recCons.getSelectorIndexForName(
-            n.getOperator().getConst<RecordUpdate>().getField());
-      }
-      Debug("tuprec") << "expr is " << n << std::endl;
-      Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-      Debug("tuprec") << "t is " << tn << std::endl;
-      Debug("tuprec") << "t has arity " << size << std::endl;
-      for (size_t i = 0; i < size; ++i)
-      {
-        if (i == updateIndex)
-        {
-          b << n[1];
-          Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
-                          << std::endl;
-        }
-        else
-        {
-          b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
-          Debug("tuprec") << "arg " << i << " copies "
-                          << b[b.getNumChildren() - 1] << std::endl;
-        }
-      }
-      ret = b;
-      Debug("tuprec") << "return " << ret << std::endl;
-    }
-    break;
-    default: break;
-  }
-  if (!ret.isNull() && n != ret)
-  {
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions
-  TrustNode texp = expandDefinition(in);
+  TrustNode texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
   {
     return texp;
@@ -829,17 +721,6 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
   }
 }
 
-void TheoryDatatypes::mkExpDefSkolem( Node sel, TypeNode dt, TypeNode rt ) {
-  if( d_exp_def_skolem[dt].find( sel )==d_exp_def_skolem[dt].end() ){
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    std::stringstream ss;
-    ss << sel << "_uf";
-    d_exp_def_skolem[dt][sel] =
-        sm->mkDummySkolem(ss.str().c_str(), nm->mkFunctionType(dt, rt));
-  }
-}
-
 Node TheoryDatatypes::getTermSkolemFor( Node n ) {
   if( n.getKind()==APPLY_CONSTRUCTOR ){
     NodeMap::const_iterator it = d_term_sk.find( n );
@@ -847,8 +728,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
       //add purification unit lemma ( k = n )
-      Node k =
-          sm->mkDummySkolem("k", n.getType(), "reference skolem for datatypes");
+      Node k = sm->mkPurifySkolem(n, "kdt");
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
@@ -1328,8 +1208,9 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
       for( unsigned r=0; r<2; r++ ){
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
-            //must try the infinite ones first
-            bool cfinite = dt[ i ].isInterpretedFinite( tt );
+            // must try the infinite ones first
+            bool cfinite =
+                d_state.isFiniteType(dt[i].getSpecializedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

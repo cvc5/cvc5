@@ -1,17 +1,20 @@
-#####################
-## FindCaDiCaL.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find CaDiCaL
 # CaDiCaL_FOUND - system has CaDiCaL lib
 # CaDiCaL_INCLUDE_DIR - the CaDiCaL include directory
 # CaDiCaL_LIBRARIES - Libraries needed to use CaDiCaL
+##
 
 include(deps-helper)
 
@@ -36,6 +39,11 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 endif()
 
 if(NOT CaDiCaL_FOUND_SYSTEM)
+  check_ep_downloaded("CaDiCaL-EP")
+  if(NOT CaDiCaL-EP_DOWNLOADED)
+    check_auto_download("CaDiCaL" "--no-cadical")
+  endif()
+
   include(CheckSymbolExists)
   include(ExternalProject)
 
@@ -53,6 +61,14 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     set(CXXFLAGS "${CXXFLAGS} -DNUNLOCKED")
   endif()
 
+  if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
+    # use $(MAKE) instead of "make" to allow for parallel builds
+    set(make_cmd "$(MAKE)")
+  else()
+    # $(MAKE) does not work with ninja
+    set(make_cmd "make")
+  endif()
+
   ExternalProject_Add(
     CaDiCaL-EP
     ${COMMON_EP_CONFIG}
@@ -67,12 +83,12 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
       "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
       <SOURCE_DIR>/build/makefile
-    # use $(MAKE) instead of "make" to allow for parallel builds
-    BUILD_COMMAND $(MAKE) -C <SOURCE_DIR>/build libcadical.a
+    BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
             <INSTALL_DIR>/include/cadical.hpp
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 
   set(CaDiCaL_INCLUDE_DIR "${DEPS_BASE}/include/")

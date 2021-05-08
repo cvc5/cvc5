@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file abstraction.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "theory/bv/abstraction.h"
 
 #include "expr/skolem_manager.h"
@@ -530,8 +531,6 @@ void AbstractionModule::finalizeSignatures()
     d_signatureToFunc[signature] = abs_func;
     d_funcToSignature[abs_func] = signature;
   }
-
-  d_statistics.d_numFunctionsAbstracted.set(d_signatureToFunc.size());
 
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted "
                           << d_signatureToFunc.size() << " signatures. \n";
@@ -1089,19 +1088,14 @@ AbstractionModule::ArgsTableEntry& AbstractionModule::ArgsTable::getEntry(TNode 
   return d_data.find(signature)->second;
 }
 
-AbstractionModule::Statistics::Statistics(const std::string& name)
-    : d_numFunctionsAbstracted(name + "::abstraction::NumFunctionsAbstracted",
-                               0),
-      d_numArgsSkolemized(name + "::abstraction::NumArgsSkolemized", 0),
-      d_abstractionTime(name + "::abstraction::AbstractionTime")
+AbstractionModule::Statistics::Statistics(
+    const std::string& name, const NodeNodeMap& functionsAbstracted)
+    : d_numFunctionsAbstracted(
+        smtStatisticsRegistry().registerSize<NodeNodeMap>(
+            name + "NumFunctionsAbstracted", functionsAbstracted)),
+      d_numArgsSkolemized(
+          smtStatisticsRegistry().registerInt(name + "NumArgsSkolemized")),
+      d_abstractionTime(
+          smtStatisticsRegistry().registerTimer(name + "AbstractionTime"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numFunctionsAbstracted);
-  smtStatisticsRegistry()->registerStat(&d_numArgsSkolemized);
-  smtStatisticsRegistry()->registerStat(&d_abstractionTime);
-}
-
-AbstractionModule::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numFunctionsAbstracted);
-  smtStatisticsRegistry()->unregisterStat(&d_numArgsSkolemized);
-  smtStatisticsRegistry()->unregisterStat(&d_abstractionTime);
 }

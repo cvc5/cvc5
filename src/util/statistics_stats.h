@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file statistics_stats.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistic proxy objects
- **
- ** Conceptually, every statistic consists of a data object and a proxy
- ** object. The proxy objects are issued by the `StatisticsRegistry` and
- ** maintained by the user. They only hold a pointer to a matching data
- ** object. The purpose of proxy objects is to implement methods to easily
- ** change the statistic data, but shield the regular user from the internals.
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Statistic proxy objects
+ *
+ * Conceptually, every statistic consists of a data object and a proxy
+ * object. The proxy objects are issued by the `StatisticsRegistry` and
+ * maintained by the user. They only hold a pointer to a matching data
+ * object. The purpose of proxy objects is to implement methods to easily
+ * change the statistic data, but shield the regular user from the internals.
  */
 
-#include "cvc4_private_library.h"
+#include "cvc5_private_library.h"
 
 #ifndef CVC5__UTIL__STATISTICS_STATS_H
 #define CVC5__UTIL__STATISTICS_STATS_H
@@ -121,11 +122,22 @@ class ReferenceStat
   /** Value stored for this statistic */
   using stat_type = StatisticReferenceValue<T>;
   /** Reset the reference to point to `t`. */
-  void set(const T& t)
+  template <typename TT>
+  void set(const TT& t)
   {
+    static_assert(std::is_same_v<T, TT>, "Incorrect type for ReferenceStat");
     if constexpr (Configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
+    }
+  }
+  /** Commit the value currently pointed to and release it. */
+  void reset()
+  {
+    if constexpr (Configuration::isStatisticsBuild())
+    {
+      d_data->commit();
+      d_data->d_value = nullptr;
     }
   }
   /** Copy the current value of the referenced object. */

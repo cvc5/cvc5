@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file theory_arith.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arithmetic theory.
- ** Arithmetic theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -74,11 +74,6 @@ class TheoryArith : public Theory {
   /** finish initialization */
   void finishInit() override;
   //--------------------------------- end initialization
-  /**
-   * Expand definition, which eliminates extended operators like div/mod in
-   * the given node.
-   */
-  TrustNode expandDefinition(Node node) override;
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
@@ -158,6 +153,8 @@ class TheoryArith : public Theory {
    * arithmetic.
    */
   std::unique_ptr<nl::NonlinearExtension> d_nonlinearExtension;
+  /** The operator elimination utility */
+  OperatorElim d_opElim;
   /** The preprocess utility */
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */

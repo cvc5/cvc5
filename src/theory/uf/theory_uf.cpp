@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file theory_uf.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This is the interface to TheoryUF implementations
- **
- ** This is the interface to TheoryUF implementations.  All
- ** implementations of TheoryUF should inherit from this class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This is the interface to TheoryUF implementations
+ *
+ * All implementations of TheoryUF should inherit from this class.
+ */
 
 #include "theory/uf/theory_uf.h"
 
@@ -53,7 +53,7 @@ TheoryUF::TheoryUF(context::Context* c,
       d_functionsTerms(c),
       d_symb(u, instanceName),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::uf", false),
+      d_im(*this, d_state, pnm, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );

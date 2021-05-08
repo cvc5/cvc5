@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file quantifiers_modules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Class for initializing the modules of quantifiers engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for initializing the modules of quantifiers engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
@@ -25,6 +26,7 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/inst_strategy_pool.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -59,6 +61,7 @@ class QuantifiersModules
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,
+                  QModelBuilder* builder,
                   std::vector<QuantifiersModule*>& modules);
 
  private:
@@ -72,8 +75,6 @@ class QuantifiersModules
   std::unique_ptr<InstantiationEngine> d_inst_engine;
   /** model engine */
   std::unique_ptr<ModelEngine> d_model_engine;
-  /** model builder */
-  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** bounded integers utility */
   std::unique_ptr<BoundedIntegers> d_bint;
   /** Conflict find mechanism for quantifiers */
@@ -84,6 +85,8 @@ class QuantifiersModules
   std::unique_ptr<SynthEngine> d_synth_e;
   /** full saturation */
   std::unique_ptr<InstStrategyEnum> d_fs;
+  /** pool-based instantiation */
+  std::unique_ptr<InstStrategyPool> d_ipool;
   /** counterexample-based quantifier instantiation */
   std::unique_ptr<InstStrategyCegqi> d_i_cbqi;
   /** quantifiers splitting */

@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file proof_node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proof node utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proof node utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__PROOF_NODE_H
 #define CVC5__EXPR__PROOF_NODE_H
@@ -79,8 +80,8 @@ struct ProofNodeHashFunction
  * An external proof checker is expected to formalize the ProofNode only in
  * terms of *witness* forms.
  *
- * However, the rest of CVC4 sees only the *Skolem* form of arguments and
- * conclusions in ProofNode, since this is what is used throughout CVC4.
+ * However, the rest of cvc5 sees only the *Skolem* form of arguments and
+ * conclusions in ProofNode, since this is what is used throughout cvc5.
  */
 class ProofNode
 {

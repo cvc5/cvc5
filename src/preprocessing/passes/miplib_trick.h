@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file miplib_trick.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mathias Preiner, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The MIPLIB trick preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Morgan Deters, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The MIPLIB trick preprocessing pass.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H
 #define CVC5__PREPROCESSING__PASSES__MIPLIB_TRICK_H
@@ -47,7 +47,6 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
     /** number of assertions removed by miplib pass */
     IntStat d_numMiplibAssertionsRemoved;
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

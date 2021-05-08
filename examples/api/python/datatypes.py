@@ -1,21 +1,23 @@
 #!/usr/bin/env python
-#####################
-## datatypes.py
-## Top contributors (to current version):
-##   Makai Mann, Andrew Reynolds, Aina Niemetz
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## \brief A simple demonstration of the solving capabilities of the CVC4
-## datatypes solver through the Python API. This is a direct translation
-## of datatypes-new.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Andrew Reynolds, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 datatypes
+# solver through the Python API. This is a direct translation of
+# datatypes-new.cpp.
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import pycvc5
+from pycvc5 import kinds
 
 def test(slv, consListSort):
     # Now our old "consListSpec" is useless--the relevant information
@@ -86,11 +88,11 @@ def test(slv, consListSort):
     print("Assert", assertion)
     slv.assertFormula(assertion)
     print("Expect sat.")
-    print("CVC4:", slv.checkSat())
+    print("cvc5:", slv.checkSat())
 
 
 if __name__ == "__main__":
-    slv = pycvc4.Solver()
+    slv = pycvc5.Solver()
 
     # This example builds a simple "cons list" of integers, with
     # two constructors, "cons" and "nil."
@@ -111,7 +113,7 @@ if __name__ == "__main__":
     print("spec is {}".format(consListSpec))
 
     # Keep in mind that "DatatypeDecl" is the specification class for
-    # datatypes---"DatatypeDecl" is not itself a CVC4 Sort.
+    # datatypes---"DatatypeDecl" is not itself a cvc5 Sort.
     # Now that our Datatype is fully specified, we can get a Sort for it.
     # This step resolves the "SelfSort" reference and creates
     # symbols for all the constructors, etc.

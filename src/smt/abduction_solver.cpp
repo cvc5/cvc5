@@ -1,27 +1,31 @@
-/*********************                                                        */
-/*! \file abduction_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for abduction queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for abduction queries.
+ */
 
 #include "smt/abduction_solver.h"
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
 
@@ -44,7 +48,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  Node conjn = d_parent->expandDefinitions(goal);
+  Node conjn = d_parent->getEnv().getTopLevelSubstitutions().apply(goal);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;

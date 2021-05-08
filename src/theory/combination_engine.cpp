@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file combination_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Management of a care graph based approach for theory combination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Management of a care graph based approach for theory combination.
+ */
 
 #include "theory/combination_engine.h"
 
@@ -41,12 +42,6 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
       d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
                    : nullptr)
 {
-}
-
-CombinationEngine::~CombinationEngine() {}
-
-void CombinationEngine::finishInit()
-{
   // create the equality engine, model manager, and shared solver
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
@@ -63,7 +58,12 @@ void CombinationEngine::finishInit()
     Unhandled() << "CombinationEngine::finishInit: equality engine mode "
                 << options::eeMode() << " not supported";
   }
+}
 
+CombinationEngine::~CombinationEngine() {}
+
+void CombinationEngine::finishInit()
+{
   Assert(d_eemanager != nullptr);
 
   // initialize equality engines in all theories, including quantifiers engine

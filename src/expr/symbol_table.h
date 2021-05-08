@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file symbol_table.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Convenience class for scoping variable and type declarations.
- **
- ** Convenience class for scoping variable and type declarations.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Convenience class for scoping variable and type declarations.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H
@@ -24,7 +23,7 @@
 #include <vector>
 
 #include "base/exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
@@ -34,7 +33,7 @@ class Sort;
 class Term;
 }  // namespace api
 
-class CVC4_EXPORT ScopeException : public Exception
+class CVC5_EXPORT ScopeException : public Exception
 {
 };
 
@@ -43,7 +42,7 @@ class CVC4_EXPORT ScopeException : public Exception
  * nested scoping rules for declarations, with separate bindings for expressions
  * and types.
  */
-class CVC4_EXPORT SymbolTable
+class CVC5_EXPORT SymbolTable
 {
  public:
   /** Create a symbol table. */

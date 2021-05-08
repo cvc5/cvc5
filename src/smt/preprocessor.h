@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file preprocessor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Justin Xu
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessor of the SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Justin Xu
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessor of the SmtEngine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__PREPROCESSOR_H
 #define CVC5__SMT__PREPROCESSOR_H
@@ -24,6 +25,7 @@
 #include "theory/booleans/circuit_propagator.h"
 
 namespace cvc5 {
+class Env;
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -45,7 +47,7 @@ class Preprocessor
 {
  public:
   Preprocessor(SmtEngine& smt,
-               context::UserContext* u,
+               Env& env,
                AbstractValues& abs,
                SmtEngineStatistics& stats);
   ~Preprocessor();
@@ -83,27 +85,22 @@ class Preprocessor
    * simplification or normalization is done.
    *
    * @param n The node to expand
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
-  Node expandDefinitions(const Node& n, bool expandOnly = false);
+  Node expandDefinitions(const Node& n);
   /** Same as above, with a cache of previous results. */
   Node expandDefinitions(
-      const Node& n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly = false);
-
+      const Node& n, std::unordered_map<Node, Node, NodeHashFunction>& cache);
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
    */
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
-  /** A copy of the current context */
-  context::Context* d_context;
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
+  /** Reference to the env */
+  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**

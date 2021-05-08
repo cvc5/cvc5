@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file term_conversion_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term conversion proof generator utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term conversion proof generator utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
 #define CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
@@ -189,6 +190,14 @@ class TConvProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+  /**
+   * Get the proof for how term n would rewrite. This is in contrast to the
+   * above method where the user provides an equality (= n n'). The motivation
+   * for this method is when it may be expensive to compute n', and hence it
+   * is preferred that the proof checker computes the rewritten form of
+   * n, instead of verifying that n has rewritten form n'.
+   */
+  std::shared_ptr<ProofNode> getProofForRewriting(Node n);
 
  protected:
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;

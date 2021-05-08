@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file theory_bv_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -51,6 +52,26 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
         << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
+}
+
+TrustNode TheoryBVRewriter::expandDefinition(Node node)
+{
+  Debug("bitvector-expandDefinition")
+      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
+  Node ret;
+  switch (node.getKind())
+  {
+    case kind::BITVECTOR_SDIV:
+    case kind::BITVECTOR_SREM:
+    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
+
+    default: break;
+  }
+  if (!ret.isNull() && node != ret)
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
@@ -357,6 +378,14 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalComp>, RewriteRule<BvComp> >::apply(
           node);
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
+RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalEagerAtom>>::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
@@ -711,6 +740,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
+  d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 
   d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
   d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;

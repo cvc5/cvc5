@@ -1,22 +1,19 @@
-/*********************                                                        */
-/*! \file node_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A manager for Nodes
- **
- ** A manager for Nodes.
- **
- ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A manager for Nodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 /* circular dependency; force node.h first */
 //#include "expr/attribute.h"
@@ -36,6 +33,8 @@
 #include "expr/node_value.h"
 
 namespace cvc5 {
+
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 namespace api {
 class Solver;
@@ -341,20 +340,6 @@ class NodeManager
     expr::NodeValue* child[N];
   };/* struct NodeManager::NVStorage<N> */
 
-  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
-   *
-   * It has been decided for now to hold off on implementations of
-   * these functions, as they may only be needed in CNF conversion,
-   * where it's pointless to do a lazy isAtomic determination by
-   * searching through the DAG, and storing it, since the result will
-   * only be used once.  For more details see the 4/27/2010 CVC4
-   * developer's meeting notes at:
-   *
-   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
-   */
-  // bool containsDecision(TNode); // is "atomic"
-  // bool properlyContainsDecision(TNode); // all children are atomic
-
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) = delete;
 
@@ -367,7 +352,7 @@ class NodeManager
    * lookup is done on the name.  If you mkVar("a", type) and then
    * mkVar("a", type) again, you have two variables.  The NodeManager
    * version of this is private to avoid internal uses of mkVar() from
-   * within CVC4.  Such uses should employ SkolemManager::mkSkolem() instead.
+   * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
    */
   Node mkVar(const std::string& name, const TypeNode& type);
   Node* mkVarPtr(const std::string& name, const TypeNode& type);
@@ -393,7 +378,7 @@ class NodeManager
   explicit NodeManager();
   ~NodeManager();
 
-  /** The node manager in the current public-facing CVC4 library context */
+  /** The node manager in the current public-facing cvc5 library context */
   static NodeManager* currentNM() { return s_current; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
@@ -863,15 +848,10 @@ class NodeManager
    *
    * @param domain the domain type
    * @param range the range type
-   * @param reqFlat If true, we require flat function types, e.g. the
-   * range type cannot be a function. User-generated function types and those
-   * used in solving must be flat, although some use cases (e.g. LFSC proof
-   * conversion) require non-flat function types.
    * @returns the functional type domain -> range
    */
   TypeNode mkFunctionType(const TypeNode& domain,
-                          const TypeNode& range,
-                          bool reqFlat = true);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -879,12 +859,10 @@ class NodeManager
    *
    * @param argTypes the domain is a tuple (argTypes[0], ..., argTypes[n])
    * @param range the range type
-   * @param reqFlat Same as above
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                          const TypeNode& range,
-                          bool reqFlat = true);
+                          const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -894,10 +872,9 @@ class NodeManager
    *
    * @param sorts The argument and range sort of the function type, where the
    * range type is the last in this vector.
-   * @param reqFlat Same as above
+   * @return the function type
    */
-  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts,
-                          bool reqFlat = true);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -905,8 +882,7 @@ class NodeManager
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts,
-                           bool reqFlat = true);
+  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a tuple type with types from
@@ -1013,10 +989,13 @@ class NodeManager
   TypeNode mkConstructorType(const std::vector<TypeNode>& args, TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
-  inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
+  TypeNode mkSelectorType(TypeNode domain, TypeNode range);
 
   /** Make a type representing a tester with given parameterization */
-  inline TypeNode mkTesterType(TypeNode domain);
+  TypeNode mkTesterType(TypeNode domain);
+
+  /** Make a type representing an updater with the given parameterization */
+  TypeNode mkDatatypeUpdateType(TypeNode domain, TypeNode range);
 
   /** Bits for use in mkSort() flags. */
   enum
@@ -1082,7 +1061,7 @@ class NodeManager
 
   /**
    * This function gives developers a hook into the NodeManager.
-   * This can be changed in node_manager.cpp without recompiling most of cvc4.
+   * This can be changed in node_manager.cpp without recompiling most of cvc5.
    *
    * debugHook is a debugging only function, and should not be present in
    * any published code!
@@ -1096,7 +1075,7 @@ class NodeManager
  * previous thread-global <code>NodeManager</code> when it is
  * destroyed, effectively maintaining a set of nested
  * <code>NodeManager</code> scopes.  This is especially useful on
- * public-interface calls into the CVC4 library, where CVC4's notion
+ * public-interface calls into the cvc5 library, where cvc5's notion
  * of the "current" <code>NodeManager</code> should be set to match
  * the calling context.  See, for example, the implementations of
  * public calls in the <code>SmtEngine</code> class.
@@ -1155,22 +1134,6 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
                 "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
-}
-
-inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
-  CheckArgument(domain.isDatatype(), domain,
-                "cannot create non-datatype selector type");
-  CheckArgument(range.isFirstClass(),
-                range,
-                "cannot have selector fields that are not first-class types. "
-                "Try option --uf-ho.");
-  return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
-}
-
-inline TypeNode NodeManager::mkTesterType(TypeNode domain) {
-  CheckArgument(domain.isDatatype(), domain,
-                "cannot create non-datatype tester");
-  return mkTypeNode(kind::TESTER_TYPE, domain );
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {

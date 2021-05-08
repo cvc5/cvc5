@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file cvc_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the CVC output language
- **
- ** The pretty-printer interface for the CVC output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the CVC output language.
+ */
 
 #include "printer/cvc/cvc_printer.h"
 
@@ -488,18 +487,6 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       out << " -> BOOLEAN";
       return;
       break;
-    case kind::TUPLE_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
-    case kind::RECORD_UPDATE:
-      toStreamNode(out, n[0], depth, true, lbind);
-      out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
-      toStreamNode(out, n[1], depth, true, lbind);
-      return;
-      break;
 
     // ARRAYS
     case kind::ARRAY_TYPE:
@@ -933,7 +920,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
         }
         toStreamNode(out, n[i], -1, false, lbind);
         out << ":";
-        n[i].getType().toStream(out, language::output::LANG_CVC4);
+        n[i].getType().toStream(out, language::output::LANG_CVC);
       }
       out << ')';
       return;

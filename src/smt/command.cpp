@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file command.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Abdalrhman Mohamed, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of command objects.
- **
- ** Implementation of command objects.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Abdalrhman Mohamed, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of command objects.
+ */
 
 #include "smt/command.h"
 
@@ -25,6 +24,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
+#include "base/modal_exception.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
@@ -1169,6 +1169,60 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
+/* class DeclareFunctionCommand                                               */
+/* -------------------------------------------------------------------------- */
+
+DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
+                                       api::Term func,
+                                       api::Sort sort,
+                                       const std::vector<api::Term>& initValue)
+    : DeclarationDefinitionCommand(id),
+      d_func(func),
+      d_sort(sort),
+      d_initValue(initValue)
+{
+}
+
+api::Term DeclarePoolCommand::getFunction() const { return d_func; }
+api::Sort DeclarePoolCommand::getSort() const { return d_sort; }
+const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const
+{
+  return d_initValue;
+}
+
+void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  // Notice that the pool is already declared by the parser so that it the
+  // symbol is bound eagerly. This is analogous to DeclareSygusVarCommand.
+  // Hence, we do nothing here.
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Command* DeclarePoolCommand::clone() const
+{
+  DeclarePoolCommand* dfc =
+      new DeclarePoolCommand(d_symbol, d_func, d_sort, d_initValue);
+  return dfc;
+}
+
+std::string DeclarePoolCommand::getCommandName() const
+{
+  return "declare-pool";
+}
+
+void DeclarePoolCommand::toStream(std::ostream& out,
+                                  int toDepth,
+                                  size_t dag,
+                                  OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclarePool(
+      out,
+      d_func.toString(),
+      sortToTypeNode(d_sort),
+      termVectorToNodes(d_initValue));
+}
+
+/* -------------------------------------------------------------------------- */
 /* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -1603,7 +1657,7 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->mkTerm(api::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1681,7 +1735,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1814,7 +1868,7 @@ void BlockModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->blockModel();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1868,7 +1922,7 @@ void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->blockModelValues(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -1914,7 +1968,7 @@ void GetProofCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getSmtEngine()->getProof();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2319,7 +2373,7 @@ void GetUnsatAssumptionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getUnsatAssumptions();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2381,7 +2435,7 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2616,7 +2670,7 @@ void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setInfo(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
+  catch (api::CVC5ApiRecoverableException&)
   {
     // As per SMT-LIB spec, silently accept unknown set-info keys
     d_commandStatus = CommandSuccess::instance();
@@ -2658,7 +2712,7 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
@@ -2717,7 +2771,7 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setOption(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
+  catch (api::CVC5ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
@@ -2755,7 +2809,7 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC4ApiRecoverableException&)
+  catch (api::CVC5ApiRecoverableException&)
   {
     d_commandStatus = new CommandUnsupported();
   }

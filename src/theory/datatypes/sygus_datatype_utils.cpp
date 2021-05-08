@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file sygus_datatype_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of rewriter for the theory of (co)inductive datatypes.
- **
- ** Implementation of rewriter for the theory of (co)inductive datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of rewriter for the theory of (co)inductive datatypes.
+ */
 
 #include "theory/datatypes/sygus_datatype_utils.h"
 
@@ -22,6 +21,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
@@ -139,60 +139,6 @@ Kind getEliminateKind(Kind ok)
   return nk;
 }
 
-Node eliminatePartialOperators(Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      Kind ok = cur.getKind();
-      Kind nk = getEliminateKind(ok);
-      if (nk != ok || childChanged)
-      {
-        ret = nm->mkNode(nk, children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
 Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
@@ -236,7 +182,6 @@ Node mkSygusTerm(const DType& dt,
         // expandDefinitions.
         opn = smt::currentSmtEngine()->expandDefinitions(op);
         opn = Rewriter::rewrite(opn);
-        opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
       }

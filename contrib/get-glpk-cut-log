@@ -40,5 +40,5 @@ rename_installed_lib "libglpk.a" "libglpk-static.a"
 make install -j$(nproc)
 
 echo
-echo ===================== Now configure CVC4 with =====================
+echo ===================== Now configure cvc5 with =====================
 echo ./configure.sh --gpl --glpk

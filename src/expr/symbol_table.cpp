@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file symbol_table.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Convenience class for scoping variable and type
- ** declarations (implementation)
- **
- ** Convenience class for scoping variable and type declarations
- ** (implementation).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Convenience class for scoping variable and type declarations
+ * (implementation).
+ */
 
 #include "expr/symbol_table.h"
 
@@ -93,7 +91,7 @@ class OverloadedTypeTrie {
  public:
   OverloadedTypeTrie(Context* c, bool allowFunVariants = false)
       : d_overloaded_symbols(
-            new (true) CDHashSet<api::Term, api::TermHashFunction>(c)),
+            new (true) CDHashSet<api::Term, std::hash<api::Term>>(c)),
         d_allowFunctionVariants(allowFunVariants)
   {
   }
@@ -155,7 +153,7 @@ class OverloadedTypeTrie {
    * above. */
   std::unordered_map<std::string, TypeArgTrie> d_overload_type_arg_trie;
   /** The set of overloaded symbols. */
-  CDHashSet<api::Term, api::TermHashFunction>* d_overloaded_symbols;
+  CDHashSet<api::Term, std::hash<api::Term>>* d_overloaded_symbols;
   /** allow function variants
    * This is true if we allow overloading (non-constant) functions that expect
    * the same argument types.

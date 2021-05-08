@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file term_database_sygus.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term database sygus class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term database sygus class.
+ */
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
@@ -506,17 +507,16 @@ void TermDbSygus::registerEnumerator(Node e,
       if (options::sygusActiveGenMode() == options::SygusActiveGenMode::AUTO)
       {
         // We use active generation if the grammar of the enumerator does not
-        // have ITE and is not Boolean. Experimentally, it is better to
-        // use passive generation for these cases since it enables useful
-        // search space pruning techniques, e.g. evaluation unfolding,
+        // have ITE and does not have Boolean connectives. Experimentally, it
+        // is better to use passive generation for these cases since it enables
+        // useful search space pruning techniques, e.g. evaluation unfolding,
         // conjecture-specific symmetry breaking. Also, if sygus-stream is
         // enabled, we always use active generation, since the use cases of
         // sygus stream are to find many solutions to an easy problem, where
         // the bottleneck often becomes the large number of "exclude the current
         // solution" clauses.
-        const DType& dt = et.getDType();
         if (options::sygusStream()
-            || (!eti.hasIte() && !dt.getSygusType().isBoolean()))
+            || (!eti.hasIte() && !eti.hasBoolConnective()))
         {
           isActiveGen = true;
         }

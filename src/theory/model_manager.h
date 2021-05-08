@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file model_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract management of models for TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract management of models for TheoryEngine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__MODEL_MANAGER__H
 #define CVC5__THEORY__MODEL_MANAGER__H
@@ -72,7 +73,7 @@ class ModelManager
    */
   void postProcessModel(bool incomplete);
   /** Get a pointer to model object maintained by this class. */
-  theory::TheoryModel* getModel();
+  TheoryModel* getModel();
   //------------------------ finer grained control over model building
   /**
    * Prepare model, which is the manager-specific method for setting up the
@@ -137,14 +138,12 @@ class ModelManager
   eq::EqualityEngine* d_modelEqualityEngine;
   /** The equality engine of the model, if we allocated it */
   std::unique_ptr<eq::EqualityEngine> d_modelEqualityEngineAlloc;
-  /** The model object we are using */
-  theory::TheoryModel* d_model;
   /** The model object we have allocated (if one exists) */
-  std::unique_ptr<theory::TheoryModel> d_alocModel;
+  std::unique_ptr<TheoryModel> d_model;
   /** The model builder object we are using */
-  theory::TheoryEngineModelBuilder* d_modelBuilder;
+  TheoryEngineModelBuilder* d_modelBuilder;
   /** The model builder object we have allocated (if one exists) */
-  std::unique_ptr<theory::TheoryEngineModelBuilder> d_alocModelBuilder;
+  std::unique_ptr<TheoryEngineModelBuilder> d_alocModelBuilder;
   /** whether we have tried to build this model in the current context */
   bool d_modelBuilt;
   /** whether this model has been built successfully */

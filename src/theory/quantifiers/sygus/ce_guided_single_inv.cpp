@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file ce_guided_single_inv.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility for processing single invocation synthesis conjectures
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for processing single invocation synthesis conjectures.
+ */
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
 #include "expr/skolem_manager.h"
@@ -233,8 +233,13 @@ bool CegSingleInv::solve()
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  Result::Sat res = r.asSatisfiabilityResult().isSat();
+  if (res != Result::UNSAT)
   {
+    Warning() << "Warning : the single invocation solver determined the SyGuS "
+                 "conjecture"
+              << (res == Result::SAT ? " is" : " may be") << " infeasible"
+              << std::endl;
     // conjecture is infeasible or unknown
     return false;
   }

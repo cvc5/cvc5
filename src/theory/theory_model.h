@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file theory_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__THEORY_MODEL_H
 #define CVC5__THEORY__THEORY_MODEL_H
@@ -327,10 +328,10 @@ public:
   Cardinality getCardinality(TypeNode t) const;
 
   //---------------------------- function values
-  /** a map from functions f to a list of all APPLY_UF terms with operator f */
-  std::map< Node, std::vector< Node > > d_uf_terms;
-  /** a map from functions f to a list of all HO_APPLY terms with first argument f */
-  std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** Does this model have terms for the given uninterpreted function? */
+  bool hasUfTerms(Node f) const;
+  /** Get the terms for uninterpreted function f */
+  const std::vector<Node>& getUfTerms(Node f) const;
   /** are function values enabled? */
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
@@ -422,6 +423,11 @@ public:
   //---------------------------- end separation logic
 
   //---------------------------- function values
+  /** a map from functions f to a list of all APPLY_UF terms with operator f */
+  std::map<Node, std::vector<Node> > d_uf_terms;
+  /** a map from functions f to a list of all HO_APPLY terms with first argument
+   * f */
+  std::map<Node, std::vector<Node> > d_ho_uf_terms;
   /** whether function models are enabled */
   bool d_enableFuncModels;
   /** map from function terms to the (lambda) definitions

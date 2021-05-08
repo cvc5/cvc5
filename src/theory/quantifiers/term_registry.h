@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file term_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief term registry class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term registry class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
 #define CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H
@@ -44,7 +45,7 @@ class TermRegistry
   TermRegistry(QuantifiersState& qs,
                QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
-  void finishInit(QuantifiersInferenceManager* qim);
+  void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
   /** Presolve */
   void presolve();
 
@@ -78,9 +79,6 @@ class TermRegistry
   void processInstantiation(Node q, const std::vector<Node>& terms);
   void processSkolemization(Node q, const std::vector<Node>& skolems);
 
-  /** Whether we use the full model check builder and corresponding model */
-  bool useFmcModel() const;
-
   /** get term database */
   TermDb* getTermDatabase() const;
   /** get term database sygus */
@@ -108,7 +106,7 @@ class TermRegistry
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** extended model object */
-  std::unique_ptr<FirstOrderModel> d_qmodel;
+  FirstOrderModel* d_qmodel;
 };
 
 }  // namespace quantifiers

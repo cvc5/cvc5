@@ -1,23 +1,26 @@
-/*********************                                                        */
-/*! \file sygus_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The solver for sygus queries
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The solver for SyGuS queries.
+ */
 
 #include "smt/sygus_solver.h"
 
 #include <sstream>
 
+#include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/skolem_manager.h"
+#include "options/option_exception.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -28,6 +31,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::theory;
@@ -381,7 +385,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     // definitions that were added as assertions to the sygus problem.
     for (Node a : auxAssertions)
     {
-      solChecker->assertFormula(a);
+      // We require rewriting here, e.g. so that define-fun from the original
+      // problem are rewritten to true. If this is not the case, then the
+      // assertions module of the subsolver will complain about assertions
+      // with free variables.
+      Node ar = theory::Rewriter::rewrite(a);
+      solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
     Notice() << "SygusSolver::checkSynthSolution(): result is " << r

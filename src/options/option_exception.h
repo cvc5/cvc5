@@ -1,26 +1,25 @@
-/*********************                                                        */
-/*! \file option_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Options-related exceptions
- **
- ** Options-related exceptions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Options-related exceptions.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__OPTION_EXCEPTION_H
 #define CVC5__OPTION_EXCEPTION_H
 
 #include "base/exception.h"
-#include "cvc4_export.h"
+#include "cvc5_export.h"
 
 namespace cvc5 {
 
@@ -30,7 +29,7 @@ namespace cvc5 {
  * name is itself unrecognized, a UnrecognizedOptionException (a derived
  * class, below) should be used instead.
  */
-class CVC4_EXPORT OptionException : public cvc5::Exception
+class CVC5_EXPORT OptionException : public cvc5::Exception
 {
  public:
   OptionException(const std::string& s) : cvc5::Exception(s_errPrefix + s) {}

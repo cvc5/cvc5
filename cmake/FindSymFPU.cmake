@@ -1,24 +1,34 @@
-#####################
-## FindSymFPU.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find SymFPU
 # SymFPU_FOUND - should always be true
 # SymFPU - interface target for the SymFPU headers
+##
 
 find_path(SymFPU_INCLUDE_DIR NAMES symfpu/core/unpackedFloat.h)
 
+set(SymFPU_FOUND_SYSTEM FALSE)
 if(SymFPU_INCLUDE_DIR)
   # Found SymFPU to be installed system-wide
   set(SymFPU_FOUND_SYSTEM TRUE)
-else()
-  set(SymFPU_FOUND_SYSTEM FALSE)
+endif()
+
+if(NOT SymFPU_FOUND_SYSTEM)
+  check_ep_downloaded("SymFPU-EP")
+  if(NOT SymFPU-EP_DOWNLOADED)
+    check_auto_download("SymFPU" "--no-symfpu")
+  endif()
+
   include(ExternalProject)
   include(deps-helper)
 
@@ -29,6 +39,8 @@ else()
     ${COMMON_EP_CONFIG}
     URL https://github.com/martin-cs/symfpu/archive/${SymFPU_COMMIT}.tar.gz
     URL_HASH SHA1=9e00045130b93e3c2a46ce73a1b5b6451340dc46
+    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
+          -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/SymFPU-patch-20201114.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/core

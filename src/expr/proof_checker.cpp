@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of proof checker.
+ */
 
 #include "expr/proof_checker.h"
 
@@ -76,17 +77,11 @@ Node ProofRuleChecker::mkKindNode(Kind k)
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
-    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
+    : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
+        "ProofCheckerStatistics::ruleChecks")),
+      d_totalRuleChecks(smtStatisticsRegistry().registerInt(
+          "ProofCheckerStatistics::totalRuleChecks"))
 {
-  smtStatisticsRegistry()->registerStat(&d_ruleChecks);
-  smtStatisticsRegistry()->registerStat(&d_totalRuleChecks);
-}
-
-ProofCheckerStatistics::~ProofCheckerStatistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_ruleChecks);
-  smtStatisticsRegistry()->unregisterStat(&d_totalRuleChecks);
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)

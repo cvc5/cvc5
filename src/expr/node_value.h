@@ -1,24 +1,24 @@
-/*********************                                                        */
-/*! \file node_value.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An expression node.
- **
- ** An expression node.
- **
- ** Instances of this class are generally referenced through
- ** cvc4::Node rather than by pointer; cvc4::Node maintains the
- ** reference count on NodeValue instances and
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A node value.
+ *
+ * The actual node implementation.
+ * Instances of this class are generally referenced through cvc5::Node rather
+ * than by pointer. Note that cvc5::Node maintains the reference count on
+ * NodeValue instances.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/metakind.h"
@@ -330,7 +330,7 @@ class NodeValue
   /** The ID (0 is reserved for the null value) */
   uint64_t d_id : NBITS_ID;
 
-  /** The expression's reference count.  @see cvc4::Node. */
+  /** The expression's reference count. */
   uint32_t d_rc : NBITS_REFCOUNT;
 
   /** Kind of the expression */
@@ -426,7 +426,7 @@ inline void NodeValue::inc() {
     ++d_rc;
     Assert(NodeManager::currentNM() != NULL)
         << "No current NodeManager on incrementing of NodeValue: "
-           "maybe a public CVC4 interface function is missing a "
+           "maybe a public cvc5 interface function is missing a "
            "NodeManagerScope ?";
     NodeManager::currentNM()->markRefCountMaxedOut(this);
   }
@@ -439,7 +439,7 @@ inline void NodeValue::dec() {
     if(__builtin_expect( ( d_rc == 0 ), false )) {
       Assert(NodeManager::currentNM() != NULL)
           << "No current NodeManager on destruction of NodeValue: "
-             "maybe a public CVC4 interface function is missing a "
+             "maybe a public cvc5 interface function is missing a "
              "NodeManagerScope ?";
       NodeManager::currentNM()->markForDeletion(this);
     }
@@ -518,7 +518,7 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
 
 }  // namespace expr
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -542,7 +542,7 @@ static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* 
   nv->printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 

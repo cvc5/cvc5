@@ -1,17 +1,20 @@
-#####################
-## FindCryptoMiniSat.cmake
-## Top contributors (to current version):
-##   Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find CryptoMiniSat
 # CryptoMiniSat_FOUND - system has CryptoMiniSat lib
 # CryptoMiniSat_INCLUDE_DIR - the CryptoMiniSat include directory
 # CryptoMiniSat_LIBRARIES - Libraries needed to use CryptoMiniSat
+##
 
 include(deps-helper)
 
@@ -19,6 +22,7 @@ find_package(cryptominisat5 ${CryptoMiniSat_FIND_VERSION} QUIET)
 
 set(CryptoMiniSat_FOUND_SYSTEM FALSE)
 if(cryptominisat5_FOUND)
+  set(CryptoMiniSat_VERSION ${cryptominisat5_VERSION})
   set(CryptoMiniSat_FOUND_SYSTEM TRUE)
   add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
   target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
@@ -28,13 +32,17 @@ if(cryptominisat5_FOUND)
     CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
                              "${CRYPTOMINISAT5_INCLUDE_DIRS}"
   )
-
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
-  include(ExternalProject)
-
   set(CryptoMiniSat_VERSION "5.8.0")
+
+  check_ep_downloaded("CryptoMiniSat-EP")
+  if(NOT CryptoMiniSat-EP_DOWNLOADED)
+    check_auto_download("CryptoMiniSat" "--no-cryptominisat")
+  endif()
+
+  include(ExternalProject)
 
   ExternalProject_Add(
     CryptoMiniSat-EP

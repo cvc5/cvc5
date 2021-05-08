@@ -1,20 +1,17 @@
-/*********************                                                        */
-/*! \file node_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Expression manager implementation.
- **
- ** Expression manager implementation.
- **
- ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A manager for Nodes.
+ */
 #include "expr/node_manager.h"
 
 #include <algorithm>
@@ -448,7 +445,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
 
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   // already did type check eagerly upon creation in node builder
   bool doTypeCheck = false;
 #else
@@ -664,10 +661,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& c = dt[i];
-      TypeNode testerType CVC4_UNUSED = c.getTester().getType();
+      TypeNode testerType CVC5_UNUSED = c.getTester().getType();
       Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
-      TypeNode ctorType CVC4_UNUSED = c.getConstructor().getType();
+      TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isConstructor()
             && ctorType.getNumChildren() == c.getNumArgs() + 1
             && ctorType.getRangeType() == ut)
@@ -707,11 +704,34 @@ TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
+TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range)
+{
+  CheckArgument(
+      domain.isDatatype(), domain, "cannot create non-datatype selector type");
+  return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
+}
+
+TypeNode NodeManager::mkTesterType(TypeNode domain)
+{
+  CheckArgument(
+      domain.isDatatype(), domain, "cannot create non-datatype tester");
+  return mkTypeNode(kind::TESTER_TYPE, domain);
+}
+
+TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
+{
+  CheckArgument(
+      domain.isDatatype(), domain, "cannot create non-datatype upater type");
+  // It is a function type domain x range -> domain, we store only the
+  // arguments
+  return mkTypeNode(kind::UPDATER_TYPE, domain, range);
+}
+
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){
       std::stringstream sst;
-      sst << "__cvc4_tuple";
+      sst << "__cvc5_tuple";
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
@@ -741,7 +761,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
   {
     if( d_data.isNull() ){
       std::stringstream sst;
-      sst << "__cvc4_record";
+      sst << "__cvc5_record";
       for (const std::pair<std::string, TypeNode>& i : rec)
       {
         sst << "_" << i.first << "_" << i.second;
@@ -766,44 +786,37 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       nm, rec, index + 1);
 }
 
-TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts,
-                                     bool reqFlat)
+TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 2);
-  CheckArgument(!reqFlat || !sorts[sorts.size() - 1].isFunction(),
-                sorts[sorts.size() - 1],
-                "must flatten function types");
   return mkTypeNode(kind::FUNCTION_TYPE, sorts);
 }
 
-TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts,
-                                      bool reqFlat)
+TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   sortNodes.insert(sortNodes.end(), sorts.begin(), sorts.end());
   sortNodes.push_back(booleanType());
-  return mkFunctionType(sortNodes, reqFlat);
+  return mkFunctionType(sortNodes);
 }
 
 TypeNode NodeManager::mkFunctionType(const TypeNode& domain,
-                                     const TypeNode& range,
-                                     bool reqFlat)
+                                     const TypeNode& range)
 {
   std::vector<TypeNode> sorts;
   sorts.push_back(domain);
   sorts.push_back(range);
-  return mkFunctionType(sorts, reqFlat);
+  return mkFunctionType(sorts);
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
-                                     const TypeNode& range,
-                                     bool reqFlat)
+                                     const TypeNode& range)
 {
   Assert(argTypes.size() >= 1);
   std::vector<TypeNode> sorts(argTypes);
   sorts.push_back(range);
-  return mkFunctionType(sorts, reqFlat);
+  return mkFunctionType(sorts);
 }
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {

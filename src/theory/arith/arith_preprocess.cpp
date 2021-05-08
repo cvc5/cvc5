@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file arith_preprocess.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arithmetic preprocess
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic preprocess.
+ */
 
 #include "theory/arith/arith_preprocess.h"
 
@@ -25,8 +26,8 @@ namespace arith {
 ArithPreprocess::ArithPreprocess(ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
-                                 const LogicInfo& info)
-    : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
+                                 OperatorElim& oe)
+    : d_im(im), d_opElim(oe), d_reduced(state.getUserContext())
 {
 }
 TrustNode ArithPreprocess::eliminate(TNode n,

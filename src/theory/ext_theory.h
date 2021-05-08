@@ -1,34 +1,35 @@
-/*********************                                                        */
-/*! \file ext_theory.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Extended theory interface.
- **
- ** This implements a generic module, used by theory solvers, for performing
- ** "context-dependent simplification", as described in Reynolds et al
- ** "Designing Theory Solvers with Extensions", FroCoS 2017.
- **
- ** At a high level, this technique implements a generic inference scheme based
- ** on the combination of SAT-context-dependent equality reasoning and
- ** SAT-context-indepedent rewriting.
- **
- ** As a simple example, say
- ** (1) TheoryStrings tells us that the following facts hold in the SAT context:
- **     x = "A" ^ str.contains( str.++( x, z ), "B" ) = true.
- ** (2) The Rewriter tells us that:
- **     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ).
- ** From this, this class may infer that the following lemma is T-valid:
- **   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extended theory interface.
+ *
+ * This implements a generic module, used by theory solvers, for performing
+ * "context-dependent simplification", as described in Reynolds et al
+ * "Designing Theory Solvers with Extensions", FroCoS 2017.
+ *
+ * At a high level, this technique implements a generic inference scheme based
+ * on the combination of SAT-context-dependent equality reasoning and
+ * SAT-context-indepedent rewriting.
+ *
+ * As a simple example, say
+ * (1) TheoryStrings tells us that the following facts hold in the SAT context:
+ *     x = "A" ^ str.contains( str.++( x, z ), "B" ) = true.
+ * (2) The Rewriter tells us that:
+ *     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ).
+ * From this, this class may infer that the following lemma is T-valid:
+ *   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__EXT_THEORY_H
 #define CVC5__THEORY__EXT_THEORY_H

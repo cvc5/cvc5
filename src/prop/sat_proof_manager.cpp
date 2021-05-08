@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file sat_proof_manager.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof manager for Minisat
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof manager for Minisat.
+ */
 
 #include "prop/sat_proof_manager.h"
 
@@ -250,7 +251,8 @@ void SatProofManager::endResChain(Node conclusion,
   // rule here by explicitly computing the detailed steps, but leave this for
   // post-processing.
   ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
-  d_resChainPg.addStep(conclusion, ps);
+  // note that we must tell the proof generator to overwrite if repeated
+  d_resChainPg.addStep(conclusion, ps, CDPOverwrite::ALWAYS);
   // the premises of this resolution may not have been justified yet, so we do
   // not pass assumptions to check closedness
   d_resChains.addLazyStep(conclusion, &d_resChainPg);
@@ -334,6 +336,13 @@ void SatProofManager::explainLit(
   Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit;
   Node litNode = getClauseNode(lit);
   Trace("sat-proof") << " [" << litNode << "]\n";
+  if (d_resChainPg.hasProofFor(litNode))
+  {
+    Trace("sat-proof") << "SatProofManager::explainLit: already justified "
+                       << lit << ", ABORT\n"
+                       << pop;
+    return;
+  }
   Minisat::Solver::TCRef reasonRef =
       d_solver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
   if (reasonRef == Minisat::Solver::TCRef_Undef)
@@ -352,7 +361,7 @@ void SatProofManager::explainLit(
     printClause(reason);
     Trace("sat-proof") << "\n";
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // pedantically check that the negation of the literal to explain *does not*
   // occur in the reason, otherwise we will loop forever
   for (unsigned i = 0; i < size; ++i)
@@ -372,26 +381,26 @@ void SatProofManager::explainLit(
   Trace("sat-proof") << push;
   for (unsigned i = 0; i < size; ++i)
   {
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     // pedantically make sure that the reason stays the same
     const Minisat::Clause& reloadedReason = d_solver->ca[reasonRef];
     AlwaysAssert(size == static_cast<unsigned>(reloadedReason.size()));
     AlwaysAssert(children[0] == getClauseNode(reloadedReason));
 #endif
-    SatLiteral curr_lit = d_cnfStream->getTranslationCache()[toExplain[i]];
+    SatLiteral currLit = d_cnfStream->getTranslationCache()[toExplain[i]];
     // ignore the lit we are trying to explain...
-    if (curr_lit == lit)
+    if (currLit == lit)
     {
       continue;
     }
     std::unordered_set<TNode, TNodeHashFunction> childPremises;
-    explainLit(~curr_lit, childPremises);
+    explainLit(~currLit, childPremises);
     // save to resolution chain premises / arguments
-    Assert(d_cnfStream->getNodeCache().find(curr_lit)
+    Assert(d_cnfStream->getNodeCache().find(currLit)
            != d_cnfStream->getNodeCache().end());
-    children.push_back(d_cnfStream->getNodeCache()[~curr_lit]);
-    Node currLitNode = d_cnfStream->getNodeCache()[curr_lit];
-    bool negated = curr_lit.isNegated();
+    children.push_back(d_cnfStream->getNodeCache()[~currLit]);
+    Node currLitNode = d_cnfStream->getNodeCache()[currLit];
+    bool negated = currLit.isNegated();
     Assert(!negated || currLitNode.getKind() == kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is
     // because here the clause, which contains the literal being analyzed, is
@@ -400,7 +409,7 @@ void SatProofManager::explainLit(
     args.push_back(negated ? currLitNode[0] : currLitNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
-    premises.insert(d_cnfStream->getNodeCache()[~curr_lit]);
+    premises.insert(d_cnfStream->getNodeCache()[~currLit]);
   }
   if (Trace.isOn("sat-proof"))
   {

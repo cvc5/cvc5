@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file integer_optimizer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yancheng Ou
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Optimizer for Integer type
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yancheng Ou
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Optimizer for Integer type.
+ */
 
 #ifndef CVC5__OMT__INTEGER_OPTIMIZER_H
 #define CVC5__OMT__INTEGER_OPTIMIZER_H
@@ -27,19 +28,21 @@ class OMTOptimizerInteger : public OMTOptimizer
  public:
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
-  std::pair<smt::OptResult, Node> minimize(SmtEngine* parentSMTSolver,
-                                           Node target) override;
-  std::pair<smt::OptResult, Node> maximize(SmtEngine* parentSMTSolver,
-                                           Node target) override;
+  smt::OptimizationResult minimize(SmtEngine* optChecker,
+                                   TNode target) override;
+  smt::OptimizationResult maximize(SmtEngine* optChecker,
+                                   TNode target) override;
 
  private:
   /**
    * Handles the optimization query specified by objType
-   * (objType = OBJECTIVE_MINIMIZE / OBJECTIVE_MAXIMIZE)
+   * isMinimize = true will trigger minimization, 
+   * otherwise trigger maximization
    **/
-  std::pair<smt::OptResult, Node> optimize(SmtEngine* parentSMTSolver,
-                                           Node target,
-                                           smt::ObjectiveType objType);
+  smt::OptimizationResult optimize(
+      SmtEngine* optChecker,
+      TNode target,
+      bool isMinimize);
 };
 
 }  // namespace cvc5::omt
