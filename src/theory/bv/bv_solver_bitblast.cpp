@@ -219,8 +219,9 @@ bool BVSolverBitblast::preNotifyFact(
    * If this is the case we can assert `fact` to the SAT solver instead of
    * using assumptions.
    */
-  if (val.isSatLiteral(fact) && !val.isDecision(fact)
-      && val.getDecisionLevel(fact) == 0 && val.getIntroLevel(fact) == 0)
+  if (options::bvAssertInput() && val.isSatLiteral(fact)
+      && !val.isDecision(fact) && val.getDecisionLevel(fact) == 0
+      && val.getIntroLevel(fact) == 0)
   {
     d_bbInputFacts.push_back(fact);
   }

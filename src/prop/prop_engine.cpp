@@ -335,7 +335,7 @@ bool PropEngine::isDecision(Node lit) const {
 int32_t PropEngine::getDecisionLevel(Node lit) const
 {
   Assert(isSatLiteral(lit));
-  return d_satSolver->getLevel(
+  return d_satSolver->getDecisionLevel(
       d_cnfStream->getLiteral(lit).getSatVariable());
 }
 
