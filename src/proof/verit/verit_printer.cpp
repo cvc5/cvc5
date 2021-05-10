@@ -40,13 +40,13 @@ void VeritProofPrinter::veritPrinter(std::ostream& out,
 
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
-  for (unsigned long int i = 0; i < pfn->getArguments().size(); i++)
+  for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
   {
     Trace("verit-printer") << "... print assumption " << pfn->getArguments()[i]
                            << std::endl;
-    out << "(assume a" << std::to_string(i) << " " << pfn->getArguments()[i]
+    out << "(assume a" << std::to_string(i-3) << " " << pfn->getArguments()[i]
         << ")\n";
-    assumptions[0][pfn->getArguments()[i]] = i;
+    assumptions[0][pfn->getArguments()[i]] = i-3;
   }
 
   // Then, print the rest of the proof node
