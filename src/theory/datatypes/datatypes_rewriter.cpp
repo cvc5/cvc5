@@ -48,6 +48,10 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteTester(in);
   }
+  else if (kind == APPLY_UPDATER)
+  {
+    return rewriteUpdater(in);
+  }
   else if (kind == kind::DT_SIZE)
   {
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
@@ -473,6 +477,28 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
+RewriteResponse DatatypesRewriter::rewriteUpdater(TNode in)
+{
+  Assert (in.getKind()==APPLY_UPDATER);
+  if (in[0].getKind() == APPLY_CONSTRUCTOR)
+  {
+    Node op = in.getOperator();
+    size_t cindex = utils::indexOf(in[0].getOperator());
+    size_t cuindex = utils::cindexOf(op);
+    if (cindex==cuindex)
+    {
+      NodeManager * nm = NodeManager::currentNM();
+      size_t updateIndex = utils::indexOf(op);
+      std::vector<Node> children(in[0].begin(), in[0].end());
+      children[updateIndex] = in[1];
+      children.insert(children.begin(),in[0].getOperator());
+      return RewriteResponse(REWRITE_DONE, nm->mkNode(APPLY_CONSTRUCTOR, children));
+    }
+    return RewriteResponse(REWRITE_DONE, in[0]);
+  }
+  return RewriteResponse(REWRITE_DONE, in);
+}
+
 Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
 {
   Trace("dt-nconst") << "Normalize " << n << std::endl;
@@ -843,51 +869,40 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       }
     }
     break;
-    case TUPLE_UPDATE:
-    case RECORD_UPDATE:
+    case APPLY_UPDATER:
     {
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
+      Node op = n.getOperator();
+      size_t updateIndex = utils::indexOf(op);
+      size_t cindex = utils::cindexOf(op);
+      const DTypeConstructor& dc = dt[cindex];
       NodeBuilder b(APPLY_CONSTRUCTOR);
-      b << dt[0].getConstructor();
-      size_t size, updateIndex;
-      if (n.getKind() == TUPLE_UPDATE)
-      {
-        Assert(tn.isTuple());
-        size = tn.getTupleLength();
-        updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
-      }
-      else
-      {
-        Assert(tn.isRecord());
-        const DTypeConstructor& recCons = dt[0];
-        size = recCons.getNumArgs();
-        // get the index for the name
-        updateIndex = recCons.getSelectorIndexForName(
-            n.getOperator().getConst<RecordUpdate>().getField());
-      }
-      Debug("tuprec") << "expr is " << n << std::endl;
-      Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-      Debug("tuprec") << "t is " << tn << std::endl;
-      Debug("tuprec") << "t has arity " << size << std::endl;
-      for (size_t i = 0; i < size; ++i)
+      b << dc.getConstructor();
+      Trace("dt-expand") << "Expand updater " << n << std::endl;
+      Trace("dt-expand") << "expr is " << n << std::endl;
+      Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;
+      Trace("dt-expand") << "t is " << tn << std::endl;
+      for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
       {
         if (i == updateIndex)
         {
           b << n[1];
-          Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
-                          << std::endl;
         }
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
-          Debug("tuprec") << "arg " << i << " copies "
-                          << b[b.getNumChildren() - 1] << std::endl;
+              APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(tn, i), n[0]);
         }
       }
       ret = b;
-      Debug("tuprec") << "return " << ret << std::endl;
+      if (dt.getNumConstructors() > 1)
+      {
+        // must be the right constructor to update
+        Node tester = nm->mkNode(APPLY_TESTER, dc.getTester(), n[0]);
+        ret = nm->mkNode(ITE, tester, ret, n[0]);
+      }
+      Trace("dt-expand") << "return " << ret << std::endl;
     }
     break;
     default: break;

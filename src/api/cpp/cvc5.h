@@ -399,6 +399,11 @@ class CVC5_EXPORT Sort
    */
   bool isTester() const;
   /**
+   * Is this a datatype updater sort?
+   * @return true if the sort is a datatype updater sort
+   */
+  bool isUpdater() const;
+  /**
    * Is this a function sort?
    * @return true if the sort is a function sort
    */
@@ -1715,6 +1720,7 @@ class CVC5_EXPORT DatatypeDecl
  */
 class CVC5_EXPORT DatatypeSelector
 {
+  friend class Datatype;
   friend class DatatypeConstructor;
   friend class Solver;
 
@@ -1737,6 +1743,12 @@ class CVC5_EXPORT DatatypeSelector
    * @return the selector term
    */
   Term getSelectorTerm() const;
+
+  /**
+   * Get the upater operator of this datatype selector.
+   * @return the updater term
+   */
+  Term getUpdaterTerm() const;
 
   /** @return the range sort of this argument. */
   Sort getRangeSort() const;
@@ -2048,6 +2060,15 @@ class CVC5_EXPORT Datatype
    */
   Term getConstructorTerm(const std::string& name) const;
 
+  /**
+   * Get the datatype constructor with the given name.
+   * This is a linear search through the constructors and their selectors, so
+   * in case of multiple, similarly-named selectors, the first is returned.
+   * @param name the name of the datatype selector
+   * @return the datatype selector with the given name
+   */
+  DatatypeSelector getSelector(const std::string& name) const;
+
   /** @return the name of this Datatype. */
   std::string getName() const;
 
@@ -2208,6 +2229,13 @@ class CVC5_EXPORT Datatype
    * @return the constructor object for the name
    */
   DatatypeConstructor getConstructorForName(const std::string& name) const;
+
+  /**
+   * Return selector for name.
+   * @param name The name of selector to find
+   * @return the selector object for the name
+   */
+  DatatypeSelector getSelectorForName(const std::string& name) const;
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -3030,7 +3058,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Create operator of kind:
-   *   - RECORD_UPDATE
    *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
