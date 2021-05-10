@@ -22,9 +22,6 @@
 #include "theory/model_manager.h"
 
 namespace cvc5 {
-
-class TheoryEngine;
-
 namespace theory {
 
 /**
@@ -41,7 +38,7 @@ namespace theory {
 class ModelManagerDistributed : public ModelManager
 {
  public:
-  ModelManagerDistributed(TheoryEngine& te, EqEngineManager& eem);
+  ModelManagerDistributed(TheoryEngine& te, Env& env, EqEngineManager& eem);
   ~ModelManagerDistributed();
 
   /** Prepare the model, as described above. */
