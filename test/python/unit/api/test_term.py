@@ -897,6 +897,110 @@ def test_substitute(solver):
         xpx.substitute(es, rs)
 
 
+def test_term_compare(solver):
+  t1 = solver.mkInteger(1)
+  t2 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+  t3 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+  assert t2 >= t3
+  assert t2 <= t3
+  assert (t1 > t2) != (t1 < t2)
+  assert (t1 > t2 or t1 == t2) == (t1 >= t2)
+
+def test_term_children(solver):
+  # simple term 2+3
+  two = solver.mkInteger(2)
+  t1 = solver.mkTerm(kinds.Plus, two, solver.mkInteger(3))
+  assert t1[0] == two
+  assert t1.getNumChildren() == 2
+  tnull = Term(solver)
+  with pytest.raises(RuntimeError):
+      tnull.getNumChildren()
+
+  # apply term f(2)
+  intSort = solver.getIntegerSort()
+  fsort = solver.mkFunctionSort(intSort, intSort)
+  f = solver.mkConst(fsort, "f")
+  t2 = solver.mkTerm(kinds.ApplyUf, f, two)
+  # due to our higher-order view of terms, we treat f as a child of kinds.ApplyUf
+  assert t2.getNumChildren() == 2
+  assert t2[0] == f
+  assert t2[1] == two
+  with pytest.raises(RuntimeError):
+      tnull[0]
+
+def test_get_integer(solver):
+  int1 = solver.mkInteger("-18446744073709551616")
+  int2 = solver.mkInteger("-18446744073709551615")
+  int3 = solver.mkInteger("-4294967296")
+  int4 = solver.mkInteger("-4294967295")
+  int5 = solver.mkInteger("-10")
+  int6 = solver.mkInteger("0")
+  int7 = solver.mkInteger("10")
+  int8 = solver.mkInteger("4294967295")
+  int9 = solver.mkInteger("4294967296")
+  int10 = solver.mkInteger("18446744073709551615")
+  int11 = solver.mkInteger("18446744073709551616")
+  int12 = solver.mkInteger("-0")
+
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-1-")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("0.0")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-0.1")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("012")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("0000")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-01")
+  with pytest.raises(RuntimeError):
+      solver.mkInteger("-00")
+
+  assert  not int1.isInt32() and not int1.isUInt32() and not int1.isInt64() and not int1.isUInt64() and int1.isInteger()
+  assert int1.getInteger() == "-18446744073709551616"
+  assert not int2.isInt32() and not int2.isUInt32() and not int2.isInt64() and not int2.isUInt64() and int2.isInteger()
+  assert int2.getInteger() == "-18446744073709551615"
+  assert not int3.isInt32() and not int3.isUInt32() and int3.isInt64() and not int3.isUInt64() and int3.isInteger()
+  assert int3.getInt64() == -4294967296
+  assert int3.getInteger() == "-4294967296"
+  assert not int4.isInt32() and not int4.isUInt32() and int4.isInt64() and not int4.isUInt64() and int4.isInteger()
+  assert int4.getInt64() == -4294967295
+  assert int4.getInteger() == "-4294967295"
+  assert int5.isInt32() and not int5.isUInt32() and int5.isInt64() and not int5.isUInt64() and int5.isInteger()
+  assert int5.getInt32() == -10
+  assert int5.getInt64() == -10
+  assert int5.getInteger() == "-10"
+  assert int6.isInt32() and int6.isUInt32() and int6.isInt64() and int6.isUInt64() and int6.isInteger()
+  assert int6.getInt32() == 0
+  assert int6.getUInt32() == 0
+  assert int6.getInt64() == 0
+  assert int6.getUInt64() == 0
+  assert int6.getInteger() == "0"
+  assert int7.isInt32() and int7.isUInt32() and int7.isInt64() and int7.isUInt64() and int7.isInteger()
+  assert int7.getInt32() == 10
+  assert int7.getUInt32() == 10
+  assert int7.getInt64() == 10
+  assert int7.getUInt64() == 10
+  assert int7.getInteger() == "10"
+  assert not int8.isInt32() and int8.isUInt32() and int8.isInt64() and int8.isUInt64() and int8.isInteger()
+  assert int8.getUInt32() == 4294967295
+  assert int8.getInt64() == 4294967295
+  assert int8.getUInt64() == 4294967295
+  assert int8.getInteger() == "4294967295"
+  assert not int9.isInt32() and not int9.isUInt32() and int9.isInt64() and int9.isUInt64() and int9.isInteger()
+  assert int9.getInt64() == 4294967296
+  assert int9.getUInt64() == 4294967296
+  assert int9.getInteger() == "4294967296"
+  assert not int10.isInt32() and not int10.isUInt32() and not int10.isInt64() and int10.isUInt64() and int10.isInteger()
+  assert int10.getUInt64() == 18446744073709551615
+  assert int10.getInteger() == "18446744073709551615"
+  assert not int11.isInt32() and not int11.isUInt32() and not int11.isInt64() and not int11.isUInt64() and int11.isInteger()
+  assert int11.getInteger() == "18446744073709551616"
 def test_const_array(solver):
     intsort = solver.getIntegerSort()
     arrsort = solver.mkArraySort(intsort, intsort)
