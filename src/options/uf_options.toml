@@ -1,6 +1,5 @@
 id     = "UF"
 name   = "Uninterpreted functions theory"
-header = "options/uf_options.h"
 
 [[option]]
   name       = "ufSymmetryBreaker"

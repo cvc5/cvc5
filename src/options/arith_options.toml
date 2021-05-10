@@ -1,6 +1,5 @@
 id     = "ARITH"
 name   = "Arithmetic theory"
-header = "options/arith_options.h"
 
 [[option]]
   name       = "arithUnateLemmaMode"

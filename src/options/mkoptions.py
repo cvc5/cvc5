@@ -50,7 +50,7 @@ import toml
 
 ### Allowed attributes for module/option
 
-MODULE_ATTR_REQ = ['id', 'name', 'header']
+MODULE_ATTR_REQ = ['id', 'name']
 MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option']
 
 OPTION_ATTR_REQ = ['category', 'type']
@@ -232,13 +232,13 @@ class Module(object):
     An options module represents a MODULE_options.toml option configuration
     file and contains lists of options.
     """
-    def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
+    def __init__(self, d, filename):
+        self.__dict__ = {k: d.get(k, None) for k in MODULE_ATTR_ALL}
         self.options = []
-        for (attr, val) in d.items():
-            assert attr in self.__dict__
-            if val:
-                self.__dict__[attr] = val
+        self.id = self.id.lower()
+        self.id_cap = self.id.upper()
+        self.filename = os.path.splitext(os.path.split(filename)[-1])[0]
+        self.header = os.path.join('options', '{}.h'.format(self.filename))
 
 
 class Option(object):
@@ -526,6 +526,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
         filename=filename,
         header=module.header,
+        id_cap=module.id_cap,
         id=module.id,
         includes='\n'.join(sorted(list(includes))),
         holder_spec=' \\\n'.join(holder_specs),
@@ -535,7 +536,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         modes=''.join(mode_decl)))
 
     write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
-        filename=filename,
+        header=module.header,
         accs='\n'.join(accs),
         defs='\n'.join(defs),
         modes=''.join(mode_impl)))
@@ -909,7 +910,7 @@ def parse_module(filename, module):
     # attributes are defined.
     check_attribs(filename,
                   MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
-    res = Module(module)
+    res = Module(module, filename)
 
     if 'option' in module:
         for attribs in module['option']:

@@ -1,6 +1,5 @@
 id     = "EXPR"
 name   = "Expression package"
-header = "options/expr_options.h"
 
 [[option]]
   name       = "defaultExprDepth"

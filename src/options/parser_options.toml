@@ -1,6 +1,5 @@
 id     = "PARSER"
 name   = "Parser"
-header = "options/parser_options.h"
 
 [[option]]
   name       = "strictParsing"

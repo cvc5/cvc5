@@ -1,6 +1,5 @@
 id     = "DECISION"
 name   = "Decision heuristics"
-header = "options/decision_options.h"
 
 [[option]]
   name       = "decisionMode"

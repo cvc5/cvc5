@@ -1,6 +1,5 @@
 id     = "BASE"
 name   = "Base"
-header = "options/base_options.h"
 
 [[option]]
   name       = "binary_name"

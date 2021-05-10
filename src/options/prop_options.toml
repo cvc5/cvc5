@@ -1,6 +1,5 @@
 id     = "PROP"
 name   = "SAT layer"
-header = "options/prop_options.h"
 
 [[option]]
   name       = "satRandomFreq"
