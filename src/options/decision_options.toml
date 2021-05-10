@@ -33,7 +33,6 @@ name   = "Decision heuristics"
   type       = "decision::DecisionWeight"
   default    = "0"
   includes   = ["options/decision_weight.h"]
-  read_only  = true
   help       = "ignore all nodes greater than threshold in first attempt to pick decision"
 
 [[option]]
@@ -42,7 +41,6 @@ name   = "Decision heuristics"
   long       = "decision-use-weight"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use the weight nodes (locally, by looking at children) to direct recursive search"
 
 
@@ -52,7 +50,6 @@ name   = "Decision heuristics"
   long       = "decision-random-weight=N"
   type       = "int"
   default    = "0"
-  read_only  = true
   help       = "assign random weights to nodes between 0 and N-1 (0: disable)"
 
 [[option]]
@@ -61,7 +58,6 @@ name   = "Decision heuristics"
   long       = "decision-weight-internal=HOW"
   type       = "DecisionWeightInternal"
   default    = "OFF"
-  read_only  = true
   help       = "compute weights of internal nodes using children: off, max, sum, usr1"
   help_mode  = "Decision weight internal mode."
 [[option.mode.OFF]]

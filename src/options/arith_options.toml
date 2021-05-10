@@ -7,7 +7,6 @@ name   = "Arithmetic theory"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
   default    = "ALL"
-  read_only  = true
   help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
   help_mode  = "Unate lemmas are generated before SAT search begins using the relationship of constant terms and polynomials."
 [[option.mode.ALL]]
@@ -28,7 +27,6 @@ name   = "Arithmetic theory"
   long       = "arith-prop=MODE"
   type       = "ArithPropagationMode"
   default    = "BOTH_PROP"
-  read_only  = true
   help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
   help_mode  = "This decides on kind of propagation arithmetic attempts to do during the search."
 [[option.mode.NO_PROP]]
@@ -76,7 +74,6 @@ name   = "Arithmetic theory"
   long       = "error-selection-rule=RULE"
   type       = "ErrorSelectionRule"
   default    = "MINIMUM_AMOUNT"
-  read_only  = true
   help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
   help_mode  = "This decides on the rule used by simplex during heuristic rounds for deciding the next basic variable to select."
 [[option.mode.MINIMUM_AMOUNT]]
@@ -98,7 +95,6 @@ name   = "Arithmetic theory"
   long       = "simplex-check-period=N"
   type       = "uint16_t"
   default    = "200"
-  read_only  = true
   help       = "the number of pivots to do in simplex before rechecking for a conflict on all variables"
 
 # This is the pivots per basic variable that can be done using heuristic choices
@@ -119,7 +115,6 @@ name   = "Arithmetic theory"
   long       = "prop-row-length=N"
   type       = "uint16_t"
   default    = "16"
-  read_only  = true
   help       = "sets the maximum row length to be used in propagation"
 
 [[option]]
@@ -128,7 +123,6 @@ name   = "Arithmetic theory"
   long       = "dio-solver"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "turns on Linear Diophantine Equation solver (Griggio, JSAT 2012)"
 
 # Whether to split (= x y) into (and (<= x y) (>= x y)) in
@@ -157,7 +151,6 @@ name   = "Arithmetic theory"
   long       = "miplib-trick-subs=N"
   type       = "unsigned"
   default    = "1"
-  read_only  = true
   help       = "do substitution for miplib 'tmp' vars if defined in <= N eliminated vars"
 
 [[option]]
@@ -174,7 +167,6 @@ name   = "Arithmetic theory"
   long       = "maxCutsInContext=N"
   type       = "unsigned"
   default    = "65535"
-  read_only  = true
   help       = "maximum cuts in a given context before signalling a restart"
 
 [[option]]
@@ -183,7 +175,6 @@ name   = "Arithmetic theory"
   long       = "revert-arith-models-on-unsat"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "revert the arithmetic model to a known safe model on unsat if one is cached"
 
 [[option]]
@@ -280,7 +271,6 @@ name   = "Arithmetic theory"
   long       = "se-solve-int"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to use the approximate solve integer method on standard effort"
 
 [[option]]
@@ -289,7 +279,6 @@ name   = "Arithmetic theory"
   long       = "lemmas-on-replay-failure"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to use external lemmas if approximate solve integer failed"
 
 [[option]]
@@ -298,7 +287,6 @@ name   = "Arithmetic theory"
   long       = "dio-turns=N"
   type       = "int"
   default    = "10"
-  read_only  = true
   help       = "turns in a row dio solver cutting gets"
 
 [[option]]
@@ -307,7 +295,6 @@ name   = "Arithmetic theory"
   long       = "rr-turns=N"
   type       = "int"
   default    = "3"
-  read_only  = true
   help       = "round robin turn"
 
 [[option]]
@@ -316,7 +303,6 @@ name   = "Arithmetic theory"
   long       = "dio-repeat"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "handle dio solver constraints in mass or one at a time"
 
 [[option]]
@@ -325,7 +311,6 @@ name   = "Arithmetic theory"
   long       = "replay-early-close-depth=N"
   type       = "int"
   default    = "1"
-  read_only  = true
   help       = "multiples of the depths to try to close the approx log eagerly"
 
 [[option]]
@@ -334,7 +319,6 @@ name   = "Arithmetic theory"
   long       = "replay-failure-penalty=N"
   type       = "int"
   default    = "100"
-  read_only  = true
   help       = "number of solve integer attempts to skips after a numeric failure"
 
 [[option]]
@@ -343,7 +327,6 @@ name   = "Arithmetic theory"
   long       = "replay-num-err-penalty=N"
   type       = "int"
   default    = "4194304"
-  read_only  = true
   help       = "number of solve integer attempts to skips after a numeric failure"
 
 [[option]]
@@ -352,7 +335,6 @@ name   = "Arithmetic theory"
   long       = "replay-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
-  read_only  = true
   help       = "maximum complexity of any coefficient while replaying cuts"
 
 [[option]]
@@ -361,7 +343,6 @@ name   = "Arithmetic theory"
   long       = "replay-lemma-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
-  read_only  = true
   help       = "maximum complexity of any coefficient while outputting replaying cut lemmas"
 
 [[option]]
@@ -370,7 +351,6 @@ name   = "Arithmetic theory"
   long       = "replay-soi-major-threshold=T"
   type       = "double"
   default    = ".01"
-  read_only  = true
   help       = "threshold for a major tolerance failure by the approximate solver"
 
 [[option]]
@@ -379,7 +359,6 @@ name   = "Arithmetic theory"
   long       = "replay-soi-major-threshold-pen=N"
   type       = "int"
   default    = "50"
-  read_only  = true
   help       = "threshold for a major tolerance failure by the approximate solver"
 
 [[option]]
@@ -388,7 +367,6 @@ name   = "Arithmetic theory"
   long       = "replay-soi-minor-threshold=T"
   type       = "double"
   default    = ".0001"
-  read_only  = true
   help       = "threshold for a minor tolerance failure by the approximate solver"
 
 [[option]]
@@ -397,7 +375,6 @@ name   = "Arithmetic theory"
   long       = "replay-soi-minor-threshold-pen=N"
   type       = "int"
   default    = "10"
-  read_only  = true
   help       = "threshold for a minor tolerance failure by the approximate solver"
 
 [[option]]
@@ -406,7 +383,6 @@ name   = "Arithmetic theory"
   long       = "pp-assert-max-sub-size=N"
   type       = "unsigned"
   default    = "2"
-  read_only  = true
   help       = "threshold for substituting an equality in ppAssert"
 
 [[option]]
@@ -415,7 +391,6 @@ name   = "Arithmetic theory"
   long       = "arith-no-partial-fun"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do not use partial function semantics for arithmetic (not SMT LIB compliant)"
 
 [[option]]
@@ -440,7 +415,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-rbound"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use resolution-style inference for inferring new bounds in non-linear incremental linearization solver"
 
 [[option]]
@@ -449,7 +423,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-factor"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
@@ -474,7 +447,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-tf-tplanes"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear incremental linearization solver"
 
 [[option]]
@@ -483,7 +455,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-ent-conf"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "check for entailed conflicts in non-linear solver"
 
 [[option]]
@@ -492,7 +463,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-rewrite"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do context-dependent simplification based on rewrites in non-linear solver"
 
 [[option]]
@@ -501,7 +471,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-purify"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "purify non-linear terms at preprocess"
 
 [[option]]
@@ -510,7 +479,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-split-zero"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "initial splits on zero for all variables"
 
 [[option]]
@@ -527,7 +495,6 @@ name   = "Arithmetic theory"
   long       = "nl-ext-inc-prec"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
 
 [[option]]
@@ -554,7 +521,6 @@ name   = "Arithmetic theory"
   long       = "arith-brab"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
 
 [[option]]

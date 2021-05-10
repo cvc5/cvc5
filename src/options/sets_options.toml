@@ -7,7 +7,6 @@ name   = "Sets"
   long       = "sets-proxy-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "introduce proxy variables eagerly to shorten lemmas"
 
 [[option]]
@@ -16,7 +15,6 @@ name   = "Sets"
   long       = "sets-infer-as-lemmas"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "send inferences as lemmas"
 
 [[option]]
@@ -25,5 +23,4 @@ name   = "Sets"
   long       = "sets-ext"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "enable extended symbols such as complement and universe in theory of sets"

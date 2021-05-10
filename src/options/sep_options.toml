@@ -7,7 +7,6 @@ name   = "Sep"
   long       = "sep-check-neg"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "check negated spatial assertions"
 
 [[option]]
@@ -16,7 +15,6 @@ name   = "Sep"
   long       = "sep-exp"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "experimental flag for sep"
 
 [[option]]
@@ -25,7 +23,6 @@ name   = "Sep"
   long       = "sep-min-refine"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "only add refinement lemmas for minimal (innermost) assertions"
 
 [[option]]
@@ -34,7 +31,6 @@ name   = "Sep"
   long       = "sep-deq-c"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "assume cardinality elements are distinct"
 
 [[option]]
@@ -43,7 +39,6 @@ name   = "Sep"
   long       = "sep-pre-skolem-emp"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "eliminate emp constraint at preprocess time"
 
 [[option]]
@@ -52,5 +47,4 @@ name   = "Sep"
   long       = "sep-child-refine"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "child-specific refinements of negated star, positive wand"

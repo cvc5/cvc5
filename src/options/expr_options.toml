@@ -8,7 +8,6 @@ name   = "Expression package"
   type       = "int"
   default    = "0"
   predicates = ["setDefaultExprDepthPredicate"]
-  read_only  = true
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
 [[option]]
@@ -19,7 +18,6 @@ name   = "Expression package"
   type       = "int"
   default    = "1"
   predicates = ["setDefaultDagThreshPredicate"]
-  read_only  = true
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
 [[option]]
@@ -28,5 +26,4 @@ name   = "Expression package"
   long       = "type-checking"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
-  read_only  = true
   help       = "type check expressions"

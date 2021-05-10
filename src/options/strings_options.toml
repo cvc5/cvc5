@@ -23,7 +23,6 @@ name   = "Strings theory"
   long       = "strings-eager"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "strings eager check"
 
 [[option]]
@@ -32,7 +31,6 @@ name   = "Strings theory"
   long       = "strings-inm"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "internal for strings: ignore negative membership constraints (fragment checking is needed, left to users for now)"
 
 [[option]]
@@ -41,7 +39,6 @@ name   = "Strings theory"
   long       = "strings-lazy-pp"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "perform string preprocessing lazily"
 
 [[option]]
@@ -50,7 +47,6 @@ name   = "Strings theory"
   long       = "strings-len-norm"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "strings length normalization lemma"
 
 [[option]]
@@ -59,7 +55,6 @@ name   = "Strings theory"
   long       = "strings-infer-sym"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "strings split on empty string"
 
 [[option]]
@@ -68,7 +63,6 @@ name   = "Strings theory"
   long       = "strings-eager-len"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "strings eager length lemmas"
 
 [[option]]
@@ -77,7 +71,6 @@ name   = "Strings theory"
   long       = "strings-check-entail-len"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "check entailment between length terms to reduce splitting"
 
 [[option]]
@@ -111,7 +104,6 @@ name   = "Strings theory"
   long       = "strings-infer-as-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "always send lemmas out instead of making internal inferences"
 
 [[option]]
@@ -120,7 +112,6 @@ name   = "Strings theory"
   long       = "strings-rexplain-lemmas"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "regression explanations for string lemmas"
 
 [[option]]
@@ -129,7 +120,6 @@ name   = "Strings theory"
   long       = "strings-min-prefix-explain"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "minimize explanations for prefix of normal forms in strings"
 
 [[option]]
@@ -138,7 +128,6 @@ name   = "Strings theory"
   long       = "strings-guess-model"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
@@ -147,7 +136,6 @@ name   = "Strings theory"
   long       = "strings-lprop-csp"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do length propagation based on constant splits"
 
 [[option]]
@@ -172,7 +160,6 @@ name   = "Strings theory"
   long       = "strings-ff"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do flat form inferences"
 
 [[option]]
@@ -202,7 +189,6 @@ name   = "Strings theory"
   long       = "strings-unified-vspt"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use a single skolem for the variable splitting rule"
 
 [[option]]

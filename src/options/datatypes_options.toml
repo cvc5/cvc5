@@ -28,7 +28,6 @@ name   = "Datatypes theory"
   long       = "dt-polite-optimize"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "turn on optimization for polite combination"
 
 [[option]]
@@ -37,7 +36,6 @@ name   = "Datatypes theory"
   long       = "dt-binary-split"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do binary splits for datatype constructor types"
 
 [[option]]
@@ -46,7 +44,6 @@ name   = "Datatypes theory"
   long       = "cdt-bisimilar"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do bisimilarity check for co-datatypes"
 
 [[option]]
@@ -55,7 +52,6 @@ name   = "Datatypes theory"
   long       = "dt-cyclic"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do cyclicity check for datatypes"
 
 [[option]]
@@ -64,7 +60,6 @@ name   = "Datatypes theory"
   long       = "dt-infer-as-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "always send lemmas out instead of making internal inferences"
 
 [[option]]
@@ -73,7 +68,6 @@ name   = "Datatypes theory"
   long       = "dt-blast-splits"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "when applicable, blast splitting lemmas for all variables at once"
 
 [[option]]
@@ -82,7 +76,6 @@ name   = "Datatypes theory"
   long       = "dt-nested-rec"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "allow nested recursion in datatype definitions"
 
 [[option]]
@@ -91,7 +84,6 @@ name   = "Datatypes theory"
   long       = "dt-share-sel"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
@@ -100,7 +92,6 @@ name   = "Datatypes theory"
   long       = "sygus-sym-break"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "simple sygus symmetry breaking lemmas"
 
 [[option]]
@@ -109,7 +100,6 @@ name   = "Datatypes theory"
   long       = "sygus-sym-break-agg"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use aggressive checks for simple sygus symmetry breaking lemmas"
 
 [[option]]
@@ -118,7 +108,6 @@ name   = "Datatypes theory"
   long       = "sygus-sym-break-dynamic"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "dynamic sygus symmetry breaking lemmas"
 
 [[option]]
@@ -135,7 +124,6 @@ name   = "Datatypes theory"
   long       = "sygus-sym-break-lazy"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "lazily add symmetry breaking lemmas for terms"
 
 [[option]]
@@ -144,7 +132,6 @@ name   = "Datatypes theory"
   long       = "sygus-sym-break-rlv"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "add relevancy conditions to symmetry breaking lemmas"
 
 [[option]]
@@ -153,7 +140,6 @@ name   = "Datatypes theory"
   long       = "sygus-fair=MODE"
   type       = "SygusFairMode"
   default    = "DT_SIZE"
-  read_only  = true
   help       = "if and how to apply fairness for sygus"
   help_mode  = "Modes for enforcing fairness for counterexample guided quantifier instantion."
 [[option.mode.DIRECT]]
@@ -178,7 +164,6 @@ name   = "Datatypes theory"
   long       = "sygus-fair-max"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use max instead of sum for multi-function sygus conjectures"
 
 [[option]]
@@ -187,5 +172,4 @@ name   = "Datatypes theory"
   long       = "sygus-abort-size=N"
   type       = "int"
   default    = "-1"
-  read_only  = true
   help       = "tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)"

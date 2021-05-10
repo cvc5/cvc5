@@ -159,7 +159,6 @@ name   = "Bitvector theory"
   long       = "bv-num-func=N"
   type       = "unsigned"
   default    = "1"
-  read_only  = true
   help       = "number of function symbols in conflicts that are generalized"
 
 [[option]]
@@ -176,7 +175,6 @@ name   = "Bitvector theory"
   long       = "bv-quick-xplain"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "minimize bv conflicts using the QuickXplain algorithm"
 
 [[option]]
@@ -193,7 +191,6 @@ name   = "Bitvector theory"
   long       = "bv-gauss-elim"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "simplify formula via Gaussian Elimination if applicable"
 
 [[option]]

@@ -70,7 +70,6 @@ name   = "Base"
   long       = "verbose"
   type       = "void"
   handler    = "increaseVerbosity"
-  read_only  = true
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
@@ -79,7 +78,6 @@ name   = "Base"
   long       = "quiet"
   type       = "void"
   handler    = "decreaseVerbosity"
-  read_only  = true
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
@@ -89,7 +87,6 @@ name   = "Base"
   category   = "common"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "give statistics on exit"
 
 [[option]]
@@ -99,7 +96,6 @@ name   = "Base"
   category   = "expert"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "print unchanged (defaulted) statistics as well"
 
 [[option]]
@@ -109,7 +105,6 @@ name   = "Base"
   category   = "expert"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "print expert (non-public) statistics as well"
 
 [[option]]
@@ -120,7 +115,6 @@ name   = "Base"
   type       = "bool"
   predicates = ["setStats"]
   default    = "false"
-  read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 
 [[option]]
@@ -135,7 +129,6 @@ name   = "Base"
   category   = "regular"
   long       = "preprocess-only"
   type       = "bool"
-  read_only  = true
   help       = "exit after preprocessing input"
 
 [[option]]
@@ -145,7 +138,6 @@ name   = "Base"
   long       = "trace=TAG"
   type       = "std::string"
   handler    = "enableTraceTag"
-  read_only  = true
   help       = "trace something (e.g. -t pushpop), can repeat"
 
 [[option]]
@@ -155,7 +147,6 @@ name   = "Base"
   long       = "debug=TAG"
   type       = "std::string"
   handler    = "enableDebugTag"
-  read_only  = true
   help       = "debug something (e.g. -d arith), can repeat"
 
 [[option]]
@@ -163,5 +154,4 @@ name   = "Base"
   category   = "regular"
   long       = "print-success"
   type       = "bool"
-  read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"
