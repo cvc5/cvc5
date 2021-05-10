@@ -403,7 +403,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       // compute the value of the equal/xor. The values for LHS/RHS are
       // stored in val0 and lastChildVal.
-      // (al0 == lastChildVal) / ck
+      // (val0 == lastChildVal) / ck
       // true                  / equal ... value of curr is true
       // true                  / xor   ... value of curr is false
       // false                 / equal ... value of curr is false

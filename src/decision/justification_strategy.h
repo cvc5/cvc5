@@ -87,7 +87,7 @@ namespace decision {
  *
  * This class has special handling of "skolem definitions", which arise when
  * lemmas are introduced that correspond to the behavior of skolems. As an
- * example, say our input, prior to preocessing, is:
+ * example, say our input, prior to preprocessing, is:
  *   (or (P (ite A 1 2)) Q)
  * where P is an uninterpreted predicate of type Int -> Bool. After
  * preprocessing, in particular term formula removal which replaces term-level
@@ -95,7 +95,7 @@ namespace decision {
  *   (or (P k) Q), (ite A (= k 1) (= k 2))
  * The second assertion is the skolem definition for k. Conceptually, this
  * lemma is only relevant if we have asserted a literal that contains k.
- * This module thus maintains two seperate assertion lists, one for
+ * This module thus maintains two separate assertion lists, one for
  * input assertions, and one for skolem definitions. The latter is populated
  * only as skolems appear in assertions. In this example, we have initially:
  *   input assertions = { (or (P k) Q) }
@@ -174,7 +174,7 @@ class JustificationStrategy
   void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
   /**
    * Refresh current assertion. This ensures that d_stack has a current
-   * assertionto satisfy. If does not already have one, we take the next
+   * assertion to satisfy. If does not already have one, we take the next
    * assertion from the list of input assertions, or from the relevant
    * skolem definitions based on the JutificationSkolemMode mode.
    *
