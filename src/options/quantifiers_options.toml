@@ -1,6 +1,5 @@
 id     = "QUANTIFIERS"
 name   = "Quantifiers"
-header = "options/quantifiers_options.h"
 
 # Whether to mini-scope quantifiers.
 # For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to

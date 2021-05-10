@@ -1,6 +1,5 @@
 id     = "SETS"
 name   = "Sets"
-header = "options/sets_options.h"
 
 [[option]]
   name       = "setsProxyLemmas"
