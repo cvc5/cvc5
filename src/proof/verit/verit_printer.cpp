@@ -44,9 +44,9 @@ void VeritProofPrinter::veritPrinter(std::ostream& out,
   {
     Trace("verit-printer") << "... print assumption " << pfn->getArguments()[i]
                            << std::endl;
-    out << "(assume a" << std::to_string(i-3) << " " << pfn->getArguments()[i]
+    out << "(assume a" << std::to_string(i - 3) << " " << pfn->getArguments()[i]
         << ")\n";
-    assumptions[0][pfn->getArguments()[i]] = i-3;
+    assumptions[0][pfn->getArguments()[i]] = i - 3;
   }
 
   // Then, print the rest of the proof node

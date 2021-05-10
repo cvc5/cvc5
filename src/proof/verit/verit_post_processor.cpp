@@ -15,29 +15,38 @@
 
 #include "proof/verit/verit_post_processor.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/proof.h"
 #include "expr/proof_checker.h"
-#include "expr/node_algorithm.h"
 
 namespace cvc5 {
 
 namespace proof {
 
-// This function removes all attributes contained in the list of attributes from a Node res while only recursively updating the node further if continueRemoval is true.
+// This function removes all attributes contained in the list of attributes from
+// a Node res while only recursively updating the node further if
+// continueRemoval is true.
 static Node removeAttributes(Node res,
-		const std::vector<Kind> &attributes,
-		bool (*continueRemoval)(Node)){
-  if(res.getNumChildren() != 0){
-     std::vector<Node> new_children;
-     if(res.hasOperator()){
-       new_children.push_back(res.getOperator());
-     }
-     for(int i = 0; i < res.end()-res.begin(); i++){
-       if(std::find(attributes.begin(),attributes.end(),res[i].getKind()) == attributes.end()){
-	 new_children.push_back(proof::removeAttributes(res[i],attributes,continueRemoval));
-       }
-     }
-     return NodeManager::currentNM()->mkNode(res.getKind(),new_children);
+                             const std::vector<Kind>& attributes,
+                             bool (*continueRemoval)(Node))
+{
+  if (res.getNumChildren() != 0)
+  {
+    std::vector<Node> new_children;
+    if (res.hasOperator())
+    {
+      new_children.push_back(res.getOperator());
+    }
+    for (int i = 0; i < res.end() - res.begin(); i++)
+    {
+      if (std::find(attributes.begin(), attributes.end(), res[i].getKind())
+          == attributes.end())
+      {
+        new_children.push_back(
+            proof::removeAttributes(res[i], attributes, continueRemoval));
+      }
+    }
+    return NodeManager::currentNM()->mkNode(res.getKind(), new_children);
   }
   return res;
 }
@@ -204,13 +213,16 @@ bool VeritProofPostprocessCallback::update(Node res,
       for (Node arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-	sanitized_args.push_back(removeAttributes(arg,{kind::INST_PATTERN,kind::INST_PATTERN_LIST},[](Node n){return expr::hasClosure(n);}));
+        sanitized_args.push_back(removeAttributes(
+            arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
+              return expr::hasClosure(n);
+            }));
       }
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
       negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
       Node vp1 = d_nm->mkNode(kind::SEXPR, negNode);
-      success &=
-          addVeritStep(vp1, VeritRule::ANCHOR_SUBPROOF, children, sanitized_args, *cdp);
+      success &= addVeritStep(
+          vp1, VeritRule::ANCHOR_SUBPROOF, children, sanitized_args, *cdp);
 
       // Build vp2i
       Node andNode;
@@ -1985,7 +1997,10 @@ bool VeritProofPostprocessCallback::update(Node res,
              i < (children[0][0].end() - children[0][0].begin());
              i++)
         {
-          sanitized_args.push_back(removeAttributes(d_nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]),{kind::INST_PATTERN,kind::INST_PATTERN_LIST},[](Node n){return expr::hasClosure(n);}));
+          sanitized_args.push_back(removeAttributes(
+              d_nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]),
+              {kind::INST_PATTERN, kind::INST_PATTERN_LIST},
+              [](Node n) { return expr::hasClosure(n); }));
           // Node vpi = d_nm->mkNode(kind::SEXPR, d_cl, vars.back());
           // addVeritStep(vpi,VeritRule::REFL,{},{},*cdp);
           // new_children.push_back(vpi);
@@ -1993,8 +2008,8 @@ bool VeritProofPostprocessCallback::update(Node res,
         return addVeritStep(res,
                             VeritRule::ANCHOR_BIND,
                             d_nm->mkNode(kind::SEXPR, d_cl, res),
-			    {children[1]},
-			    sanitized_args,
+                            {children[1]},
+                            sanitized_args,
                             *cdp);
       }
       return addVeritStep(res,
@@ -2686,8 +2701,12 @@ bool VeritProofPostprocessCallback::addVeritStep(
 {
   // delete attributes
   Node sanitized_conclusion = conclusion;
-  if(expr::hasClosure(conclusion)){
-    sanitized_conclusion = removeAttributes(conclusion,{kind::INST_PATTERN,kind::INST_PATTERN_LIST},[](Node n){return expr::hasClosure(n);});
+  if (expr::hasClosure(conclusion))
+  {
+    sanitized_conclusion = removeAttributes(
+        conclusion, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
+          return expr::hasClosure(n);
+        });
   }
 
   std::vector<Node> new_args = std::vector<Node>();
@@ -2715,7 +2734,6 @@ bool VeritProofPostprocessCallback::addVeritStepFromOr(
   return addVeritStep(res, rule, conclusion, children, args, cdp);
 }
 
-
 VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_pnm(pnm), d_nm(NodeManager::currentNM())
@@ -2729,7 +2747,8 @@ bool VeritProofPostprocessFinalCallback::shouldUpdate(
     bool& continueUpdate)
 {
   // Sanitize arguments of first scope
-  if(pn->getRule() != PfRule::VERIT_RULE){
+  if (pn->getRule() != PfRule::VERIT_RULE)
+  {
     continueUpdate = false;
     return true;
   }
@@ -2782,16 +2801,27 @@ bool VeritProofPostprocessFinalCallback::update(
     CDProof* cdp,
     bool& continueUpdate)
 {
-  //remove attribute for outermost scope
-  if(id != PfRule::VERIT_RULE){
+  // remove attribute for outermost scope
+  if (id != PfRule::VERIT_RULE)
+  {
     std::vector<Node> sanitized_args;
     sanitized_args.push_back(res);
     sanitized_args.push_back(res);
-    sanitized_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ASSUME)));
-    for (auto arg: args){
-       sanitized_args.push_back(removeAttributes(arg,{kind::INST_PATTERN,kind::INST_PATTERN_LIST},[](Node n){return expr::hasClosure(n);}));
+    sanitized_args.push_back(
+        d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ASSUME)));
+    for (auto arg : args)
+    {
+      sanitized_args.push_back(removeAttributes(
+          arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
+            return expr::hasClosure(n);
+          }));
     }
-    return cdp->addStep(res,PfRule::VERIT_RULE,children,sanitized_args,true,CDPOverwrite::ALWAYS);
+    return cdp->addStep(res,
+                        PfRule::VERIT_RULE,
+                        children,
+                        sanitized_args,
+                        true,
+                        CDPOverwrite::ALWAYS);
   }
 
   bool success = true;
@@ -2868,11 +2898,10 @@ void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // In the veriT proof format the final step has to be (cl). However, after the
   // translation it might be (cl false). In that case additional steps are
   // required.
-  // The function has the additional purpose of sanitizing the attributes of the first SCOPE
+  // The function has the additional purpose of sanitizing the attributes of the
+  // first SCOPE
   d_finalize.process(pf);
 }
-
-
 
 }  // namespace proof
 
