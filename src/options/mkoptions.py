@@ -134,15 +134,6 @@ TPL_OPTION_STRUCT_RW = \
   static constexpr const char* name = "{long_name}";
 }} thread_local {name};"""
 
-TPL_OPTION_STRUCT_RO = \
-"""extern struct {name}__option_t
-{{
-  typedef {type} type;
-  type operator()() const;
-  static constexpr const char* name = "{long_name}";
-}} thread_local {name};"""
-
-
 TPL_DECL_SET = \
 """template <> options::{name}__option_t::type& Options::ref(
     options::{name}__option_t);"""
