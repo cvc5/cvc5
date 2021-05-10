@@ -2733,7 +2733,8 @@ std::wstring Term::getString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_STRING, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_STRING,
+                              *d_node)
       << "Term to be a string when calling getString()";
   //////// all checks before this line
   return d_node->getConst<cvc5::String>().toWString();
@@ -2829,7 +2830,8 @@ Term Term::getConstArrayBase() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::STORE_ALL, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::STORE_ALL,
+                              *d_node)
       << "Term to be a constant array when calling getConstArrayBase()";
   //////// all checks before this line
   const auto& ar = d_node->getConst<ArrayStoreAll>();
@@ -2851,7 +2853,8 @@ bool Term::getBoolean() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_BOOLEAN, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_BOOLEAN,
+                              *d_node)
       << "Term to be a Boolean value when calling getBoolean()";
   //////// all checks before this line
   return d_node->getConst<bool>();
@@ -2872,7 +2875,8 @@ std::string Term::getBitVector(std::uint32_t base) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_BITVECTOR, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_BITVECTOR,
+                              *d_node)
       << "Term to be a bit-vector value when calling getBitVector()";
   //////// all checks before this line
   return d_node->getConst<BitVector>().toString(base);
@@ -2893,7 +2897,8 @@ std::string Term::getAbstractValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::ABSTRACT_VALUE, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::ABSTRACT_VALUE,
+                              *d_node)
       << "Term to be an abstract value when calling "
          "getAbstractValue()";
   //////// all checks before this line
@@ -2915,7 +2920,8 @@ std::vector<Term> Term::getTuple() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR, *d_node)
       << "Term to be a tuple when calling getTuple()";
   //////// all checks before this line
   std::vector<Term> res;
@@ -3007,7 +3013,8 @@ std::tuple<std::uint32_t, std::uint32_t, Term> Term::getFloatingPoint() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT, *d_node)
       << "Term to be a floating-point value when calling getFloatingPoint()";
   //////// all checks before this line
   const auto& fp = d_node->getConst<FloatingPoint>();
@@ -3028,13 +3035,14 @@ bool Term::isSet() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Term::collectSet(std::set<Term>& set, const cvc5::Node& node, const Solver* slv)
+void Term::collectSet(std::set<Term>& set,
+                      const cvc5::Node& node,
+                      const Solver* slv)
 {
   switch (node.getKind())
   {
     case cvc5::Kind::EMPTYSET: break;
-    case cvc5::Kind::SINGLETON:
-      set.emplace(Term(slv, node[0])); break;
+    case cvc5::Kind::SINGLETON: set.emplace(Term(slv, node[0])); break;
     case cvc5::Kind::UNION:
     {
       for (const auto& sub : node)
@@ -3075,8 +3083,10 @@ std::string Term::getChar() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_STRING
-                 && d_node->getConst<String>().getVec().size() == 1, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::CONST_STRING
+          && d_node->getConst<String>().getVec().size() == 1,
+      *d_node)
       << "Term to be a single character when calling getChar()";
   //////// all checks before this line
   unsigned codePoint = d_node->getConst<String>().getVec()[0];
@@ -3148,7 +3158,8 @@ std::pair<Sort, std::int32_t> Term::getUninterpretedConst() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::UNINTERPRETED_CONSTANT, *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::UNINTERPRETED_CONSTANT, *d_node)
       << "Term to be an uninterpreted constant when calling "
          "getUninterpretedConst()";
   //////// all checks before this line

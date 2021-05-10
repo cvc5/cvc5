@@ -1270,7 +1270,8 @@ class CVC5_EXPORT Term
   bool isReal32() const;
   /**
    * Asserts isReal32().
-   * @return the representation of a rational value as a pair of its numerator and denominator.
+   * @return the representation of a rational value as a pair of its numerator
+   * and denominator.
    */
   std::pair<int32_t, uint32_t> getReal32() const;
   /**
@@ -1280,7 +1281,8 @@ class CVC5_EXPORT Term
   bool isReal64() const;
   /**
    * Asserts isReal64().
-   * @return the representation of a rational value as a pair of its numerator and denominator.
+   * @return the representation of a rational value as a pair of its numerator
+   * and denominator.
    */
   std::pair<int64_t, uint64_t> getReal64() const;
   /**
@@ -1319,8 +1321,9 @@ class CVC5_EXPORT Term
   bool isBitVector() const;
   /**
    * Asserts isBitVector().
-   * @return the representation of a bit-vector value in string representation. Supported
-   * bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal string).
+   * @return the representation of a bit-vector value in string representation.
+   * Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal
+   * string).
    */
   std::string getBitVector(uint32_t base = 2) const;
 
@@ -1372,7 +1375,8 @@ class CVC5_EXPORT Term
   bool isFloatingPoint() const;
   /**
    * Asserts isFloatingPoint().
-   * @return the representation of a floating-point constant as a tuple of the exponent width, the significand with and a bit-vector constant.
+   * @return the representation of a floating-point constant as a tuple of the
+   * exponent width, the significand with and a bit-vector constant.
    */
   std::tuple<uint32_t, uint32_t, Term> getFloatingPoint() const;
 
@@ -1392,8 +1396,8 @@ class CVC5_EXPORT Term
   bool isChar() const;
   /**
    * Asserts isChar().
-   * @return the representation of a single character as a string that holds the unicode code point
-   * as hexadecimal numer.
+   * @return the representation of a single character as a string that holds the
+   * unicode code point as hexadecimal numer.
    */
   std::string getChar() const;
   /**
@@ -1410,7 +1414,8 @@ class CVC5_EXPORT Term
   /**
   bool @return() const;
    * Asserts isUninterpretedConst().
-   * @return the representation of an uninterpreted constant as a pair of its sort and its
+   * @return the representation of an uninterpreted constant as a pair of its
+  sort and its
    * index.
    */
   std::pair<Sort, int32_t> getUninterpretedConst() const;
@@ -1426,7 +1431,9 @@ class CVC5_EXPORT Term
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
 
   /** Helper method to collect all elements of a set. */
-  static void collectSet(std::set<Term>& set, const cvc5::Node& node, const Solver* slv);
+  static void collectSet(std::set<Term>& set,
+                         const cvc5::Node& node,
+                         const Solver* slv);
   /** Helper method to collect all elements of a sequence. */
   static void collectSequence(std::vector<Term>& seq,
                               const cvc5::Node& node,
