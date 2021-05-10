@@ -71,7 +71,6 @@ header = "options/base_options.h"
   long       = "verbose"
   type       = "void"
   handler    = "increaseVerbosity"
-  read_only  = true
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
@@ -80,7 +79,6 @@ header = "options/base_options.h"
   long       = "quiet"
   type       = "void"
   handler    = "decreaseVerbosity"
-  read_only  = true
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
@@ -90,7 +88,6 @@ header = "options/base_options.h"
   category   = "common"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "give statistics on exit"
 
 [[option]]
@@ -100,7 +97,6 @@ header = "options/base_options.h"
   category   = "expert"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "print unchanged (defaulted) statistics as well"
 
 [[option]]
@@ -110,7 +106,6 @@ header = "options/base_options.h"
   category   = "expert"
   type       = "bool"
   predicates = ["setStats"]
-  read_only  = true
   help       = "print expert (non-public) statistics as well"
 
 [[option]]
@@ -121,7 +116,6 @@ header = "options/base_options.h"
   type       = "bool"
   predicates = ["setStats"]
   default    = "false"
-  read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 
 [[option]]
@@ -136,7 +130,6 @@ header = "options/base_options.h"
   category   = "regular"
   long       = "preprocess-only"
   type       = "bool"
-  read_only  = true
   help       = "exit after preprocessing input"
 
 [[option]]
@@ -146,7 +139,6 @@ header = "options/base_options.h"
   long       = "trace=TAG"
   type       = "std::string"
   handler    = "enableTraceTag"
-  read_only  = true
   help       = "trace something (e.g. -t pushpop), can repeat"
 
 [[option]]
@@ -156,7 +148,6 @@ header = "options/base_options.h"
   long       = "debug=TAG"
   type       = "std::string"
   handler    = "enableDebugTag"
-  read_only  = true
   help       = "debug something (e.g. -d arith), can repeat"
 
 [[option]]
@@ -164,5 +155,4 @@ header = "options/base_options.h"
   category   = "regular"
   long       = "print-success"
   type       = "bool"
-  read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"

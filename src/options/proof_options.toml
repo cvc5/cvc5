@@ -26,7 +26,6 @@ header = "options/proof_options.h"
   long       = "proof-print-conclusion"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "Print conclusion of proof steps when printing AST"
 
 [[option]]
@@ -35,7 +34,6 @@ header = "options/proof_options.h"
   long       = "proof-pedantic=N"
   type       = "uint32_t"
   default    = "0"
-  read_only  = true
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
 [[option]]

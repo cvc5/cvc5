@@ -7,7 +7,6 @@ header = "options/parser_options.h"
   category   = "common"
   long       = "strict-parsing"
   type       = "bool"
-  read_only  = true
   help       = "be less tolerant of non-conforming inputs"
 
 [[option]]
@@ -15,7 +14,6 @@ header = "options/parser_options.h"
   category   = "regular"
   long       = "mmap"
   type       = "bool"
-  read_only  = true
   help       = "memory map file input"
 
 [[option]]
@@ -24,7 +22,6 @@ header = "options/parser_options.h"
   category   = "regular"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
-  read_only  = true
   help       = "enable semantic checks, including type checks"
 
 [[option]]
@@ -33,7 +30,6 @@ header = "options/parser_options.h"
   category   = "regular"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "force all declarations and definitions to be global"
 
 # this is to support security in the online version, and in other similar
@@ -54,7 +50,6 @@ header = "options/parser_options.h"
   long       = "filesystem-access"
   type       = "bool"
   default    = "true"
-  read_only  = true
 
 [[option]]
   name       = "forceLogicString"
@@ -62,5 +57,4 @@ header = "options/parser_options.h"
   category   = "expert"
   long       = "force-logic=LOGIC"
   type       = "std::string"
-  read_only  = true
   help       = "set the logic, and override all further user attempts to change it"

@@ -32,7 +32,6 @@ header = "options/theory_options.h"
   long       = "condense-function-values"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "condense values for functions in models rather than explicitly representing them"
 
 [[option]]

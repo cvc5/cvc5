@@ -8,7 +8,6 @@ header = "options/sets_options.h"
   long       = "sets-proxy-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "introduce proxy variables eagerly to shorten lemmas"
 
 [[option]]
@@ -17,7 +16,6 @@ header = "options/sets_options.h"
   long       = "sets-infer-as-lemmas"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "send inferences as lemmas"
 
 [[option]]
@@ -26,5 +24,4 @@ header = "options/sets_options.h"
   long       = "sets-ext"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "enable extended symbols such as complement and universe in theory of sets"
