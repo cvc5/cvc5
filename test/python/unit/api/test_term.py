@@ -1001,6 +1001,8 @@ def test_get_integer(solver):
   assert int10.getInteger() == "18446744073709551615"
   assert not int11.isInt32() and not int11.isUInt32() and not int11.isInt64() and not int11.isUInt64() and int11.isInteger()
   assert int11.getInteger() == "18446744073709551616"
+
+
 def test_const_array(solver):
     intsort = solver.getIntegerSort()
     arrsort = solver.mkArraySort(intsort, intsort)
