@@ -165,7 +165,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     // Force lazy solver since we don't handle EAGER_ATOMS in the
     // BVSolver::BITBLAST solver.
-    opts.set(options::bvSolver, options::BVSolver::LAZY);
+    if (options::bvSolver() != options::BVSolver::BITBLAST
+        && options::bvSolver() != options::BVSolver::LAZY)
+    {
+      opts.set(options::bvSolver, options::BVSolver::LAZY);
+    }
   }
 
   /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
