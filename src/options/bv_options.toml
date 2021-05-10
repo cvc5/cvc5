@@ -252,6 +252,6 @@ header = "options/bv_options.h"
   category   = "regular"
   long       = "bv-assert-input"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
 
