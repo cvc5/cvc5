@@ -255,7 +255,7 @@ class Option(object):
         self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
-            if attr in ['alternate'] or val:
+            if attr == 'alternate' or val:
                 self.__dict__[attr] = val
 
 
