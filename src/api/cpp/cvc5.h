@@ -1210,8 +1210,8 @@ class CVC5_EXPORT Term
    */
   bool isInt32() const;
   /**
-   * @return the stored integer as a std::int32_t.
-   * Note: Asserts isInt32().
+   * Asserts isInt32().
+   * @return the integer term as a std::int32_t.
    */
   std::int32_t getInt32() const;
   /**
@@ -1219,8 +1219,8 @@ class CVC5_EXPORT Term
    */
   bool isUInt32() const;
   /**
-   * @return the stored integer as a std::uint32_t.
-   * Note: Asserts isUInt32().
+   * Asserts isUInt32().
+   * @return the integer term as a std::uint32_t.
    */
   std::uint32_t getUInt32() const;
   /**
@@ -1228,8 +1228,8 @@ class CVC5_EXPORT Term
    */
   bool isInt64() const;
   /**
-   * @return the stored integer as a std::int64_t.
-   * Note: Asserts isInt64().
+   * Asserts isInt64().
+   * @return the integer term as a std::int64_t.
    */
   std::int64_t getInt64() const;
   /**
@@ -1237,8 +1237,8 @@ class CVC5_EXPORT Term
    */
   bool isUInt64() const;
   /**
-   * @return the stored integer as a std::uint64_t.
-   * Note: Asserts isUInt64().
+   * Asserts isUInt64().
+   * @return the integer term as a std::uint64_t.
    */
   std::uint64_t getUInt64() const;
   /**
@@ -1246,8 +1246,8 @@ class CVC5_EXPORT Term
    */
   bool isInteger() const;
   /**
-   * @return the stored integer in (decimal) string representation.
-   * Note: Asserts isInteger().
+   * Asserts isInteger().
+   * @return the integer term in (decimal) string representation.
    */
   std::string getInteger() const;
 
@@ -1256,150 +1256,162 @@ class CVC5_EXPORT Term
    */
   bool isString() const;
   /**
-   * @return the stored string constant.
+   * @return the string term as a native string constant.
    *
    * Note: This method is not to be confused with toString() which returns the
-   *       term in some string representation, whatever data it may hold.
-   *       Asserts isString().
+   * term in some string representation, whatever data it may hold.
+   * Asserts isString().
    */
   std::wstring getString() const;
 
+  /**
+   * @return true if the term is a rational whose numerator and denominator fit
+   * within std::int32_t and std::uint32_t, respectively.
+   */
   bool isReal32() const;
   /**
-   * Returns the stored rational as a pair of its numerator and denominator.
    * Asserts isReal32().
+   * @return the representation of a rational value as a pair of its numerator and denominator.
    */
   std::pair<std::int32_t, std::uint32_t> getReal32() const;
   /**
-   * Returns true if the term is a rational whose numerator and denominator fit
+   * @return true if the term is a rational whose numerator and denominator fit
    * within std::int64_t and std::uint64_t, respectively.
    */
   bool isReal64() const;
   /**
-   * Returns the stored rational as a pair of its numerator and denominator.
    * Asserts isReal64().
+   * @return the representation of a rational value as a pair of its numerator and denominator.
    */
   std::pair<std::int64_t, std::uint64_t> getReal64() const;
   /**
-   * Returns true if the term is a rational.
+   * @return true if the term is a rational.
    */
   bool isReal() const;
   /**
-   * Returns the stored rational in (decimal) string representation.
-   * Asserts isRealString().
+   * Asserts isReal().
+   * @return the representation of a rational value as a (decimal) string.
    */
   std::string getReal() const;
 
   /**
-   * Returns true if the term is a constant array.
+   * @return true if the term is a constant array.
    */
   bool isConstArray() const;
   /**
-   * Return the base (element stored at all indices) of a constant array
    * Asserts isConstArray().
+   * @return the base (element stored at all indices) of a constant array
    */
   Term getConstArrayBase() const;
 
   /**
-   * Returns true if the term is a Boolean constant.
+   * @return true if the term is a Boolean constant.
    */
   bool isBoolean() const;
   /**
-   * Returns the stored Boolean constant. Asserts isBoolean().
+   * Asserts isBoolean().
+   * @return the representation of a Boolean constant as a native Boolean value.
    */
   bool getBoolean() const;
 
   /**
-   * Returns true if the term is a BitVector constant.
+   * @return true if the term is a bit-vector constant.
    */
   bool isBitVector() const;
   /**
-   * Returns the stored BitVector constant in string representation. Supported
+   * Asserts isBitVector().
+   * @return the representation of a bit-vector value in string representation. Supported
    * bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal string).
    */
   std::string getBitVector(std::uint32_t base = 2) const;
 
   /**
-   * Returns true if the term is an abstract value.
+   * @return true if the term is an abstract value.
    */
   bool isAbstractValue() const;
   /**
-   * Returns the stored abstract value in string representation.
+   * Asserts isAbstractValue().
+   * @return the representation of an abstract value as a string.
    */
   std::string getAbstractValue() const;
 
   /**
-   * Returns true if the term is a tuple.
+   * @return true if the term is a tuple.
    */
   bool isTuple() const;
   /**
-   * Returns the stored tuple as a vector of terms.
+   * Asserts isTuple().
+   * @return the representation of a tuple as a vector of terms.
    */
   std::vector<Term> getTuple() const;
 
   /**
-   * Returns true if the term is the floating-point constant for positive zero.
+   * @return true if the term is the floating-point constant for positive zero.
    */
   bool isPosZero() const;
   /**
-   * Returns true if the term is the floating-point constant for negative zero.
+   * @return true if the term is the floating-point constant for negative zero.
    */
   bool isNegZero() const;
   /**
-   * Returns true if the term is the floating-point constant for positive
+   * @return true if the term is the floating-point constant for positive
    * infinity.
    */
   bool isPosInf() const;
   /**
-   * Returns true if the term is the floating-point constant for negative
+   * @return true if the term is the floating-point constant for negative
    * infinity.
    */
   bool isNegInf() const;
   /**
-   * Returns true if the term is the floating-point constant for not a number.
+   * @return true if the term is the floating-point constant for not a number.
    */
   bool isNaN() const;
   /**
-   * Returns true if the term is a floating-point constant.
+   * @return true if the term is a floating-point constant.
    */
   bool isFloatingPoint() const;
   /**
-   * Returns the stored floating-point constant as a tuple of the exponent
-   * width, the significand with and a bit-vector constant. Asserts
-   * isFloatingPoint().
+   * Asserts isFloatingPoint().
+   * @return the representation of a floating-point constant as a tuple of the exponent width, the significand with and a bit-vector constant.
    */
   std::tuple<std::uint32_t, std::uint32_t, Term> getFloatingPoint() const;
 
   /**
-   * Returns true if the term is a set.
+   * @return true if the term is a set.
    */
   bool isSet() const;
   /**
-   * Returns the stored set as a set of terms. Asserts isSet().
+   * Asserts isSet().
+   * @return the representation of a set as a set of terms.
    */
   std::set<Term> getSet() const;
 
   /**
-   * Returns true if the term is a single string character.
+   * @return true if the term is a single string character.
    */
   bool isChar() const;
   /**
-   * Returns the stored character as a string that holds the unicode code point
-   * as hexadecimal numer. Asserts isChar().
+   * Asserts isChar().
+   * @return the representation of a single character as a string that holds the unicode code point
+   * as hexadecimal numer.
    */
   std::string getChar() const;
   /**
-   * Returns true if the term is a constant sequence.
+   * Asserts isChar().
+   * @return true if the term is a constant sequence.
    */
   bool isSequence() const;
   std::vector<Term> getSequence() const;
 
   /**
-   * Returns true if the term is a constant from an uninterpreted sort.
+   * @return true if the term is a constant from an uninterpreted sort.
    */
   bool isUninterpretedConst() const;
   /**
-   * Returns the stored uninterpreted constant as a pair of its sort and its
+  bool @return() const;
+   * Asserts isUninterpretedConst().
+   * @return the representation of an uninterpreted constant as a pair of its sort and its
    * index.
    */
   std::pair<Sort, std::int32_t> getUninterpretedConst() const;
