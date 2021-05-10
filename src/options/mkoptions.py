@@ -246,8 +246,8 @@ class Module(object):
         self.options = []
         self.id = self.id.lower()
         self.id_cap = self.id.upper()
-        self.filename = os.path.splitext(os.path.split(filename)[1])[0]
-        self.header = 'options/{}.h'.format(self.filename)
+        self.filename = os.path.splitext(os.path.split(filename)[-1])[0]
+        self.header = os.path.join('options', '{}.h'.format(self.filename))
 
 
 class Option(object):
