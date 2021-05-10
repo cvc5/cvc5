@@ -3106,40 +3106,23 @@ bool Term::isSequence() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getType().isSequence();
+  return d_node->getKind() == cvc5::Kind::CONST_SEQUENCE;
   ////////
   CVC5_API_TRY_CATCH_END;
-}
-void Term::collectSequence(std::vector<Term>& seq,
-                           const cvc5::Node& node,
-                           const Solver* slv)
-{
-  switch (node.getKind())
-  {
-    case cvc5::Kind::STRING_CONCAT:
-    {
-      for (const auto& sub : node)
-      {
-        collectSequence(seq, sub, slv);
-      }
-      break;
-    }
-    case cvc5::Kind::SEQ_UNIT: seq.emplace_back(Term(slv, node[0])); break;
-    case cvc5::Kind::CONST_SEQUENCE:
-      // Is this always the empty sequence?
-      break;
-    default: break;
-  }
 }
 std::vector<Term> Term::getSequence() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getType().isSequence(), *d_node)
-      << "Term to be a sequence when calling getSequence()";
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_SEQUENCE, *d_node)
+      << "Term to be a constant sequence when calling getSequence()";
   //////// all checks before this line
   std::vector<Term> res;
-  Term::collectSequence(res, *d_node, d_solver);
+  const Sequence& seq = d_node->getConst<Sequence>();
+  for (const auto& node: seq.getVec())
+  {
+    res.emplace_back(Term(d_solver, node));
+  }
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;

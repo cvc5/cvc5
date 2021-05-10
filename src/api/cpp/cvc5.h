@@ -1401,10 +1401,14 @@ class CVC5_EXPORT Term
    */
   std::string getChar() const;
   /**
-   * Asserts isChar().
    * @return true if the term is a constant sequence.
    */
   bool isSequence() const;
+  /**
+   * Asserts isSequence().
+   * Note that it is usually necessary for sequences to call `Solver::simplify()` to turn a sequence that is constructed by, e.g., concatenation of unit sequences, into a constant sequences.
+   * @return the representation of a constant sequence as a vector of terms.
+   */
   std::vector<Term> getSequence() const;
 
   /**

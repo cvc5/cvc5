@@ -964,10 +964,15 @@ TEST_F(TestApiBlackTerm, getSequence)
       Kind::SEQ_CONCAT, s2, d_solver.mkTerm(Kind::SEQ_CONCAT, s3, s4));
 
   ASSERT_TRUE(s1.isSequence());
-  ASSERT_TRUE(s2.isSequence());
-  ASSERT_TRUE(s3.isSequence());
-  ASSERT_TRUE(s4.isSequence());
-  ASSERT_TRUE(s5.isSequence());
+  ASSERT_TRUE(!s2.isSequence());
+  ASSERT_TRUE(!s3.isSequence());
+  ASSERT_TRUE(!s4.isSequence());
+  ASSERT_TRUE(!s5.isSequence());
+
+  s2 = d_solver.simplify(s2);
+  s3 = d_solver.simplify(s3);
+  s4 = d_solver.simplify(s4);
+  s5 = d_solver.simplify(s5);
 
   ASSERT_EQ(std::vector<Term>({}), s1.getSequence());
   ASSERT_EQ(std::vector<Term>({i1}), s2.getSequence());
