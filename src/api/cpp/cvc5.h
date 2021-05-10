@@ -1206,41 +1206,41 @@ class CVC5_EXPORT Term
   const_iterator end() const;
 
   /**
-   * @return true if the term is an integer that fits within std::int32_t.
+   * @return true if the term is an integer that fits within int32_t.
    */
   bool isInt32() const;
   /**
    * Asserts isInt32().
-   * @return the integer term as a std::int32_t.
+   * @return the integer term as a int32_t.
    */
-  std::int32_t getInt32() const;
+  int32_t getInt32() const;
   /**
-   * @return true if the term is an integer that fits within std::uint32_t.
+   * @return true if the term is an integer that fits within uint32_t.
    */
   bool isUInt32() const;
   /**
    * Asserts isUInt32().
-   * @return the integer term as a std::uint32_t.
+   * @return the integer term as a uint32_t.
    */
-  std::uint32_t getUInt32() const;
+  uint32_t getUInt32() const;
   /**
-   * @return true if the term is an integer that fits within std::int64_t.
+   * @return true if the term is an integer that fits within int64_t.
    */
   bool isInt64() const;
   /**
    * Asserts isInt64().
-   * @return the integer term as a std::int64_t.
+   * @return the integer term as a int64_t.
    */
-  std::int64_t getInt64() const;
+  int64_t getInt64() const;
   /**
-   * @return true if the term is an integer that fits within std::uint64_t.
+   * @return true if the term is an integer that fits within uint64_t.
    */
   bool isUInt64() const;
   /**
    * Asserts isUInt64().
-   * @return the integer term as a std::uint64_t.
+   * @return the integer term as a uint64_t.
    */
-  std::uint64_t getUInt64() const;
+  uint64_t getUInt64() const;
   /**
    * @return true if the term is an integer.
    */
@@ -1266,24 +1266,24 @@ class CVC5_EXPORT Term
 
   /**
    * @return true if the term is a rational whose numerator and denominator fit
-   * within std::int32_t and std::uint32_t, respectively.
+   * within int32_t and uint32_t, respectively.
    */
   bool isReal32() const;
   /**
    * Asserts isReal32().
    * @return the representation of a rational value as a pair of its numerator and denominator.
    */
-  std::pair<std::int32_t, std::uint32_t> getReal32() const;
+  std::pair<int32_t, uint32_t> getReal32() const;
   /**
    * @return true if the term is a rational whose numerator and denominator fit
-   * within std::int64_t and std::uint64_t, respectively.
+   * within int64_t and uint64_t, respectively.
    */
   bool isReal64() const;
   /**
    * Asserts isReal64().
    * @return the representation of a rational value as a pair of its numerator and denominator.
    */
-  std::pair<std::int64_t, std::uint64_t> getReal64() const;
+  std::pair<int64_t, uint64_t> getReal64() const;
   /**
    * @return true if the term is a rational.
    */
@@ -1323,7 +1323,7 @@ class CVC5_EXPORT Term
    * @return the representation of a bit-vector value in string representation. Supported
    * bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal string).
    */
-  std::string getBitVector(std::uint32_t base = 2) const;
+  std::string getBitVector(uint32_t base = 2) const;
 
   /**
    * @return true if the term is an abstract value.
@@ -1375,7 +1375,7 @@ class CVC5_EXPORT Term
    * Asserts isFloatingPoint().
    * @return the representation of a floating-point constant as a tuple of the exponent width, the significand with and a bit-vector constant.
    */
-  std::tuple<std::uint32_t, std::uint32_t, Term> getFloatingPoint() const;
+  std::tuple<uint32_t, uint32_t, Term> getFloatingPoint() const;
 
   /**
    * @return true if the term is a set.
@@ -1414,7 +1414,7 @@ class CVC5_EXPORT Term
    * @return the representation of an uninterpreted constant as a pair of its sort and its
    * index.
    */
-  std::pair<Sort, std::int32_t> getUninterpretedConst() const;
+  std::pair<Sort, int32_t> getUninterpretedConst() const;
 
  protected:
   /**
