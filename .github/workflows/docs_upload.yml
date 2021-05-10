@@ -19,22 +19,6 @@ jobs:
         run: |
             ssh-agent -a $SSH_AUTH_SOCK > /dev/null
             ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
-      
-      - name: Setup Context
-        run: |
-          if [ "${{ github.event.workflow_run.event_name }}" == "push" ] ; then
-            NAME=$(echo "${GITHUB_REF}" | sed "s,refs/heads/,,")
-            HASH=${{ github.event.workflow_run.sha }}
-            echo "Identified branch $NAME"
-          elif [ "${{ github.event.workflow_run.event_name }}" == "pull_request" ] ; then
-            NAME="${{ github.event.workflow_run.number }}"
-            HASH="${{ github.event.workflow_run.pull_request.head.sha }}"
-            echo "Identified PR #$NAME (from $HASH)"
-            NAME="pr$NAME"
-          fi
-          echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "HASH=$HASH" >> $GITHUB_ENV
-
       - name: Clone Documentation Repository
         env:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -66,6 +50,21 @@ jobs:
 
       - name: Unpack artifact
         run: unzip download.zip -d docs-new/
+      
+      - name: Setup Context
+        run: |
+          HASH=${{ github.event.workflow_run.head_commit.id }}
+          if [ "${{ github.event.workflow_run.event }}" == "push" ] ; then
+            NAME=${{ github.event.workflow_run.head_branch }}
+            echo "Identified branch $NAME"
+          elif [ "${{ github.event.workflow_run.event }}" == "pull_request" ] ; then
+            NAME=$(cat docs-new/prnum)
+            rm docs-new/prnum
+            echo "Identified PR #$NAME (from $HASH)"
+            NAME="pr$NAME"
+          fi
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "HASH=$HASH" >> $GITHUB_ENV
 
       - name: Update docs
         continue-on-error: true
