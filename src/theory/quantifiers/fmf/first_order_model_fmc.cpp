@@ -38,9 +38,8 @@ using IsStarAttribute = expr::Attribute<IsStarAttributeId, bool>;
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
-                                       TermRegistry& tr,
-                                       std::string name)
-    : FirstOrderModel(qs, qr, tr, name)
+                                       TermRegistry& tr)
+    : FirstOrderModel(qs, qr, tr)
 {
 }
 
