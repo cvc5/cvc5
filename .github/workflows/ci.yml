@@ -219,7 +219,11 @@ jobs:
 
     - name: Build Documentation
       if: matrix.build-documentation
-      run: make -j2 docs-gh
+      run: |
+        make -j2 docs-gh
+        if [ "${{ github.event_name }}" == "pull_request" ] ; then
+          echo "${{ github.event.number }}" > docs/sphinx-gh/prnum
+        fi
       working-directory: build
     
     - name: Store Documentation
